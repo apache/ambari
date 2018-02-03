@@ -16,12 +16,38 @@
  * limitations under the License.
  */
 
-import {LogLevel} from '@app/classes/string';
+@import '../mixins';
 
-export type HomogeneousObject<T> = {[key: string]: T};
+table {
+  display: block;
+  max-height: 70vh;
+  overflow-y: auto;
+  table-layout: fixed;
 
-export interface LogLevelObject {
-  name: LogLevel;
-  label: string;
-  color: string;
+  .component-column {
+    width: auto;
+  }
+
+  .checkbox-column {
+    width: 100px;
+    padding-left: 0;
+    padding-right: 0;
+
+    /deep/ graph-legend-item {
+      padding-right: 1px;
+    }
+  }
+
+  .override-column {
+    width: 32%;
+    padding-right: 0;
+  }
+
+  .overrides-toggle {
+    .clickable-item;
+  }
+
+  input[type=checkbox] + label {
+    font-size: @table-font-size;
+  }
 }

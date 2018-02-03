@@ -82,6 +82,9 @@ export class HttpClientService extends Http {
     topAuditLogsResources: {
       url: variables => `audit/logs/resources/${variables.number}`,
       params: opts => new AuditLogsTopResourcesQueryParams(opts)
+    },
+    logIndexFilters: {
+      url: variables => `shipper/filters/${variables.clusterName}/level`
     }
   };
 
@@ -148,8 +151,12 @@ export class HttpClientService extends Http {
     return req;
   }
 
-  get(url, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {
+  get(url: string, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {
     return super.get(this.generateUrlString(url, urlVariables), this.generateOptions(url, params));
+  }
+
+  put(url: string, body: any, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {
+    return super.put(this.generateUrlString(url, urlVariables), body, this.generateOptions(url, params));
   }
 
   postFormData(url: string, params: HomogeneousObject<string>, options?: RequestOptionsArgs): Observable<Response> {

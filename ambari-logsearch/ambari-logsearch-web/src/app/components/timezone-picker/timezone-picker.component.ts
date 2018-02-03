@@ -20,6 +20,7 @@ import {Component, OnInit} from '@angular/core';
 import * as $ from 'jquery';
 import '@vendor/js/WorldMapGenerator.min';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 
 @Component({
   selector: 'timezone-picker',
@@ -28,7 +29,7 @@ import {AppSettingsService} from '@app/services/storage/app-settings.service';
 })
 export class TimeZonePickerComponent implements OnInit {
 
-  constructor(private appSettings: AppSettingsService) {
+  constructor(private appSettings: AppSettingsService, private settingsService: UserSettingsService) {
   }
 
   ngOnInit() {
@@ -72,10 +73,7 @@ export class TimeZonePickerComponent implements OnInit {
 
   setTimeZone(): void {
     const timeZone = this.timeZoneSelect.val();
-
-    // TODO replace with setTimeZone() method call from settings service as soon as it's implemented
-    this.appSettings.setParameter('timeZone', timeZone);
-
+    this.settingsService.setTimeZone(timeZone);
     this.setTimeZonePickerDisplay(false);
   }
 

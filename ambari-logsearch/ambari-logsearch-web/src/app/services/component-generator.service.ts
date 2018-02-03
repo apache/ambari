@@ -22,11 +22,16 @@ import {ComponentsService} from '@app/services/storage/components.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
 import {HistoryItemControlsComponent} from '@app/components/history-item-controls/history-item-controls.component';
+import {LogLevelObject} from '@app/classes/object';
 
 @Injectable()
 export class ComponentGeneratorService {
 
   constructor(private resolver: ComponentFactoryResolver, private hostsStorage: HostsService, private componentsStorage: ComponentsService, private logsContainer: LogsContainerService) {
+  }
+
+  private get logLevels(): LogLevelObject[] {
+    return this.logsContainer.logLevels;
   }
 
   private createComponent(type: any, container: ViewContainerRef, properties?: any): void {
@@ -43,7 +48,7 @@ export class ComponentGeneratorService {
         const selectedHost = hosts.find(host => host.name === hostName);
         data = selectedHost.logLevelCount.map(event => {
           return {
-            color: this.logsContainer.colors[event.name],
+            color: this.logLevels.find((level: LogLevelObject): boolean => level.name === event.name).color,
             value: event.value
           };
         });
@@ -63,7 +68,7 @@ export class ComponentGeneratorService {
         const selectedHost = components.find(host => host.name === componentName);
         data = selectedHost.logLevelCount.map(event => {
           return {
-            color: this.logsContainer.colors[event.name],
+            color: this.logLevels.find((level: LogLevelObject): boolean => level.name === event.name).color,
             value: event.value
           };
         });

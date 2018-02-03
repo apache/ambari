@@ -19,9 +19,21 @@
 <menu-button label="{{'topMenu.undo' | translate}}" [subItems]="undoItems" iconClass="fa fa-arrow-left"
              listClass="history-dropdown" (buttonClick)="undoLatest()" (selectItem)="undo($event)"></menu-button>
 <menu-button label="{{'topMenu.redo' | translate}}" [subItems]="redoItems" iconClass="fa fa-arrow-right"
-             listClass="history-dropdown" (buttonClick)="redoLatest()" (selectItem)="redo($event)">></menu-button>
+             listClass="history-dropdown" (buttonClick)="redoLatest()" (selectItem)="redo($event)"></menu-button>
 <menu-button label="{{'topMenu.history' | translate}}" [subItems]="historyItems" iconClass="fa fa-history"
              listClass="history-dropdown" [isRightAlign]="true"
              additionalLabelComponentSetter="getHistoryItemIcons"></menu-button>
+<menu-button label="{{'topMenu.filter' | translate}}" iconClass="fa fa-filter"
+             (buttonClick)="openLogIndexFilter()"></menu-button>
 <menu-button label="{{'topMenu.refresh' | translate}}" iconClass="fa fa-refresh"
              (buttonClick)="refresh()"></menu-button>
+<modal *ngIf="isLogIndexFilterDisplayed" (submit)="saveLogIndexFilter()" (cancel)="closeLogIndexFilter()"
+       (close)="closeLogIndexFilter()" [isExtraLargeModal]="true" [isSubmitDisabled]="isModalSubmitDisabled"
+       title="{{'logIndexFilter.title' | translate}}" submitButtonLabel="{{'modal.save' | translate}}">
+  <ng-template>
+    <form [formGroup]="settingsForm">
+      <log-index-filter formControlName="logIndexFilter"
+                        (changeIsSubmitDisabled)="setModalSubmitDisabled($event)"></log-index-filter>
+    </form>
+  </ng-template>
+</modal>

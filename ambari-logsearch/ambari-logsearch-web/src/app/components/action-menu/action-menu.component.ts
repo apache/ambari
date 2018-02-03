@@ -17,8 +17,10 @@
  */
 
 import {Component} from '@angular/core';
+import {FormGroup} from '@angular/forms';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HistoryManagerService} from '@app/services/history-manager.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 import {ListItem} from '@app/classes/list-item';
 
 @Component({
@@ -28,7 +30,10 @@ import {ListItem} from '@app/classes/list-item';
 })
 export class ActionMenuComponent {
 
-  constructor(private logsContainer: LogsContainerService, private historyManager: HistoryManagerService) {
+  constructor(
+    private logsContainer: LogsContainerService, private historyManager: HistoryManagerService,
+    private settings: UserSettingsService
+  ) {
   }
 
   get undoItems(): ListItem[] {
@@ -41,6 +46,16 @@ export class ActionMenuComponent {
 
   get historyItems(): ListItem[] {
     return this.historyManager.activeHistory;
+  }
+
+  isLogIndexFilterDisplayed: boolean = false;
+
+  settingsForm: FormGroup = this.settings.settingsFormGroup;
+
+  isModalSubmitDisabled: boolean = true;
+
+  setModalSubmitDisabled(isDisabled: boolean): void {
+    this.isModalSubmitDisabled = isDisabled;
   }
 
   undoLatest(): void {
@@ -61,6 +76,19 @@ export class ActionMenuComponent {
 
   refresh(): void {
     this.logsContainer.loadLogs();
+  }
+
+  openLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = true;
+  }
+
+  closeLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = false;
+  }
+
+  saveLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = false;
+    this.settings.saveIndexFilterConfig();
   }
 
 }

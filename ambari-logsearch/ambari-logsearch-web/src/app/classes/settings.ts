@@ -16,18 +16,17 @@
  * limitations under the License.
  */
 
+import {HomogeneousObject} from '@app/classes/object';
 
-import {Injectable} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppStore, CollectionModelService, getCollectionReducer} from '@app/classes/models/store';
+export type LevelOverridesConfig = HomogeneousObject<{
+  defaults: boolean;
+  overrides: boolean;
+}>
 
-export const modelName = 'filters';
-
-@Injectable()
-export class FiltersService extends CollectionModelService {
-  constructor(store: Store<AppStore>) {
-    super(modelName, store);
-  }
+export type LogIndexFilterComponentConfig = LevelOverridesConfig & {
+  name: string;
+  label: string;
+  hosts: string;
+  expiryTime: string | null;
+  hasOverrides?: boolean;
 }
-
-export const filters = getCollectionReducer(modelName);

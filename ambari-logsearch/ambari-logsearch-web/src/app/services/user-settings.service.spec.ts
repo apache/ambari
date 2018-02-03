@@ -17,7 +17,6 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -35,11 +34,12 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
-import {LogsContainerService} from './logs-container.service';
+import {UserSettingsService} from './user-settings.service';
 
-describe('LogsContainerService', () => {
+describe('UserSettingsService', () => {
   beforeEach(() => {
     const httpClient = {
       get: () => {
@@ -65,10 +65,16 @@ describe('LogsContainerService', () => {
           hosts,
           serviceLogsTruncated,
           tabs
-        }),
-        ...TranslationModules
+        })
       ],
       providers: [
+        UserSettingsService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
+        LogsContainerService,
+        UtilsService,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
@@ -81,19 +87,12 @@ describe('LogsContainerService', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService,
-        LogsContainerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
-        UtilsService
+        TabsService
       ]
     });
   });
 
-  it('should create service', inject([LogsContainerService], (service: LogsContainerService) => {
+  it('should be created', inject([UserSettingsService], (service: UserSettingsService) => {
     expect(service).toBeTruthy();
   }));
-
 });

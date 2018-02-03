@@ -48,7 +48,7 @@ import {
   FilterCondition, TimeUnitListItem, SortingListItem, SearchBoxParameter, SearchBoxParameterTriggered
 } from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
-import {HomogeneousObject} from '@app/classes/object';
+import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
 import {LogsType, ScrollType, SortingType} from '@app/classes/string';
 import {Tab} from '@app/classes/models/tab';
 import {LogField} from '@app/classes/models/log-field';
@@ -125,6 +125,44 @@ export class LogsContainerService {
   }
 
   private readonly paginationOptions: string[] = ['10', '25', '50', '100'];
+
+  readonly logLevels: LogLevelObject[] = [
+    {
+      name: 'FATAL',
+      label: 'levels.fatal',
+      color: '#830A0A'
+    },
+    {
+      name: 'ERROR',
+      label: 'levels.error',
+      color: '#E81D1D'
+    },
+    {
+      name: 'WARN',
+      label: 'levels.warn',
+      color: '#FF8916'
+    },
+    {
+      name: 'INFO',
+      label: 'levels.info',
+      color: '#2577B5'
+    },
+    {
+      name: 'DEBUG',
+      label: 'levels.debug',
+      color: '#65E8FF'
+    },
+    {
+      name: 'TRACE',
+      label: 'levels.trace',
+      color: '#888'
+    },
+    {
+      name: 'UNKNOWN',
+      label: 'levels.unknown',
+      color: '#BDBDBD'
+    }
+  ];
 
   filters: HomogeneousObject<FilterCondition> = {
     clusters: {
@@ -365,36 +403,12 @@ export class LogsContainerService {
     levels: {
       label: 'filter.levels',
       iconClass: 'fa fa-sort-amount-asc',
-      options: [
-        {
-          label: 'levels.fatal',
-          value: 'FATAL'
-        },
-        {
-          label: 'levels.error',
-          value: 'ERROR'
-        },
-        {
-          label: 'levels.warn',
-          value: 'WARN'
-        },
-        {
-          label: 'levels.info',
-          value: 'INFO'
-        },
-        {
-          label: 'levels.debug',
-          value: 'DEBUG'
-        },
-        {
-          label: 'levels.trace',
-          value: 'TRACE'
-        },
-        {
-          label: 'levels.unknown',
-          value: 'UNKNOWN'
-        }
-      ],
+      options: this.logLevels.map((level: LogLevelObject): ListItem => {
+        return {
+          label: level.label,
+          value: level.name
+        };
+      }),
       defaultSelection: [],
       fieldName: 'level'
     },
@@ -485,16 +499,6 @@ export class LogsContainerService {
     isUndoOrRedo: {
       defaultSelection: false
     }
-  };
-
-  readonly colors = {
-    FATAL: '#830A0A',
-    ERROR: '#E81D1D',
-    WARN: '#FF8916',
-    INFO: '#2577B5',
-    DEBUG: '#65E8FF',
-    TRACE: '#888',
-    UNKNOWN: '#BDBDBD'
   };
 
   private readonly filtersMapping = {
@@ -615,30 +619,6 @@ export class LogsContainerService {
   serviceLogs: Observable<ServiceLog[]> = Observable.combineLatest(this.serviceLogsStorage.getAll(), this.serviceLogsColumns).map(this.logsMapper);
 
   auditLogs: Observable<AuditLog[]> = Observable.combineLatest(this.auditLogsStorage.getAll(), this.auditLogsColumns).map(this.logsMapper);
-
-  /**
-   * Get instance for dropdown list from string
-   * @param name {string}
-   * @returns {ListItem}
-   */
-  private getListItemFromString(name: string): ListItem {
-    return {
-      label: name,
-      value: name
-    };
-  }
-
-  /**
-   * Get instance for dropdown list from NodeItem object
-   * @param node {NodeItem}
-   * @returns {ListItem}
-   */
-  private getListItemFromNode(node: NodeItem): ListItem {
-    return {
-      label: `${node.name} (${node.value})`,
-      value: node.name
-    };
-  }
 
   queryParameterNameChange: Subject<SearchBoxParameterTriggered> = new Subject();
 
@@ -976,7 +956,7 @@ export class LogsContainerService {
     request.subscribe((response: Response): void => {
       const clusterNames = response.json();
       if (clusterNames) {
-        this.filters.clusters.options.push(...clusterNames.map(this.getListItemFromString));
+        this.filters.clusters.options.push(...clusterNames.map(this.utils.getListItemFromString));
         this.clustersStorage.addInstances(clusterNames);
       }
     });
@@ -993,7 +973,7 @@ export class LogsContainerService {
             }, 0)
           }));
       if (components) {
-        this.filters.components.options.push(...components.map(this.getListItemFromNode));
+        this.filters.components.options.push(...components.map(this.utils.getListItemFromNode));
         this.componentsStorage.addInstances(components);
       }
     });
@@ -1006,7 +986,7 @@ export class LogsContainerService {
       const jsonResponse = response.json(),
         hosts = jsonResponse && jsonResponse.vNodeList;
       if (hosts) {
-        this.filters.hosts.options.push(...hosts.map(this.getListItemFromNode));
+        this.filters.hosts.options.push(...hosts.map(this.utils.getListItemFromNode));
         this.hostsStorage.addInstances(hosts);
       }
     });

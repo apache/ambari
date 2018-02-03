@@ -417,4 +417,28 @@ describe('UtilsService', () => {
       }));
     });
   });
+
+  describe('#getListItemFromString()', () => {
+    it('should convert string to ListItem', inject([UtilsService], (service: UtilsService) => {
+      expect(service.getListItemFromString('customName')).toEqual({
+        label: 'customName',
+        value: 'customName'
+      });
+    }));
+  });
+
+  describe('#getListItemFromNode()', () => {
+    it('should convert NodeItem to ListItem', inject([UtilsService], (service: UtilsService) => {
+      expect(service.getListItemFromNode({
+        name: 'customName',
+        value: '1',
+        isParent: true,
+        isRoot: true
+      })).toEqual({
+        label: 'customName (1)',
+        value: 'customName'
+      });
+    }));
+  });
+
 });

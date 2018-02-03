@@ -38,6 +38,7 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -49,7 +50,6 @@ import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-tr
 import {GraphsService} from '@app/services/storage/graphs.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 import {UserConfigsService} from '@app/services/storage/user-configs.service';
-import {FiltersService} from '@app/services/storage/filters.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
@@ -97,6 +97,7 @@ import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-
 import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
 import {ContextMenuComponent} from '@app/components/context-menu/context-menu.component';
 import {HistoryItemControlsComponent} from '@app/components/history-item-controls/history-item-controls.component';
+import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-index-filter.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -161,6 +162,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     TimeLineGraphComponent,
     ContextMenuComponent,
     HistoryItemControlsComponent,
+    LogIndexFilterComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -188,6 +190,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     UtilsService,
     LogsContainerService,
     ComponentGeneratorService,
+    UserSettingsService,
     AppSettingsService,
     AppStateService,
     AuditLogsService,
@@ -198,7 +201,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     GraphsService,
     HostsService,
     UserConfigsService,
-    FiltersService,
     ClustersService,
     ComponentsService,
     ServiceLogsFieldsService,
