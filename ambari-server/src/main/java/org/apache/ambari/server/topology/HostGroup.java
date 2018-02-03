@@ -30,10 +30,6 @@ import org.apache.ambari.server.controller.internal.StackDefinition;
 public interface HostGroup {
 
   /**
-   * Compiled regex for hostgroup token.
-   */
-  Pattern HOSTGROUP_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%");
-  /**
    * Get the name of the host group.
    *
    * @return the host group name

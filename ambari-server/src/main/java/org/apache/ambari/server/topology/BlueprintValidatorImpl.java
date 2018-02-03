@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
@@ -159,7 +160,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
             if(givenHostGroups.size() != hostGroupsForComponent.size()) {
                throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
             }
-            if(HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()){
+            if (BlueprintConfigurationProcessor.HOST_GROUP_PLACEHOLDER_PATTERN.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && BlueprintConfigurationProcessor.HOST_GROUP_PLACEHOLDER_PATTERN.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()) {
               for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
                  Iterator<String> itr = givenHostGroups.iterator();
                  while(itr.hasNext()){

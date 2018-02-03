@@ -49,7 +49,6 @@ import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 import org.apache.commons.lang.StringUtils;
@@ -70,6 +69,11 @@ import com.google.common.collect.Sets;
 public class BlueprintConfigurationProcessor {
 
   private static final Logger LOG = LoggerFactory.getLogger(BlueprintConfigurationProcessor.class);
+
+  /**
+   * Compiled regex for "%HOSTGROUP::...%" token.
+   */
+  public static final Pattern HOST_GROUP_PLACEHOLDER_PATTERN = Pattern.compile("%HOSTGROUP::(\\S+?)%");
 
   private final static String COMMAND_RETRY_ENABLED_PROPERTY_NAME = "command_retry_enabled";
 
@@ -279,7 +283,7 @@ public class BlueprintConfigurationProcessor {
       return false;
     }
     // check fir bp import
-    Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(propertyValue);
+    Matcher m = HOST_GROUP_PLACEHOLDER_PATTERN.matcher(propertyValue);
     if (m.find()) {
       return true;
     }
@@ -1381,7 +1385,7 @@ public class BlueprintConfigurationProcessor {
       ClusterTopology topology) {
 
       //todo: getHostStrings
-      Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue);
+      Matcher m = HOST_GROUP_PLACEHOLDER_PATTERN.matcher(origValue);
       if (m.find()) {
         String hostGroupName = m.group(1);
 
@@ -1406,7 +1410,7 @@ public class BlueprintConfigurationProcessor {
       Map<String, Map<String, String>> properties,
       ClusterTopology topology) {
       //todo: getHostStrings
-      Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue);
+      Matcher m = HOST_GROUP_PLACEHOLDER_PATTERN.matcher(origValue);
       if (m.find()) {
         String hostGroupName = m.group(1);
         return Collections.singleton(hostGroupName);
