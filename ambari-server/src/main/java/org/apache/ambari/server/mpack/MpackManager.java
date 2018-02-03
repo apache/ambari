@@ -448,14 +448,14 @@ public class MpackManager {
    * Download the mpack from the given uri
    *
    * @param mpackURI
-   * @param mpackDefintionLocation
+   * @param mpackDefinitionLocation
    * @return
    */
   public Path downloadMpack(String mpackURI, String mpackDefinitionLocation) throws IOException {
 
     File stagingDir = new File(mpacksStaging.toString() + File.separator + MPACK_TAR_LOCATION);
-    Path targetPath = new File(stagingDir.getPath() + File.separator + mpackDefintionLocation).toPath();
-    String mpackTarURI = mpackURI.substring(0, mpackURI.lastIndexOf('/')) + File.separator + mpackDefintionLocation;
+    Path targetPath = new File(stagingDir.getPath() + File.separator + mpackDefinitionLocation).toPath();
+    String mpackTarURI = mpackURI.substring(0, mpackURI.lastIndexOf('/')) + File.separator + mpackDefinitionLocation;
     URL url = new URL(mpackTarURI);
 
     if (!stagingDir.exists()) {
