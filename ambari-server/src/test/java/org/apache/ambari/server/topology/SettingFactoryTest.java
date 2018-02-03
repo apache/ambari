@@ -39,13 +39,9 @@ public class SettingFactoryTest {
    */
   @Test
   public void testGetSettingWithSetOfProperties() {
-    SettingFactory settingFactory = new SettingFactory();
-    Map<String, Set<HashMap<String, String>>> properties;
-
-    Setting setting = settingFactory.getSetting(createSettingWithSetOfProperties());
-    Set<HashMap<String, String>> propertyValues = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
+    Setting setting = SettingFactory.getSetting(createSettingWithSetOfProperties());
+    Set<Map<String, String>> propertyValues = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
     assertEquals(propertyValues.size(), 1);
-
     assertEquals(propertyValues.iterator().next().get(Setting.SETTING_NAME_RECOVERY_ENABLED), "true");
   }
 
@@ -54,13 +50,9 @@ public class SettingFactoryTest {
    */
   @Test
   public void testGetSettingWithoutSetOfProperties() {
-    SettingFactory settingFactory = new SettingFactory();
-    Map<String, Set<HashMap<String, String>>> properties;
-
-    Setting setting = settingFactory.getSetting(createSettingWithoutSetOfProperties());
-    Set<HashMap<String, String>> propertyValues = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
+    Setting setting = SettingFactory.getSetting(createSettingWithoutSetOfProperties());
+    Set<Map<String, String>> propertyValues = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
     assertEquals(propertyValues.size(), 1);
-
     assertEquals(propertyValues.iterator().next().get(Setting.SETTING_NAME_RECOVERY_ENABLED), "true");
   }
 
@@ -72,13 +64,11 @@ public class SettingFactoryTest {
    *     }
    *   ]
    * }
-   *
-   * @return
    */
   private Collection<Map<String, Object>> createSettingWithSetOfProperties() {
 
-    Set<HashMap<String, String>> setting1 = new HashSet<>();
-    Set<HashMap<String, String>> setting2 = new HashSet<>();
+    Set<Map<String, String>> setting1 = new HashSet<>();
+    Set<Map<String, String>> setting2 = new HashSet<>();
 
     // Setting 1: Property1
     HashMap<String, String> setting1Properties1 = new HashMap<>();
@@ -117,8 +107,6 @@ public class SettingFactoryTest {
    *     "recovery_enabled":"true"
    *     }
    * }
-   *
-   * @return
    */
   private Collection<Map<String, Object>> createSettingWithoutSetOfProperties() {
     // Setting 2: Property1 and Property2
@@ -130,7 +118,7 @@ public class SettingFactoryTest {
     setting2Properties2.put(Setting.SETTING_NAME_NAME, "TEZ");
     setting2Properties2.put(Setting.SETTING_NAME_RECOVERY_ENABLED, "false");
 
-    Set<HashMap<String, String>> setting2 = new HashSet<>();
+    Set<Map<String, String>> setting2 = new HashSet<>();
     setting2.add(setting2Properties1);
     setting2.add(setting2Properties2);
 

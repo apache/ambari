@@ -115,7 +115,7 @@ public class BlueprintResourceProviderTest {
     replay(resourceProviderFactory);
   }
 
-  private Map<String, Set<HashMap<String, String>>> getSettingProperties() {
+  private Map<String, Set<Map<String, String>>> getSettingProperties() {
     return new HashMap<>();
   }
 
@@ -133,7 +133,7 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
-    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
@@ -208,7 +208,7 @@ public class BlueprintResourceProviderTest {
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);
 
-    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
     requestInfoProperties.put("validate_topology", "false");
@@ -295,7 +295,7 @@ public class BlueprintResourceProviderTest {
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);
-    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
@@ -369,7 +369,7 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
-    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
 
     // set expectations
@@ -495,7 +495,7 @@ public class BlueprintResourceProviderTest {
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Map<String, String> requestInfoProperties = new HashMap<>();
-    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[]}");
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);
@@ -542,7 +542,7 @@ public class BlueprintResourceProviderTest {
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Map<String, String> requestInfoProperties = new HashMap<>();
-    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[{\"configuration-type\":{\"properties\":{\"property\":\"value\"}}}]}");
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);

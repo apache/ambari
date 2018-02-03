@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Map;
+
 public class RepositorySetting {
   /**
    * Settings for each repo setting sections
@@ -33,6 +35,15 @@ public class RepositorySetting {
   private String operatingSystem;
   private String repoId;
   private String baseUrl;
+
+  static RepositorySetting fromMap(Map<String, String> setting) {
+    RepositorySetting result = new RepositorySetting();
+    result.setOperatingSystem(setting.get(OPERATING_SYSTEM));
+    result.setOverrideStrategy(setting.get(OVERRIDE_STRATEGY));
+    result.setRepoId(setting.get(REPO_ID));
+    result.setBaseUrl(setting.get(BASE_URL));
+    return result;
+  }
 
   /**
    * When specified under the "settings" section, it allows Ambari to overwrite existing repos stored
@@ -106,11 +117,10 @@ public class RepositorySetting {
   }
 
   public String toString(){
-    StringBuilder strBldr = new StringBuilder();
-    strBldr.append(OVERRIDE_STRATEGY);strBldr.append(": ");strBldr.append(overrideStrategy);
-    strBldr.append(OPERATING_SYSTEM);strBldr.append(": ");strBldr.append(operatingSystem);
-    strBldr.append(REPO_ID);strBldr.append(": ");strBldr.append(repoId);
-    strBldr.append(BASE_URL);strBldr.append(": ");strBldr.append(baseUrl);
-    return strBldr.toString();
+    return
+      OVERRIDE_STRATEGY + ": " + overrideStrategy +
+      OPERATING_SYSTEM + ": " + operatingSystem +
+      REPO_ID + ": " + repoId +
+      BASE_URL + ": " + baseUrl;
   }
 }

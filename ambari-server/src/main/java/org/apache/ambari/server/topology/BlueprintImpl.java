@@ -46,11 +46,11 @@ import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.JsonUtils;
-import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 
 /**
@@ -83,7 +83,7 @@ public class BlueprintImpl implements Blueprint {
     hostGroups = parseBlueprintHostGroups(entity);
     // TODO: how to handle multiple stacks correctly?
     configuration.setParentConfiguration(stack.getConfiguration(getServices()));
-    setting = processSetting(entity.getSettings());
+    setting = new Setting(parseSetting(entity.getSettings()));
     repoSettings = processRepoSettings();
   }
 
@@ -106,7 +106,7 @@ public class BlueprintImpl implements Blueprint {
     if (configuration.getParentConfiguration() == null) {
       configuration.setParentConfiguration(stack.getConfiguration(getServices()));
     }
-    this.setting = setting;
+    this.setting = setting != null ? setting : new Setting(ImmutableMap.of());
     repoSettings = processRepoSettings();
   }
 
@@ -178,115 +178,19 @@ public class BlueprintImpl implements Blueprint {
     return getComponents(service).stream().map(Component::getName).collect(toList());
   }
 
-  /**
-   * Get whether the specified component in the service is enabled
-   * for auto start.
-   *
-   * @param serviceName - Service name.
-   * @param componentName - Component name.
-   *
-   * @return null if value is not specified; true or false if specified.
-   */
   @Override
   public String getRecoveryEnabled(String serviceName, String componentName) {
-    Set<HashMap<String, String>> settingValue;
-
-    if (setting == null)
-      return null;
-
-    // If component name was specified in the list of "component_settings",
-    // determine if recovery_enabled is true or false and return it.
-    settingValue = setting.getSettingValue(Setting.SETTING_NAME_COMPONENT_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      String name = setting.get(Setting.SETTING_NAME_NAME);
-      if (StringUtils.equals(name, componentName)) {
-        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
-          return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
-        }
-      }
-    }
-
-    // If component name is not specified, look up it's service.
-    settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
-    for ( Map<String, String> setting : settingValue){
-      String name = setting.get(Setting.SETTING_NAME_NAME);
-      if (StringUtils.equals(name, serviceName)) {
-        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
-          return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
-        }
-      }
-    }
-
-    // If service name is not specified, look up the cluster setting.
-    settingValue = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
-        return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
-      }
-    }
-
-    return null;
+    return setting.getRecoveryEnabled(serviceName, componentName);
   }
 
-  /**
-   * Get whether the specified service is enabled for credential store use.
-   *
-   * <pre>
-   *     {@code
-   *       {
-   *         "service_settings" : [
-   *         { "name" : "RANGER",
-   *           "recovery_enabled" : "true",
-   *           "credential_store_enabled" : "true"
-   *         },
-   *         { "name" : "HIVE",
-   *           "recovery_enabled" : "true",
-   *           "credential_store_enabled" : "false"
-   *         },
-   *         { "name" : "TEZ",
-   *           "recovery_enabled" : "false"
-   *         }
-   *       ]
-   *     }
-   *   }
-   * </pre>
-   *
-   * @param serviceName - Service name.
-   *
-   * @return null if value is not specified; true or false if specified.
-   */
   @Override
   public String getCredentialStoreEnabled(String serviceName) {
-    if (setting == null)
-      return null;
-
-    // Look up the service and return the credential_store_enabled value.
-    Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      String name = setting.get(Setting.SETTING_NAME_NAME);
-      if (StringUtils.equals(name, serviceName)) {
-        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_CREDENTIAL_STORE_ENABLED))) {
-          return setting.get(Setting.SETTING_NAME_CREDENTIAL_STORE_ENABLED);
-        }
-        break;
-      }
-    }
-
-    return null;
+    return setting.getCredentialStoreEnabled(serviceName);
   }
 
   @Override
   public boolean shouldSkipFailure() {
-    if (setting == null) {
-      return false;
-    }
-    Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_DEPLOYMENT_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      if (setting.containsKey(Setting.SETTING_NAME_SKIP_FAILURE)) {
-        return setting.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true");
-      }
-    }
-    return false;
+    return setting.shouldSkipFailure();
   }
 
   @Override
@@ -406,15 +310,6 @@ public class BlueprintImpl implements Blueprint {
   }
 
   /**
-   * Process blueprint setting.
-   */
-  private Setting processSetting(Collection<BlueprintSettingEntity> blueprintSetting) {
-    return blueprintSetting != null
-      ? new Setting(parseSetting(blueprintSetting))
-      : null;
-  }
-
-  /**
    * Obtain configuration as a map of config type to corresponding properties.
    *
    * @return map of config type to map of properties
@@ -436,14 +331,16 @@ public class BlueprintImpl implements Blueprint {
    *
    * @return map of setting name to map of properties
    */
-  private Map<String, Set<HashMap<String, String>>> parseSetting(Collection<? extends BlueprintSettingEntity> blueprintSetting) {
+  private static Map<String, Set<Map<String, String>>> parseSetting(Collection<? extends BlueprintSettingEntity> blueprintSetting) {
+    if (blueprintSetting == null) {
+      return ImmutableMap.of();
+    }
 
-    Map<String, Set<HashMap<String, String>>> properties = new HashMap<>();
+    Map<String, Set<Map<String, String>>> properties = new HashMap<>();
     Gson gson = new Gson();
     for (BlueprintSettingEntity setting : blueprintSetting) {
       String settingName = setting.getSettingName();
-      Set<HashMap<String, String>> settingProperties = gson.<Set<HashMap<String, String>>>fromJson(
-              setting.getSettingData(), Set.class);
+      Set<Map<String, String>> settingProperties = gson.<Set<Map<String, String>>>fromJson(setting.getSettingData(), Set.class);
       properties.put(settingName, settingProperties);
     }
     return properties;
@@ -606,9 +503,9 @@ public class BlueprintImpl implements Blueprint {
     Setting blueprintSetting = getSetting();
     if (blueprintSetting != null) {
       Map<String, BlueprintSettingEntity> settingEntityMap = new HashMap<>();
-      for (Map.Entry<String, Set<HashMap<String, String>>> propEntry : blueprintSetting.getProperties().entrySet()) {
+      for (Map.Entry<String, Set<Map<String, String>>> propEntry : blueprintSetting.getProperties().entrySet()) {
         String settingName = propEntry.getKey();
-        Set<HashMap<String, String>> properties = propEntry.getValue();
+        Set<Map<String, String>> properties = propEntry.getValue();
 
         BlueprintSettingEntity settingEntity = new BlueprintSettingEntity();
         settingEntityMap.put(settingName, settingEntity);
@@ -636,27 +533,7 @@ public class BlueprintImpl implements Blueprint {
    * Parse stack repo info stored in the blueprint_settings table
    */
   private List<RepositorySetting> processRepoSettings() {
-    if (setting == null) {
-      return Collections.emptyList();
-    }
-
-    Set<? extends Map<String, String>> repositorySettingsValue = setting.getSettingValue(Setting.SETTING_NAME_REPOSITORY_SETTINGS);
-    if (repositorySettingsValue == null) {
-      return Collections.emptyList();
-    }
-
-    return repositorySettingsValue.stream()
-      .map(this::parseRepositorySetting)
-      .collect(toList());
-  }
-
-  private RepositorySetting parseRepositorySetting(Map<String, String> setting){
-    RepositorySetting result = new RepositorySetting();
-    result.setOperatingSystem(setting.get(RepositorySetting.OPERATING_SYSTEM));
-    result.setOverrideStrategy(setting.get(RepositorySetting.OVERRIDE_STRATEGY));
-    result.setRepoId(setting.get(RepositorySetting.REPO_ID));
-    result.setBaseUrl(setting.get(RepositorySetting.BASE_URL));
-    return result;
+    return setting != null ? setting.processRepoSettings() : Collections.emptyList();
   }
 
   public List<RepositorySetting> getRepositorySettings(){

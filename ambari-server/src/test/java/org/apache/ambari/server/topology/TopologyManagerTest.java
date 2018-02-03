@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -547,7 +548,7 @@ public class TopologyManagerTest {
 
   @Test(expected = InvalidTopologyException.class)
   public void testScaleHosts__alreadyExistingHost() throws InvalidTopologyTemplateException, InvalidTopologyException, AmbariException, NoSuchStackException {
-    HashSet<Map<String, Object>> propertySet = new HashSet<>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
     Map<String,Object> properties = new TreeMap<>();
     properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, "host1");
     properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, "group1");

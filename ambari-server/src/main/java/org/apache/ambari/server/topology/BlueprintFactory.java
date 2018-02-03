@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -209,7 +208,7 @@ public class BlueprintFactory {
   //todo: Move logic to HostGroupImpl
   @SuppressWarnings("unchecked")
   private Collection<HostGroup> processHostGroups(String bpName, StackDefinition stack, Map<String, Object> properties) {
-    Set<HashMap<String, Object>> hostGroupProps = (HashSet<HashMap<String, Object>>)
+    Set<Map<String, Object>> hostGroupProps = (Set<Map<String, Object>>)
         properties.get(HOST_GROUP_PROPERTY_ID);
 
     if (hostGroupProps == null || hostGroupProps.isEmpty()) {
@@ -217,13 +216,13 @@ public class BlueprintFactory {
     }
 
     Collection<HostGroup> hostGroups = new ArrayList<>();
-    for (HashMap<String, Object> hostGroupProperties : hostGroupProps) {
+    for (Map<String, Object> hostGroupProperties : hostGroupProps) {
       String hostGroupName = (String) hostGroupProperties.get(HOST_GROUP_NAME_PROPERTY_ID);
       if (hostGroupName == null || hostGroupName.isEmpty()) {
         throw new IllegalArgumentException("Every host group must include a non-null 'name' property");
       }
 
-      HashSet<HashMap<String, String>> componentProps = (HashSet<HashMap<String, String>>)
+      Set<Map<String, String>> componentProps = (Set<Map<String, String>>)
           hostGroupProperties.get(COMPONENT_PROPERTY_ID);
 
       Collection<Map<String, String>> configProps = (Collection<Map<String, String>>)
@@ -240,7 +239,7 @@ public class BlueprintFactory {
     return hostGroups;
   }
 
-  private Collection<Component> processHostGroupComponents(StackDefinition stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
+  private Collection<Component> processHostGroupComponents(StackDefinition stack, String groupName, Set<Map<String, String>>  componentProps) {
     if (componentProps == null || componentProps.isEmpty()) {
       throw new IllegalArgumentException("Host group '" + groupName + "' must contain at least one component");
     }
@@ -248,7 +247,7 @@ public class BlueprintFactory {
     Collection<String> stackComponentNames = getAllStackComponents(stack);
     Collection<Component> components = new ArrayList<>();
 
-    for (HashMap<String, String> componentProperties : componentProps) {
+    for (Map<String, String> componentProperties : componentProps) {
       String componentName = componentProperties.get(COMPONENT_NAME_PROPERTY_ID);
       if (componentName == null || componentName.isEmpty()) {
         throw new IllegalArgumentException("Host group '" + groupName +

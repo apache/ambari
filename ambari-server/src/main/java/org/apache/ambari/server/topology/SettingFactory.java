@@ -64,23 +64,20 @@ public class SettingFactory {
   /**
    * Attempts to build the list of settings in the following format:
    * setting_name1-->[propertyName1-->propertyValue1, propertyName2-->propertyValue2]
-   * @param blueprintSetting
-   * @return
    */
   public static Setting getSetting(Collection<Map<String, Object>> blueprintSetting) {
-    Map<String, Set<HashMap<String, String>>> properties = new HashMap<>();
-    Setting setting = new Setting(properties);
+    Map<String, Set<Map<String, String>>> properties = new HashMap<>();
 
     if (blueprintSetting != null) {
       for (Map<String, Object> settingMap : blueprintSetting) {
         for (Map.Entry<String, Object> entry : settingMap.entrySet()) {
           final String[] propertyNames = entry.getKey().split("/");
-          Set<HashMap<String, String>> settingValue;
+          Set<Map<String, String>> settingValue;
           if (entry.getValue() instanceof Set) {
-            settingValue = (HashSet<HashMap<String, String>>)entry.getValue();
+            settingValue = (Set<Map<String, String>>) entry.getValue();
           }
           else if (propertyNames.length > 1){
-            HashMap<String, String> property = new HashMap<>();
+            Map<String, String> property = new HashMap<>();
             property.put(propertyNames[1], String.valueOf(entry.getValue()));
             settingValue = properties.get(propertyNames[0]);
             if (settingValue == null) {
@@ -96,6 +93,6 @@ public class SettingFactory {
       }
     }
 
-    return setting;
+    return new Setting(properties);
   }
 }
