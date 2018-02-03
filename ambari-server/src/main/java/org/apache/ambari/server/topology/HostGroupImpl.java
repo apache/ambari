@@ -35,8 +35,6 @@ import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
@@ -44,8 +42,6 @@ import com.google.gson.Gson;
  * Host Group implementation.
  */
 public class HostGroupImpl implements HostGroup {
-
-  private static final Logger LOG = LoggerFactory.getLogger(HostGroupImpl.class);
 
   /**
    * host group name
@@ -73,7 +69,7 @@ public class HostGroupImpl implements HostGroup {
    */
   private Configuration configuration = null;
 
-  private boolean containsMasterComponent = false; // FIXME never set
+  private boolean containsMasterComponent = false;
 
   private StackDefinition stack;
 
@@ -108,17 +104,6 @@ public class HostGroupImpl implements HostGroup {
   @Override
   public String getName() {
     return name;
-  }
-
-  //todo: currently not qualifying host group name
-  @Override
-  public String getFullyQualifiedName() {
-    return String.format("%s:%s", blueprintName, getName());
-  }
-
-  //todo: currently not qualifying host group name
-  public static String formatAbsoluteName(String bpName, String hgName) {
-    return String.format("%s:%s", bpName, hgName);
   }
 
   @Override

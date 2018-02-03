@@ -19,7 +19,6 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Collection;
-import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.StackDefinition;
@@ -42,14 +41,6 @@ public interface HostGroup {
    * @return associated blueprint name
    */
   String getBlueprintName();
-
-  /**
-   * Get the fully qualified host group name in the form of
-   * blueprintName:hostgroupName
-   *
-   * @return fully qualified host group name
-   */
-  String getFullyQualifiedName();
 
   /**
    * Get all of the host group components.
@@ -88,7 +79,7 @@ public interface HostGroup {
    * @return set of component names
    */
   @Deprecated
-  public Collection<String> getComponentNames(String service);
+  Collection<String> getComponentNames(String service);
 
   /**
    * Get the host group components which belong to the specified service.
