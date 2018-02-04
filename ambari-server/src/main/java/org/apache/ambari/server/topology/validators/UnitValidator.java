@@ -27,7 +27,6 @@ import org.apache.ambari.server.controller.internal.UnitUpdater.PropertyUnit;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.TopologyValidator;
 
 /**
  * I validate the unit of properties by checking if it matches to the stack defined unit.

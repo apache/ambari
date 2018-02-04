@@ -28,7 +28,6 @@ import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.TopologyValidator;
 
 /**
  * Validates that all required passwords are provided.

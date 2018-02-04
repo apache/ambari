@@ -16,8 +16,6 @@ package org.apache.ambari.server.topology.validators;
 
 import java.util.List;
 
-import org.apache.ambari.server.topology.TopologyValidator;
-
 import com.google.common.collect.ImmutableList;
 
 public class TopologyValidatorFactory {

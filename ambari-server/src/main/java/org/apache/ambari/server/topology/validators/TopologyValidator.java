@@ -16,7 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.topology;
+package org.apache.ambari.server.topology.validators;
+
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.InvalidTopologyException;
 
 /**
  * Performs topology validation.

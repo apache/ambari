@@ -70,6 +70,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.TopologyValidator;
 import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
