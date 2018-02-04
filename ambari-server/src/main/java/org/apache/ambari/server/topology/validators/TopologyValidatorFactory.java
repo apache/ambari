@@ -19,11 +19,17 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 public class TopologyValidatorFactory {
-  List<TopologyValidator> validators;
+
+  private final List<TopologyValidator> validators;
 
   public TopologyValidatorFactory() {
-    validators = ImmutableList.of(new RequiredConfigPropertiesValidator(), new RequiredPasswordValidator(), new HiveServiceValidator(),
-      new StackConfigTypeValidator(), new UnitValidator(UnitValidatedProperty.ALL));
+    validators = ImmutableList.of(
+      new RequiredConfigPropertiesValidator(),
+      new RequiredPasswordValidator(),
+      new HiveServiceValidator(),
+      new StackConfigTypeValidator(),
+      new UnitValidator(UnitValidatedProperty.ALL)
+    );
   }
 
   public TopologyValidator createConfigurationValidatorChain() {

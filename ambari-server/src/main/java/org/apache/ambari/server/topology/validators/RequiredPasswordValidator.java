@@ -101,16 +101,8 @@ public class RequiredPasswordValidator implements TopologyValidator {
             String category = property.getType();
             String name = property.getName();
             if (! propertyExists(topology, groupProperties, category, name)) {
-              Map<String, Collection<String>> missingHostGroupPropsMap = missingProperties.get(hostGroupName);
-              if (missingHostGroupPropsMap == null) {
-                missingHostGroupPropsMap = new HashMap<>();
-                missingProperties.put(hostGroupName, missingHostGroupPropsMap);
-              }
-              Collection<String> missingHostGroupTypeProps = missingHostGroupPropsMap.get(category);
-              if (missingHostGroupTypeProps == null) {
-                missingHostGroupTypeProps = new HashSet<>();
-                missingHostGroupPropsMap.put(category, missingHostGroupTypeProps);
-              }
+              Map<String, Collection<String>> missingHostGroupPropsMap = missingProperties.computeIfAbsent(hostGroupName, __ -> new HashMap<>());
+              Collection<String> missingHostGroupTypeProps = missingHostGroupPropsMap.computeIfAbsent(category, __ -> new HashSet<>());
               missingHostGroupTypeProps.add(name);
             }
           }

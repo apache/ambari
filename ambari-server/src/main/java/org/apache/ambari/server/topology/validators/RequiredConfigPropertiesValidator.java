@@ -85,12 +85,11 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
         for (String configType : requiredPropertiesByType.keySet()) {
 
           // We need a copy not to modify the original
-          Collection<String> requiredPropertiesForType = new HashSet(
-              requiredPropertiesByType.get(configType));
+          Collection<String> requiredPropertiesForType = new HashSet<>(requiredPropertiesByType.get(configType));
 
           if (!operationalConfigurations.containsKey(configType)) {
             // all required configuration is missing for the config type
-            missingProperties = addTomissingProperties(missingProperties, hostGroup.getName(), requiredPropertiesForType);
+            missingProperties = addToMissingProperties(missingProperties, hostGroup.getName(), requiredPropertiesForType);
             continue;
           }
 
@@ -99,7 +98,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
           if (!requiredPropertiesForType.isEmpty()) {
             LOGGER.info("Found missing properties in hostgroup: {}, config type: {}, mising properties: {}", hostGroup.getName(),
               configType, requiredPropertiesForType);
-            missingProperties = addTomissingProperties(missingProperties, hostGroup.getName(), requiredPropertiesForType);
+            missingProperties = addToMissingProperties(missingProperties, hostGroup.getName(), requiredPropertiesForType);
           }
         }
       }
@@ -168,7 +167,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
 
   }
 
-  private Map<String, Collection<String>> addTomissingProperties(Map<String, Collection<String>> missingProperties, String hostGroup, Collection<String> values) {
+  private Map<String, Collection<String>> addToMissingProperties(Map<String, Collection<String>> missingProperties, String hostGroup, Collection<String> values) {
     Map<String, Collection<String>> missing;
 
     if (missingProperties == null) {

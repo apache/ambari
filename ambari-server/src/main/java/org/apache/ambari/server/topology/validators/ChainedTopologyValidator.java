@@ -36,14 +36,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Topology validator wrapper implementation. Executes a set of validations by calling a preconfgured set of validator implementations.
+ * Topology validator wrapper implementation. Executes a set of validations by calling a preconfigured set of validator implementations.
  */
 public class ChainedTopologyValidator implements TopologyValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChainedTopologyValidator.class);
-  private List<TopologyValidator> validators;
+  private final List<TopologyValidator> validators;
 
-  public ChainedTopologyValidator(List<TopologyValidator> validators) {
+  ChainedTopologyValidator(List<TopologyValidator> validators) {
     this.validators = validators;
   }
 
