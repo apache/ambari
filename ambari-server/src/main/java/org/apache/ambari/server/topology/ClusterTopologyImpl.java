@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +99,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Blueprint getBlueprint() {
     return blueprint;
+  }
+
+  @Override
+  public Set<StackId> getStackIds() {
+    return blueprint.getStackIds();
   }
 
   @Override

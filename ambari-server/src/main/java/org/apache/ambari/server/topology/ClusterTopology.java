@@ -20,9 +20,11 @@ package org.apache.ambari.server.topology;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.state.StackId;
 
 /**
  * Represents a full cluster topology including all instance information as well as the associated
@@ -50,6 +52,11 @@ public interface ClusterTopology {
    * @return assocaited blueprint
    */
   Blueprint getBlueprint();
+
+  /**
+   * @return the set of stack (mpack) IDs associated with the blueprint
+   */
+  Set<StackId> getStackIds();
 
   /**
    * Get the cluster scoped configuration for the cluster.

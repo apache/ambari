@@ -725,6 +725,14 @@ public class AmbariMetaInfo {
     return getStack(stackId.getStackName(), stackId.getStackVersion());
   }
 
+  public boolean isKnownStack(StackId stackId) {
+    try {
+      return getStack(stackId) != null;
+    } catch (AmbariException e) {
+      return false;
+    }
+  }
+
   public StackInfo getStack(String stackName, String version) throws AmbariException {
     StackInfo stackInfoResult = stackManager.getStack(stackName, version);
 

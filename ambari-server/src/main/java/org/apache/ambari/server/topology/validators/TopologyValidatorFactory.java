@@ -16,20 +16,27 @@ package org.apache.ambari.server.topology.validators;
 
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+
 import com.google.common.collect.ImmutableList;
 
 public class TopologyValidatorFactory {
 
   private final List<TopologyValidator> validators;
 
-  public TopologyValidatorFactory() {
-    validators = ImmutableList.of(
-      new RequiredConfigPropertiesValidator(),
-      new RequiredPasswordValidator(),
-      new HiveServiceValidator(),
-      new StackConfigTypeValidator(),
-      new UnitValidator(UnitValidatedProperty.ALL)
-    );
+  @Inject
+  public TopologyValidatorFactory(Provider<AmbariMetaInfo> metaInfo) {
+    validators = ImmutableList.<TopologyValidator>builder()
+      .add(new RejectUnknownStacks(metaInfo))
+      .add(new RequiredConfigPropertiesValidator())
+      .add(new RequiredPasswordValidator())
+      .add(new HiveServiceValidator())
+      .add(new StackConfigTypeValidator())
+      .add(new UnitValidator(UnitValidatedProperty.ALL))
+      .build();
   }
 
   public TopologyValidator createConfigurationValidatorChain() {
