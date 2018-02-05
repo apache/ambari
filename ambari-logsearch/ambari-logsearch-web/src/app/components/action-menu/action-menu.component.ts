@@ -48,6 +48,10 @@ export class ActionMenuComponent {
     return this.historyManager.activeHistory;
   }
 
+  get captureSeconds(): number {
+    return this.logsContainer.captureSeconds;
+  }
+
   isLogIndexFilterDisplayed: boolean = false;
 
   settingsForm: FormGroup = this.settings.settingsFormGroup;
@@ -89,6 +93,14 @@ export class ActionMenuComponent {
   saveLogIndexFilter(): void {
     this.isLogIndexFilterDisplayed = false;
     this.settings.saveIndexFilterConfig();
+  }
+
+  startCapture(): void {
+    this.logsContainer.startCaptureTimer();
+  }
+
+  stopCapture(): void {
+    this.logsContainer.stopCaptureTimer();
   }
 
 }

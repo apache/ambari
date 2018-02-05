@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
+@import '../variables';
+
 :host {
   display: block;
   margin-left: auto;
   menu-button {
     margin: 0 1em;
+    /deep/ .stop-icon {
+      color: @exclude-color;
+    }
   }
 }
