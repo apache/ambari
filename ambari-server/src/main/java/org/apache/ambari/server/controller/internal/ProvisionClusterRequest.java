@@ -18,8 +18,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,8 +29,10 @@ import java.util.Set;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilder;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileEvaluationException;
+import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.ConfigurationFactory;
@@ -44,12 +46,11 @@ import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Request for provisioning a cluster.
@@ -129,8 +130,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   public static final String MANAGEMENT_PACK_MAPPINGS_PROPERTY = "management_pack_mappings";
 
-  public static final String MPACK_INSTANCES_PROPERTY = BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID;
-
   public static final String MPACK_INSTANCE_PROPERTY = "mpack_instance";
 
   public static final String COMPONENT_NAME_PROPERTY = "component_name";
@@ -163,7 +162,9 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private final String quickLinksProfileJson;
 
-  private Collection<MpackInstance> mpackInstances;
+  private final Collection<MpackInstance> mpackInstances;
+  private final Set<StackId> stackIds;
+  private final StackDefinition stack;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
@@ -213,27 +214,15 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     setProvisionAction(parseProvisionAction(properties));
 
-    processMpackInstances(properties);
+    mpackInstances = BlueprintFactory.createMpackInstances(properties);
+    Set<StackId> stackIdsInRequest = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet()); // FIXME persist these
+    stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), stackIdsInRequest));
+    stack = blueprintFactory.composeStacks(stackIds);
 
     try {
       this.quickLinksProfileJson = processQuickLinksProfile(properties);
     } catch (QuickLinksProfileEvaluationException ex) {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
-    }
-  }
-
-  private void processMpackInstances(Map<String, Object> properties) throws InvalidTopologyTemplateException {
-    if (properties.containsKey(MPACK_INSTANCES_PROPERTY)) {
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-      try {
-        String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY));
-        this.mpackInstances = mapper.readValue(mpackInstancesJson,
-          new TypeReference<Collection<MpackInstance>>() {});
-      }
-      catch (IOException ex) {
-        throw new InvalidTopologyTemplateException("Cannot process mpack instances.", ex);
-      }
     }
   }
 
@@ -532,6 +521,14 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   public String getDefaultPassword() {
     return defaultPassword;
+  }
+
+  public Set<StackId> getStackIds() {
+    return stackIds;
+  }
+
+  public StackDefinition getStack() {
+    return stack;
   }
 
   public Collection<MpackInstance> getMpackInstances() {

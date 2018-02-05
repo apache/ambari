@@ -134,7 +134,7 @@ public class BlueprintFactory {
     return new BlueprintImpl(name, hostGroups, stack, stackIds, mpackInstances, configuration, securityConfiguration, setting);
   }
 
-  private Collection<MpackInstance> createMpackInstances(Map<String, Object> properties) throws NoSuchStackException {
+  public static Collection<MpackInstance> createMpackInstances(Map<String, Object> properties) throws NoSuchStackException {
     if (properties.containsKey(MPACK_INSTANCES_PROPERTY_ID)) {
       ObjectMapper mapper = new ObjectMapper();
       mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -156,7 +156,7 @@ public class BlueprintFactory {
     return new StackId(stackName, stackVersion);
   }
 
-  private StackDefinition composeStacks(Set<StackId> stackIds) {
+  public StackDefinition composeStacks(Set<StackId> stackIds) {
     Set<Stack> stacks = stackIds.stream()
       .map(this::createStack)
       .collect(toSet());
