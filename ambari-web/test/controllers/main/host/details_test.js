@@ -80,7 +80,7 @@ describe('App.MainHostDetailsController', function () {
       controller.sendComponentCommand.restore();
     });
 
-    it('configmation popup is shown', function () {
+    it('confirmation popup is shown', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
 
@@ -366,55 +366,97 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe.skip('#deleteComponent()', function () {
-
-    var jQueryMock,
-      cases = [
-        {
-          isDisabled: false,
-          showCallCount: 1,
-          title: 'confirm popup should be displayed'
-        },
-        {
-          isDisabled: true,
-          showCallCount: 0,
-          title: 'confirm popup shouldn\'t be displayed'
-        }
-      ];
-
+  describe('#deleteComponent()', function () {
     beforeEach(function () {
-      jQueryMock = sinon.stub(window, '$');
-      sinon.spy(App.ModalPopup, 'show');
-      sinon.stub(controller, '_doDeleteHostComponent', Em.K);
+      sinon.stub(controller, 'deleteAndReconfigureComponent');
+      sinon.spy(App, 'showConfirmationPopup');
+      sinon.stub(controller, 'showReconfigurationPopupPreDelete');
+      sinon.stub(App.router, 'transitionTo');
     });
-
     afterEach(function () {
-      jQueryMock.restore();
-      App.ModalPopup.show.restore();
-      controller._doDeleteHostComponent.restore();
+      controller.deleteAndReconfigureComponent.restore();
+      App.showConfirmationPopup.restore();
+      controller.showReconfigurationPopupPreDelete.restore();
+      App.router.transitionTo.restore();
     });
 
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        jQueryMock.returns({
-          closest: function () {
-            return {
-              hasClass: function () {
-                return item.isDisabled;
-              }
-            }
-          }
-        });
-        var event = {
-            context: Em.Object.create({})
-          },
-          popup = controller.deleteComponent(event);
-        expect(App.ModalPopup.show.callCount).to.equal(item.showCallCount);
-        if (item.showCallCount) {
-          popup.onPrimary();
-          expect(controller._doDeleteHostComponent.calledWith(Em.Object.create({}))).to.be.true;
-        }
+    it('showConfirmationPopup should be called', function () {
+      var popup = controller.deleteComponent({context: Em.Object.create({
+        componentName: 'JOURNALNODE'
+      })});
+
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+
+      popup.onPrimary();
+
+      expect(App.router.transitionTo.calledWith('main.services.manageJournalNode')).to.be.true;
+    });
+
+    it('deleteAndReconfigureComponent should be called', function () {
+      controller.deleteComponent({context: Em.Object.create({
+        componentName: 'ZOOKEEPER_SERVER'
+      })});
+
+      expect(controller.deleteAndReconfigureComponent.calledOnce).to.be.true;
+    });
+
+    it('showReconfigurationPopupPreDelete should be called', function () {
+      controller.deleteComponent({context: Em.Object.create({
+        componentName: 'DATANODE'
+      })});
+
+      expect(controller.showReconfigurationPopupPreDelete.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#deleteAndReconfigureComponent', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'loadComponentRelatedConfigs');
+      sinon.stub(controller, 'showReconfigurationPopupPreDelete', function(c, callback) {
+        callback();
       });
+      sinon.stub(controller, '_doDeleteHostComponent').returns({
+        done: Em.clb
+      });
+      sinon.stub(controller, 'applyConfigsCustomization');
+      sinon.stub(controller, 'putConfigsToServer');
+      sinon.stub(controller, 'clearConfigsChanges');
+      controller.deleteAndReconfigureComponent({
+        deletePropertyName: 'prop1',
+        configTagsCallbackName: Em.K,
+        configsCallbackName: Em.K
+      }, Em.Object.create({componentName: 'C1'}));
+    });
+    afterEach(function() {
+      controller.loadComponentRelatedConfigs.restore();
+      controller.showReconfigurationPopupPreDelete.restore();
+      controller._doDeleteHostComponent.restore();
+      controller.applyConfigsCustomization.restore();
+      controller.putConfigsToServer.restore();
+      controller.clearConfigsChanges.restore();
+    });
+
+    it('should set deleteProperty', function() {
+      expect(controller.get('prop1')).to.be.true;
+    });
+    it('loadComponentRelatedConfigs should be called', function() {
+      expect(controller.loadComponentRelatedConfigs.calledOnce).to.be.true;
+    });
+    it('showReconfigurationPopupPreDelete should be called', function() {
+      expect(controller.showReconfigurationPopupPreDelete.calledOnce).to.be.true;
+    });
+    it('_doDeleteHostComponent should be called', function() {
+      expect(controller._doDeleteHostComponent.calledWith('C1')).to.be.true;
+    });
+    it('applyConfigsCustomization should be called', function() {
+      expect(controller.applyConfigsCustomization.calledOnce).to.be.true;
+    });
+    it('putConfigsToServer should be called', function() {
+      expect(controller.putConfigsToServer.calledOnce).to.be.true;
+    });
+    it('clearConfigsChanges should be called', function() {
+      expect(controller.clearConfigsChanges.calledOnce).to.be.true;
     });
 
   });
@@ -503,11 +545,6 @@ describe('App.MainHostDetailsController', function () {
   describe('#addComponent()', function () {
     var cases = [
       {
-        componentName: 'ZOOKEEPER_SERVER',
-        showAddComponentPopupCallCount: 1,
-        showConfirmationPopupCallCount: 0
-      },
-      {
         componentName: 'RESOURCEMANAGER',
         showAddComponentPopupCallCount: 1,
         showConfirmationPopupCallCount: 0
@@ -526,7 +563,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, "checkComponentDependencies", Em.K);
       sinon.stub(controller, "showAddComponentPopup", Em.K);
-      sinon.stub(controller, "clearConfigsChanges", Em.K);
+      sinon.stub(controller, 'addAndReconfigureComponent');
       sinon.stub(App, "showConfirmationPopup", Em.K);
       controller.set('content', {
         hostComponents: [Em.Object.create({
@@ -538,7 +575,7 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function () {
       controller.checkComponentDependencies.restore();
       controller.showAddComponentPopup.restore();
-      controller.clearConfigsChanges.restore();
+      controller.addAndReconfigureComponent.restore();
       App.showConfirmationPopup.restore();
     });
 
@@ -565,6 +602,98 @@ describe('App.MainHostDetailsController', function () {
 
       });
 
+    });
+
+    it('should call addAndReconfigureComponent when adding ZOOKEEPER_SERVER', function () {
+      controller.addComponent({
+        context: Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER'
+        }),
+        fromServiceSummary: true
+      });
+      expect(controller.addAndReconfigureComponent.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#addAndReconfigureComponent', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'loadComponentRelatedConfigs');
+      sinon.stub(controller, 'showAddComponentPopup', function(c, h, callback) {
+        callback();
+      });
+      sinon.stub(controller, 'installAndReconfigureComponent');
+      controller.addAndReconfigureComponent({
+        hostPropertyName: 'host',
+        addPropertyName: 'prop1'
+      }, 'host1', {}, true);
+    });
+    afterEach(function() {
+      controller.loadComponentRelatedConfigs.restore();
+      controller.showAddComponentPopup.restore();
+      controller.installAndReconfigureComponent.restore();
+    });
+
+    it('hostPropertyName should be set', function() {
+      expect(controller.get('host')).to.be.equal('host1');
+    });
+    it('addPropertyName should be set', function() {
+      expect(controller.get('prop1')).to.be.equal(true);
+    });
+    it('loadComponentRelatedConfigs should be called', function() {
+      expect(controller.loadComponentRelatedConfigs.calledOnce).to.be.true;
+    });
+    it('showAddComponentPopup should be called', function() {
+      expect(controller.showAddComponentPopup.calledOnce).to.be.true;
+    });
+    it('installAndReconfigureComponent should be called', function() {
+      expect(controller.installAndReconfigureComponent.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#installAndReconfigureComponent', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'applyConfigsCustomization');
+      sinon.stub(controller, 'installHostComponentCall').returns({
+        done: function(callback) {
+          callback();
+          return {
+            always: Em.clb
+          }
+        }
+      });
+      sinon.stub(controller, 'putConfigsToServer');
+      sinon.stub(controller, 'clearConfigsChanges');
+
+      controller.set('groupedPropertiesToChange', [{}]);
+
+      controller.installAndReconfigureComponent('host1', Em.Object.create({
+        componentName: 'C1'
+      }), {
+        addPropertyName: 'prop1'
+      });
+    });
+    afterEach(function() {
+      controller.applyConfigsCustomization.restore();
+      controller.installHostComponentCall.restore();
+      controller.putConfigsToServer.restore();
+      controller.clearConfigsChanges.restore();
+    });
+
+    it('applyConfigsCustomization should be called', function() {
+      expect(controller.applyConfigsCustomization.calledOnce).to.be.true;
+    });
+    it('installHostComponentCall should be called', function() {
+      expect(controller.installHostComponentCall.calledOnce).to.be.true;
+    });
+    it('putConfigsToServer should be called', function() {
+      expect(controller.putConfigsToServer.calledWith([{}], 'C1')).to.be.true;
+    });
+    it('clearConfigsChanges should be called', function() {
+      expect(controller.clearConfigsChanges.calledOnce).to.be.true;
+    });
+    it('addPropertyName should be false', function() {
+      expect(controller.get('prop1')).to.be.false;
     });
 
   });
@@ -619,7 +748,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'getStormNimbusHosts').returns("host1");
       sinon.stub(controller, 'updateZkConfigs', Em.K);
-      sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'putConfigsToServer', Em.K);
       sinon.stub(controller, 'saveLoadedConfigs', Em.K);
       controller.set('nimbusHost', 'host2');
       controller.onLoadStormConfigs(data);
@@ -627,27 +756,13 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function () {
       controller.getStormNimbusHosts.restore();
       controller.updateZkConfigs.restore();
-      controller.saveConfigsBatch.restore();
+      controller.putConfigsToServer.restore();
       controller.saveLoadedConfigs.restore();
     });
     it("updateZkConfigs called with valid arguments", function() {
       expect(controller.updateZkConfigs.calledWith({'storm-site': {
         'nimbus.seeds': "'host1'"
       }})).to.be.true;
-    });
-    it('saveConfigsBatch called with valid arguments', function () {
-      expect(controller.saveConfigsBatch.calledWith([
-        {
-          properties: {
-            'storm-site': {
-              'nimbus.seeds': "'host1'"
-            }
-          },
-          properties_attributes: {
-            'storm-site': {}
-          }
-        }
-      ], 'NIMBUS', 'host2')).to.be.true;
     });
   });
 
@@ -841,7 +956,7 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#constructConfigUrlParams()', function () {
+  describe('#constructZookeeperConfigUrlParams()', function () {
 
     function loadService(serviceName) {
       App.store.safeLoad(App.Service, {
@@ -890,7 +1005,7 @@ describe('App.MainHostDetailsController', function () {
 
     it('URL params should be empty', function () {
       App.Service.find().clear();
-      expect(controller.constructConfigUrlParams(data)).to.eql([]);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql([]);
     });
 
     it('isHaEnabled = true', function () {
@@ -898,7 +1013,7 @@ describe('App.MainHostDetailsController', function () {
 
       App.HostComponent.find().clear();
       App.propertyDidChange('isHaEnabled');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=core-site&tag=1)']);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=core-site&tag=1)']);
       App.store.safeLoad(App.HostComponent, {
         id: 'SECONDARY_NAMENODE_host1',
         component_name: 'SECONDARY_NAMENODE'
@@ -908,48 +1023,48 @@ describe('App.MainHostDetailsController', function () {
     it('HBASE is installed', function () {
       loadService('HBASE');
       App.propertyDidChange('isHaEnabled');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=hbase-site&tag=1)']);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=hbase-site&tag=1)']);
     });
 
     it('HIVE is installed', function () {
       loadService('HIVE');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=hive-site&tag=1)', '(type=webhcat-site&tag=1)']);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=hive-site&tag=1)', '(type=webhcat-site&tag=1)']);
     });
 
     it('STORM is installed', function () {
       loadService('STORM');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=storm-site&tag=1)']);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=storm-site&tag=1)']);
     });
 
     it('YARN is installed', function () {
       loadService('YARN');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
     });
 
     it('ACCUMULO is installed', function () {
       loadService('ACCUMULO');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=accumulo-site&tag=1)']);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=accumulo-site&tag=1)']);
     });
 
     it('ATLAS is installed, AMBARI_INFRA isn\'t installed', function () {
       loadService('ATLAS');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=application-properties&tag=1)']);
+      expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=application-properties&tag=1)']);
     });
   });
 
-  describe('#loadConfigsSuccessCallback()', function () {
+  describe('#loadZookeeperConfigs()', function () {
     var mockUrlParams = [];
     beforeEach(function () {
-      sinon.stub(controller, "constructConfigUrlParams", function () {
+      sinon.stub(controller, "constructZookeeperConfigUrlParams", function () {
         return mockUrlParams;
       });
     });
     afterEach(function () {
-      controller.constructConfigUrlParams.restore();
+      controller.constructZookeeperConfigUrlParams.restore();
     });
 
     it('url params is empty', function () {
-      expect(controller.loadConfigsSuccessCallback(null, null, {})).to.be.false;
+      expect(controller.loadZookeeperConfigs(null, null, {})).to.be.false;
       var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
       expect(args).not.exists;
     });
@@ -961,7 +1076,7 @@ describe('App.MainHostDetailsController', function () {
     it('isConfigsLoadingInProgress is false', function () {
       mockUrlParams = [];
       controller.set('isConfigsLoadingInProgress', true);
-      controller.loadConfigsSuccessCallback(null, null, {});
+      controller.loadZookeeperConfigs(null, null, {});
       expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
     });
   });
@@ -1019,7 +1134,7 @@ describe('App.MainHostDetailsController', function () {
     };
 
     beforeEach(function () {
-      sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'setConfigsChanges', Em.K);
       sinon.stub(controller, 'updateZkConfigs', Em.K);
       sinon.stub(controller, 'saveLoadedConfigs', Em.K);
       sinon.stub(App.Service, 'find', function() {
@@ -1032,12 +1147,12 @@ describe('App.MainHostDetailsController', function () {
       });
 
       controller.saveZkConfigs(data);
-      this.groups = controller.saveConfigsBatch.args[0][0];
+      this.groups = controller.setConfigsChanges.args[0][0];
     });
     afterEach(function () {
       App.Service.find.restore();
       controller.updateZkConfigs.restore();
-      controller.saveConfigsBatch.restore();
+      controller.setConfigsChanges.restore();
       controller.saveLoadedConfigs.restore();
     });
 
@@ -1113,19 +1228,19 @@ describe('App.MainHostDetailsController', function () {
 
   });
 
-  describe("#saveConfigsBatch()", function () {
+  describe("#putConfigsToServer()", function () {
     it("no groups", function () {
-      controller.saveConfigsBatch([]);
+      controller.putConfigsToServer([]);
       var args = testHelpers.filterAjaxRequests('name', 'common.service.configurations');
       expect(args).to.be.empty;
     });
     it("configs is empty", function () {
-      controller.saveConfigsBatch([{}]);
+      controller.putConfigsToServer([{}]);
       var args = testHelpers.filterAjaxRequests('name', 'common.service.configurations');
       expect(args).to.be.empty;
     });
     it("configs is correct", function () {
-      controller.saveConfigsBatch([{'properties': {'site': {}}, 'properties_attributes': {'site': {}}}]);
+      controller.putConfigsToServer([{'properties': {'site': {}}, 'properties_attributes': {'site': {}}}]);
       var args = testHelpers.filterAjaxRequests('name', 'common.service.configurations');
       expect(args).to.have.property('length').equal(1);
     });
@@ -1200,7 +1315,8 @@ describe('App.MainHostDetailsController', function () {
         hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
         ctrlStubs: {
           'content.hostName': 'host2',
-          fromDeleteHost: true
+          fromDeleteHost: true,
+          allPropertiesToChange: []
         },
         configs: {
           "zoo.cfg": {
@@ -1991,7 +2107,7 @@ describe('App.MainHostDetailsController', function () {
   describe('#getHostComponentsInfo()', function () {
 
     var result = {
-      zkServerInstalled: false,
+      isReconfigureRequired: false,
       lastComponents: [],
       masterComponents: [],
       nonAddableMasterComponents: [],
@@ -2027,7 +2143,6 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('content.hostComponents has ZOOKEEPER_SERVER', function () {
-      App.HostComponent.find().clear();
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: 'ZOOKEEPER_SERVER',
@@ -2035,7 +2150,7 @@ describe('App.MainHostDetailsController', function () {
           isDeletable: true
         })]
       });
-      expect(controller.getHostComponentsInfo().zkServerInstalled).to.be.true;
+      expect(controller.getHostComponentsInfo().isReconfigureRequired).to.be.true;
     });
 
     it('content.hostComponents has last component', function () {
@@ -2106,18 +2221,20 @@ describe('App.MainHostDetailsController', function () {
   describe('#validateAndDeleteHost()', function () {
 
     beforeEach(function () {
-      sinon.spy(App, "showConfirmationPopup");
+      sinon.spy(controller, "showReconfigurationPopupPreDelete");
       sinon.stub(controller, "getHostComponentsInfo", function () {
         return this.get('mockHostComponentsInfo');
       });
       sinon.stub(controller, "raiseDeleteComponentsError", Em.K);
       sinon.stub(controller, "confirmDeleteHost", Em.K);
+      sinon.stub(controller, 'reconfigureAndDeleteHost');
     });
     afterEach(function () {
-      App.showConfirmationPopup.restore();
+      controller.showReconfigurationPopupPreDelete.restore();
       controller.getHostComponentsInfo.restore();
       controller.raiseDeleteComponentsError.restore();
       controller.confirmDeleteHost.restore();
+      controller.reconfigureAndDeleteHost.restore();
     });
 
     it('nonDeletableComponents exist', function () {
@@ -2176,7 +2293,7 @@ describe('App.MainHostDetailsController', function () {
         lastMasterComponents: [{}]
       }, 'lastMasterList')).to.be.true;
     });
-    it('zkServerInstalled = true', function () {
+    it('isReconfigureRequired = true', function () {
       controller.set('mockHostComponentsInfo', {
         nonAddableMasterComponents: [],
         nonDeletableComponents: [],
@@ -2184,22 +2301,20 @@ describe('App.MainHostDetailsController', function () {
         unknownComponents: [],
         lastComponents: [],
         lastMasterComponents: [],
-        zkServerInstalled: true
+        isReconfigureRequired: true
       });
-      var popup = controller.validateAndDeleteHost();
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.confirmDeleteHost.calledWith({
+      controller.validateAndDeleteHost();
+      expect(controller.reconfigureAndDeleteHost.calledWith({
         nonAddableMasterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [],
         unknownComponents: [],
         lastComponents: [],
         lastMasterComponents: [],
-        zkServerInstalled: true
+        isReconfigureRequired: true
       })).to.be.true;
     });
-    it('zkServerInstalled = false', function () {
+    it('isReconfigureRequired = false', function () {
       controller.set('mockHostComponentsInfo', {
         nonAddableMasterComponents: [],
         nonDeletableComponents: [],
@@ -2207,7 +2322,7 @@ describe('App.MainHostDetailsController', function () {
         unknownComponents: [],
         lastComponents: [],
         lastMasterComponents: [],
-        zkServerInstalled: false
+        isReconfigureRequired: false
       });
       controller.validateAndDeleteHost();
       expect(controller.confirmDeleteHost.calledWith({
@@ -2217,9 +2332,64 @@ describe('App.MainHostDetailsController', function () {
         unknownComponents: [],
         lastComponents: [],
         lastMasterComponents: [],
-        zkServerInstalled: false
+        isReconfigureRequired: false
       })).to.be.true;
     });
+  });
+
+  describe('#reconfigureAndDeleteHost', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'loadComponentRelatedConfigs');
+      sinon.stub(controller, 'showReconfigurationPopupPreDelete', function(c, callback, msg) {
+        callback();
+      });
+      sinon.stub(controller, 'confirmDeleteHost');
+      controller.set('content', {
+        hostComponents: [
+          Em.Object.create({
+            componentName: 'DATANODE',
+            displayName: 'Datanode'
+          }),
+          Em.Object.create({
+            componentName: 'ZOOKEEPER_SERVER',
+            displayName: 'Zookeeper Server'
+          })
+        ],
+        hostName: 'host1'
+      });
+      controller.set('addDeleteComponentsMap', {
+        'ZOOKEEPER_SERVER': {
+          hostPropertyName: 'zkhost',
+          addPropertyName: 'prop1',
+          configTagsCallbackName: 'clb1',
+          configsCallbackName: 'clb2'
+        }
+      });
+
+      controller.reconfigureAndDeleteHost({});
+    });
+    afterEach(function() {
+      controller.loadComponentRelatedConfigs.restore();
+      controller.showReconfigurationPopupPreDelete.restore();
+      controller.confirmDeleteHost.restore();
+    });
+
+    it('hostPropertyName should be "host1"', function() {
+      expect(controller.get('zkhost')).to.be.equal('host1')
+    });
+    it('addPropertyName should be true', function() {
+      expect(controller.get('prop1')).to.be.true;
+    });
+    it('loadComponentRelatedConfigs should be called', function() {
+      expect(controller.loadComponentRelatedConfigs.calledWith('clb1', 'clb2')).to.be.true;
+    });
+    it('showReconfigurationPopupPreDelete should be called', function() {
+      expect(controller.showReconfigurationPopupPreDelete.calledOnce).to.be.true;
+    });
+    it('confirmDeleteHost should be called', function() {
+      expect(controller.confirmDeleteHost.calledWith({})).to.be.true;
+    });
+
   });
 
   describe('#raiseDeleteComponentsError()', function () {
@@ -2557,7 +2727,7 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.stub(controller, 'removeHostComponentModel', Em.K);
-      controller.set('_deletedHostComponentResult', {});
+      controller.set('_deletedHostComponentError', {});
       controller._doDeleteHostComponentSuccessCallback({}, {}, data);
     });
 
@@ -2565,8 +2735,8 @@ describe('App.MainHostDetailsController', function () {
       controller.removeHostComponentModel.restore();
     });
 
-    it('should reset `_deletedHostComponentResult`', function () {
-      expect(controller.get('_deletedHostComponentResult')).to.be.null;
+    it('should reset `_deletedHostComponentError`', function () {
+      expect(controller.get('_deletedHostComponentError')).to.be.null;
     });
 
     it('should call `removeHostComponentModel` with correct params', function () {
@@ -2607,9 +2777,9 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#_doDeleteHostComponentErrorCallback()', function () {
-    it('call showBackgroundOperationsPopup', function () {
+    it('should set error to _deletedHostComponentError', function () {
       controller._doDeleteHostComponentErrorCallback({}, 'textStatus', {}, {url: 'url'});
-      expect(controller.get('_deletedHostComponentResult')).to.be.eql({xhr: {}, url: 'url', method: 'DELETE'});
+      expect(controller.get('_deletedHostComponentError')).to.be.eql({xhr: {}, url: 'url', method: 'DELETE'});
     });
   });
 
@@ -2926,65 +3096,59 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe("#doDeleteHost()", function () {
-    beforeEach(function () {
-      controller.set('fromDeleteHost', false);
-      controller.set('content.hostName', 'host1');
-      sinon.stub(controller, '_doDeleteHostComponent', function (comp, callback) {
-        callback();
-      });
+  describe('#doDeleteHost', function() {
+    beforeEach(function() {
+      sinon.stub(controller, '_doDeleteHostComponent').returns($.Deferred().resolve().promise());
+      sinon.stub(controller, 'applyConfigsCustomization');
+      sinon.stub(controller, 'putConfigsToServer');
+      sinon.stub(controller, 'clearConfigsChanges');
+      sinon.stub(controller, 'deleteHostCall');
+      controller.set('content', Em.Object.create({
+        hostComponents: [
+          Em.Object.create({componentName: 'ZOOKEEPER_SERVER', displayName: 'Zookeeper Server'})
+        ]
+      }));
+      controller.set('isReconfigureRequired', true);
+      controller.set('groupedPropertiesToChange', []);
+
+
+      controller.doDeleteHost();
     });
-    afterEach(function () {
+    afterEach(function() {
       controller._doDeleteHostComponent.restore();
+      controller.applyConfigsCustomization.restore();
+      controller.putConfigsToServer.restore();
+      controller.clearConfigsChanges.restore();
+      controller.deleteHostCall.restore();
     });
 
-    describe("Host has no components", function () {
-
-      beforeEach(function () {
-        controller.set('content.hostComponents', Em.A([]));
-        controller.doDeleteHost(Em.K);
-        this.args = testHelpers.findAjaxRequest('name', 'common.delete.host');
-      });
-
-      it('fromDeleteHost is true', function () {
-        expect(controller.get('fromDeleteHost')).to.be.true;
-      });
-      it('1st request is to delete host', function () {
-        expect(this.args[0]).exists;
-      });
-      it('1st request is done with valid hostName', function () {
-        expect(this.args[0].data.hostName).to.be.equal('host1');
-      });
+    it('_doDeleteHostComponent should be called', function() {
+      expect(controller._doDeleteHostComponent.calledWith('ZOOKEEPER_SERVER')).to.be.true;
     });
-
-    describe("Host has components", function () {
-
-      beforeEach(function () {
-        controller.set('content.hostComponents', Em.A([Em.Object.create({
-          componentName: 'COMP1'
-        })]));
-        controller.doDeleteHost(Em.K);
-      });
-
-      it('_doDeleteHostComponent is called with correct arguments', function () {
-        expect(controller._doDeleteHostComponent.calledWith('COMP1')).to.be.true;
-      });
-      it('fromDeleteHost is true', function () {
-        expect(controller.get('fromDeleteHost')).to.be.true;
-      });
-      it('1st request is to delete host', function () {
-        var args = testHelpers.findAjaxRequest('name', 'common.delete.host');
-        expect(args[0]).exists;
-      });
-      it('1st request is done with valid hostName', function () {
-        var args = testHelpers.findAjaxRequest('name', 'common.delete.host');
-        expect(args[0].data.hostName).to.be.equal('host1');
-      });
-
+    it('applyConfigsCustomization should be called', function() {
+      expect(controller.applyConfigsCustomization.calledOnce).to.be.true;
+    });
+    it('putConfigsToServer should be called', function() {
+      expect(controller.putConfigsToServer.calledWith([], 'Zookeeper Server')).to.be.true;
+    });
+    it('clearConfigsChanges should be called', function() {
+      expect(controller.clearConfigsChanges.calledOnce).to.be.true;
+    });
+    it('deleteHostCall should be called', function() {
+      expect(controller.deleteHostCall.calledOnce).to.be.true;
     });
   });
 
-  describe("#deleteHostSuccessCallback", function () {
+  describe('#deleteHostCall', function() {
+
+    it('App.ajax.send should be called', function() {
+      controller.deleteHostCall();
+      var args = testHelpers.findAjaxRequest('name', 'common.delete.host');
+      expect(args[0]).exists;
+    });
+  });
+
+  describe("#deleteHostCallSuccessCallback", function () {
     var mock;
     beforeEach(function () {
       mock = {
@@ -2999,7 +3163,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, 'loadConfigs', Em.K);
       sinon.stub(App.router, 'transitionTo', Em.K);
       sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
-      controller.deleteHostSuccessCallback();
+      controller.deleteHostCallSuccessCallback();
     });
 
     afterEach(function () {
@@ -3031,11 +3195,11 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe("#deleteHostErrorCallback", function () {
+  describe("#deleteHostCallErrorCallback", function () {
 
     beforeEach(function () {
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
-      controller.deleteHostErrorCallback({
+      controller.deleteHostCallErrorCallback({
         status: 'status',
         statusText: "statusText"
       }, 'textStatus', 'errorThrown', {url: 'url'});
@@ -3321,7 +3485,7 @@ describe('App.MainHostDetailsController', function () {
     ];
 
     beforeEach(function () {
-      sinon.spy(controller, 'saveConfigsBatch');
+      sinon.spy(controller, 'setConfigsChanges');
       sinon.stub(App.Service, 'find', function () {
         return [
           Em.Object.create({
@@ -3334,7 +3498,7 @@ describe('App.MainHostDetailsController', function () {
     });
 
     afterEach(function () {
-      controller.saveConfigsBatch.restore();
+      controller.setConfigsChanges.restore();
       App.Service.find.restore();
       controller.saveLoadedConfigs.restore();
     });
@@ -3380,8 +3544,8 @@ describe('App.MainHostDetailsController', function () {
           controller.onLoadRangerConfigs(data);
         });
 
-        it('saveConfigsBatch is called with valid arguments', function () {
-          expect(controller.saveConfigsBatch.calledWith(item.result, 'RANGER_KMS_SERVER', item.hostToInstall)).to.be.true;
+        it('setConfigsChanges is called with valid arguments', function () {
+          expect(controller.setConfigsChanges.calledWith(item.result)).to.be.true;
         });
       });
     });
@@ -3603,13 +3767,13 @@ describe('App.MainHostDetailsController', function () {
   describe('#onLoadHiveConfigs', function() {
 
     beforeEach(function() {
-      sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'setConfigsChanges', Em.K);
       sinon.stub(controller, 'saveLoadedConfigs', Em.K);
       controller.set('configs', {});
     });
 
     afterEach(function() {
-      controller.saveConfigsBatch.restore();
+      controller.setConfigsChanges.restore();
       controller.saveLoadedConfigs.restore();
     });
 
@@ -3939,7 +4103,7 @@ describe('App.MainHostDetailsController', function () {
 
         it('saveConfigsBatch is called with correct configs', function () {
           controller.onLoadHiveConfigs(test.configs, null, {webHCat: test.webHCat});
-          var configs = controller.saveConfigsBatch.args[0];
+          var configs = controller.setConfigsChanges.args[0];
           var properties = configs[0];
           expect(properties).to.be.eql(test.e.configs);
         });
@@ -4131,53 +4295,98 @@ describe('App.MainHostDetailsController', function () {
 
   });
 
-  describe('#loadComponentRelatedConfigs', function () {
+  describe('#loadComponentRelatedConfigs', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'clearConfigsChanges');
+      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
+      sinon.stub(controller, 'loadConfigs');
 
-    var testCases = [
+      controller.loadComponentRelatedConfigs('clb1', 'clb2');
+    });
+    afterEach(function() {
+      controller.clearConfigsChanges.restore();
+      controller.isServiceMetricsLoaded.restore();
+      controller.loadConfigs.restore();
+    });
+
+    it('clearConfigsChanges should be called', function() {
+      expect(controller.clearConfigsChanges.calledOnce).to.be.true;
+    });
+    it('isServiceMetricsLoaded should be called', function() {
+      expect(controller.isServiceMetricsLoaded.calledOnce).to.be.true;
+    });
+    it('loadConfigs should be called', function() {
+      expect(controller.loadConfigs.calledWith('clb1', 'clb2')).to.be.true;
+    });
+    it('isReconfigureRequired should be true', function() {
+      expect(controller.get('isReconfigureRequired')).to.be.true;
+    });
+    it('isConfigsLoadingInProgress should be true', function() {
+      expect(controller.get('isConfigsLoadingInProgress')).to.be.true;
+    });
+  });
+
+  describe('#applyConfigsCustomization', function() {
+    var groupedPropertiesToChange = [
       {
-        isReconfigureRequired: true,
-        loadConfigsCallCount: 1,
-        isConfigsLoadingInProgress: true,
-        message: 'reconfigure required'
-      },
-      {
-        isReconfigureRequired: false,
-        loadConfigsCallCount: 0,
-        isConfigsLoadingInProgress: false,
-        message: 'no reconfigure required'
+        properties: {
+          site1: {
+            prop1: 'val1',
+            prop2: 'val2'
+          }
+        }
       }
     ];
 
-    testCases.forEach(function (test) {
+    it('should apply recommended value to properties', function() {
+      controller.set('groupedPropertiesToChange', groupedPropertiesToChange);
+      controller.set('recommendedPropertiesToChange', [
+        {
+          saveRecommended: true,
+          recommendedValue: 'rec1',
+          propertyFileName: 'site1',
+          propertyName: 'prop1'
+        },
+        {
+          saveRecommended: false,
+          initialValue: 'init1',
+          propertyFileName: 'site1',
+          propertyName: 'prop2'
+        }
+      ]);
 
-      describe(test.message, function () {
+      controller.applyConfigsCustomization();
 
-        beforeEach(function () {
-          sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
-          sinon.stub(controller, 'loadConfigs', Em.K);
-          controller.setProperties({
-            isReconfigureRequired: test.isReconfigureRequired,
-            isConfigsLoadingInProgress: false
-          });
-          controller.loadComponentRelatedConfigs();
-        });
+      expect(groupedPropertiesToChange[0].properties['site1']['prop1']).to.be.equal('rec1');
+      expect(groupedPropertiesToChange[0].properties['site1']['prop2']).to.be.equal('init1');
+    });
+  });
 
-        afterEach(function () {
-          controller.isServiceMetricsLoaded.restore();
-          controller.loadConfigs.restore();
-        });
-
-        it('loadConfigs', function () {
-          expect(controller.loadConfigs.callCount).to.equal(test.loadConfigsCallCount);
-        });
-
-        it('isConfigsLoadingInProgress', function () {
-          expect(controller.get('isConfigsLoadingInProgress')).to.equal(test.isConfigsLoadingInProgress);
-        });
-
-      });
-
+  describe('#getHdfsUser', function() {
+    var usersController = Em.Object.create({
+      loadUsers: sinon.spy(),
+      dataIsLoaded: false,
+      users: [Em.Object.create({
+        name: 'hdfs_user',
+        value: 'val'
+      })]
     });
 
+    beforeEach(function() {
+      sinon.stub(App.MainAdminServiceAccountsController, 'create').returns(usersController);
+    });
+    afterEach(function() {
+      App.MainAdminServiceAccountsController.create.restore();
+    });
+
+    it('should load and set hdfs_user value', function() {
+      controller.getHdfsUser();
+
+      expect(usersController.loadUsers.calledOnce).to.be.true;
+
+      usersController.set('dataIsLoaded', true);
+
+      expect(controller.get('hdfsUser')).to.be.equal('val')
+    });
   });
 });
