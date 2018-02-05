@@ -56,6 +56,12 @@ function create_logsearch_configs() {
   else
     cp /root/test-config/logsearch/logsearch.properties /root/config/logsearch/logsearch.properties
   fi
+
+  if [ $KNOX == 'true'  ]
+  then
+    cp /root/test-config/logsearch/logsearch-sso.properties /root/config/logsearch/logsearch.properties
+  fi
+
   set_custom_zookeeper_address /root/config/logsearch/logsearch.properties
 }
 
@@ -125,6 +131,26 @@ function start_selenium_server_d() {
   nohup java -jar /root/selenium-server-standalone.jar > /var/log/selenium-test.log &
 }
 
+function start_ldap_d() {
+  if [ $KNOX == 'true'  ]
+  then
+    echo "KNOX is enabled. Starting Demo LDAP."
+    su knox -c "/ldap.sh"
+  else
+    echo "KNOX is not enabled. Skip Starting Demo LDAP."
+  fi
+}
+
+function start_knox_d() {
+  if [ $KNOX == 'true'  ]
+  then
+    echo "KNOX is enabled. Starting Demo KNOX gateway."
+    su knox -c "/gateway.sh"
+  else
+    echo "KNOX is not enabled. Skip Starting KNOX gateway."
+  fi
+}
+
 function log() {
   component_log=${COMPONENT_LOG:-"logsearch"}
   case $component_log in
@@ -136,6 +162,12 @@ function log() {
      ;;
     "selenium")
       tail -f /var/log/selenium-test.log
+     ;;
+     "knox")
+      tail -f --retry /knox/logs/gateway.log
+     ;;
+     "ldap")
+      tail -f --retry /knox/logs/ldap.log
      ;;
      *)
       tail -f /var/log/ambari-logsearch-portal/logsearch-app.log
@@ -169,12 +201,28 @@ function main() {
       start_logsearch
       log
      ;;
+     "knox")
+      echo "Start KNOX only ..."
+      export COMPONENT_LOG="knox"
+      export KNOX="true"
+      start_knox_d
+      log
+     ;;
+     "ldap")
+      echo "Start Demo LDAP only ..."
+      export COMPONENT_LOG="ldap"
+      export KNOX="true"
+      start_ldap_d
+      log
+     ;;
      *)
       create_configs
       generate_keys
       start_selenium_server_d
       start_solr_d
       start_logfeeder_d
+      start_ldap_d
+      start_knox_d
       start_logsearch_d
       log
      ;;
