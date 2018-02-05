@@ -155,7 +155,7 @@ public class Grouping {
       // Add the processing component
       Task t = resolveTask(context, pc);
       if (null != t) {
-        TaskWrapper tw = new TaskWrapper(service, pc.name, hostsType.hosts, params, Collections.singletonList(t));
+        TaskWrapper tw = new TaskWrapper(service, pc.name, hostsType.getHosts(), params, Collections.singletonList(t));
         addTasksToStageInBatches(Collections.singletonList(tw), t.getActionVerb(), context, service, pc, params);
       }
 

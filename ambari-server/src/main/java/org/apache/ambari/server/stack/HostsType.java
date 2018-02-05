@@ -18,9 +18,17 @@
 
 package org.apache.ambari.server.stack;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.state.ServiceComponentHost;
 
@@ -29,16 +37,10 @@ import org.apache.ambari.server.state.ServiceComponentHost;
  * also have master/secondary designators.
  */
 public class HostsType {
-
   /**
-   * The master host, if any.
+   * List of HA hosts (master - secondaries pairs), if any.
    */
-  public String master = null;
-
-  /**
-   * The secondary host, if any.
-   */
-  public String secondary = null;
+  private final List<HaHosts> haHosts;
 
   /**
    * Ordered collection of hosts.  This represents all hosts where an upgrade
@@ -47,10 +49,10 @@ public class HostsType {
    * That is to say, a downgrade only occurs where the current version is not
    * the target version.
    */
-  public LinkedHashSet<String> hosts = new LinkedHashSet<>();
+  private LinkedHashSet<String> hosts;
 
   /**
-   * Unhealthy hosts are those which are explicitely put into maintenance mode.
+   * Unhealthy hosts are those which are explicitly put into maintenance mode.
    * If there is a host which is not heartbeating (or is generally unhealthy)
    * but not in maintenance mode, then the prerequisite upgrade checks will let
    * the administrator know that it must be put into maintenance mode before an
@@ -58,4 +60,107 @@ public class HostsType {
    */
   public List<ServiceComponentHost> unhealthy = new ArrayList<>();
 
+  public boolean hasMasters() {
+    return !getMasters().isEmpty();
+  }
+
+  public List<HaHosts> getHaHosts() {
+    return haHosts;
+  }
+
+  /**
+   * Order the hosts so that for each HA host the secondaries come first.
+   * For example: [sec1, sec2, master1, sec3, sec4, master2]
+   */
+  public void arrangeHostSecondariesFirst() {
+    this.hosts = getHaHosts().stream()
+      .flatMap(each -> Stream.concat(each.getSecondaries().stream(), Stream.of(each.getMaster())))
+      .collect(toCollection(LinkedHashSet::new));
+  }
+
+  public boolean hasMastersAndSecondaries() {
+    return !getMasters().isEmpty() && !getSecondaries().isEmpty();
+  }
+
+  /**
+   * A master and secondary host(s). In HA mode there is one master and one secondary host,
+   * in federated mode there can be more than one secondaries.
+   */
+  public static class HaHosts {
+    private final String master;
+    private final List<String> secondaries;
+
+    public HaHosts(String master, List<String> secondaries) {
+      if (master == null) {
+        throw new IllegalArgumentException("Master host is missing");
+      }
+      this.master = master;
+      this.secondaries = secondaries;
+    }
+
+    public String getMaster() {
+      return master;
+    }
+
+    public List<String> getSecondaries() {
+      return secondaries;
+    }
+  }
+
+  public static HostsType from(String master, String secondary, LinkedHashSet<String> hosts) {
+    return master == null
+      ? normal(hosts)
+      : new HostsType(singletonList(new HaHosts(master, secondary != null ? singletonList(secondary) : emptyList())), hosts);
+
+  }
+
+  public static HostsType highAvailability(String master, String secondary, LinkedHashSet<String> hosts) {
+    return new HostsType(singletonList(new HaHosts(master, singletonList(secondary))), hosts);
+  }
+
+  public static HostsType guessHighAvailability(LinkedHashSet<String> hosts) {
+    if (hosts.isEmpty()) {
+      throw new IllegalArgumentException("Cannot guess HA, empty hosts.");
+    }
+    String master = hosts.iterator().next();
+    List<String> secondaries = hosts.stream().skip(1).collect(toList());
+    return new HostsType(singletonList(new HaHosts(master, secondaries)), hosts);
+  }
+
+  public static HostsType federated(List<HaHosts> haHosts, LinkedHashSet<String> hosts) {
+    return new HostsType(haHosts, hosts);
+  }
+
+  public static HostsType normal(LinkedHashSet<String> hosts) {
+    return new HostsType(emptyList(), hosts);
+  }
+
+  public static HostsType normal(String... hosts) {
+    return new HostsType(emptyList(), new LinkedHashSet<>(asList(hosts)));
+  }
+
+  public static HostsType single(String host) {
+    return HostsType.normal(host);
+  }
+
+  private HostsType(List<HaHosts> haHosts, LinkedHashSet<String> hosts) {
+    this.haHosts = haHosts;
+    this.hosts = hosts;
+  }
+
+  public LinkedHashSet<String> getMasters() {
+    return haHosts.stream().map(each -> each.getMaster()).collect(toCollection(LinkedHashSet::new));
+  }
+
+  public LinkedHashSet<String> getSecondaries() {
+    return haHosts.stream().flatMap(each -> each.getSecondaries().stream()).collect(toCollection(LinkedHashSet::new));
+  }
+
+  public Set<String> getHosts() {
+    return hosts;
+  }
+
+  public void setHosts(LinkedHashSet<String> hosts) {
+    this.hosts = hosts;
+  }
 }
