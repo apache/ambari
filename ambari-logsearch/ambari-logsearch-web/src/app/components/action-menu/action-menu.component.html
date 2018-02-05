@@ -25,6 +25,10 @@
              additionalLabelComponentSetter="getHistoryItemIcons"></menu-button>
 <menu-button label="{{'topMenu.filter' | translate}}" iconClass="fa fa-filter"
              (buttonClick)="openLogIndexFilter()"></menu-button>
+<menu-button *ngIf="!captureSeconds" label="{{'filter.capture' | translate}}" iconClass="fa fa-caret-right"
+             (buttonClick)="startCapture()"></menu-button>
+<menu-button *ngIf="captureSeconds" label="{{captureSeconds | timerSeconds}}" iconClass="fa fa-stop stop-icon"
+             (buttonClick)="stopCapture()"></menu-button>
 <menu-button label="{{'topMenu.refresh' | translate}}" iconClass="fa fa-refresh"
              (buttonClick)="refresh()"></menu-button>
 <modal *ngIf="isLogIndexFilterDisplayed" (submit)="saveLogIndexFilter()" (cancel)="closeLogIndexFilter()"

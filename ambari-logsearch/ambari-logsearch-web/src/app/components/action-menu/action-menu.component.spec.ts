@@ -42,6 +42,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
 import {ModalComponent} from '@app/components/modal/modal.component';
+import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
 
 import {ActionMenuComponent} from './action-menu.component';
 
@@ -81,7 +82,8 @@ describe('ActionMenuComponent', () => {
       ],
       declarations: [
         ActionMenuComponent,
-        ModalComponent
+        ModalComponent,
+        TimerSecondsPipe
       ],
       providers: [
         {

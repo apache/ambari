@@ -95,10 +95,6 @@ export class FiltersPanelComponent implements OnChanges {
     return this.logsContainer.queryParameterAdd;
   }
 
-  get captureSeconds(): number {
-    return this.logsContainer.captureSeconds;
-  }
-
   searchBoxValueUpdate: Subject<void> = new Subject();
 
   isFilterConditionDisplayed(key: string): boolean {
@@ -107,14 +103,6 @@ export class FiltersPanelComponent implements OnChanges {
 
   updateSearchBoxValue(): void {
     this.searchBoxValueUpdate.next();
-  }
-
-  startCapture(): void {
-    this.logsContainer.startCaptureTimer();
-  }
-
-  stopCapture(): void {
-    this.logsContainer.stopCaptureTimer();
   }
 
   proceedWithExclude(item: string): void {
