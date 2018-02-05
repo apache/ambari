@@ -672,9 +672,14 @@ def init_ldap_properties_list_reqd(properties, options):
   ]
   return ldap_properties
 
+def get_ambari_admin_username_password_pair(options):
+  admin_login = options.ambari_admin_username if options.ambari_admin_username is not None else get_validated_string_input("Enter Ambari Admin login: ", None, None, None, False, False)
+  admin_password = options.ambari_admin_password if options.ambari_admin_password is not None else get_validated_string_input("Enter Ambari Admin password: ", None, None, None, True, False)
+
+  return admin_login, admin_password
+
 def update_ldap_configuration(options, properties, ldap_property_value_map):
-  admin_login = options.ldap_setup_admin_name if options.ldap_setup_admin_name is not None else get_validated_string_input("Enter Ambari Admin login: ", None, None, None, False, False)
-  admin_password = options.ldap_setup_admin_password if options.ldap_setup_admin_password is not None else get_validated_string_input("Enter Ambari Admin password: ", None, None, None, True, False)
+  admin_login, admin_password = get_ambari_admin_username_password_pair(options)
   url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)

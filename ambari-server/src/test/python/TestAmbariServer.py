@@ -7541,7 +7541,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
-  def test_setup_ldap_with_admin_username_and_password_options(self, is_server_runing_method, get_ambari_properties_method,
+  def test_setup_ldap_with_ambari_admin_username_and_password_options(self, is_server_runing_method, get_ambari_properties_method,
                                                                 get_validated_string_input_method, get_YN_input_method, urlopen_method):
 
     out = StringIO.StringIO()
@@ -7579,8 +7579,8 @@ class TestAmbariServer(TestCase):
     response.getcode.return_value = 200
     urlopen_method.return_value = response
     options = self._create_empty_options_mock()
-    options.ldap_setup_admin_name = 'admin'
-    options.ldap_setup_admin_password = 'admin'
+    options.ambari_admin_username = 'admin'
+    options.ambari_admin_password = 'admin'
 
     setup_ldap(options)
 
@@ -8673,8 +8673,8 @@ class TestAmbariServer(TestCase):
     options.ldap_save_settings = None
     options.ldap_referral = None
     options.ldap_bind_anonym = None
-    options.ldap_setup_admin_name = None
-    options.ldap_setup_admin_password = None
+    options.ambari_admin_username = None
+    options.ambari_admin_password = None
     options.ldap_sync_admin_name = None
     options.ldap_sync_username_collisions_behavior = None
     options.ldap_force_lowercase_usernames = None
