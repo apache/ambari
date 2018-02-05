@@ -7469,6 +7469,72 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("urllib2.urlopen")
+  @patch("ambari_server.setupSecurity.get_YN_input")
+  @patch("ambari_server.setupSecurity.read_password")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  def test_setup_ldap_primary_host_and_port_with_ldap_url_option(self, is_server_runing_method, get_ambari_properties_method,
+                                                                get_validated_string_input_method, read_password_method, get_YN_input_method, urlopen_method):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    is_server_runing_method.return_value = (True, 0)
+
+    def yn_input_side_effect(*args, **kwargs):
+      if 'TrustStore' in args[0]:
+        return False
+      else:
+        return True
+
+    get_YN_input_method.side_effect = yn_input_side_effect
+    get_ambari_properties_method.return_value = Properties()
+    read_password_method.return_value = 'password'
+
+    def valid_input_side_effect(*args, **kwargs):
+      if 'Bind anonymously' in args[0] or 'lower-case' in args[0] or 'paginated' in args[0]:
+        return 'false'
+      if 'username collisions' in args[0]:
+        return 'skip'
+      if 'URL Port' in args[0]:
+        return '1'
+      if 'Ambari Admin' in args[0]:
+        return 'admin'
+      if 'Primary URL' in args[0]:
+        return kwargs['answer']
+      if args[1] == "true" or args[1] == "false":
+        return args[1]
+      else:
+        return "test"
+
+    get_validated_string_input_method.side_effect = valid_input_side_effect
+
+    response = MagicMock()
+    response.getcode.return_value = 200
+    urlopen_method.return_value = response
+
+    options =  self._create_empty_options_mock()
+    options.ldap_url = "a:1"
+
+    setup_ldap(options)
+
+    requestCall = urlopen_method.call_args_list[0]
+    args, kwargs = requestCall
+    request = args[0]
+    requestData = json.loads(request.data)
+    self.assertTrue(isinstance(requestData, dict))
+    ldapProperties = requestData['Configuration']['properties'];
+    self.assertTrue('ambari.ldap.connectivity.server.host' in ldapProperties)
+    self.assertTrue('ambari.ldap.connectivity.server.port' in ldapProperties)
+    self.assertEqual(ldapProperties['ambari.ldap.connectivity.server.host'], 'a')
+    self.assertEqual(ldapProperties['ambari.ldap.connectivity.server.port'], '1')
+
+    sys.stdout = sys.__stdout__
+    pass
+
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
@@ -8534,8 +8600,10 @@ class TestAmbariServer(TestCase):
 
   def _create_empty_options_mock(self):
     options = MagicMock()
+    options.ldap_url = None
     options.ldap_primary_host = None
     options.ldap_primary_port = None
+    options.ldap_secondary_url = None
     options.ldap_secondary_host = None
     options.ldap_secondary_port = None
     options.ldap_ssl = None

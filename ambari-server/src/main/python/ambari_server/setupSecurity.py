@@ -692,14 +692,13 @@ def update_ldap_configuration(properties, ldap_property_value_map):
   request.get_method = lambda: 'PUT'
 
   try:
-    response = urllib2.urlopen(request)
+    with closing(urllib2.urlopen(request)) as response:
+      response_status_code = response.getcode()
+      if response_status_code != 200:
+        err = 'Error during setup-ldap. Http status code - ' + str(response_status_code)
+        raise FatalException(1, err)
   except Exception as e:
     err = 'Updating LDAP configuration failed. Error details: %s' % e
-    raise FatalException(1, err)
-
-  response_status_code = response.getcode()
-  if response_status_code != 200:
-    err = 'Error during setup-ldap. Http status code - ' + str(response_status_code)
     raise FatalException(1, err)
 
 def setup_ldap(options):
@@ -722,6 +721,14 @@ def setup_ldap(options):
       raise FatalException(1, err)
 
   isSecure = get_is_secure(properties)
+
+  if options.ldap_url:
+    options.ldap_primary_host = options.ldap_url.split(':')[0]
+    options.ldap_primary_port = options.ldap_url.split(':')[1]
+
+  if options.ldap_secondary_url:
+    options.ldap_secondary_host = options.ldap_secondary_url.split(':')[0]
+    options.ldap_secondary_port = options.ldap_secondary_url.split(':')[1]
 
   ldap_property_list_reqd = init_ldap_properties_list_reqd(properties, options)
 
@@ -809,8 +816,8 @@ def setup_ldap(options):
   print 'Review Settings'
   print '=' * 20
   for property in ldap_property_list_reqd:
-    if ldap_property_value_map.has_key(property):
-      print("%s: %s" % (property, ldap_property_value_map[property]))
+    if ldap_property_value_map.has_key(property.prop_name):
+      print("%s %s" % (property.ldap_prop_val_prompt, ldap_property_value_map[property.prop_name]))
 
   for property in ldap_property_list_opt:
     if ldap_property_value_map.has_key(property):
