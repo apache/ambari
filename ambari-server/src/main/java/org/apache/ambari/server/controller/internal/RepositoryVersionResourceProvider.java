@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -496,9 +497,38 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       }
     }
 
+    if (RepositoryVersionHelper.shouldContainGPLRepo(repositoryVersion.getStackId(), repositoryVersion.getVersion())) {
+      validateGPLRepoPresence(repositoryVersion);
+    }
+
     if (!RepositoryVersionEntity.isVersionInStack(repositoryVersion.getStackId(), repositoryVersion.getVersion())) {
       throw new AmbariException(MessageFormat.format("Version {0} needs to belong to stack {1}",
           repositoryVersion.getVersion(), repositoryVersion.getStackName() + "-" + repositoryVersion.getStackVersion()));
+    }
+  }
+
+  /**
+   * Checks HDP repository version contains GPL repo for each os.
+   * @param repositoryVersion repository version to check.
+   * @throws AmbariException in case repository version id HDP and should contain GPL repo, bug shouldn't.
+   */
+  private static void validateGPLRepoPresence(RepositoryVersionEntity repositoryVersion) throws AmbariException {
+    if (!repositoryVersion.getStackName().equals("HDP")) {
+      return;
+    }
+    for (OperatingSystemEntity os : repositoryVersion.getOperatingSystems()) {
+      boolean hasGPLRepo = false;
+      for (RepositoryEntity repositoryEntity : os.getRepositories()) {
+        if (repositoryEntity.getTags().contains(RepoTag.GPL)) {
+          hasGPLRepo = true;
+        }
+      }
+      if (!hasGPLRepo) {
+        throw new AmbariException("Operating system type " + os.getOsType()
+            + " for repository with id " + repositoryVersion.getId()
+            + " should contain GPL repo for HDP repository version greater than "
+            + RepositoryVersionHelper.GPL_MINIMAL_VERSION);
+      }
     }
   }
 
