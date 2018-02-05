@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -134,30 +135,15 @@ public class Module {
 
     Module module = (Module) o;
 
-    if (!id.equals(module.id)) return false;
-    if (!displayName.equals(module.displayName)) return false;
-    if (!description.equals(module.description)) return false;
-    if (category != module.category) return false;
-    if (!name.equals(module.name)) return false;
-    if (!version.equals(module.version)) return false;
-    if (!definition.equals(module.definition)) return false;
-    if (moduleDependencyList != null ? !moduleDependencyList.equals(module.moduleDependencyList) : module.moduleDependencyList != null)
-      return false;
-    return moduleComponentList.equals(module.moduleComponentList);
+    return Objects.equals(id, module.id) && Objects.equals(displayName, module.displayName) &&
+            Objects.equals(description, module.description) && Objects.equals(category, module.category) &&
+            Objects.equals(name, module.name) && Objects.equals(version, module.version) && Objects.equals(definition, module.definition)
+            && Objects.equals(moduleDependencyList, module.moduleDependencyList) && Objects.equals(moduleComponentList, module.moduleComponentList);
   }
 
   @Override
   public int hashCode() {
-    int result = id.hashCode();
-    result = 31 * result + displayName.hashCode();
-    result = 31 * result + description.hashCode();
-    result = 31 * result + category.hashCode();
-    result = 31 * result + name.hashCode();
-    result = 31 * result + version.hashCode();
-    result = 31 * result + definition.hashCode();
-    result = 31 * result + (moduleDependencyList != null ? moduleDependencyList.hashCode() : 0);
-    result = 31 * result + moduleComponentList.hashCode();
-    return result;
+    return Objects.hash(id, displayName, description, category, name, version, definition, moduleComponentList, moduleComponentList);
   }
 
   @Override

@@ -47,50 +47,81 @@ public class MpackTest {
   @Test
   public void testMpacksUsingGson() {
     String mpackJsonContents = "{\n" +
-            "  \"name\" : \"hdf-ambari-mpack\",\n" +
-            "  \"version\": \"3.0.0.0-111\",\n" +
-            "  \"description\" : \"HDF 3.0.0 Ambari Management Pack\",\n" +
-            "  \"prerequisites\": {\n" +
-            "    \"min-ambari-version\" : \"3.0.0.0\"\n" +
-            "  },\n" +
-            "  \"packlets\": [\n" +
+            "  \"definition\": \"hdpcore-1.0.0-b16-definition.tar.gz\",\n" +
+            "  \"description\": \"Hortonworks Data Platform Core\",\n" +
+            "  \"id\": \"hdpcore\",\n" +
+            "  \"modules\": [\n" +
             "    {\n" +
-            "      \"type\" : \"service-packlet\",\n" +
-            "      \"name\" : \"NIFI\",\n" +
-            "      \"version\" : \"1.2.0.0-123\",\n" +
-            "      \"source_location\": \"packlets/NIFI-1.2.0.0-123.tar.gz\"\n" +
-            "    },\n" +
-            "    {\n" +
-            "      \"type\" : \"service-packlet\",\n" +
-            "      \"name\" : \"STREAMLINE\",\n" +
-            "      \"version\" : \"1.0.0.0-100\",\n" +
-            "      \"source_location\": \"packlets/STREAMLINE-1.0.0.0-100.tar.gz\"\n" +
+            "      \"category\": \"SERVER\",\n" +
+            "      \"components\": [\n" +
+            "        {\n" +
+            "          \"id\": \"zookeeper_server\",\n" +
+            "          \"version\": \"3.4.0.0-b17\",\n" +
+            "          \"name\": \"ZOOKEEPER_SERVER\",\n" +
+            "          \"category\": \"MASTER\",\n" +
+            "          \"isExternal\": \"False\"\n" +
+            "        }\n" +
+            "      ],\n" +
+            "      \"definition\": \"zookeeper-3.4.0.0-b17-definition.tar.gz\",\n" +
+            "      \"dependencies\": [\n" +
+            "        {\n" +
+            "          \"id\": \"zookeeper_clients\",\n" +
+            "          \"name\": \"ZOOKEEPER_CLIENTS\",\n" +
+            "          \"dependencyType\": \"INSTALL\"\n" +
+            "        }\n" +
+            "      ],\n" +
+            "      \"description\": \"Centralized service which provides highly reliable distributed coordination\",\n" +
+            "      \"displayName\": \"ZooKeeper\",\n" +
+            "      \"id\": \"zookeeper\",\n" +
+            "      \"name\": \"ZOOKEEPER\",\n" +
+            "      \"version\": \"3.4.0.0-b17\"\n" +
             "    }\n" +
-            "  ]\n" +
-            "}\n";
+            "  ],\n" +
+            "  \"name\": \"HDPCORE\",\n" +
+            "  \"prerequisites\": {\n" +
+            "    \"max-ambari-version\": \"3.1.0.0\",\n" +
+            "    \"min-ambari-version\": \"3.0.0.0\"\n" +
+            "  },\n" +
+            "  \"version\": \"1.0.0-b16\"\n" +
+            "}";
     HashMap<String, String> expectedPrereq = new HashMap<>();
     expectedPrereq.put("min-ambari-version","3.0.0.0");
-    ArrayList<Module> expectedPacklets = new ArrayList<>();
-    Module nifi = new Module();
+    expectedPrereq.put("max-ambari-version","3.1.0.0");
+    ArrayList<Module> expectedModules = new ArrayList<>();
+    Module zkfc = new Module();
     //nifi.setType(.PackletType.SERVICE_PACKLET);
-    nifi.setVersion("1.2.0.0-123");
-    nifi.setDefinition("NIFI-1.2.0.0-123.tar.gz");
-    nifi.setName("NIFI");
-    Module streamline = new Module();
-    streamline.setName("STREAMLINE");
-    //streamline.setType(Module.PackletType.SERVICE_PACKLET);
-    streamline.setDefinition("STREAMLINE-1.0.0.0-100.tar.gz");
-    streamline.setVersion("1.0.0.0-100");
-    expectedPacklets.add(nifi);
-    expectedPacklets.add(streamline);
+    zkfc.setVersion("3.4.0.0-b17");
+    zkfc.setDefinition("zookeeper-3.4.0.0-b17-definition.tar.gz");
+    zkfc.setName("ZOOKEEPER");
+    zkfc.setId("zookeeper");
+    zkfc.setDisplayName("ZooKeeper");
+    zkfc.setDescription("Centralized service which provides highly reliable distributed coordination");
+    zkfc.setCategory(Module.Category.SERVER);
+    ModuleDependency moduleDependency = new ModuleDependency();
+    moduleDependency.setId("zookeeper_clients");
+    moduleDependency.setName("ZOOKEEPER_CLIENTS");
+    moduleDependency.setDependencyType(ModuleDependency.DependencyType.INSTALL);
+    ArrayList moduleDepList = new ArrayList();
+    moduleDepList.add(moduleDependency);
+    zkfc.setModuleDependencyList(moduleDepList);
+    ArrayList compList = new ArrayList();
+    ModuleComponent zk_server = new ModuleComponent();
+    zk_server.setId("zookeeper_server");
+    zk_server.setName("ZOOKEEPER_SERVER");
+    zk_server.setCategory("MASTER");
+    zk_server.setIsExternal(Boolean.FALSE);
+    zk_server.setVersion("3.4.0.0-b17");
+    compList.add(zk_server);
+    zkfc.setModuleComponentList(compList);
+    expectedModules.add(zkfc);
 
     Gson gson = new Gson();
     Mpack mpack = gson.fromJson(mpackJsonContents, Mpack.class);
-    Assert.assertEquals("hdf-ambari-mpack", mpack.getName());
-    Assert.assertEquals("3.0.0.0-111", mpack.getVersion());
-    Assert.assertEquals("HDF 3.0.0 Ambari Management Pack", mpack.getDescription());
+    Assert.assertEquals("HDPCORE", mpack.getName());
+    Assert.assertEquals("1.0.0-b16", mpack.getVersion());
+    Assert.assertEquals("Hortonworks Data Platform Core", mpack.getDescription());
     Assert.assertEquals(expectedPrereq, mpack.getPrerequisites());
-    Assert.assertEquals(expectedPacklets.toString(), mpack.getModules().toString());
+    Assert.assertEquals(expectedModules.toString(), mpack.getModules().toString());
   }
 
 }
