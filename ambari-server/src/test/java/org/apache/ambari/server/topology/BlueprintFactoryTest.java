@@ -30,54 +30,43 @@ import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 import static org.powermock.api.easymock.PowerMock.verify;
 
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProviderTest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.inject.util.Providers;
 
 /**
  * BlueprintFactory unit tests.
  */
-@SuppressWarnings("unchecked")
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(BlueprintImpl.class)
 public class BlueprintFactoryTest {
 
   private static final String BLUEPRINT_NAME = "test-blueprint";
 
-  private BlueprintFactory factory = new BlueprintFactory();
   private Stack stack = createNiceMock(Stack.class);
-  private BlueprintFactory testFactory = new TestBlueprintFactory(stack);
   private BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
   private BlueprintEntity entity = createStrictMock(BlueprintEntity.class);
   private BlueprintConfigEntity configEntity = createStrictMock(BlueprintConfigEntity.class);
-  private StackFactory stackFactory = createNiceMock(StackFactory.class);
+  private BlueprintFactory testFactory = new BlueprintFactory(Providers.of(dao), __ -> stack);
 
   @Before
   public void init() throws Exception {
-    setPrivateField(factory, "blueprintDAO", dao);
-
     Set<StackId> stackIds = ImmutableSet.of(new StackId("stack", "0.1"));
     Collection<String> services = ImmutableSet.of("test-service1", "test-service2");
     Collection<String> components = ImmutableSet.of("component1", "component2");
@@ -112,22 +101,23 @@ public class BlueprintFactoryTest {
     Stack edwStack = createNiceMock(Stack.class);
     expect(edwStack.getName()).andReturn(edw.getStackName()).anyTimes();
     expect(edwStack.getVersion()).andReturn(edw.getStackVersion()).anyTimes();
-    expect(stackFactory.createStack(hdp)).andReturn(hdpStack).anyTimes();
-    expect(stackFactory.createStack(edw)).andReturn(edwStack).anyTimes();
-    replay(hdpStack, edwStack, dao, stackFactory);
+    replay(hdpStack, edwStack, dao);
 
     // test
     Blueprint blueprint = testFactory.getBlueprint(BLUEPRINT_NAME);
     Set<String> mpackNames =
       blueprint.getMpacks().stream().map(MpackInstance::getMpackName).collect(Collectors.toSet());
     assertEquals(ImmutableSet.of("HDPCORE-3.0", "EDW-3.1"), mpackNames );
-    MpackInstance hdpCore =
-      blueprint.getMpacks().stream().filter(mp -> "HDPCORE-3.0".equals(mp.getMpackName())).findAny().get();
+    Optional<MpackInstance> hdpCore = blueprint.getMpacks().stream()
+      .filter(mp -> "HDPCORE-3.0".equals(mp.getMpackName()))
+      .findAny();
+    assertTrue(hdpCore.isPresent());
+    MpackInstance mpackInstance = hdpCore.get();
     Set<String> serviceInstanceNames =
-      hdpCore.getServiceInstances().stream().map(ServiceInstance::getName).collect(toSet());
+      mpackInstance.getServiceInstances().stream().map(ServiceInstance::getName).collect(toSet());
     assertEquals(ImmutableSet.of("ZK1", "ZK2"), serviceInstanceNames);
     Set<String> serviceInstanceTypes =
-      hdpCore.getServiceInstances().stream().map(ServiceInstance::getType).collect(toSet());
+      mpackInstance.getServiceInstances().stream().map(ServiceInstance::getType).collect(toSet());
     assertEquals(ImmutableSet.of("ZOOKEEPER"), serviceInstanceTypes);
     Set<StackId> stackIds = blueprint.getStackIds();
     assertEquals(ImmutableSet.of(hdp, edw), stackIds);
@@ -139,6 +129,7 @@ public class BlueprintFactoryTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null).once();
     replay(dao, entity, configEntity);
 
+    BlueprintFactory factory = new BlueprintFactory(Providers.of(dao), null);
     assertNull(factory.getBlueprint(BLUEPRINT_NAME));
   }
 
@@ -226,17 +217,6 @@ public class BlueprintFactoryTest {
     assertEquals("ZOOKEEPER", zk1.getType());
     assertEquals("/zookeeper1", zk1.getConfiguration().getProperties().get("zoo.cfg").get("dataDir"));
     return blueprint;
-  }
-
-  @Test(expected=NoSuchStackException.class)
-  public void testCreateInvalidStack() throws Exception {
-    // setup mock to throw exception, to simulate invalid stack request
-    expect(stackFactory.createStack(new StackId())).andThrow(new StackAccessException("Invalid Stack"));
-    replay(stackFactory);
-
-    BlueprintFactory factoryUnderTest =
-      new BlueprintFactory(stackFactory);
-    factoryUnderTest.createStack(new StackId());
   }
 
   @Test(expected=IllegalArgumentException.class)
@@ -331,24 +311,4 @@ public class BlueprintFactoryTest {
     // no exception expected
   }
 
-  private class TestBlueprintFactory extends BlueprintFactory {
-    private Stack stack;
-
-    public TestBlueprintFactory(Stack stack) {
-      this.stack = stack;
-    }
-
-    @Override
-    protected Stack createStack(StackId stackId) throws NoSuchStackException {
-      return stack;
-    }
-  }
-
-
-  private void setPrivateField(Object o, String field, Object value) throws Exception {
-    Class<?> c = o.getClass();
-    Field f = c.getDeclaredField(field);
-    f.setAccessible(true);
-    f.set(o, value);
-  }
 }

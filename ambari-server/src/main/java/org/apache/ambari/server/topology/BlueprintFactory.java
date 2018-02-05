@@ -47,6 +47,9 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
@@ -64,7 +67,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
-import com.google.inject.Inject;
 
 /**
  * Create a Blueprint instance.
@@ -73,21 +75,18 @@ public class BlueprintFactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(BlueprintFactory.class);
 
-  private static BlueprintDAO blueprintDAO;
-
+  private final Provider<BlueprintDAO> blueprintDAO;
   private final ConfigurationFactory configFactory = new ConfigurationFactory();
   private final StackFactory stackFactory;
 
-  public BlueprintFactory() {
-    this(new DefaultStackFactory());
-  }
-
-  protected BlueprintFactory(StackFactory stackFactory) {
+  @Inject
+  public BlueprintFactory(Provider<BlueprintDAO> blueprintDAO, StackFactory stackFactory) {
+    this.blueprintDAO = blueprintDAO;
     this.stackFactory = stackFactory;
   }
 
   public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
-    BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
+    BlueprintEntity entity = blueprintDAO.get().findByName(blueprintName);
     if (entity != null) {
       Set<StackId> stackIds = entity.getMpackInstances().stream()
         .map(m -> new StackId(m.getMpackName(), m.getMpackVersion()))
@@ -189,9 +188,8 @@ public class BlueprintFactory {
     }
   }
 
-  protected Stack createStack(StackId stackId) {
+  private Stack createStack(StackId stackId) {
     try {
-      //todo: don't pass in controller
       return stackFactory.createStack(stackId);
     } catch (ObjectNotFoundException e) {
       throw new NoSuchStackException(stackId);
@@ -276,17 +274,6 @@ public class BlueprintFactory {
     allComponents.add(RootComponent.AMBARI_SERVER.name());
 
     return allComponents;
-  }
-
-
-  /**
-   * Static initialization.
-   *
-   * @param dao  blueprint data access object
-   */
-  @Inject
-  public static void init(BlueprintDAO dao) {
-    blueprintDAO = dao;
   }
 
 }
