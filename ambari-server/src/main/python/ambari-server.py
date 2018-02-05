@@ -26,6 +26,7 @@ import logging
 import logging.handlers
 import logging.config
 
+from optparse import OptionValueError
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import set_verbose, set_silent, \
   print_info_msg, print_warning_msg, print_error_msg, set_debug_mode_from_options
@@ -522,12 +523,22 @@ def init_ldap_sync_parser_options(parser):
   parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
   parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
 
+def check_ldap_url_options(option, opt_str, value, parser):
+  setattr(parser.values, option.dest, value)
+  if parser.values.ldap_url and (parser.values.ldap_primary_host or parser.values.ldap_primary_port):
+    raise OptionValueError("You must use either [--ldap-url] or [--ldap-primary-host and --ldap-primary-port] but not both at the same time!")
+
+  if parser.values.ldap_secondary_url and (parser.values.ldap_secondary_host or parser.values.ldap_secondary_port):
+    raise OptionValueError("You must use either [--ldap-secondary-url] or [--ldap-secondary-host and --ldap-secondary-port] but not both at the same time!")
+
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_ldap_setup_parser_options(parser):
-  parser.add_option('--ldap-primary-host', default=None, help="Primary Host for LDAP", dest="ldap_primary_host")
-  parser.add_option('--ldap-primary-port', default=None, help="Primary Port for LDAP", dest="ldap_primary_port")
-  parser.add_option('--ldap-secondary-host', default=None, help="Secondary Host for LDAP", dest="ldap_secondary_host")
-  parser.add_option('--ldap-secondary-port', default=None, help="Secondary Port for LDAP", dest="ldap_secondary_port")
+  parser.add_option('--ldap-url', action="callback", callback=check_ldap_url_options, type='str', default=None, help="Primary URL for LDAP (must not be used together with --ldap-primary-host and --ldap-primary-port)", dest="ldap_url")
+  parser.add_option('--ldap-primary-host', action="callback", callback=check_ldap_url_options, type='str', default=None, help="Primary Host for LDAP (must not be used together with --ldap-url)", dest="ldap_primary_host")
+  parser.add_option('--ldap-primary-port', action="callback", callback=check_ldap_url_options, type='int', default=None, help="Primary Port for LDAP (must not be used together with --ldap-url)", dest="ldap_primary_port")
+  parser.add_option('--ldap-secondary-url', action="callback", callback=check_ldap_url_options, type='str', default=None, help="Secondary URL for LDAP (must not be used together with --ldap-secondary-host and --ldap-secondary-port)", dest="ldap_secondary_url")
+  parser.add_option('--ldap-secondary-host', action="callback", callback=check_ldap_url_options, type='str', default=None, help="Secondary Host for LDAP (must not be used together with --ldap-secondary-url)", dest="ldap_secondary_host")
+  parser.add_option('--ldap-secondary-port', action="callback", callback=check_ldap_url_options, type='int', default=None, help="Secondary Port for LDAP (must not be used together with --ldap-secondary-url)", dest="ldap_secondary_port")
   parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
   parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
   parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
