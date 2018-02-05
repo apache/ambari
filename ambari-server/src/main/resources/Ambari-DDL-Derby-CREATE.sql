@@ -153,11 +153,6 @@ CREATE TABLE clusterstate (
   CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_cs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
 
-CREATE TABLE repo_tag_states (
-  repo_definition_id BIGINT NOT NULL,
-  tag_state VARCHAR(255) NOT NULL,
-  CONSTRAINT FK_repo_tag_id_repo_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (repo_definition_id));
-
 CREATE TABLE repo_version (
   repo_version_id BIGINT NOT NULL,
   stack_id BIGINT NOT NULL,
@@ -200,7 +195,7 @@ CREATE TABLE repo_definition (
 CREATE TABLE repo_tag_states (
   repo_definition_id BIGINT NOT NULL,
   tag_state VARCHAR(255) NOT NULL,
-  CONSTRAINT FK_repo_tag_id_repo_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+  CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
@@ -1171,6 +1166,10 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'config_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   union all
   select 'repo_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'repo_os_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'repo_definition_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'host_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all

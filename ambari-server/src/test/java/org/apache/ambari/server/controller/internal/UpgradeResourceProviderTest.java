@@ -216,39 +216,23 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     StackEntity stackEntity220 = stackDAO.find("HDP", "2.2.0");
     StackId stack211 = new StackId(stackEntity211);
 
-    List<RepoOsEntity> operatingSystems = new ArrayList<>();
-    RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
-    repoDefinitionEntity1.setRepoID("HDP-UTILS");
-    repoDefinitionEntity1.setBaseUrl("");
-    repoDefinitionEntity1.setRepoName("HDP-UTILS");
-    RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
-    repoDefinitionEntity2.setRepoID("HDP");
-    repoDefinitionEntity2.setBaseUrl("");
-    repoDefinitionEntity2.setRepoName("HDP");
-    RepoOsEntity repoOsEntity = new RepoOsEntity();
-    repoOsEntity.setFamily("redhat6");
-    repoOsEntity.setAmbariManaged(true);
-    repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
-    repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
-    operatingSystems.add(repoOsEntity);
-
     repoVersionEntity2110 = new RepositoryVersionEntity();
     repoVersionEntity2110.setDisplayName("My New Version 1");
-    repoVersionEntity2110.addRepoOsEntities(operatingSystems);
+    repoVersionEntity2110.addRepoOsEntities(createTestOperatingSystems());
     repoVersionEntity2110.setStack(stackEntity211);
     repoVersionEntity2110.setVersion("2.1.1.0");
     repoVersionDao.create(repoVersionEntity2110);
 
     repoVersionEntity2111 = new RepositoryVersionEntity();
     repoVersionEntity2111.setDisplayName("My New Version 2 for minor upgrade");
-    repoVersionEntity2111.addRepoOsEntities(operatingSystems);
+    repoVersionEntity2111.addRepoOsEntities(createTestOperatingSystems());
     repoVersionEntity2111.setStack(stackEntity211);
     repoVersionEntity2111.setVersion("2.1.1.1");
     repoVersionDao.create(repoVersionEntity2111);
 
     repoVersionEntity2112 = new RepositoryVersionEntity();
     repoVersionEntity2112.setDisplayName("My New Version 3 for patch upgrade");
-    repoVersionEntity2112.addRepoOsEntities(operatingSystems);
+    repoVersionEntity2112.addRepoOsEntities(createTestOperatingSystems());
     repoVersionEntity2112.setStack(stackEntity211);
     repoVersionEntity2112.setVersion("2.1.1.2");
     repoVersionEntity2112.setType(RepositoryType.PATCH);
@@ -257,7 +241,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     repoVersionEntity2200 = new RepositoryVersionEntity();
     repoVersionEntity2200.setDisplayName("My New Version 4 for major upgrade");
-    repoVersionEntity2200.addRepoOsEntities(operatingSystems);
+    repoVersionEntity2200.addRepoOsEntities(createTestOperatingSystems());
     repoVersionEntity2200.setStack(stackEntity220);
     repoVersionEntity2200.setVersion("2.2.0.0");
     repoVersionDao.create(repoVersionEntity2200);
@@ -295,6 +279,25 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     StageUtils.setConfiguration(configuration);
     ActionManager.setTopologyManager(topologyManager);
     EasyMock.replay(injector.getInstance(AuditLogger.class));
+  }
+
+  private List<RepoOsEntity> createTestOperatingSystems() {
+    List<RepoOsEntity> operatingSystems = new ArrayList<>();
+    RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+    repoDefinitionEntity1.setRepoID("HDP-UTILS");
+    repoDefinitionEntity1.setBaseUrl("");
+    repoDefinitionEntity1.setRepoName("HDP-UTILS");
+    RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+    repoDefinitionEntity2.setRepoID("HDP");
+    repoDefinitionEntity2.setBaseUrl("");
+    repoDefinitionEntity2.setRepoName("HDP");
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
+    repoOsEntity.setFamily("redhat6");
+    repoOsEntity.setAmbariManaged(true);
+    repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+    repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+    operatingSystems.add(repoOsEntity);
+    return operatingSystems;
   }
 
   @After

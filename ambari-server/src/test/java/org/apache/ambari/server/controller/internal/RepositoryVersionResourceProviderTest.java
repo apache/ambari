@@ -88,13 +88,6 @@ public class RepositoryVersionResourceProviderTest {
 
   public static final List<RepoOsEntity> osRedhat7 = new ArrayList<>();
 
-  static {
-    RepoOsEntity repoOsEntity = new RepoOsEntity();
-    repoOsEntity.setFamily("redhat7");
-    repoOsEntity.setAmbariManaged(true);
-    osRedhat7.add(repoOsEntity);
-  }
-
   @Before
   public void before() throws Exception {
     final Set<String> validVersions = Sets.newHashSet("1.1", "1.1-17", "1.1.1.1", "1.1.343432.2", "1.1.343432.2-234234324");
@@ -323,12 +316,6 @@ public class RepositoryVersionResourceProviderTest {
     RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
 
     // test invalid usecases
-    entity.addRepoOsEntities(osRedhat7);
-    try {
-      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
-      Assert.fail("Should throw exception");
-    } catch (Exception ex) {
-    }
 
     entity.addRepoOsEntities(new ArrayList<>());
     try {
@@ -381,6 +368,7 @@ public class RepositoryVersionResourceProviderTest {
     }
 
     entity3.addRepoOsEntities(osEntities);
+    repoOsEntity.setAmbariManaged(false);
     RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity3);
 
   }

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -32,37 +33,31 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Entity
 @Table(name = "repo_os")
 @TableGenerator(name = "repo_os_id_generator",
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
     valueColumnName = "sequence_value",
-    pkColumnValue = "repo_os_id_seq",
-    initialValue = 0
+    pkColumnValue = "repo_os_id_seq"
 )
 public class RepoOsEntity {
-  private static final Logger LOG = LoggerFactory.getLogger(RepoOsEntity.class);
-
   @Id
   @Column(name = "id", nullable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "repo_os_id_generator")
   private Long id;
 
-  @Column(name = "family", nullable = true)
+  @Column(name = "family")
   private String family;
 
   @Column(name = "ambari_managed", nullable = false)
   private short ambariManaged = 0;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "repoOs")
+  @OneToMany(orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "repoOs")
   private List<RepoDefinitionEntity> repoDefinitionEntities = new ArrayList<>();
 
-  @ManyToOne
-  @JoinColumn(name = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "repo_version_id", nullable = false)
   private RepositoryVersionEntity repositoryVersionEntity;
 
   public List<RepoDefinitionEntity> getRepoDefinitionEntities() {
@@ -111,5 +106,25 @@ public class RepoOsEntity {
 
   public void setAmbariManaged(boolean ambariManaged) {
     this.ambariManaged = (short) (ambariManaged ? 1 : 0);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RepoOsEntity that = (RepoOsEntity) o;
+
+    if (ambariManaged != that.ambariManaged) return false;
+    if (family != null ? !family.equals(that.family) : that.family != null) return false;
+    return repoDefinitionEntities != null ? repoDefinitionEntities.equals(that.repoDefinitionEntities) : that.repoDefinitionEntities == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = family != null ? family.hashCode() : 0;
+    result = 31 * result + (int) ambariManaged;
+    result = 31 * result + (repoDefinitionEntities != null ? repoDefinitionEntities.hashCode() : 0);
+    return result;
   }
 }

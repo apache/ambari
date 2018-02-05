@@ -26,6 +26,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -39,18 +40,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Entity
-@Table(name = "repo_definition", uniqueConstraints = {
-})
+@Table(name = "repo_definition")
 @TableGenerator(name = "repo_definition_id_generator",
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
     valueColumnName = "sequence_value",
-    pkColumnValue = "repo_definition_id_seq",
-    initialValue = 0
+    pkColumnValue = "repo_definition_id_seq"
 )
 public class RepoDefinitionEntity {
-  private static final Logger LOG = LoggerFactory.getLogger(RepoDefinitionEntity.class);
-
   @Id
   @Column(name = "id", nullable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "repo_definition_id_generator")
@@ -62,8 +59,8 @@ public class RepoDefinitionEntity {
   @Column(name = "tag_state")
   private Set<RepoTag> repoTags = new HashSet<>();
 
-  @ManyToOne
-  @JoinColumn(name = "repo_os_id", referencedColumnName = "id", nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "repo_os_id", nullable = false)
   private RepoOsEntity repoOs;
 
   @Column(name = "repo_name", nullable = false)
@@ -167,5 +164,35 @@ public class RepoDefinitionEntity {
 
   public void setTags(Set<RepoTag> repoTags) {
     this.repoTags = repoTags;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RepoDefinitionEntity that = (RepoDefinitionEntity) o;
+
+    if (unique != that.unique) return false;
+    if (repoTags != null ? !repoTags.equals(that.repoTags) : that.repoTags != null) return false;
+    if (repoName != null ? !repoName.equals(that.repoName) : that.repoName != null) return false;
+    if (repoID != null ? !repoID.equals(that.repoID) : that.repoID != null) return false;
+    if (baseUrl != null ? !baseUrl.equals(that.baseUrl) : that.baseUrl != null) return false;
+    if (mirrors != null ? !mirrors.equals(that.mirrors) : that.mirrors != null) return false;
+    if (distribution != null ? !distribution.equals(that.distribution) : that.distribution != null) return false;
+    return components != null ? components.equals(that.components) : that.components == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = repoTags != null ? repoTags.hashCode() : 0;
+    result = 31 * result + (repoName != null ? repoName.hashCode() : 0);
+    result = 31 * result + (repoID != null ? repoID.hashCode() : 0);
+    result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
+    result = 31 * result + (mirrors != null ? mirrors.hashCode() : 0);
+    result = 31 * result + (distribution != null ? distribution.hashCode() : 0);
+    result = 31 * result + (components != null ? components.hashCode() : 0);
+    result = 31 * result + (int) unique;
+    return result;
   }
 }

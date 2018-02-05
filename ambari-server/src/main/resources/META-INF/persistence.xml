@@ -59,7 +59,6 @@
     <class>org.apache.ambari.server.orm.entities.RepositoryVersionEntity</class>
     <class>org.apache.ambari.server.orm.entities.RepoOsEntity</class>
     <class>org.apache.ambari.server.orm.entities.RepoDefinitionEntity</class>
-    <class>org.apache.ambari.server.orm.entities.RepoTagEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestOperationLevelEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestResourceFilterEntity</class>

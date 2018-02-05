@@ -196,7 +196,7 @@ CREATE TABLE repo_definition (
 CREATE TABLE repo_tag_states (
   repo_definition_id NUMBER(19) NOT NULL,
   tag_state VARCHAR(255) NOT NULL,
-  CONSTRAINT FK_repo_tag_id_repo_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+  CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id NUMBER(19) NOT NULL,
@@ -1137,6 +1137,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_histo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_notice_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_current_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_version_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_os_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_definition_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);

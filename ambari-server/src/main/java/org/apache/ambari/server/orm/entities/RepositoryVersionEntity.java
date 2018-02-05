@@ -26,6 +26,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -68,8 +69,7 @@ import com.google.inject.Provider;
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
     valueColumnName = "sequence_value",
-    pkColumnValue = "repo_version_id_seq",
-    initialValue = 0
+    pkColumnValue = "repo_version_id_seq"
     )
 @NamedQueries({
     @NamedQuery(
@@ -95,8 +95,6 @@ import com.google.inject.Provider;
         query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion IN (SELECT DISTINCT sd1.desiredRepositoryVersion FROM ServiceDesiredStateEntity sd1 WHERE sd1.desiredRepositoryVersion IN ?1)") })
 @StaticallyInject
 public class RepositoryVersionEntity {
-  private static final Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
-
   @Inject
   private static Provider<RepositoryVersionHelper> repositoryVersionHelperProvider;
 
@@ -109,7 +107,7 @@ public class RepositoryVersionEntity {
    * Unidirectional one-to-one association to {@link StackEntity}
    */
   @OneToOne
-  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  @JoinColumn(name = "stack_id", nullable = false)
   private StackEntity stack;
 
   @Column(name = "version")
@@ -118,30 +116,30 @@ public class RepositoryVersionEntity {
   @Column(name = "display_name")
   private String displayName;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
+  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
   private List<RepoOsEntity> repoOsEntities = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<HostVersionEntity> hostVersionEntities;
 
-  @Column(name = "repo_type", nullable = false, insertable = true, updatable = true)
+  @Column(name = "repo_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private RepositoryType type = RepositoryType.STANDARD;
 
   @Lob
-  @Column(name="version_xml", insertable = true, updatable = true)
+  @Column(name="version_xml")
   private String versionXml;
 
   @Transient
   private VersionDefinitionXml versionDefinition = null;
 
-  @Column(name="version_url", nullable=true, insertable=true, updatable=true)
+  @Column(name="version_url")
   private String versionUrl;
 
-  @Column(name="version_xsd", insertable = true, updatable = true)
+  @Column(name="version_xsd")
   private String versionXsd;
 
-  @Column(name = "hidden", nullable = false, insertable = true, updatable = true)
+  @Column(name = "hidden", nullable = false)
   private short isHidden = 0;
 
   /**

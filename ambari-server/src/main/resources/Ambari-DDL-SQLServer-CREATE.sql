@@ -209,7 +209,7 @@ CREATE TABLE repo_definition (
 CREATE TABLE repo_tag_states (
   repo_definition_id BIGINT NOT NULL,
   tag_state VARCHAR(255) NOT NULL,
-  CONSTRAINT FK_repo_tag_id_repo_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+  CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
@@ -1161,6 +1161,8 @@ BEGIN TRANSACTION
     ('alert_current_id_seq', 0),
     ('config_id_seq', 11),
     ('repo_version_id_seq', 0),
+    ('repo_os_id_seq', 0),
+    ('repo_definition_id_seq', 0),
     ('host_version_id_seq', 0),
     ('service_config_id_seq', 1),
     ('upgrade_id_seq', 0),
