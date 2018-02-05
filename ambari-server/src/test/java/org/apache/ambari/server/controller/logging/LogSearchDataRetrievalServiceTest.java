@@ -26,7 +26,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -378,6 +381,13 @@ public class LogSearchDataRetrievalServiceTest {
     final String expectedClusterName = "clusterone";
     final String expectedComponentAndHostName = expectedComponentName + "+" + expectedHostName;
 
+    final HostLogFilesResponse resp = new HostLogFilesResponse();
+    Map<String, List<String>> componentMap = new HashMap<>();
+    List<String> expectedList = new ArrayList<>();
+    expectedList.add("/this/is/just/a/test/directory");
+    componentMap.put(expectedComponentName, expectedList);
+    resp.setHostLogFiles(componentMap);
+
     EasyMockSupport mockSupport = new EasyMockSupport();
 
     LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
@@ -389,7 +399,7 @@ public class LogSearchDataRetrievalServiceTest {
     Map<String, AtomicInteger> componentFailureCounts = mockSupport.createMock(Map.class);
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
-    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(Collections.singleton("/this/is/just/a/test/directory"));
+    expect(helperMock.sendGetLogFileNamesRequest(expectedHostName)).andReturn(resp);
     // expect that the results will be placed in the cache
     cacheMock.put(expectedComponentAndHostName, Collections.singleton("/this/is/just/a/test/directory"));
     // expect that the completed request is removed from the current request set
@@ -462,7 +472,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     // return null to simulate an error occurring during the LogSearch data request
-    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(null);
+    expect(helperMock.sendGetLogFileNamesRequest(expectedHostName)).andReturn(null);
     // expect that the completed request is removed from the current request set,
     // even in the event of a failure to obtain the LogSearch data
     expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();
@@ -510,7 +520,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     // return null to simulate an error occurring during the LogSearch data request
-    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(null);
+    expect(helperMock.sendGetLogFileNamesRequest(expectedHostName)).andReturn(null);
     // expect that the completed request is removed from the current request set,
     // even in the event of a failure to obtain the LogSearch data
     expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();
@@ -544,6 +554,8 @@ public class LogSearchDataRetrievalServiceTest {
     final String expectedComponentAndHostName = expectedComponentName + "+" + expectedHostName;
     final AtomicInteger testInteger = new AtomicInteger(0);
 
+    final HostLogFilesResponse resp = new HostLogFilesResponse();
+    resp.setHostLogFiles(new HashMap<>());
     EasyMockSupport mockSupport = new EasyMockSupport();
 
     LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
@@ -558,7 +570,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     // return null to simulate an error occurring during the LogSearch data request
-    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(Collections.emptySet());
+    expect(helperMock.sendGetLogFileNamesRequest(expectedHostName)).andReturn(resp);
     // expect that the completed request is removed from the current request set,
     // even in the event of a failure to obtain the LogSearch data
     expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();
@@ -583,4 +595,5 @@ public class LogSearchDataRetrievalServiceTest {
 
     mockSupport.verifyAll();
   }
+
 }

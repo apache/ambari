@@ -17,10 +17,11 @@
  */
 
 export interface ListItem {
-  id?: string;
+  id?: string | number;
   label?: string;
   value: any;
   iconClass?: string;
   isChecked?: boolean;
-  action?: string;
+  onSelect?: Function;
+  isDivider?: boolean;
 }

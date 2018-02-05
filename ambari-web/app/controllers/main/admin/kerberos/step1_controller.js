@@ -85,7 +85,7 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
       value: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'),
       preConditions: [
         PreCondition.create({
-          dsplayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.1'),
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.1')
         }),
         PreCondition.create({
           displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa.condition.2')

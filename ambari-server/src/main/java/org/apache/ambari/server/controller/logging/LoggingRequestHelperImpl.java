@@ -32,11 +32,9 @@ import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -53,6 +51,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -81,6 +80,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   private static final String LOGSEARCH_QUERY_PATH = "/api/v1/service/logs";
 
   private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/api/v1/service/logs/levels/counts";
+
+  private static final String LOGSEARCH_GET_LOG_FILES_PATH = "/api/v1/service/logs/files";
 
   private static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
 
@@ -114,6 +115,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private final Cluster cluster;
 
+  private final String externalAddress;
+
   private final NetworkConnection networkConnection;
 
   private SSLSocketFactory sslSocketFactory;
@@ -123,16 +126,17 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   private int logSearchReadTimeoutInMilliseconds = DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS;
 
 
-  public LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster) {
-    this(hostName, portNumber, protocol, credentialStoreService, cluster, new DefaultNetworkConnection());
+  public LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster, String externalAddress) {
+    this(hostName, portNumber, protocol, credentialStoreService, cluster, externalAddress, new DefaultNetworkConnection());
   }
 
-  protected LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster, NetworkConnection networkConnection) {
+  protected LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster, String externalAddress, NetworkConnection networkConnection) {
     this.hostName = hostName;
     this.portNumber = portNumber;
     this.protocol = protocol;
     this.credentialStoreService = credentialStoreService;
     this.cluster = cluster;
+    this.externalAddress = externalAddress;
     this.networkConnection = networkConnection;
   }
 
@@ -253,7 +257,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
     // first attempt to use the LogSearch admin configuration to
     // obtain the LogSearch server credential
-    if ((logSearchAdminUser != null) && (logSearchAdminPassword != null)) {
+    if ((logSearchAdminUser != null) && (logSearchAdminPassword != null) && StringUtils.isEmpty(externalAddress)) {
       LOG.debug("Credential found in config, will be used to connect to LogSearch");
       networkConnection.setupBasicAuthentication(httpURLConnection, createEncodedCredentials(logSearchAdminUser, logSearchAdminPassword));
     } else {
@@ -269,6 +273,9 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
         networkConnection.setupBasicAuthentication(httpURLConnection, createEncodedCredentials(principalKeyCredential));
       } else {
         LOG.debug("No LogSearch credential could be found, this is probably an error in configuration");
+        if (StringUtils.isEmpty(externalAddress)) {
+          LOG.error("No LogSearch credential could be found, this is required for external LogSearch (credential: {})", LOGSEARCH_ADMIN_CREDENTIAL_NAME);
+        }
       }
     }
   }
@@ -295,30 +302,49 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return null;
   }
 
-  public Set<String> sendGetLogFileNamesRequest(String componentName, String hostName) {
-    Map<String, String> queryParameters =
-      new HashMap<>();
+  public HostLogFilesResponse sendGetLogFileNamesRequest(String hostName) {
+    try {
+      // use the Apache builder to create the correct URI
+      URIBuilder uriBuilder = createBasicURI(protocol);
+      appendUriPath(uriBuilder, LOGSEARCH_GET_LOG_FILES_PATH);
+      uriBuilder.addParameter(HOST_QUERY_PARAMETER_NAME, hostName);
+      uriBuilder.addParameter(LOGSEARCH_CLUSTERS_QUERY_PARAMETER_NAME, cluster.getClusterName());
 
-    // TODO, this current method will be a temporary workaround
-    // TODO, until the new LogSearch API method is available to handle this request
+      // add any query strings specified
+      URI logFileNamesURI = uriBuilder.build();
+      LOG.debug("Attempting to connect to LogSearch server at {}", logFileNamesURI);
 
-    queryParameters.put(HOST_QUERY_PARAMETER_NAME, hostName);
-    queryParameters.put(COMPONENT_QUERY_PARAMETER_NAME,componentName);
-    // ask for page size of 1, since we really only want a single entry to
-    // get the file path name
-    queryParameters.put("pageSize", "1");
+      HttpURLConnection httpURLConnection  = (HttpURLConnection) logFileNamesURI.toURL().openConnection();
+      secure(httpURLConnection, protocol);
+      httpURLConnection.setRequestMethod("GET");
 
-    LogQueryResponse response = sendQueryRequest(queryParameters);
-    if ((response != null) && (response.getListOfResults() != null) && (!response.getListOfResults().isEmpty())) {
-      LogLineResult lineOne = response.getListOfResults().get(0);
-      // this assumes that each component has only one associated log file,
-      // which may not always hold true
-      LOG.debug("For componentName = {}, log file name is = {}", componentName, lineOne.getLogFilePath());
-      return Collections.singleton(lineOne.getLogFilePath());
+      addCookiesFromCookieStore(httpURLConnection);
 
+      setupCredentials(httpURLConnection);
+
+      StringBuffer buffer = networkConnection.readQueryResponseFromServer(httpURLConnection);
+
+      addCookiesToCookieStoreFromResponse(httpURLConnection);
+
+      // setup a reader for the JSON response
+      StringReader stringReader =
+        new StringReader(buffer.toString());
+
+      ObjectReader hostFilesQueryResponseReader = createObjectReader(HostLogFilesResponse.class);
+
+      HostLogFilesResponse response = hostFilesQueryResponseReader.readValue(stringReader);
+
+      if (LOG.isDebugEnabled() && response != null && MapUtils.isNotEmpty(response.getHostLogFiles())) {
+        for (Map.Entry<String, List<String>> componentEntry : response.getHostLogFiles().entrySet()) {
+          LOG.debug("Log files for component '{}' : {}", componentEntry.getKey(), StringUtils.join(componentEntry.getValue(), ","));
+        }
+      }
+      return response;
+    } catch (Exception e) {
+      Utils.logErrorMessageWithThrowableWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
+        "Error occurred while trying to connect to the LogSearch service...", e);
     }
-
-    return Collections.emptySet();
+    return null;
   }
 
   @Override
@@ -383,7 +409,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private URI createLogSearchQueryURI(String scheme, Map<String, String> queryParameters) throws URISyntaxException {
     URIBuilder uriBuilder = createBasicURI(scheme);
-    uriBuilder.setPath(LOGSEARCH_QUERY_PATH);
+    appendUriPath(uriBuilder, LOGSEARCH_QUERY_PATH);
 
     // set the current cluster name, in case this LogSearch service supports data
     // for multiple clusters
@@ -397,17 +423,38 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return uriBuilder.build();
   }
 
-  private URIBuilder createBasicURI(String scheme) {
+  private URIBuilder createBasicURI(String scheme) throws URISyntaxException {
     URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setScheme(scheme);
-    uriBuilder.setHost(hostName);
-    uriBuilder.setPort(Integer.valueOf(portNumber));
+    if (StringUtils.isNotBlank(externalAddress)) {
+      final URI uri = new URI(externalAddress);
+      uriBuilder.setScheme(uri.getScheme());
+      uriBuilder.setHost(uri.getHost());
+      if (uri.getPort() != -1) {
+        uriBuilder.setPort(uri.getPort());
+      }
+      // add path as well to make it work with proxies like: https://sample.org/logsearch
+      if (StringUtils.isNotBlank(uri.getPath())) {
+        uriBuilder.setPath(uri.getPath());
+      }
+    } else {
+      uriBuilder.setScheme(scheme);
+      uriBuilder.setHost(hostName);
+      uriBuilder.setPort(Integer.valueOf(portNumber));
+    }
     return uriBuilder;
+  }
+
+  private void appendUriPath(URIBuilder uriBuilder, String path) {
+    if (StringUtils.isNotEmpty(uriBuilder.getPath())) {
+      uriBuilder.setPath(uriBuilder.getPath() + path);
+    } else {
+      uriBuilder.setPath(path);
+    }
   }
 
   private URI createLogLevelQueryURI(String scheme, String componentName, String hostName) throws URISyntaxException {
     URIBuilder uriBuilder = createBasicURI(scheme);
-    uriBuilder.setPath(LOGSEARCH_GET_LOG_LEVELS_PATH);
+    appendUriPath(uriBuilder, LOGSEARCH_GET_LOG_LEVELS_PATH);
 
     Map<String, String> queryParameters = new HashMap<>();
     // set the query parameters to limit this level count

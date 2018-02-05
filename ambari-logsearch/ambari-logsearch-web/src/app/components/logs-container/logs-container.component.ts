@@ -30,8 +30,8 @@ import {Tab} from '@app/classes/models/tab';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {ListItem} from '@app/classes/list-item';
-import {HomogeneousObject} from '@app/classes/object';
-import {LogsType} from '@app/classes/string';
+import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
+import {LogsType, LogLevel} from '@app/classes/string';
 import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel.component";
 
 @Component({
@@ -52,7 +52,11 @@ export class LogsContainerComponent implements OnInit {
     this.logsContainer.loadColumnsNames();
     this.appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
     this.serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
-      this.serviceLogsHistogramData = this.logsContainer.getGraphData(data, Object.keys(this.logsContainer.colors));
+      this.serviceLogsHistogramData = this.logsContainer.getGraphData(data, this.logsContainer.logLevels.map((
+        level: LogLevelObject
+      ): LogLevel => {
+        return level.name;
+      }));
     });
     this.auditLogsGraphStorage.getAll().subscribe((data: BarGraph[]): void => {
       this.auditLogsGraphData = this.logsContainer.getGraphData(data);
@@ -88,9 +92,13 @@ export class LogsContainerComponent implements OnInit {
 
   auditLogsGraphData: HomogeneousObject<HomogeneousObject<number>>;
 
-  get serviceLogsHistogramColors(): HomogeneousObject<string> {
-    return this.logsContainer.colors;
-  }
+  serviceLogsHistogramColors: HomogeneousObject<string> = this.logsContainer.logLevels.reduce((
+    currentObject: HomogeneousObject<string>, level: LogLevelObject
+  ): HomogeneousObject<string> => {
+    return Object.assign({}, currentObject, {
+      [level.name]: level.color
+    });
+  }, {});
 
   get autoRefreshRemainingSeconds(): number {
     return this.logsContainer.autoRefreshRemainingSeconds;

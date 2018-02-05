@@ -74,15 +74,17 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
 
   @Override
   public AmbariLdapConfiguration get() {
-    return instance == null || !instance.toMap().isEmpty() ? loadInstance() : instance;
+    LOGGER.debug("Getting LDAP configuration...");
+    if (instance == null || instance.toMap().isEmpty()) {
+      loadInstance();
+    }
+    return instance;
   }
 
   /**
    * Loads the AmbariLdapConfiguration from the database.
-   *
-   * @return the AmbariLdapConfiguration instance
    */
-  private AmbariLdapConfiguration loadInstance() {
+  private void loadInstance() {
     List<AmbariConfigurationEntity> configEntities = null;
 
     LOGGER.info("Loading LDAP configuration ...");
@@ -99,8 +101,6 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
     }
 
     LOGGER.info("Loaded LDAP configuration instance: [ {} ]", instance.toMap());
-
-    return instance;
   }
 
   private Map<String, String> toProperties(List<AmbariConfigurationEntity> configEntities) {

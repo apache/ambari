@@ -109,4 +109,21 @@ export class FiltersPanelComponent implements OnChanges {
     this.searchBoxValueUpdate.next();
   }
 
+  startCapture(): void {
+    this.logsContainer.startCaptureTimer();
+  }
+
+  stopCapture(): void {
+    this.logsContainer.stopCaptureTimer();
+  }
+
+  proceedWithExclude(item: string): void {
+    this.queryParameterNameChange.next({
+      item: {
+        value: item
+      },
+      isExclude: true
+    });
+  }
+
 }

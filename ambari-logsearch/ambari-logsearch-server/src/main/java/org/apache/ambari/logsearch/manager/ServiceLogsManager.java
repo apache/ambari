@@ -608,7 +608,7 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
   public HostLogFilesResponse getHostLogFileData(HostLogFilesRequest request) {
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
-    QueryResponse queryResponse = serviceLogsSolrDao.process(facetQuery, "/service/logs/hostlogfiles");
+    QueryResponse queryResponse = serviceLogsSolrDao.process(facetQuery, "/service/logs/files");
     return responseDataGenerator.generateHostLogFilesResponse(queryResponse);
   }
 

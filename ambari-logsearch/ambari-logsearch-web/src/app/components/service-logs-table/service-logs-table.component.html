@@ -23,12 +23,13 @@
         {{'logs.brokenListLayoutMessage' | translate}}
       </div>
       <form *ngIf="logs && logs.length" [formGroup]="filtersForm">
-        <filter-dropdown label="{{filters.serviceLogsSorting.label | translate}}"
-                         formControlName="serviceLogsSorting" [options]="filters.serviceLogsSorting.options" [isRightAlign]="true">
-        </filter-dropdown>
+        <filter-dropdown formControlName="serviceLogsSorting" label="{{filters.serviceLogsSorting.label | translate}}"
+                         [showCommonLabelWithSelection]="true" [options]="filters.serviceLogsSorting.options"
+                         [isRightAlign]="true"></filter-dropdown>
       </form>
       <dropdown-button label="{{'logs.columns' | translate}}" [options]="columns" [isRightAlign]="true"
-                       [isMultipleChoice]="true" action="updateSelectedColumns" [additionalArgs]="logsTypeMapObject.fieldsModel">
+                       [isMultipleChoice]="true" (selectItem)="updateSelectedColumns($event)"
+                       [listItemArguments]="logsTypeMapObject.fieldsModel">
       </dropdown-button>
       <div class="layout-btn-group">
         <a *ngIf="layout==='FLEX'" class="btn" (click)="toggleShowLabels()" tooltip="{{'logs.toggleLabels' | translate}}">
@@ -67,7 +68,7 @@
             <tr class="log-item-row">
               <td class="log-action">
                 <dropdown-button iconClass="fa fa-ellipsis-v action" [hideCaret]="true" [options]="logActions"
-                                 [additionalArgs]="[log]" [showSelectedValue]="false"></dropdown-button>
+                                 [listItemArguments]="[log]" [showSelectedValue]="false"></dropdown-button>
               </td>
               <td *ngIf="isColumnDisplayed('logtime')" class="log-time">
                 <time>
@@ -115,7 +116,7 @@
             <div class="log-header">
               <div class="log-action">
                 <dropdown-button iconClass="fa fa-ellipsis-v action" [hideCaret]="true" [options]="logActions"
-                                 [additionalArgs]="[log]" [showSelectedValue]="false"></dropdown-button>
+                                 [listItemArguments]="[log]" [showSelectedValue]="false"></dropdown-button>
               </div>
               <div *ngIf="isColumnDisplayed('level')" [ngClass]="'log-level ' + log.level.toLowerCase()">
                 <log-level [logEntry]="log"></log-level>

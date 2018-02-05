@@ -15,5 +15,6 @@
 
 AMBARI_PID_DIR=/var/run/ambari-server
 AMBARI_PASSPHRASE="DEV"
+export PYTHONPATH=/usr/lib/ambari-server/lib:$PYTHONPATH
 # to add additional directory or jar to server classpath use SERVER_CLASSPATH variable
 # export SERVER_CLASSPATH=/etc/hadoop/conf/secure

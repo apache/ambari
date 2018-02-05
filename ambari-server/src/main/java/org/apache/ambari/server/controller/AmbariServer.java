@@ -306,6 +306,10 @@ public class AmbariServer {
     return clusterController;
   }
 
+  public static void setController(AmbariManagementController controller) {
+    clusterController = controller;
+  }
+
   @SuppressWarnings("deprecation")
   public void run() throws Exception {
     setupJulLogging();

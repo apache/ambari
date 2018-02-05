@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.common.PropertyDescriptionStorage;
 import org.apache.ambari.logsearch.common.ShipperConfigDescriptionStorage;
@@ -78,8 +79,8 @@ public class InfoManager extends JsonManagerBase {
 
   public Map<String, Object> getFeaturesMap() {
     Map<String, Object> featuresMap = new HashMap<>();
-    featuresMap.put("auth", getAuthMap());
-    featuresMap.put("config_api", logSearchConfigApiConfig.isConfigApiEnabled());
+    featuresMap.put(LogSearchConstants.AUTH_FEATURE_KEY, getAuthMap());
+    featuresMap.put(LogSearchConstants.SHIPPER_CONFIG_API_KEY, logSearchConfigApiConfig.isConfigApiEnabled());
     return featuresMap;
   }
 
