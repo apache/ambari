@@ -131,4 +131,24 @@ export class UtilsService {
     };
   }
 
+  /**
+   * Method that updates source array with only the values which aren't already present there
+   * @param {Array} sourceArray
+   * @param {Array} itemsToPush
+   * @param {Function} [compareFunction=this.isEqual] - custom comparison function;
+   * item is skipped if it returns true, and pushed - if false
+   * @returns {Array}
+   */
+  pushUniqueValues = (
+    sourceArray: any[], itemsToPush: any[], compareFunction: (x: any, y: any) => boolean = this.isEqual
+  ): any[] => {
+    itemsToPush.forEach((item: any) => {
+      const itemExists = sourceArray.some((sourceItem: any): boolean => compareFunction(item, sourceItem));
+      if (!itemExists) {
+        sourceArray.push(item);
+      }
+    });
+    return sourceArray;
+  }
+
 }

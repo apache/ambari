@@ -16,35 +16,8 @@
  * limitations under the License.
  */
 
-import {QueryParams} from '@app/classes/queries/query-params';
-import {SortingType} from '@app/classes/string';
+import {LogsListQueryParams} from '@app/classes/queries/logs-query-params';
 
-export const defaultParams = {
-  page: '0',
-  pageSize: '10'
-};
-
-export class AuditLogsQueryParams extends QueryParams {
-  clusters?: string;
-  mustBe?: string;
-  mustNot?: string;
-  includeQuery?: string;
-  excludeQuery?: string;
-  from?: string;
-  to?: string;
-}
-
-export class AuditLogsListQueryParams extends AuditLogsQueryParams {
-  constructor(options: AuditLogsListQueryParams) {
-    let finalParams = Object.assign({}, defaultParams, options);
-    const page = parseInt(finalParams.page),
-      pageSize = parseInt(finalParams.pageSize);
-    finalParams.startIndex = isNaN(page) || isNaN(pageSize) ? '' : (page * pageSize).toString();
-    super(finalParams);
-  }
-  page: string;
-  pageSize: string;
-  startIndex: string;
-  sortBy?: string;
-  sortType?: SortingType;
+export class AuditLogsListQueryParams extends LogsListQueryParams {
+  userList?: string;
 }

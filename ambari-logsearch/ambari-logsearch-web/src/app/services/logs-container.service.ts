@@ -122,6 +122,13 @@ export class LogsContainerService {
           this.loadLogs();
       });
     });
+    this.auditLogsSource.subscribe((logs: AuditLog[]): void => {
+      const userNames = logs.map((log: AuditLog): string => log.reqUser);
+      this.utils.pushUniqueValues(
+        this.filters.users.options, userNames.map(this.utils.getListItemFromString),
+        this.compareFilterOptions
+      );
+    });
   }
 
   private readonly paginationOptions: string[] = ['10', '25', '50', '100'];
@@ -172,7 +179,7 @@ export class LogsContainerService {
       fieldName: 'cluster'
     },
     timeRange: {
-      label: 'filter.duration',
+      label: 'logs.duration',
       options: [
         [
           {
@@ -496,6 +503,13 @@ export class LogsContainerService {
     query: {
       defaultSelection: []
     },
+    users: {
+      label: 'filter.users',
+      iconClass: 'fa fa-server',
+      options: [],
+      defaultSelection: [],
+      fieldName: 'reqUser'
+    },
     isUndoOrRedo: {
       defaultSelection: false
     }
@@ -511,7 +525,8 @@ export class LogsContainerService {
     serviceLogsSorting: ['sortType', 'sortBy'],
     pageSize: ['pageSize'],
     page: ['page'],
-    query: ['includeQuery', 'excludeQuery']
+    query: ['includeQuery', 'excludeQuery'],
+    users: ['userList']
   };
 
   private readonly graphFilters = {
@@ -520,7 +535,8 @@ export class LogsContainerService {
     components: ['mustBe'],
     levels: ['level'],
     hosts: ['hostList'],
-    query: ['includeQuery', 'excludeQuery']
+    query: ['includeQuery', 'excludeQuery'],
+    users: ['userList']
   };
 
   readonly customTimeRangeKey: string = 'filter.timeRange.custom';
@@ -533,8 +549,7 @@ export class LogsContainerService {
     auditLogs: {
       logsModel: this.auditLogsStorage,
       fieldsModel: this.auditLogsFieldsStorage,
-      // TODO add all the required fields
-      listFilters: ['clusters', 'timeRange', 'auditLogsSorting', 'pageSize', 'page', 'query'],
+      listFilters: ['clusters', 'timeRange', 'auditLogsSorting', 'pageSize', 'page', 'query', 'users'],
       topResourcesFilters: ['clusters', 'timeRange', 'query'],
       graphFilters: ['clusters', 'timeRange', 'query'],
       graphRequestName: 'auditLogsGraph',
@@ -612,13 +627,21 @@ export class LogsContainerService {
     }
   }
 
+  private auditLogsSource: Observable<AuditLog[]> = this.auditLogsStorage.getAll();
+
+  private serviceLogsSource: Observable<ServiceLog[]> = this.serviceLogsStorage.getAll();
+
   auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getAll().map(this.columnsMapper);
 
   serviceLogsColumns: Observable<ListItem[]> = this.serviceLogsFieldsStorage.getAll().map(this.columnsMapper);
 
-  serviceLogs: Observable<ServiceLog[]> = Observable.combineLatest(this.serviceLogsStorage.getAll(), this.serviceLogsColumns).map(this.logsMapper);
+  serviceLogs: Observable<ServiceLog[]> = Observable.combineLatest(
+    this.serviceLogsSource, this.serviceLogsColumns
+  ).map(this.logsMapper);
 
-  auditLogs: Observable<AuditLog[]> = Observable.combineLatest(this.auditLogsStorage.getAll(), this.auditLogsColumns).map(this.logsMapper);
+  auditLogs: Observable<AuditLog[]> = Observable.combineLatest(
+    this.auditLogsSource, this.auditLogsColumns
+  ).map(this.logsMapper);
 
   queryParameterNameChange: Subject<SearchBoxParameterTriggered> = new Subject();
 
@@ -641,6 +664,16 @@ export class LogsContainerService {
   topUsersGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
 
   topResourcesGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
+
+  /**
+   * Compares two options list items by values (so that isChecked flags are ignored)
+   * @param {ListItem} sourceItem
+   * @param {ListItem} newItem
+   * @returns {boolean}
+   */
+  private compareFilterOptions = (sourceItem: ListItem, newItem: ListItem): boolean => {
+    return this.utils.isEqual(sourceItem.value, newItem.value);
+  };
 
   private isFormUnchanged = (valueA: object, valueB: object): boolean => {
     const trackedControlNames = this.logsTypeMap[this.activeLogsType].listFilters;
@@ -956,7 +989,7 @@ export class LogsContainerService {
     request.subscribe((response: Response): void => {
       const clusterNames = response.json();
       if (clusterNames) {
-        this.filters.clusters.options.push(...clusterNames.map(this.utils.getListItemFromString));
+        this.utils.pushUniqueValues(this.filters.clusters.options, clusterNames.map(this.utils.getListItemFromString));
         this.clustersStorage.addInstances(clusterNames);
       }
     });
@@ -973,7 +1006,7 @@ export class LogsContainerService {
             }, 0)
           }));
       if (components) {
-        this.filters.components.options.push(...components.map(this.utils.getListItemFromNode));
+        this.utils.pushUniqueValues(this.filters.components.options, components.map(this.utils.getListItemFromNode));
         this.componentsStorage.addInstances(components);
       }
     });
@@ -986,7 +1019,7 @@ export class LogsContainerService {
       const jsonResponse = response.json(),
         hosts = jsonResponse && jsonResponse.vNodeList;
       if (hosts) {
-        this.filters.hosts.options.push(...hosts.map(this.utils.getListItemFromNode));
+        this.utils.pushUniqueValues(this.filters.hosts.options, hosts.map(this.utils.getListItemFromNode));
         this.hostsStorage.addInstances(hosts);
       }
     });

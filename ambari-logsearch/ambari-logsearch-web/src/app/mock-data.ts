@@ -49,7 +49,7 @@ export const mockData = {
               proxyUsers: [
                 'admin'
               ],
-              evtTime: 1496057422531,
+              evtTime: currentTime.valueOf(),
               enforcer: 'ambari-acl',
               reqContext: 'ambari',
               cliType: 'GET',
@@ -72,7 +72,7 @@ export const mockData = {
               event_md5: '09876543211234567890',
               event_dur_ms: 100,
               _ttl_: '+7DAYS',
-              _expire_at_: '2017-05-29T11:30:22.531Z',
+              _expire_at_: currentTime.clone().add(2, 'd').valueOf(),
               _router_field_: 5
             },
             {
@@ -96,7 +96,7 @@ export const mockData = {
               proxyUsers: [
                 'user'
               ],
-              evtTime: 1496057422531,
+              evtTime: currentTime.clone().subtract(2, 'h').valueOf(),
               enforcer: 'hdfs',
               reqContext: 'ambari_server',
               cliType: 'PUT',
@@ -119,7 +119,7 @@ export const mockData = {
               event_md5: '01928374650192837465',
               event_dur_ms: 500,
               _ttl_: '+7DAYS',
-              _expire_at_: '2017-05-29T11:30:22.531Z',
+              _expire_at_: currentTime.clone().add(1, 'd').valueOf(),
               _router_field_: 10
             }
           ],
@@ -995,7 +995,7 @@ export const mockData = {
                 path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
                 host: 'h0',
                 level: 'WARN',
-                logtime: '2017-05-28T11:30:22.531Z',
+                logtime: currentTime.valueOf(),
                 ip: '192.168.0.1',
                 logfile_line_number: 8,
                 type: 'ams_collector',
@@ -1012,14 +1012,14 @@ export const mockData = {
                 event_md5: '1908755391',
                 event_dur_ms: 200,
                 _ttl_: '+5DAYS',
-                _expire_at_: '2017-05-29T11:30:22.531Z',
+                _expire_at_: currentTime.clone().add(1, 'd').valueOf(),
                 _router_field_: 20
               },
               {
                 path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
                 host: 'h1',
                 level: 'ERROR',
-                logtime: '2017-05-28T10:30:22.531Z',
+                logtime: currentTime.clone().subtract(1, 'd').valueOf(),
                 ip: '192.168.0.2',
                 type: 'ams_collector',
                 _version_: 14,
@@ -1036,7 +1036,7 @@ export const mockData = {
                 event_md5: '1029384756',
                 event_dur_ms: 700,
                 _ttl_: '+5DAYS',
-                _expire_at_: '2017-05-29T10:30:22.531Z',
+                _expire_at_: currentTime.clone().add(2, 'd').valueOf(),
                 _router_field_: 5
               }
             ]

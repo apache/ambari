@@ -441,4 +441,129 @@ describe('UtilsService', () => {
     }));
   });
 
+  describe('#pushUniqueValues()', () => {
+    const cases = [
+      {
+        source: [1, 2, 3],
+        itemsToPush: [2, 4, 5, 1],
+        compareFunction: undefined,
+        result: [1, 2, 3, 4, 5],
+        title: 'primitives array'
+      },
+      {
+        source: [
+          {
+            p0: 'v0'
+          },
+          {
+            p1: 'v1'
+          },
+          {
+            p2: 'v2'
+          }
+        ],
+        itemsToPush: [
+          {
+            p3: 'v3'
+          },
+          {
+            p2: 'v2'
+          },
+          {
+            p2: 'v3'
+          },
+          {
+            p4: 'v4'
+          }
+        ],
+        compareFunction: undefined,
+        result: [
+          {
+            p0: 'v0'
+          },
+          {
+            p1: 'v1'
+          },
+          {
+            p2: 'v2'
+          },
+          {
+            p3: 'v3'
+          },
+          {
+            p2: 'v3'
+          },
+          {
+            p4: 'v4'
+          }
+        ],
+        title: 'objects array'
+      },
+      {
+        source: [
+          {
+            id: 0,
+            value: 'v0'
+          },
+          {
+            id: 1,
+            value: 'v1'
+          },
+          {
+            id: 2,
+            value: 'v2'
+          }
+        ],
+        itemsToPush: [
+          {
+            id: 3,
+            value: 'v3'
+          },
+          {
+            id: 4,
+            value: 'v4'
+          },
+          {
+            id: 0,
+            value: 'v5'
+          },
+          {
+            id: 1,
+            value: 'v6'
+          }
+        ],
+        compareFunction: (itemA: any, itemB: any): boolean => itemA.id === itemB.id,
+        result: [
+          {
+            id: 0,
+            value: 'v0'
+          },
+          {
+            id: 1,
+            value: 'v1'
+          },
+          {
+            id: 2,
+            value: 'v2'
+          },
+          {
+            id: 3,
+            value: 'v3'
+          },
+          {
+            id: 4,
+            value: 'v4'
+          }
+        ],
+        title: 'custom comparison function'
+      }
+    ];
+
+    cases.forEach(test => {
+      it(test.title, inject([UtilsService], (service: UtilsService) => {
+        expect(service.pushUniqueValues(test.source, test.itemsToPush, test.compareFunction)).toEqual(test.result);
+      }));
+    });
+  });
+
 });
