@@ -16,22 +16,35 @@
  * limitations under the License.
  */
 
+import {SortingType} from '@app/classes/string';
 import {QueryParams} from '@app/classes/queries/query-params';
-import {ScrollType} from '@app/classes/string';
 
-const defaultParams = {
-  numberRows: '10',
-  scrollType: ''
+const defaultListParams = {
+  page: '0',
+  pageSize: '10'
 };
 
-export class ServiceLogsTruncatedQueryParams extends QueryParams {
-  constructor(options: ServiceLogsTruncatedQueryParams) {
-    const finalParams = Object.assign({}, defaultParams, options);
+export class LogsQueryParams extends QueryParams {
+  clusters?: string;
+  mustBe?: string;
+  mustNot?: string;
+  includeQuery?: string;
+  excludeQuery?: string;
+  from?: string;
+  to?: string;
+}
+
+export class LogsListQueryParams extends LogsQueryParams {
+  constructor(options: LogsListQueryParams) {
+    let finalParams = Object.assign({}, defaultListParams, options);
+    const page = parseInt(finalParams.page),
+      pageSize = parseInt(finalParams.pageSize);
+    finalParams.startIndex = isNaN(page) || isNaN(pageSize) ? '' : (page * pageSize).toString();
     super(finalParams);
   }
-  id: string;
-  host_name: string;
-  component_name: string;
-  numberRows: string;
-  scrollType: ScrollType;
+  page: string;
+  pageSize: string;
+  startIndex: string;
+  sortBy?: string;
+  sortType?: SortingType;
 }

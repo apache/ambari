@@ -34,7 +34,7 @@
   "filter.include": "Include",
   "filter.exclude": "Exclude",
   "filter.hosts": "Hosts",
-  "filter.duration": "Duration",
+  "filter.users": "Users",
 
   "filter.capture": "Capture",
   "filter.capture.triggeringRefresh": "Triggering auto-refresh in {{remainingSeconds}} sec",
@@ -173,6 +173,7 @@
   "logs.tableLayoutBtnTooltip": "Table layout. Optimal when you want to display only few columns.",
   "logs.flexLayoutBtnTooltip": "Flexible layout. Optimal when your screen is narrow or you want to display more columns.",
   "logs.toggleLabels": "Turn on/off the labels.",
+  "logs.duration": "Duration",
 
   "histogram.gap": "gap",
   "histogram.gaps": "gaps",

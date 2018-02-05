@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import {ReflectiveInjector} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Store, Action} from '@ngrx/store';
 import {AppSettings} from '@app/classes/models/app-settings';
@@ -29,17 +30,22 @@ import {UserConfig} from '@app/classes/models/user-config';
 import {AuditLogField} from '@app/classes/models/audit-log-field';
 import {ServiceLogField} from '@app/classes/models/service-log-field';
 import {Tab} from '@app/classes/models/tab';
+import {UtilsService} from '@app/services/utils.service';
 
 const storeActions = {
-  'ARRAY.ADD': 'ADD',
-  'ARRAY.ADD.START': 'ADD_TO_START',
-  'ARRAY.DELETE.PRIMITIVE': 'DELETE_PRIMITIVE',
-  'ARRAY.DELETE.OBJECT': 'DELETE_OBJECT',
-  'ARRAY.CLEAR': 'CLEAR',
-  'ARRAY.MAP': 'MAP',
+    'ARRAY.ADD': 'ADD',
+    'ARRAY.ADD.START': 'ADD_TO_START',
+    'ARRAY.ADD.UNIQUE': 'ADD_UNIQUE',
+    'ARRAY.DELETE.PRIMITIVE': 'DELETE_PRIMITIVE',
+    'ARRAY.DELETE.OBJECT': 'DELETE_OBJECT',
+    'ARRAY.CLEAR': 'CLEAR',
+    'ARRAY.MAP': 'MAP',
 
-  'OBJECT.SET': 'SET'
-};
+    'OBJECT.SET': 'SET'
+  },
+  provider = ReflectiveInjector.resolve([UtilsService]),
+  injector = ReflectiveInjector.fromResolvedProviders(provider),
+  utils = injector.get(UtilsService);
 
 export interface AppStore {
   appSettings: AppSettings;
@@ -92,6 +98,13 @@ export class CollectionModelService extends ModelService {
   addInstancesToStart(instances: any[]): void {
     this.store.dispatch({
       type: `${storeActions['ARRAY.ADD.START']}_${this.modelName}`,
+      payload: instances
+    });
+  }
+
+  addUniqueInstances(instances: any[]): void {
+    this.store.dispatch({
+      type: `${storeActions['ARRAY.ADD.UNIQUE']}_${this.modelName}`,
       payload: instances
     });
   }
@@ -163,6 +176,8 @@ export function getCollectionReducer(modelName: string, defaultState: any = []):
         return [...state, ...action.payload];
       case `${storeActions['ARRAY.ADD.START']}_${modelName}`:
         return [...action.payload, ...state];
+      case `${storeActions['ARRAY.ADD.UNIQUE']}_${modelName}`:
+        return utils.pushUniqueValues(state.slice(), action.payload);
       case `${storeActions['ARRAY.DELETE.OBJECT']}_${modelName}`:
         return state.filter(instance => instance.id !== action.payload.id);
       case `${storeActions['ARRAY.DELETE.PRIMITIVE']}_${modelName}`:

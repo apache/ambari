@@ -36,6 +36,9 @@
                    label="{{filters.hosts.label | translate}}" [iconClass]="filters.hosts.iconClass"
                    [subItems]="filters.hosts.options" [isMultipleChoice]="true" [isRightAlign]="true"
                    additionalLabelComponentSetter="getDataForHostsNodeBar"></filter-button>
+    <filter-button *ngIf="isFilterConditionDisplayed('users')" formControlName="users"
+                   label="{{filters.users.label | translate}}" [iconClass]="filters.users.iconClass"
+                   [subItems]="filters.users.options" [isMultipleChoice]="true" [isRightAlign]="true"></filter-button>
     <filter-button *ngIf="isFilterConditionDisplayed('components')" formControlName="components"
                    label="{{filters.components.label | translate}}" [iconClass]="filters.components.iconClass"
                    [subItems]="filters.components.options" [isMultipleChoice]="true" [isRightAlign]="true"
