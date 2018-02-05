@@ -447,10 +447,17 @@ public class AmbariLdapDataPopulator {
    * @return the set of LDAP groups for the given name
    */
   protected Set<LdapGroupDto> getLdapGroups(String groupName) {
+    String baseDn = ldapServerProperties.getBaseDN().toLowerCase();
+    String groupBase = ldapServerProperties.getGroupBase().toLowerCase();
+
+    //If groupBase is set incorrectly or isn't set - search in BaseDn
+    int indexOfBaseDn = groupBase.indexOf(baseDn);
+    groupBase = indexOfBaseDn <= 0 ? "" : groupBase.substring(0, indexOfBaseDn - 1);
+    
     Filter groupObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getGroupObjectClass());
     Filter groupNameFilter = new LikeFilter(ldapServerProperties.getGroupNamingAttr(), groupName);
-    return getFilteredLdapGroups(ldapServerProperties.getBaseDN(), groupObjectFilter, groupNameFilter);
+    return getFilteredLdapGroups(groupBase, groupObjectFilter, groupNameFilter);
   }
 
   /**
