@@ -34,7 +34,7 @@
             {{/unless}}
             {{#unless isRetryDisabled}}
               <button class="btn btn-primary" {{action retrySelectedHosts target="view"}} {{QAAttr "retry-failed-button"}}>
-                <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
+                <i class="glyphicon glyphicon-repeat glyphicon-white"></i>&nbsp;
                 <span class="hidden-sm">{{t installer.step3.retryFailed}}</span>
               </button>
             {{/unless}}
