@@ -719,21 +719,20 @@ public class AmbariMetaInfo {
    * @param stackId
    *            the stack id
    * @return  the stack info
-   * @throws AmbariException
    */
-  public StackInfo getStack(StackId stackId) throws AmbariException {
+  public StackInfo getStack(StackId stackId) throws StackAccessException {
     return getStack(stackId.getStackName(), stackId.getStackVersion());
   }
 
   public boolean isKnownStack(StackId stackId) {
     try {
       return getStack(stackId) != null;
-    } catch (AmbariException e) {
+    } catch (StackAccessException e) {
       return false;
     }
   }
 
-  public StackInfo getStack(String stackName, String version) throws AmbariException {
+  public StackInfo getStack(String stackName, String version) throws StackAccessException {
     StackInfo stackInfoResult = stackManager.getStack(stackName, version);
 
     if (stackInfoResult == null) {

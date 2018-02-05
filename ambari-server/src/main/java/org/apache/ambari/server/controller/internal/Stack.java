@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -127,8 +127,8 @@ public class Stack implements StackDefinition {
   private Map<String, Set<String>> excludedConfigurationTypes =
     new HashMap<>();
 
-  public Stack(String name, String version, AmbariManagementController ctrl) throws AmbariException { // FIXME remove or at least change to use metainfo directly
-    this(ctrl.getAmbariMetaInfo().getStack(name, version));
+  public Stack(StackId stackId, AmbariMetaInfo metaInfo) throws StackAccessException {
+    this(metaInfo.getStack(stackId));
   }
 
   public Stack(StackInfo stackInfo) {

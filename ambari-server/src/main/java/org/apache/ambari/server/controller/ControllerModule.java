@@ -171,9 +171,11 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.BlueprintValidator;
 import org.apache.ambari.server.topology.BlueprintValidatorImpl;
+import org.apache.ambari.server.topology.DefaultStackFactory;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
@@ -542,6 +544,7 @@ public class ControllerModule extends AbstractModule {
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
     bind(BlueprintValidator.class).to(BlueprintValidatorImpl.class);
+    bind(StackFactory.class).to(DefaultStackFactory.class);
     bind(BlueprintFactory.class);
 
     install(new FactoryModuleBuilder().implement(AmbariEvent.class, Names.named("userCreated"), UserCreatedEvent.class).build(AmbariEventFactory.class));

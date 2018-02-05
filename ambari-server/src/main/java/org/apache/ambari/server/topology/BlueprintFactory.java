@@ -47,10 +47,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -195,13 +192,9 @@ public class BlueprintFactory {
   protected Stack createStack(StackId stackId) {
     try {
       //todo: don't pass in controller
-      return stackFactory.createStack(stackId, AmbariServer.getController());
+      return stackFactory.createStack(stackId);
     } catch (ObjectNotFoundException e) {
       throw new NoSuchStackException(stackId);
-    } catch (AmbariException e) {
-      // todo
-      throw new RuntimeException(
-        String.format("An error occurred parsing the stack information for %s", stackId) , e);
     }
   }
 
@@ -296,26 +289,4 @@ public class BlueprintFactory {
     blueprintDAO = dao;
   }
 
-  /**
-   * Internal interface used to abstract out the process of creating the Stack object.
-   *
-   * This is used to simplify unit testing, since a new Factory can be provided to
-   * simulate various Stack or error conditions.
-   */
-  interface StackFactory {
-    Stack createStack(StackId stackId, AmbariManagementController managementController) throws AmbariException;
-  }
-
-  /**
-   * Default implementation of StackFactory.
-   *
-   * Calls the Stack constructor to create the Stack instance.
-   *
-   */
-  private static class DefaultStackFactory implements StackFactory {
-    @Override
-    public Stack createStack(StackId stackId, AmbariManagementController managementController) throws AmbariException {
-      return new Stack(stackId.getStackName(), stackId.getStackVersion(), managementController);
-    }
-  }
 }

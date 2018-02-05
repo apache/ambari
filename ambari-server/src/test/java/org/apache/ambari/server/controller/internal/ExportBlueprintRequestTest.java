@@ -44,6 +44,7 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.HostGroup;
@@ -77,7 +78,7 @@ public class ExportBlueprintRequestTest {
     AmbariMetaInfo metainfo = createNiceMock(AmbariMetaInfo.class);
     expect(controller.getAmbariMetaInfo()).andReturn(metainfo).anyTimes();
     StackInfo stackInfo = createNiceMock(StackInfo.class);
-    expect(metainfo.getStack("TEST", "1.0")).andReturn(stackInfo);
+    expect(metainfo.getStack(new StackId("TEST", "1.0"))).andReturn(stackInfo);
     expect(stackInfo.getServices()).andReturn(Collections.emptySet()).anyTimes();
     expect(stackInfo.getProperties()).andReturn(Collections.emptyList()).anyTimes();
 

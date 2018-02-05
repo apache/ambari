@@ -19,16 +19,13 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toSet;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createStrictMock;
-import static org.powermock.api.easymock.PowerMock.expectNew;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 import static org.powermock.api.easymock.PowerMock.verify;
@@ -40,8 +37,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProviderTest;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -50,7 +46,6 @@ import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
-import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,13 +66,13 @@ public class BlueprintFactoryTest {
 
   private static final String BLUEPRINT_NAME = "test-blueprint";
 
-  BlueprintFactory factory = new BlueprintFactory();
-  Stack stack = createNiceMock(Stack.class);
-  BlueprintFactory testFactory = new TestBlueprintFactory(stack);
-  BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
-  BlueprintEntity entity = createStrictMock(BlueprintEntity.class);
-  BlueprintConfigEntity configEntity = createStrictMock(BlueprintConfigEntity.class);
-
+  private BlueprintFactory factory = new BlueprintFactory();
+  private Stack stack = createNiceMock(Stack.class);
+  private BlueprintFactory testFactory = new TestBlueprintFactory(stack);
+  private BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
+  private BlueprintEntity entity = createStrictMock(BlueprintEntity.class);
+  private BlueprintConfigEntity configEntity = createStrictMock(BlueprintConfigEntity.class);
+  private StackFactory stackFactory = createNiceMock(StackFactory.class);
 
   @Before
   public void init() throws Exception {
@@ -102,24 +97,6 @@ public class BlueprintFactoryTest {
     reset(stack, dao, entity, configEntity);
   }
 
-  //todo: implement
-//  @Test
-//  public void testGetBlueprint() throws Exception {
-//
-//    Collection<BlueprintConfigEntity> configs = new ArrayList<BlueprintConfigEntity>();
-//    configs.add(configEntity);
-//
-//    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(entity).once();
-//    expect(entity.getBlueprintName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
-//    expect(entity.getConfigurations()).andReturn(configs).atLeastOnce();
-//
-//    replay(dao, entity);
-//
-//    Blueprint blueprint = factory.getBlueprint(BLUEPRINT_NAME);
-//
-//
-//  }
-
   @Test
   public void testGetMultiInstanceBlueprint() throws Exception {
     // prepare
@@ -135,9 +112,9 @@ public class BlueprintFactoryTest {
     Stack edwStack = createNiceMock(Stack.class);
     expect(edwStack.getName()).andReturn(edw.getStackName()).anyTimes();
     expect(edwStack.getVersion()).andReturn(edw.getStackVersion()).anyTimes();
-    expectNew(Stack.class, eq(hdp.getStackName()), eq(hdp.getStackVersion()), anyObject(AmbariManagementController.class)).andReturn(hdpStack).anyTimes();
-    expectNew(Stack.class, eq(edw.getStackVersion()), eq(edw.getStackVersion()), anyObject(AmbariManagementController.class)).andReturn(edwStack).anyTimes();
-    replay(Stack.class, hdpStack, edwStack, dao);
+    expect(stackFactory.createStack(hdp)).andReturn(hdpStack).anyTimes();
+    expect(stackFactory.createStack(edw)).andReturn(edwStack).anyTimes();
+    replay(hdpStack, edwStack, dao, stackFactory);
 
     // test
     Blueprint blueprint = testFactory.getBlueprint(BLUEPRINT_NAME);
@@ -253,20 +230,13 @@ public class BlueprintFactoryTest {
 
   @Test(expected=NoSuchStackException.class)
   public void testCreateInvalidStack() throws Exception {
-    EasyMockSupport mockSupport = new EasyMockSupport();
-    BlueprintFactory.StackFactory mockStackFactory =
-      mockSupport.createMock(BlueprintFactory.StackFactory.class);
-
     // setup mock to throw exception, to simulate invalid stack request
-    expect(mockStackFactory.createStack(new StackId(), null)).andThrow(new ObjectNotFoundException("Invalid Stack"));
-
-    mockSupport.replayAll();
+    expect(stackFactory.createStack(new StackId())).andThrow(new StackAccessException("Invalid Stack"));
+    replay(stackFactory);
 
     BlueprintFactory factoryUnderTest =
-      new BlueprintFactory(mockStackFactory);
+      new BlueprintFactory(stackFactory);
     factoryUnderTest.createStack(new StackId());
-
-    mockSupport.verifyAll();
   }
 
   @Test(expected=IllegalArgumentException.class)
