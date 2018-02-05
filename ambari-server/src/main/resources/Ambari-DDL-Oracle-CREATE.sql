@@ -1176,7 +1176,7 @@ insert into adminprincipal (principal_id, principal_type_id)
   select 13, 8 from dual;
 
 -- Insert the default administrator user.
-insert into users(user_id, principal_id, user_name, display_name, local_username, create_timestamp)
+insert into users(user_id, principal_id, user_name, display_name, local_username, create_time)
   SELECT 1, 1, 'admin', 'Administrator', 'admin', CURRENT_TIMESTAMP from dual;
 
 -- Insert the LOCAL authentication data for the default administrator user.
