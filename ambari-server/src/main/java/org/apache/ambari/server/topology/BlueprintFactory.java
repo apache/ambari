@@ -123,7 +123,7 @@ public class BlueprintFactory {
       mpackInstances = Collections.singleton(new MpackInstance(stackId.getStackName(), stackId.getStackVersion(), null, null, Configuration.createEmpty()));
     }
     Set<StackId> stackIds = mpackInstances.stream()
-        .map(m -> new StackId(m.getMpackName(), m.getMpackVersion()))
+        .map(MpackInstance::getStackId)
         .collect(toSet());
     StackDefinition stack = composeStacks(stackIds);
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
