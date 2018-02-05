@@ -2752,7 +2752,7 @@ Em.I18n.translations = {
   'hosts.host.installComponent.popup.confirm':'Confirm Install',
   'hosts.host.installComponent.msg':'Are you sure you want to install {0}?',
   'hosts.host.addComponent.msg':'Are you sure you want to add {0}?',
-  'hosts.host.addComponent.deleteHostWithZooKeeper':'Deleting host with ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li></ul>',
+  'hosts.host.delete.componentsRequireReconfigure':'Deleting host with {0} may reconfigure such properties:',
   'host.host.addComponent.popup.dependedComponents.body': '{0} requires {1} to be installed along with it on the same host. Please add them first and then try adding {0}',
   'host.host.addComponent.popup.dependedComponents.header': 'Component dependencies',
   'host.host.addComponent.popup.clients.dependedComponents.body': '{0} require {1} to be installed along with them on the same host. Please add them first',

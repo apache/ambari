@@ -21,7 +21,8 @@ var App = require('app');
 App.InstallComponent = Em.Mixin.create({
 
   installHostComponentCall: function (hostName, component) {
-    var self = this,
+    const self = this,
+      dfd = $.Deferred(),
       componentName = component.get('componentName'),
       displayName = component.get('displayName');
     this.updateAndCreateServiceComponent(componentName).done(function () {
@@ -48,8 +49,9 @@ App.InstallComponent = Em.Mixin.create({
         },
         success: 'addNewComponentSuccessCallback',
         error: 'ajaxErrorCallback'
-      });
+      }).then(dfd.resolve, dfd.reject);
     });
+    return dfd.promise();
   },
 
   /**

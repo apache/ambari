@@ -85,8 +85,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     'ZOOKEEPER_SERVER': {
       addPropertyName: 'addZooKeeperServer',
       deletePropertyName: 'fromDeleteZkServer',
-      configsCallbackName: 'saveZkConfigs',
-      configTagsCallbackName: 'loadConfigsSuccessCallback'
+      configTagsCallbackName: 'loadZookeeperConfigs',
+      configsCallbackName: 'saveZkConfigs'
     },
     'HIVE_METASTORE': {
       deletePropertyName: 'deleteHiveMetaStore',
@@ -208,25 +208,21 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       Em.I18n.t('hosts.host.manualKerberosWarning') : '',
     lastComponent: false,
     lastComponentError: '',
-    hasHostsSelect: false,
+    fromServiceSummary: false,
     selectedHost: null,
     anyHostsWithoutComponent: true
   }),
 
   saveLoadedConfigs: function (data) {
-    var configs = {
-      items: []
-    };
-    data.items.forEach(function (item) {
-      var configTypeObject = Em.getProperties(item, ['type', 'properties_attributes']),
-        properties = {};
-      Em.keys(item.properties).forEach(function (propertyName) {
-        properties[propertyName] = item.properties[propertyName];
-      });
-      configTypeObject.properties = properties;
-      configs.items.push(configTypeObject);
+    this.set('configs', {
+      items: data.items.map((item) => {
+        return {
+          type: item.type,
+          properties_attributes: item.properties_attributes,
+          properties: Em.copy(item.properties)
+        }
+      })
     });
-    this.set('configs', configs);
   },
 
   clearConfigsChanges: function (shouldKeepLoadedConfigs) {
@@ -300,7 +296,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   stopComponent: function (event) {
     var self = this;
     var component = event.context;
-    if (event.context.get('componentName') == 'NAMENODE' ) {
+    if (event.context.get('componentName') === 'NAMENODE' ) {
       this.checkNnLastCheckpointTime(function () {
         return App.showConfirmationPopup(function () {
           var context = Em.I18n.t('requestInfo.stopHostComponent') + " " + component.get('displayName');
@@ -433,7 +429,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var lastCheckpointTime = Em.get(data, 'metrics.dfs.FSNamesystem.LastCheckpointTime');
     var hostName = Em.get(data, 'HostRoles.host_name');
 
-    if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') == 'active') {
+    if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') === 'active') {
       if (!lastCheckpointTime) {
         this.set("isNNCheckpointTooOld", null);
       } else {
@@ -447,7 +443,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           this.set("isNNCheckpointTooOld", false);
         }
       }
-    } else if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') == 'standby') {
+    } else if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') === 'standby') {
       this.set("isNNCheckpointTooOld", false);
     }
   },
@@ -498,83 +494,76 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if ($(event.target).closest('li').hasClass('disabled')) {
       return;
     }
-    var component = event.context;
-    var componentName = component.get('componentName');
-    var displayName = component.get('displayName');
-    var returnFunc;
-    var componentsMapItem = this.get('addDeleteComponentsMap')[componentName];
+    const component = event.context;
+    const componentName = component.get('componentName');
+    const componentsMapItem = this.get('addDeleteComponentsMap')[componentName];
+
     if (componentsMapItem) {
-      if (componentsMapItem.deletePropertyName) {
-        this.set(componentsMapItem.deletePropertyName, true);
-      }
-      this.clearConfigsChanges();
-      this.set('isReconfigureRequired', true);
-      returnFunc = this.showDeleteComponentPopup(component);
+      this.deleteAndReconfigureComponent(componentsMapItem, component);
     } else if (componentName === 'JOURNALNODE') {
-      returnFunc = App.showConfirmationPopup(function () {
+      return App.showConfirmationPopup(function () {
         App.router.transitionTo('main.services.manageJournalNode');
       }, Em.I18n.t('hosts.host.deleteComponent.popup.deleteJournalNodeMsg'));
     } else {
-      returnFunc = this.showDeleteComponentPopup(component);
+      return this.showReconfigurationPopupPreDelete(component, () => this._doDeleteHostComponent(componentName));
     }
-    return returnFunc;
   },
 
-  showDeleteComponentPopup: function (component) {
-    var self = this,
-      isLastComponent = (this.getTotalComponent(component) === 1),
-      componentName = component.get('componentName'),
-      componentDisplayName = component.get('displayName'),
-      componentsMapItem = this.get('addDeleteComponentsMap')[componentName],
-      commonMessage = Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(componentDisplayName),
-      configTagsCallbackName,
-      configsCallbackName;
-    if (componentsMapItem) {
-      configTagsCallbackName = componentsMapItem.configTagsCallbackName;
-      configsCallbackName = componentsMapItem.configsCallbackName;
+  /**
+   *
+   * @param {object} componentsMapItem
+   * @param {App.HostComponent} component
+   * @returns {App.ModalPopup}
+   */
+  deleteAndReconfigureComponent: function(componentsMapItem, component) {
+    if (componentsMapItem.deletePropertyName) {
+      this.set(componentsMapItem.deletePropertyName, true);
     }
-    this.loadComponentRelatedConfigs(configTagsCallbackName, configsCallbackName);
+    this.loadComponentRelatedConfigs(componentsMapItem.configTagsCallbackName, componentsMapItem.configsCallbackName);
+    return this.showReconfigurationPopupPreDelete(component, () => {
+      this._doDeleteHostComponent(component.get('componentName')).done(() => {
+        this.applyConfigsCustomization();
+        this.putConfigsToServer(this.get('groupedPropertiesToChange'), component.get('componentName'));
+        this.clearConfigsChanges();
+      });
+    });
+  },
+
+  showReconfigurationPopupPreDelete: function (component, primary = Em.K, commonMessage) {
+    const isLastComponent = (this.getTotalComponent(component) === 1),
+      componentDisplayName = component.get('displayName');
+
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
-      controller: self,
+      controller: this,
       hasPropertiesToChange: false,
       classNameBindings: ['controller.hasPropertiesToChange:common-modal-wrapper', 'controller.hasPropertiesToChange:modal-full-width'],
       modalDialogClasses: function () {
         return this.get('controller.hasPropertiesToChange') ? ['modal-lg'] : [];
       }.property('controller.hasPropertiesToChange'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
-      bodyClass: self.get('addDeleteComponentPopupBody').extend({
-        commonMessage: commonMessage,
-        recommendedPropertiesToChange: self.get('recommendedPropertiesToChange'),
-        requiredPropertiesToChange: self.get('requiredPropertiesToChange'),
+      bodyClass: this.get('addDeleteComponentPopupBody').extend({
+        commonMessage: commonMessage || Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(componentDisplayName),
+        recommendedPropertiesToChange: this.get('recommendedPropertiesToChange'),
+        requiredPropertiesToChange: this.get('requiredPropertiesToChange'),
         lastComponentError: Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(componentDisplayName),
-        lastComponent: function () {
-          this.set('parentView.isChecked', !isLastComponent);
-          return isLastComponent;
-        }.property()
+        lastComponent: isLastComponent
       }),
-      isChecked: false,
+      isChecked: !isLastComponent,
       disablePrimary: function () {
         return (this.get('controller.isReconfigureRequired') && this.get('controller.isConfigsLoadingInProgress')) || !this.get('isChecked');
       }.property('controller.isReconfigureRequired', 'controller.isConfigsLoadingInProgress', 'isChecked'),
       onPrimary: function () {
         this._super();
-        self._doDeleteHostComponent(componentName, function () {
-          if (self.get('isReconfigureRequired') && self.get('_deletedHostComponentResult') === null) {
-            self.applyConfigsCustomization();
-            self.saveConfigsBatch(self.get('groupedPropertiesToChange'), componentName);
-            self.clearConfigsChanges();
-          }
-          self.set('redrawComponents', true);
-        });
+        primary();
       },
       onSecondary: function () {
         this._super();
-        self.clearConfigsChanges();
+        this.get('controller').clearConfigsChanges();
       },
       onClose: function () {
         this._super();
-        self.clearConfigsChanges();
+        this.get('controller').clearConfigsChanges();
       }
     });
   },
@@ -606,15 +595,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Deletes the given host component, or all host components.
    *
-   * @param {object|null} component  When <code>null</code> all host components are deleted.
-   * @return  <code>null</code> when components get deleted.
-   *          <code>{xhr: XhrObj, url: "http://", method: "DELETE"}</code>
-   *          when components failed to get deleted.
+   * @param {string} componentName
+   * @return  {$.ajax}
    * @method _doDeleteHostComponent
    */
-  _doDeleteHostComponent: function (componentName, callback) {
-    callback = callback || Em.K;
-    App.ajax.send({
+  _doDeleteHostComponent: function (componentName) {
+    return App.ajax.send({
       name: (Em.isNone(componentName)) ? 'common.delete.host' : 'common.delete.host_component',
       sender: this,
       data: {
@@ -624,21 +610,21 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       success: '_doDeleteHostComponentSuccessCallback',
       error: '_doDeleteHostComponentErrorCallback',
       showLoadingPopup: true
-    }).then(callback, callback);
+    });
   },
 
   /**
-   * Result of delete component(s) request
+   * Error of delete component(s) request
    * @type {object}
    */
-  _deletedHostComponentResult: null,
+  _deletedHostComponentError: null,
 
   /**
    * Success callback for delete host component request
    * @method _doDeleteHostComponentSuccessCallback
    */
   _doDeleteHostComponentSuccessCallback: function (response, request, data) {
-    this.set('_deletedHostComponentResult', null);
+    this.set('_deletedHostComponentError', null);
     this.removeHostComponentModel(data.componentName, data.hostName);
   },
 
@@ -647,10 +633,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} xhr
    * @param {string} textStatus
    * @param {object} errorThrown
+   * @param {object} data
    * @method _doDeleteHostComponentErrorCallback
    */
   _doDeleteHostComponentErrorCallback: function (xhr, textStatus, errorThrown, data) {
-    this.set('_deletedHostComponentResult', {xhr: xhr, url: data.url, method: 'DELETE'});
+    this.set('_deletedHostComponentError', {xhr: xhr, url: data.url, method: 'DELETE'});
   },
 
   /**
@@ -721,7 +708,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   restartComponent: function (event) {
     var component = event.context;
-    if (event.context.get('componentName') == 'NAMENODE') {
+    if (event.context.get('componentName') === 'NAMENODE') {
       this.checkNnLastCheckpointTime(function () {
         return App.showConfirmationPopup(function () {
           batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
@@ -736,12 +723,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
   /**
    * add component as <code>addComponent<code> method but perform
-   * kdc sessionstate if cluster is secure;
+   * kdc session state if cluster is secure;
    * @param event
    */
   addComponentWithCheck: function (event) {
-    var componentName = event.context ? event.context.get('componentName') : "";
-    event.hiveMetastoreHost = (componentName == "HIVE_METASTORE" && !!this.get('content.hostName')) ? this.get('content.hostName') : null;
     App.get('router.mainAdminKerberosController').getSecurityType(function (event) {
       App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
     }.bind(this, event));
@@ -753,13 +738,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   addComponent: function (event) {
     var
-      returnFunc,
-      self = this,
       component = event.context,
       hostName = this.get('content.hostName'),
       componentName = component.get('componentName'),
-      hasHostsSelect = event.hasOwnProperty('selectedHost'),
-      missedComponents = hasHostsSelect ? [] : this.checkComponentDependencies(componentName, {
+      missedComponents = event.fromServiceSummary ? [] : this.checkComponentDependencies(componentName, {
         scope: 'host',
         installedComponents: this.get('content.hostComponents').mapProperty('componentName')
       }),
@@ -767,8 +749,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       manualKerberosWarning = isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
       componentsMapItem = this.get('addDeleteComponentsMap')[componentName];
 
-    if (!!missedComponents.length) {
-      var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
+    if (missedComponents.length) {
+      const popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
         stringUtils.getFormattedStringFromArray(missedComponents.map(function (cName) {
           return App.StackServiceComponent.find(cName).get('displayName');
         })));
@@ -776,53 +758,63 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
 
     if (componentsMapItem) {
-      var primary;
-      if (componentsMapItem.hostPropertyName) {
-        this.set(componentsMapItem.hostPropertyName, hostName);
-      }
-      if (componentsMapItem.addPropertyName) {
-        this.set(componentsMapItem.addPropertyName, true);
-        primary = function () {
-          this.set(componentsMapItem.addPropertyName, false);
-        };
-      }
-      this.clearConfigsChanges();
-      this.set('isReconfigureRequired', true);
-      returnFunc = self.showAddComponentPopup(component, hostName, null, primary, hasHostsSelect);
+      this.addAndReconfigureComponent(componentsMapItem, hostName, component, event.fromServiceSummary);
     } else if (componentName === 'JOURNALNODE') {
-      returnFunc = App.showConfirmationPopup(function () {
+      return App.showConfirmationPopup(function () {
         App.router.transitionTo('main.services.manageJournalNode');
       }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
     } else {
-      returnFunc = this.showAddComponentPopup(component, hostName, function () {
-        if (hasHostsSelect) {
-          hostName = self.get('content.hostName');
-        }
-        self.installHostComponentCall(hostName, component);
-      }, null, hasHostsSelect);
+      return this.showAddComponentPopup(component, hostName, () => {
+        // hostname should be taken via this.get('content.hostName') because the host could be selected later
+        this.installHostComponentCall(this.get('content.hostName'), component);
+      }, event.fromServiceSummary);
     }
-    return returnFunc;
   },
 
-  showAddComponentPopup: function (component, hostName, primary, primaryOnReconfigure, hasHostsSelect) {
+  /**
+   *
+   * @param {object} componentsMapItem
+   * @param {string} hostName
+   * @param {App.HostComponent} component
+   * @param {boolean} fromServiceSummary
+   * @returns {*}
+   */
+  addAndReconfigureComponent: function(componentsMapItem, hostName, component, fromServiceSummary) {
+    if (componentsMapItem.hostPropertyName) {
+      this.set(componentsMapItem.hostPropertyName, hostName);
+    }
+    if (componentsMapItem.addPropertyName) {
+      this.set(componentsMapItem.addPropertyName, true);
+    }
+    this.loadComponentRelatedConfigs(componentsMapItem.configTagsCallbackName, componentsMapItem.configsCallbackName);
+    return this.showAddComponentPopup(component, hostName, () => {
+      this.installAndReconfigureComponent(hostName, component, componentsMapItem);
+    }, fromServiceSummary);
+  },
+
+  /**
+   *
+   * @param {string} hostName
+   * @param {App.HostComponent} component
+   * @param {object} componentsMapItem
+   */
+  installAndReconfigureComponent: function(hostName, component, componentsMapItem) {
+    this.applyConfigsCustomization();
+    this.installHostComponentCall(hostName, component).done(() => {
+      this.putConfigsToServer(this.get('groupedPropertiesToChange'), component.get('componentName'));
+    }).always(() => {
+      this.set(componentsMapItem.addPropertyName, false);
+      this.clearConfigsChanges();
+    });
+  },
+
+  showAddComponentPopup: function (component, hostName, primary, fromServiceSummary) {
     var self = this,
       componentName = component.get('componentName'),
       componentDisplayName = component.get('displayName'),
       componentsMapItem = this.get('addDeleteComponentsMap')[componentName],
-      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
-      configTagsCallbackName,
-      configsCallbackName;
-    if (componentsMapItem) {
-      configTagsCallbackName = componentsMapItem.configTagsCallbackName;
-      configsCallbackName = componentsMapItem.configsCallbackName;
-    }
-    if (hasHostsSelect) {
-      if (this.get('isReconfigureRequired')) {
-        this.set('isConfigsLoadingInProgress', true);
-      }
-    } else {
-      this.loadComponentRelatedConfigs(configTagsCallbackName, configsCallbackName);
-    }
+      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName);
+
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       controller: self,
@@ -834,47 +826,39 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       bodyClass: self.get('addDeleteComponentPopupBody').extend({
         commonMessage: commonMessage,
-        hasHostsSelect: hasHostsSelect,
+        fromServiceSummary: fromServiceSummary,
         addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
         selectHostMsg: Em.I18n.t('services.summary.selectHostForComponent').format(componentDisplayName),
         thereIsNoHostsMsg: Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(componentDisplayName),
         hostsWithoutComponent: function () {
-          if (this.get('hasHostsSelect')) {
-            var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName'),
-              result = App.get('allHostNames');
-            hostsWithComponent.forEach(function (host) {
-              result = result.without(host);
-            });
-            return result;
+          if (this.get('fromServiceSummary')) {
+            const hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
+            return App.get('allHostNames').filter((hostname) => !hostsWithComponent.contains(hostname));
           } else {
             return [];
           }
-        }.property('hasHostsSelect'),
-        anyHostsWithoutComponent: Em.computed.or('!hasHostsSelect', 'hostsWithoutComponent.length'),
+        }.property('fromServiceSummary'),
+        anyHostsWithoutComponent: Em.computed.or('!fromServiceSummary', 'hostsWithoutComponent.length'),
         selectedHostObserver: function () {
           hostName = this.get('selectedHost');
-          self.clearConfigsChanges(true);
           if (!self.get('content')) {
             self.set('content', {});
           }
           self.setProperties({
-            'isReconfigureRequired': !!componentsMapItem,
             'content.hostName': hostName
           });
           if (componentsMapItem) {
-            var configs = self.get('configs'),
-              params = configs && configs.params || {};
+            const configs = self.get('configs');
+            const params = configs && configs.params || {};
             if (componentsMapItem.hostPropertyName) {
               self.set(componentsMapItem.hostPropertyName, hostName);
             }
-            if (componentsMapItem.addPropertyName) {
-              self.set(componentsMapItem.addPropertyName, true);
-            }
             if (configs) {
-              this.set('isConfigsLoadingInProgress', true);
-              self[configsCallbackName](configs, null, params);
+              self.clearConfigsChanges(true);
+              self.set('isConfigsLoadingInProgress', true);
+              self[componentsMapItem.configsCallbackName](configs, null, params);
             } else {
-              self.loadComponentRelatedConfigs(configTagsCallbackName, configsCallbackName);
+              self.loadComponentRelatedConfigs(componentsMapItem.configTagsCallbackName, componentsMapItem.configsCallbackName);
             }
           }
         }.observes('selectedHost')
@@ -882,14 +866,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       disablePrimary: Em.computed.and('controller.isReconfigureRequired', 'controller.isConfigsLoadingInProgress'),
       onPrimary: function () {
         this._super();
-        if (self.get('isReconfigureRequired')) {
-          self.applyConfigsCustomization();
-          self.saveConfigsBatch(self.get('groupedPropertiesToChange'), componentName, hostName);
-          if (primaryOnReconfigure) {
-            primaryOnReconfigure.call(self);
-          }
-          self.clearConfigsChanges();
-        } else if (primary) {
+        if (primary) {
           primary();
         }
       },
@@ -905,13 +882,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   loadComponentRelatedConfigs: function (configTagsCallbackName, configsCallbackName) {
-    var self = this;
-    if (this.get('isReconfigureRequired')) {
-      this.set('isConfigsLoadingInProgress', true);
-      this.isServiceMetricsLoaded(function () {
-        self.loadConfigs(configTagsCallbackName, configsCallbackName);
-      });
-    }
+    this.clearConfigsChanges();
+    this.set('isReconfigureRequired', true);
+    this.set('isConfigsLoadingInProgress', true);
+    this.isServiceMetricsLoaded(() => {
+      this.loadConfigs(configTagsCallbackName, configsCallbackName);
+    });
   },
 
   /**
@@ -925,7 +901,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (!data || !data.Requests || !data.Requests.id) {
       return false;
     }
-    var self = this;
 
     if (App.get('testMode')) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.installing, App.HostComponentStatus.stopped);
@@ -1043,7 +1018,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           },
           configProperty = initializer.initialValue(propertyDef, hostComponentsTopology, dependencies);
         initializer.updateSiteObj(configs[fileName], configProperty);
-        if (this.get('isReconfigureRequired') && currentValue !== configs[fileName][propertyName]) {
+        if (currentValue !== configs[fileName][propertyName]) {
           var service = App.config.get('serviceByConfigTypeMap')[fileName];
           propertiesToChange.pushObject({
             propertyFileName: fileName,
@@ -1119,11 +1094,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
-    if (this.get('isReconfigureRequired')) {
-      this.setConfigsChanges(groups);
-    } else {
-      this.saveConfigsBatch(groups, 'NIMBUS', nimbusHost);
-    }
+    this.setConfigsChanges(groups);
   },
 
   onLoadAtlasConfigs: function(data) {
@@ -1165,11 +1136,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
-    if (this.get('isReconfigureRequired')) {
-      this.setConfigsChanges(groups);
-    } else {
-      this.saveConfigsBatch(groups, 'ATLAS_SERVER', atlasServer);
-    }
+    this.setConfigsChanges(groups);
   },
 
   /**
@@ -1231,8 +1198,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method onLoadHiveConfigs
    */
   onLoadHiveConfigs: function (data, opt, params) {
-    var hiveMetastoreHost = this.get('hiveMetastoreHost');
-    var webhcatServerHost = this.get('webhcatServerHost');
     var port = "";
     var configs = {};
     var attributes = {};
@@ -1316,31 +1281,23 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
-    if (this.get('isReconfigureRequired')) {
-      this.setConfigsChanges(groups);
-    } else {
-      var args = [groups];
-      var componentName = this.get('addHiveServer') ? 'HIVE_SERVER' : (hiveMetastoreHost ? 'HIVE_METASTORE' : 'WEBHCAT_SERVER');
-      var host = webhcatServerHost || hiveMetastoreHost;
-      args.pushObjects([componentName, host]);
-      this.saveConfigsBatch.apply(this, args);
-      this.set('addHiveServer', false);
-    }
+    this.setConfigsChanges(groups);
   },
 
   /**
    * save configs' sites in batch
    * @param groups
    * @param componentName
-   * @param host
    */
-  saveConfigsBatch: function (groups, componentName, host) {
+  putConfigsToServer: function (groups, componentName) {
+    const dfd = $.Deferred();
+    const requests = [];
     if (groups.length) {
       groups.forEach(function (group) {
-        var desiredConfigs = [],
-          properties = group.properties;
+        const desiredConfigs = [];
+        const properties = group.properties;
 
-        for (var site in properties) {
+        for (let site in properties) {
           if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
           desiredConfigs.push({
             "type": site,
@@ -1350,47 +1307,28 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           });
         }
         if (desiredConfigs.length > 0) {
-          App.ajax.send({
+          requests.push(App.ajax.send({
             name: 'common.service.configurations',
             sender: this,
             data: {
               desired_config: desiredConfigs,
-              componentName: componentName,
-              host: host
-            },
-            success: 'installHostComponent'
-          });
-        } else {
-          this.installHostComponent(null, null, {
-            componentName: componentName,
-            host: host
-          });
+              componentName: componentName
+            }
+          }));
         }
-        //clear hive metastore host not to send second request to install component
-        host = null;
       }, this);
-    } else {
-      this.installHostComponent(null, null, {
-        componentName: componentName,
-        host: host
+      $.when(requests).done(dfd.resolve).fail(dfd.reject).then(() => {
+        // If user adding component which require config changes from Configs page then configs should be reloaded
+        if (App.router.get('location.location.hash').contains('configs')) {
+          App.router.get('mainServiceInfoConfigsController').loadStep();
+        }
       });
+    } else {
+      dfd.resolve();
     }
+    return dfd.promise();
   },
 
-  /**
-   * success callback for saveConfigsBatch method
-   * @param data
-   * @param opt
-   * @param params
-   */
-  installHostComponent: function (data, opt, params) {
-    if (App.router.get('location.location.hash').contains('configs')) {
-      App.router.get('mainServiceInfoConfigsController').loadStep();
-    }
-    if (params.host) {
-      this.installHostComponentCall(params.host, App.StackServiceComponent.find(params.componentName));
-    }
-  },
   /**
    * Delete Hive Metastore is performed
    * @type {bool}
@@ -1518,7 +1456,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           haValue: this.getZookeeperConnectionString()
         }
       ],
-      hostToInstall = this.get('rangerKMSServerHost'),
       rkmsHosts = this.getRangerKMSServerHosts(),
       rkmsHostsStr = rkmsHosts.join(';'),
       isHA = rkmsHosts.length > 1,
@@ -1587,12 +1524,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         saveRecommended: true
       });
     });
-
-    if (this.get('isReconfigureRequired')) {
-      this.setConfigsChanges(groups);
-    } else {
-      this.saveConfigsBatch(groups, 'RANGER_KMS_SERVER', hostToInstall);
-    }
+    this.setConfigsChanges(groups);
   },
 
   /**
@@ -1743,10 +1675,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} data
    * @param {object} opt
    * @param {object} params
-   * @method loadConfigsSuccessCallback
+   * @method loadZookeeperConfigs
    */
-  loadConfigsSuccessCallback: function (data, opt, params) {
-    var urlParams = this.constructConfigUrlParams(data);
+  loadZookeeperConfigs: function (data, opt, params) {
+    var urlParams = this.constructZookeeperConfigUrlParams(data);
     if (urlParams.length > 0) {
       var request = App.ajax.send({
         name: 'reassign.load_configs',
@@ -1768,7 +1700,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param data {Object}
    * @return {Array}
    */
-  constructConfigUrlParams: function (data) {
+  constructZookeeperConfigUrlParams: function (data) {
     var urlParams = [];
     var services = App.Service.find();
     if (App.get('isHaEnabled')) {
@@ -1816,11 +1748,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         groups.push(group);
       }
     });
-    if (this.get('isReconfigureRequired')) {
-      this.setConfigsChanges(groups);
-    } else {
-      this.saveConfigsBatch(groups, 'ZOOKEEPER_SERVER');
-    }
+    this.setConfigsChanges(groups);
   },
 
   /**
@@ -2481,14 +2409,14 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @return {Object}
    */
   getHostComponentsInfo: function (hostComponents) {
-    var componentsOnHost = hostComponents || this.get('content.hostComponents');
-    var stoppedStates = [App.HostComponentStatus.stopped,
+    const componentsOnHost = hostComponents || this.get('content.hostComponents');
+    const stoppedStates = [App.HostComponentStatus.stopped,
       App.HostComponentStatus.install_failed,
       App.HostComponentStatus.upgrade_failed,
       App.HostComponentStatus.init,
       App.HostComponentStatus.unknown];
-    var container = {
-      zkServerInstalled: false,
+    const container = {
+      isReconfigureRequired: false,
       lastComponents: [],
       masterComponents: [],
       nonAddableMasterComponents: [],
@@ -2498,25 +2426,27 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       unknownComponents: [],
       toDecommissionComponents: []
     };
+    const addDeleteComponentsMap = this.get('addDeleteComponentsMap');
+
     if (componentsOnHost && componentsOnHost.get('length') > 0) {
       componentsOnHost.forEach(function (cInstance) {
-        if (cInstance.get('componentName') === 'ZOOKEEPER_SERVER') {
-          container.zkServerInstalled = true;
+        if (addDeleteComponentsMap[cInstance.get('componentName')]) {
+          container.isReconfigureRequired = true;
         }
-        var isLastComponent = false;
+        let isLastComponent = false;
         if (this.getTotalComponent(cInstance) === 1) {
           container.lastComponents.push(cInstance.get('displayName'));
           isLastComponent = true;
         }
-        var workStatus = cInstance.get('workStatus');
+        const workStatus = cInstance.get('workStatus');
 
         if (cInstance.get('isMaster')) {
-          var displayName = cInstance.get('displayName')
+          const displayName = cInstance.get('displayName');
           container.masterComponents.push(displayName);
           if (!App.StackServiceComponent.find(cInstance.get('componentName')).get('isMasterAddableInstallerWizard'))  {
             container.nonAddableMasterComponents.push(displayName);
           }
-          if(isLastComponent) {
+          if (isLastComponent) {
             container.lastMasterComponents.push(displayName);
           }
         }
@@ -2661,7 +2591,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method validateAndDeleteHost
    */
   validateAndDeleteHost: function () {
-    var container = this.getHostComponentsInfo();
+    const container = this.getHostComponentsInfo();
 
     if (container.nonDeletableComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'nonDeletableList');
@@ -2677,14 +2607,41 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       return;
     }
 
-    if (container.zkServerInstalled) {
-      var self = this;
-      return App.showConfirmationPopup(function () {
-        self.confirmDeleteHost(container);
-      }, Em.I18n.t('hosts.host.addComponent.deleteHostWithZooKeeper'));
+    this.set('fromDeleteHost', true);
+
+    if (container.isReconfigureRequired) {
+      this.reconfigureAndDeleteHost(container);
     } else {
       this.confirmDeleteHost(container);
     }
+  },
+
+  /**
+   *
+   * @param {object} container
+   */
+  reconfigureAndDeleteHost: function(container) {
+    const addDeleteComponentsMap = this.get('addDeleteComponentsMap');
+    const hostName = this.get('content.hostName');
+    const reconfiguredComponents = [];
+    const componentStub = Em.Object.create();
+
+    this.get('content.hostComponents').forEach((component) => {
+      const componentsMapItem = addDeleteComponentsMap[component.get('componentName')];
+      if (componentsMapItem) {
+        reconfiguredComponents.push(component.get('displayName'));
+        if (componentsMapItem.hostPropertyName) {
+          this.set(componentsMapItem.hostPropertyName, hostName);
+        }
+        if (componentsMapItem.addPropertyName) {
+          this.set(componentsMapItem.addPropertyName, true);
+        }
+        this.loadComponentRelatedConfigs(componentsMapItem.configTagsCallbackName, componentsMapItem.configsCallbackName);
+      }
+    });
+    this.showReconfigurationPopupPreDelete(componentStub, () => {
+      this.confirmDeleteHost(container);
+    }, Em.I18n.t('hosts.host.delete.componentsRequireReconfigure').format(reconfiguredComponents.join(', ')));
   },
 
   /**
@@ -2778,56 +2735,62 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method doDeleteHost
    */
   doDeleteHost: function () {
-    this.set('fromDeleteHost', true);
-    var allComponents = this.get('content.hostComponents');
-    var deleteError = null;
-    var dfd = $.Deferred();
-    var length = allComponents.get('length');
-    var self = this;
+    const allComponents = this.get('content.hostComponents');
+    const addDeleteComponentsMap = this.get('addDeleteComponentsMap');
+    const deleteRequests = [];
+    let deleteError = null;
+    const dfd = $.Deferred();
 
-    if (length > 0) {
-      allComponents.forEach(function (component, index) {
-        this._doDeleteHostComponent(component.get('componentName'), function () {
-          deleteError = deleteError ? deleteError : self.get('_deletedHostComponentResult');
-          if (index === length - 1) {
-            dfd.resolve();
-          }
-        });
+    if (allComponents.get('length') > 0) {
+      allComponents.forEach(function (component) {
+        deleteRequests.push(this._doDeleteHostComponent(component.get('componentName')));
       }, this);
+      $.when(deleteRequests).done(() => {
+        if (this.get('isReconfigureRequired')) {
+          const reconfiguredComponents = allComponents
+            .filter((component) => addDeleteComponentsMap[component.get('componentName')])
+            .mapProperty('displayName').join(', ');
+          this.applyConfigsCustomization();
+          this.putConfigsToServer(this.get('groupedPropertiesToChange'), reconfiguredComponents);
+          this.clearConfigsChanges();
+        }
+        this.deleteHostCall();
+      }).fail(() => {
+        deleteError = this.get('_deletedHostComponentError');
+        deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
+        App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.type, deleteError.xhr.status);
+      }).always(dfd.resolve);
     } else {
       dfd.resolve();
     }
-    dfd.done(function () {
-      if (!deleteError) {
-        App.ajax.send({
-          name: 'common.delete.host',
-          sender: self,
-          data: {
-            hostName: self.get('content.hostName')
-          },
-          success: 'deleteHostSuccessCallback',
-          error: 'deleteHostErrorCallback',
-          showLoadingPopup: true
-        });
-      }
-      else {
-        deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
-        App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.type, deleteError.xhr.status);
-      }
+    return dfd.promise();
+  },
+
+  deleteHostCall: function() {
+    return App.ajax.send({
+      name: 'common.delete.host',
+      sender: this,
+      data: {
+        hostName: this.get('content.hostName')
+      },
+      success: 'deleteHostCallSuccessCallback',
+      error: 'deleteHostCallErrorCallback',
+      showLoadingPopup: true
     });
   },
-  deleteHostSuccessCallback: function (data, rq, requestBody) {
+
+  deleteHostCallSuccessCallback: function (data, rq, requestBody) {
     App.router.get('updateController').updateHost(function () {
       App.router.transitionTo('hosts.index');
     });
     if (!!(requestBody && requestBody.hostName)) {
-      var remainingHosts = App.db.getSelectedHosts('mainHostController').removeObject(requestBody.hostName);
-      App.db.setSelectedHosts('mainHostController', remainingHosts);
+      var remainingHosts = App.db.getSelectedHosts().removeObject(requestBody.hostName);
+      App.db.setSelectedHosts(remainingHosts);
       App.hostsMapper.deleteRecord(App.Host.find().findProperty('hostName', requestBody.hostName));
     }
     App.router.get('clusterController').getAllHostNames();
   },
-  deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
+  deleteHostCallErrorCallback: function (xhr, textStatus, errorThrown, opt) {
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
     App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
   },
