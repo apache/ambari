@@ -103,7 +103,7 @@ public class MpackTest {
     moduleDependency.setDependencyType(ModuleDependency.DependencyType.INSTALL);
     ArrayList moduleDepList = new ArrayList();
     moduleDepList.add(moduleDependency);
-    zkfc.setModuleDependencyList(moduleDepList);
+    zkfc.setDependencies(moduleDepList);
     ArrayList compList = new ArrayList();
     ModuleComponent zk_server = new ModuleComponent();
     zk_server.setId("zookeeper_server");
@@ -112,7 +112,7 @@ public class MpackTest {
     zk_server.setIsExternal(Boolean.FALSE);
     zk_server.setVersion("3.4.0.0-b17");
     compList.add(zk_server);
-    zkfc.setModuleComponentList(compList);
+    zkfc.setComponents(compList);
     expectedModules.add(zkfc);
 
     Gson gson = new Gson();
