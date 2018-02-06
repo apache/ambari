@@ -18,6 +18,8 @@
  */
 package org.apache.ambari.infra.conf.security;
 
+import java.util.Optional;
+
 public interface PasswordStore {
-  String getPassword(String propertyName);
+  Optional<String> getPassword(String propertyName);
 }

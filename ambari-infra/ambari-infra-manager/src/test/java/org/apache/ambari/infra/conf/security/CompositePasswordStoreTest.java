@@ -2,7 +2,8 @@ package org.apache.ambari.infra.conf.security;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.nullValue;
+import java.util.Optional;
+
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
@@ -27,21 +28,21 @@ import static org.junit.Assert.assertThat;
 public class CompositePasswordStoreTest {
   @Test
   public void testGetPasswordReturnNullIfNoPasswordStoresWereAdded() {
-    assertThat(new CompositePasswordStore().getPassword("any"), is(nullValue()));
+    assertThat(new CompositePasswordStore().getPassword("any").isPresent(), is(false));
   }
 
   @Test
   public void testGetPasswordReturnNullIfPasswordNotFoundInAnyStore() {
-    assertThat(new CompositePasswordStore((prop) -> null, (prop) -> null).getPassword("any"), is(nullValue()));
+    assertThat(new CompositePasswordStore((prop) -> Optional.empty(), (prop) -> Optional.empty()).getPassword("any").isPresent(), is(false));
   }
 
   @Test
-  public void testGetPasswordReturnPasswordFromFistStoreIfExists() {
-    assertThat(new CompositePasswordStore((prop) -> "Pass", (prop) -> null).getPassword("any"), is("Pass"));
+  public void testGetPasswordReturnPasswordFromFirstStoreIfExists() {
+    assertThat(new CompositePasswordStore((prop) -> Optional.of("Pass"), (prop) -> Optional.empty()).getPassword("any").get(), is("Pass"));
   }
 
   @Test
   public void testGetPasswordReturnPasswordFromSecondStoreIfNotExistsInFirst() {
-    assertThat(new CompositePasswordStore((prop) -> null, (prop) -> "Pass").getPassword("any"), is("Pass"));
+    assertThat(new CompositePasswordStore((prop) -> Optional.empty(), (prop) -> Optional.of("Pass")).getPassword("any").get(), is("Pass"));
   }
 }

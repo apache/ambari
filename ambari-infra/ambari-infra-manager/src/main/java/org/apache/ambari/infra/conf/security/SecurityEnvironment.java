@@ -18,9 +18,11 @@
  */
 package org.apache.ambari.infra.conf.security;
 
+import java.util.Optional;
+
 public class SecurityEnvironment implements PasswordStore {
   @Override
-  public String getPassword(String propertyName) {
-    return System.getenv(propertyName);
+  public Optional<String> getPassword(String propertyName) {
+    return Optional.ofNullable(System.getenv(propertyName));
   }
 }

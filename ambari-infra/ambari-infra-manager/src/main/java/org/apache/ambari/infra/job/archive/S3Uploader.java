@@ -49,8 +49,10 @@ public class S3Uploader extends AbstractFileAction {
       compositePasswordStore = new CompositePasswordStore(passwordStore, S3AccessCsv.file(s3Properties.getS3AccessFile()));
 
     BasicAWSCredentials credentials = new BasicAWSCredentials(
-            compositePasswordStore.getPassword(S3AccessKeyNames.AccessKeyId.getEnvVariableName()),
-            compositePasswordStore.getPassword(S3AccessKeyNames.SecretAccessKey.getEnvVariableName()));
+            compositePasswordStore.getPassword(S3AccessKeyNames.AccessKeyId.getEnvVariableName())
+                    .orElseThrow(() -> new IllegalArgumentException("Access key Id is not present!")),
+            compositePasswordStore.getPassword(S3AccessKeyNames.SecretAccessKey.getEnvVariableName())
+                    .orElseThrow(() -> new IllegalArgumentException("Secret Access Key is not present!")));
     client = new AmazonS3Client(credentials);
     if (!isBlank(s3Properties.getS3EndPoint()))
       client.setEndpoint(s3Properties.getS3EndPoint());

@@ -18,25 +18,22 @@
  */
 package org.apache.ambari.infra.conf.security;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
+import java.util.Optional;
 
 public class CompositePasswordStore implements PasswordStore {
-  private List<PasswordStore> passwordStores;
+  private PasswordStore[] passwordStores;
 
   public CompositePasswordStore(PasswordStore... passwordStores) {
-    this.passwordStores = new ArrayList<>(asList(passwordStores));
+    this.passwordStores = passwordStores;
   }
 
   @Override
-  public String getPassword(String propertyName) {
+  public Optional<String> getPassword(String propertyName) {
     for (PasswordStore passwordStore : passwordStores) {
-      String password = passwordStore.getPassword(propertyName);
-      if (password != null)
-        return password;
+      Optional<String> optionalPassword = passwordStore.getPassword(propertyName);
+      if (optionalPassword.isPresent())
+        return optionalPassword;
     }
-    return null;
+    return Optional.empty();
   }
 }

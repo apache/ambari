@@ -21,6 +21,8 @@ package org.apache.ambari.infra.conf.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 
@@ -35,19 +37,19 @@ public class HadoopCredentialStore implements PasswordStore {
   }
 
   @Override
-  public String getPassword(String propertyName) {
+  public Optional<String> getPassword(String propertyName) {
     try {
       if (isBlank(credentialStoreProviderPath)) {
-        return null;
+        return Optional.empty();
       }
 
       org.apache.hadoop.conf.Configuration config = new org.apache.hadoop.conf.Configuration();
       config.set(CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY, credentialStoreProviderPath);
       char[] passwordChars = config.getPassword(propertyName);
-      return (isNotEmpty(passwordChars)) ? new String(passwordChars) : null;
+      return (isNotEmpty(passwordChars)) ? Optional.of(new String(passwordChars)) : Optional.empty();
     } catch (Exception e) {
       LOG.warn("Could not load password {} from credential store.", propertyName);
-      return null;
+      return Optional.empty();
     }
   }
 }

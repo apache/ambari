@@ -32,6 +32,7 @@ import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.commons.csv.CSVFormat.DEFAULT;
 
@@ -87,7 +88,7 @@ public class S3AccessCsv implements PasswordStore {
   }
 
   @Override
-  public String getPassword(String propertyName) {
-    return passwordMap.get(propertyName);
+  public Optional<String> getPassword(String propertyName) {
+    return Optional.ofNullable(passwordMap.get(propertyName));
   }
 }
