@@ -178,7 +178,7 @@ CREATE TABLE repo_os (
   repo_version_id BIGINT NOT NULL,
   family VARCHAR(255) NOT NULL DEFAULT '',
   ambari_managed SMALLINT DEFAULT 1,
-  CONSTRAINT PK_repo_os_id PRIMARY KEY (id));
+  CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
   CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
 
 CREATE TABLE repo_definition (
@@ -191,7 +191,7 @@ CREATE TABLE repo_definition (
   components VARCHAR(2048),
   unique_repo SMALLINT DEFAULT 1,
   mirrors VARCHAR(2048),
-  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id));
+  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
   CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
 
 CREATE TABLE repo_tags (

@@ -175,9 +175,9 @@ CREATE TABLE repo_version (
 CREATE TABLE repo_os (
   id NUMBER(19) NOT NULL,
   repo_version_id NUMBER(19) NOT NULL,
-  family VARCHAR(255) NOT NULL DEFAULT '',
+  family VARCHAR(255) DEFAULT '' NOT NULL,
   ambari_managed NUMBER(1) DEFAULT 1,
-  CONSTRAINT PK_repo_os_id PRIMARY KEY (id));
+  CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
   CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
 
 CREATE TABLE repo_definition (
@@ -190,7 +190,7 @@ CREATE TABLE repo_definition (
   components CLOB,
   unique_repo NUMBER(1) DEFAULT 1,
   mirrors CLOB,
-  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id));
+  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
   CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
 
 CREATE TABLE repo_tags (
