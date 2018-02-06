@@ -1143,6 +1143,19 @@ def update_ambari_env():
 
   return 0
 
+def set_property(key, value, rewrite=True):
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    raise FatalException(-1, err)
+
+  if not rewrite and key in properties.keys():
+    return
+
+  properties.process_pair(key, value)
+  update_properties(properties)
+
+
 # default should be false / not accepted
 def write_gpl_license_accepted(default_prompt_value = False, text = GPL_LICENSE_PROMPT_TEXT):
   properties = get_ambari_properties()
@@ -1155,9 +1168,7 @@ def write_gpl_license_accepted(default_prompt_value = False, text = GPL_LICENSE_
     return True
 
   result = get_YN_input(text, default_prompt_value)
-
-  properties.process_pair(GPL_LICENSE_ACCEPTED_PROPERTY, str(result).lower())
-  update_properties(properties)
+  set_property(GPL_LICENSE_ACCEPTED_PROPERTY, str(result).lower())
 
   return result
 
