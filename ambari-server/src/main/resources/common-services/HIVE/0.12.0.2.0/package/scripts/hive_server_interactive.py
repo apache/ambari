@@ -243,8 +243,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
+        slider_keytab = llap_keytab_splits[-1]
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
-                      "{llap_keytab_splits[4]} --slider-principal {params.hive_llap_principal}")
+                      "{slider_keytab} --slider-principal {params.hive_llap_principal}")
 
       # Add the aux jars if they are specified. If empty, dont need to add this param.
       if params.hive_aux_jars:
