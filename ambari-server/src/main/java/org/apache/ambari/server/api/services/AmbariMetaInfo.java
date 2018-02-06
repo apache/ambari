@@ -74,8 +74,9 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ExtensionInfo;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -694,12 +695,12 @@ public class AmbariMetaInfo {
   }
 
   /**
-   * Gets the packlet information for given mpack.
+   * Gets the module information for given mpack.
    * @param mpackId
-   * @return List of Packlets.
+   * @return List of Modules.
    */
-  public List<Packlet> getPacklets(Long mpackId) {
-    return mpackManager.getPacklets(mpackId);
+  public List<Module> getModules(Long mpackId) {
+    return mpackManager.getModules(mpackId);
   }
 
 
@@ -1654,5 +1655,27 @@ public class AmbariMetaInfo {
 
   public File getCommonWidgetsDescriptorFile() {
     return commonWidgetsDescriptorFile;
+  }
+
+  /***
+   * Fetch all mpacks from mpackMap
+   * @return all mpacks from mpackMap - in memory data structure
+   */
+  public Collection<Mpack> getMpacks() {
+    if (mpackManager.getMpackMap() != null) {
+      return mpackManager.getMpackMap().values();
+    }
+    return Collections.emptySet();
+  }
+
+  /***
+   * Fetch a particular mpack based on mpackid
+   * @return a single mpack
+   */
+  public Mpack getMpack(Long mpackId) {
+    if (mpackManager.getMpackMap() != null && mpackManager.getMpackMap().containsKey(mpackId)) {
+      return mpackManager.getMpackMap().get(mpackId);
+    }
+    return null;
   }
 }
