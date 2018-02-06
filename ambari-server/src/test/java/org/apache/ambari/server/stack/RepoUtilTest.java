@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.ambari.server.controller.RepositoryResponse;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,10 +42,10 @@ public class RepoUtilTest {
 
 
   @Test public void testAddServiceReposToOperatingSystemEntities_SimpleCase() {
-    List<OperatingSystemEntity> operatingSystems = new ArrayList<>();
+    List<RepoOsEntity> operatingSystems = new ArrayList<>();
     for (String os: OPERATING_SYSTEMS) {
-      RepositoryEntity repo1 = repoEntity("HDP", "HDP-2.3", "http://hdp.org/2.3");
-      RepositoryEntity repo2 = repoEntity("HDP-UTILS", "HDP-UTILS-1.1.0", "http://hdp.org/utils/1.1.0");
+      RepoDefinitionEntity repo1 = repoEntity("HDP", "HDP-2.3", "http://hdp.org/2.3");
+      RepoDefinitionEntity repo2 = repoEntity("HDP-UTILS", "HDP-UTILS-1.1.0", "http://hdp.org/utils/1.1.0");
       operatingSystems.add(osEntity(os, repo1, repo2));
     }
     ListMultimap<String, RepositoryInfo> serviceRepos = serviceRepos(ImmutableList.of("redhat5", "redhat6", "sles11"),
@@ -54,21 +54,21 @@ public class RepoUtilTest {
     RepoUtil.addServiceReposToOperatingSystemEntities(operatingSystems, serviceRepos);
 
     // Verify results. Service repos should be added only to redhat6 and sles11
-    for (OperatingSystemEntity os: operatingSystems) {
-      Assert.assertNotSame("Redhat5 should not be added as new operating system.", "redhat5", os.getOsType());
-      Optional<RepositoryEntity> msft_r = findRepoEntityById(os.getRepositories(), "MSFT_R-8.1");
+    for (RepoOsEntity os : operatingSystems) {
+      Assert.assertNotSame("Redhat5 should not be added as new operating system.", "redhat5", os.getFamily());
+      Optional<RepoDefinitionEntity> msft_r = findRepoEntityById(os.getRepoDefinitionEntities(), "MSFT_R-8.1");
       Assert.assertTrue(
-          String.format("Only redhat6 and sles11 should contain the service repo. os: %s, repo: %s", os.getOsType(), msft_r),
-          findRepoEntityById(os.getRepositories(), "MSFT_R-8.1").isPresent() ==  ImmutableList.of("redhat6", "sles11").contains(os.getOsType())) ;
+          String.format("Only redhat6 and sles11 should contain the service repo. os: %s, repo: %s", os.getFamily(), msft_r),
+          findRepoEntityById(os.getRepoDefinitionEntities(), "MSFT_R-8.1").isPresent() == ImmutableList.of("redhat6", "sles11").contains(os.getFamily()));
     }
   }
 
   @Test public void testAddServiceReposToOperatingSystemEntities_RepoAlreadExists() {
-    List<OperatingSystemEntity> operatingSystems = new ArrayList<>();
+    List<RepoOsEntity> operatingSystems = new ArrayList<>();
     for (String os: OPERATING_SYSTEMS) {
-      RepositoryEntity repo1 = repoEntity("HDP", "HDP-2.3", "http://hdp.org/2.3");
-      RepositoryEntity repo2 = repoEntity("HDP-UTILS", "HDP-UTILS-1.1.0", "http://hdp.org/utils/1.1.0");
-      RepositoryEntity repo3 = repoEntity("MSFT_R", "MSFT_R-8.1", "http://msft.r.ORIGINAL");
+      RepoDefinitionEntity repo1 = repoEntity("HDP", "HDP-2.3", "http://hdp.org/2.3");
+      RepoDefinitionEntity repo2 = repoEntity("HDP-UTILS", "HDP-UTILS-1.1.0", "http://hdp.org/utils/1.1.0");
+      RepoDefinitionEntity repo3 = repoEntity("MSFT_R", "MSFT_R-8.1", "http://msft.r.ORIGINAL");
       operatingSystems.add(osEntity(os, repo1, repo2, repo3));
     }
     ListMultimap<String, RepositoryInfo> serviceRepos = serviceRepos(ImmutableList.of("redhat6"),
@@ -77,9 +77,9 @@ public class RepoUtilTest {
     RepoUtil.addServiceReposToOperatingSystemEntities(operatingSystems, serviceRepos);
 
     // Verify results. Service repo should not be added second time.
-    for (OperatingSystemEntity os: operatingSystems) {
-      Optional<RepositoryEntity> msft_r_orig = findRepoEntityById(os.getRepositories(), "MSFT_R-8.1");
-      Optional<RepositoryEntity> msft_r_new = findRepoEntityById(os.getRepositories(), "MSFT_R-8.2");
+    for (RepoOsEntity os : operatingSystems) {
+      Optional<RepoDefinitionEntity> msft_r_orig = findRepoEntityById(os.getRepoDefinitionEntities(), "MSFT_R-8.1");
+      Optional<RepoDefinitionEntity> msft_r_new = findRepoEntityById(os.getRepoDefinitionEntities(), "MSFT_R-8.2");
       Assert.assertTrue("Original repo is missing", msft_r_orig.isPresent());
       Assert.assertTrue("Service repo with duplicate name should not have been added", !msft_r_new.isPresent());
     }
@@ -116,26 +116,27 @@ public class RepoUtilTest {
     }
   }
 
-  private static Optional<RepositoryEntity> findRepoEntityById(Iterable<RepositoryEntity> repos, String repoId) {
-    for (RepositoryEntity repo: repos) if (Objects.equals(repo.getRepositoryId(), repoId)) {
+  private static Optional<RepoDefinitionEntity> findRepoEntityById(Iterable<RepoDefinitionEntity> repos, String repoId) {
+    for (RepoDefinitionEntity repo : repos)
+      if (Objects.equals(repo.getRepoID(), repoId)) {
       return Optional.of(repo);
     }
     return Optional.absent();
   }
 
-  private static OperatingSystemEntity osEntity(String os, RepositoryEntity... repoEntities) {
-    OperatingSystemEntity entity = new OperatingSystemEntity();
-    entity.setOsType(os);
-    for (RepositoryEntity repo: repoEntities) {
-      entity.getRepositories().add(repo);
+  private static RepoOsEntity osEntity(String os, RepoDefinitionEntity... repoEntities) {
+    RepoOsEntity entity = new RepoOsEntity();
+    entity.setFamily(os);
+    for (RepoDefinitionEntity repo : repoEntities) {
+      entity.addRepoDefinition(repo);
     }
     return entity;
   }
 
-  private static RepositoryEntity repoEntity(String name, String repoId, String baseUrl) {
-    RepositoryEntity repo = new RepositoryEntity();
-    repo.setName(name);
-    repo.setRepositoryId(repoId);
+  private static RepoDefinitionEntity repoEntity(String name, String repoId, String baseUrl) {
+    RepoDefinitionEntity repo = new RepoDefinitionEntity();
+    repo.setRepoName(name);
+    repo.setRepoID(repoId);
     repo.setBaseUrl(baseUrl);
     return repo;
   }
