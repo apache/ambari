@@ -34,6 +34,10 @@ import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+/**
+ * I represent a nameServiceId that belongs to HDFS. Multiple namenodes may belong to the same nameServiceId.
+ * Each NameNode has either an http or https address.
+ */
 public class NameService {
 
   public static class NameNode {

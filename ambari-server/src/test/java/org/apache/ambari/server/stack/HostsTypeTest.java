@@ -57,14 +57,14 @@ public class HostsTypeTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testMasterIsMandatory() {
-    new HostsType.HaHosts(null, emptyList());
+    new HostsType.HighAvailabilityHosts(null, emptyList());
   }
 
   @Test
   public void testFederatedMastersAndSecondaries() {
     HostsType federated = HostsType.federated(asList(
-      new HostsType.HaHosts("master1", asList("sec1", "sec2")),
-      new HostsType.HaHosts("master2", asList("sec3", "sec4"))),
+      new HostsType.HighAvailabilityHosts("master1", asList("sec1", "sec2")),
+      new HostsType.HighAvailabilityHosts("master2", asList("sec3", "sec4"))),
       new LinkedHashSet<>(emptySet()));
     assertThat(federated.getMasters(), is(newHashSet("master1", "master2")));
     assertThat(federated.getSecondaries(), is(newHashSet("sec1", "sec2", "sec3", "sec4")));
@@ -73,8 +73,8 @@ public class HostsTypeTest {
   @Test
   public void testArrangeHosts() {
     HostsType federated = HostsType.federated(asList(
-      new HostsType.HaHosts("master1", asList("sec1", "sec2")),
-      new HostsType.HaHosts("master2", asList("sec3", "sec4"))),
+      new HostsType.HighAvailabilityHosts("master1", asList("sec1", "sec2")),
+      new HostsType.HighAvailabilityHosts("master2", asList("sec3", "sec4"))),
       new LinkedHashSet<>(emptySet()));
     federated.arrangeHostSecondariesFirst();
     assertThat(federated.getHosts(), is(newLinkedHashSet(asList("sec1", "sec2", "master1", "sec3", "sec4", "master2"))));

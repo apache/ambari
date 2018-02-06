@@ -312,7 +312,7 @@ public class ClusterGrouping extends Grouping {
         }
 
         // Pick the first host sorted alphabetically (case insensitive)
-        if (ExecuteHostType.FIRST == et.hosts && !hosts.getHaHosts().isEmpty()) {
+        if (ExecuteHostType.FIRST == et.hosts && !hosts.getHighAvailabilityHosts().isEmpty()) {
           List<String> sortedHosts = new ArrayList<>(hosts.getHosts());
           Collections.sort(sortedHosts, String.CASE_INSENSITIVE_ORDER);
           realHosts = Collections.singleton(sortedHosts.get(0));

@@ -536,8 +536,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
   public void testNamenodeFederationOrder() throws Exception {
     namenodeHosts = HostsType.federated(
       Arrays.asList(
-        new HostsType.HaHosts("h1", Arrays.asList("h2", "h3")),
-        new HostsType.HaHosts("h4", singletonList("h5"))),
+        new HostsType.HighAvailabilityHosts("h1", Arrays.asList("h2", "h3")),
+        new HostsType.HighAvailabilityHosts("h4", singletonList("h5"))),
       newLinkedHashSet(Arrays.asList("h1", "h2", "h3", "h4", "h5")));
 
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");

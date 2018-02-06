@@ -261,7 +261,7 @@ public class MasterHostResolver {
    * Get the NameNode NameSpaces (master->secondaries hosts).
    * In each NameSpace there should be exactly 1 master and at least one secondary host.
    */
-  private List<HostsType.HaHosts> nameSpaces(Set<String> componentHosts) {
+  private List<HostsType.HighAvailabilityHosts> nameSpaces(Set<String> componentHosts) {
     return NameService.fromConfig(m_configHelper, getCluster()).stream()
       .map(each -> findMasterAndSecondaries(each, componentHosts))
       .collect(Collectors.toList());
@@ -271,7 +271,7 @@ public class MasterHostResolver {
   /**
    * Find the master and secondary namenode(s) based on JMX NameNodeStatus.
    */
-  private HostsType.HaHosts findMasterAndSecondaries(NameService nameService, Set<String> componentHosts) throws ClassifyNameNodeException {
+  private HostsType.HighAvailabilityHosts findMasterAndSecondaries(NameService nameService, Set<String> componentHosts) throws ClassifyNameNodeException {
     String master = null;
     List<String> secondaries = new ArrayList<>();
     for (NameService.NameNode nameNode : nameService.getNameNodes()) {
@@ -285,8 +285,8 @@ public class MasterHostResolver {
         LOG.error(String.format("Could not retrieve state for NameNode %s from property %s by querying JMX.", nameNode.getHost(), nameNode.getPropertyName()));
       }
     }
-    if (erverythingIsClassified(componentHosts, master, secondaries)) {
-      return new HostsType.HaHosts(master, secondaries);
+    if (masterAndSecondariesAreFound(componentHosts, master, secondaries)) {
+      return new HostsType.HighAvailabilityHosts(master, secondaries);
     }
     throw new ClassifyNameNodeException(nameService);
   }
@@ -301,7 +301,7 @@ public class MasterHostResolver {
     }
   }
 
-  private static boolean erverythingIsClassified(Set<String> componentHosts, String master, List<String> secondaries) {
+  private static boolean masterAndSecondariesAreFound(Set<String> componentHosts, String master, List<String> secondaries) {
     return master != null && secondaries.size() + 1 == componentHosts.size() && !secondaries.contains(master);
   }
 

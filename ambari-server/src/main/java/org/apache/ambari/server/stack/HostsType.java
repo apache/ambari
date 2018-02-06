@@ -40,7 +40,7 @@ public class HostsType {
   /**
    * List of HA hosts (master - secondaries pairs), if any.
    */
-  private final List<HaHosts> haHosts;
+  private final List<HighAvailabilityHosts> highAvailabilityHosts;
 
   /**
    * Ordered collection of hosts.  This represents all hosts where an upgrade
@@ -60,12 +60,15 @@ public class HostsType {
    */
   public List<ServiceComponentHost> unhealthy = new ArrayList<>();
 
+  /**
+   * @return true if master components list is not empty
+   */
   public boolean hasMasters() {
     return !getMasters().isEmpty();
   }
 
-  public List<HaHosts> getHaHosts() {
-    return haHosts;
+  public List<HighAvailabilityHosts> getHighAvailabilityHosts() {
+    return highAvailabilityHosts;
   }
 
   /**
@@ -73,11 +76,14 @@ public class HostsType {
    * For example: [sec1, sec2, master1, sec3, sec4, master2]
    */
   public void arrangeHostSecondariesFirst() {
-    this.hosts = getHaHosts().stream()
+    this.hosts = getHighAvailabilityHosts().stream()
       .flatMap(each -> Stream.concat(each.getSecondaries().stream(), Stream.of(each.getMaster())))
       .collect(toCollection(LinkedHashSet::new));
   }
 
+  /**
+   * @return true if both master and secondary components lists are not empty
+   */
   public boolean hasMastersAndSecondaries() {
     return !getMasters().isEmpty() && !getSecondaries().isEmpty();
   }
@@ -86,11 +92,11 @@ public class HostsType {
    * A master and secondary host(s). In HA mode there is one master and one secondary host,
    * in federated mode there can be more than one secondaries.
    */
-  public static class HaHosts {
+  public static class HighAvailabilityHosts {
     private final String master;
     private final List<String> secondaries;
 
-    public HaHosts(String master, List<String> secondaries) {
+    public HighAvailabilityHosts(String master, List<String> secondaries) {
       if (master == null) {
         throw new IllegalArgumentException("Master host is missing");
       }
@@ -107,53 +113,74 @@ public class HostsType {
     }
   }
 
+  /**
+   * Creates an instance from the optional master and secondary components and with the given host set
+   */
   public static HostsType from(String master, String secondary, LinkedHashSet<String> hosts) {
     return master == null
       ? normal(hosts)
-      : new HostsType(singletonList(new HaHosts(master, secondary != null ? singletonList(secondary) : emptyList())), hosts);
+      : new HostsType(singletonList(new HighAvailabilityHosts(master, secondary != null ? singletonList(secondary) : emptyList())), hosts);
 
   }
 
+  /**
+   * Create an instance with exactly one high availability host (master-secondary pair) and with the given host set
+   */
   public static HostsType highAvailability(String master, String secondary, LinkedHashSet<String> hosts) {
-    return new HostsType(singletonList(new HaHosts(master, singletonList(secondary))), hosts);
+    return new HostsType(singletonList(new HighAvailabilityHosts(master, singletonList(secondary))), hosts);
   }
 
+  /**
+   * Create an instance with an arbitrary chosen high availability host.
+   */
   public static HostsType guessHighAvailability(LinkedHashSet<String> hosts) {
     if (hosts.isEmpty()) {
       throw new IllegalArgumentException("Cannot guess HA, empty hosts.");
     }
     String master = hosts.iterator().next();
     List<String> secondaries = hosts.stream().skip(1).collect(toList());
-    return new HostsType(singletonList(new HaHosts(master, secondaries)), hosts);
+    return new HostsType(singletonList(new HighAvailabilityHosts(master, secondaries)), hosts);
   }
 
-  public static HostsType federated(List<HaHosts> haHosts, LinkedHashSet<String> hosts) {
-    return new HostsType(haHosts, hosts);
+  /**
+   * Create an instance with multiple high availability hosts.
+   */
+  public static HostsType federated(List<HighAvailabilityHosts> highAvailabilityHosts, LinkedHashSet<String> hosts) {
+    return new HostsType(highAvailabilityHosts, hosts);
   }
 
+  /**
+   * Create an instance without high availability hosts.
+   */
   public static HostsType normal(LinkedHashSet<String> hosts) {
     return new HostsType(emptyList(), hosts);
   }
 
+  /**
+   * Create an instance without high availability hosts.
+   */
   public static HostsType normal(String... hosts) {
     return new HostsType(emptyList(), new LinkedHashSet<>(asList(hosts)));
   }
 
+  /**
+   * Create an instance with a single (non high availability) host.
+   */
   public static HostsType single(String host) {
     return HostsType.normal(host);
   }
 
-  private HostsType(List<HaHosts> haHosts, LinkedHashSet<String> hosts) {
-    this.haHosts = haHosts;
+  private HostsType(List<HighAvailabilityHosts> highAvailabilityHosts, LinkedHashSet<String> hosts) {
+    this.highAvailabilityHosts = highAvailabilityHosts;
     this.hosts = hosts;
   }
 
   public LinkedHashSet<String> getMasters() {
-    return haHosts.stream().map(each -> each.getMaster()).collect(toCollection(LinkedHashSet::new));
+    return highAvailabilityHosts.stream().map(each -> each.getMaster()).collect(toCollection(LinkedHashSet::new));
   }
 
   public LinkedHashSet<String> getSecondaries() {
-    return haHosts.stream().flatMap(each -> each.getSecondaries().stream()).collect(toCollection(LinkedHashSet::new));
+    return highAvailabilityHosts.stream().flatMap(each -> each.getSecondaries().stream()).collect(toCollection(LinkedHashSet::new));
   }
 
   public Set<String> getHosts() {
