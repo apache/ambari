@@ -672,9 +672,14 @@ def init_ldap_properties_list_reqd(properties, options):
   ]
   return ldap_properties
 
-def update_ldap_configuration(properties, ldap_property_value_map):
-  admin_login = get_validated_string_input("Enter Ambari Admin login: ", None, None, None, False, False)
-  admin_password = get_validated_string_input("Enter Ambari Admin password: ", None, None, None, True, False)
+def get_ambari_admin_username_password_pair(options):
+  admin_login = options.ambari_admin_username if options.ambari_admin_username is not None else get_validated_string_input("Enter Ambari Admin login: ", None, None, None, False, False)
+  admin_password = options.ambari_admin_password if options.ambari_admin_password is not None else get_validated_string_input("Enter Ambari Admin password: ", None, None, None, True, False)
+
+  return admin_login, admin_password
+
+def update_ldap_configuration(options, properties, ldap_property_value_map):
+  admin_login, admin_password = get_ambari_admin_username_password_pair(options)
   url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
@@ -850,7 +855,7 @@ def setup_ldap(options):
 
     ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
     #Saving LDAP configuration in Ambari DB using the REST API
-    update_ldap_configuration(properties, ldap_property_value_map)
+    update_ldap_configuration(options, properties, ldap_property_value_map)
 
     #The only property we want to write out in Ambari.properties is the client.security type being LDAP
     ldap_property_value_map.clear()
