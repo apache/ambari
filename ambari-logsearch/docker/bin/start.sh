@@ -50,14 +50,14 @@ function create_logsearch_configs() {
   cp /root/test-config/logsearch/log4j.xml /root/config/logsearch/
   cp /root/test-config/logsearch/logsearch-env.sh /root/config/logsearch/
   cp $LOGSEARCH_SERVER_PATH/conf/user_pass.json /root/config/logsearch/user_pass.json
-  if [ $LOGSEARCH_HTTPS_ENABLED == 'true' ]
+  if [ "$LOGSEARCH_HTTPS_ENABLED" == "true" ]
   then
     cp /root/test-config/logsearch/logsearch-https.properties /root/config/logsearch/logsearch.properties
   else
     cp /root/test-config/logsearch/logsearch.properties /root/config/logsearch/logsearch.properties
   fi
 
-  if [ $KNOX == 'true'  ]
+  if [ "$KNOX" == "true"  ]
   then
     cp /root/test-config/logsearch/logsearch-sso.properties /root/config/logsearch/logsearch.properties
   fi
@@ -70,7 +70,7 @@ function create_solr_configs() {
   cp /root/test-config/solr/log4j.properties /root/config/solr/
   cp /root/test-config/solr/zoo.cfg /root/config/solr/
   cp /root/test-config/solr/solr.xml /root/config/solr/
-  if [ $LOGSEARCH_SOLR_SSL_ENABLED == 'true' ]
+  if [ "$LOGSEARCH_SOLR_SSL_ENABLED" == "true" ]
   then
     cp /root/test-config/solr/solr-env-ssl.sh /root/config/solr/solr-env.sh
   else
@@ -85,7 +85,7 @@ function create_configs() {
 }
 
 function generate_keys() {
-  if [ $GENERATE_KEYSTORE_AT_START == 'true' ]
+  if [ "$GENERATE_KEYSTORE_AT_START" == "true" ]
   then
     IP=`hostname --ip-address`
     echo "generating stores for IP: $IP"
@@ -99,7 +99,7 @@ function start_solr_d() {
   /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose -force
   touch /var/log/ambari-logsearch-solr/solr.log
 
-  if [ $LOGSEARCH_SOLR_SSL_ENABLED == 'true'  ]
+  if [ "$LOGSEARCH_SOLR_SSL_ENABLED" == "true"  ]
   then
     echo "Setting urlScheme as https and restarting solr..."
     $ZKCLI -zkhost localhost:9983 -cmd clusterprop -name urlScheme -val https
@@ -132,7 +132,7 @@ function start_selenium_server_d() {
 }
 
 function start_ldap_d() {
-  if [ $KNOX == 'true'  ]
+  if [ "$KNOX" == "true"  ]
   then
     echo "KNOX is enabled. Starting Demo LDAP."
     su knox -c "/ldap.sh"
@@ -142,7 +142,7 @@ function start_ldap_d() {
 }
 
 function start_knox_d() {
-  if [ $KNOX == 'true'  ]
+  if [ "$KNOX" == "true"  ]
   then
     echo "KNOX is enabled. Starting Demo KNOX gateway."
     su knox -c "/gateway.sh"
