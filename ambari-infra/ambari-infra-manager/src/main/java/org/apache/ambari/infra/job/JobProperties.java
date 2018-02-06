@@ -68,7 +68,7 @@ public abstract class JobProperties<T extends JobProperties<T>> {
       validate();
     }
     catch (Exception ex) {
-      throw new JobConfigurationException(String.format("Configuration of job %s is invalid!", jobName), ex);
+      throw new JobConfigurationException(String.format("Configuration of job %s is invalid: %s!", jobName, ex.getMessage()), ex);
     }
   }
 

@@ -19,23 +19,14 @@
 package org.apache.ambari.infra.job.archive;
 
 import org.apache.ambari.infra.job.JobProperties;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.springframework.batch.core.JobParameters;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 import static org.apache.ambari.infra.job.archive.ExportDestination.HDFS;
 import static org.apache.ambari.infra.job.archive.ExportDestination.LOCAL;
 import static org.apache.ambari.infra.job.archive.ExportDestination.S3;
-import static org.apache.commons.csv.CSVFormat.DEFAULT;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class DocumentArchivingProperties extends JobProperties<DocumentArchivingProperties> {
@@ -50,47 +41,12 @@ public class DocumentArchivingProperties extends JobProperties<DocumentArchiving
   private String s3KeyPrefix;
   private String s3BucketName;
   private String s3Endpoint;
-  private transient Supplier<Optional<S3Properties>> s3Properties;
 
   private String hdfsEndpoint;
   private String hdfsDestinationDirectory;
 
   public DocumentArchivingProperties() {
     super(DocumentArchivingProperties.class);
-    s3Properties = this::loadS3Properties;
-  }
-
-  private Optional<S3Properties> loadS3Properties() {
-    if (isBlank(s3BucketName))
-      return Optional.empty();
-
-    String accessKey = System.getenv("AWS_ACCESS_KEY_ID");
-    String secretKey = System.getenv("AWS_SECRET_ACCESS_KEY");
-
-    if (isBlank(accessKey) || isBlank(secretKey)) {
-      if (isBlank(s3AccessFile))
-        return Optional.empty();
-      try (CSVParser csvParser = CSVParser.parse(new FileReader(s3AccessFile), DEFAULT.withHeader("Access key ID", "Secret access key"))) {
-        Iterator<CSVRecord> iterator = csvParser.iterator();
-        if (!iterator.hasNext()) {
-          return Optional.empty();
-        }
-
-        CSVRecord record = csvParser.iterator().next();
-        Map<String, Integer> header = csvParser.getHeaderMap();
-        accessKey = record.get(header.get("Access key ID"));
-        secretKey = record.get(header.get("Secret access key"));
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-
-    return Optional.of(new S3Properties(
-            accessKey,
-            secretKey,
-            s3KeyPrefix,
-            s3BucketName,
-            s3Endpoint));
   }
 
   public int getReadBlockSize() {
@@ -155,7 +111,6 @@ public class DocumentArchivingProperties extends JobProperties<DocumentArchiving
 
   public void setS3AccessFile(String s3AccessFile) {
     this.s3AccessFile = s3AccessFile;
-    s3Properties = this::loadS3Properties;
   }
 
   public String getS3KeyPrefix() {
@@ -183,7 +138,14 @@ public class DocumentArchivingProperties extends JobProperties<DocumentArchiving
   }
 
   public Optional<S3Properties> s3Properties() {
-    return s3Properties.get();
+    if (isBlank(s3BucketName))
+      return Optional.empty();
+
+    return Optional.of(new S3Properties(
+            s3AccessFile,
+            s3KeyPrefix,
+            s3BucketName,
+            s3Endpoint));
   }
 
   public String getHdfsEndpoint() {
