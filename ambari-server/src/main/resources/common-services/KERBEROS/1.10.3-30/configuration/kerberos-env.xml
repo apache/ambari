@@ -165,7 +165,7 @@
     <name>admin_server_host</name>
     <display-name>Kadmin host</display-name>
     <description>
-      The IP address or FQDN for the KDC Kerberos administrative host. Optionally a port number may be included.
+      The FQDN for the KDC Kerberos administrative host. Optionally a port number may be included.
     </description>
     <value/>
     <value-attributes>
