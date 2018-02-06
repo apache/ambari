@@ -47,9 +47,9 @@ public class Module {
   @SerializedName("definition")
   private String definition;
   @SerializedName("dependencies")
-  private List<ModuleDependency> moduleDependencyList;
+  private List<ModuleDependency> dependencies;
   @SerializedName("components")
-  private List<ModuleComponent> moduleComponentList;
+  private List<ModuleComponent> components;
 
   public Category getCategory() {
     return category;
@@ -111,20 +111,20 @@ public class Module {
     this.category = category;
   }
 
-  public List<ModuleDependency> getModuleDependencyList() {
-    return moduleDependencyList;
+  public List<ModuleDependency> getDependencies() {
+    return dependencies;
   }
 
-  public void setModuleDependencyList(List<ModuleDependency> moduleDependencyList) {
-    this.moduleDependencyList = moduleDependencyList;
+  public void setDependencies(List<ModuleDependency> dependencies) {
+    this.dependencies = dependencies;
   }
 
-  public List<ModuleComponent> getModuleComponentList() {
-    return moduleComponentList;
+  public List<ModuleComponent> getComponents() {
+    return components;
   }
 
-  public void setModuleComponentList(List<ModuleComponent> moduleComponentList) {
-    this.moduleComponentList = moduleComponentList;
+  public void setComponents(List<ModuleComponent> components) {
+    this.components = components;
   }
 
 
@@ -138,12 +138,12 @@ public class Module {
     return Objects.equals(id, module.id) && Objects.equals(displayName, module.displayName) &&
             Objects.equals(description, module.description) && Objects.equals(category, module.category) &&
             Objects.equals(name, module.name) && Objects.equals(version, module.version) && Objects.equals(definition, module.definition)
-            && Objects.equals(moduleDependencyList, module.moduleDependencyList) && Objects.equals(moduleComponentList, module.moduleComponentList);
+            && Objects.equals(dependencies, module.dependencies) && Objects.equals(components, module.components);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, displayName, description, category, name, version, definition, moduleComponentList, moduleComponentList);
+    return Objects.hash(id, displayName, description, category, name, version, definition, dependencies, components);
   }
 
   @Override
@@ -156,8 +156,8 @@ public class Module {
             ", name='" + name + '\'' +
             ", version='" + version + '\'' +
             ", definition='" + definition + '\'' +
-            ", moduleDependencyList=" + moduleDependencyList +
-            ", moduleComponentList=" + moduleComponentList +
+            ", dependencies=" + dependencies +
+            ", components=" + components +
             '}';
   }
 }

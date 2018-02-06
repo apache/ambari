@@ -1662,7 +1662,10 @@ public class AmbariMetaInfo {
    * @return all mpacks from mpackMap - in memory data structure
    */
   public Collection<Mpack> getMpacks() {
-    return mpackManager.getMpackMap().values();
+    if (mpackManager.getMpackMap() != null) {
+      return mpackManager.getMpackMap().values();
+    }
+    return Collections.emptySet();
   }
 
   /***
@@ -1670,6 +1673,9 @@ public class AmbariMetaInfo {
    * @return a single mpack
    */
   public Mpack getMpack(Long mpackId) {
-    return mpackManager.getMpackMap().get(mpackId);
+    if (mpackManager.getMpackMap() != null && mpackManager.getMpackMap().containsKey(mpackId)) {
+      return mpackManager.getMpackMap().get(mpackId);
+    }
+    return null;
   }
 }
