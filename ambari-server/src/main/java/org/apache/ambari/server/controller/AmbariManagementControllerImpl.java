@@ -201,6 +201,8 @@ import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -251,7 +253,6 @@ import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
@@ -604,6 +605,30 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return mpackResponse;
   }
 
+  @Override
+  public Set<MpackResponse> getMpacks(){
+    Collection<Mpack> mpacks = ambariMetaInfo.getMpacks();
+    Set<MpackResponse> responseSet = new HashSet<>();
+    for (Mpack mpack : mpacks){
+      responseSet.add(new MpackResponse(mpack));
+    }
+    return responseSet;
+  }
+
+  @Override
+  public MpackResponse getMpack(Long mpackId) {
+    Mpack mpack = ambariMetaInfo.getMpack(mpackId);
+    if (mpack != null) {
+      return new MpackResponse(mpack);
+    }else{
+      return null;
+    }
+  }
+
+  @Override
+  public List<Module> getModules(Long mpackId) {
+    return ambariMetaInfo.getModules(mpackId);
+  }
 
 
   @Override
@@ -764,11 +789,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // now doing actual work
     persistServiceComponentHosts(requests, isBlueprintProvisioned);
     m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
-  }
-
-  @Override
-  public ArrayList<Packlet> getPacklets(Long mpackId) {
-    return ambariMetaInfo.getPacklets(mpackId);
   }
 
   void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
@@ -3819,6 +3839,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException{
 
     ambariMetaInfo.removeMpack(mpackEntity, stackEntity);
+  }
+
+  @Override
+  public Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException {
+    return null;
   }
 
   /**

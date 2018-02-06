@@ -61,6 +61,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -69,7 +70,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
@@ -969,12 +969,13 @@ public interface AmbariManagementController {
   Map<String, BlueprintProvisioningState> getBlueprintProvisioningStates(Long clusterId, Long hostId) throws AmbariException;
 
   /**
-   * Fetch the packlet info for a given mpack.
+   * Fetch the module info for a given mpack.
    *
    * @param mpackId
-   * @return List of packlets
+   * @return List of modules
    */
-  ArrayList<Packlet> getPacklets(Long mpackId);
+  List<Module> getModules(Long mpackId);
+
 
   /***
    * Remove Mpack from the mpackMap and stackMap which is used to power the Mpack and Stack APIs.
@@ -984,5 +985,31 @@ public interface AmbariManagementController {
    */
   void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException;
 
+  /**
+   * Creates serviceconfigversions and corresponding new configurations if it is an initial request
+   * OR
+   * Rollbacks to an existing serviceconfigversion if request specifies.
+   * @param requests
+   *
+   * @return
+   *
+   * @throws AmbariException
+   *
+   * @throws AuthorizationException
+   */
+  Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException;
+
+  /***
+   * Fetch all mpacks
+   * @return
+   */
+  Set<MpackResponse> getMpacks();
+
+  /***
+   * Fetch an mpack based on id
+   * @param mpackId
+   * @return
+   */
+  MpackResponse getMpack(Long mpackId);
 }
 

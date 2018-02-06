@@ -108,10 +108,22 @@ public class StackMetainfoXml implements Validable{
   public Version getVersion() {
     return version;
   }
-  
+
+  public void setVersion(Version version) {
+    this.version = version;
+  }
+
+  public void setMinJdk(String minJdk) {
+    this.minJdk = minJdk;
+  }
+
+  public void setMaxJdk(String maxJdk) {
+    this.maxJdk = maxJdk;
+  }
+
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Version {
-    private Version() {
+    public Version() {
     }
     private boolean active = false;
     private String upgrade = null;
@@ -129,8 +141,11 @@ public class StackMetainfoXml implements Validable{
     public String getUpgrade() {
       return upgrade;
     }
-    
-    
+
+
+    public void setActive(boolean active) {
+      this.active = active;
+    }
   }  
   
 }

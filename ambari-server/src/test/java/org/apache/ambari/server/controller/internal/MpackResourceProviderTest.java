@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.util.Modules;
+import org.apache.ambari.server.state.Module;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -33,8 +35,7 @@ import java.util.Set;
 import com.google.inject.Injector;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
-import com.google.inject.util.Modules;
-import com.google.inject.Module;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -46,8 +47,8 @@ import org.apache.ambari.server.controller.utilities.*;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.state.Mpacks;
-import org.apache.ambari.server.state.Packlet;
+import org.apache.ambari.server.state.Mpack;
+
 import org.easymock.EasyMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.createMock;
@@ -55,6 +56,10 @@ import static org.easymock.EasyMock.verify;
 import org.junit.Test;
 import org.junit.Assert;
 import org.junit.Before;
+
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 import javax.persistence.EntityManager;
@@ -168,13 +173,13 @@ public class MpackResourceProviderTest {
     entity.setMpackVersion("3.0");
 
 
-    ArrayList<Packlet> packletArrayList = new ArrayList<>();
-    Packlet packlet = new Packlet();
-    packlet.setName("testService");
-    packlet.setType("service");
-    packlet.setSourceDir("testDir/testDir");
-    packlet.setVersion("3.0");
-    packletArrayList.add(packlet);
+    ArrayList<Module> packletArrayList = new ArrayList<>();
+    org.apache.ambari.server.state.Module module = new Module();
+    module.setName("testService");
+    //module.setType(Module.PackletType.SERVICE_PACKLET);
+    module.setDefinition("testDir");
+    module.setVersion("3.0");
+    packletArrayList.add(module);
 
     Resource resourceExpected1 = new ResourceImpl(Resource.Type.Mpack);
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_ID, (long)1);
@@ -182,11 +187,11 @@ public class MpackResourceProviderTest {
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_VERSION, "3.0");
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_URI, "abcd.tar.gz");
     resourceExpected1.setProperty(MpackResourceProvider.REGISTRY_ID, null);
-    resourceExpected1.setProperty(MpackResourceProvider.PACKLETS,packletArrayList);
+    resourceExpected1.setProperty(MpackResourceProvider.MODULES,packletArrayList);
 
     // set expectations
     EasyMock.expect(m_dao.findById((long)1)).andReturn(entity).anyTimes();
-    EasyMock.expect(m_amc.getPacklets((long)1)).andReturn(packletArrayList).anyTimes();
+    EasyMock.expect(m_amc.getModules((long)1)).andReturn(packletArrayList).anyTimes();
 
     // replay
     replay(m_dao,m_amc);
@@ -206,7 +211,7 @@ public class MpackResourceProviderTest {
       Assert.assertEquals(resourceExpected1.getPropertyValue(MpackResourceProvider.MPACK_VERSION), (String) resource.getPropertyValue(MpackResourceProvider.MPACK_VERSION));
       Assert.assertEquals(resourceExpected1.getPropertyValue(MpackResourceProvider.MPACK_URI), (String) resource.getPropertyValue(MpackResourceProvider.MPACK_URI));
       Assert.assertEquals(resourceExpected1.getPropertyValue(MpackResourceProvider.REGISTRY_ID), (Long) resource.getPropertyValue(MpackResourceProvider.REGISTRY_ID));
-      Assert.assertEquals(resourceExpected1.getPropertyValue(MpackResourceProvider.PACKLETS),(ArrayList)resource.getPropertyValue(MpackResourceProvider.PACKLETS));
+      Assert.assertEquals(resourceExpected1.getPropertyValue(MpackResourceProvider.MODULES),(ArrayList)resource.getPropertyValue(MpackResourceProvider.MODULES));
   }
     // verify
     verify(m_dao,m_amc);
@@ -231,9 +236,9 @@ public class MpackResourceProviderTest {
     replay(m_amc,request);
     // end expectations
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Mpack 
-            );
+    MpackResourceProvider provider = (MpackResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
+            Resource.Type.Mpack);
+
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
@@ -259,10 +264,10 @@ public class MpackResourceProviderTest {
   }
 
 
-  public Mpacks setupMpack() {
-    Mpacks mpack = new Mpacks();
+  public Mpack setupMpack() {
+    Mpack mpack = new Mpack();
     mpack.setMpackId((long)100);
-    mpack.setPacklets(new ArrayList<Packlet>());
+    mpack.setModules(new ArrayList<Module>());
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(new Long(100));
     mpack.setVersion("3.0");
@@ -276,7 +281,7 @@ public class MpackResourceProviderTest {
   /**
    *
    */
-  private class MockModule implements Module {
+  private class MockModule implements com.google.inject.Module {
     @Override
     public void configure(Binder binder) {
       binder.bind(EntityManager.class).toInstance(EasyMock.createMock(EntityManager.class));

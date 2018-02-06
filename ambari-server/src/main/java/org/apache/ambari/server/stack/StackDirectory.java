@@ -389,15 +389,19 @@ public class StackDirectory extends StackDefinitionDirectory {
         for (File upgradeFile : f.listFiles(XML_FILENAME_FILTER)) {
           if (upgradeFile.getName().toLowerCase().startsWith(CONFIG_UPGRADE_XML_FILENAME_PREFIX)) {
             if (configUpgradePack == null) {
-              configUpgradePack = parseConfigUpgradePack(upgradeFile);
+              if(upgradeFile.length() != 0) {
+                configUpgradePack = parseConfigUpgradePack(upgradeFile);
+              }
             } else { // If user messed things up with lower/upper case filenames
               throw new AmbariException(String.format("There are multiple files with name like %s" + upgradeFile.getAbsolutePath()));
             }
           } else {
             String upgradePackName = FilenameUtils.removeExtension(upgradeFile.getName());
-            UpgradePack pack = parseUpgradePack(upgradePackName, upgradeFile);
-            pack.setName(upgradePackName);
-            upgradeMap.put(upgradePackName, pack);
+            if(upgradeFile.length() != 0) {
+              UpgradePack pack = parseUpgradePack(upgradePackName, upgradeFile);
+              pack.setName(upgradePackName);
+              upgradeMap.put(upgradePackName, pack);
+            }
           }
         }
       }

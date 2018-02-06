@@ -46,8 +46,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.Mpacks;
-import org.apache.ambari.server.state.Packlet;
+import org.apache.ambari.server.state.Mpack;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
@@ -116,6 +115,8 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
@@ -143,7 +144,6 @@ import com.google.gson.Gson;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.util.Modules;
 
@@ -2270,7 +2270,7 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, metaInfo);
   }
 
-  private class MockModule implements Module {
+  private class MockModule implements com.google.inject.Module {
 
     @Override
     public void configure(Binder binder) {
@@ -2450,16 +2450,17 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testRegisterMpacks() throws Exception{
     MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
-    Mpacks mpacks = new Mpacks();
-    mpacks.setMpackId((long)100);
-    mpacks.setPacklets(new ArrayList<Packlet>());
-    mpacks.setPrerequisites(new HashMap<String, String>());
-    mpacks.setRegistryId(new Long(100));
-    mpacks.setVersion("3.0");
-    mpacks.setMpacksUri("abc.tar.gz");
-    mpacks.setDescription("Test mpacks");
-    mpacks.setName("testMpack");
-    MpackResponse mpackResponse = new MpackResponse(mpacks);
+    RequestStatusResponse response = new RequestStatusResponse(new Long(201));
+    Mpack mpack = new Mpack();
+    mpack.setMpackId((long)100);
+    mpack.setModules(new ArrayList<Module>());
+    mpack.setPrerequisites(new HashMap<String, String>());
+    mpack.setRegistryId(new Long(100));
+    mpack.setVersion("3.0");
+    mpack.setMpacksUri("abc.tar.gz");
+    mpack.setDescription("Test mpack");
+    mpack.setName("testMpack");
+    MpackResponse mpackResponse = new MpackResponse(mpack);
     Injector injector = createNiceMock(Injector.class);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
     expect(ambariMetaInfo.registerMpack(mpackRequest)).andReturn(mpackResponse);
@@ -2472,21 +2473,21 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testGetPacklets() throws Exception {
     Long mpackId = new Long(100);
-    ArrayList<Packlet> packletArrayList = new ArrayList<>();
-    Packlet samplePacklet = new Packlet();
+    ArrayList<Module> packletArrayList = new ArrayList<>();
+    Module samplePacklet = new Module();
     Injector injector = createNiceMock(Injector.class);
-    samplePacklet.setType("service");
+    //samplePacklet.setType(Packlet.PackletType.SERVICE_PACKLET);
     samplePacklet.setVersion("3.0.0");
     samplePacklet.setName("NIFI");
-    samplePacklet.setSourceDir("/abc/nifi.tar.gz");
+    samplePacklet.setDefinition("nifi.tar.gz");
     packletArrayList.add(samplePacklet);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
-    expect(ambariMetaInfo.getPacklets(mpackId)).andReturn(packletArrayList).atLeastOnce();
+    expect(ambariMetaInfo.getModules(mpackId)).andReturn(packletArrayList).atLeastOnce();
     replay(ambariMetaInfo,injector);
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);
 
-    Assert.assertEquals(packletArrayList,controller.getPacklets(mpackId));
+    Assert.assertEquals(packletArrayList,controller.getModules(mpackId));
 
   }
 
