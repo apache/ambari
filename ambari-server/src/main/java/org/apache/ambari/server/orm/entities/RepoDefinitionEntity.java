@@ -36,9 +36,12 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.stack.RepoTag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
+
+/**
+ * Represents a Repository definition type.
+ */
 @Entity
 @Table(name = "repo_definition")
 @TableGenerator(name = "repo_definition_id_generator",
@@ -53,13 +56,19 @@ public class RepoDefinitionEntity {
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "repo_definition_id_generator")
   private Long id;
 
+  /**
+   * CollectionTable for RepoTag enum
+   */
   @Enumerated(value = EnumType.STRING)
   @ElementCollection(targetClass = RepoTag.class)
-  @CollectionTable(name = "repo_tag_states", joinColumns = @JoinColumn(name = "repo_definition_id"))
-  @Column(name = "tag_state")
+  @CollectionTable(name = "repo_tags", joinColumns = @JoinColumn(name = "repo_definition_id"))
+  @Column(name = "tag")
   private Set<RepoTag> repoTags = new HashSet<>();
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  /**
+   * many-to-one association to {@link RepoOsEntity}
+   */
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "repo_os_id", nullable = false)
   private RepoOsEntity repoOs;
 
@@ -83,7 +92,6 @@ public class RepoDefinitionEntity {
 
   @Column(name = "unique_repo", nullable = false)
   private short unique = 0;
-
 
 
   public String getDistribution() {
@@ -166,33 +174,39 @@ public class RepoDefinitionEntity {
     this.repoTags = repoTags;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    RepoDefinitionEntity that = (RepoDefinitionEntity) o;
-
-    if (unique != that.unique) return false;
-    if (repoTags != null ? !repoTags.equals(that.repoTags) : that.repoTags != null) return false;
-    if (repoName != null ? !repoName.equals(that.repoName) : that.repoName != null) return false;
-    if (repoID != null ? !repoID.equals(that.repoID) : that.repoID != null) return false;
-    if (baseUrl != null ? !baseUrl.equals(that.baseUrl) : that.baseUrl != null) return false;
-    if (mirrors != null ? !mirrors.equals(that.mirrors) : that.mirrors != null) return false;
-    if (distribution != null ? !distribution.equals(that.distribution) : that.distribution != null) return false;
-    return components != null ? components.equals(that.components) : that.components == null;
-  }
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = repoTags != null ? repoTags.hashCode() : 0;
-    result = 31 * result + (repoName != null ? repoName.hashCode() : 0);
-    result = 31 * result + (repoID != null ? repoID.hashCode() : 0);
-    result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
-    result = 31 * result + (mirrors != null ? mirrors.hashCode() : 0);
-    result = 31 * result + (distribution != null ? distribution.hashCode() : 0);
-    result = 31 * result + (components != null ? components.hashCode() : 0);
-    result = 31 * result + (int) unique;
-    return result;
+    return java.util.Objects.hash(repoTags, repoName, repoID, baseUrl, mirrors, distribution, components, unique);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (null == object) {
+      return false;
+    }
+
+    if (this == object) {
+      return true;
+    }
+
+    if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    RepoDefinitionEntity that = (RepoDefinitionEntity) object;
+    return Objects.equal(unique, that.unique)
+        && Objects.equal(repoTags, that.repoTags)
+        && Objects.equal(repoName, that.repoName)
+        && Objects.equal(repoID, that.repoID)
+        && Objects.equal(baseUrl, that.baseUrl)
+        && Objects.equal(mirrors, that.mirrors)
+        && Objects.equal(distribution, that.distribution)
+        && Objects.equal(components, that.components);
   }
 }

@@ -192,9 +192,9 @@ CREATE TABLE repo_definition (
   CONSTRAINT PK_repo_definition_id PRIMARY KEY (id));
   CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
 
-CREATE TABLE repo_tag_states (
+CREATE TABLE repo_tags (
   repo_definition_id BIGINT NOT NULL,
-  tag_state VARCHAR(255) NOT NULL,
+  tag VARCHAR(255) NOT NULL,
   CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (

@@ -53,8 +53,6 @@ import org.apache.ambari.server.state.repository.Release;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
@@ -116,7 +114,10 @@ public class RepositoryVersionEntity {
   @Column(name = "display_name")
   private String displayName;
 
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
+  /**
+   * one-to-many association to {@link RepoOsEntity}
+   */
+  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
   private List<RepoOsEntity> repoOsEntities = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")

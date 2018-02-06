@@ -33,6 +33,11 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import com.google.common.base.Objects;
+
+/**
+ * Represents a Repository operation system type.
+ */
 @Entity
 @Table(name = "repo_os")
 @TableGenerator(name = "repo_os_id_generator",
@@ -53,17 +58,31 @@ public class RepoOsEntity {
   @Column(name = "ambari_managed", nullable = false)
   private short ambariManaged = 0;
 
-  @OneToMany(orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "repoOs")
+  /**
+   * one-to-many association to {@link RepoDefinitionEntity}
+   */
+  @OneToMany(orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "repoOs")
   private List<RepoDefinitionEntity> repoDefinitionEntities = new ArrayList<>();
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  /**
+   * many-to-one association to {@link RepositoryVersionEntity}
+   */
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "repo_version_id", nullable = false)
   private RepositoryVersionEntity repositoryVersionEntity;
 
+  /**
+   * @return repoDefinitionEntities
+   */
   public List<RepoDefinitionEntity> getRepoDefinitionEntities() {
     return repoDefinitionEntities;
   }
 
+  /**
+   * Update one-to-many relation without rebuilding the whole entity
+   *
+   * @param repoDefinitionEntities list of many-to-one entities
+   */
   public void addRepoDefinitionEntities(List<RepoDefinitionEntity> repoDefinitionEntities) {
     this.repoDefinitionEntities.addAll(repoDefinitionEntities);
     for (RepoDefinitionEntity repoDefinitionEntity : repoDefinitionEntities) {
@@ -71,6 +90,10 @@ public class RepoOsEntity {
     }
   }
 
+  /**
+   * Update one-to-many relation without rebuilding the whole entity
+   * @param repoDefinition many-to-one entity
+   */
   public void addRepoDefinition(RepoDefinitionEntity repoDefinition) {
     this.repoDefinitionEntities.add(repoDefinition);
     repoDefinition.setRepoOs(this);
@@ -108,23 +131,34 @@ public class RepoOsEntity {
     this.ambariManaged = (short) (ambariManaged ? 1 : 0);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    RepoOsEntity that = (RepoOsEntity) o;
-
-    if (ambariManaged != that.ambariManaged) return false;
-    if (family != null ? !family.equals(that.family) : that.family != null) return false;
-    return repoDefinitionEntities != null ? repoDefinitionEntities.equals(that.repoDefinitionEntities) : that.repoDefinitionEntities == null;
-  }
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = family != null ? family.hashCode() : 0;
-    result = 31 * result + (int) ambariManaged;
-    result = 31 * result + (repoDefinitionEntities != null ? repoDefinitionEntities.hashCode() : 0);
-    return result;
+    return java.util.Objects.hash(family, ambariManaged, repoDefinitionEntities);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (null == object) {
+      return false;
+    }
+
+    if (this == object) {
+      return true;
+    }
+
+    if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    RepoOsEntity that = (RepoOsEntity) object;
+    return Objects.equal(ambariManaged, that.ambariManaged)
+        && Objects.equal(family, that.family)
+        && Objects.equal(repoDefinitionEntities, that.repoDefinitionEntities);
   }
 }
