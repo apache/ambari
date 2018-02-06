@@ -247,15 +247,6 @@ public class CompositeStack implements StackDefinition {
   }
 
   @Override
-  public String getConditionalServiceForDependency(DependencyInfo dependency) {
-    return stacks.stream()
-      .map(m -> m.getConditionalServiceForDependency(dependency))
-      .filter(Objects::nonNull)
-      .findAny()
-      .orElse(null);
-  }
-
-  @Override
   public String getExternalComponentConfig(String component) {
     return stacks.stream()
       .map(m -> m.getExternalComponentConfig(component))

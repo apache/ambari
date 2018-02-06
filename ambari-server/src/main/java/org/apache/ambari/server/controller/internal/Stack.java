@@ -75,12 +75,6 @@ public class Stack implements StackDefinition {
     new HashMap<>();
 
   /**
-   * Map of dependency to conditional service
-   */
-  private Map<DependencyInfo, String> dependencyConditionalServiceMap =
-    new HashMap<>();
-
-  /**
    * Map of database component name to configuration property which indicates whether
    * the database in to be managed or if it is an external non-managed instance.
    * If the value of the config property starts with 'New', the database is determined
@@ -168,10 +162,6 @@ public class Stack implements StackDefinition {
 
   public StackId getStackId() {
     return new StackId(getName(), getVersion());
-  }
-
-  Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
-    return dependencyConditionalServiceMap;
   }
 
   @Override
@@ -423,11 +413,6 @@ public class Stack implements StackDefinition {
   }
 
   @Override
-  public String getConditionalServiceForDependency(DependencyInfo dependency) {
-    return dependencyConditionalServiceMap.get(dependency);
-  }
-
-  @Override
   public String getExternalComponentConfig(String component) {
     return dbDependencyInfo.get(component);
   }
@@ -610,11 +595,7 @@ public class Stack implements StackDefinition {
     excludedConfigurationTypes.put(stackServiceResponse.getName(), stackServiceResponse.getExcludedConfigTypes());
   }
 
-  /**
-   * Register conditional dependencies.
-   */
-  //todo: This information should be specified in the stack definition.
-  void registerConditionalDependencies() {
+  private void registerConditionalDependencies() {
     dbDependencyInfo.put("MYSQL_SERVER", "global/hive_database");
   }
 

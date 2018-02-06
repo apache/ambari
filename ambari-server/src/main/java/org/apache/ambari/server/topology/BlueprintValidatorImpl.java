@@ -217,13 +217,6 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
       for (DependencyInfo dependency : stack.getDependenciesForComponent(component.getName())) {
         LOGGER.debug("Processing dependency [{}] for component [{}]", dependency.getName(), component);
 
-        String conditionalService = stack.getConditionalServiceForDependency(dependency);
-        if (conditionalService != null && !blueprint.getServices().contains(conditionalService)) {
-          LOGGER.debug("Conditional service  [{}] is missing from the blueprint, skipping dependency [{}]",
-              conditionalService, dependency.getName());
-          continue;
-        }
-
         // dependent components from the stack definitions are only added if related services are explicitly added to the blueprint!
         boolean isClientDependency = stack.getComponentInfo(dependency.getComponentName()).isClient();
         if (isClientDependency && !blueprint.getServices().contains(dependency.getServiceName())) {

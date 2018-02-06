@@ -233,16 +233,6 @@ public interface StackDefinition {
   Collection<DependencyInfo> getDependenciesForComponent(String component);
 
   /**
-   * Get the service, if any, that a component dependency is conditional on.
-   *
-   * @param dependency  dependency to get conditional service for
-   *
-   * @return conditional service for provided component or null if dependency
-   *         is not conditional on a service
-   */
-  String getConditionalServiceForDependency(DependencyInfo dependency);
-
-  /**
    * Get the custom "descriptor" that is used to decide whether component
    * is a managed or non-managed dependency.  The descriptor is formatted as:
    * "config_type/property_name".  Currently it is only used for Hive Metastore's
