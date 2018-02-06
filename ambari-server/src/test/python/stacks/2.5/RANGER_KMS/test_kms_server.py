@@ -357,6 +357,13 @@ class TestRangerKMS(RMFTestCase):
       create_parents=True
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env.sh',
+      content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
+    )
+
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
       content = 'export RANGER_KMS_PID_DIR_PATH=/var/run/ranger_kms\nexport KMS_USER=kms',
       owner = 'kms',
@@ -778,6 +785,13 @@ class TestRangerKMS(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env.sh',
+      content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
