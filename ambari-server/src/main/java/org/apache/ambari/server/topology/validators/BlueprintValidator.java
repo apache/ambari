@@ -16,27 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.topology;
+package org.apache.ambari.server.topology.validators;
+
+import org.apache.ambari.server.topology.Blueprint;
 
 /**
- * Provides blueprint validation.
+ * Provides basic blueprint validation.
  */
 public interface BlueprintValidator {
-  /**
-   * Validate blueprint topology.
-   *
-   * @param blueprint the blueprint to validate
-   * @throws InvalidTopologyException if the topology is invalid
-   */
-  void validateTopology(Blueprint blueprint) throws InvalidTopologyException;
 
-  /**
-   * Validate that required properties are provided.
-   * This doesn't include password properties.
-   *
-   * @param blueprint the blueprint to validate
-   * @throws InvalidTopologyException if required properties are not set in blueprint
-   * @throws GPLLicenseNotAcceptedException if the blueprint requires use of GPL software, but GPL license was not accepted
-   */
-  void validateRequiredProperties(Blueprint blueprint) throws InvalidTopologyException, GPLLicenseNotAcceptedException;
+  void validate(Blueprint blueprint) throws IllegalArgumentException;
+
 }

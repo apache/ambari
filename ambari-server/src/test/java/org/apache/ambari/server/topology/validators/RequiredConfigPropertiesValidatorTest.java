@@ -99,17 +99,15 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
 
     EasyMock.expect(blueprintMock.getHostGroups()).andReturn(hostGroups);
-    EasyMock.expect(blueprintMock.getServices()).andReturn(bpServices);
-    EasyMock.expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
+    EasyMock.expect(clusterTopologyMock.getServices()).andReturn(bpServices);
+    EasyMock.expect(clusterTopologyMock.getStack()).andReturn(stackMock).anyTimes();
 
     EasyMock.expect(masterHostGroupMock.getName()).andReturn("master").anyTimes();
     EasyMock.expect(masterHostGroupMock.getConfiguration()).andReturn(masterHostGroupConfigurationMock).anyTimes();
-    EasyMock.expect(masterHostGroupMock.getServices()).andReturn(masterHostGroupServices);
 
 
     EasyMock.expect(slaveHostGroupMock.getName()).andReturn("slave").anyTimes();
     EasyMock.expect(slaveHostGroupMock.getConfiguration()).andReturn(slaveHostGroupConfigurationMock).anyTimes();
-    EasyMock.expect(slaveHostGroupMock.getServices()).andReturn(slaveHostGroupServices);
 
     // there are 2 hostgroups to be considered by the test
     hostGroups.put("master", masterHostGroupMock);

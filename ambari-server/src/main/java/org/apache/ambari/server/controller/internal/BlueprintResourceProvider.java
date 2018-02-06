@@ -59,12 +59,10 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
-import org.apache.ambari.server.topology.BlueprintValidator;
-import org.apache.ambari.server.topology.GPLLicenseNotAcceptedException;
-import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.validators.BlueprintValidator;
 import org.apache.ambari.server.utils.JsonUtils;
 import org.apache.ambari.server.utils.SecretReference;
 import org.slf4j.Logger;
@@ -545,19 +543,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
               blueprint.getName());
         }
 
-        try {
-          validator.validateRequiredProperties(blueprint);
-        } catch (InvalidTopologyException | GPLLicenseNotAcceptedException e) {
-          throw new IllegalArgumentException("Blueprint configuration validation failed: " + e.getMessage(), e);
-        }
-
-        String validateTopology =  requestInfoProps.get(VALIDATE_TOPOLOGY_PROPERTY_ID);
-        if (validateTopology == null || ! validateTopology.equalsIgnoreCase("false")) {
-          try {
-            validator.validateTopology(blueprint);
-          } catch (InvalidTopologyException e) {
-            throw new IllegalArgumentException(e.getMessage());
-          }
+        if (shouldValidate(requestInfoProps)) {
+          validator.validate(blueprint);
         }
 
         LOG.info("Creating Blueprint, name=" + blueprint.getName());
@@ -572,6 +559,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
         return null;
       }
     };
+  }
+
+  private static boolean shouldValidate(Map<String, String> requestInfoProps) {
+    String validateTopology = requestInfoProps.get("validate_topology");
+    return validateTopology == null || Boolean.parseBoolean(validateTopology);
   }
 
   /**

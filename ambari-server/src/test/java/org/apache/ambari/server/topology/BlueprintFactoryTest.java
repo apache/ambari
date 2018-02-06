@@ -151,11 +151,6 @@ public class BlueprintFactoryTest {
     assertEquals(2, components.size());
     assertTrue(components.contains("component1"));
     assertTrue(components.contains("component2"));
-    Collection<String> services = group1.getServices();
-    assertEquals(2, services.size());
-    assertTrue(services.contains("test-service1"));
-    assertTrue(services.contains("test-service2"));
-    assertTrue(group1.containsMasterComponent());
     //todo: add configurations/attributes to properties
     Configuration configuration = group1.getConfiguration();
     assertTrue(configuration.getProperties().isEmpty());
@@ -167,10 +162,6 @@ public class BlueprintFactoryTest {
     components = group2.getComponentNames();
     assertEquals(1, components.size());
     assertTrue(components.contains("component1"));
-    services = group2.getServices();
-    assertEquals(1, services.size());
-    assertTrue(services.contains("test-service1"));
-    assertTrue(group2.containsMasterComponent());
     //todo: add configurations/attributes to properties
     //todo: test both v1 and v2 config syntax
     configuration = group2.getConfiguration();
@@ -254,17 +245,6 @@ public class BlueprintFactoryTest {
     // remove the components for one of the host groups
     ((Set<Map<String, Object>>) props.get(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).
         iterator().next().remove(BlueprintResourceProvider.COMPONENT_PROPERTY_ID);
-
-    replay(stack, dao, entity, configEntity);
-    testFactory.createBlueprint(props, null);
-  }
-
-  @Test(expected=IllegalArgumentException.class)
-  public void testCreate_HostGroupWithInvalidComponent() throws Exception {
-    Map<String, Object> props = BlueprintResourceProviderTest.getBlueprintTestProperties().iterator().next();
-    // change a component name to an invalid name
-    ((Set<Map<String, Object>>) ((Set<Map<String, Object>>) props.get(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).
-        iterator().next().get(BlueprintResourceProvider.COMPONENT_PROPERTY_ID)).iterator().next().put("name", "INVALID_COMPONENT");
 
     replay(stack, dao, entity, configEntity);
     testFactory.createBlueprint(props, null);

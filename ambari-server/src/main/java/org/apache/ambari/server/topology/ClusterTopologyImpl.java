@@ -19,6 +19,8 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 
@@ -28,15 +30,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.StackDefinition;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Represents a cluster topology.
@@ -44,41 +51,41 @@ import org.slf4j.LoggerFactory;
  */
 public class ClusterTopologyImpl implements ClusterTopology {
 
-  private Long clusterId;
+  private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
 
-  //todo: currently topology is only associated with a single bp
-  //todo: this will need to change to allow usage of multiple bp's for the same cluster
-  //todo: for example: provision using bp1 and scale using bp2
-  private Blueprint blueprint;
-  private Configuration configuration;
+  private final Set<StackId> stackIds;
+  private final StackDefinition stack;
+  private Long clusterId;
+  private final Blueprint blueprint;
+  private final Configuration configuration;
   private ConfigRecommendationStrategy configRecommendationStrategy;
   private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
-  private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
+  private final Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final AmbariContext ambariContext;
   private final String defaultPassword;
 
-  private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
-
-
-  //todo: will need to convert all usages of hostgroup name to use fully qualified name (BP/HG)
-  //todo: for now, restrict scaling to the same BP
   public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
+    this.ambariContext = ambariContext;
     this.clusterId = topologyRequest.getClusterId();
     // provision cluster currently requires that all hostgroups have same BP so it is ok to use root level BP here
     this.blueprint = topologyRequest.getBlueprint();
     this.configuration = topologyRequest.getConfiguration();
+
     if (topologyRequest instanceof ProvisionClusterRequest) {
-      this.defaultPassword = ((ProvisionClusterRequest) topologyRequest).getDefaultPassword();
+      ProvisionClusterRequest provisionRequest = (ProvisionClusterRequest) topologyRequest;
+      defaultPassword = provisionRequest.getDefaultPassword();
+      stackIds = provisionRequest.getStackIds();
     } else {
-      this.defaultPassword = null;
+      defaultPassword = null;
+      stackIds = ImmutableSet.of();
     }
+    stack = ambariContext.composeStacks(stackIds);
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
 
     // todo extract validation to specialized service
     validateTopology();
-    this.ambariContext = ambariContext;
   }
 
   @Override
@@ -103,7 +110,12 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   @Override
   public Set<StackId> getStackIds() {
-    return blueprint.getStackIds();
+    return stackIds;
+  }
+
+  @Override
+  public StackDefinition getStack() {
+    return stack;
   }
 
   @Override
@@ -182,6 +194,63 @@ public class ClusterTopologyImpl implements ClusterTopology {
       }
     }
     return hosts;
+  }
+
+  @Override
+  public Collection<String> getServices() {
+    return getComponentNames()
+      .map(stack::getServiceForComponent)
+      .collect(toSet());
+  }
+
+  @Override
+  public Stream<String> getComponentNames() {
+    return getComponents()
+      .map(Component::getName);
+  }
+
+  @Override
+  public Stream<Component> getComponents() {
+    return getBlueprint().getHostGroups().values().stream()
+      .flatMap(hostGroup -> hostGroup.getComponents().stream());
+  }
+
+  @Override
+  public Set<StackId> getStackIdsForService(String service) {
+    return stack.getStacksForService(service);
+  }
+
+  @Override
+  public Collection<Component> getComponents(String service) {
+    return getComponents()
+      .filter(c -> stack.getComponents(service).contains(c.getName()))
+      .collect(toSet());
+  }
+
+  @Override
+  public Collection<String> getComponentNames(String service) {
+    return getComponents(service).stream().map(Component::getName).collect(toList());
+  }
+
+  @Override
+  public boolean containsMasterComponent(HostGroup hostGroup) {
+    return hostGroup.getComponentNames().stream()
+      .map(stack::isMasterComponent)
+      .findAny()
+      .orElse(false);
+  }
+
+  @Override
+  public boolean isValidConfigType(String configType) {
+    if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
+      return true;
+    }
+    try {
+      String service = getStack().getServiceForConfigType(configType);
+      return getServices().contains(service);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
   }
 
   @Override

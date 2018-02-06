@@ -49,8 +49,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 /**
  * Request for provisioning a cluster.
@@ -164,7 +162,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private final Collection<MpackInstance> mpackInstances;
   private final Set<StackId> stackIds;
-  private final StackDefinition stack;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
@@ -215,9 +212,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     setProvisionAction(parseProvisionAction(properties));
 
     mpackInstances = BlueprintFactory.createMpackInstances(properties);
-    Set<StackId> stackIdsInRequest = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet()); // FIXME persist these
-    stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), stackIdsInRequest));
-    stack = blueprintFactory.composeStacks(stackIds);
+    stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet()); // FIXME persist these
 
     try {
       this.quickLinksProfileJson = processQuickLinksProfile(properties);
@@ -525,10 +520,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   public Set<StackId> getStackIds() {
     return stackIds;
-  }
-
-  public StackDefinition getStack() {
-    return stack;
   }
 
   public Collection<MpackInstance> getMpackInstances() {

@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 
 import com.google.common.collect.ImmutableList;
 
@@ -28,13 +29,18 @@ public class TopologyValidatorFactory {
   private final List<TopologyValidator> validators;
 
   @Inject
-  public TopologyValidatorFactory(Provider<AmbariMetaInfo> metaInfo) {
+  public TopologyValidatorFactory(Provider<AmbariMetaInfo> metaInfo, Configuration config) {
     validators = ImmutableList.<TopologyValidator>builder()
       .add(new RejectUnknownStacks(metaInfo))
+      .add(new RejectUnknownComponents())
+      .add(new DependencyAndCardinalityValidator())
+      .add(new StackConfigTypeValidator())
+      .add(new GplPropertiesValidator(config))
+      .add(new SecretReferenceValidator())
       .add(new RequiredConfigPropertiesValidator())
       .add(new RequiredPasswordValidator())
       .add(new HiveServiceValidator())
-      .add(new StackConfigTypeValidator())
+      .add(new NameNodeHighAvailabilityValidator())
       .add(new UnitValidator(UnitValidatedProperty.ALL))
       .build();
   }

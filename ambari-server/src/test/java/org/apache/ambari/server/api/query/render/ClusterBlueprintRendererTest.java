@@ -167,7 +167,7 @@ public class ClusterBlueprintRendererTest {
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getHostGroup("host_group_1")).andReturn(group1).anyTimes();

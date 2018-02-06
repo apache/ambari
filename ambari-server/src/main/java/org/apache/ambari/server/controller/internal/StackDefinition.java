@@ -30,6 +30,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.validators.DependencyAndCardinalityValidator;
 
 /**
  * Encapsulates stack information.
@@ -240,7 +241,7 @@ public interface StackDefinition {
    *
    * @param component component to get dependency information for
    * @return the descriptor of form "config_type/property_name"
-   * @see org.apache.ambari.server.topology.BlueprintValidatorImpl#isDependencyManaged
+   * @see DependencyAndCardinalityValidator#isDependencyManaged
    */
   String getExternalComponentConfig(String component);
 

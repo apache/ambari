@@ -131,6 +131,9 @@ public class TopologyManager {
   private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<>();
 
   @Inject
+  private Configuration configuration;
+
+  @Inject
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
 
   @Inject
@@ -277,7 +280,7 @@ public class TopologyManager {
 
     final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
-    final StackDefinition stack = topology.getBlueprint().getStack();
+    final StackDefinition stack = topology.getStack();
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
 
@@ -294,7 +297,7 @@ public class TopologyManager {
       addKerberosClient(topology);
 
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
+      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getServices()));
 
       credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       if (credential == null) {
@@ -303,7 +306,6 @@ public class TopologyManager {
     }
 
     topologyValidatorService.validateTopologyConfiguration(topology);
-
 
     // create resources
     ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);

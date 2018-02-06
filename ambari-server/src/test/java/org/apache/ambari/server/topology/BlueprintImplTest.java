@@ -23,7 +23,6 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
@@ -38,9 +37,8 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.SecurityType;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import com.google.common.collect.ImmutableMap;
 
 
 /**
@@ -60,10 +58,9 @@ public class BlueprintImplTest {
   Map<String, String> hdfsProps = new HashMap<>();
   Configuration configuration = new Configuration(properties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
   private final org.apache.ambari.server.configuration.Configuration serverConfig = createNiceMock(org.apache.ambari.server.configuration.Configuration.class);
-  private final BlueprintValidator blueprintValidator = new BlueprintValidatorImpl(serverConfig);
 
   @Before
-  public void setup() throws NoSuchFieldException, IllegalAccessException {
+  public void setup() {
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
@@ -104,12 +101,11 @@ public class BlueprintImplTest {
     requiredService2Properties.add(new Stack.ConfigProperty("category2", "prop2", null));
     expect(stack.getRequiredConfigurationProperties("HDFS")).andReturn(requiredHDFSProperties).anyTimes();
     expect(stack.getRequiredConfigurationProperties("SERVICE2")).andReturn(requiredService2Properties).anyTimes();
-
-    setupConfigurationWithGPLLicense(true);
   }
 
   @Test
   public void testValidateConfigurations__basic_positive() throws Exception {
+    // GIVEN
     expect(group1.getCardinality()).andReturn("1").atLeastOnce();
     expect(group1.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c2"))).atLeastOnce();
     expect(group2.getCardinality()).andReturn("1").atLeastOnce();
@@ -123,10 +119,12 @@ public class BlueprintImplTest {
     category2Props.put("prop2", "val");
 
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), configuration, securityConfiguration, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
+
+    // WHEN
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, emptySet(), emptySet(), configuration, securityConfiguration, null);
     BlueprintEntity entity = blueprint.toEntity();
 
+    // THEN
     verify(stack, group1, group2, serverConfig);
     assertTrue(entity.getSecurityType() == SecurityType.KERBEROS);
     assertTrue(entity.getSecurityDescriptorReference().equals("testRef"));
@@ -134,6 +132,7 @@ public class BlueprintImplTest {
 
   @Test
   public void testValidateConfigurations__hostGroupConfig() throws Exception {
+    // GIVEN
     Map<String, Map<String, String>> group2Props = new HashMap<>();
     Map<String, String> group2Category2Props = new HashMap<>();
     group2Props.put("category2", group2Category2Props);
@@ -161,13 +160,18 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP:group1%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP:group2%");
     replay(stack, group1, group2, serverConfig);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), configuration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
+
+    // WHEN
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, emptySet(), emptySet(), configuration, null, null);
     BlueprintEntity entity = blueprint.toEntity();
+
+    // THEN
     verify(stack, group1, group2, serverConfig);
     assertTrue(entity.getSecurityType() == SecurityType.NONE);
     assertTrue(entity.getSecurityDescriptorReference() == null);
   }
+
+  @Ignore // move out NAMENODE-specific test
   @Test
   public void testValidateConfigurations__hostGroupConfigForNameNodeHAPositive() throws Exception {
     Map<String, Map<String, String>> group2Props = new HashMap<>();
@@ -201,16 +205,18 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
     replay(stack, group1, group2, serverConfig);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), configuration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
+    // WHEN
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, emptySet(), emptySet(), configuration, null, null);
     BlueprintEntity entity = blueprint.toEntity();
 
+    // THEN
     verify(stack, group1, group2, serverConfig);
     assertTrue(entity.getSecurityType() == SecurityType.NONE);
     assertTrue(entity.getSecurityDescriptorReference() == null);
   }
 
-  @Test(expected= IllegalArgumentException.class)
+  @Ignore // move out NAMENODE-specific test
+  @Test(expected = IllegalArgumentException.class)
   public void testValidateConfigurations__hostGroupConfigForNameNodeHAInCorrectHostGroups() throws Exception {
     Map<String, Map<String, String>> group2Props = new HashMap<>();
     Map<String, String> group2Category2Props = new HashMap<>();
@@ -242,11 +248,13 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group3%");
     replay(stack, group1, group2, serverConfig);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), configuration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
-    verify(stack, group1, group2, serverConfig);
+
+    // WHEN
+    new BlueprintImpl("test", hostGroups, emptySet(), emptySet(), configuration, null, null);
   }
-  @Test(expected= IllegalArgumentException.class)
+
+  @Ignore // move out NAMENODE-specific test
+  @Test(expected = IllegalArgumentException.class)
   public void testValidateConfigurations__hostGroupConfigForNameNodeHAMappedSameHostGroup() throws Exception {
     Map<String, Map<String, String>> group2Props = new HashMap<>();
     Map<String, String> group2Category2Props = new HashMap<>();
@@ -278,76 +286,9 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
     replay(stack, group1, group2, serverConfig);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), configuration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
-    verify(stack, group1, group2, serverConfig);
-  }
-  @Test(expected = InvalidTopologyException.class)
-  public void testValidateConfigurations__secretReference() throws InvalidTopologyException,
-      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
-    Map<String, Map<String, String>> group2Props = new HashMap<>();
-    Map<String, String> group2Category2Props = new HashMap<>();
 
-    group2Props.put("category2", group2Category2Props);
-    group2Category2Props.put("prop2", "val");
-    hdfsProps.put("secret", "SECRET:hdfs-site:1:test");
-    replay(stack, group1, group2, serverConfig);
-
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), configuration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
-    verify(stack, group1, group2, serverConfig);
-  }
-
-  @Test(expected = GPLLicenseNotAcceptedException.class)
-  public void testValidateConfigurations__gplIsNotAllowedCodecsProperty() throws InvalidTopologyException,
-      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
-    Map<String, Map<String, String>> lzoProperties = new HashMap<>();
-    lzoProperties.put("core-site", ImmutableMap.of(BlueprintValidatorImpl.CODEC_CLASSES_PROPERTY_NAME, "OtherCodec, " + BlueprintValidatorImpl.LZO_CODEC_CLASS));
-    Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
-
-    setupConfigurationWithGPLLicense(false);
-    replay(stack, group1, group2, serverConfig);
-
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), lzoUsageConfiguration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
-    verify(stack, group1, group2, serverConfig);
-  }
-
-  @Test(expected = GPLLicenseNotAcceptedException.class)
-  public void testValidateConfigurations__gplIsNotAllowedLZOProperty() throws InvalidTopologyException,
-      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
-    Map<String, Map<String, String>> lzoProperties = new HashMap<>();
-    lzoProperties.put("core-site", ImmutableMap.of(BlueprintValidatorImpl.LZO_CODEC_CLASS_PROPERTY_NAME, BlueprintValidatorImpl.LZO_CODEC_CLASS));
-    Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
-
-    setupConfigurationWithGPLLicense(false);
-    replay(stack, group1, group2, serverConfig);
-
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), lzoUsageConfiguration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
-    verify(stack, group1, group2, serverConfig);
-  }
-
-  @Test
-  public void testValidateConfigurations__gplISAllowed() throws InvalidTopologyException,
-      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
-    Map<String, Map<String, String>> lzoProperties = new HashMap<>();
-    lzoProperties.put("core-site", ImmutableMap.of(
-      BlueprintValidatorImpl.LZO_CODEC_CLASS_PROPERTY_NAME, BlueprintValidatorImpl.LZO_CODEC_CLASS,
-      BlueprintValidatorImpl.CODEC_CLASSES_PROPERTY_NAME, "OtherCodec, " + BlueprintValidatorImpl.LZO_CODEC_CLASS));
-    Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
-
-    expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
-    replay(stack, group1, group2, serverConfig);
-
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), emptySet(), lzoUsageConfiguration, null, null);
-    blueprintValidator.validateRequiredProperties(blueprint);
-    verify(stack, group1, group2, serverConfig);
-  }
-
-  private void setupConfigurationWithGPLLicense(boolean isGPLAllowed) {
-    reset(serverConfig);
-    expect(serverConfig.getGplLicenseAccepted()).andReturn(isGPLAllowed).atLeastOnce();
+    // WHEN
+    new BlueprintImpl("test", hostGroups, emptySet(), emptySet(), configuration, null, null);
   }
 
 }

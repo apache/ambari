@@ -434,7 +434,7 @@ public class BlueprintConfigurationProcessor {
     setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
     setRetryConfiguration(clusterConfig, configTypesUpdated);
     setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
-    addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getStack());
+    addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getStack());
 
     trimProperties(clusterConfig, clusterTopology);
 
@@ -442,8 +442,7 @@ public class BlueprintConfigurationProcessor {
   }
 
   private void trimProperties(Configuration clusterConfig, ClusterTopology clusterTopology) {
-    Blueprint blueprint = clusterTopology.getBlueprint();
-    StackDefinition stack = blueprint.getStack();
+    StackDefinition stack = clusterTopology.getStack();
 
     Map<String, Map<String, String>> configTypes = clusterConfig.getFullProperties();
     for (String configType : configTypes.keySet()) {
@@ -553,7 +552,7 @@ public class BlueprintConfigurationProcessor {
     for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
       String type = configEntry.getKey();
       try {
-          clusterTopology.getBlueprint().getStack().getServiceForConfigType(type);
+          clusterTopology.getStack().getServiceForConfigType(type);
         } catch (IllegalArgumentException illegalArgumentException) {
             LOG.error(new StringBuilder(String.format("Error encountered while trying to obtain the service name for config type [%s]. ", type))
             .append("Further processing on this config type will be skipped. ")
@@ -628,7 +627,7 @@ public class BlueprintConfigurationProcessor {
    */
   private void doFilterStackDefaults(Map<String, AdvisedConfiguration> advisedConfigurations) {
     Blueprint blueprint = clusterTopology.getBlueprint();
-    Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
+    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServices());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
     for (Map.Entry<String, AdvisedConfiguration> adConfEntry : advisedConfigurations.entrySet()) {
       AdvisedConfiguration advisedConfiguration = adConfEntry.getValue();
@@ -1465,7 +1464,7 @@ public class BlueprintConfigurationProcessor {
               topology.getHostAssignmentsForComponent(component).iterator().next(), properties);
         } else {
           //todo: extract all hard coded HA logic
-          Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
+          Cardinality cardinality = topology.getStack().getCardinality(component);
           // if no matching host groups are found for a component whose configuration
           // is handled by this updater, check the stack first to determine if
           // zero is a valid cardinality for this component.  This is necessary
@@ -1574,7 +1573,7 @@ public class BlueprintConfigurationProcessor {
         if (matchingGroupCount != 0) {
           return new HashSet<>(matchingGroups);
         } else {
-          Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
+          Cardinality cardinality = topology.getStack().getCardinality(component);
           // if no matching host groups are found for a component whose configuration
           // is handled by this updater, return an empty set
           if (! cardinality.isValidCount(0)) {
@@ -2586,7 +2585,7 @@ public class BlueprintConfigurationProcessor {
           }
         }
 
-        boolean isAtlasInCluster = topology.getBlueprint().getServices().contains("ATLAS");
+        boolean isAtlasInCluster = topology.getServices().contains("ATLAS");
         boolean isAtlasHiveHookEnabled = Boolean.parseBoolean(properties.get("hive-env").get("hive.atlas.hook"));
 
         // Append atlas hook if not already present.
@@ -2617,7 +2616,7 @@ public class BlueprintConfigurationProcessor {
                                            Map<String, Map<String, String>> properties,
                                            ClusterTopology topology) {
 
-        if (topology.getBlueprint().getServices().contains("ATLAS")) {
+        if (topology.getServices().contains("ATLAS")) {
           // if original value is not set or is the default "primary" set the cluster id
           if (origValue == null || origValue.trim().isEmpty() || origValue.equals("primary")) {
             //use cluster id because cluster name may change
@@ -2652,7 +2651,7 @@ public class BlueprintConfigurationProcessor {
                                            String origValue,
                                            Map<String, Map<String, String>> properties,
                                            ClusterTopology topology) {
-        if (topology.getBlueprint().getServices().contains("ATLAS")) {
+        if (topology.getServices().contains("ATLAS")) {
           String host = topology.getHostAssignmentsForComponent("ATLAS_SERVER").iterator().next();
 
           boolean tlsEnabled = Boolean.parseBoolean(properties.get("application-properties").get("atlas.enableTLS"));
@@ -2710,7 +2709,7 @@ public class BlueprintConfigurationProcessor {
                                            Map<String, Map<String, String>> properties,
                                            ClusterTopology topology) {
 
-        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
+        if (topology.getServices().contains("AMBARI_METRICS")) {
           final String amsReporterClass = "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter";
           if (origValue == null || origValue.isEmpty()) {
             return amsReporterClass;
@@ -2741,7 +2740,7 @@ public class BlueprintConfigurationProcessor {
                                            Map<String, Map<String, String>> properties,
                                            ClusterTopology topology) {
 
-        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
+        if (topology.getServices().contains("AMBARI_METRICS")) {
           final String amsReportesClass = "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter";
           if (origValue == null || origValue.isEmpty()) {
             return amsReportesClass;
@@ -2833,7 +2832,7 @@ public class BlueprintConfigurationProcessor {
     // AMBARI-5206
     final Map<String , String> userProps = new HashMap<>();
 
-    Collection<String> services = clusterTopology.getBlueprint().getServices();
+    Collection<String> services = clusterTopology.getServices();
     if (services.contains("HDFS")) {
       // only add user properties to the map for
       // services actually included in the blueprint definition
@@ -2887,13 +2886,13 @@ public class BlueprintConfigurationProcessor {
    * @param stack
    */
   private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, StackDefinition stack) {
-    Collection<String> blueprintServices = clusterTopology.getBlueprint().getServices();
+    Collection<String> blueprintServices = clusterTopology.getServices();
 
-    LOG.debug("Handling excluded properties for blueprint services: {}", blueprintServices);
+    LOG.info("Handling excluded properties for blueprint services: {}", blueprintServices);
 
     for (String blueprintService : blueprintServices) {
 
-      LOG.debug("Handling excluded properties for blueprint service: {}", blueprintService);
+      LOG.info("Handling excluded properties for blueprint service: {}", blueprintService);
       Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(blueprintService);
 
       if (excludedConfigTypes.isEmpty()) {
@@ -3110,7 +3109,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-        StackDefinition stack = topology.getBlueprint().getStack();
+        StackDefinition stack = topology.getStack();
         final String serviceName = stack.getServiceForConfigType(configType);
         return !(stack.isPasswordProperty(serviceName, configType, propertyName) ||
                 stack.isKerberosPrincipalNameProperty(serviceName, configType, propertyName));
@@ -3207,7 +3206,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-      StackDefinition stack = topology.getBlueprint().getStack();
+      StackDefinition stack = topology.getStack();
       Configuration configuration = topology.getConfiguration();
 
       final String serviceName = stack.getServiceForConfigType(configType);

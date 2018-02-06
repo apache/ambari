@@ -82,7 +82,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
 
       Collection<String> processedServices = new HashSet<>();
       Blueprint blueprint = topology.getBlueprint();
-      StackDefinition stack = blueprint.getStack();
+      StackDefinition stack = topology.getStack();
 
       HostGroup hostGroup = blueprint.getHostGroup(hostGroupName);
       for (String component : hostGroup.getComponentNames()) {

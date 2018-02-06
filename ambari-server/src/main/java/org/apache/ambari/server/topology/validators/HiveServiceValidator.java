@@ -30,14 +30,13 @@ public class HiveServiceValidator implements TopologyValidator {
   private static final String HIVE_DB_DEFAULT = "New MySQL Database";
   private static final String HIVE_DB_PROPERTY = "hive_database";
   private static final String MYSQL_SERVER_COMPONENT = "MYSQL_SERVER";
-  public static final String HIVE_SERVICE = "HIVE";
+  private static final String HIVE_SERVICE = "HIVE";
 
 
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
-
     // there is no hive configured in the blueprint, nothing to do (does the validator apply?)
-    if (!topology.getBlueprint().getServices().contains(HIVE_SERVICE)) {
+    if (!topology.getServices().contains(HIVE_SERVICE)) {
       LOGGER.info(" [{}] service is not listed in the blueprint, skipping hive service validation.", HIVE_SERVICE);
       return;
     }
@@ -51,16 +50,21 @@ public class HiveServiceValidator implements TopologyValidator {
       throw new InvalidTopologyException(errorMessage);
     }
 
-    // hive database has custom configuration, skipping validation
-    if (!HIVE_DB_DEFAULT.equals(clusterConfiguration.getPropertyValue(HIVE_ENV, HIVE_DB_PROPERTY))) {
-      LOGGER.info("Custom hive database settings detected. HIVE service validation succeeded.");
-      return;
+    boolean hiveWantsMysql = HIVE_DB_DEFAULT.equals(clusterConfiguration.getPropertyValue(HIVE_ENV, HIVE_DB_PROPERTY));
+    boolean topologyContainsMysql = topology.getComponentNames(HIVE_SERVICE).contains(MYSQL_SERVER_COMPONENT);
+
+    if (topologyContainsMysql && !hiveWantsMysql) {
+      String errorMessage = String.format(
+        "Incorrect configuration: %s component is specified in blueprint, but Hive is configured to use existing DB",
+        MYSQL_SERVER_COMPONENT);
+      LOGGER.error(errorMessage);
+      throw new InvalidTopologyException(errorMessage);
     }
 
-    // hive database settings need the mysql-server component in the blueprint
-    if (!topology.getBlueprint().getComponentNames(HIVE_SERVICE).contains(MYSQL_SERVER_COMPONENT)) {
-      String errorMessage = String.format("Component [%s] must explicitly be set in the blueprint when hive database " +
-        "is configured with the current settings. HIVE service validation failed.", MYSQL_SERVER_COMPONENT);
+    if (hiveWantsMysql && !topologyContainsMysql) {
+      String errorMessage = String.format(
+        "The component %s must explicitly be specified in the blueprint if Hive database is configured with %s.",
+        MYSQL_SERVER_COMPONENT, HIVE_DB_DEFAULT);
       LOGGER.error(errorMessage);
       throw new InvalidTopologyException(errorMessage);
     }

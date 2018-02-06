@@ -21,7 +21,7 @@ package org.apache.ambari.server.topology;
 /**
  * Indicates an not permitted LZO usage.
  */
-public class GPLLicenseNotAcceptedException extends Exception {
+public class GPLLicenseNotAcceptedException extends InvalidTopologyException {
   public GPLLicenseNotAcceptedException(String s) {
     super(s);
   }

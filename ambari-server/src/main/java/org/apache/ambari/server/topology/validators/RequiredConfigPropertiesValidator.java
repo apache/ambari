@@ -23,7 +23,6 @@ import java.util.TreeSet;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.InvalidTopologyException;
@@ -43,7 +42,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
 
   /**
    * Validates the configuration coming from the blueprint and cluster creation template and ensures that all the required properties are provided.
-   * It's expected, that a in hostrgroup containing components for a given service all required configuration for the given service is available.
+   * It's expected, that a in hostgroup containing components for a given service all required configuration for the given service is available.
    *
    * @param topology the topology instance holding the configuration for cluster provisioning
    * @throws InvalidTopologyException when there are missing configuration types or properties related to services in the blueprint
@@ -52,35 +51,29 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
     // collect required properties
-    Map<String, Map<String, Collection<String>>> requiredPropertiesByService = getRequiredPropertiesByService(topology.getBlueprint());
+    Map<String, Map<String, Collection<String>>> requiredPropertiesByService = getRequiredPropertiesByService(topology);
 
     // find missing properties in the cluster configuration
     Map<String, Collection<String>> missingProperties = new TreeMap<>();
     Map<String, Map<String, String>> topologyConfiguration = new HashMap<>(topology.getConfiguration().getFullProperties(1));
 
-    for (HostGroup hostGroup : topology.getBlueprint().getHostGroups().values()) {
-      LOGGER.debug("Processing hostgroup configurations for hostgroup: {}", hostGroup.getName());
+    for (Map.Entry<String, Map<String, Collection<String>>> entry : requiredPropertiesByService.entrySet()) {
+      String service = entry.getKey();
+      Map<String, Collection<String>> requiredPropertiesByType = entry.getValue();
 
-      // copy of all configurations available in the topology hgConfig -> topologyConfig -> bpConfig
-      Map<String, Map<String, String>> operationalConfigurations = new HashMap<>(topologyConfiguration);
+      for (HostGroup hostGroup : topology.getBlueprint().getHostGroups().values()) {
+        LOGGER.debug("Processing configurations for service {} in hostgroup {}", service, hostGroup.getName());
 
-      for (Map.Entry<String, Map<String, String>> hostgroupConfigEntry : hostGroup.getConfiguration().getProperties().entrySet()) {
-        if (operationalConfigurations.containsKey(hostgroupConfigEntry.getKey())) {
-          operationalConfigurations.get(hostgroupConfigEntry.getKey()).putAll(hostgroupConfigEntry.getValue());
-        } else {
-          operationalConfigurations.put(hostgroupConfigEntry.getKey(), hostgroupConfigEntry.getValue());
+        // copy of all configurations available in the topology hgConfig -> topologyConfig -> bpConfig
+        Map<String, Map<String, String>> operationalConfigurations = new HashMap<>(topologyConfiguration);
+
+        for (Map.Entry<String, Map<String, String>> hostgroupConfigEntry : hostGroup.getConfiguration().getProperties().entrySet()) {
+          if (operationalConfigurations.containsKey(hostgroupConfigEntry.getKey())) {
+            operationalConfigurations.get(hostgroupConfigEntry.getKey()).putAll(hostgroupConfigEntry.getValue());
+          } else {
+            operationalConfigurations.put(hostgroupConfigEntry.getKey(), hostgroupConfigEntry.getValue());
+          }
         }
-      }
-
-      for (String hostGroupService : hostGroup.getServices()) {
-
-        if (!requiredPropertiesByService.containsKey(hostGroupService)) {
-          // there are no required properties for the service
-          LOGGER.debug("There are no required properties found for hostgroup/service: [{}/{}]", hostGroup.getName(), hostGroupService);
-          continue;
-        }
-
-        Map<String, Collection<String>> requiredPropertiesByType = requiredPropertiesByService.get(hostGroupService);
 
         for (String configType : requiredPropertiesByType.keySet()) {
 
@@ -117,18 +110,17 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
    * Collects required properties for services in the blueprint. Configuration properties are returned by configuration type.
    * service -> configType -> properties
    *
-   * @param blueprint the blueprint from the cluster topology
    * @return a map with configuration types mapped to collections of required property names
    */
 
-  private Map<String, Map<String, Collection<String>>> getRequiredPropertiesByService(Blueprint blueprint) {
+  private Map<String, Map<String, Collection<String>>> getRequiredPropertiesByService(ClusterTopology topology) {
 
     Map<String, Map<String, Collection<String>>> requiredPropertiesForServiceByType = new HashMap<>();
 
-    for (String bpService : blueprint.getServices()) {
+    for (String bpService : topology.getServices()) {
       LOGGER.debug("Collecting required properties for the service: {}", bpService);
 
-      Collection<Stack.ConfigProperty> requiredConfigsForService = blueprint.getStack().getRequiredConfigurationProperties(bpService);
+      Collection<Stack.ConfigProperty> requiredConfigsForService = topology.getStack().getRequiredConfigurationProperties(bpService);
       Map<String, Collection<String>> requiredPropertiesByConfigType = new HashMap<>();
 
       for (Stack.ConfigProperty configProperty : requiredConfigsForService) {

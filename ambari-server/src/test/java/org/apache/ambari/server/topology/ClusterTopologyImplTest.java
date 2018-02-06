@@ -49,6 +49,7 @@ public class ClusterTopologyImplTest {
   private static final HostGroup group2 = createNiceMock(HostGroup.class);
   private static final HostGroup group3 = createNiceMock(HostGroup.class);
   private static final HostGroup group4 = createNiceMock(HostGroup.class);
+  private final AmbariContext ambariContext = createNiceMock(AmbariContext.class);
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
 
@@ -163,7 +164,7 @@ public class ClusterTopologyImplTest {
 
     replayAll();
     // should throw exception due to duplicate host
-    new ClusterTopologyImpl(null, request);
+    new ClusterTopologyImpl(ambariContext, request);
   }
 
   @Test
@@ -172,7 +173,7 @@ public class ClusterTopologyImplTest {
 
     replayAll();
 
-    new ClusterTopologyImpl(null, request).getHostAssignmentsForComponent("component1");
+    new ClusterTopologyImpl(ambariContext, request).getHostAssignmentsForComponent("component1");
   }
 
   @Test(expected = InvalidTopologyException.class)
@@ -182,7 +183,7 @@ public class ClusterTopologyImplTest {
     hostGroupInfoMap.get("group4").removeHost("host5");
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
-    new ClusterTopologyImpl(null, request);
+    new ClusterTopologyImpl(ambariContext, request);
     hostGroupInfoMap.get("group4").addHost("host5");
   }
 
@@ -194,7 +195,7 @@ public class ClusterTopologyImplTest {
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "val");
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
-    new ClusterTopologyImpl(null, request);
+    new ClusterTopologyImpl(ambariContext, request);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -205,7 +206,7 @@ public class ClusterTopologyImplTest {
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "host5");
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
-    new ClusterTopologyImpl(null, request);
+    new ClusterTopologyImpl(ambariContext, request);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -216,7 +217,7 @@ public class ClusterTopologyImplTest {
     bpconfiguration.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", "host6");
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
-    new ClusterTopologyImpl(null, request);
+    new ClusterTopologyImpl(ambariContext, request);
   }
 
   private class TestTopologyRequest implements TopologyRequest {

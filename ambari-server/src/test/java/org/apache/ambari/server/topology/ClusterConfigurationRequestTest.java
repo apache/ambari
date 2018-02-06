@@ -236,7 +236,7 @@ public class ClusterConfigurationRequestTest {
 
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
@@ -250,7 +250,7 @@ public class ClusterConfigurationRequestTest {
     services.add("HDFS");
     services.add("KERBEROS");
     services.add("ZOOKEPER");
-    expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(topology.getServices()).andReturn(services).anyTimes();
     expect(stack.getConfiguration(services)).andReturn(stackDefaultConfig).once();
 
     List<String> hdfsComponents = new ArrayList<>();
@@ -260,14 +260,14 @@ public class ClusterConfigurationRequestTest {
     List<String> zookeeperComponents = new ArrayList<>();
     zookeeperComponents.add("ZOOKEEPER_SERVER");
 
-    expect(blueprint.getComponentNames("HDFS")).andReturn(hdfsComponents).anyTimes();
-    expect(blueprint.getComponentNames("KERBEROS")).andReturn(kerberosComponents).anyTimes();
-    expect(blueprint.getComponentNames("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
+    expect(topology.getComponentNames("HDFS")).andReturn(hdfsComponents).anyTimes();
+    expect(topology.getComponentNames("KERBEROS")).andReturn(kerberosComponents).anyTimes();
+    expect(topology.getComponentNames("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
-    expect(blueprint.isValidConfigType("testConfigType")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("testConfigType")).andReturn(true).anyTimes();
 
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
@@ -329,7 +329,7 @@ public class ClusterConfigurationRequestTest {
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
@@ -341,7 +341,7 @@ public class ClusterConfigurationRequestTest {
     services.add("HDFS");
     services.add("KERBEROS");
     services.add("ZOOKEPER");
-    expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(topology.getServices()).andReturn(services).anyTimes();
 
     List<String> hdfsComponents = new ArrayList<>();
     hdfsComponents.add("NAMENODE");
@@ -350,9 +350,9 @@ public class ClusterConfigurationRequestTest {
     List<String> zookeeperComponents = new ArrayList<>();
     zookeeperComponents.add("ZOOKEEPER_SERVER");
 
-    expect(blueprint.getComponentNames("HDFS")).andReturn(hdfsComponents).anyTimes();
-    expect(blueprint.getComponentNames("KERBEROS")).andReturn(kerberosComponents).anyTimes();
-    expect(blueprint.getComponentNames("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
+    expect(topology.getComponentNames("HDFS")).andReturn(hdfsComponents).anyTimes();
+    expect(topology.getComponentNames("KERBEROS")).andReturn(kerberosComponents).anyTimes();
+    expect(topology.getComponentNames("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
@@ -396,14 +396,14 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getServices()).andReturn(services).anyTimes();
 
-    expect(blueprint.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
-    expect(blueprint.isValidConfigType("admin-properties")).andReturn(true).anyTimes();
-    expect(blueprint.isValidConfigType("yarn-site")).andReturn(false).anyTimes();
-    expect(blueprint.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
-    expect(blueprint.isValidConfigType("global")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("admin-properties")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("yarn-site")).andReturn(false).anyTimes();
+    expect(topology.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("global")).andReturn(true).anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
 
@@ -446,12 +446,12 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getServices()).andReturn(services).anyTimes();
 
-    expect(blueprint.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
-    expect(blueprint.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
-    expect(blueprint.isValidConfigType("global")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
+    expect(topology.isValidConfigType("global")).andReturn(true).anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
 

@@ -41,7 +41,7 @@ public class UnitValidator implements TopologyValidator {
 
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
-    StackDefinition stack = topology.getBlueprint().getStack();
+    StackDefinition stack = topology.getStack();
     validateConfig(topology.getConfiguration().getFullProperties(), stack);
     for (HostGroupInfo hostGroup : topology.getHostGroupInfo().values()) {
       validateConfig(hostGroup.getConfiguration().getFullProperties(), stack);

@@ -20,10 +20,8 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -31,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -46,12 +43,7 @@ public class HostGroupImpl implements HostGroup {
   /**
    * host group name
    */
-  private String name;
-
-  /**
-   * blueprint name
-   */
-  private String blueprintName;
+  private final String name;
 
   /**
    * components contained in the host group
@@ -59,44 +51,26 @@ public class HostGroupImpl implements HostGroup {
   private final Set<Component> components = new LinkedHashSet<>();
 
   /**
-   * map of service to components for the host group
-   */
-  // TODO: in blueprint 3.0 this should be per service instance
-  private Map<String, Set<Component>> componentsForService = new HashMap<>();
-
-  /**
    * configuration
    */
-  private Configuration configuration = null;
+  private final Configuration configuration;
+  private final String cardinality;
 
-  private boolean containsMasterComponent = false;
-
-  private StackDefinition stack;
-
-  private String cardinality = "NOT SPECIFIED";
-
-  public HostGroupImpl(HostGroupEntity entity, String blueprintName, StackDefinition stack) {
+  public HostGroupImpl(HostGroupEntity entity) {
     this.name = entity.getName();
     this.cardinality = entity.getCardinality();
-    this.blueprintName = blueprintName;
-    this.stack = stack;
+    configuration = parseConfigurations(entity);
     parseComponents(entity);
-    parseConfigurations(entity);
   }
 
-  public HostGroupImpl(String name, String bpName, StackDefinition stack, Collection<Component> components, Configuration configuration, String cardinality) {
+  public HostGroupImpl(String name, Collection<Component> components, Configuration configuration, String cardinality) {
     this.name = name;
-    this.blueprintName = bpName;
-    this.stack = stack;
+    this.configuration = configuration;
+    this.cardinality = (cardinality != null && !"null".equals(cardinality)) ? cardinality : "NOT SPECIFIED";
 
     // process each component
     for (Component component: components) {
       addComponent(component);
-    }
-
-    this.configuration = configuration;
-    if (cardinality != null && ! cardinality.equals("null")) {
-      this.cardinality = cardinality;
     }
   }
 
@@ -130,66 +104,13 @@ public class HostGroupImpl implements HostGroup {
   }
 
   /**
-   * Get the services which are deployed to this host group.
-   *
-   * @return collection of services which have components in this host group
-   */
-  @Override
-  public Collection<String> getServices() {
-    return componentsForService.keySet();
-  }
-
-  /**
    * Adds a component to the host group.
    * @param component the component to add
    */
   @Override
   public boolean addComponent(Component component) {
-    if (components.add(component)) {
-      containsMasterComponent |= stack.isMasterComponent(component.getName());
-
-      String service = stack.getServiceForComponent(component.getName());
-      if (service != null) {
-        componentsForService
-          .computeIfAbsent(service, __ -> new HashSet<>())
-          .add(component);
-      }
-
-      return true;
-    }
-
-    return false;
+    return components.add(component);
   }
-
-  /**
-   * Get the components for the specified service which are associated with the host group.
-   *
-   * @param service  service name
-   *
-   * @return set of components
-   */
-  @Override
-  public Collection<Component> getComponents(String service) {
-    return componentsForService.containsKey(service) ?
-      new HashSet<>(componentsForService.get(service)) :
-        Collections.emptySet();
-  }
-
-  /**
-   * Get the names of components for the specified service which are associated with the host group.
-   *
-   * @param service  service name
-   *
-   * @return set of component names
-   */
-  @Override
-  @Deprecated
-  public Collection<String> getComponentNames(String service) {
-    return componentsForService.containsKey(service) ?
-      componentsForService.get(service).stream().map(Component::getName).collect(toSet()) :
-        Collections.emptySet();
-  }
-
 
   /**
    * Get this host groups configuration.
@@ -199,26 +120,6 @@ public class HostGroupImpl implements HostGroup {
   @Override
   public Configuration getConfiguration() {
     return configuration;
-  }
-
-  /**
-   * Get the associated blueprint name.
-   *
-   * @return  associated blueprint name
-   */
-  @Override
-  public String getBlueprintName() {
-    return blueprintName;
-  }
-
-  @Override
-  public boolean containsMasterComponent() {
-    return containsMasterComponent;
-  }
-
-  @Override
-  public StackDefinition getStack() {
-    return stack;
   }
 
   @Override
@@ -244,16 +145,12 @@ public class HostGroupImpl implements HostGroup {
    * Parse host group configurations.
    */
   //todo: use ConfigurationFactory
-  private void parseConfigurations(HostGroupEntity entity) {
+  private Configuration parseConfigurations(HostGroupEntity entity) {
     Map<String, Map<String, String>> config = new HashMap<>();
     Gson jsonSerializer = new Gson();
     for (HostGroupConfigEntity configEntity : entity.getConfigurations()) {
       String type = configEntity.getType();
-      Map<String, String> typeProperties = config.get(type);
-      if (typeProperties == null) {
-        typeProperties = new HashMap<>();
-        config.put(type, typeProperties);
-      }
+      Map<String, String> typeProperties = config.computeIfAbsent(type, k -> new HashMap<>());
       Map<String, String> propertyMap =  jsonSerializer.<Map<String, String>>fromJson(
           configEntity.getConfigData(), Map.class);
       if (propertyMap != null) {
@@ -262,9 +159,10 @@ public class HostGroupImpl implements HostGroup {
     }
     //todo: parse attributes
     Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
-    configuration = new Configuration(config, attributes);
+    return new Configuration(config, attributes);
   }
 
+  @Override
   public String toString(){
        return  name;
   }

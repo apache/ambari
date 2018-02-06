@@ -62,7 +62,7 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
     expect(clusterTopologyMock.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
     expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
 
-    expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
+    expect(clusterTopologyMock.getStack()).andReturn(stackMock).anyTimes();
   }
 
   @After

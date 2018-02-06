@@ -19,8 +19,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -43,7 +40,6 @@ import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.JsonUtils;
 
@@ -61,37 +57,33 @@ public class BlueprintImpl implements Blueprint {
   private final String name;
   private final Map<String, HostGroup> hostGroups;
   private final Collection<MpackInstance> mpacks;
-  private final StackDefinition stack;
   private final Set<StackId> stackIds;
   private final Configuration configuration;
   private final SecurityConfiguration security;
   private final Setting setting;
   private final List<RepositorySetting> repoSettings;
 
-  public BlueprintImpl(BlueprintEntity entity, StackDefinition stack, Set<StackId> stackIds) throws NoSuchStackException {
+  public BlueprintImpl(BlueprintEntity entity, Set<StackId> stackIds) throws NoSuchStackException {
     name = entity.getBlueprintName();
     security = entity.getSecurityType() != null
       ? new SecurityConfiguration(entity.getSecurityType(), entity.getSecurityDescriptorReference(), null)
       : SecurityConfiguration.NONE;
     mpacks = parseMpacks(entity);
 
-    this.stack = stack;
     this.stackIds = stackIds;
 
     // create config first because it is set as a parent on all host-group configs
     configuration = processConfiguration(entity.getConfigurations());
     hostGroups = parseBlueprintHostGroups(entity);
-    // TODO: how to handle multiple stacks correctly?
-    configuration.setParentConfiguration(stack.getConfiguration(getServices()));
+    // configuration.setParentConfiguration(stack.getConfiguration(getServices())); // FIXME services not available at this time, need to set parent config somewhere else
     setting = new Setting(parseSetting(entity.getSettings()));
     repoSettings = processRepoSettings();
   }
 
-  public BlueprintImpl(String name, Collection<HostGroup> groups, StackDefinition stack, Set<StackId> stackIds, Collection<MpackInstance> mpacks,
+  public BlueprintImpl(String name, Collection<HostGroup> groups, Set<StackId> stackIds, Collection<MpackInstance> mpacks,
       Configuration configuration, SecurityConfiguration security, Setting setting) {
     this.name = name;
     this.mpacks = mpacks;
-    this.stack = stack;
     this.stackIds = stackIds;
     this.security = security != null ? security : SecurityConfiguration.NONE;
 
@@ -100,12 +92,12 @@ public class BlueprintImpl implements Blueprint {
     for (HostGroup hostGroup : groups) {
       hostGroups.put(hostGroup.getName(), hostGroup);
     }
-    // TODO: handle configuration from multiple stacks properly
-    // if the parent isn't set, the stack configuration is set as the parent
     this.configuration = configuration;
-    if (configuration.getParentConfiguration() == null) {
-      configuration.setParentConfiguration(stack.getConfiguration(getServices()));
-    }
+    // if the parent isn't set, the stack configuration is set as the parent
+    // parent is set to non-null, but empty config when exporting blueprint to prevent exporting stack default config
+//    if (configuration.getParentConfiguration() == null) {
+//      configuration.setParentConfiguration(stack.getConfiguration(getServices())); // FIXME services not available at this time
+//    }
     this.setting = setting != null ? setting : new Setting(ImmutableMap.of());
     repoSettings = processRepoSettings();
   }
@@ -116,11 +108,6 @@ public class BlueprintImpl implements Blueprint {
 
   public Set<StackId> getStackIds() {
     return stackIds;
-  }
-
-  @Override
-  public Set<StackId> getStackIdsForService(String service) {
-    return stack.getStacksForService(service);
   }
 
   public SecurityConfiguration getSecurity() {
@@ -149,89 +136,15 @@ public class BlueprintImpl implements Blueprint {
     return setting;
   }
 
-  /**
-   * Get all services represented in blueprint.
-   *
-   * @return collections of all services provided by topology
-   */
-  @Override
-  public Collection<String> getServices() {
-    Collection<String> services = new HashSet<>();
-    for (HostGroup group : getHostGroups().values()) {
-      services.addAll(group.getServices());
-    }
-    return services;
-  }
-
-  @Override
-  public Collection<Component> getComponents(String service) {
-    Collection<Component> components = new HashSet<>();
-    for (HostGroup group : getHostGroupsForService(service)) {
-      components.addAll(group.getComponents(service));
-    }
-    return components;
-  }
-
-  @Override
-  @Deprecated
-  public Collection<String> getComponentNames(String service) {
-    return getComponents(service).stream().map(Component::getName).collect(toList());
-  }
-
-  @Override
-  public String getRecoveryEnabled(String serviceName, String componentName) {
-    return setting.getRecoveryEnabled(serviceName, componentName);
-  }
-
-  @Override
-  public String getCredentialStoreEnabled(String serviceName) {
-    return setting.getCredentialStoreEnabled(serviceName);
-  }
-
-  @Override
-  public boolean shouldSkipFailure() {
-    return setting.shouldSkipFailure();
-  }
-
-  @Override
   public Collection<MpackInstance> getMpacks() {
     return mpacks;
   }
 
-  public StackDefinition getStack() {
-    return stack;
-  }
-
-  /**
-   * Get host groups which contain a component.
-   *
-   * @param component component name
-   *
-   * @return collection of host groups which contain the specified component
-   */
   @Override
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
     Collection<HostGroup> resultGroups = new HashSet<>();
     for (HostGroup group : hostGroups.values() ) {
       if (group.getComponentNames().contains(component)) {
-        resultGroups.add(group);
-      }
-    }
-    return resultGroups;
-  }
-
-  /**
-   * Get host groups which contain a component for the given service.
-   *
-   * @param service   service name
-   *
-   * @return collection of host groups which contain a component of the specified service
-   */
-  @Override
-  public Collection<HostGroup> getHostGroupsForService(String service) {
-    Collection<HostGroup> resultGroups = new HashSet<>();
-    for (HostGroup group : hostGroups.values() ) {
-      if (group.getServices().contains(service)) {
         resultGroups.add(group);
       }
     }
@@ -292,7 +205,7 @@ public class BlueprintImpl implements Blueprint {
   private Map<String, HostGroup> parseBlueprintHostGroups(BlueprintEntity entity) {
     Map<String, HostGroup> hostGroups = new HashMap<>();
     for (HostGroupEntity hostGroupEntity : entity.getHostGroups()) {
-      HostGroupImpl hostGroup = new HostGroupImpl(hostGroupEntity, getName(), getStack());
+      HostGroupImpl hostGroup = new HostGroupImpl(hostGroupEntity);
       // set the bp configuration as the host group config parent
       hostGroup.getConfiguration().setParentConfiguration(configuration);
       hostGroups.put(hostGroupEntity.getName(), hostGroup);
@@ -516,17 +429,6 @@ public class BlueprintImpl implements Blueprint {
       }
       blueprintEntity.setSettings(settingEntityMap.values());
     }
-  }
-
-  /**
-   * A config type is valid if there are services related to except cluster-env and global.
-   */
-  public boolean isValidConfigType(String configType) {
-    if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
-      return true;
-    }
-    String service = getStack().getServiceForConfigType(configType);
-    return getServices().contains(service);
   }
 
   /**

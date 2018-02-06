@@ -28,11 +28,8 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 public class Component {
 
   private final String name;
-  @Nullable
   private final String mpackInstance;
-  @Nullable
   private final String serviceInstance;
-
   private final ProvisionAction provisionAction;
 
   @Deprecated
@@ -40,7 +37,7 @@ public class Component {
     this(name, null, null, null);
   }
 
-  public Component(String name, String mpackInstance, String serviceInstance, ProvisionAction provisionAction) {
+  public Component(String name, @Nullable String mpackInstance, @Nullable String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
     this.mpackInstance = mpackInstance;
     this.serviceInstance = serviceInstance;
@@ -57,14 +54,14 @@ public class Component {
   }
 
   /**
-   * @return the mpack associated with this component (can be {@code null} if component -> mpack mapping is unambigous)
+   * @return the mpack associated with this component (can be {@code null} if component -> mpack mapping is unambiguous)
    */
   public String getMpackInstance() {
     return mpackInstance;
   }
 
   /**
-   * @return the service instance this component belongs to. Can be {@null} if component does not belong to a service
+   * @return the service instance this component belongs to. Can be {@code null} if component does not belong to a service
    * instance (there is a single service of the component's service type)
    */
   public String getServiceInstance() {

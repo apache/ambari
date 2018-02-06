@@ -169,14 +169,14 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.BlueprintFactory;
-import org.apache.ambari.server.topology.BlueprintValidator;
-import org.apache.ambari.server.topology.BlueprintValidatorImpl;
 import org.apache.ambari.server.topology.DefaultStackFactory;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.BasicBlueprintValidator;
+import org.apache.ambari.server.topology.validators.BlueprintValidator;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -543,7 +543,7 @@ public class ControllerModule extends AbstractModule {
     bind(RegistryFactory.class).to(RegistryFactoryImpl.class);
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
-    bind(BlueprintValidator.class).to(BlueprintValidatorImpl.class);
+    bind(BlueprintValidator.class).to(BasicBlueprintValidator.class);
     bind(StackFactory.class).to(DefaultStackFactory.class);
     bind(BlueprintFactory.class);
 

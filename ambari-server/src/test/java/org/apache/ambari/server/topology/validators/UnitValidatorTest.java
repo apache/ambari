@@ -76,7 +76,7 @@ public class UnitValidatorTest extends EasyMockSupport {
   public void setUp() throws Exception {
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(SERVICE, CONFIG_TYPE)).andReturn(stackConfigWithMetadata).anyTimes();
   }
 

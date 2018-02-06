@@ -444,7 +444,7 @@ public class LogicalRequest extends Request {
   private void createHostRequests(TopologyRequest request, ClusterTopology topology) {
     Map<String, HostGroupInfo> hostGroupInfoMap = request.getHostGroupInfo();
     Blueprint blueprint = topology.getBlueprint();
-    boolean skipFailure = topology.getBlueprint().shouldSkipFailure();
+    boolean skipFailure = blueprint.getSetting().shouldSkipFailure();
     for (HostGroupInfo hostGroupInfo : hostGroupInfoMap.values()) {
       String groupName = hostGroupInfo.getHostGroupName();
       int hostCardinality = hostGroupInfo.getRequestedHostCount();
@@ -495,7 +495,7 @@ public class LogicalRequest extends Request {
       }
     }
 
-    boolean skipFailure = topology.getBlueprint().shouldSkipFailure();
+    boolean skipFailure = topology.getBlueprint().getSetting().shouldSkipFailure();
     for (TopologyHostRequestEntity hostRequestEntity : requestEntity.getTopologyHostRequestEntities()) {
       Long hostRequestId = hostRequestEntity.getId();
       synchronized (hostIdCounter) {

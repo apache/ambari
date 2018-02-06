@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.topology;
+package org.apache.ambari.server.topology.validators;
 
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.expect;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +29,12 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.topology.validators.RequiredPasswordValidator;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -145,16 +149,10 @@ public class RequiredPasswordValidatorTest extends EasyMockSupport {
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
 
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
-    expect(group1.getComponentNames("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
-    expect(group1.getComponentNames("service2")).andReturn(Arrays.asList("component3")).anyTimes();
-    expect(group1.getComponentNames("service3")).andReturn(Collections.emptySet()).anyTimes();
-    expect(group2.getComponentNames("service1")).andReturn(Arrays.asList("component1")).anyTimes();
-    expect(group2.getComponentNames("service2")).andReturn(Collections.emptySet()).anyTimes();
-    expect(group2.getComponentNames("service3")).andReturn(Arrays.asList("component4")).anyTimes();
 
     expect(stack.getServiceForComponent("component1")).andReturn("service1").anyTimes();
     expect(stack.getServiceForComponent("component2")).andReturn("service1").anyTimes();

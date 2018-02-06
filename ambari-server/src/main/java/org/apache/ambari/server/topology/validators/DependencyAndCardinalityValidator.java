@@ -16,63 +16,57 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.topology;
+package org.apache.ambari.server.topology.validators;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.utils.SecretReference;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.Cardinality;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ClusterTopologyImpl;
+import org.apache.ambari.server.topology.Component;
+import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-
 /**
- * Default blueprint validator.
+ * Verifies that service dependencies and component cardinality requirements are satisfied.
  */
-public class BlueprintValidatorImpl implements BlueprintValidator {
+public class DependencyAndCardinalityValidator implements TopologyValidator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BlueprintValidatorImpl.class);
-
-  public static final String LZO_CODEC_CLASS_PROPERTY_NAME = "io.compression.codec.lzo.class";
-  public static final String CODEC_CLASSES_PROPERTY_NAME = "io.compression.codecs";
-  public static final String LZO_CODEC_CLASS = "com.hadoop.compression.lzo.LzoCodec";
-
-  private final Configuration configuration;
-
-  @Inject
-  public BlueprintValidatorImpl(Configuration configuration) {
-    this.configuration = configuration;
-  }
+  private static final Logger LOGGER = LoggerFactory.getLogger(DependencyAndCardinalityValidator.class);
 
   @Override
-  public void validateTopology(Blueprint blueprint) throws InvalidTopologyException {
+  public void validate(ClusterTopology topology) throws InvalidTopologyException {
+    Blueprint blueprint = topology.getBlueprint();
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
 
-    StackDefinition stack = blueprint.getStack();
+    StackDefinition stack = topology.getStack();
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
     Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
     for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(blueprint, stack, group);
+      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(topology, blueprint, stack, group);
       if (!missingGroupDependencies.isEmpty()) {
         missingDependencies.put(group.getName(), missingGroupDependencies);
       }
     }
 
     Collection<String> cardinalityFailures = new HashSet<>();
-    Collection<String> services = blueprint.getServices();
+    Collection<String> services = topology.getServices();
 
     for (String service : services) {
       for (String component : stack.getComponents(service)) {
@@ -92,68 +86,19 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     }
   }
 
-  @Override
-  public void validateRequiredProperties(Blueprint blueprint) throws InvalidTopologyException, GPLLicenseNotAcceptedException {
-
+  public void validateRequiredProperties(ClusterTopology topology) throws InvalidTopologyException {
     // we don't want to include default stack properties so we can't just use hostGroup full properties
-    Map<String, Map<String, String>> clusterConfigurations = blueprint.getConfiguration().getProperties();
+    Map<String, Map<String, String>> clusterConfigurations = topology.getConfiguration().getProperties();
 
-    // we need to have real passwords, not references
-    if (clusterConfigurations != null) {
-
-      // need to reject blueprints that have LZO enabled if the Ambari Server hasn't been configured for it
-      boolean gplEnabled = configuration.getGplLicenseAccepted();
-
-      StringBuilder errorMessage = new StringBuilder();
-      boolean containsSecretReferences = false;
-      for (Map.Entry<String, Map<String, String>> configEntry : clusterConfigurations.entrySet()) {
-        String configType = configEntry.getKey();
-        if (configEntry.getValue() != null) {
-          for (Map.Entry<String, String> propertyEntry : configEntry.getValue().entrySet()) {
-            String propertyName = propertyEntry.getKey();
-            String propertyValue = propertyEntry.getValue();
-            if (propertyValue != null) {
-              if (!gplEnabled && configType.equals("core-site")
-                  && (propertyName.equals(LZO_CODEC_CLASS_PROPERTY_NAME) || propertyName.equals(CODEC_CLASSES_PROPERTY_NAME))
-                  && propertyValue.contains(LZO_CODEC_CLASS)) {
-                throw new GPLLicenseNotAcceptedException("Your Ambari server has not been configured to download LZO GPL software. " +
-                    "Please refer to documentation to configure Ambari before proceeding.");
-              }
-              if (SecretReference.isSecret(propertyValue)) {
-                errorMessage.append("  Config:" + configType + " Property:" + propertyName + "\n");
-                containsSecretReferences = true;
-              }
-            }
-          }
-        }
-      }
-      if (containsSecretReferences) {
-        throw new InvalidTopologyException("Secret references are not allowed in blueprints, " +
-          "replace following properties with real passwords:\n" + errorMessage);
-      }
-    }
-
-
-    for (HostGroup hostGroup : blueprint.getHostGroups().values()) {
-      Collection<String> processedServices = new HashSet<>();
-      Map<String, Collection<String>> allRequiredProperties = new HashMap<>();
+    for (HostGroup hostGroup : topology.getBlueprint().getHostGroups().values()) {
       Map<String, Map<String, String>> operationalConfiguration = new HashMap<>(clusterConfigurations);
 
       operationalConfiguration.putAll(hostGroup.getConfiguration().getProperties());
       for (String component : hostGroup.getComponentNames()) {
-        //check that MYSQL_SERVER component is not available while hive is using existing db
-        if (component.equals("MYSQL_SERVER")) {
-          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
-          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
-            && hiveEnvConfig.get("hive_database").startsWith("Existing")) {
-            throw new InvalidTopologyException("Incorrect configuration: MYSQL_SERVER component is available but hive" +
-              " using existing db!");
-          }
-        }
         if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
           Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
           if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
-            ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<>(blueprint.getHostGroupsForComponent(component));
+            List<HostGroup> hostGroupsForComponent = new ArrayList<>(topology.getBlueprint().getHostGroupsForComponent(component));
             Set<String> givenHostGroups = new HashSet<>();
             givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
             givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
@@ -207,7 +152,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     return cardinalityFailures;
   }
 
-  private Map<String, Collection<DependencyInfo>> validateHostGroup(Blueprint blueprint, StackDefinition stack, HostGroup group) {
+  private Map<String, Collection<DependencyInfo>> validateHostGroup(ClusterTopology topology, Blueprint blueprint, StackDefinition stack, HostGroup group) {
     LOGGER.info("Validating hostgroup: {}", group.getName());
     Map<String, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
 
@@ -219,9 +164,9 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
         // dependent components from the stack definitions are only added if related services are explicitly added to the blueprint!
         boolean isClientDependency = stack.getComponentInfo(dependency.getComponentName()).isClient();
-        if (isClientDependency && !blueprint.getServices().contains(dependency.getServiceName())) {
+        if (isClientDependency && !topology.getServices().contains(dependency.getServiceName())) {
           LOGGER.debug("The service [{}] for component [{}] is missing from the blueprint [{}], skipping dependency",
-              dependency.getServiceName(), dependency.getComponentName(), blueprint.getName());
+              dependency.getServiceName(), dependency.getComponentName(), topology.getBlueprint().getName());
           continue;
         }
 

@@ -149,7 +149,7 @@ public class Setting {
     return null;
   }
 
-  boolean shouldSkipFailure() {
+  public boolean shouldSkipFailure() {
     return Boolean.parseBoolean(getString(SETTING_NAME_DEPLOYMENT_SETTINGS, SETTING_NAME_SKIP_FAILURE));
   }
 

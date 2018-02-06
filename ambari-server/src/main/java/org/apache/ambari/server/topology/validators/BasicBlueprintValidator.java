@@ -10,27 +10,20 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.topology.validators;
 
-package org.apache.ambari.server.topology;
+import org.apache.ambari.server.topology.Blueprint;
 
-import java.util.Map;
-
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-
-/**
- * Factory for creating topology requests.
- */
-public class TopologyRequestFactoryImpl implements TopologyRequestFactory {
+public class BasicBlueprintValidator implements BlueprintValidator {
 
   @Override
-  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException {
-    return new ProvisionClusterRequest(properties, securityConfiguration);
-
+  public void validate(Blueprint blueprint) throws IllegalArgumentException {
+    // FIXME implement
   }
+
 }

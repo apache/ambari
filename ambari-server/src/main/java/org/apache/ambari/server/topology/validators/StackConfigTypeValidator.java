@@ -44,7 +44,7 @@ public class StackConfigTypeValidator implements TopologyValidator {
       return;
     }
 
-    Set<String> stackConfigTypes = new HashSet<>(topology.getBlueprint().getStack().getConfiguration().getAllConfigTypes());
+    Set<String> stackConfigTypes = new HashSet<>(topology.getStack().getConfiguration().getAllConfigTypes());
 
     // remove all "valid" config types from the incoming set
     incomingConfigTypes.removeAll(stackConfigTypes);

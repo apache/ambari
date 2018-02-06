@@ -43,8 +43,8 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
 
     // collecting all config types for services in the blueprint (from the related stack)
     Set<String> stackServiceConfigTypes = new HashSet<>();
-    for (String serviceName : topology.getBlueprint().getServices()) {
-      stackServiceConfigTypes.addAll(topology.getBlueprint().getStack().getConfigurationTypes(serviceName));
+    for (String serviceName : topology.getServices()) {
+      stackServiceConfigTypes.addAll(topology.getStack().getConfigurationTypes(serviceName));
     }
 
     // identifying invalid config types

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.topology;
+package org.apache.ambari.server.topology.validators;
 
 import static java.util.stream.Collectors.toList;
 import static org.easymock.EasyMock.expect;
@@ -39,6 +39,13 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.Cardinality;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Component;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
@@ -50,14 +57,14 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 
-/**
- * BlueprintValidatorImpl unit tests.
- */
-public class BlueprintValidatorImplTest {
+public class DependencyAndCardinalityValidatorTest {
 
   private final Map<String, HostGroup> hostGroups = new LinkedHashMap<>();
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.NICE)
+  private ClusterTopology topology;
 
   @Mock(type = MockType.NICE)
   private Blueprint blueprint;
@@ -102,10 +109,12 @@ public class BlueprintValidatorImplTest {
     autoDeploy.setEnabled(true);
     autoDeploy.setCoLocate("service1/component2");
 
+    expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(new StackId("HDP", "2.2"))).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
-    expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getServices()).andReturn(services).anyTimes();
 
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
     expect(group1.getComponents()).
@@ -148,9 +157,10 @@ public class BlueprintValidatorImplTest {
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.singleton(group1)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1);
-    BlueprintValidator validator = new BlueprintValidatorImpl(null);
-    validator.validateTopology(blueprint);
+    replay(blueprint, topology, stack, group1, group2, dependency1);
+
+    TopologyValidator validator = new DependencyAndCardinalityValidator();
+    validator.validate(topology);
   }
 
   @Test(expected = InvalidTopologyException.class)
@@ -164,9 +174,10 @@ public class BlueprintValidatorImplTest {
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.emptyList()).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1);
-    BlueprintValidator validator = new BlueprintValidatorImpl(null);
-    validator.validateTopology(blueprint);
+    replay(blueprint, topology, stack, group1, group2, dependency1);
+
+    TopologyValidator validator = new DependencyAndCardinalityValidator();
+    validator.validate(topology);
   }
 
   @Test
@@ -182,9 +193,9 @@ public class BlueprintValidatorImplTest {
 
     expect(group1.addComponent(new Component("component1"))).andReturn(true).once();
 
-    replay(blueprint, stack, group1, group2, dependency1);
-    BlueprintValidator validator = new BlueprintValidatorImpl(null);
-    validator.validateTopology(blueprint);
+    replay(blueprint, topology, stack, group1, group2, dependency1);
+    TopologyValidator validator = new DependencyAndCardinalityValidator();
+    validator.validate(topology);
 
     verify(group1);
   }
@@ -219,10 +230,10 @@ public class BlueprintValidatorImplTest {
     expect(group1.addComponent(new Component("component1"))).andReturn(true).once();
     expect(group1.addComponent(new Component("component3"))).andReturn(true).once();
 
-    replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
+    replay(blueprint, topology, stack, group1, group2, dependency1, dependencyComponentInfo);
 
-    BlueprintValidator validator = new BlueprintValidatorImpl(null);
-    validator.validateTopology(blueprint);
+    TopologyValidator validator = new DependencyAndCardinalityValidator();
+    validator.validate(topology);
 
     verify(group1);
   }
@@ -239,7 +250,6 @@ public class BlueprintValidatorImplTest {
 
 
     expect(blueprint.getHostGroupsForComponent("component-1")).andReturn(Arrays.asList(group1)).anyTimes();
-    expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
 
     Cardinality cardinality = new Cardinality("1");
 
@@ -263,11 +273,11 @@ public class BlueprintValidatorImplTest {
     expect(dependencyComponentInfo.isClient()).andReturn(true).anyTimes();
     expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
+    replay(blueprint, topology, stack, group1, group2, dependency1, dependencyComponentInfo);
 
     // WHEN
-    BlueprintValidator validator = new BlueprintValidatorImpl(null);
-    validator.validateTopology(blueprint);
+    TopologyValidator validator = new DependencyAndCardinalityValidator();
+    validator.validate(topology);
 
     // THEN
     verify(group1);
@@ -285,7 +295,6 @@ public class BlueprintValidatorImplTest {
 
 
     expect(blueprint.getHostGroupsForComponent("component-1")).andReturn(Arrays.asList(group1)).anyTimes();
-    expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
 
     Cardinality cardinality = new Cardinality("1");
 
@@ -306,11 +315,11 @@ public class BlueprintValidatorImplTest {
 
     expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
+    replay(blueprint, topology, stack, group1, group2, dependency1, dependencyComponentInfo);
 
     // WHEN
-    BlueprintValidator validator = new BlueprintValidatorImpl(null);
-    validator.validateTopology(blueprint);
+    TopologyValidator validator = new DependencyAndCardinalityValidator();
+    validator.validate(topology);
 
     // THEN
     verify(group1);
@@ -329,7 +338,6 @@ public class BlueprintValidatorImplTest {
 
 
     expect(blueprint.getHostGroupsForComponent("component-1")).andReturn(Arrays.asList(group1)).anyTimes();
-    expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
     Map<String, Map<String, String>> properties = new HashMap<>();
     Map<String, String> typeProps = new HashMap<>();
     typeProps.put("yarn.resourcemanager.hostname", "testhost");
@@ -368,11 +376,11 @@ public class BlueprintValidatorImplTest {
     expect(dependencyComponentInfo.isClient()).andReturn(false).anyTimes();
     expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1, dependency2, dependencyComponentInfo,dependencyConditionInfo1,dependencyConditionInfo2);
+    replay(blueprint, topology, stack, group1, group2, dependency1, dependency2, dependencyComponentInfo,dependencyConditionInfo1,dependencyConditionInfo2);
 
     // WHEN
-    BlueprintValidator validator = new BlueprintValidatorImpl(null);
-    validator.validateTopology(blueprint);
+    TopologyValidator validator = new DependencyAndCardinalityValidator();
+    validator.validate(topology);
 
     // THEN
     verify(group1);
