@@ -234,6 +234,7 @@ var files = [
   'test/utils/updater_test',
   'test/utils/configs/database_test',
   'test/utils/configs/config_initializer_test',
+  'test/utils/configs/add_component_config_initializer_test',
   'test/utils/configs/modification_handlers/modification_handler_test',
   'test/utils/configs/modification_handlers/misc_test',
   'test/utils/load_timer_test',
