@@ -295,3 +295,37 @@
     padding-top: 5px;
   }
 }
+
+#host-selection-dialog {
+  .modal-body {
+    .table {
+      th:first-child,
+      td:first-child {
+        width: 30px;
+      }
+      th + th,
+      td + td {
+        width: 50%;
+      }
+      td, th {
+        line-height: 24px;
+      }
+      .checkbox {
+        padding-top: 0;
+        height: 24px;
+        min-height: 24px;
+      }
+    }
+    .selected-hosts-link {
+      line-height: 34px;
+    }
+    #filter-dropdown-div,
+    #component-dropdown-div {
+      padding-right: 0;
+      .dropdown-menu {
+        right: 0;
+        left: auto;
+      }
+    }
+  }
+}
