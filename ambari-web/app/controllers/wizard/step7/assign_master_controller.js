@@ -65,6 +65,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     
     switch (action) {
       case 'ADD':
+        this.clearRecommendations();
         if (hostComponent.componentName == "HIVE_SERVER_INTERACTIVE") {
           this.getPendingBatchRequests(hostComponent);  
         } else {
@@ -279,34 +280,32 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   },
 
   /**
-   * Load active host list to <code>hosts</code> variable
+   * Success callback after loading active host list
    * @override
-   * @method renderHostInfo
+   * @method loadWizardHostsSuccessCallback
    */
-  renderHostInfo: function () {
+   loadWizardHostsSuccessCallback: function (data) {
     var parentController = this.get('content.controllerName');
     if (parentController) {
-      return this._super();
+      this._super(data);
     } else {
-      var dfd = $.Deferred();
-      var hosts = App.Host.find().toArray();
       var result = [];
-      for (var p = 0; p < hosts.length; p++) {
+      data.items.forEach(function (host) {
+        var hostName = host.Hosts.host_name,
+          cpu = host.Hosts.cpu_count,
+          memory = host.Hosts.total_mem.toFixed(2);
         result.push(Em.Object.create({
-          host_name: hosts[p].get('hostName'),
-          cpu: hosts[p].get('cpu'),
-          memory: hosts[p].get('memory'),
-          maintenance_state: hosts[p].get('maintenance_state'),
-          disk_info: hosts[p].get('diskInfo'),
-          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(hosts[p].get('hostName'), numberUtils.bytesToSize(hosts[p].get('memory'), 1, 'parseFloat', 1024), hosts[p].get('cpu'))
+          host_name: hostName,
+          cpu: cpu,
+          memory: memory,
+          disk_info: host.Hosts.disk_info,
+          maintenance_state: host.Hosts.maintenance_state,
+          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(hostName, numberUtils.bytesToSize(memory, 1, 'parseFloat', 1024), cpu)
         }));
-      }
-
-      this.set("hosts", result);
-      this.sortHosts(result);
+      }, this);
+      this.set('hosts', result);
+      this.sortHosts(this.get('hosts'));
       this.set('isHostsLoaded', true);
-      dfd.resolve();
-      return dfd.promise();
     }
   },
 
