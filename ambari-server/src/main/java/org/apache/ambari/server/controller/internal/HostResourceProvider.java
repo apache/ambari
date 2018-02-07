@@ -51,6 +51,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.models.HostInfoSummary;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -116,6 +117,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String STATE_PROPERTY_ID = "host_state";
   public static final String TOTAL_MEM_PROPERTY_ID = "total_mem";
   public static final String ATTRIBUTES_PROPERTY_ID = "attributes";
+  public static final String SUMMARY_PROPERTY_ID = "summary";
 
   public static final String HOST_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME_PROPERTY_ID;
   public static final String HOST_CPU_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CPU_COUNT_PROPERTY_ID;
@@ -139,7 +141,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String HOST_RECOVERY_SUMMARY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RECOVERY_SUMMARY_PROPERTY_ID;
   public static final String HOST_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + STATE_PROPERTY_ID;
   public static final String HOST_TOTAL_MEM_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_MEM_PROPERTY_ID;
-  public static final String HOST_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId(RESPONSE_KEY,ATTRIBUTES_PROPERTY_ID);
+  public static final String HOST_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId(RESPONSE_KEY, ATTRIBUTES_PROPERTY_ID);
+  public static final String HOST_SUMMARY_PROPERTY_ID = PropertyHelper.getPropertyId(RESPONSE_KEY, SUMMARY_PROPERTY_ID);
 
   public static final String BLUEPRINT_PROPERTY_ID = "blueprint";
   public static final String HOST_GROUP_PROPERTY_ID = "host_group";
@@ -182,7 +185,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       HOST_RECOVERY_SUMMARY_PROPERTY_ID,
       HOST_STATE_PROPERTY_ID,
       HOST_TOTAL_MEM_PROPERTY_ID,
-      HOST_ATTRIBUTES_PROPERTY_ID);
+      HOST_ATTRIBUTES_PROPERTY_ID,
+      HOST_SUMMARY_PROPERTY_ID);
 
   @Inject
   private OsFamily osFamily;
@@ -195,7 +199,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param managementController  the management controller
+   * @param managementController the management controller
    */
   @AssistedInject
   HostResourceProvider(@Assisted AmbariManagementController managementController) {
@@ -214,9 +218,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   @Override
   protected RequestStatus createResourcesAuthorized(final Request request)
       throws SystemException,
-          UnsupportedPropertyException,
-          ResourceAlreadyExistsException,
-          NoSuchParentResourceException {
+      UnsupportedPropertyException,
+      ResourceAlreadyExistsException,
+      NoSuchParentResourceException {
 
     RequestStatusResponse createResponse = null;
     if (isHostGroupRequest(request)) {
@@ -237,6 +241,45 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    if (request.getPropertyIds().contains(HOST_SUMMARY_PROPERTY_ID)) {
+      return getHostSummaryResource(request, predicate);
+    } else {
+      return getHostResource(request, predicate);
+    }
+  }
+
+  private Set<Resource> getHostSummaryResource(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
+
+    // use a collection which preserves order since JPA sorts the results
+    Set<Resource> resources = new HashSet<>();
+
+    HostInfoSummary hostInfoSummary = new HostInfoSummary();
+    Resource resource = new ResourceImpl(Resource.Type.Host);
+    // predicate may or may not be there depending on how to query
+    // if it has cluster name, the host summary is cluster scope
+    // otherwise, the host summary covers all the hosts cross the clusters
+    Set<Map<String, Object>> propertyMap = getPropertyMaps(predicate);
+    String clusterName = null;
+    if (propertyMap.size() != 0) {
+      for (Map<String, Object> property : propertyMap) {
+        clusterName = (String) property.get(HOST_CLUSTER_NAME_PROPERTY_ID);
+        if (StringUtils.isNotBlank(clusterName)) {
+          setResourceProperty(resource, HOST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestPropertyIds);
+          break;
+        }
+      }
+    }
+    hostInfoSummary = hostInfoSummary.getHostInfoSummary(clusterName);
+    setResourceProperty(resource, HOST_SUMMARY_PROPERTY_ID, hostInfoSummary.getSummary(), requestPropertyIds);
+    resources.add(resource);
+
+    return resources;
+  }
+
+  private Set<Resource> getHostResource(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<>();

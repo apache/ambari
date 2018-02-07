@@ -49,20 +49,8 @@ public class HostServiceTest extends BaseServiceTest {
 
     //getHosts
     service = new TestHostService("clusterName", null);
-    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), null};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
-    //getHostsSummary
-    service = new TestHostService("clusterName", null);
-    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "summary"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
-    //getHostsSummary
-    service = new TestHostService(null, null);
-    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "summary"};
+    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createHost
@@ -109,7 +97,7 @@ public class HostServiceTest extends BaseServiceTest {
     }
 
     @Override
-    protected ResourceInstance createHostResource(String clusterName, String hostName, Resource.Type type) {
+    protected ResourceInstance createHostResource(String clusterName, String hostName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_hostId, hostName);
       return getTestResource();

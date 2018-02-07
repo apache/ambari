@@ -42,6 +42,7 @@ import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
@@ -62,6 +63,9 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostInfoSummaryDAO;
+import org.apache.ambari.server.orm.dao.HostInfoSummaryDTO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -89,8 +93,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 
 /**
  * HostResourceProvider tests.
@@ -1281,6 +1288,61 @@ public class HostResourceProviderTest extends EasyMockSupport {
     assertTrue(setResponses.contains(response2));
 
     verifyAll();
+  }
+
+  @Test
+  public void testHostsSummary() throws Exception {
+    Injector injector = createInjector();
+    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
+    ResourceProvider hostResourceProvider = getHostProvider(injector);
+
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new HostResourceProviderTest.MockModule()));
+    HostInfoSummaryDAO hostInfoSummaryDAO = injector.getInstance(HostInfoSummaryDAO.class);
+    List<HostInfoSummaryDTO> queryResults = new ArrayList<>();
+    queryResults.add(new HostInfoSummaryDTO("redhat6", 10));
+    queryResults.add(new HostInfoSummaryDTO("debian7", 20));
+    expect(hostInfoSummaryDAO.findHostInfoSummary("c1")).andReturn(queryResults).anyTimes();
+
+    Set<String> propertyIds = new HashSet<>();
+
+    propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(HostResourceProvider.HOST_SUMMARY_PROPERTY_ID);
+
+    Predicate predicate = buildPredicate("c1", null);
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    replayAll();
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Set<Resource> resources = hostResourceProvider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Map<String, Object> propertyMap = (Map<String, Object>)resource.getPropertiesMap().values().iterator().next();
+      String clusterName = (String)(propertyMap.get("cluster_name"));
+      Assert.assertEquals("c1", clusterName);
+      Map<String, Object> summaryMap = (Map<String, Object>)((List<Object>)propertyMap.get("summary")).get(0);
+      Assert.assertEquals(1, summaryMap.size());
+      List<Map<String, Integer>> osSummary = (List<Map<String, Integer>>)summaryMap.get("operating_systems");
+      Assert.assertEquals(10, (int)osSummary.get(0).get("redhat6"));
+      Assert.assertEquals(20, (int)osSummary.get(1).get("debian7"));
+    }
+
+    verifyAll();
+  }
+
+  /**
+   * A class to generate in-memory singleton instance for object
+   */
+  private class MockModule implements Module {
+
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(HostInfoSummaryDAO.class).toInstance(createStrictMock(HostInfoSummaryDAO.class));
+      // We can add more
+    }
   }
 
   public static void createHosts(AmbariManagementController controller, Set<HostRequest> requests) throws AmbariException, AuthorizationException {

@@ -106,7 +106,7 @@ public class HostService extends BaseService {
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, hostName, Resource.Type.Host));
+        createHostResource(m_clusterName, hostName));
   }
 
   /**
@@ -137,7 +137,7 @@ public class HostService extends BaseService {
   public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                            @ApiParam(value = "summary", required = false) @QueryParam("format") String format) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, null, format==null ? Resource.Type.Host : format.equalsIgnoreCase("summary") ? Resource.Type.HostSummary : Resource.Type.Host));
+        createHostResource(m_clusterName, null));
   }
 
   /**
@@ -169,7 +169,7 @@ public class HostService extends BaseService {
   })
   public Response createHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createHostResource(m_clusterName, null, Resource.Type.Host));
+        createHostResource(m_clusterName, null));
   }
 
   /**
@@ -204,7 +204,7 @@ public class HostService extends BaseService {
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createHostResource(m_clusterName, hostName, Resource.Type.Host));
+        createHostResource(m_clusterName, hostName));
   }
 
   /**
@@ -238,7 +238,7 @@ public class HostService extends BaseService {
      @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createHostResource(m_clusterName, hostName, Resource.Type.Host));
+        createHostResource(m_clusterName, hostName));
   }
 
   /**
@@ -268,7 +268,7 @@ public class HostService extends BaseService {
   })
   public Response updateHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createHostResource(m_clusterName, null, Resource.Type.Host));
+        createHostResource(m_clusterName, null));
   }
 
   /**
@@ -296,7 +296,7 @@ public class HostService extends BaseService {
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, null, ui, Request.Type.DELETE,
-        createHostResource(m_clusterName, hostName, Resource.Type.Host));
+        createHostResource(m_clusterName, hostName));
   }
 
   @DELETE
@@ -314,7 +314,7 @@ public class HostService extends BaseService {
   })
   public Response deleteHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.DELETE,
-            createHostResource(m_clusterName, null, Resource.Type.Host));
+            createHostResource(m_clusterName, null));
   }
 
   /**
@@ -386,13 +386,13 @@ public class HostService extends BaseService {
    * @param hostName     host name
    * @return a host resource instance
    */
-  protected ResourceInstance createHostResource(String clusterName, String hostName, Resource.Type type) {
+  protected ResourceInstance createHostResource(String clusterName, String hostName) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Host, hostName);
     if (clusterName != null) {
       mapIds.put(Resource.Type.Cluster, clusterName);
     }
 
-    return createResource(type, mapIds);
+    return createResource(Resource.Type.Host, mapIds);
   }
 }

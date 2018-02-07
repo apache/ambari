@@ -40,7 +40,7 @@ public class HostInfoSummary {
   @Inject
   private static HostInfoSummaryDAO hostInfoSummaryDAO;
 
-  private Map<String, Object> summary = new HashMap<String, Object>();
+  private List<Object> summary = new ArrayList<>();
 
   public  HostInfoSummary getHostInfoSummary(String cluster_name) {
 
@@ -49,11 +49,13 @@ public class HostInfoSummary {
     for (HostInfoSummaryDTO summaryDTO : summaryDTOS) {
       osSummaryList.add(Stream.of(new AbstractMap.SimpleImmutableEntry<>(summaryDTO.getOsType(), summaryDTO.getOsTypeCount())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
-    summary.put(HOST_INFO_SUMMARY_OS, osSummaryList);
+    Map<String, Object> os = new HashMap<>();
+    os.put(HOST_INFO_SUMMARY_OS, osSummaryList);
+    summary.add(os);
     return this;
   }
 
-  public Map<String, Object> getSummary() {
+  public List<Object> getSummary() {
     return summary;
   }
 
