@@ -84,7 +84,7 @@ public class UpgradeCatalogTest {
       catalogBinder.addBinding().to(UpgradeCatalog201.class);
       catalogBinder.addBinding().to(UpgradeCatalog251.class);
       catalogBinder.addBinding().to(UpgradeCatalog252.class);
-      catalogBinder.addBinding().to(UpgradeCatalog300.class);
+      catalogBinder.addBinding().to(UpgradeCatalog270.class);
     }
   }
 
