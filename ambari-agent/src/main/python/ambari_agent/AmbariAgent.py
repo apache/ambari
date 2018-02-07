@@ -49,15 +49,12 @@ def main():
 
   mergedArgs = [PYTHON, AGENT_SCRIPT] + args
 
-  try:
-    while status == AGENT_AUTO_RESTART_EXIT_CODE:
-      mainProcess = subprocess32.Popen(mergedArgs)
-      mainProcess.communicate()
-      status = mainProcess.returncode
-      if os.path.isfile(AGENT_PID_FILE) and status == AGENT_AUTO_RESTART_EXIT_CODE:
-        os.remove(AGENT_PID_FILE)
-  finally:
-    os.killpg(0, signal.SIGKILL)
+  while status == AGENT_AUTO_RESTART_EXIT_CODE:
+    mainProcess = subprocess32.Popen(mergedArgs)
+    mainProcess.communicate()
+    status = mainProcess.returncode
+    if os.path.isfile(AGENT_PID_FILE) and status == AGENT_AUTO_RESTART_EXIT_CODE:
+      os.remove(AGENT_PID_FILE)
 
 if __name__ == "__main__":
     main()
