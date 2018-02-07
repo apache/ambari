@@ -2521,7 +2521,7 @@ public class Configuration {
           "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
 
   @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
-  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<Boolean>("security.passwords.encryption.enabled", false);
+  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.passwords.encryption.enabled", false);
 
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
@@ -5056,19 +5056,6 @@ public class Configuration {
    */
   public String getServerTempDir() {
     return getProperty(SERVER_TMP_DIR);
-  }
-
-  /**
-   * Gets whether to use experiemental concurrent processing to convert
-   * {@link StageEntity} instances into {@link Stage} instances. The default is
-   * {@code false}.
-   *
-   * @return {code true} if the experimental feature is enabled, {@code false}
-   *         otherwise.
-   */
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
-  public boolean isExperimentalConcurrentStageProcessingEnabled() {
-    return Boolean.parseBoolean(getProperty(EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED));
   }
 
   /**
