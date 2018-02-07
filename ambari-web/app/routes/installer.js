@@ -416,7 +416,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       if (downloadConfig && downloadConfig.useCustomRepo) {
         router.transitionTo('customProductRepos');
       } else {
-        router.transitionTo('verifyProducts');
+        router.transitionTo('step5');
       }  
       console.timeEnd('downloadMpacks next');
     }
@@ -587,7 +587,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     backTransition: function (router) {
       var controller = router.get('installerController');
       controller.clearErrors();
-      router.transitionTo('verifyProducts');
+      const downloadConfig = controller.get('content.downloadConfig');
+      if (downloadConfig && downloadConfig.useCustomRepo) {
+        router.transitionTo('verifyProducts');
+      } else {
+        router.transitionTo('downloadMpacks');
+      }
     },
     
     next: function (router) {
@@ -597,7 +602,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         var controller = router.get('installerController');
         var wizardStep5Controller = router.get('wizardStep5Controller');
         controller.saveMasterComponentHosts(wizardStep5Controller);
-        controller.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations'));
+        controller.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations') || wizardStep5Controller.get('recommendations'));
         // Clear subsequent steps if user made changes
         if (!wizardStep5Controller.get('isSaved')) {
           controller.setDBProperty('slaveComponentHosts', undefined);
@@ -631,6 +636,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step6 connectOutlets');
       });
     },
+    
     backTransition: function(router) {
       var controller = router.get('installerController');
       controller.clearErrors();

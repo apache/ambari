@@ -309,6 +309,8 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   clearRecommendations: function() {
     if (this.get('content.recommendations')) {
       this.set('content.recommendations', null);
+    }
+    if (this.get('recommendations')) {
       this.set('recommendations', null);
     }
   },

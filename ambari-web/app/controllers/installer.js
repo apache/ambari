@@ -278,9 +278,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         stackName: stackName,
         stackVersion: stackVersion,
         serviceName: serviceName
-      },
-      success: 'loadMpackServiceInfoSuccess',
-      error: 'loadMpackServiceInfoError'
+      }
     });
   },
 
@@ -1431,11 +1429,32 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     sCallback();
   },
 
-  clearStackServices: function () {
-    const stackServices = App.StackService.find();
-    stackServices.forEach(service => {
-      Em.run.once(this, () => App.MpackServiceMapper.deleteRecord(service));
-    });
+  clearStackServices: function (deleteAll) {
+    var dfd = $.Deferred();
+
+    if (deleteAll) {
+      const stackServices = App.StackService.find();
+      let stackServicesCount = stackServices.content.length;
+
+      if (stackServicesCount > 0) {
+        stackServices.forEach(service => {
+          Em.run.once(this, () => {
+            App.MpackServiceMapper.deleteRecord(service);
+            stackServicesCount--;
+
+            if (stackServicesCount === 0) {
+              dfd.resolve();
+            }
+          });
+        });
+      } else {
+        dfd.resolve();
+      }  
+    } else {
+      dfd.resolve();
+    }  
+
+    return dfd.promise();
   },
 
   getStepSavedState: function (stepName) {
@@ -1494,40 +1513,52 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    * @return {object} a promise
    */
   finishRegisteringMpacks: function (keepStackServices) {
-    return this.getMpackStackVersions().fail(this.addErrors).always(data => {
-      data.items.forEach(versionDefinition => App.stackMapper.map(versionDefinition))
+    var dfd = $.Deferred();
 
-      if (!keepStackServices) {
-        this.clearStackServices();
-      }
-
+    this.getMpackStackVersions()
+    .fail(errors => {
+      this.addErrors(errors);
+      dfd.reject();
+    })
+    .always(data => {
+      data.items.forEach(versionDefinition => App.stackMapper.map(versionDefinition));
+      return this.clearStackServices(!keepStackServices);
+    })
+    .then(() => {
       //get info about services from specific stack versions and save to StackService model
       const selectedServices = this.get('content.selectedServices');
-      const servicePromises = selectedServices.map(service => this.loadMpackServiceInfo(service.stackName, service.stackVersion, service.name));
+      const servicePromises = selectedServices.map(service =>
+        this.loadMpackServiceInfo(service.stackName, service.stackVersion, service.name)
+          .then(this.loadMpackServiceInfoSuccess, this.loadMpackServiceInfoError)
+      );
 
-      return $.when(...servicePromises).then(() => {
-        const services = App.StackService.find();
-        this.set('content.services', services);
+      return $.when(...servicePromises);
+    })
+    .then(() => {
+      const services = App.StackService.find();
+      this.set('content.services', services);
 
-        const clients = [];
-        services.forEach(service => {
-          const client = service.get('serviceComponents').filterProperty('isClient', true);
-          client.forEach(clientComponent => {
-            clients.pushObject({
-              component_name: clientComponent.get('componentName'),
-              display_name: clientComponent.get('displayName'),
-              isInstalled: false
-            });
+      const clients = [];
+      services.forEach(service => {
+        const client = service.get('serviceComponents').filterProperty('isClient', true);
+        client.forEach(clientComponent => {
+          clients.pushObject({
+            component_name: clientComponent.get('componentName'),
+            display_name: clientComponent.get('displayName'),
+            isInstalled: false
           });
         });
-        this.set('content.clients', clients);
-        this.save('clients');
-
-        //TODO: mpacks - hard coding this for now. We need to get rid of the concept of "selected stack".
-        this.set('content.selectedStack', { name: "HDP", version: "3.0.0" });
-        this.save('selectedStack');
       });
-    });
-  }
+      this.set('content.clients', clients);
+      this.save('clients');
 
+      //TODO: mpacks - hard coding this for now. We need to get rid of the concept of "selected stack".
+      this.set('content.selectedStack', { name: "HDP", version: "3.0.0" });
+      this.save('selectedStack');
+
+      dfd.resolve();
+    });
+    
+    return dfd;
+  }
 });
