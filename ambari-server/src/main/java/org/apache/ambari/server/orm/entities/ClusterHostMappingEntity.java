@@ -18,15 +18,16 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.Table;
+
 
 @Entity
 @Table(name = "ClusterHostMapping")
-@IdClass(ClusterHostMappingEntityPK.class)
 public class ClusterHostMappingEntity {
 
   @Id
@@ -68,8 +69,6 @@ public class ClusterHostMappingEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterId.hashCode();
-    result = 31 * result + hostId.hashCode();
-    return result;
+    return Objects.hash(clusterId, hostId);
   }
 }

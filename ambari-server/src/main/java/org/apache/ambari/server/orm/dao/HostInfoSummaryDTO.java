@@ -19,19 +19,19 @@ package org.apache.ambari.server.orm.dao;
 
 public class HostInfoSummaryDTO {
 
-  private String os_type;
-  private int os_type_count = 0;
+  private String osType;
+  private int osTypeCount = 0;
 
-  public HostInfoSummaryDTO(String os_type, Number os_type_count) {
-    this.os_type = os_type;
-    this.os_type_count = null == os_type_count ? 0 : os_type_count.intValue();
+  public HostInfoSummaryDTO(String osType, Number osTypeCount) {
+    this.osType = osType;
+    this.osTypeCount = null == osTypeCount ? 0 : osTypeCount.intValue();
   }
 
   public String getOsType() {
-    return os_type;
+    return osType;
   }
 
   public int getOsTypeCount() {
-    return os_type_count;
+    return osTypeCount;
   }
 }

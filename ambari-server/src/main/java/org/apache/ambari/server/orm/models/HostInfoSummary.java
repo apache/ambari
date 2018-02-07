@@ -18,18 +18,16 @@
 
 package org.apache.ambari.server.orm.models;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.orm.dao.HostInfoSummaryDAO;
 import org.apache.ambari.server.orm.dao.HostInfoSummaryDTO;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 
 @StaticallyInject
@@ -40,20 +38,17 @@ public class HostInfoSummary {
   @Inject
   private static HostInfoSummaryDAO hostInfoSummaryDAO;
 
-  private Map<String, Object> summary = new HashMap<String, Object>();
-
-  public  HostInfoSummary getHostInfoSummary(String cluster_name) {
+  public  List<Object> getHostInfoSummary(String cluster_name) {
 
     List<HostInfoSummaryDTO> summaryDTOS = hostInfoSummaryDAO.findHostInfoSummary(cluster_name);
     List<Map<String, Integer>> osSummaryList = new ArrayList<>();
     for (HostInfoSummaryDTO summaryDTO : summaryDTOS) {
-      osSummaryList.add(Stream.of(new AbstractMap.SimpleImmutableEntry<>(summaryDTO.getOsType(), summaryDTO.getOsTypeCount())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+      osSummaryList.add(ImmutableMap.of(summaryDTO.getOsType(), summaryDTO.getOsTypeCount()));
     }
-    summary.put(HOST_INFO_SUMMARY_OS, osSummaryList);
-    return this;
-  }
-
-  public Map<String, Object> getSummary() {
+    Map<String, Object> os = new HashMap<>();
+    os.put(HOST_INFO_SUMMARY_OS, osSummaryList);
+    List<Object> summary = new ArrayList<>();
+    summary.add(os);
     return summary;
   }
 

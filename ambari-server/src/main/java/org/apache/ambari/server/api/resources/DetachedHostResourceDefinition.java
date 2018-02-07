@@ -19,6 +19,8 @@
 
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
@@ -40,4 +42,10 @@ public class DetachedHostResourceDefinition extends BaseResourceDefinition {
   public String getSingularName() {
     return "host";
   }
+
+  @Override
+  public Renderer getRenderer(String name) {
+    return new DefaultRenderer();
+  }
+
 }

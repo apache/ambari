@@ -26,6 +26,7 @@ import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +69,8 @@ public class ReadHandler implements RequestHandler {
     } catch (IllegalArgumentException e) {
       return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }
+
+    addSummaryQueryToQuery(request, query);
 
     Result result;
     Predicate p = null;
@@ -119,6 +123,19 @@ public class ReadHandler implements RequestHandler {
       // Iterate over map and add props/temporalInfo
       String propertyId = entry.getKey();
       query.addProperty(propertyId, entry.getValue());
+    }
+  }
+
+  /**
+   * FORMAT predicate is ignored, but if it is format=summary, it should be added to queryProperty in Read Request
+   *
+   * @param request the current request
+   * @param query   the associated query
+   */
+  private void addSummaryQueryToQuery(Request request, Query query) {
+    String uriString = request.getURI();
+    if (StringUtils.isNotBlank(uriString) && uriString.indexOf("format=summary") != -1) {
+      query.addLocalProperty(HostResourceProvider.HOST_SUMMARY_PROPERTY_ID);
     }
   }
 }

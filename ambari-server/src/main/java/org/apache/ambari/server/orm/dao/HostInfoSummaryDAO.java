@@ -25,8 +25,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -34,8 +32,6 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class HostInfoSummaryDAO {
-
-  private static final Logger LOG = LoggerFactory.getLogger(HostInfoSummaryDAO.class);
 
   // Whenever we want to aggregate more host info in summary, we need to update these two statements
   // also we must update HostInfoSummary.java

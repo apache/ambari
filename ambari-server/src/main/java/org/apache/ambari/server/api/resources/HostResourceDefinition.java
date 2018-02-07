@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -52,6 +54,11 @@ public class HostResourceDefinition extends BaseResourceDefinition {
   @Override
   public Collection<String> getDeleteDirectives() {
     return Collections.singleton(Request.DIRECTIVE_DRY_RUN);
+  }
+
+  @Override
+  public Renderer getRenderer(String name) {
+    return new DefaultRenderer();
   }
 
   @Override
