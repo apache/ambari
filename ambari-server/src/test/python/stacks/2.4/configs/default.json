@@ -249,6 +249,7 @@
         "content" : "content"
       },
       "infra-solr-env": {
+        "infra_solr_zookeeper_quorum" : "{zookeeper_quorum}",
         "infra_solr_user": "solr",
         "infra_solr_group": "solr",
         "infra_solr_port": "8886",

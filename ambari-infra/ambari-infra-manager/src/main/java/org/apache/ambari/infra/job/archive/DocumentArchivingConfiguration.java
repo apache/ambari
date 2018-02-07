@@ -19,7 +19,10 @@
 package org.apache.ambari.infra.job.archive;
 
 import org.apache.ambari.infra.conf.InfraManagerDataConfig;
-import org.apache.ambari.infra.job.JobPropertyMap;
+import org.apache.ambari.infra.conf.security.PasswordStore;
+import org.apache.ambari.infra.job.AbstractJobsConfiguration;
+import org.apache.ambari.infra.job.JobContextRepository;
+import org.apache.ambari.infra.job.JobScheduler;
 import org.apache.ambari.infra.job.ObjectSource;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
@@ -31,55 +34,41 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.File;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Configuration
-public class DocumentArchivingConfiguration {
+public class DocumentArchivingConfiguration extends AbstractJobsConfiguration<DocumentArchivingProperties> {
   private static final Logger LOG = LoggerFactory.getLogger(DocumentArchivingConfiguration.class);
   private static final DocumentWiper NOT_DELETE = (firstDocument, lastDocument) -> { };
 
-  @Inject
-  private DocumentArchivingPropertyMap propertyMap;
+  private final StepBuilderFactory steps;
+  private final Step exportStep;
 
   @Inject
-  private StepBuilderFactory steps;
-
-  @Inject
-  private JobBuilderFactory jobs;
-
-  @Inject
-  @Qualifier("exportStep")
-  private Step exportStep;
-
-  @Inject
-  private JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor;
-
-
-  @PostConstruct
-  public void createJobs() {
-    if (propertyMap == null || propertyMap.getSolrDataArchiving() == null)
-      return;
-
-    propertyMap.getSolrDataArchiving().values().forEach(DocumentArchivingProperties::validate);
-
-    propertyMap.getSolrDataArchiving().keySet().forEach(jobName -> {
-      LOG.info("Registering data archiving job {}", jobName);
-      Job job = logExportJob(jobName, exportStep);
-      jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
-    });
+  public DocumentArchivingConfiguration(
+          DocumentArchivingPropertyMap jobsPropertyMap,
+          JobScheduler scheduler,
+          StepBuilderFactory steps,
+          JobBuilderFactory jobs,
+          @Qualifier("exportStep") Step exportStep,
+          JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor) {
+    super(jobsPropertyMap.getSolrDataArchiving(), scheduler, jobs, jobRegistryBeanPostProcessor);
+    this.exportStep = exportStep;
+    this.steps = steps;
   }
 
-  private Job logExportJob(String jobName, Step logExportStep) {
-    return jobs.get(jobName).listener(new JobPropertyMap<>(propertyMap)).start(logExportStep).build();
+  @Override
+  protected Job buildJob(JobBuilder jobBuilder) {
+    return jobBuilder.start(exportStep).build();
   }
 
   @Bean
@@ -93,17 +82,21 @@ public class DocumentArchivingConfiguration {
   @Bean
   @StepScope
   public DocumentExporter documentExporter(DocumentItemReader documentItemReader,
-                                           @Value("#{stepExecution.jobExecution.id}") String jobId,
+                                           @Value("#{stepExecution.jobExecution.jobId}") String jobId,
                                            @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties,
                                            InfraManagerDataConfig infraManagerDataConfig,
                                            @Value("#{jobParameters[end]}") String intervalEnd,
-                                           DocumentWiper documentWiper) {
+                                           DocumentWiper documentWiper,
+                                           JobContextRepository jobContextRepository,
+                                           PasswordStore passwordStore) {
 
     File baseDir = new File(infraManagerDataConfig.getDataFolder(), "exporting");
     CompositeFileAction fileAction = new CompositeFileAction(new TarGzCompressor());
     switch (properties.getDestination()) {
       case S3:
-        fileAction.add(new S3Uploader(properties.s3Properties().orElseThrow(() -> new IllegalStateException("S3 properties are not provided!"))));
+        fileAction.add(new S3Uploader(
+                properties.s3Properties().orElseThrow(() -> new IllegalStateException("S3 properties are not provided!")),
+                passwordStore));
         break;
       case HDFS:
         org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
@@ -134,7 +127,7 @@ public class DocumentArchivingConfiguration {
             documentItemReader,
             firstDocument -> new LocalDocumentItemWriter(
                     outFile(properties.getSolr().getCollection(), destinationDirectory, fileNameSuffixFormatter.format(firstDocument)), itemWriterListener),
-            properties.getWriteBlockSize());
+            properties.getWriteBlockSize(), jobContextRepository);
   }
 
   @Bean

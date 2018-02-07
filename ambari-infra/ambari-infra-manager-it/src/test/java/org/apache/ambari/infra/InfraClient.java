@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -71,11 +72,14 @@ public class InfraClient implements AutoCloseable {
     execute(new HttpGet(baseUrl));
   }
 
-  private String execute(HttpRequestBase post) {
+  private HttpResponse execute(HttpRequestBase post) {
     try (CloseableHttpResponse response = httpClient.execute(post)) {
       String responseBodyText = IOUtils.toString(response.getEntity().getContent(), Charset.defaultCharset());
-      LOG.info("Response code {} body {} ", response.getStatusLine().getStatusCode(), responseBodyText);
-      return responseBodyText;
+      int statusCode = response.getStatusLine().getStatusCode();
+      LOG.info("Response code {} body {} ", statusCode, responseBodyText);
+      if (!(200 <= statusCode && statusCode <= 299))
+        throw new RuntimeException("Error while executing http request: " + responseBodyText);
+      return new HttpResponse(statusCode, responseBodyText);
     } catch (ClientProtocolException e) {
       throw new RuntimeException(e);
     } catch (IOException e) {
@@ -83,16 +87,16 @@ public class InfraClient implements AutoCloseable {
     }
   }
 
-  public String startJob(String jobName, String parameters) {
+  public JobExecutionInfo startJob(String jobName, String parameters) {
     URIBuilder uriBuilder = new URIBuilder(baseUrl);
     uriBuilder.setScheme("http");
     uriBuilder.setPath(uriBuilder.getPath() + "/" + jobName);
     if (!isBlank(parameters))
       uriBuilder.addParameter("params", parameters);
     try {
-      String responseText = execute(new HttpPost(uriBuilder.build()));
+      String responseText = execute(new HttpPost(uriBuilder.build())).getBody();
       Map<String, Object> responseContent = new ObjectMapper().readValue(responseText, new TypeReference<HashMap<String,Object>>() {});
-      return responseContent.get("jobId").toString();
+      return new JobExecutionInfo(responseContent.get("jobId").toString(), ((Map)responseContent.get("jobExecutionData")).get("id").toString());
     } catch (URISyntaxException | JsonParseException | JsonMappingException e) {
       throw new RuntimeException(e);
     } catch (IOException e) {
@@ -106,7 +110,21 @@ public class InfraClient implements AutoCloseable {
     uriBuilder.setPath(String.format("%s/%s/%s/executions", uriBuilder.getPath(), jobName, jobId));
     uriBuilder.addParameter("operation", "RESTART");
     try {
-      execute(new HttpPost(uriBuilder.build()));
+      HttpResponse httpResponse = execute(new HttpPost(uriBuilder.build()));
+      if (httpResponse.getCode() != 200)
+        throw new RuntimeException(httpResponse.getBody());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void stopJob(String jobExecutionId) {
+    URIBuilder uriBuilder = new URIBuilder(baseUrl);
+    uriBuilder.setScheme("http");
+    uriBuilder.setPath(String.format("%s/executions/%s", uriBuilder.getPath(), jobExecutionId));
+    uriBuilder.addParameter("operation", "STOP");
+    try {
+      execute(new HttpDelete(uriBuilder.build()));
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }

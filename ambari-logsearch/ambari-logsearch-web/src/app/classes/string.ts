@@ -23,3 +23,5 @@ export type TimeRangeType = 'CURRENT' | 'LAST' | 'PAST';
 export type SortingType = 'asc' | 'desc';
 
 export type ScrollType = 'before' | 'after' | '';
+
+export type LogLevel = 'FATAL' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE' | 'UNKNOWN';

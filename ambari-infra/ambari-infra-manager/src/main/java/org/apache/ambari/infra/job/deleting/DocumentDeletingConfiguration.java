@@ -18,9 +18,8 @@
  */
 package org.apache.ambari.infra.job.deleting;
 
-import org.apache.ambari.infra.job.JobPropertyMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.ambari.infra.job.AbstractJobsConfiguration;
+import org.apache.ambari.infra.job.JobScheduler;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -28,50 +27,36 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 @Configuration
-public class DocumentDeletingConfiguration {
-  private static final Logger LOG = LoggerFactory.getLogger(DocumentDeletingConfiguration.class);
+public class DocumentDeletingConfiguration extends AbstractJobsConfiguration<DocumentDeletingProperties> {
+
+  private final StepBuilderFactory steps;
+  private final Step deleteStep;
 
   @Inject
-  private DocumentDeletingPropertyMap propertyMap;
-
-  @Inject
-  private StepBuilderFactory steps;
-
-  @Inject
-  private JobBuilderFactory jobs;
-
-  @Inject
-  private JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor;
-
-  @Inject
-  @Qualifier("deleteStep")
-  private Step deleteStep;
-
-  @PostConstruct
-  public void createJobs() {
-    if (propertyMap == null || propertyMap.getSolrDataDeleting() == null)
-      return;
-
-    propertyMap.getSolrDataDeleting().values().forEach(DocumentDeletingProperties::validate);
-
-    propertyMap.getSolrDataDeleting().keySet().forEach(jobName -> {
-      LOG.info("Registering data deleting job {}", jobName);
-      Job job = logDeleteJob(jobName, deleteStep);
-      jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
-    });
+  public DocumentDeletingConfiguration(
+          DocumentDeletingPropertyMap documentDeletingPropertyMap,
+          JobScheduler scheduler,
+          StepBuilderFactory steps,
+          JobBuilderFactory jobs,
+          JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor,
+          @Qualifier("deleteStep") Step deleteStep) {
+    super(documentDeletingPropertyMap.getSolrDataDeleting(), scheduler, jobs, jobRegistryBeanPostProcessor);
+    this.steps = steps;
+    this.deleteStep = deleteStep;
   }
 
-  private Job logDeleteJob(String jobName, Step logExportStep) {
-    return jobs.get(jobName).listener(new JobPropertyMap<>(propertyMap)).start(logExportStep).build();
+  @Override
+  protected Job buildJob(JobBuilder jobBuilder) {
+    return jobBuilder.start(deleteStep).build();
   }
 
   @Bean

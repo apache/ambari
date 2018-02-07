@@ -278,7 +278,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   updateValue = (): void => {
     this.currentValue = '';
     if (this.onChange) {
-      this.onChange(this.parameters);
+      this.onChange(this.parameters.slice());
     }
   };
 
@@ -299,7 +299,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   }
 
   writeValue(parameters: SearchBoxParameterProcessed[] = []): void {
-    this.parameters = parameters;
+    this.parameters = parameters.slice();
     this.updateValueSubject.next();
   }
 

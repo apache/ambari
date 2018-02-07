@@ -1977,7 +1977,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 
@@ -2067,7 +2067,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 
@@ -2160,7 +2160,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 
@@ -2238,7 +2238,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 

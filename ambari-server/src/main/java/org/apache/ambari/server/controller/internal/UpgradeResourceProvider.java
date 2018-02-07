@@ -125,6 +125,8 @@ import com.google.inject.persist.Transactional;
 @StaticallyInject
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
 
+  static final String DUMMY_SERVICE_GROUP = "CORE"; // FIXME need a service group name, since null or "" is not allowed
+
   public static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   public static final String UPGRADE_REPO_VERSION_ID = "Upgrade/repository_version_id";
   public static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
@@ -1052,7 +1054,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // add each host to this stage
     //TODO pass service group name once upgrade is fixed
-    RequestResourceFilter filter = new RequestResourceFilter("", serviceName, componentName,
+    RequestResourceFilter filter = new RequestResourceFilter(DUMMY_SERVICE_GROUP, serviceName, componentName,
         new ArrayList<>(wrapper.getHosts()));
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
@@ -1117,7 +1119,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     for (TaskWrapper tw : wrapper.getTasks()) {
       // add each host to this stage
       //TODO pass service group name once upgrade is fixed
-      filters.add(new RequestResourceFilter("", tw.getService(), tw.getComponent(),
+      filters.add(new RequestResourceFilter(DUMMY_SERVICE_GROUP, tw.getService(), tw.getComponent(),
           new ArrayList<>(tw.getHosts())));
     }
 
@@ -1189,7 +1191,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     for (TaskWrapper tw : wrapper.getTasks()) {
       //TODO pass service group name once upgrade is fixed
-      filters.add(new RequestResourceFilter("", tw.getService(), "", Collections.emptyList()));
+      filters.add(new RequestResourceFilter(DUMMY_SERVICE_GROUP, tw.getService(), "", Collections.emptyList()));
     }
 
     Cluster cluster = context.getCluster();

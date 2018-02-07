@@ -18,7 +18,9 @@
 
 import {Injectable} from '@angular/core';
 import * as moment from 'moment-timezone';
+import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
+import {NodeItem} from '@app/classes/models/node-item';
 
 @Injectable()
 export class UtilsService {
@@ -103,6 +105,50 @@ export class UtilsService {
     return keys.reduce((currentMax: number, currentKey: string): number => {
       return isNaN(obj[currentKey]) ? currentMax : Math.max(currentMax, obj[currentKey]);
     }, 0);
+  }
+
+  /**
+   * Get instance for dropdown list from string
+   * @param name {string}
+   * @returns {ListItem}
+   */
+  getListItemFromString(name: string): ListItem {
+    return {
+      label: name,
+      value: name
+    };
+  }
+
+  /**
+   * Get instance for dropdown list from NodeItem object
+   * @param node {NodeItem}
+   * @returns {ListItem}
+   */
+  getListItemFromNode(node: NodeItem): ListItem {
+    return {
+      label: `${node.name} (${node.value})`,
+      value: node.name
+    };
+  }
+
+  /**
+   * Method that updates source array with only the values which aren't already present there
+   * @param {Array} sourceArray
+   * @param {Array} itemsToPush
+   * @param {Function} [compareFunction=this.isEqual] - custom comparison function;
+   * item is skipped if it returns true, and pushed - if false
+   * @returns {Array}
+   */
+  pushUniqueValues = (
+    sourceArray: any[], itemsToPush: any[], compareFunction: (x: any, y: any) => boolean = this.isEqual
+  ): any[] => {
+    itemsToPush.forEach((item: any) => {
+      const itemExists = sourceArray.some((sourceItem: any): boolean => compareFunction(item, sourceItem));
+      if (!itemExists) {
+        sourceArray.push(item);
+      }
+    });
+    return sourceArray;
   }
 
 }

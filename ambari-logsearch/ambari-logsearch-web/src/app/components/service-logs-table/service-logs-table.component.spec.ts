@@ -43,7 +43,6 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {AuthService} from '@app/services/auth.service';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
@@ -113,7 +112,6 @@ describe('ServiceLogsTableComponent', () => {
         ComponentsService,
         HostsService,
         ComponentGeneratorService,
-        ComponentActionsService,
         AuthService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]

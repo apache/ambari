@@ -44,3 +44,7 @@ export LOGSEARCH_KEYSTORE_TYPE={{logsearch_keystore_type}}
 export LOGSEARCH_TRUSTSTORE_LOCATION={{logsearch_truststore_location}}
 export LOGSEARCH_TRUSTSTORE_TYPE={{logsearch_truststore_type}}
 {% endif %}
+
+{% if security_enabled -%}
+export LOGSEARCH_JAVA_OPTS="{{zk_security_opts}}"
+{% endif %}

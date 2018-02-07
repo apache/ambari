@@ -49,25 +49,3 @@ class TestJdbcDriverConfig(RMFTestCase):
       pass
     except Exception as e:
       self.fail("Expected 'Fail', got {}".format(e))
-
-  def test_jdbc_driver_1_4_4_3_0(self):
-    self.executeScript("SQOOP/1.4.4.3.0/package/scripts/sqoop_client.py",
-                       classname="SqoopClient",
-                       command="configure",
-                       target=RMFTestCase.TARGET_COMMON_SERVICES,
-                       stack_version=self.STACK_VERSION,
-                       config_file=os.path.join(self.CONFIG_DIR, "sqoop_default.json"))
-
-  def test_unsupported_jdbc_driver_1_4_4_3_0(self):
-    try:
-      self.executeScript("SQOOP/1.4.4.3.0/package/scripts/sqoop_client.py",
-                         classname="SqoopClient",
-                         command="configure",
-                         target=RMFTestCase.TARGET_COMMON_SERVICES,
-                         stack_version=self.STACK_VERSION,
-                         config_file=os.path.join(self.CONFIG_DIR, "sqoop_unsupported_jdbc_driver.json"))
-      self.fail("Expected 'Fail', but call completed without throwing")
-    except Fail as e:
-      pass
-    except Exception as e:
-      self.fail("Expected 'Fail', got {}".format(e))

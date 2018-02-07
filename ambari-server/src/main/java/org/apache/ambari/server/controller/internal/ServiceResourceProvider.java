@@ -105,7 +105,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "maintenance_state";
   public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_supported";
   public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_enabled";
-  public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "attributes";
+  public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = "Services" + PropertyHelper.EXTERNAL_PATH_SEP + "attributes";
   public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
   public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_repository_version_id";
   protected static final String SERVICE_REPOSITORY_STATE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_state";

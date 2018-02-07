@@ -101,4 +101,24 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <property>
+    <name>logsearch_zookeeper_external_principal</name>
+    <value>zookeeper/_HOST@EXAMPLE.COM</value>
+    <display-name>External ZK principal</display-name>
+    <description>The kerberos service principal name for external ZooKeeper.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>logsearch_zookeeper_external_enabled</name>
+    <value>false</value>
+    <display-name>Enable External ZK</display-name>
+    <description>Enable external ZooKeeper. If the Solr is secure, the external ZK should be secure as well.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
 </configuration>

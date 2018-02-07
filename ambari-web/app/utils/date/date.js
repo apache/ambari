@@ -138,65 +138,69 @@ module.exports = {
       return Em.I18n.t('common.na');
     }
     if (endDate.getFullYear() != 1969 && endTimestamp > 0) {
-      durationSummary = '' + this.timingFormat(endTimestamp - startTimestamp, 1);
+      durationSummary = '' + this.timingFormat(endTimestamp - startTimestamp);
       return durationSummary.contains('-') ? Em.I18n.t('common.na') : durationSummary; //lasted for xx secs
     } else {
       // still running, duration till now
       var time = (App.dateTimeWithTimeZone() - startTimestamp) < 0 ? 0 : (App.dateTimeWithTimeZone() - startTimestamp);
-      durationSummary = '' + this.timingFormat(time, 1);
+      durationSummary = '' + this.timingFormat(time);
     }
     return durationSummary.contains('-') ? Em.I18n.t('common.na') : durationSummary;
   },
 
   /**
-   * Convert time in mseconds to
-   * 30 ms = 30 ms
-   * 300 ms = 300 ms
-   * 999 ms = 999 ms
-   * 1000 ms = 1.00 secs
-   * 3000 ms = 3.00 secs
-   * 35000 ms = 35.00 secs
-   * 350000 ms = 350.00 secs
-   * 999999 ms = 999.99 secs
-   * 1000000 ms = 16.66 mins
-   * 3500000 secs = 58.33 mins
+   * Format: "{#days}d {#hours}h {#minutes}m {#seconds}s {#milliseconds}ms"
+   * Example: "1d 3h 46m"
    *
-   * @param {number} time
-   * @param {bool} [zeroValid] for the case to show 0 when time is 0, not null
+   * Display optimization rules:
+   *   if time more than a day then hide time lower than minute
+   *   if time more than a minute and less than an hour then hide time lower than second
+   * @param {number|string} time
    * @return {string|null} formatted date
    * @method timingFormat
    */
-  timingFormat: function (time, /* optional */ zeroValid) {
-    var intTime = parseInt(time);
-    if (zeroValid && intTime == 0) {
-      return 0 + ' secs';
-    }
-    if (!intTime) {
+  timingFormat: function (time) {
+    if (Em.isNone(time)) {
       return null;
     }
-    var timeStr = intTime.toString();
-    var lengthOfNumber = timeStr.length;
-    var oneMinMs = 60000;
-    var oneHourMs = 3600000;
-    var oneDayMs = 86400000;
 
-    if (lengthOfNumber < 4) {
-      return time + ' ms';
+    time = parseInt(time);
+    const fullTime = time;
+    let duration = '';
+
+    if (time === 0) {
+      return '0s';
     }
-    if (lengthOfNumber < 7) {
-      time = (time / 1000).toFixed(2);
-      return time + ' secs';
+
+    const oneSecMs = 1000;
+    const oneMinMs = 60000;
+    const oneHourMs = 3600000;
+    const oneDayMs = 86400000;
+    let days, hours, minutes, seconds, milliseconds;
+
+    [days, time] = this.extractTimeUnit(time, oneDayMs, 'd');
+    [hours, time] = this.extractTimeUnit(time, oneHourMs, 'h');
+    [minutes, time] = this.extractTimeUnit(time, oneMinMs, 'm');
+    duration += days + hours + minutes;
+    if (fullTime < oneDayMs) {
+      [seconds, time] = this.extractTimeUnit(time, oneSecMs, 's');
+      duration += seconds;
+      if (fullTime < oneMinMs) {
+        [milliseconds, time] = this.extractTimeUnit(time, 1, 'ms');
+        duration += milliseconds;
+      }
     }
-    if (time < oneHourMs) {
-      time = (time / oneMinMs).toFixed(2);
-      return time + ' mins';
+
+    return duration.trim();
+  },
+
+  extractTimeUnit: function (time, unitValue, unitSuffix) {
+    let result = '';
+    if (time >= unitValue) {
+      result = Math.floor(time / unitValue) + `${unitSuffix} `;
+      time -= Math.floor(time / unitValue) * unitValue;
     }
-    if (time < oneDayMs) {
-      time = (time / oneHourMs).toFixed(2);
-      return time + ' hours';
-    }
-    time = (time / oneDayMs).toFixed(2);
-    return time + ' days';
+    return [result, time];
   },
 
   /**

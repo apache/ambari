@@ -129,8 +129,8 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -3182,31 +3182,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       for (Service service : smokeTestServices) { // Creates smoke test commands
-        // find service component host
-        ServiceComponent component = getClientComponentForRunningAction(cluster, service);
-        String componentName = component != null ? component.getName() : null;
-        String clientHost = getClientHostForRunningAction(cluster, service, component);
         String smokeTestRole = actionMetadata.getServiceCheckAction(service.getServiceType());
+        try {
+          // find service component host
+          ServiceComponentHost componentForServiceCheck = customCommandExecutionHelper.
+              calculateServiceComponentHostForServiceCheck(cluster, service);
 
-        if (clientHost == null || smokeTestRole == null) {
-          LOG.info("Nothing to do for service check as could not find role or"
-              + " or host to run check on"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", serviceGroupName=" + service.getServiceGroupName()
-              + ", serviceName=" + service.getName()
-              + ", clientHost=" + clientHost
-              + ", serviceCheckRole=" + smokeTestRole);
-          continue;
+          if (StringUtils.isBlank(stage.getHostParamsStage())) {
+            RepositoryVersionEntity repositoryVersion = componentForServiceCheck.getServiceComponent().getDesiredRepositoryVersion();
+            stage.setHostParamsStage(StageUtils.getGson().toJson(
+                customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
+          }
+
+          customCommandExecutionHelper.addServiceCheckAction(stage, componentForServiceCheck.getHostName(), smokeTestRole,
+              nowTimestamp, componentForServiceCheck.getServiceGroupName(), componentForServiceCheck.getServiceName(),
+              componentForServiceCheck.getServiceComponentName(), null, false, false, service.getName());
+
+        } catch (AmbariException e) {
+            LOG.warn("Nothing to do for service check as could not find role or"
+                + " or host to run check on"
+                + ", clusterName=" + cluster.getClusterName()
+                + ", serviceGroupName=" + service.getServiceGroupName()
+                + ", serviceName=" + service.getName()
+                + ", serviceCheckRole=" + smokeTestRole
+                + "Actual reason : " + e.getMessage());
         }
-
-        if (StringUtils.isBlank(stage.getHostParamsStage())) {
-          RepositoryVersionEntity repositoryVersion = component.getDesiredRepositoryVersion();
-          stage.setHostParamsStage(StageUtils.getGson().toJson(
-              customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
-        }
-
-        customCommandExecutionHelper.addServiceCheckAction(stage, clientHost, smokeTestRole,
-            nowTimestamp, service.getServiceGroupName(), service.getName(), componentName, null, false, false);
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -4007,79 +4007,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // currently no group updates are supported
   }
 
-  protected String getClientHostForRunningAction(Cluster cluster, Service service, ServiceComponent serviceComponent)
-      throws AmbariException {
-    if (serviceComponent != null && !serviceComponent.getServiceComponentHosts().isEmpty()) {
-      Set<String> candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
-      filterHostsForAction(candidateHosts, service, cluster, Resource.Type.Cluster);
-      return getHealthyHost(candidateHosts);
-    }
-    return null;
-  }
-
-  protected ServiceComponent getClientComponentForRunningAction(Cluster cluster,
-      Service service) throws AmbariException {
-    /*
-     * We assume Cluster level here. That means that we never run service
-     * checks on clients/hosts that are in maintenance state.
-     * That also means that we can not run service check if the only host
-     * that has client component is in maintenance state
-     */
-
-    StackId stackId = service.getDesiredStackId();
-    ComponentInfo compInfo =
-        ambariMetaInfo.getService(stackId.getStackName(),
-            stackId.getStackVersion(), service.getServiceType()).getClientComponent();
-    if (compInfo != null) {
-      try {
-        ServiceComponent serviceComponent =
-            service.getServiceComponent(compInfo.getName());
-        if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
-          return serviceComponent;
-        }
-      } catch (ServiceComponentNotFoundException e) {
-        LOG.warn("Could not find required component to run action"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", serviceName=" + service.getName()
-            + ", componentName=" + compInfo.getName());
-      }
-    }
-
-    // any component will do
-    Map<String, ServiceComponent> components = service.getServiceComponents();
-    if (!components.isEmpty()) {
-      for (ServiceComponent serviceComponent : components.values()) {
-        if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
-          return serviceComponent;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Utility method that filters out hosts from set based on their maintenance
-   * state status.
-   */
-  protected void filterHostsForAction(Set<String> candidateHosts, Service service,
-                                    final Cluster cluster,
-                                    final Resource.Type level)
-                                    throws AmbariException {
-    Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
-      candidateHosts, new MaintenanceStateHelper.HostPredicate() {
-        @Override
-        public boolean shouldHostBeRemoved(final String hostname)
-          throws AmbariException {
-          Host host = clusters.getHost(hostname);
-          return !maintenanceStateHelper.isOperationAllowed(
-            host, cluster.getClusterId(), level);
-        }
-      }
-    );
-    LOG.debug("Ignoring hosts when selecting available hosts for action due to maintenance state.Ignored hosts ={}, cluster={}, service={}",
-      ignoredHosts, cluster.getClusterName(), service.getName());
-  }
-
   /**
    * Filters hosts to only select healthy ones that are heartbeating.
    * <p/>
@@ -4444,12 +4371,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          if (operatingSystem.getOsType().equals(osType)) {
-            for (RepositoryEntity repository: operatingSystem.getRepositories()) {
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          if (operatingSystem.getFamily().equals(osType)) {
+            for (RepoDefinitionEntity repository : operatingSystem.getRepoDefinitionEntities()) {
 
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
-                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "",
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepoID(),
+                  repository.getRepoName(), repository.getDistribution(), repository.getComponents(), "", "",
                       repository.getTags());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
@@ -4958,8 +4885,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getOsType());
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getFamily());
           if (null != versionDefinitionId) {
             response.setVersionDefinitionId(repositoryVersionId.toString());
           } else {
@@ -4967,7 +4894,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
           response.setStackName(repositoryVersion.getStackName());
           response.setStackVersion(repositoryVersion.getStackVersion());
-          response.setAmbariManagedRepos(operatingSystem.isAmbariManagedRepos());
+          response.setAmbariManagedRepos(operatingSystem.isAmbariManaged());
           responses.add(response);
         }
       }

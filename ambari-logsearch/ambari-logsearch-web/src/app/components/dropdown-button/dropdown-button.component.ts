@@ -16,10 +16,8 @@
  * limitations under the License.
  */
 
-import {Component, Input} from '@angular/core';
+import {Component, Input, Output, EventEmitter} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
-import {ServiceInjector} from '@app/classes/service-injector';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 
 @Component({
@@ -30,14 +28,13 @@ import {UtilsService} from '@app/services/utils.service';
 export class DropdownButtonComponent {
 
   constructor(protected utils: UtilsService) {
-    this.actions = ServiceInjector.injector.get(ComponentActionsService);
   }
-  
+
   @Input()
   label?: string;
 
   @Input()
-  buttonClass: string = '';
+  buttonClass: string = 'btn-link';
 
   @Input()
   iconClass?: string;
@@ -52,10 +49,7 @@ export class DropdownButtonComponent {
   options: ListItem[] = [];
 
   @Input()
-  action?: string;
-
-  @Input()
-  additionalArgs: any[] = [];
+  listItemArguments: any[] = [];
 
   @Input()
   isMultipleChoice: boolean = false;
@@ -66,7 +60,11 @@ export class DropdownButtonComponent {
   @Input()
   isDropup: boolean = false;
 
-  private actions: ComponentActionsService;
+  @Input()
+  showCommonLabelWithSelection: boolean = false;
+
+  @Output()
+  selectItem: EventEmitter<any> = new EventEmitter();
 
   protected selectedItems?: ListItem[] = [];
 
@@ -78,22 +76,28 @@ export class DropdownButtonComponent {
     this.selectedItems = items;
   }
 
+  // TODO handle case of selections with multiple items
+  /**
+   * Indicates whether selection can be displayed at the moment, i.e. it's not empty, not multiple
+   * and set to be displayed by showSelectedValue flag
+   * @returns {boolean}
+   */
+  get isSelectionDisplayable():boolean {
+    return this.showSelectedValue && !this.isMultipleChoice && this.selection.length > 0;
+  }
+
   updateSelection(item: ListItem): void {
-    const action = this.action && this.actions[this.action];
+    const hasAction = this.selectItem.observers.length;
     if (this.isMultipleChoice) {
       this.options.find((option: ListItem): boolean => {
         return this.utils.isEqual(option.value, item.value);
       }).isChecked = item.isChecked;
       const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
       this.selection = checkedItems;
-      if (action) {
-        action(checkedItems.map((option: ListItem): any => option.value), ...this.additionalArgs);
-      }
+      this.selectItem.emit(checkedItems.map((option: ListItem): any => option.value));
     } else if (!this.utils.isEqual(this.selection[0], item)) {
       this.selection = [item];
-      if (action) {
-        action(item.value, ...this.additionalArgs);
-      }
+      this.selectItem.emit(item.value);
     }
   }
 

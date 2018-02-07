@@ -17,6 +17,11 @@
 module.exports = {
 
   /**
+   * @const
+   */
+  BYTES_IN_MB: 1024 * 1024,
+
+  /**
    * Convert byte size to other metrics.
    *
    * @param {Number} bytes to convert to string

@@ -158,6 +158,9 @@ App.HostComponent = DS.Model.extend({
   },
 
   componentTextStatus: function () {
+    if (this.get('isClient') && this.get("workStatus") === 'INSTALLED') {
+      return Em.I18n.t('common.installed');
+    }
     return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
   }.property('workStatus', 'isDecommissioning')
 });

@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.auth.filter;
 
+import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -46,12 +47,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -110,14 +114,27 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
   @Override
   protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
     super.successfulAuthentication(request, response, chain, authResult);
-    response.sendRedirect(request.getRequestURL().toString() + getOriginalQueryString(request));
+    String ajaxRequestHeader = request.getHeader("X-Requested-With");
+    if (isWebUserAgent(request.getHeader("User-Agent")) && !"XMLHttpRequest".equals(ajaxRequestHeader)) {
+      response.sendRedirect(request.getRequestURL().toString() + getOriginalQueryString(request));
+    }
+    // chain.doFilter(request, response); TODO: check
   }
 
   @Override
   protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
     super.unsuccessfulAuthentication(request, response, failed);
+    String ajaxRequestHeader = request.getHeader("X-Requested-With");
     String loginUrl = constructLoginURL(request);
-    response.sendRedirect(loginUrl);
+    if (!isWebUserAgent(request.getHeader("User-Agent")) || "XMLHttpRequest".equals(ajaxRequestHeader)) {
+      Map<String, String> mapObj = new HashMap<>();
+      mapObj.put("knoxssoredirectURL", URLEncoder.encode(loginUrl, "UTF-8"));
+      response.setContentType("application/json");
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,  new Gson().toJson(mapObj));
+    } else {
+      response.sendRedirect(loginUrl);
+    }
   }
 
   private String getJWTFromCookie(HttpServletRequest req) {
@@ -133,6 +150,20 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
       }
     }
     return serializedJWT;
+  }
+
+  private boolean isWebUserAgent(String userAgent) {
+    boolean isWeb = false;
+    List<String> userAgentList = getUserAgentList();
+    if (userAgentList != null && userAgentList.size() > 0) {
+      for (String ua : userAgentList) {
+        if (StringUtils.startsWithIgnoreCase(userAgent, ua)) {
+          isWeb = true;
+          break;
+        }
+      }
+    }
+    return isWeb;
   }
 
   private RSAPublicKey parseRSAPublicKey(String pem) throws ServletException {
@@ -189,5 +220,7 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
   protected abstract List<String> getAudiences();
 
   protected abstract Collection<? extends GrantedAuthority> getAuthorities();
+
+  protected abstract List<String> getUserAgentList();
 
 }

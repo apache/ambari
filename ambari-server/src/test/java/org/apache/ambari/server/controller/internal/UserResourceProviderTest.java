@@ -92,7 +92,6 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
-import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -417,7 +416,6 @@ public class UserResourceProviderTest extends EasyMockSupport {
         bind(ServiceComponentHostFactory.class).toInstance(createMock(ServiceComponentHostFactory.class));
         bind(PasswordEncoder.class).toInstance(createMock(PasswordEncoder.class));
         bind(KerberosHelper.class).toInstance(createMock(KerberosHelper.class));
-        bind(Users.class).toInstance(createMock(Users.class));
         bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
@@ -435,8 +433,6 @@ public class UserResourceProviderTest extends EasyMockSupport {
         bind(UserAuthenticationDAO.class).toInstance(createMock(UserAuthenticationDAO.class));
         bind(GroupDAO.class).toInstance(createMock(GroupDAO.class));
         bind(MemberDAO.class).toInstance(createMock(MemberDAO.class));
-        bind(PrincipalDAO.class).toInstance(createMock(PrincipalDAO.class));
-        bind(PrincipalDAO.class).toInstance(createMock(PrincipalDAO.class));
         bind(PrincipalDAO.class).toInstance(createMock(PrincipalDAO.class));
         bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
         bind(PrivilegeDAO.class).toInstance(createMock(PrivilegeDAO.class));
@@ -480,7 +476,6 @@ public class UserResourceProviderTest extends EasyMockSupport {
             return null;
           }
         }).once();
-
 
         HookContextFactory hookContextFactory = injector.getInstance(HookContextFactory.class);
         expect(hookContextFactory.createUserHookContext(username)).andReturn(null).once();
@@ -829,7 +824,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
           if (UserAuthenticationSourceResourceProvider.AUTHENTICATION_USER_NAME_PROPERTY_ID.equals(equalsPredicate.getPropertyId())) {
             Assert.assertEquals(requestedUsername, equalsPredicate.getValue());
           } else if (UserAuthenticationSourceResourceProvider.AUTHENTICATION_AUTHENTICATION_SOURCE_ID_PROPERTY_ID.equals(equalsPredicate.getPropertyId())) {
-            Assert.assertEquals(100L, equalsPredicate.getValue());
+            Assert.assertEquals("100", equalsPredicate.getValue());
           }
         }
       }

@@ -122,20 +122,6 @@ export class GraphComponent implements AfterViewInit, OnChanges {
   skipZeroValuesInTooltip: boolean = true;
 
   /**
-   * Indicates whether context menu for X axis ticks is available
-   * @type {boolean}
-   */
-  @Input()
-  hasXTickContextMenu: boolean = false;
-
-  /**
-   * Indicates whether context menu for Y axis ticks is available
-   * @type {boolean}
-   */
-  @Input()
-  hasYTickContextMenu: boolean = false;
-
-  /**
    * Indicates whether X axis event should be emitted with formatted string values that are displayed
    * (instead of raw values)
    * @type {boolean}
@@ -320,7 +306,7 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     this.xAxis = axis;
     this.svg.append('g').attr('class', `axis ${this.xAxisClassName}`).attr('transform', `translate(0,${this.height})`)
       .call(this.xAxis);
-    if (this.hasXTickContextMenu) {
+    if (this.xTickContextMenu.observers.length) {
       this.svg.selectAll(`.${this.xAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
         const tick = this.emitFormattedXTick ? this.xAxisTickFormatter(tickValue, index) : tickValue,
           nativeEvent = d3.event;
@@ -342,7 +328,7 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     }
     this.yAxis = axis;
     this.svg.append('g').attr('class', `axis ${this.yAxisClassName}`).call(this.yAxis);
-    if (this.hasYTickContextMenu) {
+    if (this.yTickContextMenu.observers.length) {
       this.svg.selectAll(`.${this.yAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
         const tick = this.emitFormattedYTick ? this.yAxisTickFormatter(tickValue, index): tickValue,
           nativeEvent = d3.event;
