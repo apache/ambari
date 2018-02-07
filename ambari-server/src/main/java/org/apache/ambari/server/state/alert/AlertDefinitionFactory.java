@@ -196,6 +196,7 @@ public class AlertDefinitionFactory {
       Source source = m_gson.fromJson(sourceJson, Source.class);
       definition.setSource(source);
     } catch (Exception exception) {
+      LOG.error("Alert defintion is invalid for  Id : " + entity.getDefinitionId() + " Name: "+  entity.getDefinitionName() );
       LOG.error(
           "Unable to deserialize the alert definition source during coercion",
           exception);
