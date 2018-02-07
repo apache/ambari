@@ -52,7 +52,7 @@ ZK_CLIENT_TIMEOUT="60000"
 
 # By default the start script uses "localhost"; override the hostname here
 # for production SolrCloud environments to control the hostname exposed to cluster state
-#SOLR_HOST="192.168.1.1"
+SOLR_HOST=`hostname -f`
 
 # By default the start script uses UTC; override the timezone if needed
 #SOLR_TIMEZONE="UTC"
@@ -108,13 +108,12 @@ SOLR_SSL_WANT_CLIENT_AUTH=false
 #SOLR_SSL_PORT=
 
 {% if security_enabled -%}
-SOLR_HOST=`hostname -f`
 SOLR_JAAS_FILE={{infra_solr_jaas_file}}
 SOLR_KERB_KEYTAB={{infra_solr_web_kerberos_keytab}}
 SOLR_KERB_PRINCIPAL={{infra_solr_web_kerberos_principal}}
 SOLR_KERB_NAME_RULES="{{infra_solr_kerberos_name_rules}}"
 SOLR_OPTS="$SOLR_OPTS {{zk_security_opts}}"
 
-SOLR_AUTHENTICATION_CLIENT_CONFIGURER="org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer"
+SOLR_AUTH_TYPE="kerberos"
 SOLR_AUTHENTICATION_OPTS=" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST}"
 {% endif %}

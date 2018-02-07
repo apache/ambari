@@ -151,9 +151,9 @@ public class AmbariSolrCloudCLI {
       .argName("my_new_shard")
       .build();
 
-    final Option disableShardingOption = Option.builder("ns")
-      .longOpt("no-sharding")
-      .desc("Sharding not used when creating collection")
+    final Option implicitRoutingOption = Option.builder("ir")
+      .longOpt("implicit-routing")
+      .desc("Use implicit routing when creating a collection")
       .build();
 
     final Option zkConnectStringOption = Option.builder("z")
@@ -350,7 +350,7 @@ public class AmbariSolrCloudCLI {
     options.addOption(routerNameOption);
     options.addOption(routerFieldOption);
     options.addOption(shardNameOption);
-    options.addOption(disableShardingOption);
+    options.addOption(implicitRoutingOption);
     options.addOption(createCollectionOption);
     options.addOption(downloadConfigOption);
     options.addOption(uploadConfigurationOption);
@@ -445,7 +445,7 @@ public class AmbariSolrCloudCLI {
       String routerName = cli.hasOption("rn") ? cli.getOptionValue("rn") : null;
       String routerField = cli.hasOption("rf") ? cli.getOptionValue("rf") : null;
       String shardName = cli.hasOption("sn") ? cli.getOptionValue("sn") : null;
-      boolean isSplitting = !cli.hasOption("ns");
+      boolean implicitRouting = cli.hasOption("ir");
       String jaasFile = cli.hasOption("jf") ? cli.getOptionValue("jf") : null;
       String keyStoreLocation = cli.hasOption("ksl") ? cli.getOptionValue("ksl") : null;
       String keyStorePassword = cli.hasOption("ksp") ? cli.getOptionValue("ksp") : null;
@@ -472,7 +472,7 @@ public class AmbariSolrCloudCLI {
         .withRouterName(routerName)
         .withRouterField(routerField)
         .withJaasFile(jaasFile) // call before creating SolrClient
-        .withSplitting(isSplitting)
+        .isImplicitRouting(implicitRouting)
         .withSolrZkClient(ZK_CLIENT_TIMEOUT, ZK_CLIENT_CONNECT_TIMEOUT)
         .withKeyStoreLocation(keyStoreLocation)
         .withKeyStorePassword(keyStorePassword)

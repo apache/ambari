@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.security;
+package org.apache.solr.security;
 
 import org.apache.hadoop.security.authentication.server.AuthenticationToken;
 import org.junit.Before;
