@@ -34,8 +34,7 @@ class TestAmbariAgent(unittest.TestCase):
   @patch.object(subprocess32, "Popen")
   @patch("os.path.isfile")
   @patch("os.remove")
-  @patch("os.killpg")
-  def test_main(self, os_killpg_mock, os_remove_mock,
+  def test_main(self, os_remove_mock,
                 os_path_isfile_mock, subprocess32_popen_mock):
     facter1 = MagicMock()
     facter2 = MagicMock()
@@ -55,7 +54,6 @@ class TestAmbariAgent(unittest.TestCase):
     self.assertTrue(os_path_isfile_mock.called)
     self.assertTrue(os_path_isfile_mock.call_count == 2)
     self.assertTrue(os_remove_mock.called)
-    self.assertTrue(os_killpg_mock.called)
 
   #
   # Test AmbariConfig.getLogFile() for ambari-agent
