@@ -19,44 +19,23 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>PIG</name>
-      <comment>This is comment for PIG service</comment>
-      <version>1.0</version>
-
+      <name>HADOOP_CLIENTS</name>
+      <comment>Clients service for testing purposes</comment>
+      <version>0.1.2.0.6</version>
+      <category>CLIENT</category>
       <components>
         <component>
-          <name>PIG</name>
+          <name>SOME_CLIENT_FOR_SERVICE_CHECK</name>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
-          <commandScript>
-            <script>scripts/pig_client.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
+          <version>0.95.2.2.0.6.0-hbase-master</version>
         </component>
       </components>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>centos6</osFamily>
-          <packages>
-            <package>
-              <name>pig</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
-        <clientComponentType>SOME_CLIENT_FOR_SERVICE_CHECK</clientComponentType>
       </commandScript>
-
-      <configuration-dependencies>
-        <config-type>global</config-type>
-      </configuration-dependencies>
-
     </service>
   </services>
 </metainfo>
