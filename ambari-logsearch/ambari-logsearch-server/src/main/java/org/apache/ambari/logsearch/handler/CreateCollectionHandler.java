@@ -88,7 +88,7 @@ public class CreateCollectionHandler implements SolrZkRequestHandler<Boolean> {
     // Default is true, because if the collection and shard is already there, then it will return true
     boolean returnValue = true;
 
-    List<String> shardsList = new ArrayList<String>();
+    List<String> shardsList = new ArrayList<>();
     for (int i = 0; i < solrPropsConfig.getNumberOfShards(); i++) {
       shardsList.add("shard" + i);
     }

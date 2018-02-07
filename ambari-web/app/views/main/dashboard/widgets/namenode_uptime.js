@@ -21,11 +21,6 @@ var App = require('app');
 App.NameNodeUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
   component: 'NameNode',
-  modelField: 'nameNodeStartTime',
-
-  didInsertElement: function() {
-    this._super();
-    this.calc();
-  }
+  modelField: 'nameNodeStartTime'
 
 });

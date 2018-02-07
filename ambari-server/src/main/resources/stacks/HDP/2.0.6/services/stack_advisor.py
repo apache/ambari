@@ -809,55 +809,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       parentValidators[service].update(configsDict)
 
 
-  def get_service_component_meta(self, service, component, services):
-    """
-    Function retrieve service component meta information as dict from services.json
-    If no service or component found, would be returned empty dict
-
-    Return value example:
-        "advertise_version" : true,
-        "bulk_commands_display_name" : "",
-        "bulk_commands_master_component_name" : "",
-        "cardinality" : "1+",
-        "component_category" : "CLIENT",
-        "component_name" : "HBASE_CLIENT",
-        "custom_commands" : [ ],
-        "decommission_allowed" : false,
-        "display_name" : "HBase Client",
-        "has_bulk_commands_definition" : false,
-        "is_client" : true,
-        "is_master" : false,
-        "reassign_allowed" : false,
-        "recovery_enabled" : false,
-        "service_name" : "HBASE",
-        "stack_name" : "HDP",
-        "stack_version" : "2.5",
-        "hostnames" : [ "host1", "host2" ]
-
-    :type service str
-    :type component str
-    :type services dict
-    :rtype dict
-    """
-    __stack_services = "StackServices"
-    __stack_service_components = "StackServiceComponents"
-
-    if not services:
-      return {}
-
-    service_meta = [item for item in services["services"] if item[__stack_services]["service_name"] == service]
-    if len(service_meta) == 0:
-      return {}
-
-    service_meta = service_meta[0]
-    component_meta = [item for item in service_meta["components"] if item[__stack_service_components]["component_name"] == component]
-
-    if len(component_meta) == 0:
-      return {}
-
-    return component_meta[0][__stack_service_components]
-
-
   def get_components_list(self, service, services):
     """
     Return list of components for specific service

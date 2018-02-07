@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.state;
 
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -35,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -134,6 +138,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
   private RepositoryVersionEntity repositoryVersion2110;
   private RepositoryVersionEntity repositoryVersion2200;
   private RepositoryVersionEntity repositoryVersion2210;
+  private HostsType namenodeHosts = HostsType.highAvailability("h1", "h2", newLinkedHashSet(Arrays.asList("h1", "h2")));
 
   /**
    * Because test cases need to share config mocks, put common ones in this function.
@@ -531,7 +536,42 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals("h1", orderedNameNodes.get(1));
   }
 
+  @Test
+  public void testNamenodeFederationOrder() throws Exception {
+    namenodeHosts = HostsType.federated(
+      Arrays.asList(
+        new HostsType.HighAvailabilityHosts("h1", Arrays.asList("h2", "h3")),
+        new HostsType.HighAvailabilityHosts("h4", singletonList("h5"))),
+      newLinkedHashSet(Arrays.asList("h1", "h2", "h3", "h4", "h5")));
 
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(7, groups.size());
+
+    UpgradeGroupHolder mastersGroup = groups.get(2);
+    assertEquals("CORE_MASTER", mastersGroup.name);
+
+    List<String> orderedNameNodes = new LinkedList<>();
+    for (StageWrapper sw : mastersGroup.items) {
+      if (sw.getType().equals(StageWrapper.Type.RESTART) && sw.getText().toLowerCase().contains("NameNode".toLowerCase())) {
+        for (TaskWrapper tw : sw.getTasks()) {
+          for (String hostName : tw.getHosts()) {
+            orderedNameNodes.add(hostName);
+          }
+        }
+      }
+    }
+    assertEquals(Arrays.asList("h2", "h3", "h1", "h5", "h4"), orderedNameNodes);
+  }
 
   @Test
   public void testUpgradeOrchestrationWithNoHeartbeat() throws Exception {
@@ -710,7 +750,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
         cluster.getClusterId(), cluster.getClusterName(),
         cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    clusterRequest.setDesiredConfig(Collections.singletonList(configurationRequest));
+    clusterRequest.setDesiredConfig(singletonList(configurationRequest));
     m_managementController.updateClusters(new HashSet<ClusterRequest>() {
       {
         add(clusterRequest);
@@ -952,7 +992,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
         cluster.getClusterId(), cluster.getClusterName(),
         cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    clusterRequest.setDesiredConfig(Collections.singletonList(configurationRequest));
+    clusterRequest.setDesiredConfig(singletonList(configurationRequest));
     m_managementController.updateClusters(new HashSet<ClusterRequest>() {
       {
         add(clusterRequest);
@@ -1320,52 +1360,41 @@ public class UpgradeHelperTest extends EasyMockSupport {
     final ClusterRequest clusterRequest = new ClusterRequest(c.getClusterId(),
         clusterName, c.getDesiredStackVersion().getStackVersion(), null);
 
-    clusterRequest.setDesiredConfig(Collections.singletonList(configurationRequest));
+    clusterRequest.setDesiredConfig(singletonList(configurationRequest));
     m_managementController.updateClusters(new HashSet<ClusterRequest>() {
       {
         add(clusterRequest);
       }
     }, null);
 
-    HostsType type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h1", "h2", "h3"));
+    HostsType type = HostsType.normal("h1", "h2", "h3");
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
+    expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(namenodeHosts).anyTimes();
 
-    type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h1", "h2"));
-    type.master = "h1";
-    type.secondary = "h2";
-    expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(type).anyTimes();
-
-    type = new HostsType();
     if (clean) {
-      type.hosts.addAll(Arrays.asList("h2", "h3", "h4"));
+      type = HostsType.normal("h2", "h3", "h4");
     } else {
-      type.unhealthy = Collections.singletonList(sch);
-      type.hosts.addAll(Arrays.asList("h2", "h3"));
+      type = HostsType.normal("h2", "h3");
+      type.unhealthy = singletonList(sch);
     }
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "DATANODE")).andReturn(type).anyTimes();
 
-    type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h2"));
+    type = HostsType.normal("h2");
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "RESOURCEMANAGER")).andReturn(type).anyTimes();
 
-    type = new HostsType();
+    type = HostsType.normal(Sets.newLinkedHashSet());
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "APP_TIMELINE_SERVER")).andReturn(type).anyTimes();
 
-    type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h1", "h3"));
+    type = HostsType.normal("h1", "h3");
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "NODEMANAGER")).andReturn(type).anyTimes();
 
     expect(m_masterHostResolver.getMasterAndHosts("HIVE", "HIVE_SERVER")).andReturn(
         type).anyTimes();
 
-    type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h2", "h3"));
+    type = HostsType.normal("h2", "h3");
     expect(m_masterHostResolver.getMasterAndHosts("OOZIE", "OOZIE_SERVER")).andReturn(type).anyTimes();
 
-    type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h1", "h2", "h3"));
+    type = HostsType.normal("h1", "h2", "h3");
     expect(m_masterHostResolver.getMasterAndHosts("OOZIE", "OOZIE_CLIENT")).andReturn(type).anyTimes();
 
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
@@ -1373,8 +1402,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     for(String service : additionalServices) {
       c.addService(serviceGroup, service, service, repositoryVersion);
       if (service.equals("HBASE")) {
-        type = new HostsType();
-        type.hosts.addAll(Arrays.asList("h1", "h2"));
+        type = HostsType.normal("h1", "h2");
         expect(m_masterHostResolver.getMasterAndHosts("HBASE", "HBASE_MASTER")).andReturn(type).anyTimes();
       }
     }
@@ -1495,9 +1523,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     List<ServiceComponentHost> schs = c.getServiceComponentHosts("HDFS", "NAMENODE");
     assertEquals(2, schs.size());
 
-    HostsType type = new HostsType();
-    type.master = "h1";
-    type.secondary = "h2";
+    HostsType type = HostsType.highAvailability("h1", "h2", new LinkedHashSet<>(emptySet()));
 
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(null).anyTimes();
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(type).anyTimes();
@@ -1581,15 +1607,15 @@ public class UpgradeHelperTest extends EasyMockSupport {
     replay(context);
 
     HostsType ht = resolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
-    assertEquals(0, ht.hosts.size());
+    assertEquals(0, ht.getHosts().size());
 
     // !!! if one of them is failed, it should be scheduled
     sch2.setUpgradeState(UpgradeState.FAILED);
 
     ht = resolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
 
-    assertEquals(1, ht.hosts.size());
-    assertEquals("h2", ht.hosts.iterator().next());
+    assertEquals(1, ht.getHosts().size());
+    assertEquals("h2", ht.getHosts().iterator().next());
   }
 
   /**
@@ -1659,13 +1685,13 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
 
     HostsType ht = mhr.getMasterAndHosts("HDFS", "NAMENODE");
-    assertNotNull(ht.master);
-    assertNotNull(ht.secondary);
-    assertEquals(2, ht.hosts.size());
+    assertNotNull(ht.getMasters());
+    assertNotNull(ht.getSecondaries());
+    assertEquals(2, ht.getHosts().size());
 
     // Should be stored in lowercase.
-    assertTrue(ht.hosts.contains("h1"));
-    assertTrue(ht.hosts.contains("h1"));
+    assertTrue(ht.getHosts().contains("h1"));
+    assertTrue(ht.getHosts().contains("h1"));
   }
 
   @Test
@@ -1729,13 +1755,13 @@ public class UpgradeHelperTest extends EasyMockSupport {
     replay(context);
 
     HostsType ht = mhr.getMasterAndHosts("HDFS", "NAMENODE");
-    assertNotNull(ht.master);
-    assertNotNull(ht.secondary);
-    assertEquals(2, ht.hosts.size());
+    assertNotNull(ht.getMasters());
+    assertNotNull(ht.getSecondaries());
+    assertEquals(2, ht.getHosts().size());
 
     // Should be stored in lowercase.
-    assertTrue(ht.hosts.contains("h1"));
-    assertTrue(ht.hosts.contains("h2"));
+    assertTrue(ht.getHosts().contains("h1"));
+    assertTrue(ht.getHosts().contains("h2"));
   }
 
 
@@ -1836,7 +1862,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
         OrderService orderService = new OrderService();
         orderService.serviceName = "STORM";
-        orderService.components = Collections.singletonList("NIMBUS");
+        orderService.components = singletonList("NIMBUS");
 
         g.name = "GROUP1";
         g.title = "Nimbus Group";
@@ -1943,12 +1969,10 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
 
-    HostsType type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h1", "h2"));
+    HostsType type = HostsType.normal("h1", "h2");
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
 
-    type = new HostsType();
-    type.hosts.addAll(Arrays.asList("h1", "h2"));
+    type = HostsType.normal("h1", "h2");
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_CLIENT")).andReturn(type).anyTimes();
 
 
@@ -2260,7 +2284,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     final ClusterRequest clusterRequest = new ClusterRequest(cluster.getClusterId(),
         cluster.getClusterName(), cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    clusterRequest.setDesiredConfig(Collections.singletonList(configurationRequest));
+    clusterRequest.setDesiredConfig(singletonList(configurationRequest));
     m_managementController.updateClusters(Sets.newHashSet(clusterRequest), null);
 
     // the config condition should now be set
@@ -2849,6 +2873,11 @@ public class UpgradeHelperTest extends EasyMockSupport {
             return Status.ACTIVE.toString();
           case "H2":
             return Status.STANDBY.toString();
+          case "H3":
+            return Status.ACTIVE.toString();
+          case "H4":
+            return Status.STANDBY.toString();
+
           default:
             return "UNKNOWN_NAMENODE_STATUS_FOR_THIS_HOST";
         }

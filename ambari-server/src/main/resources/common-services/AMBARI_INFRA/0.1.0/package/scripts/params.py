@@ -85,6 +85,16 @@ cloud_scripts = solr_dir + '/server/scripts/cloud-scripts'
 logsearch_hosts = default("/clusterHostInfo/logsearch_server_hosts", [])
 has_logsearch = len(logsearch_hosts) > 0
 
+zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
+# get comma separated list of zookeeper hosts from clusterHostInfo
+index = 0
+zookeeper_quorum = ""
+for host in config['clusterHostInfo']['zookeeper_hosts']:
+  zookeeper_quorum += host + ":" + str(zookeeper_port)
+  index += 1
+  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
+    zookeeper_quorum += ","
+
 if "infra-solr-env" in config['configurations']:
   infra_solr_hosts = config['clusterHostInfo']['infra_solr_hosts']
   infra_solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']
@@ -106,15 +116,7 @@ if "infra-solr-env" in config['configurations']:
   infra_solr_log = format("{infra_solr_log_dir}/solr-install.log")
   solr_env_content = config['configurations']['infra-solr-env']['content']
 
-zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-# get comma separated list of zookeeper hosts from clusterHostInfo
-index = 0
-zookeeper_quorum = ""
-for host in config['clusterHostInfo']['zookeeper_hosts']:
-  zookeeper_quorum += host + ":" + str(zookeeper_port)
-  index += 1
-  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
-    zookeeper_quorum += ","
+  zk_quorum = format(default('configurations/infra-solr-env/infra_solr_zookeeper_quorum', zookeeper_quorum))
 
 default_ranger_audit_users = 'nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi'
 
@@ -129,6 +131,13 @@ if security_enabled:
   infra_solr_kerberos_name_rules = config['configurations']['infra-solr-env']['infra_solr_kerberos_name_rules'].replace('$', '\$')
   infra_solr_sasl_user = get_name_from_principal(infra_solr_kerberos_principal)
   kerberos_realm = config['configurations']['kerberos-env']['realm']
+
+  zookeeper_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  external_zk_principal_enabled = default("/configurations/infra-solr-env/infra_solr_zookeeper_external_enabled", False)
+  external_zk_principal_name = default("/configurations/infra-solr-env/infra_solr_zookeeper_external_principal", "zookeeper/_HOST@EXAMPLE.COM")
+  zk_principal_name = external_zk_principal_name if external_zk_principal_enabled else zookeeper_principal_name
+  zk_principal_user = zk_principal_name.split('/')[0]
+  zk_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client')
 
   ranger_audit_principal_conf_key = "xasecure.audit.jaas.Client.option.principal"
   ranger_audit_principals = []

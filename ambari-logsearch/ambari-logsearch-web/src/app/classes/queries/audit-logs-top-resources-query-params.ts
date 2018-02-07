@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params';
+import {LogsQueryParams} from '@app/classes/queries/logs-query-params';
 
-export class AuditLogsTopResourcesQueryParams extends AuditLogsQueryParams {
+export class AuditLogsTopResourcesQueryParams extends LogsQueryParams {
   field: string;
 }

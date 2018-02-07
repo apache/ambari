@@ -88,6 +88,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(logSearchEnvConfig.getProperties()).andReturn(testProperties).atLeastOnce();
     expect(serviceComponentHostMock.getHostName()).andReturn(expectedHostName).atLeastOnce();
     expect(serviceComponentHostMock.getState()).andReturn(State.STARTED).atLeastOnce();
+    expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("");
     expect(serverConfigMock.getLogSearchPortalConnectTimeout()).andReturn(expectedConnectTimeout);
     expect(serverConfigMock.getLogSearchPortalReadTimeout()).andReturn(expectedReadTimeout);
 
@@ -152,6 +153,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(clusterMock.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.singletonList(serviceComponentHostMock)).atLeastOnce();
     expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service) null)).atLeastOnce();
+    expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("");
 
     // set the LOGSEARCH_SERVER's state to INSTALLED, to simulate the case where
     // the server is installed, but not started
@@ -201,6 +203,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(clusterMock.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchEnvConfig).atLeastOnce();
     expect(clusterMock.getServiceComponentHosts("LOGSEARCH", "LOGSEARCH_SERVER")).andReturn(Collections.emptyList()).atLeastOnce();
     expect(clusterMock.getServices()).andReturn(Collections.singletonMap("LOGSEARCH", (Service)null)).atLeastOnce();
+    expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("");
 
     mockSupport.replayAll();
 
@@ -241,6 +244,7 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     // do not include LOGSEARCH in this map, to simulate the case when LogSearch is not deployed
     expect(clusterMock.getServices()).andReturn(Collections.singletonMap("HDFS", (Service)null)).atLeastOnce();
+    expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("");
 
     mockSupport.replayAll();
 
@@ -255,6 +259,48 @@ public class LoggingRequestHelperFactoryImplTest {
 
     assertNull("LoggingRequestHelper object returned by the factory should have been null",
       helper);
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testHelperCreationWithExternalLogSearchPortal() throws Exception {
+    final String expectedClusterName = "testclusterone";
+    final int expectedConnectTimeout = 3000;
+    final int expectedReadTimeout = 3000;
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    AmbariManagementController controllerMock =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    Clusters clustersMock =
+      mockSupport.createMock(Clusters.class);
+
+    Cluster clusterMock =
+      mockSupport.createMock(Cluster.class);
+
+    Configuration serverConfigMock =
+      mockSupport.createMock(Configuration.class);
+
+    expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
+    expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
+    expect(serverConfigMock.getLogSearchPortalExternalAddress()).andReturn("http://logsearch.org:61888").times(2);
+    expect(controllerMock.getCredentialStoreService()).andReturn(null);
+    expect(serverConfigMock.getLogSearchPortalConnectTimeout()).andReturn(expectedConnectTimeout);
+    expect(serverConfigMock.getLogSearchPortalReadTimeout()).andReturn(expectedReadTimeout);
+
+    mockSupport.replayAll();
+
+    LoggingRequestHelperFactory helperFactory =
+      new LoggingRequestHelperFactoryImpl();
+
+    // set the configuration mock using the concrete type
+    // set the configuration object to null, to simulate an error in dependency injection
+    ((LoggingRequestHelperFactoryImpl)helperFactory).setAmbariServerConfiguration(serverConfigMock);
+
+    LoggingRequestHelper helper =
+      helperFactory.getHelper(controllerMock, expectedClusterName);
 
     mockSupport.verifyAll();
   }

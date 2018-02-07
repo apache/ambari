@@ -36,7 +36,10 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
@@ -47,10 +50,14 @@ import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
+import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
+import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -63,6 +70,7 @@ import com.google.inject.Injector;
 
 public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
+  public static final String HOST_ID_COLUMN = "host_id";
   /**
    * Logger.
    */
@@ -121,6 +129,35 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String ADMINPRIVILEGE_RESOURCE_ID_COLUMN = "resource_id";
   protected static final String ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN = "principal_id";
 
+  // kerberos tables constants
+  protected static final String KERBEROS_KEYTAB_TABLE = "kerberos_keytab";
+  protected static final String KERBEROS_KEYTAB_PRINCIPAL_TABLE = "kerberos_keytab_principal";
+  protected static final String KKP_MAPPING_SERVICE_TABLE = "kkp_mapping_service";
+  protected static final String KEYTAB_PATH_FIELD = "keytab_path";
+  protected static final String OWNER_NAME_FIELD = "owner_name";
+  protected static final String OWNER_ACCESS_FIELD = "owner_access";
+  protected static final String GROUP_NAME_FIELD = "group_name";
+  protected static final String GROUP_ACCESS_FIELD = "group_access";
+  protected static final String IS_AMBARI_KEYTAB_FIELD = "is_ambari_keytab";
+  protected static final String WRITE_AMBARI_JAAS_FIELD = "write_ambari_jaas";
+  protected static final String PK_KERBEROS_KEYTAB = "PK_kerberos_keytab";
+  protected static final String KKP_ID_COLUMN = "kkp_id";
+  protected static final String PRINCIPAL_NAME_COLUMN = "principal_name";
+  protected static final String IS_DISTRIBUTED_COLUMN = "is_distributed";
+  protected static final String PK_KKP = "PK_kkp";
+  protected static final String UNI_KKP = "UNI_kkp";
+  protected static final String SERVICE_NAME_COLUMN = "service_name";
+  protected static final String COMPONENT_NAME_COLUMN = "component_name";
+  protected static final String PK_KKP_MAPPING_SERVICE = "PK_kkp_mapping_service";
+  protected static final String FK_KKP_KEYTAB_PATH = "FK_kkp_keytab_path";
+  protected static final String FK_KKP_HOST_ID = "FK_kkp_host_id";
+  protected static final String FK_KKP_PRINCIPAL_NAME = "FK_kkp_principal_name";
+  protected static final String HOSTS_TABLE = "hosts";
+  protected static final String KERBEROS_PRINCIPAL_TABLE = "kerberos_principal";
+  protected static final String FK_KKP_SERVICE_PRINCIPAL = "FK_kkp_service_principal";
+  protected static final String KKP_ID_SEQ_NAME = "kkp_id_seq";
+  protected static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
+
   @Inject
   DaoUtils daoUtils;
 
@@ -168,6 +205,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     removeSecurityState();
     addAmbariConfigurationTable();
     upgradeUserTables();
+    upgradeKerberosTables();
   }
 
   /**
@@ -226,39 +264,39 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
       dbAccessor.createTable(temporaryTable, columns);
 
       dbAccessor.executeUpdate(
-          "insert into " + temporaryTable +
-              "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-              " select" +
-              "  u." + USERS_USER_ID_COLUMN + "," +
-              "  t.min_user_id," +
-              "  u." + USERS_USER_TYPE_COLUMN + "," +
-              "  u." + USERS_USER_PASSWORD_COLUMN + "," +
-              "  u." + USERS_CREATE_TIME_COLUMN + "," +
-              "  u." + USERS_CREATE_TIME_COLUMN +
-              " from " + USERS_TABLE + " as u inner join" +
-              "   (select" +
-              "     lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
-              "     min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
-              "    from " + USERS_TABLE +
-              "    group by lower(" + USERS_USER_NAME_COLUMN + ")) as t" +
-              " on (lower(u." + USERS_USER_NAME_COLUMN + ") = lower(t." + USERS_USER_NAME_COLUMN + "))"
+        "insert into " + temporaryTable +
+          "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
+          " select" +
+          "  u." + USERS_USER_ID_COLUMN + "," +
+          "  t.min_user_id," +
+          "  u." + USERS_USER_TYPE_COLUMN + "," +
+          "  u." + USERS_USER_PASSWORD_COLUMN + "," +
+          "  u." + USERS_CREATE_TIME_COLUMN + "," +
+          "  u." + USERS_CREATE_TIME_COLUMN +
+          " from " + USERS_TABLE + " as u inner join" +
+          "   (select" +
+          "     lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
+          "     min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
+          "    from " + USERS_TABLE +
+          "    group by lower(" + USERS_USER_NAME_COLUMN + ")) as t" +
+          " on (lower(u." + USERS_USER_NAME_COLUMN + ") = lower(t." + USERS_USER_NAME_COLUMN + "))"
       );
 
       // Ensure only LOCAL users have keys set in the user_authentication table
       dbAccessor.executeUpdate("update " + temporaryTable +
-          " set " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + "=null" +
-          " where " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + "!='" + UserAuthenticationType.LOCAL.name() + "'");
+        " set " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + "=null" +
+        " where " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + "!='" + UserAuthenticationType.LOCAL.name() + "'");
 
       dbAccessor.createTable(USER_AUTHENTICATION_TABLE, columns);
       dbAccessor.addPKConstraint(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_PRIMARY_KEY, USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN);
       dbAccessor.addFKConstraint(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY, USER_AUTHENTICATION_USER_ID_COLUMN, USERS_TABLE, USERS_USER_ID_COLUMN, false);
 
       dbAccessor.executeUpdate(
-          "insert into " + USER_AUTHENTICATION_TABLE +
-              "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-              " select distinct " +
-              USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN +
-              " from " + temporaryTable
+        "insert into " + USER_AUTHENTICATION_TABLE +
+          "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
+          " select distinct " +
+          USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN +
+          " from " + temporaryTable
       );
 
       // Delete the temporary table
@@ -318,7 +356,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   private void updateUsersTable() throws SQLException {
     // Remove orphaned user records...
     dbAccessor.executeUpdate("delete from " + USERS_TABLE +
-        " where " + USERS_USER_ID_COLUMN + " not in (select " + USER_AUTHENTICATION_USER_ID_COLUMN + " from " + USER_AUTHENTICATION_TABLE + ")");
+      " where " + USERS_USER_ID_COLUMN + " not in (select " + USER_AUTHENTICATION_USER_ID_COLUMN + " from " + USER_AUTHENTICATION_TABLE + ")");
 
     // Update the users table
     dbAccessor.dropUniqueConstraint(USERS_TABLE, UNIQUE_USERS_0_INDEX);
@@ -332,9 +370,9 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
     // Set the display name and local username values based on the username value
     dbAccessor.executeUpdate("update " + USERS_TABLE +
-        " set " + USERS_DISPLAY_NAME_COLUMN + "=" + USERS_USER_NAME_COLUMN +
-        ", " + USERS_LOCAL_USERNAME_COLUMN + "= lower(" + USERS_USER_NAME_COLUMN + ")" +
-        ", " + USERS_USER_NAME_COLUMN + "= lower(" + USERS_USER_NAME_COLUMN + ")");
+      " set " + USERS_DISPLAY_NAME_COLUMN + "=" + USERS_USER_NAME_COLUMN +
+      ", " + USERS_LOCAL_USERNAME_COLUMN + "= lower(" + USERS_USER_NAME_COLUMN + ")" +
+      ", " + USERS_USER_NAME_COLUMN + "= lower(" + USERS_USER_NAME_COLUMN + ")");
 
     // Change columns to non-null
     dbAccessor.alterColumn(USERS_TABLE, new DBAccessor.DBColumnInfo(USERS_DISPLAY_NAME_COLUMN, String.class, 255, null, false));
@@ -379,26 +417,26 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
      * - The user_name value is case-insensitive.
      * ******* */
     dbAccessor.executeUpdate(
-        "insert into " + temporaryTable + " (" + MEMBERS_MEMBER_ID_COLUMN + ", " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN + ")" +
-            "  select" +
-            "    m." + MEMBERS_MEMBER_ID_COLUMN + "," +
-            "    u.min_user_id," +
-            "    m." + MEMBERS_GROUP_ID_COLUMN +
-            "  from " + MEMBERS_TABLE + " as m inner join" +
-            "    (" +
-            "      select" +
-            "        iu." + USERS_USER_NAME_COLUMN + "," +
-            "        iu." + USERS_USER_ID_COLUMN + "," +
-            "        t.min_user_id" +
-            "      from " + USERS_TABLE + " iu inner join" +
-            "        (" +
-            "          select" +
-            "           lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
-            "            min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
-            "          from " + USERS_TABLE +
-            "          group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-            "        ) as t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
-            "    ) as u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
+      "insert into " + temporaryTable + " (" + MEMBERS_MEMBER_ID_COLUMN + ", " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN + ")" +
+        "  select" +
+        "    m." + MEMBERS_MEMBER_ID_COLUMN + "," +
+        "    u.min_user_id," +
+        "    m." + MEMBERS_GROUP_ID_COLUMN +
+        "  from " + MEMBERS_TABLE + " as m inner join" +
+        "    (" +
+        "      select" +
+        "        iu." + USERS_USER_NAME_COLUMN + "," +
+        "        iu." + USERS_USER_ID_COLUMN + "," +
+        "        t.min_user_id" +
+        "      from " + USERS_TABLE + " iu inner join" +
+        "        (" +
+        "          select" +
+        "           lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
+        "            min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
+        "          from " + USERS_TABLE +
+        "          group by lower(" + USERS_USER_NAME_COLUMN + ")" +
+        "        ) as t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
+        "    ) as u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
 
     // Truncate existing membership records
     dbAccessor.truncateTable(MEMBERS_TABLE);
@@ -409,13 +447,13 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
      * duplicate records.
      */
     dbAccessor.executeUpdate(
-        "insert into " + MEMBERS_TABLE + " (" + MEMBERS_MEMBER_ID_COLUMN + ", " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN + ")" +
-            "  select " +
-            "    min(" + MEMBERS_MEMBER_ID_COLUMN + ")," +
-            "    " + MEMBERS_USER_ID_COLUMN + "," +
-            "    " + MEMBERS_GROUP_ID_COLUMN +
-            "  from " + temporaryTable +
-            "  group by " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN);
+      "insert into " + MEMBERS_TABLE + " (" + MEMBERS_MEMBER_ID_COLUMN + ", " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN + ")" +
+        "  select " +
+        "    min(" + MEMBERS_MEMBER_ID_COLUMN + ")," +
+        "    " + MEMBERS_USER_ID_COLUMN + "," +
+        "    " + MEMBERS_GROUP_ID_COLUMN +
+        "  from " + temporaryTable +
+        "  group by " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN);
 
     // Delete the temporary table
     dbAccessor.dropTable(temporaryTable);
@@ -458,48 +496,48 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
      * - Using the found user_id, obtain the relevant principal_id
      * - The user_name value is case-insensitive.
      * ******* */
-     dbAccessor.executeUpdate(
-        "insert into " + temporaryTable + " (" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ", " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + ")" +
-            "  select" +
-            "    ap." + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + "," +
-            "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
-            "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
-            "    ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
-            "  from " + ADMINPRIVILEGE_TABLE + " as ap" +
-            "  where ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " not in" +
-            "        (" +
-            "          select " + USERS_PRINCIPAL_ID_COLUMN +
-            "          from " + USERS_TABLE +
-            "        )" +
-            "  union" +
-            "  select" +
-            "    ap." + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + "," +
-            "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
-            "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
-            "    t.new_principal_id" +
-            "  from " + ADMINPRIVILEGE_TABLE + " as ap inner join" +
-            "    (" +
-            "      select" +
-            "        u." + USERS_USER_ID_COLUMN + "," +
-            "        u." + USERS_USER_NAME_COLUMN + "," +
-            "        u." + USERS_PRINCIPAL_ID_COLUMN + " as new_principal_id," +
-            "        t1." + USERS_PRINCIPAL_ID_COLUMN + " as orig_principal_id" +
-            "      from " + USERS_TABLE + " as u inner join" +
-            "        (" +
-            "          select" +
-            "            u1." + USERS_USER_NAME_COLUMN + "," +
-            "            u1." + USERS_PRINCIPAL_ID_COLUMN + "," +
-            "            t2.min_user_id" +
-            "          from " + USERS_TABLE + " as u1 inner join" +
-            "            (" +
-            "              select" +
-            "                lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
-            "                min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
-            "              from " + USERS_TABLE +
-            "              group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-            "            ) as t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
-            "        ) as t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
-            "    ) as t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id);");
+    dbAccessor.executeUpdate(
+      "insert into " + temporaryTable + " (" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ", " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + ")" +
+        "  select" +
+        "    ap." + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + "," +
+        "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
+        "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
+        "    ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
+        "  from " + ADMINPRIVILEGE_TABLE + " as ap" +
+        "  where ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " not in" +
+        "        (" +
+        "          select " + USERS_PRINCIPAL_ID_COLUMN +
+        "          from " + USERS_TABLE +
+        "        )" +
+        "  union" +
+        "  select" +
+        "    ap." + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + "," +
+        "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
+        "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
+        "    t.new_principal_id" +
+        "  from " + ADMINPRIVILEGE_TABLE + " as ap inner join" +
+        "    (" +
+        "      select" +
+        "        u." + USERS_USER_ID_COLUMN + "," +
+        "        u." + USERS_USER_NAME_COLUMN + "," +
+        "        u." + USERS_PRINCIPAL_ID_COLUMN + " as new_principal_id," +
+        "        t1." + USERS_PRINCIPAL_ID_COLUMN + " as orig_principal_id" +
+        "      from " + USERS_TABLE + " as u inner join" +
+        "        (" +
+        "          select" +
+        "            u1." + USERS_USER_NAME_COLUMN + "," +
+        "            u1." + USERS_PRINCIPAL_ID_COLUMN + "," +
+        "            t2.min_user_id" +
+        "          from " + USERS_TABLE + " as u1 inner join" +
+        "            (" +
+        "              select" +
+        "                lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
+        "                min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
+        "              from " + USERS_TABLE +
+        "              group by lower(" + USERS_USER_NAME_COLUMN + ")" +
+        "            ) as t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
+        "        ) as t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
+        "    ) as t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id);");
 
     // Truncate existing adminprivilege records
     dbAccessor.truncateTable(ADMINPRIVILEGE_TABLE);
@@ -510,14 +548,14 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
      * duplicate records.
      */
     dbAccessor.executeUpdate(
-        "insert into " + ADMINPRIVILEGE_TABLE + " (" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ", " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + ")" +
-            "  select " +
-            "    min(" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ")," +
-            "    " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
-            "    " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
-            "    " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
-            "  from " + temporaryTable +
-            "  group by " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN);
+      "insert into " + ADMINPRIVILEGE_TABLE + " (" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ", " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + ")" +
+        "  select " +
+        "    min(" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ")," +
+        "    " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
+        "    " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
+        "    " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
+        "  from " + temporaryTable +
+        "  group by " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN);
 
     // Delete the temporary table
     dbAccessor.dropTable(temporaryTable);
@@ -525,11 +563,11 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
   protected void updateStageTable() throws SQLException {
     dbAccessor.addColumn(STAGE_TABLE,
-        new DBAccessor.DBColumnInfo(STAGE_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+      new DBAccessor.DBColumnInfo(STAGE_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
     dbAccessor.addColumn(STAGE_TABLE,
-        new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+      new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
     dbAccessor.addColumn(REQUEST_TABLE,
-        new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+      new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
   }
 
   protected void addAmbariConfigurationTable() throws SQLException {
@@ -540,6 +578,51 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable(AMBARI_CONFIGURATION_TABLE, columns);
     dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
+  }
+
+  /**
+   * Creates new tables for changed kerberos data.
+   *
+   * @throws SQLException
+   */
+  protected void upgradeKerberosTables() throws SQLException {
+    List<DBAccessor.DBColumnInfo> kerberosKeytabColumns = new ArrayList<>();
+    kerberosKeytabColumns.add(new DBAccessor.DBColumnInfo(KEYTAB_PATH_FIELD, String.class, 255, null, false));
+    kerberosKeytabColumns.add(new DBAccessor.DBColumnInfo(OWNER_NAME_FIELD, String.class, 255, null, true));
+    kerberosKeytabColumns.add(new DBAccessor.DBColumnInfo(OWNER_ACCESS_FIELD, String.class, 255, null, true));
+    kerberosKeytabColumns.add(new DBAccessor.DBColumnInfo(GROUP_NAME_FIELD, String.class, 255, null, true));
+    kerberosKeytabColumns.add(new DBAccessor.DBColumnInfo(GROUP_ACCESS_FIELD, String.class, 255, null, true));
+    kerberosKeytabColumns.add(new DBAccessor.DBColumnInfo(IS_AMBARI_KEYTAB_FIELD, Integer.class, null, 0, false));
+    kerberosKeytabColumns.add(new DBAccessor.DBColumnInfo(WRITE_AMBARI_JAAS_FIELD, Integer.class, null, 0, false));
+    dbAccessor.createTable(KERBEROS_KEYTAB_TABLE, kerberosKeytabColumns);
+    dbAccessor.addPKConstraint(KERBEROS_KEYTAB_TABLE, PK_KERBEROS_KEYTAB, KEYTAB_PATH_FIELD);
+
+    List<DBAccessor.DBColumnInfo> kkpColumns = new ArrayList<>();
+    kkpColumns.add(new DBAccessor.DBColumnInfo(KKP_ID_COLUMN, Long.class, null, 0L, false));
+    kkpColumns.add(new DBAccessor.DBColumnInfo(KEYTAB_PATH_FIELD, String.class, 255, null, false));
+    kkpColumns.add(new DBAccessor.DBColumnInfo(PRINCIPAL_NAME_COLUMN, String.class, 255, null, false));
+    kkpColumns.add(new DBAccessor.DBColumnInfo(HOST_ID_COLUMN, Long.class, null, null, true));
+    kkpColumns.add(new DBAccessor.DBColumnInfo(IS_DISTRIBUTED_COLUMN, Integer.class, null, 0, false));
+    dbAccessor.createTable(KERBEROS_KEYTAB_PRINCIPAL_TABLE, kkpColumns);
+    dbAccessor.addPKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, PK_KKP, KKP_ID_COLUMN);
+    dbAccessor.addUniqueConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, UNI_KKP, KEYTAB_PATH_FIELD, PRINCIPAL_NAME_COLUMN, HOST_ID_COLUMN);
+
+    List<DBAccessor.DBColumnInfo> kkpMappingColumns = new ArrayList<>();
+    kkpMappingColumns.add(new DBAccessor.DBColumnInfo(KKP_ID_COLUMN, Long.class, null, 0L, false));
+    kkpMappingColumns.add(new DBAccessor.DBColumnInfo(SERVICE_NAME_COLUMN, String.class, 255, null, false));
+    kkpMappingColumns.add(new DBAccessor.DBColumnInfo(COMPONENT_NAME_COLUMN, String.class, 255, null, false));
+    dbAccessor.createTable(KKP_MAPPING_SERVICE_TABLE, kkpMappingColumns);
+    dbAccessor.addPKConstraint(KKP_MAPPING_SERVICE_TABLE, PK_KKP_MAPPING_SERVICE, KKP_ID_COLUMN, SERVICE_NAME_COLUMN, COMPONENT_NAME_COLUMN);
+
+
+    //  cross tables constraints
+    dbAccessor.addFKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, FK_KKP_KEYTAB_PATH, KEYTAB_PATH_FIELD, KERBEROS_KEYTAB_TABLE, KEYTAB_PATH_FIELD, false);
+    dbAccessor.addFKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, FK_KKP_HOST_ID, HOST_ID_COLUMN, HOSTS_TABLE, HOST_ID_COLUMN, false);
+    dbAccessor.addFKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, FK_KKP_PRINCIPAL_NAME, PRINCIPAL_NAME_COLUMN, KERBEROS_PRINCIPAL_TABLE, PRINCIPAL_NAME_COLUMN, false);
+    dbAccessor.addFKConstraint(KKP_MAPPING_SERVICE_TABLE, FK_KKP_SERVICE_PRINCIPAL, KKP_ID_COLUMN, KERBEROS_KEYTAB_PRINCIPAL_TABLE, KKP_ID_COLUMN, false);
+
+    addSequence(KKP_ID_SEQ_NAME, 0L, false);
+    dbAccessor.dropTable(KERBEROS_PRINCIPAL_HOST_TABLE);
   }
 
   /**
@@ -561,12 +644,19 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateKerberosConfigurations();
     upgradeLdapConfiguration();
     createRoleAuthorizations();
+    addUserAuthenticationSequence();
+  }
+
+  protected void addUserAuthenticationSequence() throws SQLException {
+    final long maxUserAuthenticationId = fetchMaxId(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN);
+    LOG.info("Maximum user authentication ID = " + maxUserAuthenticationId);
+    addSequence("user_authentication_id_seq", maxUserAuthenticationId + 1, false);
   }
 
   protected void createRoleAuthorizations() throws SQLException {
     addRoleAuthorization("AMBARI.MANAGE_CONFIGURATION",
-        "Manage ambari configuration",
-        Collections.singleton("AMBARI.ADMINISTRATOR:AMBARI"));
+      "Manage ambari configuration",
+      Collections.singleton("AMBARI.ADMINISTRATOR:AMBARI"));
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -598,12 +688,12 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
           RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
           StageFactory stageFactory = injector.getInstance(StageFactory.class);
           EntityManager em = getEntityManagerProvider().get();
-          List<RequestEntity> requestEntities= requestDAO.findAll();
-          for (RequestEntity requestEntity: requestEntities) {
-            Collection<StageEntity> stageEntities= requestEntity.getStages();
-            List <HostRoleStatus> stageDisplayStatuses = new ArrayList<>();
-            List <HostRoleStatus> stageStatuses = new ArrayList<>();
-            for (StageEntity stageEntity: stageEntities) {
+          List<RequestEntity> requestEntities = requestDAO.findAll();
+          for (RequestEntity requestEntity : requestEntities) {
+            Collection<StageEntity> stageEntities = requestEntity.getStages();
+            List<HostRoleStatus> stageDisplayStatuses = new ArrayList<>();
+            List<HostRoleStatus> stageStatuses = new ArrayList<>();
+            for (StageEntity stageEntity : stageEntities) {
               Stage stage = stageFactory.createExisting(stageEntity);
               List<HostRoleCommand> hostRoleCommands = stage.getOrderedHostRoleCommands();
               Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(hostRoleCommands);
@@ -636,7 +726,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   private void addOpsDisplayNameColumnToHostRoleCommand() throws SQLException {
     dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
-        new DBAccessor.DBColumnInfo(HRC_OPS_DISPLAY_NAME_COLUMN, String.class, 255, null, true));
+      new DBAccessor.DBColumnInfo(HRC_OPS_DISPLAY_NAME_COLUMN, String.class, 255, null, true));
   }
 
   private void removeSecurityState() throws SQLException {
@@ -680,9 +770,9 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
           Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
           if (logSearchProperties != null && logFeederProperties != null) {
             configHelper.createConfigType(cluster, cluster.getDesiredStackVersion(), ambariManagementController,
-                "logsearch-common-properties", Collections.emptyMap(), "ambari-upgrade",
-                String.format("Updated logsearch-common-properties during Ambari Upgrade from %s to %s",
-                    getSourceVersion(), getTargetVersion()));
+              "logsearch-common-properties", Collections.emptyMap(), "ambari-upgrade",
+              String.format("Updated logsearch-common-properties during Ambari Upgrade from %s to %s",
+                getSourceVersion(), getTargetVersion()));
 
             String defaultLogLevels = logSearchProperties.getProperties().get("logsearch.logfeeder.include.default.level");
 
@@ -747,16 +837,16 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
           if (logFeederOutputConfig != null) {
             String content = logFeederOutputConfig.getProperties().get("content");
             content = content.replace(
-                "      \"collection\":\"{{logsearch_solr_collection_service_logs}}\",\n" +
+              "      \"collection\":\"{{logsearch_solr_collection_service_logs}}\",\n" +
                 "      \"number_of_shards\": \"{{logsearch_collection_service_logs_numshards}}\",\n" +
                 "      \"splits_interval_mins\": \"{{logsearch_service_logs_split_interval_mins}}\",\n",
-                "      \"type\": \"service\",\n");
+              "      \"type\": \"service\",\n");
 
             content = content.replace(
-                "      \"collection\":\"{{logsearch_solr_collection_audit_logs}}\",\n" +
+              "      \"collection\":\"{{logsearch_solr_collection_audit_logs}}\",\n" +
                 "      \"number_of_shards\": \"{{logsearch_collection_audit_logs_numshards}}\",\n" +
                 "      \"splits_interval_mins\": \"{{logsearch_audit_logs_split_interval_mins}}\",\n",
-                "      \"type\": \"audit\",\n");
+              "      \"type\": \"audit\",\n");
 
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-output-config", Collections.singletonMap("content", content), true, true);
           }
@@ -765,6 +855,17 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected PrepareKerberosIdentitiesServerAction getPrepareIdentityServerAction() {
+    return new PrepareKerberosIdentitiesServerAction();
+  }
+
+  /**
+   * Upgrades kerberos related data.
+   * Also creates keytabs and principals database records. This happens via code in PrepareKerberosIdentitiesServerAction,
+   * so code reused and all changes will be reflected in upgrade.
+   *
+   * @throws AmbariException
+   */
   protected void updateKerberosConfigurations() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -774,23 +875,62 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
       if (!MapUtils.isEmpty(clusterMap)) {
         for (Cluster cluster : clusterMap.values()) {
           Config config = cluster.getDesiredConfigByType("kerberos-env");
-
           if (config != null) {
             Map<String, String> properties = config.getProperties();
             if (properties.containsKey("group")) {
               // Covert kerberos-env/group to kerberos-env/ipa_user_group
               updateConfigurationPropertiesForCluster(cluster, "kerberos-env",
-                  Collections.singletonMap("ipa_user_group", properties.get("group")), Collections.singleton("group"),
-                  true, false);
+                Collections.singletonMap("ipa_user_group", properties.get("group")), Collections.singleton("group"),
+                true, false);
+            }
+          }
+          if (config != null) {
+            PrepareKerberosIdentitiesServerAction prepareIdentities = getPrepareIdentityServerAction();
+            ExecutionCommand executionCommand = new ExecutionCommand();
+            executionCommand.setCommandParams(new HashMap<String, String>() {{
+              put(KerberosServerAction.DEFAULT_REALM, config.getProperties().get("realm"));
+            }});
+            prepareIdentities.setExecutionCommand(executionCommand);
+
+            // inject whatever we need for calling desired server action
+            injector.injectMembers(prepareIdentities);
+            KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
+            injector.getInstance(AmbariServer.class).performStaticInjection();
+            AmbariServer.setController(injector.getInstance(AmbariManagementController.class));
+
+            KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster, false);
+            Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
+            Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
+            List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster, kerberosDescriptor, null, null);
+            Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
+            boolean includeAmbariIdentity = true;
+            String dataDirectory = kerberosHelper.createTemporaryDirectory().getAbsolutePath();
+            try {
+              executeInTransaction(new Runnable() {
+                @Override
+                public void run() {
+                  try {
+                    prepareIdentities.processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, null, dataDirectory, configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
+                  } catch (AmbariException e) {
+                    throw new RuntimeException(e);
+                  }
+                }
+              });
+            } catch (RuntimeException e) {
+              throw new AmbariException("Failed to upgrade kerberos tables", e);
             }
           }
         }
       }
     }
+
+
   }
 
   /**
    * Moves LDAP related properties from ambari.properties to ambari_configuration DB table
+   *
    * @throws AmbariException if there was any issue when clearing ambari.properties
    */
   protected void upgradeLdapConfiguration() throws AmbariException {
@@ -804,7 +944,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         if (AmbariLdapConfigurationKeys.SERVER_HOST == key || AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST == key) {
           final HostAndPort hostAndPort = HostAndPort.fromString(ldapPropertyValue);
           AmbariLdapConfigurationKeys keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_HOST
-              : AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST;
+            : AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST;
           populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.getHostText());
 
           keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_PORT : AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT;
@@ -828,7 +968,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     propertiesToBeSaved.put(newPropertyName, value);
     LOG.info("About to upgrade '" + oldPropertyName + "' as '" + newPropertyName + "' (value=" + value + ")");
   }
-  
+
   /**
    * @return a map describing the new LDAP configuration key to the old ambari.properties property name
    */

@@ -36,6 +36,7 @@ import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/s
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {ComponentGeneratorService} from './component-generator.service';
 
@@ -75,6 +76,7 @@ describe('ComponentGeneratorService', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
+        UtilsService,
         HostsService,
         AuditLogsService,
         ServiceLogsService,

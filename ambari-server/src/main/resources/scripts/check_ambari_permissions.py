@@ -33,16 +33,16 @@ SECURE_FILE_PERMISSIONS = 700
 jar_files_to_check = ["/var/lib/ambari-server/", "/usr/lib/ambari-server/", "/var/lib/ambari-agent/"]
 
 # List of directories. For this list we are only checking permissions for directory.
-directories_to_check = ["/etc/ambari-server/conf", "/usr/lib/ambari-server", "/usr/lib/python2.6/site-packages/ambari_server",
-                        "/var/lib/ambari-server", "/usr/lib/ambari-agent", "/usr/lib/python2.6/site-packages/ambari_agent",
+directories_to_check = ["/etc/ambari-server/conf", "/usr/lib/ambari-server", "/usr/lib/ambari-server/lib/ambari_server",
+                        "/var/lib/ambari-server", "/usr/lib/ambari-agent", "/usr/lib/ambari-agent/lib/ambari_agent",
                         "/var/lib/ambari-agent/cache", "/var/lib/ambari-agent/cred", "/var/lib/ambari-agent/data",
                         "/var/lib/ambari-agent/tools", "/var/lib/ambari-agent/lib", "/etc/ambari-agent/conf"]
 
 # List of directories/files. If "directory", then we will check all files in it and in all subdirectories. If "file" then we will check only this file.
 files_to_check = ["/etc/ambari-server/conf/", "/etc/init/ambari-server.conf", "/etc/init.d/ambari-server",
-                  "/usr/lib/ambari-server", "/usr/lib/python2.6/site-packages/ambari_server", "/usr/sbin/ambari_server_main.py",
+                  "/usr/lib/ambari-server", "/usr/lib/ambari-server/lib/ambari_server", "/usr/sbin/ambari_server_main.py",
                   "/usr/sbin/ambari-server.py", "/var/lib/ambari-server", "/usr/lib/ambari-agent",
-                  "/usr/lib/python2.6/site-packages/ambari_agent", "/var/lib/ambari-agent"]
+                  "/usr/lib/ambari-agent/lib/ambari_agent", "/var/lib/ambari-agent"]
 
 
 # List of secure directories. For this list we are only checking permissions for directory.

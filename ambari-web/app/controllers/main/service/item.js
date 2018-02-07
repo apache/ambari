@@ -987,7 +987,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       App.router.get('mainHostDetailsController').addComponentWithCheck(
         {
           context: component,
-          selectedHost: null
+          fromServiceSummary: true
         }
       );
     });

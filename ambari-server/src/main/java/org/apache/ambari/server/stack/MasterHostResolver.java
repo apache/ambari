@@ -23,11 +23,11 @@ import java.net.MalformedURLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -62,7 +62,15 @@ public class MasterHostResolver {
     HDFS,
     HBASE,
     YARN,
-    OTHER
+    OTHER;
+
+    public static Service fromString(String serviceName) {
+      try {
+        return valueOf(serviceName.toUpperCase());
+      } catch (Exception ignore) {
+        return OTHER;
+      }
+    }
   }
 
   /**
@@ -104,58 +112,43 @@ public class MasterHostResolver {
    * @return The hostname that is the master of the service and component if successful, null otherwise.
    */
   public HostsType getMasterAndHosts(String serviceName, String componentName) {
-
     if (serviceName == null || componentName == null) {
       return null;
     }
-
-    Set<String> componentHosts = m_cluster.getHosts(serviceName, componentName);
-    if (0 == componentHosts.size()) {
+    LinkedHashSet<String> componentHosts = new LinkedHashSet<>(m_cluster.getHosts(serviceName, componentName));
+    if (componentHosts.isEmpty()) {
       return null;
     }
 
-    HostsType hostsType = new HostsType();
-    hostsType.hosts.addAll(componentHosts);
-
-    Service s = Service.OTHER;
-    try {
-      s = Service.valueOf(serviceName.toUpperCase());
-    } catch (Exception e) {
-      // !!! nothing to do
-    }
+    HostsType hostsType = HostsType.normal(componentHosts);
 
     try {
-      switch (s) {
+      switch (Service.fromString(serviceName)) {
         case HDFS:
-          if (componentName.equalsIgnoreCase("NAMENODE")) {
-            if (componentHosts.size() != 2) {
-              return filterHosts(hostsType, serviceName, componentName);
-            }
-
-            Map<Status, String> pair = getNameNodePair(componentHosts);
-            if (pair != null) {
-              hostsType.master = pair.containsKey(Status.ACTIVE) ? pair.get(Status.ACTIVE) :  null;
-              hostsType.secondary = pair.containsKey(Status.STANDBY) ? pair.get(Status.STANDBY) :  null;
-            } else {
-              // !!! we KNOW we have 2 componentHosts if we're here.
-              Iterator<String> iterator = componentHosts.iterator();
-              hostsType.master = iterator.next();
-              hostsType.secondary = iterator.next();
-
-              LOG.warn("Could not determine the active/standby states from NameNodes {}. " +
-                  "Using {} as active and {} as standby.",
-                  StringUtils.join(componentHosts, ','), hostsType.master, hostsType.secondary);
+          if (componentName.equalsIgnoreCase("NAMENODE") && componentHosts.size() >= 2) {
+            try {
+              hostsType = HostsType.federated(nameSpaces(componentHosts), componentHosts);
+            } catch (ClassifyNameNodeException | IllegalArgumentException e) {
+              if (componentHosts.size() == 2) { // in HA mode guess if cannot determine active/standby
+                hostsType = HostsType.guessHighAvailability(componentHosts);
+                LOG.warn(
+                  "Could not determine the active/standby states from NameNodes {}. Using {} as active and {} as standbys.",
+                  componentHosts, hostsType.getMasters(), hostsType.getSecondaries());
+              } else {
+                // XXX fallback to HostsType.normal unsure how to handle this
+                LOG.warn("Could not determine the active/standby states of federated NameNode from NameNodes {}.", componentHosts);
+              }
             }
           }
           break;
         case YARN:
           if (componentName.equalsIgnoreCase("RESOURCEMANAGER")) {
-            resolveResourceManagers(getCluster(), hostsType);
+            hostsType = resolveResourceManagers(getCluster(), componentHosts);
           }
           break;
         case HBASE:
           if (componentName.equalsIgnoreCase("HBASE_MASTER")) {
-            resolveHBaseMasters(getCluster(), hostsType);
+            hostsType = resolveHBaseMasters(getCluster(), componentHosts);
           }
           break;
         default:
@@ -164,10 +157,7 @@ public class MasterHostResolver {
     } catch (Exception err) {
       LOG.error("Unable to get master and hosts for Component " + componentName + ". Error: " + err.getMessage(), err);
     }
-
-    hostsType = filterHosts(hostsType, serviceName, componentName);
-
-    return hostsType;
+    return filterHosts(hostsType, serviceName, componentName);
   }
 
   /**
@@ -197,7 +187,7 @@ public class MasterHostResolver {
       List<ServiceComponentHost> unhealthyHosts = new ArrayList<>();
       LinkedHashSet<String> upgradeHosts = new LinkedHashSet<>();
 
-      for (String hostName : hostsType.hosts) {
+      for (String hostName : hostsType.getHosts()) {
         ServiceComponentHost sch = sc.getServiceComponentHost(hostName);
         Host host = sch.getHost();
         MaintenanceState maintenanceState = host.getMaintenanceState(sch.getClusterId());
@@ -234,7 +224,7 @@ public class MasterHostResolver {
       }
 
       hostsType.unhealthy = unhealthyHosts;
-      hostsType.hosts = upgradeHosts;
+      hostsType.setHosts(upgradeHosts);
 
       return hostsType;
     } catch (AmbariException e) {
@@ -268,94 +258,79 @@ public class MasterHostResolver {
   }
 
   /**
-   * Get mapping of the HDFS Namenodes from the state ("active" or "standby") to the hostname.
-   * @return Returns a map from the state ("active" or "standby" to the hostname with that state if exactly
-   * one active and one standby host were found, otherwise, return null.
-   * The hostnames are returned in lowercase.
+   * Get the NameNode NameSpaces (master->secondaries hosts).
+   * In each NameSpace there should be exactly 1 master and at least one secondary host.
    */
-  private Map<Status, String> getNameNodePair(Set<String> componentHosts) throws AmbariException {
-    Map<Status, String> stateToHost = new HashMap<>();
-    Cluster cluster = getCluster();
+  private List<HostsType.HighAvailabilityHosts> nameSpaces(Set<String> componentHosts) {
+    return NameService.fromConfig(m_configHelper, getCluster()).stream()
+      .map(each -> findMasterAndSecondaries(each, componentHosts))
+      .collect(Collectors.toList());
 
-    String nameService = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.internal.nameservices");
-    if (nameService == null || nameService.isEmpty()) {
-      return null;
-    }
+  }
 
-    String nnUniqueIDstring = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.ha.namenodes." + nameService);
-    if (nnUniqueIDstring == null || nnUniqueIDstring.isEmpty()) {
-      return null;
-    }
-
-    String[] nnUniqueIDs = nnUniqueIDstring.split(",");
-    if (nnUniqueIDs == null || nnUniqueIDs.length != 2) {
-      return null;
-    }
-
-    String policy = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.http.policy");
-    boolean encrypted = (policy != null && policy.equalsIgnoreCase(ConfigHelper.HTTPS_ONLY));
-
-    String namenodeFragment = "dfs.namenode." + (encrypted ? "https-address" : "http-address") + ".{0}.{1}";
-
-    for (String nnUniqueID : nnUniqueIDs) {
-      String key = MessageFormat.format(namenodeFragment, nameService, nnUniqueID);
-      String value = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, key);
-
-      try {
-        HostAndPort hp = HTTPUtils.getHostAndPortFromProperty(value);
-        if (hp == null) {
-          throw new MalformedURLException("Could not parse host and port from " + value);
-        }
-
-        if (!componentHosts.contains(hp.host)){
-          //This may happen when NN HA is configured on dual network card machines with public/private FQDNs.
-          LOG.error(
-              MessageFormat.format(
-                  "Hadoop NameNode HA configuration {0} contains host {1} that does not exist in the NameNode hosts list {3}",
-                  key, hp.host, componentHosts.toString()));
-        }
-        String state = queryJmxBeanValue(hp.host, hp.port, "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, encrypted);
-
-        if (null != state && (state.equalsIgnoreCase(Status.ACTIVE.toString()) || state.equalsIgnoreCase(Status.STANDBY.toString()))) {
-          Status status = Status.valueOf(state.toUpperCase());
-          stateToHost.put(status, hp.host.toLowerCase());
-        } else {
-          LOG.error(String.format("Could not retrieve state for NameNode %s from property %s by querying JMX.", hp.host, key));
-        }
-      } catch (MalformedURLException e) {
-        LOG.error(e.getMessage());
+  /**
+   * Find the master and secondary namenode(s) based on JMX NameNodeStatus.
+   */
+  private HostsType.HighAvailabilityHosts findMasterAndSecondaries(NameService nameService, Set<String> componentHosts) throws ClassifyNameNodeException {
+    String master = null;
+    List<String> secondaries = new ArrayList<>();
+    for (NameService.NameNode nameNode : nameService.getNameNodes()) {
+      checkForDualNetworkCards(componentHosts, nameNode);
+      String state = queryJmxBeanValue(nameNode.getHost(), nameNode.getPort(), "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, nameNode.isEncrypted());
+      if (Status.ACTIVE.toString().equalsIgnoreCase(state)) {
+        master = nameNode.getHost();
+      } else if (Status.STANDBY.toString().equalsIgnoreCase(state)) {
+        secondaries.add(nameNode.getHost());
+      } else {
+        LOG.error(String.format("Could not retrieve state for NameNode %s from property %s by querying JMX.", nameNode.getHost(), nameNode.getPropertyName()));
       }
     }
-
-    if (stateToHost.containsKey(Status.ACTIVE) && stateToHost.containsKey(Status.STANDBY) && !stateToHost.get(Status.ACTIVE).equalsIgnoreCase(stateToHost.get(Status.STANDBY))) {
-      return stateToHost;
+    if (masterAndSecondariesAreFound(componentHosts, master, secondaries)) {
+      return new HostsType.HighAvailabilityHosts(master, secondaries);
     }
-    return null;
+    throw new ClassifyNameNodeException(nameService);
+  }
+
+  private static void checkForDualNetworkCards(Set<String> componentHosts, NameService.NameNode nameNode) {
+    if (!componentHosts.contains(nameNode.getHost())) {
+      //This may happen when NN HA is configured on dual network card machines with public/private FQDNs.
+      LOG.error(
+        MessageFormat.format(
+          "Hadoop NameNode HA configuration {0} contains host {1} that does not exist in the NameNode hosts list {3}",
+          nameNode.getPropertyName(), nameNode.getHost(), componentHosts.toString()));
+    }
+  }
+
+  private static boolean masterAndSecondariesAreFound(Set<String> componentHosts, String master, List<String> secondaries) {
+    return master != null && secondaries.size() + 1 == componentHosts.size() && !secondaries.contains(master);
+  }
+
+  private HostAndPort parseHostPort(Cluster cluster, String propertyName, String configType) throws MalformedURLException {
+    String propertyValue = m_configHelper.getValueFromDesiredConfigurations(cluster, configType, propertyName);
+    HostAndPort hp = HTTPUtils.getHostAndPortFromProperty(propertyValue);
+    if (hp == null) {
+      throw new MalformedURLException("Could not parse host and port from " + propertyValue);
+    }
+    return hp;
   }
 
   /**
    * Resolve the name of the Resource Manager master and convert the hostname to lowercase.
-   * @param cluster Cluster
-   * @param hostType RM hosts
-   * @throws MalformedURLException
    */
-  private void resolveResourceManagers(Cluster cluster, HostsType hostType) throws MalformedURLException {
-    LinkedHashSet<String> orderedHosts = new LinkedHashSet<>(hostType.hosts);
+  private HostsType resolveResourceManagers(Cluster cluster, Set<String> hosts) throws MalformedURLException {
+    String master = null;
+    LinkedHashSet<String> orderedHosts = new LinkedHashSet<>(hosts);
 
     // IMPORTANT, for RM, only the master returns jmx
-    String rmWebAppAddress = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.YARN_SITE, "yarn.resourcemanager.webapp.address");
-    HostAndPort hp = HTTPUtils.getHostAndPortFromProperty(rmWebAppAddress);
-    if (hp == null) {
-      throw new MalformedURLException("Could not parse host and port from " + rmWebAppAddress);
-    }
+    HostAndPort hp = parseHostPort(cluster, "yarn.resourcemanager.webapp.address", ConfigHelper.YARN_SITE);
 
-    for (String hostname : hostType.hosts) {
+    for (String hostname : hosts) {
       String value = queryJmxBeanValue(hostname, hp.port,
           "Hadoop:service=ResourceManager,name=RMNMInfo", "modelerType", true);
 
       if (null != value) {
-        if (null == hostType.master) {
-          hostType.master = hostname.toLowerCase();
+        if (master != null) {
+          master = hostname.toLowerCase();
         }
 
         // Quick and dirty to make sure the master is last in the list
@@ -364,16 +339,15 @@ public class MasterHostResolver {
       }
 
     }
-    hostType.hosts = orderedHosts;
+    return HostsType.from(master, null, orderedHosts);
   }
 
   /**
    * Resolve the HBASE master and convert the hostname to lowercase.
-   * @param cluster Cluster
-   * @param hostsType HBASE master host.
-   * @throws AmbariException
    */
-  private void resolveHBaseMasters(Cluster cluster, HostsType hostsType) throws AmbariException {
+  private HostsType resolveHBaseMasters(Cluster cluster, Set<String> hosts) throws AmbariException {
+    String master = null;
+    String secondary = null;
     String hbaseMasterInfoPortProperty = "hbase.master.info.port";
     String hbaseMasterInfoPortValue = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HBASE_SITE, hbaseMasterInfoPortProperty);
 
@@ -382,19 +356,20 @@ public class MasterHostResolver {
     }
 
     final int hbaseMasterInfoPort = Integer.parseInt(hbaseMasterInfoPortValue);
-    for (String hostname : hostsType.hosts) {
+    for (String hostname : hosts) {
       String value = queryJmxBeanValue(hostname, hbaseMasterInfoPort,
           "Hadoop:service=HBase,name=Master,sub=Server", "tag.isActiveMaster", false);
 
       if (null != value) {
         Boolean bool = Boolean.valueOf(value);
         if (bool.booleanValue()) {
-          hostsType.master = hostname.toLowerCase();
+          master = hostname.toLowerCase();
         } else {
-          hostsType.secondary = hostname.toLowerCase();
+          secondary = hostname.toLowerCase();
         }
       }
     }
+    return HostsType.from(master, secondary, new LinkedHashSet<>(hosts));
   }
 
   protected String queryJmxBeanValue(String hostname, int port, String beanName, String attributeName,

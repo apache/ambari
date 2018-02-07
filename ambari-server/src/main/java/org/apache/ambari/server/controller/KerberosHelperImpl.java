@@ -2518,7 +2518,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @return a File pointing to the new temporary directory, or null if one was not created
    * @throws AmbariException if a new temporary directory cannot be created
    */
-  protected File createTemporaryDirectory() throws AmbariException {
+  public File createTemporaryDirectory() throws AmbariException {
     try {
       File temporaryDirectory = getConfiguredTemporaryDirectory();
 

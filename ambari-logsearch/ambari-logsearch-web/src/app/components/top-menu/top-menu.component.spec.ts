@@ -38,6 +38,8 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {AuthService} from '@app/services/auth.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {TopMenuComponent} from './top-menu.component';
 
@@ -81,6 +83,8 @@ describe('TopMenuComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
+        AuthService,
+        UtilsService,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
