@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.logging;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -28,7 +30,7 @@ import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,8 +91,6 @@ public class LogSearchDataRetrievalService extends AbstractService {
 
   @Inject
   private Configuration ambariServerConfiguration;
-
-
 
   /**
    * A Cache of host+component names to a set of log files associated with
@@ -187,8 +187,7 @@ public class LogSearchDataRetrievalService extends AbstractService {
     final String key = generateKey(component, host);
 
     // check cache for data
-    Set<String> cacheResult =
-      logFileNameCache.getIfPresent(key);
+    Set<String> cacheResult = logFileNameCache.getIfPresent(key);
 
     if (cacheResult != null) {
       LOG.debug("LogFileNames result for key = {} found in cache", key);
@@ -367,15 +366,15 @@ public class LogSearchDataRetrievalService extends AbstractService {
 
         if (helper != null) {
           // make request to LogSearch service
-          Set<String> logFileNamesResult =
-            helper.sendGetLogFileNamesRequest(component, host);
-
+          HostLogFilesResponse logFilesResponse = helper.sendGetLogFileNamesRequest(host);
           // update the cache if result is available
-          if (CollectionUtils.isNotEmpty(logFileNamesResult)) {
+          if (logFilesResponse != null && MapUtils.isNotEmpty(logFilesResponse.getHostLogFiles())) {
             LOG.debug("LogSearchFileNameRequestRunnable: request was successful, updating cache");
-            final String key = generateKey(component, host);
             // update cache with returned result
-            logFileNameCache.put(key, logFileNamesResult);
+            for (Map.Entry<String, List<String>> componentEntry : logFilesResponse.getHostLogFiles().entrySet()) {
+              final String key = generateKey(componentEntry.getKey(), host);
+              logFileNameCache.put(key, new HashSet<>(componentEntry.getValue()));
+            }
           } else {
             LOG.debug("LogSearchFileNameRequestRunnable: remote request was not successful for component = {} on host ={}", component, host);
             if (!componentRequestFailureCounts.containsKey(component)) {

@@ -49,7 +49,7 @@ export const mockData = {
               proxyUsers: [
                 'admin'
               ],
-              evtTime: 1496057422531,
+              evtTime: currentTime.valueOf(),
               enforcer: 'ambari-acl',
               reqContext: 'ambari',
               cliType: 'GET',
@@ -72,7 +72,7 @@ export const mockData = {
               event_md5: '09876543211234567890',
               event_dur_ms: 100,
               _ttl_: '+7DAYS',
-              _expire_at_: '2017-05-29T11:30:22.531Z',
+              _expire_at_: currentTime.clone().add(2, 'd').valueOf(),
               _router_field_: 5
             },
             {
@@ -96,7 +96,7 @@ export const mockData = {
               proxyUsers: [
                 'user'
               ],
-              evtTime: 1496057422531,
+              evtTime: currentTime.clone().subtract(2, 'h').valueOf(),
               enforcer: 'hdfs',
               reqContext: 'ambari_server',
               cliType: 'PUT',
@@ -119,7 +119,7 @@ export const mockData = {
               event_md5: '01928374650192837465',
               event_dur_ms: 500,
               _ttl_: '+7DAYS',
-              _expire_at_: '2017-05-29T11:30:22.531Z',
+              _expire_at_: currentTime.clone().add(1, 'd').valueOf(),
               _router_field_: 10
             }
           ],
@@ -995,7 +995,7 @@ export const mockData = {
                 path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
                 host: 'h0',
                 level: 'WARN',
-                logtime: '2017-05-28T11:30:22.531Z',
+                logtime: currentTime.valueOf(),
                 ip: '192.168.0.1',
                 logfile_line_number: 8,
                 type: 'ams_collector',
@@ -1012,14 +1012,14 @@ export const mockData = {
                 event_md5: '1908755391',
                 event_dur_ms: 200,
                 _ttl_: '+5DAYS',
-                _expire_at_: '2017-05-29T11:30:22.531Z',
+                _expire_at_: currentTime.clone().add(1, 'd').valueOf(),
                 _router_field_: 20
               },
               {
                 path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
                 host: 'h1',
                 level: 'ERROR',
-                logtime: '2017-05-28T10:30:22.531Z',
+                logtime: currentTime.clone().subtract(1, 'd').valueOf(),
                 ip: '192.168.0.2',
                 type: 'ams_collector',
                 _version_: 14,
@@ -1036,7 +1036,7 @@ export const mockData = {
                 event_md5: '1029384756',
                 event_dur_ms: 700,
                 _ttl_: '+5DAYS',
-                _expire_at_: '2017-05-29T10:30:22.531Z',
+                _expire_at_: currentTime.clone().add(2, 'd').valueOf(),
                 _router_field_: 5
               }
             ]
@@ -1068,63 +1068,1437 @@ export const mockData = {
           configurationUploaded: true
         }
       },
-      userconfig: {
-        userConfigList: [
-          {
-            id: 'c0',
-            userName: 'admin',
-            filtername: 'service',
-            values: 'hdfs',
-            shareNameList: [
-              's0',
-              's1'
-            ],
-            rowType: 'history'
-          },
-          {
-            id: 'c0',
-            userName: 'user',
-            filtername: 'component',
-            values: 'namenode',
-            shareNameList: [
-              's2',
-              's3'
-            ],
-            rowType: 'history'
-          }
-        ],
+      shipper: {
         filters: {
-          filter0: {
-            label: 'filter0',
-            hosts: [
-              'h0',
-              'h1'
-            ],
-            defaultLevels: [
-              'l0',
-              'l1'
-            ],
-            overrideLevels: [
-              'l2',
-              'l3'
-            ],
-            expiryTime: '2017-05-29T11:30:22.531Z'
+          cl0: {
+            level: {
+              filter: {
+                ambari_agent: {
+                  label: 'ambari_agent',
+                  hosts: [
+                    'h0'
+                  ],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [
+                    'FATAL'
+                  ],
+                  expiryTime: currentTime.clone().add(1, 'd').toISOString()
+                },
+                ambari_alerts: {
+                  label: 'ambari_alerts',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_audit: {
+                  label: 'ambari_audit',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_config_changes: {
+                  label: 'ambari_config_changes',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_eclipselink: {
+                  label: 'ambari_eclipselink',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server: {
+                  label: 'ambari_server',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server_check_database: {
+                  label: 'ambari_server_check_database',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_collector: {
+                  label: 'ams_collector',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_grafana: {
+                  label: 'ams_grafana',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_master: {
+                  label: 'ams_hbase_master',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_regionserver: {
+                  label: 'ams_hbase_regionserver',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_monitor: {
+                  label: 'ams_monitor',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_datanode: {
+                  label: 'hdfs_datanode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_journalnode: {
+                  label: 'hdfs_journalnode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_namenode: {
+                  label: 'hdfs_namenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_nfs3: {
+                  label: 'hdfs_nfs3',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_secondarynamenode: {
+                  label: 'hdfs_secondarynamenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_zkfc: {
+                  label: 'hdfs_zkfc',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                infra_solr: {
+                  label: 'infra_solr',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_app: {
+                  label: 'logsearch_app',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_feeder: {
+                  label: 'logsearch_feeder',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_perf: {
+                  label: 'logsearch_perf',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                zookeeper: {
+                  label: 'zookeeper',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                }
+              }
+            }
           },
-          filter1: {
-            label: 'filter1',
-            hosts: [
-              'h1',
-              'h2'
-            ],
-            defaultLevels: [
-              'l4',
-              'l5'
-            ],
-            overrideLevels: [
-              'l6',
-              'l7'
-            ],
-            expiryTime: '2017-05-30T11:30:22.531Z'
+          cl1: {
+            level: {
+              filter: {
+                ambari_agent: {
+                  label: 'ambari_agent',
+                  hosts: [
+                    'h0'
+                  ],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [
+                    'FATAL'
+                  ],
+                  expiryTime: currentTime.clone().add(1, 'd').toISOString()
+                },
+                ambari_alerts: {
+                  label: 'ambari_alerts',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_audit: {
+                  label: 'ambari_audit',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_config_changes: {
+                  label: 'ambari_config_changes',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_eclipselink: {
+                  label: 'ambari_eclipselink',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server: {
+                  label: 'ambari_server',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server_check_database: {
+                  label: 'ambari_server_check_database',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_collector: {
+                  label: 'ams_collector',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_grafana: {
+                  label: 'ams_grafana',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_master: {
+                  label: 'ams_hbase_master',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_regionserver: {
+                  label: 'ams_hbase_regionserver',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_monitor: {
+                  label: 'ams_monitor',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_datanode: {
+                  label: 'hdfs_datanode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_journalnode: {
+                  label: 'hdfs_journalnode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_namenode: {
+                  label: 'hdfs_namenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_nfs3: {
+                  label: 'hdfs_nfs3',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_secondarynamenode: {
+                  label: 'hdfs_secondarynamenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_zkfc: {
+                  label: 'hdfs_zkfc',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                infra_solr: {
+                  label: 'infra_solr',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_app: {
+                  label: 'logsearch_app',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_feeder: {
+                  label: 'logsearch_feeder',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_perf: {
+                  label: 'logsearch_perf',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                zookeeper: {
+                  label: 'zookeeper',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                }
+              }
+            }
+          },
+          cl2: {
+            level: {
+              filter: {
+                ambari_agent: {
+                  label: 'ambari_agent',
+                  hosts: [
+                    'h0'
+                  ],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [
+                    'FATAL'
+                  ],
+                  expiryTime: currentTime.clone().add(1, 'd').toISOString()
+                },
+                ambari_alerts: {
+                  label: 'ambari_alerts',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_audit: {
+                  label: 'ambari_audit',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_config_changes: {
+                  label: 'ambari_config_changes',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_eclipselink: {
+                  label: 'ambari_eclipselink',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server: {
+                  label: 'ambari_server',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server_check_database: {
+                  label: 'ambari_server_check_database',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_collector: {
+                  label: 'ams_collector',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_grafana: {
+                  label: 'ams_grafana',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_master: {
+                  label: 'ams_hbase_master',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_regionserver: {
+                  label: 'ams_hbase_regionserver',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_monitor: {
+                  label: 'ams_monitor',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_datanode: {
+                  label: 'hdfs_datanode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_journalnode: {
+                  label: 'hdfs_journalnode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_namenode: {
+                  label: 'hdfs_namenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_nfs3: {
+                  label: 'hdfs_nfs3',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_secondarynamenode: {
+                  label: 'hdfs_secondarynamenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_zkfc: {
+                  label: 'hdfs_zkfc',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                infra_solr: {
+                  label: 'infra_solr',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_app: {
+                  label: 'logsearch_app',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_feeder: {
+                  label: 'logsearch_feeder',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_perf: {
+                  label: 'logsearch_perf',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                zookeeper: {
+                  label: 'zookeeper',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                }
+              }
+            }
+          },
+          cl3: {
+            level: {
+              filter: {
+                ambari_agent: {
+                  label: 'ambari_agent',
+                  hosts: [
+                    'h0'
+                  ],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [
+                    'FATAL'
+                  ],
+                  expiryTime: currentTime.clone().add(1, 'd').toISOString()
+                },
+                ambari_alerts: {
+                  label: 'ambari_alerts',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_audit: {
+                  label: 'ambari_audit',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_config_changes: {
+                  label: 'ambari_config_changes',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_eclipselink: {
+                  label: 'ambari_eclipselink',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server: {
+                  label: 'ambari_server',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server_check_database: {
+                  label: 'ambari_server_check_database',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_collector: {
+                  label: 'ams_collector',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_grafana: {
+                  label: 'ams_grafana',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_master: {
+                  label: 'ams_hbase_master',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_regionserver: {
+                  label: 'ams_hbase_regionserver',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_monitor: {
+                  label: 'ams_monitor',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_datanode: {
+                  label: 'hdfs_datanode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_journalnode: {
+                  label: 'hdfs_journalnode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_namenode: {
+                  label: 'hdfs_namenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_nfs3: {
+                  label: 'hdfs_nfs3',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_secondarynamenode: {
+                  label: 'hdfs_secondarynamenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_zkfc: {
+                  label: 'hdfs_zkfc',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                infra_solr: {
+                  label: 'infra_solr',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_app: {
+                  label: 'logsearch_app',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_feeder: {
+                  label: 'logsearch_feeder',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_perf: {
+                  label: 'logsearch_perf',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                zookeeper: {
+                  label: 'zookeeper',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                }
+              }
+            }
+          },
+          cl4: {
+            level: {
+              filter: {
+                ambari_agent: {
+                  label: 'ambari_agent',
+                  hosts: [
+                    'h0'
+                  ],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [
+                    'FATAL'
+                  ],
+                  expiryTime: currentTime.clone().add(1, 'd').toISOString()
+                },
+                ambari_alerts: {
+                  label: 'ambari_alerts',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_audit: {
+                  label: 'ambari_audit',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_config_changes: {
+                  label: 'ambari_config_changes',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_eclipselink: {
+                  label: 'ambari_eclipselink',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server: {
+                  label: 'ambari_server',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ambari_server_check_database: {
+                  label: 'ambari_server_check_database',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_collector: {
+                  label: 'ams_collector',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_grafana: {
+                  label: 'ams_grafana',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_master: {
+                  label: 'ams_hbase_master',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_hbase_regionserver: {
+                  label: 'ams_hbase_regionserver',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                ams_monitor: {
+                  label: 'ams_monitor',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_datanode: {
+                  label: 'hdfs_datanode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_journalnode: {
+                  label: 'hdfs_journalnode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_namenode: {
+                  label: 'hdfs_namenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_nfs3: {
+                  label: 'hdfs_nfs3',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_secondarynamenode: {
+                  label: 'hdfs_secondarynamenode',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                hdfs_zkfc: {
+                  label: 'hdfs_zkfc',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                infra_solr: {
+                  label: 'infra_solr',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_app: {
+                  label: 'logsearch_app',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_feeder: {
+                  label: 'logsearch_feeder',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                logsearch_perf: {
+                  label: 'logsearch_perf',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                },
+                zookeeper: {
+                  label: 'zookeeper',
+                  hosts: [],
+                  defaultLevels: [
+                    'FATAL',
+                    'ERROR',
+                    'WARN',
+                    'INFO'
+                  ],
+                  overrideLevels: [],
+                  expiryTime: null
+                }
+              }
+            }
           }
         },
         names: []

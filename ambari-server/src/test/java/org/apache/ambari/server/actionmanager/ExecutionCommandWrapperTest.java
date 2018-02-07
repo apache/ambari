@@ -367,7 +367,7 @@ public class ExecutionCommandWrapperTest {
     Service service = cluster.getService("HDFS");
     service.setDesiredRepositoryVersion(repositoryVersion);
 
-    repositoryVersion.setOperatingSystems("[]");
+    repositoryVersion.addRepoOsEntities(new ArrayList<>());
 
     ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
 

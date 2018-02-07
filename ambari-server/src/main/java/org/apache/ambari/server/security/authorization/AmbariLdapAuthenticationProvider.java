@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
@@ -53,7 +53,7 @@ import com.google.inject.Inject;
 public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvider {
   static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class); // exposed and mutable for "test"
 
-  final AmbariLdapConfiguration ldapConfiguration;
+  final AmbariLdapConfigurationProvider ldapConfigurationProvider;
 
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
 
@@ -62,10 +62,10 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
   private ThreadLocal<String> ldapUserSearchFilterThreadLocal = new ThreadLocal<>();
 
   @Inject
-  public AmbariLdapAuthenticationProvider(Users users, Configuration configuration, AmbariLdapConfiguration ldapConfiguration,
+  public AmbariLdapAuthenticationProvider(Users users, Configuration configuration, AmbariLdapConfigurationProvider ldapConfigurationProvider,
                                           AmbariLdapAuthoritiesPopulator authoritiesPopulator) {
     super(users, configuration);
-    this.ldapConfiguration = ldapConfiguration;
+    this.ldapConfigurationProvider = ldapConfigurationProvider;
     this.authoritiesPopulator = authoritiesPopulator;
   }
 
@@ -132,7 +132,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
         }
         throw new InvalidUsernamePasswordCombinationException(username, e);
       } catch (IncorrectResultSizeDataAccessException multipleUsersFound) {
-        String message = ldapConfiguration.isLdapAlternateUserSearchEnabled()
+        String message = ldapConfigurationProvider.get().isLdapAlternateUserSearchEnabled()
             ? String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username)
             : "Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration";
 
@@ -182,7 +182,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
       String userSearchBase = ldapServerProperties.get().getUserSearchBase();
       FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(userSearchBase, ldapUserSearchFilter, springSecurityContextSource);
 
-      AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(springSecurityContextSource, ldapConfiguration);
+      AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(springSecurityContextSource, ldapConfigurationProvider.get());
       bindAuthenticator.setUserSearch(userSearch);
 
       LdapAuthenticationProvider authenticationProvider = new LdapAuthenticationProvider(bindAuthenticator, authoritiesPopulator);
@@ -210,7 +210,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
    * @return true if properties were reloaded
    */
   private boolean reloadLdapServerProperties() {
-    LdapServerProperties properties = ldapConfiguration.getLdapServerProperties();
+    LdapServerProperties properties = ldapConfigurationProvider.get().getLdapServerProperties();
     if (!properties.equals(ldapServerProperties.get())) {
       LOG.info("Reloading properties");
       ldapServerProperties.set(properties);
@@ -222,7 +222,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
 
   private String getLdapUserSearchFilter(String userName) {
     return ldapServerProperties.get()
-        .getUserSearchFilter(ldapConfiguration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
+        .getUserSearchFilter(ldapConfigurationProvider.get().isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
   }
 
   /**

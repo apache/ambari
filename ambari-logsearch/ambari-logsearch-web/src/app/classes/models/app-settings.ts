@@ -17,11 +17,15 @@
  */
 
 import * as moment from 'moment-timezone';
+import {HomogeneousObject} from '@app/classes/object';
+import {Filter} from '@app/classes/models/filter';
 
 export interface AppSettings {
   timeZone: string;
+  logIndexFilters: HomogeneousObject<HomogeneousObject<Filter>>;
 }
 
 export const defaultSettings: AppSettings = {
-  timeZone: moment.tz.guess()
-}
+  timeZone: moment.tz.guess(),
+  logIndexFilters: {}
+};

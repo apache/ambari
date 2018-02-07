@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, AfterViewChecked, ViewChild, ElementRef, Input, ChangeDetectorRef} from '@angular/core';
+import {Component, AfterViewChecked, ViewChild, ElementRef, Input, ChangeDetectorRef} from '@angular/core';
 
 import {ListItem} from '@app/classes/list-item';
 import {LogsTableComponent} from '@app/classes/components/logs-table/logs-table-component';
+import {ServiceLog} from '@app/classes/models/service-log';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
@@ -100,52 +101,70 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
 
   readonly timeFormat: string = 'h:mm:ss A';
 
+  private copyLog = (log: ServiceLog): void => {
+    if (document.queryCommandSupported('copy')) {
+      const text = log.log_message,
+        node = document.createElement('textarea');
+      node.value = text;
+      Object.assign(node.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '1px',
+        height: '1px',
+        border: 'none',
+        outline: 'none',
+        boxShadow: 'none',
+        backgroundColor: 'transparent',
+        padding: '0'
+      });
+      document.body.appendChild(node);
+      node.select();
+      if (document.queryCommandEnabled('copy')) {
+        document.execCommand('copy');
+      } else {
+        // TODO open failed alert
+      }
+      // TODO success alert
+      document.body.removeChild(node);
+    } else {
+      // TODO failed alert
+    }
+  };
+
+  private openLog = (log: ServiceLog): void => {
+    this.logsContainer.openServiceLog(log);
+  };
+
+  private openContext = (log: ServiceLog): void => {
+    this.logsContainer.loadLogContext(log.id, log.host, log.type);
+  };
+
   readonly logActions = [
     {
       label: 'logs.copy',
       iconClass: 'fa fa-files-o',
-      action: 'copyLog'
+      onSelect: this.copyLog
     },
     {
       label: 'logs.open',
       iconClass: 'fa fa-external-link',
-      action: 'openLog'
+      onSelect: this.openLog
     },
     {
       label: 'logs.context',
       iconClass: 'fa fa-crosshairs',
-      action: 'openContext'
+      onSelect: this.openContext
     }
   ];
 
   readonly customStyledColumns: string[] = ['level', 'type', 'logtime', 'log_message', 'path'];
 
-  get contextMenuItems(): ListItem[] {
-    return this.logsContainer.queryContextMenuItems;
-  }
-
   private readonly messageFilterParameterName: string = 'log_message';
 
-  /**
-   * The goal is to show or hide the context menu on right click.
-   * @type {boolean}
-   */
-  private isContextMenuDisplayed: boolean = false;
-
-  /**
-   * 'left' CSS property value for context menu dropdown
-   * @type {number}
-   */
-  private contextMenuLeft: number = 0;
-
-  /**
-   * 'top' CSS property value for context menu dropdown
-   * @type {number}
-   */
-  private contextMenuTop:number = 0;
+  private readonly logsType: string = 'serviceLogs';
 
   private selectedText: string = '';
-
 
   /**
    * This is a private flag to store the table layout check result. It is used to show user notifications about
@@ -153,6 +172,10 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
    * @type {boolean}
    */
   private tooManyColumnsSelected: boolean = false;
+
+  get contextMenuItems(): ListItem[] {
+    return this.logsContainer.queryContextMenuItems;
+  }
 
   get timeZone(): string {
     return this.logsContainer.timeZone;
@@ -166,6 +189,22 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
     return this.logsContainer.logsTypeMap.serviceLogs;
   }
 
+  get isContextMenuDisplayed(): boolean {
+    return Boolean(this.selectedText);
+  };
+
+  /**
+   * 'left' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuLeft: number = 0;
+
+  /**
+   * 'top' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuTop: number = 0;
+
   isDifferentDates(dateA, dateB): boolean {
     return this.utils.isDifferentDates(dateA, dateB, this.timeZone);
   }
@@ -173,7 +212,6 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
   openMessageContextMenu(event: MouseEvent): void {
     const selectedText = getSelection().toString();
     if (selectedText) {
-      this.isContextMenuDisplayed = true;
       this.contextMenuLeft = event.clientX;
       this.contextMenuTop = event.clientY;
       this.selectedText = selectedText;
@@ -192,8 +230,7 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
   /**
    * Handle the event when the contextual menu component hide itself.
    */
-  private onContextMenuDismiss = (): void => {
-    this.isContextMenuDisplayed = false;
+  onContextMenuDismiss(): void {
     this.selectedText = '';
   };
 
@@ -262,6 +299,10 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
    */
   private toggleShowLabels(): void {
     this.showLabels = !this.showLabels;
+  }
+
+  updateSelectedColumns(columns: string[]): void {
+    this.logsContainer.updateSelectedColumns(columns, this.logsType);
   }
 
 }

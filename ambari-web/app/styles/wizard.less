@@ -62,9 +62,6 @@
   #get-started {
     .cluster-name-input {
       padding: 4px 0px;
-      input[placeholder] {
-        text-transform: uppercase;
-      }
     }
   }
 
@@ -115,6 +112,10 @@
 
     .compact-panel-heading {
       padding: 10px;
+    }
+    .hosts-panel {
+      padding-left: 0;
+      padding-right: 0;
     }
     .page-bar {
       border: none;
@@ -176,6 +177,21 @@
       margin-bottom: 0;
     }
     #confirm-hosts-table {
+      th:first-of-type {
+        width: 25px;
+      }
+      th:nth-of-type(2) {
+        width: 42%;
+      }
+      th:nth-of-type(3) {
+        width: 17%;
+      }
+      th:nth-of-type(4) {
+        width: 17%;
+      }
+      th:nth-of-type(5) {
+        width: 17%;
+      }
       td.host {
         max-width: 290px;
       }
@@ -189,6 +205,11 @@
       }
       #display-action {
         visibility:visible;
+      }
+      .step3-table-checkbox {
+        label {
+          top: 1px;
+        }
       }
     }
     #warningsSection {
@@ -207,6 +228,12 @@
     }
     .glyphicon-asterisks {
       color: #00688B;
+    }
+    .checkbox-cell {
+      padding-top: 4px;
+    }
+    .checkbox-row {
+      width: 47px;
     }
   }
   #step6 {
@@ -229,6 +256,7 @@
           margin: 0;
         }
         .host-component-checkbox {
+          line-height: 17px;
           font-size: 12px;
           top: 0px;
         }
@@ -748,3 +776,4 @@
     }
   }
 }
+

@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -30,7 +31,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -100,6 +100,16 @@ public class LoggingRequestHelperImplTest {
       "]" +
       "}";
 
+  private static final String TEST_JSON_INPUT_LOG_FILES_MAP =
+    "{" +
+    "\"hostLogFiles\":{" +
+    "\"hdfs_namenode\": [" +
+    "\"/var/log/hadoop/hdfs/hadoop-hdfs-namenode-c6401.ambari.apache.org.log\"" +
+    "],\"logsearch_app\": [" +
+    "\"/var/log/ambari-logsearch-portal/logsearch.json\"" +
+    "]" +
+    "}}";
+
   private static final String TEST_JSON_INPUT_LOG_LEVEL_QUERY =
     "{\"pageSize\":\"0\",\"queryTimeMS\":\"1459970731998\",\"resultSize\":\"6\",\"startIndex\":\"0\",\"totalCount\":\"0\"," +
       "\"vNameValues\":[{\"name\":\"FATAL\",\"value\":\"0\"},{\"name\":\"ERROR\",\"value\":\"0\"}," +
@@ -164,7 +174,7 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, null, networkConnectionMock);
 
     // invoke query request
     LogQueryResponse result =
@@ -256,7 +266,7 @@ public class LoggingRequestHelperImplTest {
 
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, null, networkConnectionMock);
 
     // invoke query request
     LogLevelQueryResponse result =
@@ -340,7 +350,7 @@ public class LoggingRequestHelperImplTest {
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(clusterMock.getClusterName()).andReturn("clusterone").atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
-    expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_TWO_LIST_ENTRIES)).atLeastOnce();
+    expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_LOG_FILES_MAP)).atLeastOnce();
 
     // expect that basic authentication is setup, with the expected encoded credentials
     networkConnectionMock.setupBasicAuthentication(capture(captureURLConnectionForAuthentication), eq(EXPECTED_ENCODED_CREDENTIALS));
@@ -348,11 +358,11 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, null, networkConnectionMock);
 
     // invoke query request
-    Set<String> result =
-      helper.sendGetLogFileNamesRequest(expectedComponentName, EXPECTED_HOST_NAME);
+    HostLogFilesResponse result =
+      helper.sendGetLogFileNamesRequest(EXPECTED_HOST_NAME);
 
     // verify that the HttpURLConnection was created with the propert values
     HttpURLConnection httpURLConnection =
@@ -378,18 +388,14 @@ public class LoggingRequestHelperImplTest {
     // verify that the query contains the three required parameters
     assertTrue("host_name parameter was not included in query",
       resultQuery.contains("host_name=c6401.ambari.apache.org"));
-    assertTrue("component_name parameter was not included in the query",
-      resultQuery.contains("component_name=" + expectedComponentName));
-    assertTrue("pageSize parameter was not included in query",
-      resultQuery.contains("pageSize=1"));
 
     assertNotNull("Response object should not be null",
       result);
     assertEquals("Response Set was not of the expected size",
-      1, result.size());
+      2, result.getHostLogFiles().size());
     assertEquals("Response did not include the expected file name",
       "/var/log/hadoop/hdfs/hadoop-hdfs-namenode-c6401.ambari.apache.org.log",
-      result.iterator().next());
+      result.getHostLogFiles().get(expectedComponentName).get(0));
 
     mockSupport.verifyAll();
   }
@@ -433,11 +439,11 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, null, networkConnectionMock);
 
     // invoke query request
-    Set<String> result =
-      helper.sendGetLogFileNamesRequest(expectedComponentName, EXPECTED_HOST_NAME);
+    HostLogFilesResponse result =
+      helper.sendGetLogFileNamesRequest(EXPECTED_HOST_NAME);
 
     // verify that the HttpURLConnection was created with the propert values
     HttpURLConnection httpURLConnection =
@@ -463,15 +469,10 @@ public class LoggingRequestHelperImplTest {
     // verify that the query contains the three required parameters
     assertTrue("host_name parameter was not included in query",
       resultQuery.contains("host_name=c6401.ambari.apache.org"));
-    assertTrue("component_name parameter was not included in the query",
-      resultQuery.contains("component_name=" + expectedComponentName));
-    assertTrue("pageSize parameter was not included in query",
-      resultQuery.contains("pageSize=1"));
 
     assertNotNull("Response object should not be null",
       result);
-    assertEquals("Response Set was not of the expected size, expected an empty set",
-      0, result.size());
+    assertNull("Response Map should be null", result.getHostLogFiles());
 
     mockSupport.verifyAll();
   }
@@ -520,7 +521,7 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, null, networkConnectionMock);
 
     // invoke query request
     LogQueryResponse result =
@@ -692,7 +693,7 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl("c6401.ambari.apache.org", "61888", "http", credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl("c6401.ambari.apache.org", "61888", "http", credentialStoreServiceMock, clusterMock, null, networkConnectionMock);
 
     String result = helper.createLogFileTailURI(expectedBaseURI, expectedComponentName, expectedHostName);
 

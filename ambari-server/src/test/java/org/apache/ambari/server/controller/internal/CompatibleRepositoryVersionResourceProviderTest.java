@@ -50,6 +50,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -76,7 +77,14 @@ public class CompatibleRepositoryVersionResourceProviderTest {
 
   private static Injector injector;
 
-  private static String jsonStringRedhat6 = "[{\"OperatingSystems\":{\"os_type\":\"redhat6\"},\"repositories\":[]}]";
+  private static final List<RepoOsEntity> osRedhat6 = new ArrayList<>();
+
+  {
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
+    repoOsEntity.setFamily("redhat6");
+    repoOsEntity.setAmbariManaged(true);
+    osRedhat6.add(repoOsEntity);
+  }
   private static StackId stackId11 = new StackId("HDP", "1.1");
   private static StackId stackId22 = new StackId("HDP", "2.2");
 
@@ -90,7 +98,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
 
     RepositoryVersionEntity entity1 = new RepositoryVersionEntity();
     entity1.setDisplayName("name1");
-    entity1.setOperatingSystems(jsonStringRedhat6);
+    entity1.addRepoOsEntities(osRedhat6);
     entity1.setStack(hdp11Stack);
     entity1.setVersion("1.1.1.1");
     entity1.setId(1L);
@@ -101,7 +109,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
 
     RepositoryVersionEntity entity2 = new ExtendedRepositoryVersionEntity();
     entity2.setDisplayName("name2");
-    entity2.setOperatingSystems(jsonStringRedhat6);
+    entity2.addRepoOsEntities(osRedhat6);
     entity2.setStack(hdp22Stack);
     entity2.setVersion("2.2.2.2");
     entity2.setId(2L);

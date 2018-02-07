@@ -16,33 +16,37 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, Input, Output, EventEmitter, ViewChildren, ViewContainerRef, QueryList} from '@angular/core';
+import {
+  Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
+  QueryList
+} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
   selector: 'ul[data-component="dropdown-list"]',
   templateUrl: './dropdown-list.component.html',
   styleUrls: ['./dropdown-list.component.less']
 })
-export class DropdownListComponent implements AfterViewInit {
+export class DropdownListComponent implements OnChanges, AfterViewChecked {
 
-  constructor(private componentGenerator: ComponentGeneratorService, private actions: ComponentActionsService) {
+  constructor(private componentGenerator: ComponentGeneratorService) {
   }
 
-  ngAfterViewInit() {
-    const setter = this.additionalLabelComponentSetter;
-    if (setter) {
-      this.containers.forEach((container, index) => this.componentGenerator[setter](this.items[index].value, container));
+  private shouldRenderAdditionalComponents: boolean = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.hasOwnProperty('items')) {
+      this.shouldRenderAdditionalComponents = true;
     }
+  }
+
+  ngAfterViewChecked() {
+    this.renderAdditionalComponents();
   }
 
   @Input()
   items: ListItem[];
-
-  @Input()
-  defaultAction: Function;
 
   @Input()
   isMultipleChoice?: boolean = false;
@@ -61,9 +65,18 @@ export class DropdownListComponent implements AfterViewInit {
   })
   containers: QueryList<ViewContainerRef>;
 
+  private renderAdditionalComponents(): void {
+    const setter = this.additionalLabelComponentSetter,
+      containers = this.containers;
+    if (this.shouldRenderAdditionalComponents && setter && containers) {
+      containers.forEach((container, index) => this.componentGenerator[setter](this.items[index].value, container));
+      this.shouldRenderAdditionalComponents = false;
+    }
+  }
+
   changeSelectedItem(options: ListItem): void {
-    if (options.action) {
-      this.actions[options.action](...this.actionArguments);
+    if (options.onSelect) {
+      options.onSelect(...this.actionArguments);
     }
     this.selectedItemChange.emit(options);
   }

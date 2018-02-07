@@ -252,10 +252,10 @@ public class ClusterGrouping extends Grouping {
     if (StringUtils.isNotEmpty(service) && StringUtils.isNotEmpty(component)) {
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 
-      if (null == hosts || hosts.hosts.isEmpty()) {
+      if (null == hosts || hosts.getHosts().isEmpty()) {
         return null;
       } else {
-        realHosts = new LinkedHashSet<>(hosts.hosts);
+        realHosts = new LinkedHashSet<>(hosts.getHosts());
       }
     }
 
@@ -301,19 +301,19 @@ public class ClusterGrouping extends Grouping {
 
       if (hosts != null) {
 
-        Set<String> realHosts = new LinkedHashSet<>(hosts.hosts);
-        if (ExecuteHostType.MASTER == et.hosts && null != hosts.master) {
-          realHosts = Collections.singleton(hosts.master);
+        Set<String> realHosts = new LinkedHashSet<>(hosts.getHosts());
+        if (ExecuteHostType.MASTER == et.hosts && hosts.hasMasters()) {
+          realHosts = hosts.getMasters();
         }
 
         // Pick a random host.
-        if (ExecuteHostType.ANY == et.hosts && !hosts.hosts.isEmpty()) {
-          realHosts = Collections.singleton(hosts.hosts.iterator().next());
+        if (ExecuteHostType.ANY == et.hosts && !hosts.getHosts().isEmpty()) {
+          realHosts = Collections.singleton(hosts.getHosts().iterator().next());
         }
 
         // Pick the first host sorted alphabetically (case insensitive)
-        if (ExecuteHostType.FIRST == et.hosts && !hosts.hosts.isEmpty()) {
-          List<String> sortedHosts = new ArrayList<>(hosts.hosts);
+        if (ExecuteHostType.FIRST == et.hosts && !hosts.getHighAvailabilityHosts().isEmpty()) {
+          List<String> sortedHosts = new ArrayList<>(hosts.getHosts());
           Collections.sort(sortedHosts, String.CASE_INSENSITIVE_ORDER);
           realHosts = Collections.singleton(sortedHosts.get(0));
         }

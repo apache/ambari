@@ -115,10 +115,13 @@ class AmbariServerConfigurationHandler extends RootServiceComponentConfiguration
     while (propertiesIterator.hasNext()) {
       Map.Entry<String, String> property = propertiesIterator.next();
       if (AmbariServerConfigurationUtils.isPassword(categoryName, property.getKey())) {
-        if (updatePasswordIfNeeded(categoryName, property.getKey(), property.getValue())) {
-          toBePublished = true;
+        final String passwordFileOrCredentailStoreAlias = fetchPasswordFileNameOrCredentialStoreAlias(categoryName, property.getKey());
+        if (StringUtils.isNotBlank(passwordFileOrCredentailStoreAlias)) { //if blank -> this is the first time setup; we simply need to store the alias/file name
+          if (updatePasswordIfNeeded(categoryName, property.getKey(), property.getValue())) {
+            toBePublished = true;
+          }
+          propertiesIterator.remove(); //we do not need to change the any PASSWORD type configuration going forward
         }
-        propertiesIterator.remove(); //we do not need to change the any PASSWORD type configuration going forward
       }
     }
 

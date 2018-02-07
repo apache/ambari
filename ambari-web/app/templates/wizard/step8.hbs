@@ -97,10 +97,10 @@
       {{/if}}
       {{t common.deploy}} &rarr;
     </button>
-    <button type="button" class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</button>
+    <button type="button" class="btn btn-secondary pull-right" {{action printReview target="view"}}>{{t common.print}}</button>
     <button type="button" {{bindAttr class=":btn :btn-primary :pull-right :mrm controller.showDownloadCsv::hide"}} {{action downloadCSV target="controller"}}>{{t admin.kerberos.wizard.step5.downloadCSV}}</button>
     {{#unless App.router.clusterInstallCompleted}}
-      <button type="button" class="btn btn-success pull-right" {{action generateBlueprintConfirmation target="controller"}}><i class="glyphicon glyphicon-download-alt"></i>&nbsp;
+      <button type="button" class="btn btn-secondary pull-right" {{action generateBlueprintConfirmation target="controller"}}><i class="glyphicon glyphicon-download-alt"></i>&nbsp;
         {{t common.generate.blueprint}}
       </button>
     {{/unless}}
