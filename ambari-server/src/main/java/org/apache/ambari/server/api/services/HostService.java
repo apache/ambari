@@ -28,6 +28,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -105,7 +106,7 @@ public class HostService extends BaseService {
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, hostName));
+        createHostResource(m_clusterName, hostName, Resource.Type.Host));
   }
 
   /**
@@ -133,9 +134,10 @@ public class HostService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                           @ApiParam(value = "summary", required = false) @QueryParam("format") String format) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostResource(m_clusterName, null));
+        createHostResource(m_clusterName, null, format==null ? Resource.Type.Host : format.equalsIgnoreCase("summary") ? Resource.Type.HostSummary : Resource.Type.Host));
   }
 
   /**
@@ -167,7 +169,7 @@ public class HostService extends BaseService {
   })
   public Response createHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createHostResource(m_clusterName, null));
+        createHostResource(m_clusterName, null, Resource.Type.Host));
   }
 
   /**
@@ -202,7 +204,7 @@ public class HostService extends BaseService {
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createHostResource(m_clusterName, hostName));
+        createHostResource(m_clusterName, hostName, Resource.Type.Host));
   }
 
   /**
@@ -236,7 +238,7 @@ public class HostService extends BaseService {
      @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createHostResource(m_clusterName, hostName));
+        createHostResource(m_clusterName, hostName, Resource.Type.Host));
   }
 
   /**
@@ -266,7 +268,7 @@ public class HostService extends BaseService {
   })
   public Response updateHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createHostResource(m_clusterName, null));
+        createHostResource(m_clusterName, null, Resource.Type.Host));
   }
 
   /**
@@ -294,7 +296,7 @@ public class HostService extends BaseService {
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
   ) {
     return handleRequest(headers, null, ui, Request.Type.DELETE,
-        createHostResource(m_clusterName, hostName));
+        createHostResource(m_clusterName, hostName, Resource.Type.Host));
   }
 
   @DELETE
@@ -312,7 +314,7 @@ public class HostService extends BaseService {
   })
   public Response deleteHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.DELETE,
-            createHostResource(m_clusterName, null));
+            createHostResource(m_clusterName, null, Resource.Type.Host));
   }
 
   /**
@@ -384,13 +386,13 @@ public class HostService extends BaseService {
    * @param hostName     host name
    * @return a host resource instance
    */
-  protected ResourceInstance createHostResource(String clusterName, String hostName) {
+  protected ResourceInstance createHostResource(String clusterName, String hostName, Resource.Type type) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Host, hostName);
     if (clusterName != null) {
       mapIds.put(Resource.Type.Cluster, clusterName);
     }
 
-    return createResource(Resource.Type.Host, mapIds);
+    return createResource(type, mapIds);
   }
 }

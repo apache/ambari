@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Unit tests for HostService.
@@ -48,8 +49,20 @@ public class HostServiceTest extends BaseServiceTest {
 
     //getHosts
     service = new TestHostService("clusterName", null);
-    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
+    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), null};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
+    //getHostsSummary
+    service = new TestHostService("clusterName", null);
+    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "summary"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
+    //getHostsSummary
+    service = new TestHostService(null, null);
+    m = service.getClass().getMethod("getHosts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "summary"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createHost
@@ -96,7 +109,7 @@ public class HostServiceTest extends BaseServiceTest {
     }
 
     @Override
-    protected ResourceInstance createHostResource(String clusterName, String hostName) {
+    protected ResourceInstance createHostResource(String clusterName, String hostName, Resource.Type type) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_hostId, hostName);
       return getTestResource();

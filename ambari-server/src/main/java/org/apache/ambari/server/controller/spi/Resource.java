@@ -175,7 +175,8 @@ public interface Resource {
     VersionDefinition,
     ClusterKerberosDescriptor,
     LoggingQuery,
-    RemoteCluster;
+    RemoteCluster,
+    HostSummary;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -312,6 +313,7 @@ public interface Resource {
     public static final Type ClusterKerberosDescriptor = InternalType.ClusterKerberosDescriptor.getType();
     public static final Type LoggingQuery = InternalType.LoggingQuery.getType();
     public static final Type RemoteCluster = InternalType.RemoteCluster.getType();
+    public static final Type HostSummary = InternalType.HostSummary.getType();
 
 
     /**

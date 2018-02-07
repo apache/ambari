@@ -132,6 +132,10 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new ArtifactResourceProvider(managementController);
       case RemoteCluster:
         return new RemoteClusterResourceProvider();
+      case Host:
+        return new HostResourceProvider(managementController);
+      case HostSummary:
+        return new HostInfoSummaryResourceProvider(managementController);
       default:
         LOGGER.debug("Delegating creation of resource provider for: {} to the AbstractControllerResourceProvider", type.getInternalType());
         return AbstractControllerResourceProvider.getResourceProvider(type, managementController);
