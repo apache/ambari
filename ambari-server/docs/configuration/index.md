@@ -88,9 +88,9 @@ The following are the properties which can be used to configure Ambari.
 | auto.group.creation | The auto group creation by Ambari |`false` | 
 | bootstrap.dir | The directory on the Ambari Server file system used for storing Ambari Agent bootstrap information such as request responses. |`/var/run/ambari-server/bootstrap` | 
 | bootstrap.master_host_name | The host name of the Ambari Server which will be used by the Ambari Agents for communication. | | 
-| bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py` | 
+| bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/usr/lib/ambari-server/lib/ambari_server/bootstrap.py` | 
 | bootstrap.setup_agent.password | The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script. |`password` | 
-| bootstrap.setup_agent.script | The location and name of the Python script executed on the Ambari Agent host during the bootstrap process. |`/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py` | 
+| bootstrap.setup_agent.script | The location and name of the Python script executed on the Ambari Agent host during the bootstrap process. |`/usr/lib/ambari-server/lib/ambari_server/setupAgent.py` | 
 | client.api.acceptor.count | Count of acceptors to configure for the jetty connector used for Ambari API. | | 
 | client.api.port | The port that client connections will use with the REST API. The Ambari Web client runs on this port. |`8080` | 
 | client.api.ssl.cert_pass_file | The filename which contains the password for the keystores, truststores, and certificates for the REST API when it's protected by SSL. |`https.pass.txt` | 

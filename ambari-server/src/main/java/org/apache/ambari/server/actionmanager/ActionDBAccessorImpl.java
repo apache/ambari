@@ -30,8 +30,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
@@ -69,9 +67,6 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.utils.LoopBody;
-import org.apache.ambari.server.utils.Parallel;
-import org.apache.ambari.server.utils.ParallelLoopResult;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -277,7 +272,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * {@inheritDoc}
    */
   @Override
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
   public List<Stage> getStagesInProgressForRequest(Long requestId) {
     List<StageEntity> stageEntities = stageDAO.findByRequestIdAndCommandStatuses(requestId, HostRoleStatus.IN_PROGRESS_STATUSES);
     return getStagesForEntities(stageEntities);
@@ -299,38 +293,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     return stages;
   }
 
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
   private List<Stage> getStagesForEntities(List<StageEntity> stageEntities) {
-    // experimentally enable parallel stage processing
-    @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
-    boolean useConcurrentStageProcessing = configuration.isExperimentalConcurrentStageProcessingEnabled();
-    if (useConcurrentStageProcessing) {
-      ParallelLoopResult<Stage> loopResult = Parallel.forLoop(stageEntities,
-          new LoopBody<StageEntity, Stage>() {
-            @Override
-            public Stage run(StageEntity stageEntity) {
-              return stageFactory.createExisting(stageEntity);
-            }
-          });
-      if (loopResult.getIsCompleted()) {
-        return loopResult.getResult();
-      } else {
-        // Fetch any missing results sequentially
-        List<Stage> stages = loopResult.getResult();
-        for (int i = 0; i < stages.size(); i++) {
-          if (stages.get(i) == null) {
-            stages.set(i, stageFactory.createExisting(stageEntities.get(i)));
-          }
-        }
-        return stages;
-      }
-    } else {
-      List<Stage> stages = new ArrayList<>(stageEntities.size());
-      for (StageEntity stageEntity : stageEntities) {
-        stages.add(stageFactory.createExisting(stageEntity));
-      }
-      return stages;
+    List<Stage> stages = new ArrayList<>(stageEntities.size());
+    for (StageEntity stageEntity : stageEntities) {
+      stages.add(stageFactory.createExisting(stageEntity));
     }
+
+    return stages;
   }
 
   /**
