@@ -1311,7 +1311,7 @@ public class ClusterImpl implements Cluster {
     Map<Long, ConfigGroup> configGroups = service.getCluster().getConfigGroups();
     if (!MapUtils.isEmpty(configGroups)) {
       for (ConfigGroup configGroup : configGroups.values()) {
-        if (configGroup.getServiceName().equalsIgnoreCase(serviceName)) {
+        if (configGroup.getServiceName() != null && configGroup.getServiceName().equalsIgnoreCase(serviceName)) {
           LOG.info("Deleting ConfigGroup {} for service {}", configGroup.getName(), serviceName);
           configGroup.delete();
           clusterConfigGroups.remove(configGroup.getId());
