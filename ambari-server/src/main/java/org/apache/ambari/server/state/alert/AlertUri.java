@@ -21,11 +21,11 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**

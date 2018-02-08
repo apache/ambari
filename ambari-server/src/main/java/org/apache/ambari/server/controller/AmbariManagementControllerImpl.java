@@ -133,6 +133,7 @@ import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory
 import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
@@ -2523,8 +2524,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
-    // TODO add TODO to ambariMetaInfo.getRepoInfoString
-    String repoInfo = ambariMetaInfo.getRepoInfoString(cluster, component, host);
+    String repoInfo;
+    try {
+      repoInfo = repoVersionHelper.getRepoInfoString(cluster, component, host);
+    } catch (SystemException e) {
+      throw new RuntimeException(e);
+    }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Sending repo information to agent, hostname={}, clusterName={}, stackInfo={}, repoInfo={}",
         scHost.getHostName(), clusterName, stackId.getStackId(), repoInfo);
@@ -2594,7 +2599,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setRoleParams(roleParams);
     execCmd.setCommandParams(commandParams);
 
-    execCmd.setRepositoryFile(ambariMetaInfo.getCommandRepository(cluster, component, host));
+    CommandRepository commandRepository;
+    try {
+      commandRepository = repoVersionHelper.getCommandRepository(cluster, component, host);
+    } catch (SystemException e) {
+      throw new RuntimeException(e);
+    }
+    execCmd.setRepositoryFile(commandRepository);
     execCmdWrapper.setVersions(cluster);
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
@@ -5812,8 +5823,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<Long, CommandRepository> hostRepositories = new HashMap<>();
     Map<String, Long> componentsRepos = new HashMap<>();
     for (ServiceComponentHost serviceComponentHost : hostComponents) {
-      CommandRepository commandRepository = ambariMetaInfo.getCommandRepository(cluster,
-          serviceComponentHost.getServiceComponent(), host);
+
+      CommandRepository commandRepository;
+      try {
+        commandRepository = repoVersionHelper.getCommandRepository(cluster,
+            serviceComponentHost.getServiceComponent(), host);
+      } catch (SystemException e) {
+        throw new RuntimeException(e);
+      }
       hostRepositories.put(commandRepository.getRepoVersionId(), commandRepository);
       componentsRepos.put(serviceComponentHost.getServiceComponentName(), commandRepository.getRepoVersionId());
     }

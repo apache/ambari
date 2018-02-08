@@ -108,10 +108,8 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
    */
   @Override
   public void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws IOException, ServletException {
-
-
     if (eventHandler != null) {
-      eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
+      eventHandler.beforeAttemptAuthentication(this, httpServletRequest, httpServletResponse);
     }
 
     super.doFilterInternal(httpServletRequest, httpServletResponse, filterChain);

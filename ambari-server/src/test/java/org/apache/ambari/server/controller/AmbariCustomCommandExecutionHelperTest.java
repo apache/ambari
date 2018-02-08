@@ -39,7 +39,6 @@ import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -631,13 +630,12 @@ public class AmbariCustomCommandExecutionHelperTest {
     ServiceComponent componentZKC = serviceZK.getServiceComponent("ZOOKEEPER_CLIENT");
     Host host = clusters.getHost("c1-c6401");
 
-    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     RepositoryVersionDAO repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     ServiceComponentDesiredStateDAO componentDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     RepositoryVersionHelper repoVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
 
-    CommandRepository commandRepo = ambariMetaInfo.getCommandRepository(cluster, componentRM, host);
+    CommandRepository commandRepo = repoVersionHelper.getCommandRepository(cluster, componentRM, host);
     Assert.assertEquals(2, commandRepo.getRepositories().size());
 
 
@@ -646,7 +644,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     repoDefinitionEntity1.setRepoID("new-id");
     repoDefinitionEntity1.setBaseUrl("http://foo");
     repoDefinitionEntity1.setRepoName("HDP");
-    RepoOsEntity repoOsEntity =newRepoOsEntity();
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
     repoOsEntity.setFamily("redhat6");
     repoOsEntity.setAmbariManaged(true);
     repoOsEntity.addRepoDefinition(repoDefinitionEntity1); operatingSystems .add(repoOsEntity);
@@ -671,14 +669,14 @@ public class AmbariCustomCommandExecutionHelperTest {
     componentDAO.merge(componentEntity);
 
     // !!! make sure the override is set
-    commandRepo = ambariMetaInfo.getCommandRepository(cluster, componentRM, host);
+    commandRepo = repoVersionHelper.getCommandRepository(cluster, componentRM, host);
 
     Assert.assertEquals(1, commandRepo.getRepositories().size());
     CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
     Assert.assertEquals("http://foo", repo.getBaseUrl());
 
     // verify that ZK has no repositories, since we haven't defined a repo version for ZKC
-    commandRepo = ambariMetaInfo.getCommandRepository(cluster, componentZKC, host);
+    commandRepo = repoVersionHelper.getCommandRepository(cluster, componentZKC, host);
     Assert.assertEquals(2, commandRepo.getRepositories().size());
   }
 

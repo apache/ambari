@@ -1024,7 +1024,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
-    repoVersionEntity.addRepoOsEntities(new ArrayList<>());
+    repoVersionEntity.addRepoOsEntities(createTestOperatingSystems());
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setVersion("2.2.2.3");
     repoVersionDao.create(repoVersionEntity);

@@ -31,7 +31,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
-import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -50,8 +49,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1532,7 +1531,7 @@ public class TestHeartbeatHandler {
   }
 
 
-  private File createTestKeytabData(HeartBeatHandler heartbeatHandler) throws Exception {
+  private File createTestKeytabData(AgentCommandsPublisher agentCommandsPublisher) throws Exception {
     KerberosKeytabController kerberosKeytabControllerMock = createMock(KerberosKeytabController.class);
     expect(kerberosKeytabControllerMock.getFilteredKeytabs(null,null,null)).andReturn(
       Sets.newHashSet(
@@ -1561,9 +1560,9 @@ public class TestHeartbeatHandler {
 
     replay(kerberosKeytabControllerMock);
 
-    Field controllerField = heartbeatHandler.getClass().getDeclaredField("kerberosKeytabController");
+    Field controllerField = agentCommandsPublisher.getClass().getDeclaredField("kerberosKeytabController");
     controllerField.setAccessible(true);
-    controllerField.set(heartbeatHandler, kerberosKeytabControllerMock);
+    controllerField.set(agentCommandsPublisher, kerberosKeytabControllerMock);
 
     File dataDirectory = temporaryFolder.newFolder();
     File hostDirectory = new File(dataDirectory, "c6403.ambari.apache.org");

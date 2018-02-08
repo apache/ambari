@@ -19,12 +19,13 @@ package org.apache.ambari.server.configuration.spring;
 
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenticationFilter;
+import org.apache.ambari.server.security.authentication.AmbariLocalAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariAuthToLocalUserDetailsService;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosTicketValidator;
+import org.apache.ambari.server.security.authentication.pam.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
-import org.apache.ambari.server.security.authorization.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -61,14 +62,16 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter{
 
   @Autowired
   public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
-                                             AmbariLocalUserProvider ambariLocalUserProvider,
+                                             AmbariJwtAuthenticationProvider ambariJwtAuthenticationProvider,
                                              AmbariPamAuthenticationProvider ambariPamAuthenticationProvider,
+                                             AmbariLocalAuthenticationProvider ambariLocalAuthenticationProvider,
                                              AmbariLdapAuthenticationProvider ambariLdapAuthenticationProvider,
                                              AmbariInternalAuthenticationProvider ambariInternalAuthenticationProvider,
                                              KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider
-                                        ) {
-    auth.authenticationProvider(ambariLocalUserProvider)
+  ) {
+    auth.authenticationProvider(ambariJwtAuthenticationProvider)
         .authenticationProvider(ambariPamAuthenticationProvider)
+        .authenticationProvider(ambariLocalAuthenticationProvider)
         .authenticationProvider(ambariLdapAuthenticationProvider)
         .authenticationProvider(ambariInternalAuthenticationProvider)
         .authenticationProvider(kerberosServiceAuthenticationProvider);

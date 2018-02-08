@@ -156,6 +156,7 @@ public class ClusterTest {
   public void setup() throws Exception {
     injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule()).with(new MockModule()));
     injector.getInstance(GuiceJpaInitializer.class);
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
     configGroupFactory = injector.getInstance(ConfigGroupFactory.class);

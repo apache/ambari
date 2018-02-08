@@ -122,6 +122,7 @@ import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
@@ -129,32 +130,30 @@ import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -314,44 +313,6 @@ public class UpgradeCatalog300Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-    Module module = new AbstractModule() {
-      @Override
-      public void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
-
-        bind(DBAccessor.class).toInstance(dbAccessor);
-        bind(OsFamily.class).toInstance(osFamily);
-        bind(EntityManager.class).toInstance(entityManager);
-        bind(PersistedState.class).toInstance(mock(PersistedStateImpl.class));
-        bind(Clusters.class).toInstance(mock(ClustersImpl.class));
-        bind(SecurityHelper.class).toInstance(mock(SecurityHelper.class));
-        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
-        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessorImpl.class));
-        bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
-        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
-        bind(StageFactory.class).to(StageFactoryImpl.class);
-        bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
-        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
-        bind(HookService.class).to(UserHookService.class);
-        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
-        bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
-        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
-        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementControllerImpl.class));
-        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
-        bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
-        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
-        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-
-        install(new FactoryModuleBuilder().implement(
-            Host.class, HostImpl.class).build(HostFactory.class));
-        install(new FactoryModuleBuilder().implement(
-            Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
-        install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
-        install(new FactoryModuleBuilder().implement(
-            Service.class, ServiceImpl.class).build(ServiceFactory.class));
-      }
-    };
-
     // updateStageTable
     Capture<DBAccessor.DBColumnInfo> updateStageTableCaptures = newCapture(CaptureType.ALL);
     dbAccessor.addColumn(eq(STAGE_TABLE), capture(updateStageTableCaptures));
@@ -438,7 +399,7 @@ public class UpgradeCatalog300Test {
 
     replay(dbAccessor);
 
-    Injector injector = Guice.createInjector(module);
+    Injector injector = Guice.createInjector(getTestGuiceModule());
     UpgradeCatalog300 upgradeCatalog300 = injector.getInstance(UpgradeCatalog300.class);
     upgradeCatalog300.executeDDLUpdates();
 
@@ -506,14 +467,42 @@ public class UpgradeCatalog300Test {
   }
 
   private Module getTestGuiceModule() {
-    Module module = new Module() {
+    Module module = new AbstractModule() {
       @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-        binder.bind(AmbariConfigurationDAO.class).toInstance(ambariConfigurationDao);
+      public void configure() {
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+
+        bind(DBAccessor.class).toInstance(dbAccessor);
+        bind(OsFamily.class).toInstance(osFamily);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AmbariConfigurationDAO.class).toInstance(ambariConfigurationDao);
+        bind(PersistedState.class).toInstance(mock(PersistedStateImpl.class));
+        bind(Clusters.class).toInstance(mock(ClustersImpl.class));
+        bind(SecurityHelper.class).toInstance(mock(SecurityHelper.class));
+        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessorImpl.class));
+        bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
+        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+        bind(StageFactory.class).to(StageFactoryImpl.class);
+        bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
+        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+        bind(HookService.class).to(UserHookService.class);
+        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
+        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
+        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementControllerImpl.class));
+        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
+        bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
+        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+
+        install(new FactoryModuleBuilder().implement(
+            Host.class, HostImpl.class).build(HostFactory.class));
+        install(new FactoryModuleBuilder().implement(
+            Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
+        install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+        install(new FactoryModuleBuilder().implement(
+            Service.class, ServiceImpl.class).build(ServiceFactory.class));
       }
     };
     return module;
@@ -990,18 +979,17 @@ public class UpgradeCatalog300Test {
   public void shouldSaveLdapConfigurationIfPropertyIsSetInAmbariProperties() throws Exception {
     final Module module = getTestGuiceModule();
 
-    expect(configuration.getProperty("ambari.ldap.isConfigured")).andReturn("true").anyTimes();
-
     expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
     final Map<String, String> properties = new HashMap<>();
     properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
     expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
-    replay(configuration, entityManager, ambariConfigurationDao);
+    replay(entityManager, ambariConfigurationDao);
 
     final Injector injector = Guice.createInjector(module);
+    injector.getInstance(Configuration.class).setProperty("ambari.ldap.isConfigured", "true");
     final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
     upgradeCatalog300.upgradeLdapConfiguration();
-    verify(configuration, entityManager, ambariConfigurationDao);
+    verify(entityManager, ambariConfigurationDao);
   }
 
   @Test
@@ -1011,7 +999,7 @@ public class UpgradeCatalog300Test {
     final Map<String, String> properties = new HashMap<>();
     properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
     expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
-    replay(configuration, entityManager, ambariConfigurationDao);
+    replay(entityManager, ambariConfigurationDao);
 
     final Injector injector = Guice.createInjector(module);
     final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
@@ -1019,6 +1007,6 @@ public class UpgradeCatalog300Test {
 
     expectedException.expect(AssertionError.class);
     expectedException.expectMessage("Expectation failure on verify");
-    verify(configuration, entityManager, ambariConfigurationDao);
+    verify(entityManager, ambariConfigurationDao);
   }
 }

@@ -37,16 +37,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -59,9 +55,6 @@ import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -69,12 +62,10 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ExtensionInfo;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -98,9 +89,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -1447,218 +1435,6 @@ public class AmbariMetaInfo {
 
     return versionDefinitions;
   }
-  /**
-   * Get repository info given a cluster and host.
-   *
-   * @param cluster  the cluster
-   * @param host     the host
-   *
-   * @return the repo info
-   *
-   * @throws AmbariException if the repository information can not be obtained
-  public String getRepoInfoString(Cluster cluster, Host host) throws AmbariException {
-
-    return getRepoInfoString(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
-  }*/
-
-  public String getRepoInfoString(Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
-    return gson.toJson(getCommandRepository(cluster, component, host));
-  }
-
-  /**
-   * Get repository info given a cluster and host.
-   *
-   * @param cluster  the cluster
-   * @param host     the host
-   *
-   * @return the repo info
-   *
-   * @deprecated use {@link #getCommandRepository(Cluster, ServiceComponent, Host)} instead.
-   * @throws AmbariException if the repository information can not be obtained
-   */
-  @Deprecated
-  public String getRepoInfo(Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
-
-    Function<List<RepositoryInfo>, JsonArray> function = new Function<List<RepositoryInfo>, JsonArray>() {
-      @Override
-      public JsonArray apply(List<RepositoryInfo> input) {
-        return null == input ? null : (JsonArray) gson.toJsonTree(input);
-      }
-    };
-
-    final JsonArray gsonList = getBaseUrls(cluster, component, host, function);
-
-    if (null == gsonList) {
-      return "";
-    }
-
-    BaseUrlUpdater<JsonArray> updater = new BaseUrlUpdater<JsonArray>(gsonList) {
-      @Override
-      public JsonArray apply(final RepositoryVersionEntity rve) {
-
-        JsonArray result = new JsonArray();
-
-        for (JsonElement e : gsonList) {
-          JsonObject obj = e.getAsJsonObject();
-
-          String repoId = obj.has("repoId") ? obj.get("repoId").getAsString() : null;
-          String repoName = obj.has("repoName") ? obj.get("repoName").getAsString() : null;
-          String baseUrl = obj.has("baseUrl") ? obj.get("baseUrl").getAsString() : null;
-          String osType = obj.has("osType") ? obj.get("osType").getAsString() : null;
-
-          if (null == repoId || null == baseUrl || null == osType || null == repoName) {
-            continue;
-          }
-
-          for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
-            if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
-              for (RepositoryEntity re : ose.getRepositories()) {
-                if (re.getName().equals(repoName) &&
-                    !re.getBaseUrl().equals(baseUrl)) {
-                  obj.addProperty("baseUrl", re.getBaseUrl());
-                }
-              }
-              result.add(e);
-            }
-          }
-        }
-
-        return result;
-      }
-    };
-
-    return updateBaseUrls(cluster, component, updater).toString();
-  }
-
-  /**
-   * Builds repository information for inclusion in a command.  This replaces escaping json on
-   * a command.
-   *
-   * @param cluster the cluster
-   * @param host    the host
-   * @return  the command repository
-   * @throws AmbariException
-   */
-  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, final Host host) throws AmbariException {
-
-    final CommandRepository command = new CommandRepository();
-    StackId stackId = component.getDesiredStackId();
-    command.setRepositories(Collections.<RepositoryInfo>emptyList());
-    command.setStackName(stackId.getStackName());
-
-    final BaseUrlUpdater<Void> updater = new BaseUrlUpdater<Void>(null) {
-      @Override
-      public Void apply(RepositoryVersionEntity rve) {
-        command.setRepositoryVersionId(rve.getId());
-        command.setRepositoryVersion(rve.getVersion());
-        command.setStackName(rve.getStackName());
-        command.setResolved(rve.isResolved());
-
-        // !!! a repository version entity has all the repos worked out.  We shouldn't use
-        // the stack at all.
-        for (OperatingSystemEntity osEntity : rve.getOperatingSystems()) {
-          String osEntityFamily = osFamily.find(osEntity.getOsType());
-          if (osEntityFamily.equals(host.getOsFamily())) {
-            command.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
-
-            if (!osEntity.isAmbariManagedRepos()) {
-              command.setNonManaged();
-            } else {
-              command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
-            }
-          }
-        }
-
-        return null;
-      }
-    };
-
-    updateBaseUrls(cluster, component, updater);
-
-    return command;
-  }
-
-  /**
-   * Executed by two different representations of repos.  When we are comfortable with the new
-   * implementation, this may be removed and called inline in {@link #getCommandRepository(Cluster, ServiceComponent, Host)}
-   *
-   * @param cluster   the cluster to isolate the stack
-   * @param component the component
-   * @param host      used to resolve the family for the repositories
-   * @param function  function that will transform the supplied repositories for specific use.
-   * @return <T> the type as defined by the supplied {@code function}.
-   * @throws AmbariException
-   */
-  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-  private <T> T getBaseUrls(Cluster cluster, ServiceComponent component, Host host,
-                            Function<List<RepositoryInfo>, T> function) throws AmbariException {
-
-    String hostOsType = host.getOsType();
-    String hostOsFamily = host.getOsFamily();
-    String hostName = host.getHostName();
-
-    StackId stackId = component.getDesiredStackId();
-
-    Map<String, List<RepositoryInfo>> repos = getRepository(
-        stackId.getStackName(), stackId.getStackVersion());
-
-    String family = osFamily.find(hostOsType);
-    if (null == family) {
-      family = hostOsFamily;
-    }
-
-    final List<RepositoryInfo> repoInfos;
-
-    // !!! check for the most specific first
-    if (repos.containsKey(hostOsType)) {
-      repoInfos = repos.get(hostOsType);
-    } else if (null != family && repos.containsKey(family)) {
-      repoInfos = repos.get(family);
-    } else {
-      repoInfos = null;
-      LOG.warn("Could not retrieve repo information for host"
-          + ", hostname=" + hostName
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId());
-    }
-
-    // leave it to function implementation to handle null.
-    return function.apply(repoInfos);
-  }
-
-  /**
-   * Checks repo URLs against the current version for the cluster and makes
-   * adjustments to the Base URL when the current is different.
-   *
-   * @param <T> the result after appling the repository version, if found.
-   */
-  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-  private <T> T updateBaseUrls(Cluster cluster, ServiceComponent component, BaseUrlUpdater<T> function) throws AmbariException {
-
-    RepositoryVersionEntity repositoryEntity = null;
-
-    // !!! try to find the component repo first
-    if (null != component) {
-      repositoryEntity = component.getDesiredRepositoryVersion();
-    } else {
-      LOG.info("Service component not passed in, attempt to resolve the repository for cluster {}",
-          cluster.getClusterName());
-    }
-
-    if (null == repositoryEntity && null != component) {
-      Service service = cluster.getService(component.getServiceName());
-
-      repositoryEntity = service.getDesiredRepositoryVersion();
-    }
-
-    if (null == repositoryEntity) {
-      LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
-      return function.getDefault();
-    }
-
-    return function.apply(repositoryEntity);
-  }
 
   /**
    * Reads a Kerberos descriptor from the specified file path.
@@ -1687,24 +1463,6 @@ public class AmbariMetaInfo {
     }
 
     return null;
-  }
-
-  /**
-   * Class that is used to update base urls.  There are two implementations of this - when we no
-   * longer are sure the deprecated repo info can be removed, so too can this class.
-   */
-  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  abstract static class BaseUrlUpdater<T> implements Function<RepositoryVersionEntity, T> {
-    private T m_default;
-
-    private BaseUrlUpdater(T defaultValue) {
-      m_default = defaultValue;
-    }
-
-    private T getDefault() {
-      return m_default;
-    }
-
   }
 
   public File getCommonWidgetsDescriptorFile() {

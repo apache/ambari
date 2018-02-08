@@ -117,7 +117,7 @@ public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
     Capture<? extends AmbariAuthenticationFilter> captureFilter = newCapture(CaptureType.ALL);
 
     // GIVEN
-    HttpServletRequest request = createMock(HttpServletRequest.class);
+    HttpServletRequest request = createNiceMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     HttpSession session = createMock(HttpSession.class);
     FilterChain filterChain = createMock(FilterChain.class);
