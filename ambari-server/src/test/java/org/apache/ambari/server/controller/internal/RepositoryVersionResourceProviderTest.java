@@ -18,8 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -54,6 +57,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.junit.After;
@@ -581,6 +585,60 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid3, "HDF-2.1"));
   }
 
+  private void testGPLRepoCheck(RepositoryVersionEntity repositoryVersionEntity) throws NoSuchMethodException,
+      InvocationTargetException, IllegalAccessException {
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class)
+        .getRepositoryVersionResourceProvider();
+
+    Method validateGPLRepoMethod = RepositoryVersionResourceProvider.class.getDeclaredMethod("validateGPLRepoPresence",
+        RepositoryVersionEntity.class);
+    validateGPLRepoMethod.setAccessible(true);
+    validateGPLRepoMethod.invoke(provider, repositoryVersionEntity);
+  }
+
+  @Test
+  public void testGPLRepoCheckWithUnsatisfiedGPLRepoRequirement() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    RepositoryVersionEntity repositoryVersionEntity = new RepositoryVersionEntity();
+    RepoOsEntity osWithoutGPLRepo = new RepoOsEntity();
+    osWithoutGPLRepo.setFamily("debian7");
+    RepoDefinitionEntity repoDefinitionEntityWithoutGPL = new RepoDefinitionEntity();
+    osWithoutGPLRepo.addRepoDefinitionEntities(Collections.singletonList(repoDefinitionEntityWithoutGPL));
+    repositoryVersionEntity.addRepoOsEntities(Collections.singletonList(osWithoutGPLRepo));//"[{\"repositories\":[],\"OperatingSystems/os_type\":\"debian7\"}]");
+
+    // check should not be failed for no-HDP stack
+    StackEntity hdpStackEntity = new StackEntity();
+    hdpStackEntity.setStackName("NOTHDP");
+    repositoryVersionEntity.setStack(hdpStackEntity);
+    testGPLRepoCheck(repositoryVersionEntity);
+
+    // should be failed for HDP only
+    hdpStackEntity.setStackName("HDP");
+    try {
+      testGPLRepoCheck(repositoryVersionEntity);
+    } catch (InvocationTargetException e) {
+      Assert.assertTrue(e.getTargetException() instanceof AmbariException);
+    }
+  }
+
+  @Test
+  public void testGPLRepoCheckWithSatisfiedGPLRepoRequirement() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    RepositoryVersionEntity newRepositoryVersion = new RepositoryVersionEntity();
+    StackEntity hdpStackEntity = new StackEntity();
+    hdpStackEntity.setStackName("HDP");
+    newRepositoryVersion.setStack(hdpStackEntity);
+
+    RepoOsEntity osWithoutGPLRepo = new RepoOsEntity();
+    osWithoutGPLRepo.setFamily("debian7");
+    RepoDefinitionEntity repoDefinitionEntityWithoutGPL = new RepoDefinitionEntity();
+    repoDefinitionEntityWithoutGPL.setTags(Collections.singleton(RepoTag.GPL));
+    osWithoutGPLRepo.addRepoDefinitionEntities(Collections.singletonList(repoDefinitionEntityWithoutGPL));
+    newRepositoryVersion.addRepoOsEntities(Collections.singletonList(osWithoutGPLRepo));
+
+    testGPLRepoCheck(newRepositoryVersion);
+
+    hdpStackEntity.setStackName("NOTHDP");
+    testGPLRepoCheck(newRepositoryVersion);
+  }
 
   @After
   public void after() throws AmbariException, SQLException {
