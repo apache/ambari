@@ -67,6 +67,8 @@ import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -633,7 +635,7 @@ public class OrmTestHelper {
     if (repositoryVersion == null) {
       try {
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), new ArrayList<>());
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
         ex.printStackTrace();
@@ -667,7 +669,22 @@ public class OrmTestHelper {
 
     if (repositoryVersion == null) {
       try {
-        String operatingSystems = "[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]";
+        List<RepoOsEntity> operatingSystems = new ArrayList<>();
+        RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+        repoDefinitionEntity1.setRepoID("HDP");
+        repoDefinitionEntity1.setBaseUrl("");
+        repoDefinitionEntity1.setRepoName("HDP");
+        RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+        repoDefinitionEntity2.setRepoID("HDP-UTILS");
+        repoDefinitionEntity2.setBaseUrl("");
+        repoDefinitionEntity2.setRepoName("HDP-UTILS");
+        RepoOsEntity repoOsEntity = new RepoOsEntity();
+        repoOsEntity.setFamily("redhat6");
+        repoOsEntity.setAmbariManaged(true);
+        repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+        repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+        operatingSystems.add(repoOsEntity);
+
 
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);

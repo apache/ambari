@@ -887,6 +887,18 @@
             </organization>
         </developer>
         <developer>
+            <id>prabhjyotsingh</id>
+            <name>Prabhjyot Singh</name>
+            <email>prabhjyotsingh@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>prajwal</id>
             <name>Prajwal Rao</name>
             <email>prajwal@apache.org</email>
@@ -1107,7 +1119,7 @@
             <email>swapan@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks

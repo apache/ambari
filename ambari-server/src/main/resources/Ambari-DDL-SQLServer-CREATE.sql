@@ -172,7 +172,6 @@ CREATE TABLE repo_version (
   stack_id BIGINT NOT NULL,
   version VARCHAR(255) NOT NULL,
   display_name VARCHAR(128) NOT NULL,
-  repositories VARCHAR(MAX) NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved BIT NOT NULL DEFAULT 0,
@@ -185,6 +184,32 @@ CREATE TABLE repo_version (
   CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
   CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
+
+CREATE TABLE repo_os (
+  id BIGINT NOT NULL,
+  repo_version_id BIGINT NOT NULL,
+  family VARCHAR(255) NOT NULL DEFAULT '',
+  ambari_managed BIT DEFAULT 1,
+  CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
+
+CREATE TABLE repo_definition (
+  id BIGINT NOT NULL,
+  repo_os_id BIGINT,
+  repo_name VARCHAR(255) NOT NULL,
+  repo_id VARCHAR(255) NOT NULL,
+  base_url VARCHAR(MAX) NOT NULL,
+  distribution VARCHAR(MAX),
+  components VARCHAR(MAX),
+  unique_repo BIT DEFAULT 1,
+  mirrors VARCHAR(MAX),
+  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
+
+CREATE TABLE repo_tags (
+  repo_definition_id BIGINT NOT NULL,
+  tag VARCHAR(255) NOT NULL,
+  CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
@@ -1136,6 +1161,8 @@ BEGIN TRANSACTION
     ('alert_current_id_seq', 0),
     ('config_id_seq', 11),
     ('repo_version_id_seq', 0),
+    ('repo_os_id_seq', 0),
+    ('repo_definition_id_seq', 0),
     ('host_version_id_seq', 0),
     ('service_config_id_seq', 1),
     ('upgrade_id_seq', 0),

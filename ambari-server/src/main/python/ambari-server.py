@@ -555,6 +555,8 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
   parser.add_option('--ldap-force-lowercase-usernames', default=None, help="Declares whether to force the ldap user name to be lowercase or leave as-is", dest="ldap_force_lowercase_usernames")
   parser.add_option('--ldap-pagination-enabled', default=None, help="Determines whether results from LDAP are paginated when requested", dest="ldap_pagination_enabled")
+  parser.add_option('--ambari-admin-username', default=None, help="Ambari Admin username for LDAP setup", dest="ambari_admin_username")
+  parser.add_option('--ambari-admin-password', default=None, help="Ambari Admin password for LDAP setup", dest="ambari_admin_password")
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_pam_setup_parser_options(parser):

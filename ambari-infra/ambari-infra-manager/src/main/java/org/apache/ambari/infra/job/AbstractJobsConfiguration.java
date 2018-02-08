@@ -50,16 +50,20 @@ public abstract class AbstractJobsConfiguration<T extends JobProperties<T>> {
     if (propertyMap == null)
       return;
 
-    for (String jobName : propertyMap.keySet())
-      propertyMap.get(jobName).validate(jobName);
-
     propertyMap.keySet().stream()
             .filter(key -> propertyMap.get(key).isEnabled())
             .forEach(jobName -> {
-              LOG.info("Registering job {}", jobName);
-              JobBuilder jobBuilder = jobs.get(jobName).listener(new JobsPropertyMap<>(propertyMap));
-              Job job = buildJob(jobBuilder);
-              jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
+              try {
+                propertyMap.get(jobName).validate(jobName);
+                LOG.info("Registering job {}", jobName);
+                JobBuilder jobBuilder = jobs.get(jobName).listener(new JobsPropertyMap<>(propertyMap));
+                Job job = buildJob(jobBuilder);
+                jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
+              }
+              catch (Exception e) {
+                LOG.warn("Unable to register job " + jobName, e);
+                propertyMap.get(jobName).setEnabled(false);
+              }
             });
   }
 

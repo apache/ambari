@@ -157,7 +157,6 @@ CREATE TABLE repo_version (
   stack_id NUMERIC(19) NOT NULL,
   version VARCHAR(255) NOT NULL,
   display_name VARCHAR(128) NOT NULL,
-  repositories TEXT NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved BIT NOT NULL DEFAULT 0,
@@ -170,6 +169,32 @@ CREATE TABLE repo_version (
   CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
   CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
+
+CREATE TABLE repo_os (
+  id NUMERIC(19) NOT NULL,
+  repo_version_id NUMERIC(19) NOT NULL,
+  family VARCHAR(255) NOT NULL DEFAULT '',
+  ambari_managed SMALLINT DEFAULT 1,
+  CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
+
+CREATE TABLE repo_definition (
+  id NUMERIC(19) NOT NULL,
+  repo_os_id NUMERIC(19),
+  repo_name VARCHAR(255) NOT NULL,
+  repo_id VARCHAR(255) NOT NULL,
+  base_url TEXT NOT NULL,
+  distribution TEXT,
+  components TEXT,
+  unique_repo SMALLINT DEFAULT 1,
+  mirrors TEXT,
+  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
+
+CREATE TABLE repo_tags (
+  repo_definition_id NUMERIC(19) NOT NULL,
+  tag VARCHAR(255) NOT NULL,
+  CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id NUMERIC(19) NOT NULL,
@@ -1111,6 +1136,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_histo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_notice_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_current_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_version_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_os_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_definition_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
