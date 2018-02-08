@@ -92,6 +92,7 @@ public class RequiredServicesInRepositoryCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     m_requiredServicesCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
   }
 
   /**
@@ -109,5 +110,6 @@ public class RequiredServicesInRepositoryCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     m_requiredServicesCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertFalse(check.getFailedDetail().isEmpty());
   }
 }

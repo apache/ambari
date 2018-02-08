@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -68,8 +69,8 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
     StackId sourceStack = request.getSourceStackId();
     StackId targetStack = repositoryVersion.getStackId();
 
-    Set<String> failedServices = new TreeSet<>();
-    Set<String> failedComponents = new TreeSet<>();
+    Set<ServiceDetail> failedServices = new TreeSet<>();
+    Set<ServiceComponentDetail> failedComponents = new TreeSet<>();
 
     Set<String> servicesInUpgrade = getServicesInUpgrade(request);
     for (String serviceName : servicesInUpgrade) {
@@ -78,7 +79,7 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
             targetStack.getStackVersion(), serviceName);
 
         if (serviceInfo.isDeleted() || !serviceInfo.isValid()) {
-          failedServices.add(serviceName);
+          failedServices.add(new ServiceDetail(serviceName));
           continue;
         }
 
@@ -96,29 +97,40 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
             }
 
             if (componentInfo.isDeleted()) {
-              failedComponents.add(componentName);
+              failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
             }
 
           } catch (StackAccessException stackAccessException) {
-            failedComponents.add(componentName);
+            failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
           }
         }
       } catch (StackAccessException stackAccessException) {
-        failedServices.add(serviceName);
+        failedServices.add(new ServiceDetail(serviceName));
       }
     }
 
-    if( failedServices.isEmpty() && failedComponents.isEmpty() ){
+    if (failedServices.isEmpty() && failedComponents.isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
       return;
     }
 
-    LinkedHashSet<String> failedOn = new LinkedHashSet<>();
-    failedOn.addAll(failedServices);
-    failedOn.addAll(failedComponents);
+    Set<String> failedServiceNames = failedServices.stream().map(
+        failureDetail -> failureDetail.serviceName).collect(
+            Collectors.toCollection(LinkedHashSet::new));
 
-    prerequisiteCheck.setFailedOn(failedOn);
+    Set<String> failedComponentNames = failedComponents.stream().map(
+        failureDetail -> failureDetail.componentName).collect(
+            Collectors.toCollection(LinkedHashSet::new));
+
+    LinkedHashSet<String> failures = new LinkedHashSet<>();
+    failures.addAll(failedServiceNames);
+    failures.addAll(failedComponentNames);
+
+    prerequisiteCheck.setFailedOn(failures);
     prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+
+    prerequisiteCheck.getFailedDetail().addAll(failedServices);
+    prerequisiteCheck.getFailedDetail().addAll(failedComponents);
 
     String message = "The following {0} exist in {1} but are not included in {2}. They must be removed before upgrading.";
     String messageFragment = "";
