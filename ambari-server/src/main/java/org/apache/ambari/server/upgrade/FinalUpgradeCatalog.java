@@ -35,7 +35,6 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,7 @@ import com.google.inject.Injector;
 /**
  * Final upgrade catalog which simply updates database version (in case if no db changes between releases)
  */
-public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
+public class FinalUpgradeCatalog extends AbstractFinalUpgradeCatalog {
 
   /**
    * Logger.
@@ -55,16 +54,6 @@ public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
   @Inject
   public FinalUpgradeCatalog(Injector injector) {
     super(injector);
-  }
-
-  @Override
-  protected void executeDDLUpdates() throws AmbariException, SQLException {
-    //noop
-  }
-
-  @Override
-  protected void executePreDMLUpdates() throws AmbariException, SQLException {
-    //noop
   }
 
   @Override
@@ -82,8 +71,6 @@ public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
    *
    * Note: Config properties stack_features and stack_tools should always be updated to latest values as defined
    * in the stack on an Ambari upgrade.
-   *
-   * @throws Exception
    */
   protected void updateClusterEnv() throws AmbariException {
 
@@ -117,17 +104,4 @@ public class FinalUpgradeCatalog extends AbstractUpgradeCatalog {
     }
   }
 
-  @Override
-  public String getTargetVersion() {
-    return getFinalVersion();
-  }
-
-  @Override
-  public boolean isFinal() {
-    return true;
-  }
-
-  private String getFinalVersion() {
-    return VersionUtils.getVersionSubstring(configuration.getServerVersion());
-  }
 }

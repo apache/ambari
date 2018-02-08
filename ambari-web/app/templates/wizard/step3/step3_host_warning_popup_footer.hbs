@@ -26,7 +26,7 @@
   {{/if}}
 </div>
 {{#if view.parentView.secondary}}
-  <button type="button" class="btn btn-info"
+  <button type="button" class="btn btn-warning"
     {{bindAttr disabled="view.isUpdateInProgress"}}
     {{action onSecondary target="view.parentView"}}
     {{QAAttr "modal-secondary"}}>

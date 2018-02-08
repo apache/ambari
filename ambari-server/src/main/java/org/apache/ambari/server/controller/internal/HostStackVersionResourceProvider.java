@@ -52,7 +52,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
@@ -385,9 +385,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
-    OperatingSystemEntity osEntity = null;
-    for (OperatingSystemEntity operatingSystem : repoVersionEnt.getOperatingSystems()) {
-      if (osFamily.equals(operatingSystem.getOsType())) {
+    RepoOsEntity osEntity = null;
+    for (RepoOsEntity operatingSystem : repoVersionEnt.getRepoOsEntities()) {
+      if (osFamily.equals(operatingSystem.getFamily())) {
         osEntity = operatingSystem;
         break;
       }
@@ -398,7 +398,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           osFamily));
     }
 
-    if (CollectionUtils.isEmpty(osEntity.getRepositories())) {
+    if (CollectionUtils.isEmpty(osEntity.getRepoDefinitionEntities())) {
       throw new SystemException(String.format("Repositories for os type %s are " +
                       "not defined. Repo version=%s, stackId=%s",
         osFamily, desiredRepoVersion, stackId));

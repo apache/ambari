@@ -31,13 +31,12 @@ from resource_management.core.resources import Package
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.repo_version_history \
     import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 from resource_management.core.providers import get_provider
 from resource_management.core.resources.system import Link
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.repository_util import create_repo_files, CommandRepository
+from resource_management.libraries.functions.repository_util import CommandRepository
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.resources.repository import Repository
 from resource_management.libraries.script.script import Script
@@ -71,10 +70,6 @@ class InstallPackages(Script):
       command_repository = CommandRepository(config['repositoryFile'])
     except KeyError:
       raise Fail("The command repository indicated by 'repositoryFile' was not found")
-
-    repo_rhel_suse = config['configurations']['cluster-env']['repo_suse_rhel_template']
-    repo_ubuntu = config['configurations']['cluster-env']['repo_ubuntu_template']
-    template = repo_rhel_suse if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else repo_ubuntu
 
     # Handle a SIGTERM and SIGINT gracefully
     signal.signal(signal.SIGTERM, self.abort_handler)
@@ -110,7 +105,7 @@ class InstallPackages(Script):
       else:
         Logger.info(
           "Will install packages for repository version {0}".format(self.repository_version))
-        new_repo_files = create_repo_files(template, command_repository)
+        new_repo_files = Script.repository_util.create_repo_files()
         self.repo_files.update(new_repo_files)
     except Exception as err:
       Logger.logger.exception("Cannot install repository files. Error: {0}".format(str(err)))
@@ -155,10 +150,56 @@ class InstallPackages(Script):
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
+    self._fix_default_links_for_current()
     # if installing a version of HDP that needs some symlink love, then create them
     if is_package_install_successful and 'actual_version' in self.structured_output:
       self._relink_configurations_with_conf_select(stack_id, self.structured_output['actual_version'])
 
+  def _fix_default_links_for_current(self):
+    """
+    If a prior version of Ambari did not correctly reverse the conf symlinks, then they would
+    be put into a bad state when distributing a new stack. For example:
+
+    /etc/component/conf (directory)
+    <stack-root>/v1/component/conf -> /etc/component/conf
+
+    When distributing v2, we'd detect the /etc/component/conf problems and would try to adjust it:
+    /etc/component/conf -> <stack-root>/current/component/conf
+    <stack-root>/v2/component/conf -> /etc/component/v2/0
+
+    The problem is that v1 never gets changed (since the stack being distributed is v2), and
+    we end up with a circular link:
+    /etc/component/conf -> <stack-root>/current/component/conf
+    <stack-root>/v1/component/conf -> /etc/component/conf
+
+    :return: None
+    """
+    Logger.info("Attempting to fix any configuration symlinks which are not in the correct state")
+    from resource_management.libraries.functions import stack_select
+    restricted_packages = conf_select.get_restricted_packages()
+
+    if 0 == len(restricted_packages):
+      Logger.info("There are no restricted conf-select packages for this installation")
+    else:
+      Logger.info("Restricting conf-select packages to {0}".format(restricted_packages))
+
+    for package_name, directories in conf_select.get_package_dirs().iteritems():
+      Logger.info("Attempting to fix the default conf links for {0}".format(package_name))
+      Logger.info("The following directories will be fixed for {0}: {1}".format(package_name, str(directories)))
+
+      component_name = None
+      for directory_struct in directories:
+        if "component" in directory_struct:
+          component_name = directory_struct["component"]
+      if component_name:
+        stack_version = stack_select.get_stack_version_before_install(component_name)
+
+      if 0 == len(restricted_packages) or package_name in restricted_packages:
+        if stack_version:
+          conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
+        else:
+          Logger.warning(
+            "Unable to fix {0} since there is no known installed version for this component".format(package_name))
 
   def _relink_configurations_with_conf_select(self, stack_id, stack_version):
     """

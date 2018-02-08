@@ -32,6 +32,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,6 +63,8 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -110,23 +113,24 @@ public class HostStackVersionResourceProviderTest {
   private RepositoryVersionEntity repoVersion;
   private Resource.Type type = Resource.Type.HostStackVersion;
 
-  private String operatingSystemsJson = "[\n" +
-          "   {\n" +
-          "      \"repositories\":[\n" +
-          "         {\n" +
-          "            \"Repositories/base_url\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\n" +
-          "            \"Repositories/repo_name\":\"HDP-UTILS\",\n" +
-          "            \"Repositories/repo_id\":\"HDP-UTILS-1.1.0.20\"\n" +
-          "         },\n" +
-          "         {\n" +
-          "            \"Repositories/base_url\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\n" +
-          "            \"Repositories/repo_name\":\"HDP\",\n" +
-          "            \"Repositories/repo_id\":\"HDP-2.2\"\n" +
-          "         }\n" +
-          "      ],\n" +
-          "      \"OperatingSystems/os_type\":\"redhat6\"\n" +
-          "   }\n" +
-          "]";
+  private List<RepoOsEntity> operatingSystemsEn = new ArrayList<>();
+
+  {
+    RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+    repoDefinitionEntity1.setRepoID("HDP-UTILS-1.1.0.20");
+    repoDefinitionEntity1.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
+    repoDefinitionEntity1.setRepoName("HDP-UTILS");
+    RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+    repoDefinitionEntity2.setRepoID("HDP-2.2");
+    repoDefinitionEntity2.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
+    repoDefinitionEntity2.setRepoName("HDP");
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
+    repoOsEntity.setFamily("redhat6");
+    repoOsEntity.setAmbariManaged(true);
+    repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+    repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+    operatingSystemsEn.add(repoOsEntity);
+  }
 
   @Before
   public void setup() throws Exception {
@@ -148,7 +152,7 @@ public class HostStackVersionResourceProviderTest {
     hostVersionEntityMock = createNiceMock(HostVersionEntity.class);
     actionManager = createNiceMock(ActionManager.class);
     repoVersion = new RepositoryVersionEntity();
-    repoVersion.setOperatingSystems(operatingSystemsJson);
+    repoVersion.addRepoOsEntities(operatingSystemsEn);
 
     StackEntity stack = new StackEntity();
     stack.setStackName("HDP");

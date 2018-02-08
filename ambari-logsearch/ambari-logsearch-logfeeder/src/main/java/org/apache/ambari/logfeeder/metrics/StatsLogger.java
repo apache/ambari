@@ -19,6 +19,7 @@
 package org.apache.ambari.logfeeder.metrics;
 
 import org.apache.ambari.logfeeder.common.ConfigHandler;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

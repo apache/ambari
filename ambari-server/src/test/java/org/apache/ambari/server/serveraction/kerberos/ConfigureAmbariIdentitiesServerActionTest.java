@@ -19,7 +19,6 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -31,11 +30,15 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.serveraction.ActionLog;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
@@ -77,20 +80,22 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
 
     Injector injector = createInjector();
 
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+
     HostEntity hostEntity;
     if (ambariServerHasAgent) {
-      KerberosPrincipalHostDAO kerberosPrincipalHostDAO = injector.getInstance(KerberosPrincipalHostDAO.class);
-      expect(kerberosPrincipalHostDAO.exists(eq(principal), eq(1L), anyString())).andReturn(false).anyTimes();
-      kerberosPrincipalHostDAO.create(anyObject());
-      expectLastCall().anyTimes();
       hostEntity = createMock(HostEntity.class);
       expect(hostEntity.getHostId()).andReturn(1L).once();
+      expect(hostDAO.findById(1L)).andReturn(hostEntity).once();
     } else {
       hostEntity = null;
     }
 
-    HostDAO hostDAO = injector.getInstance(HostDAO.class);
     expect(hostDAO.findByName(StageUtils.getHostName())).andReturn(hostEntity).once();
+    KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO = injector.getInstance(KerberosKeytabPrincipalDAO.class);
+    KerberosKeytabPrincipalEntity kke = createNiceMock(KerberosKeytabPrincipalEntity.class);
+    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), eq(hostEntity), anyObject())).andReturn(kke).once();
+    expect(kerberosKeytabPrincipalDAO.merge(kke)).andReturn(createNiceMock(KerberosKeytabPrincipalEntity.class)).once();
 
     // Mock the methods that do the actual file manipulation to avoid having to deal with ambari-sudo.sh used in
     // ShellCommandUtil#mkdir, ShellCommandUtil#copyFile, etc..
@@ -113,8 +118,18 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
     replayAll();
 
     injector.injectMembers(action);
-    action.installAmbariServerIdentity(principal, srcKeytabFile.getAbsolutePath(), destKeytabFile.getAbsolutePath(),
-        "user1", true, true, "groupA", true, false, actionLog);
+    action.installAmbariServerIdentity(
+      new ResolvedKerberosPrincipal(
+        null,
+        null,
+        principal,
+        false,
+        null,
+        RootService.AMBARI.name(),
+        RootComponent.AMBARI_SERVER.name(),
+        destKeytabFile.getPath()
+      ), srcKeytabFile.getAbsolutePath(), destKeytabFile.getAbsolutePath(),
+        "user1", "rw", "groupA", "r", actionLog);
 
     verifyAll();
 
@@ -200,7 +215,8 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
 
         bind(HostDAO.class).toInstance(createMock(HostDAO.class));
-        bind(KerberosPrincipalHostDAO.class).toInstance(createMock(KerberosPrincipalHostDAO.class));
+        bind(KerberosKeytabPrincipalDAO.class).toInstance(createMock(KerberosKeytabPrincipalDAO.class));
+//        bind(KerberosPrincipalHostDAO.class).toInstance(createMock(KerberosPrincipalHostDAO.class));
       }
     });
   }

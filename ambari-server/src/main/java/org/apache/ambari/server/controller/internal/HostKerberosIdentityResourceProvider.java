@@ -36,9 +36,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
@@ -101,12 +102,6 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
   private KerberosHelper kerberosHelper;
 
   /**
-   * KerberosPrincipalHostDAO used to get Kerberos principal details
-   */
-  @Inject
-  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
-
-  /**
    * KerberosPrincipalDAO used to get Kerberos principal details
    */
   @Inject
@@ -117,6 +112,9 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
    */
   @Inject
   private HostDAO hostDAO;
+
+  @Inject
+  private KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -200,7 +198,8 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
 
                     if ((hostId != null) && kerberosPrincipalDAO.exists(principal)) {
                       if (keytabDescriptor != null) {
-                        if (kerberosPrincipalHostDAO.exists(principal, hostId, keytabDescriptor.getFile())) {
+                        KerberosKeytabPrincipalEntity entity = kerberosKeytabPrincipalDAO.findByNaturalKey(hostId, keytabDescriptor.getFile(), principal);
+                        if (entity != null && entity.isDistributed()) {
                           installedStatus = "true";
                         } else {
                           installedStatus = "false";

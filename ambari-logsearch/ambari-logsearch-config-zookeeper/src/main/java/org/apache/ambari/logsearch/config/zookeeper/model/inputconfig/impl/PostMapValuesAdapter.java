@@ -55,20 +55,22 @@ public class PostMapValuesAdapter implements JsonDeserializer<List<PostMapValues
     for (Map.Entry<String, JsonElement> m : e.getAsJsonObject().entrySet()) {
       switch (m.getKey()) {
         case "map_date":
-          mappers.add((MapDateDescriptorImpl)context.deserialize(m.getValue(), MapDateDescriptorImpl.class));
+          mappers.add(context.deserialize(m.getValue(), MapDateDescriptorImpl.class));
           break;
         case "map_fieldcopy":
-          mappers.add((MapFieldCopyDescriptorImpl)context.deserialize(m.getValue(), MapFieldCopyDescriptorImpl.class));
+          mappers.add(context.deserialize(m.getValue(), MapFieldCopyDescriptorImpl.class));
           break;
         case "map_fieldname":
-          mappers.add((MapFieldNameDescriptorImpl)context.deserialize(m.getValue(), MapFieldNameDescriptorImpl.class));
+          mappers.add(context.deserialize(m.getValue(), MapFieldNameDescriptorImpl.class));
           break;
         case "map_fieldvalue":
-          mappers.add((MapFieldValueDescriptorImpl)context.deserialize(m.getValue(), MapFieldValueDescriptorImpl.class));
+          mappers.add(context.deserialize(m.getValue(), MapFieldValueDescriptorImpl.class));
           break;
         case "map_anonymize":
-          mappers.add((MapAnonymizeDescriptorImpl)context.deserialize(m.getValue(), MapAnonymizeDescriptorImpl.class));
+          mappers.add(context.deserialize(m.getValue(), MapAnonymizeDescriptorImpl.class));
           break;
+        case "map_custom":
+          mappers.add(context.deserialize(m.getValue(), MapCustomDescriptorImpl.class));
         default:
           System.out.println("Unknown key: " + m.getKey());
       }

@@ -26,8 +26,9 @@ import java.util.List;
 
 import org.apache.ambari.logfeeder.conf.LogEntryCacheConfig;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
-import org.apache.ambari.logfeeder.filter.Filter;
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.filter.Filter;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.manager.InputManager;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputFileDescriptorImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -61,7 +62,7 @@ public class InputFileTest {
   private InputFile inputFile;
   private List<String> rows = new ArrayList<>();
 
-  private InputMarker testInputMarker;
+  private InputFileMarker testInputMarker;
 
   private LogFeederProps logFeederProps;
 
@@ -80,7 +81,11 @@ public class InputFileTest {
   public void setUp() throws Exception {
     logFeederProps = new LogFeederProps();
     LogEntryCacheConfig logEntryCacheConfig = new LogEntryCacheConfig();
+    logEntryCacheConfig.setCacheEnabled(false);
+    logEntryCacheConfig.setCacheLastDedupEnabled(false);
+    logEntryCacheConfig.setCacheSize(10);
     logFeederProps.setLogEntryCacheConfig(logEntryCacheConfig);
+    testInputMarker = new InputFileMarker(inputFile, "", 0);
   }
 
   public void init(String path) throws Exception {
@@ -92,9 +97,14 @@ public class InputFileTest {
     inputFileDescriptor.setRowtype("service");
     inputFileDescriptor.setPath(path);
 
-    Filter capture = new Filter() {
+    Filter capture = new Filter<LogFeederProps>() {
       @Override
       public void init(LogFeederProps logFeederProps) {
+      }
+
+      @Override
+      public String getShortDescription() {
+        return null;
       }
 
       @Override
@@ -102,8 +112,6 @@ public class InputFileTest {
         rows.add(inputStr);
         if (rows.size() % 3 == 0)
           inputFile.setDrain(true);
-
-        testInputMarker = inputMarker;
       }
     };
 
@@ -135,32 +143,6 @@ public class InputFileTest {
       assertEquals("Row #" + (row + 1) + " not correct", TEST_LOG_FILE_ROWS[row], rows.get(row));
 
     EasyMock.verify(inputManager);
-  }
-
-  @Test
-  public void testInputFile_process6RowsInterrupted() throws Exception {
-    LOG.info("testInputFile_process6RowsInterrupted()");
-
-    File checkPointDir = createCheckpointDir("process6_checkpoint");
-    File testFile = createFile("process6.log");
-    init(testFile.getAbsolutePath());
-
-    InputManager inputMabager = EasyMock.createStrictMock(InputManager.class);
-    EasyMock.expect(inputMabager.getCheckPointFolderFile()).andReturn(checkPointDir).times(2);
-    EasyMock.replay(inputMabager);
-    inputFile.setInputManager(inputMabager);
-
-    inputFile.isReady();
-    inputFile.start();
-    inputFile.checkIn(testInputMarker);
-    inputFile.setDrain(false);
-    inputFile.start();
-
-    assertEquals("Amount of the rows is incorrect", rows.size(), 6);
-    for (int row = 0; row < 6; row++)
-      assertEquals("Row #" + (row + 1) + " not correct", TEST_LOG_FILE_ROWS[row], rows.get(row));
-
-    EasyMock.verify(inputMabager);
   }
 
   @Test

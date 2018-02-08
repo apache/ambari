@@ -69,6 +69,7 @@ public class LoginAuditEventTest {
     String testUserName = "USER1";
     String testRemoteIp = "127.0.0.1";
     String reason = "Bad credentials";
+    Integer consecutiveFailures = 1;
 
     Map<String, List<String>> roles = new HashMap<>();
     roles.put("a", Arrays.asList("r1", "r2", "r3"));
@@ -79,6 +80,7 @@ public class LoginAuditEventTest {
       .withUserName(testUserName)
       .withRoles(roles)
       .withReasonOfFailure(reason)
+      .withConsecutiveFailures(consecutiveFailures)
       .build();
 
     // When
@@ -87,11 +89,41 @@ public class LoginAuditEventTest {
     String roleMessage = System.lineSeparator() + "    a: r1, r2, r3" + System.lineSeparator();
 
     // Then
-    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(User login), Roles(%s), Status(Failed), Reason(%s)",
+    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(User login), Roles(%s), Status(Failed), Reason(%s), Consecutive failures(%d)",
+      testUserName, testRemoteIp, roleMessage, reason, consecutiveFailures);
+
+    assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
+  }
+
+  @Test
+  public void testFailedAuditMessageUnknownUser() throws Exception {
+    // Given
+    String testUserName = "USER1";
+    String testRemoteIp = "127.0.0.1";
+    String reason = "Bad credentials";
+
+    Map<String, List<String>> roles = new HashMap<>();
+    roles.put("a", Arrays.asList("r1", "r2", "r3"));
+
+    LoginAuditEvent evnt = LoginAuditEvent.builder()
+      .withTimestamp(System.currentTimeMillis())
+      .withRemoteIp(testRemoteIp)
+      .withUserName(testUserName)
+      .withRoles(roles)
+      .withReasonOfFailure(reason)
+      .withConsecutiveFailures(null)
+      .build();
+
+    // When
+    String actualAuditMessage = evnt.getAuditMessage();
+
+    String roleMessage = System.lineSeparator() + "    a: r1, r2, r3" + System.lineSeparator();
+
+    // Then
+    String expectedAuditMessage = String.format("User(%s), RemoteIp(%s), Operation(User login), Roles(%s), Status(Failed), Reason(%s), Consecutive failures(UNKNOWN USER)",
       testUserName, testRemoteIp, roleMessage, reason);
 
     assertThat(actualAuditMessage, equalTo(expectedAuditMessage));
-
   }
 
   @Test

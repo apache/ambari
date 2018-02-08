@@ -110,7 +110,8 @@ class ActionQueue(threading.Thread):
     for command in commands:
 
       logger.info("Canceling command with taskId = {tid}".format(tid = str(command['target_task_id'])))
-      logger.debug(pprint.pformat(command))
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(pprint.pformat(command))
 
       task_id = command['target_task_id']
       reason = command['reason']
@@ -133,8 +134,8 @@ class ActionQueue(threading.Thread):
       self.customServiceOrchestrator.cancel_command(task_id, reason)
 
   def run(self):
-    try:
-      while not self.stop_event.is_set():
+    while not self.stop_event.is_set():
+      try:
         self.processBackgroundQueueSafeEmpty()
         self.fillRecoveryCommands()
         try:
@@ -172,10 +173,8 @@ class ActionQueue(threading.Thread):
             pass
         except (Queue.Empty):
           pass
-    except:
-      logger.exception("ActionQueue thread failed with exception:")
-      raise
-
+      except:
+        logger.exception("ActionQueue thread failed with exception. Re-running it")
     logger.info("ActionQueue thread has successfully finished")
 
   def fillRecoveryCommands(self):
@@ -200,7 +199,7 @@ class ActionQueue(threading.Thread):
   def process_command(self, command):
     # make sure we log failures
     commandType = command['commandType']
-    logger.debug("Took an element of Queue (command type = %s)." % commandType)
+    logger.debug("Took an element of Queue (command type = %s).", commandType)
     try:
       if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND, self.AUTO_EXECUTION_COMMAND]:
         try:
@@ -213,7 +212,7 @@ class ActionQueue(threading.Thread):
           if self.recovery_manager.enabled():
             self.recovery_manager.on_execution_command_finish()
       else:
-        logger.error("Unrecognized command " + pprint.pformat(command))
+        logger.error("Unrecognized command %s", pprint.pformat(command))
     except Exception:
       logger.exception("Exception while processing {0} command".format(commandType))
 
@@ -447,14 +446,14 @@ class ActionQueue(threading.Thread):
     self.customServiceOrchestrator
 
   def on_background_command_complete_callback(self, process_condensed_result, handle):
-    logger.debug('Start callback: %s' % process_condensed_result)
-    logger.debug('The handle is: %s' % handle)
+    logger.debug('Start callback: %s', process_condensed_result)
+    logger.debug('The handle is: %s', handle)
     status = self.COMPLETED_STATUS if handle.exitCode == 0 else self.FAILED_STATUS
 
     aborted_postfix = self.customServiceOrchestrator.command_canceled_reason(handle.command['taskId'])
     if aborted_postfix:
       status = self.FAILED_STATUS
-      logger.debug('Set status to: %s , reason = %s' % (status, aborted_postfix))
+      logger.debug('Set status to: %s , reason = %s', status, aborted_postfix)
     else:
       aborted_postfix = ''
 

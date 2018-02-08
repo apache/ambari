@@ -59,7 +59,7 @@ class TestHookAfterInstall(RMFTestCase):
                               configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               only_if="ls /etc/hadoop/conf")
     self.assertResourceCalled('Directory',
-                              '/etc/ambari-logsearch-logfeeder/conf',
+                              '/usr/lib/ambari-logsearch-logfeeder/conf',
                               mode = 0755,
                               cd_access = 'a',
                               create_parents = True)
@@ -107,7 +107,7 @@ class TestHookAfterInstall(RMFTestCase):
       only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
-                              '/etc/ambari-logsearch-logfeeder/conf',
+                              '/usr/lib/ambari-logsearch-logfeeder/conf',
                               mode = 0755,
                               cd_access = 'a',
                               create_parents = True)
@@ -175,7 +175,7 @@ class TestHookAfterInstall(RMFTestCase):
       only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
-                              '/etc/ambari-logsearch-logfeeder/conf',
+                              '/usr/lib/ambari-logsearch-logfeeder/conf',
                               mode = 0755,
                               cd_access = 'a',
                               create_parents = True)
@@ -278,7 +278,7 @@ class TestHookAfterInstall(RMFTestCase):
       only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
-                              '/etc/ambari-logsearch-logfeeder/conf',
+                              '/usr/lib/ambari-logsearch-logfeeder/conf',
                               mode = 0755,
                               cd_access = 'a',
                               create_parents = True)

@@ -81,14 +81,15 @@ def setup_infra_solr(name = None):
          )
 
     jaas_file = params.infra_solr_jaas_file if params.security_enabled else None
+    java_opts = params.zk_security_opts if params.security_enabled else None
     url_scheme = 'https' if params.infra_solr_ssl_enabled else 'http'
 
-    create_ambari_solr_znode()
+    create_ambari_solr_znode(java_opts)
 
     if params.has_logsearch:
-      cleanup_logsearch_collections(params.logsearch_service_logs_collection, jaas_file)
-      cleanup_logsearch_collections(params.logsearch_audit_logs_collection, jaas_file)
-      cleanup_logsearch_collections('history', jaas_file)
+      cleanup_logsearch_collections(params.logsearch_service_logs_collection, jaas_file, java_opts)
+      cleanup_logsearch_collections(params.logsearch_audit_logs_collection, jaas_file, java_opts)
+      cleanup_logsearch_collections('history', jaas_file, java_opts)
 
     security_json_file_location = custom_security_json_location \
       if params.infra_solr_security_json_content and str(params.infra_solr_security_json_content).strip() \
@@ -106,30 +107,33 @@ def setup_infra_solr(name = None):
            mode=0640)
 
     solr_cloud_util.set_cluster_prop(
-      zookeeper_quorum=params.zookeeper_quorum,
+      zookeeper_quorum=params.zk_quorum,
       solr_znode=params.infra_solr_znode,
       java64_home=params.java64_home,
       prop_name="urlScheme",
       prop_value=url_scheme,
-      jaas_file=jaas_file
+      jaas_file=jaas_file,
+      java_opts=java_opts
     )
 
     solr_cloud_util.setup_kerberos_plugin(
-      zookeeper_quorum=params.zookeeper_quorum,
+      zookeeper_quorum=params.zk_quorum,
       solr_znode=params.infra_solr_znode,
       jaas_file=jaas_file,
       java64_home=params.java64_home,
       secure=params.security_enabled,
-      security_json_location=security_json_file_location
+      security_json_location=security_json_file_location,
+      java_opts=java_opts
     )
 
     if params.security_enabled:
       solr_cloud_util.secure_solr_znode(
-        zookeeper_quorum=params.zookeeper_quorum,
+        zookeeper_quorum=params.zk_quorum,
         solr_znode=params.infra_solr_znode,
         jaas_file=jaas_file,
         java64_home=params.java64_home,
-        sasl_users_str=params.infra_solr_sasl_user
+        sasl_users_str=params.infra_solr_sasl_user,
+        java_opts=java_opts
       )
 
 
@@ -140,20 +144,21 @@ def setup_infra_solr(name = None):
     raise Fail('Nor client or server were selected to install.')
 
 @retry(times=30, sleep_time=5, err_class=Fail)
-def create_ambari_solr_znode():
+def create_ambari_solr_znode(java_opts):
   import params
   solr_cloud_util.create_znode(
-    zookeeper_quorum=params.zookeeper_quorum,
+    zookeeper_quorum=params.zk_quorum,
     solr_znode=params.infra_solr_znode,
     java64_home=params.java64_home,
-    retry=30, interval=5)
+    retry=30, interval=5, java_opts=java_opts)
 
-def cleanup_logsearch_collections(collection, jaas_file):
+def cleanup_logsearch_collections(collection, jaas_file, java_opts):
   import params
   solr_cloud_util.remove_admin_handlers(
-    zookeeper_quorum=params.zookeeper_quorum,
+    zookeeper_quorum=params.zk_quorum,
     solr_znode=params.infra_solr_znode,
     java64_home=params.java64_home,
     jaas_file=jaas_file,
-    collection=collection
+    collection=collection,
+    java_opts=java_opts
   )

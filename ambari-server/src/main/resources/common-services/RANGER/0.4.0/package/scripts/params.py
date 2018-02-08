@@ -94,11 +94,11 @@ ranger_tagsync_truststore_password = config['configurations']['ranger-tagsync-po
 atlas_tagsync_keystore_password = config['configurations']['atlas-tagsync-ssl']['xasecure.policymgr.clientssl.keystore.password']
 atlas_tagsync_truststore_password = config['configurations']['atlas-tagsync-ssl']['xasecure.policymgr.clientssl.truststore.password']
 
-if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
+if upgrade_direction == Direction.DOWNGRADE and not check_stack_feature(StackFeature.CONFIG_VERSIONING, version_for_stack_feature_checks):
   stack_supports_rolling_upgrade = True
   stack_supports_config_versioning = False
 
-if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, version):
+if upgrade_direction == Direction.DOWNGRADE and not check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, version_for_stack_feature_checks):
   stack_supports_usersync_non_root = False
 
 if stack_supports_rolling_upgrade:

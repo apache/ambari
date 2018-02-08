@@ -53,17 +53,17 @@
 
 <div id="main">
   <div id="top-nav">
-    <nav class="navbar navbar-default navbar-static-top">
-      <div class="container main-container">
-        <div class="navbar-header navbar-nav">
-          {{view App.BreadcrumbsView}}
-        </div>
+    {{#if App.router.loggedIn}}
+      <nav class="navbar navbar-default navbar-static-top">
+        <div class="container main-container">
+          <div class="navbar-header navbar-nav">
+            {{view App.BreadcrumbsView}}
+          </div>
 
-        {{! right offset. don't delete me! }}
-        <ul class="nav navbar-nav navbar-right"></ul>
+          {{! right offset. don't delete me! }}
+          <ul class="nav navbar-nav navbar-right"></ul>
 
-        {{! user dropdown }}
-        {{#if App.router.loggedIn}}
+          {{! user dropdown }}
           <div class="top-nav-user navbar-right btn-group">
             <button {{QAAttr "user-dropdown"}} class="dropdown-toggle navbar-btn btn btn-default" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
               <i class="glyphicon glyphicon-user"></i>&nbsp;{{App.router.displayLoginName}}&nbsp;<span class="caret"></span>
@@ -106,36 +106,35 @@
               {{! sign out end }}
             </ul>
           </div>
-        {{/if}}
-        {{! user dropdown end }}
+          {{! user dropdown end }}
 
-        {{! views menu}}
-        <div class="navbar-nav navbar-right ambari-views notifications-group">
-          {{#if enableLinks}}
-            <i class="icon-th dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
-            <ul class="notifications-dropdown row dropdown-menu">
-              <div class="popup-arrow-up"></div>
-              <div class="notifications-header col-sm-12">
-                <div class="notifications-title">{{t common.views}}</div>
-              </div>
-              <div class="notifications-body col-sm-12">
-                {{#if view.views.length}}
-                  {{#each item in view.views}}
-                    <li>
-                      <a href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a>
-                    </li>
-                  {{/each}}
-                {{else}}
-                  <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>
-                {{/if}}
-              </div>
-            </ul>
-          {{/if}}
-        </div>
-        {{!views menu end}}
+          {{! views menu}}
+          <div class="navbar-nav navbar-right ambari-views notifications-group">
+            {{#if enableLinks}}
+              <i class="icon-th dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+              <ul class="notifications-dropdown row dropdown-menu">
+                <div class="popup-arrow-up"></div>
+                <div class="notifications-header col-sm-12">
+                  <div class="notifications-title">{{t common.views}}</div>
+                </div>
+                <div class="notifications-body col-sm-12">
+                  {{#if view.views.length}}
+                    {{#each item in view.views}}
+                      <li>
+                        <a href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a>
+                      </li>
+                    {{/each}}
+                  {{else}}
+                    <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>
+                  {{/if}}
+                </div>
+              </ul>
+            {{/if}}
+          </div>
+          {{!views menu end}}
 
-        <div class="navbar-nav navbar-right cluster-notifications">
-          {{#if enableLinks}}
+          <div class="navbar-nav navbar-right cluster-notifications">
+            {{#if enableLinks}}
             {{! bg label }}
             <a href="#" class="bg-label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
               {{#with App.router.backgroundOperationsController}}
@@ -147,13 +146,14 @@
             </a>
             {{! bg label end }}
 
-            {{! new alerts label }}
-            {{#if App.router.clusterController.isAlertsLoaded}}
-              <span class="notifications-group">
-                <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{! new alerts label }}
+              {{#if App.router.clusterController.isAlertsLoaded}}
+                <span class="notifications-group">
+                <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                      aria-expanded="false">
                   <span class="glyphicon glyphicon-bell"></span>
                   {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                    {{! alerts exist }}
+                  {{! alerts exist }}
                     <span {{bindAttr class=":numberCircle App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}}>
                       {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
                     </span>
@@ -168,24 +168,36 @@
                   {{view App.AlertInstancesPopupView}}
                 </div>
               </span>
-            {{/if}}
+              {{/if}}
             {{! alerts label end }}
-          {{/if}}
-        </div>
+            {{/if}}
+          </div>
 
-        <div class="navbar-nav navbar-text navbar-right brand-wrapper">
-          {{#if enableLinks}}
+          <div class="navbar-nav navbar-text navbar-right brand-wrapper">
             {{! cluster name }}
-            <a href="#" {{bindAttr title="clusterName"}} {{action "showPopup" target="App.router.backgroundOperationsController"}} class="cluster-name">
+            <div {{bindAttr title="clusterName"}} class="cluster-name">
               {{#unless App.isClusterUser}}
                 <span>{{clusterDisplayName}}</span>
               {{/unless}}
-            </a>
+            </div>
             {{! cluster name end }}
-          {{/if}}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    {{else}}
+      <nav class="navigation-bar-container login-header">
+        <ul class="side-nav-header nav nav-pills nav-stacked">
+          <li class="navigation-header">
+            <a class="ambari-logo">
+              <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
+            </a>
+            <div class="btn-group">
+              <span class="ambari-header" title="Apache Ambari" {{QAAttr "ambari-title"}}>{{t app.name}}</span>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    {{/if}}
   </div>
 
   <div class="container main-container">

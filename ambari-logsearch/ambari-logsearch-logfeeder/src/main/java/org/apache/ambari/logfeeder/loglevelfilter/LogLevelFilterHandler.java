@@ -16,20 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.ambari.logfeeder.loglevelfilter;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
@@ -42,6 +33,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(LogLevelFilterHandler.class);
@@ -50,7 +48,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
   private static final boolean DEFAULT_VALUE = true;
-  
+
   private static ThreadLocal<DateFormat> formatter = new ThreadLocal<DateFormat>() {
     protected DateFormat initialValue() {
       SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
@@ -92,7 +90,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     if (!logFeederProps.isLogLevelFilterEnabled()) {
       return true;
     }
-    
+
     LogLevelFilter logFilter = findLogFilter(logId);
     List<String> allowedLevels = getAllowedLevels(hostName, logFilter);
     return allowedLevels.isEmpty() || allowedLevels.contains(level);
@@ -107,7 +105,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
   }
 
   public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker) {
-    if ("audit".equals(inputMarker.input.getInputDescriptor().getRowtype()))
+    if ("audit".equals(inputMarker.getInput().getInputDescriptor().getRowtype()))
       return true;
 
     boolean isAllowed = applyFilter(jsonObj);
@@ -171,7 +169,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
       if (hosts.isEmpty() || hosts.contains(hostName)) {
         if (isFilterExpired(componentFilter)) {
           LOG.debug("Filter for component " + componentName + " and host :" + hostName + " is expired at " +
-              componentFilter.getExpiryTime());
+            componentFilter.getExpiryTime());
           return defaultLevels;
         } else {
           return overrideLevels;
@@ -193,8 +191,8 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     Date currentDate = new Date();
     if (!currentDate.before(filterEndDate)) {
       LOG.debug("Filter for  Component :" + logLevelFilter.getLabel() + " and Hosts : [" +
-          StringUtils.join(logLevelFilter.getHosts(), ',') + "] is expired because of filter endTime : " +
-          formatter.get().format(filterEndDate) + " is older than currentTime :" + formatter.get().format(currentDate));
+        StringUtils.join(logLevelFilter.getHosts(), ',') + "] is expired because of filter endTime : " +
+        formatter.get().format(filterEndDate) + " is older than currentTime :" + formatter.get().format(currentDate));
       return true;
     } else {
       return false;

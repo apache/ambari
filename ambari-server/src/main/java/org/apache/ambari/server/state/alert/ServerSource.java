@@ -33,12 +33,27 @@ public class ServerSource extends ParameterizedSource {
   @SerializedName("class")
   private String m_class;
 
+  @SerializedName("uri")
+  private AlertUri uri = null;
+
+  @SerializedName("jmx")
+  private MetricSource.JmxInfo jmxInfo = null;
+
+
   /**
    * Gets the fully qualified classname specified in the source.
    */
   @JsonProperty("class")
   public String getSourceClass() {
     return m_class;
+  }
+
+  public MetricSource.JmxInfo getJmxInfo() {
+    return jmxInfo;
+  }
+
+  public AlertUri getUri() {
+    return uri;
   }
 
   /**

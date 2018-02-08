@@ -145,6 +145,12 @@ public class ComponentInfo {
   @XmlElement(name="customFolder")
   private String customFolder;
 
+  /**
+   * Optional component type like HCFS_CLIENT.
+   * HCFS_CLIENT indicates compatibility with HDFS_CLIENT
+   */
+  private String componentType;
+
   public ComponentInfo() {
   }
 
@@ -173,6 +179,7 @@ public class ComponentInfo {
     reassignAllowed = prototype.reassignAllowed;
     customFolder = prototype.customFolder;
     rollingRestartSupported = prototype.rollingRestartSupported;
+    componentType = prototype.componentType;
   }
 
   public String getName() {
@@ -433,6 +440,14 @@ public class ComponentInfo {
 
   public void setCustomFolder(String customFolder) {
     this.customFolder = customFolder;
+  }
+
+  public String getComponentType() {
+    return componentType;
+  }
+
+  public void setComponentType(String componentType) {
+    this.componentType = componentType;
   }
 
   @Override

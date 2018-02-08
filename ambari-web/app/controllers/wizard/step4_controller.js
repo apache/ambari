@@ -34,11 +34,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   isAllChecked: function(key, value) {
     if (arguments.length > 1) {
-      this.filterProperty('isDisabled', false).setEach('isSelected', value);
+      this.filterProperty('isDisabled', false).filterProperty('isDFS', false).setEach('isSelected', value);
       return value;
     }
     return this.filterProperty('isInstalled', false).
       filterProperty('isHiddenOnSelectServicePage', false).
+      filterProperty('isDFS', false).
       everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
@@ -57,6 +58,16 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {Object[]}
    */
   errorStack: [],
+
+  /**
+   * Services which are HDFS compatible
+   */
+  fileSystems: function() {
+    var fileSystems = this.filterProperty('isDFS', true);;
+    return fileSystems.map(function(fs) {
+      return App.FileSystem.create({content: fs, services: fileSystems});
+    });
+  }.property('@each.isDFS'),
 
   /**
    * Drop errorStack content on selected state changes.
@@ -386,61 +397,29 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   serviceDependencyValidation: function(callback) {
     var selectedServices = this.filterProperty('isSelected', true);
+    var availableServices = this.get('content');
     var missingDependencies = [];
-    var missingDependenciesDisplayName = [];
     selectedServices.forEach(function(service) {
-      var requiredServices = service.get('requiredServices');
-      if (!!requiredServices && requiredServices.length) {
-        requiredServices.forEach(function(_requiredService){
-          var requiredService = this.findProperty('serviceName', _requiredService);
-          if (requiredService) {
-            if(requiredService.get('isSelected') === false) {
-               if(missingDependencies.indexOf(_requiredService) === -1) {
-                 missingDependencies.push(_requiredService);
-                 missingDependenciesDisplayName.push(requiredService.get('displayNameOnSelectServicePage'));
-               }
-            }
-            else {
-               //required service is selected, remove the service error from errorObject array
-               var serviceName = requiredService.get('serviceName');
-               var serviceError = this.get('errorStack').filterProperty('id',"serviceCheck_"+serviceName);
-               if(serviceError) {
-                  this.get('errorStack').removeObject(serviceError[0]);
-               }
-            }
-          }
-        },this);
-      }
-    },this);
+      service.collectMissingDependencies(selectedServices, availableServices, missingDependencies);
+    });
+    this.cleanExistingServiceCheckErrors();
+    this.addServiceCheckErrors(missingDependencies, callback);
+  },
 
-    //create a copy of the errorStack, reset it
-    //and add the dependencies in the correct order
-    var errorStackCopy = this.get('errorStack');
-    this.set('errorStack', []);
+  cleanExistingServiceCheckErrors() {
+    var existingServiceCheckErrors = this.get('errorStack').filter(function (error) {
+      return error.id.startsWith('serviceCheck_');
+    });
+    this.get('errorStack').removeObjects(existingServiceCheckErrors);
+  },
 
-    if (missingDependencies.length > 0) {
-      for(var i = 0; i < missingDependencies.length; i++) {
-        this.addValidationError({
-          id: 'serviceCheck_' + missingDependencies[i],
-          callback: this.needToAddServicePopup,
-          callbackParams: [{serviceName: missingDependencies[i], selected: true}, 'serviceCheck', missingDependenciesDisplayName[i], callback]
-        });
-      }
-    }
-
-    //iterate through the errorStackCopy array and add to errorStack array, the error objects that have no matching entry in the errorStack 
-    //and that are not related to serviceChecks since serviceCheck errors have already been added when iterating through the missing dependencies list
-    //Only add Ranger, Ambari Metrics, Spark and file system service validation errors if they exist in the errorStackCopy array
-    var ctr = 0;
-    while(ctr < errorStackCopy.length) {
-      //no matching entry in errorStack array
-      if (!this.get('errorStack').someProperty('id', errorStackCopy[ctr].id)) {
-        //not serviceCheck error
-        if(!errorStackCopy[ctr].id.startsWith('serviceCheck_')) {
-          this.get('errorStack').push(this.createError(errorStackCopy[ctr]));
-        }
-      }
-      ctr++;
+  addServiceCheckErrors(missingDependencies, callback) {
+    for(var i = 0; i < missingDependencies.length; i++) {
+      this.addValidationError({
+        id: 'serviceCheck_' + missingDependencies[i].get('serviceName'),
+        callback: this.needToAddMissingDependency,
+        callbackParams: [missingDependencies[i], 'serviceCheck', callback]
+      });
     }
   },
 
@@ -486,7 +465,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     return App.ModalPopup.show({
       'data-qa': 'need-add-service-confirmation-modal',
       header: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header').format(serviceName),
-      body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body').format(serviceName),
+      body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body').format(serviceName, serviceName),
       onPrimary: function () {
         Em.makeArray(services).forEach(function (service) {
           self.findProperty('serviceName', service.serviceName).set('isSelected', service.selected);
@@ -507,6 +486,49 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         this._super();
       }
     });
+  },
+
+  needToAddMissingDependency: function (missingDependency, i18nSuffix, callback, id) {
+    var self = this;
+    var displayName = missingDependency.get('displayName');
+    if (missingDependency.get('hasMultipleOptions')) {
+      return this.showDependencyPopup(
+        id,
+        Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header').format(displayName),
+        Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body.multiOptions').format(displayName, missingDependency.get('displayOptions')),
+        callback
+      );
+    } else {
+      return this.showDependencyPopup(
+        id,
+        Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header').format(displayName),
+        Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body').format(displayName, missingDependency.get('serviceName')),
+        callback,
+        function () {
+          missingDependency.selectFirstCompatible();
+          self.onPrimaryPopupCallback(callback, id);
+          this.hide();
+        }
+      );
+    }
+  },
+
+  showDependencyPopup: function(id, header, body, callback, primaryAction) {
+    return App.ModalPopup.show({
+        'data-qa': 'need-add-service-confirmation-modal',
+        header: header,
+        body: body,
+        onPrimary: primaryAction || function() { this.onClose(); },
+        onSecondary: function() {
+          this.onClose();
+        },
+        onClose: function() {
+          if (callback) {
+            callback(id);
+          }
+          this._super();
+        }
+      });
   },
 
   /**

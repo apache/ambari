@@ -152,8 +152,8 @@ import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
@@ -168,7 +168,6 @@ import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.User;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
@@ -931,14 +930,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-    String service = null;
+    String service = cluster.getServiceByConfigType(configType);
 
-    try {
-      service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-    } catch (IllegalArgumentException e) {
-      // Ignore this since we may have hit a config type that spans multiple services. This may
-      // happen in unit test cases but should not happen with later versions of stacks.
-    }
 
     // Get the changes so that the user's intention can be determined. For example, maybe
     // the user wants to change the run-as user for a service or maybe the the cluster-wide
@@ -1078,20 +1071,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     cluster.addConfig(config);
     return config;
-  }
-
-  @Override
-  public void createUsers(Set<UserRequest> requests) throws AmbariException {
-
-    for (UserRequest request : requests) {
-
-      if (null == request.getUsername() || request.getUsername().isEmpty() ||
-          null == request.getPassword() || request.getPassword().isEmpty()) {
-        throw new AmbariException("Username and password must be supplied.");
-      }
-
-      users.createUser(request.getUsername(), request.getPassword(), UserType.LOCAL, request.isActive(), request.isAdmin());
-    }
   }
 
   @Override
@@ -3534,65 +3513,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return cluster.getServiceByComponentName(componentName).getName();
   }
 
-  /**
-   * Updates the users specified.
-   *
-   * @param requests the users to modify
-   *
-   * @throws AmbariException if the resources cannot be updated
-   * @throws IllegalArgumentException if the authenticated user is not authorized to update all of
-   * the requested properties
-   */
-  @Override
-  public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException {
-    boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
-        RoleAuthorization.AMBARI_MANAGE_USERS);
-    String authenticatedUsername = AuthorizationHelper.getAuthenticatedName();
-
-    for (UserRequest request : requests) {
-      String requestedUsername = request.getUsername();
-
-      // An administrator can modify any user, else a user can only modify themself.
-      if (!isUserAdministrator && (!authenticatedUsername.equalsIgnoreCase(requestedUsername))) {
-        throw new AuthorizationException();
-      }
-
-      User u = users.getAnyUser(requestedUsername);
-      if (null == u) {
-        continue;
-      }
-
-      if (null != request.isActive()) {
-        // If this value is being set, make sure the authenticated user is an administrator before
-        // allowing to change it. Only administrators should be able to change a user's active state
-        if (!isUserAdministrator) {
-          throw new AuthorizationException("The authenticated user is not authorized to update the requested resource property");
-        }
-        users.setUserActive(u.getUserName(), request.isActive());
-      }
-
-      if (null != request.isAdmin()) {
-        // If this value is being set, make sure the authenticated user is an administrator before
-        // allowing to change it. Only administrators should be able to change a user's administrative
-        // privileges
-        if (!isUserAdministrator) {
-          throw new AuthorizationException("The authenticated user is not authorized to update the requested resource property");
-        }
-
-        if (request.isAdmin()) {
-          users.grantAdminPrivilege(u.getUserId());
-        } else {
-          users.revokeAdminPrivilege(u.getUserId());
-        }
-      }
-
-      if (null != request.getOldPassword() && null != request.getPassword()) {
-        users.modifyPassword(u.getUserName(), request.getOldPassword(),
-            request.getPassword());
-      }
-    }
-  }
-
   @Override
   public synchronized void deleteCluster(ClusterRequest request)
       throws AmbariException {
@@ -3743,21 +3663,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
     return deleteMetaData;
-  }
-
-  @Override
-  public void deleteUsers(Set<UserRequest> requests)
-    throws AmbariException {
-
-    for (UserRequest r : requests) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a delete user request, username={}", r.getUsername());
-      }
-      User u = users.getAnyUser(r.getUsername());
-      if (null != u) {
-        users.removeUser(u);
-      }
-    }
   }
 
   @Override
@@ -3962,64 +3867,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     return result;
-  }
-
-  @Override
-  public Set<UserResponse> getUsers(Set<UserRequest> requests)
-      throws AmbariException, AuthorizationException {
-
-    Set<UserResponse> responses = new HashSet<>();
-
-    for (UserRequest r : requests) {
-
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a getUsers request, userRequest={}", r);
-      }
-
-      String requestedUsername = r.getUsername();
-      String authenticatedUsername = AuthorizationHelper.getAuthenticatedName();
-
-      // A user resource may be retrieved by an administrator or the same user.
-      if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_USERS)) {
-        if (null == requestedUsername) {
-          // Since the authenticated user is not the administrator, force only that user's resource
-          // to be returned
-          requestedUsername = authenticatedUsername;
-        } else if (!requestedUsername.equalsIgnoreCase(authenticatedUsername)) {
-          // Since the authenticated user is not the administrator and is asking for a different user,
-          // throw an AuthorizationException
-          throw new AuthorizationException();
-        }
-      }
-
-      // get them all
-      if (null == requestedUsername) {
-        for (User u : users.getAllUsers()) {
-          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
-              .isAdmin());
-          resp.setGroups(new HashSet<>(u.getGroups()));
-          responses.add(resp);
-        }
-      } else {
-
-        User u = users.getAnyUser(requestedUsername);
-        if (null == u) {
-          if (requests.size() == 1) {
-            // only throw exceptin if there is a single request
-            // if there are multiple requests, this indicates an OR predicate
-            throw new ObjectNotFoundException("Cannot find user '"
-                + requestedUsername + "'");
-          }
-        } else {
-          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
-              .isAdmin());
-          resp.setGroups(new HashSet<>(u.getGroups()));
-          responses.add(resp);
-        }
-      }
-    }
-
-    return responses;
   }
 
   @Override
@@ -4492,12 +4339,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          if (operatingSystem.getOsType().equals(osType)) {
-            for (RepositoryEntity repository: operatingSystem.getRepositories()) {
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          if (operatingSystem.getFamily().equals(osType)) {
+            for (RepoDefinitionEntity repository : operatingSystem.getRepoDefinitionEntities()) {
 
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
-                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "",
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepoID(),
+                  repository.getRepoName(), repository.getDistribution(), repository.getComponents(), "", "",
                       repository.getTags());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
@@ -4937,8 +4784,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getOsType());
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getFamily());
           if (null != versionDefinitionId) {
             response.setVersionDefinitionId(repositoryVersionId.toString());
           } else {
@@ -4946,7 +4793,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
           response.setStackName(repositoryVersion.getStackName());
           response.setStackVersion(repositoryVersion.getStackVersion());
-          response.setAmbariManagedRepos(operatingSystem.isAmbariManagedRepos());
+          response.setAmbariManagedRepos(operatingSystem.isAmbariManaged());
           responses.add(response);
         }
       }

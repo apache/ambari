@@ -21,6 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,15 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
   static final String DEFAULT_ADMIN_PASSWORD = "hadoop";
   static final String DEFAULT_REALM = "EXAMPLE.COM";
   static final PrincipalKeyCredential DEFAULT_ADMIN_CREDENTIALS = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
+  static final Map<String, String> DEFAULT_KERBEROS_ENV_MAP;
+
+  static {
+    Map<String, String> map = new HashMap<>();
+    map.put(KerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, "aes des3-cbc-sha1 rc4 des-cbc-md5");
+    map.put(IPAKerberosOperationHandler.KERBEROS_ENV_KDC_HOSTS, "localhost");
+    map.put(IPAKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
+    DEFAULT_KERBEROS_ENV_MAP = Collections.unmodifiableMap(map);
+  }
 
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
@@ -349,6 +359,12 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
         }},
         handler.translateEncryptionTypes("des3", " ")
     );
+  }
+
+  @Test(expected = KerberosOperationException.class)
+  public void testTranslateWrongEncryptionTypes() throws Exception {
+    KerberosOperationHandler handler = createHandler();
+    handler.translateEncryptionTypes("aes-255", " ");
   }
 
   @Test

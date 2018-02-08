@@ -183,8 +183,6 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_yarn_spark_versioned_classpaths">
             <type>yarn-site</type>
-            <set key="yarn.nodemanager.aux-services.spark_shuffle.classpath" value="{{stack_root}}/{{spark_version}}/spark/aux/*"/>
-            <set key="yarn.nodemanager.aux-services.spark2_shuffle.classpath" value="{{stack_root}}/{{spark2_version}}/spark2/aux/*"/>
             <replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath" find="${hdp.version}/spark/" replace-with="{{spark_version}}/spark/"/>
           </definition>
         </changes>
@@ -273,8 +271,8 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library">
             <type>tez-site</type>
-            <set key="tez.am.launch.env" value="LD_LIBRARY_PATH=./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
-            <set key="tez.task.launch.env" value="LD_LIBRARY_PATH=./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
+            <set key="tez.am.launch.env" value="LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64:./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64" />
+            <set key="tez.task.launch.env" value="LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64:./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64" />
           </definition>
         </changes>
       </component>
@@ -285,7 +283,7 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library">
             <type>mapred-site</type>
-            <set key="mapreduce.admin.user.env" value="LD_LIBRARY_PATH=./mr-framework/hadoop/lib/native:./mr-framework/hadoop/lib/native/Linux-{{architecture}}-64:{{hadoop_lib_home}}/native:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64"/>
+            <set key="mapreduce.admin.user.env" value="LD_LIBRARY_PATH={{hadoop_lib_home}}/native:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64:./mr-framework/hadoop/lib/native:./mr-framework/hadoop/lib/native/Linux-{{architecture}}-64" />
           </definition>
         </changes>
       </component>

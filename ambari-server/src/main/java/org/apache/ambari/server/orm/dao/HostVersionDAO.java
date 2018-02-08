@@ -130,6 +130,21 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
+   * Retrieve all of the cluster versions for the given cluster name.
+   *
+   * @param clusterName Cluster name
+   * @return Return all of the host versions that match the criteria.
+   */
+  @RequiresSession
+  public List<HostVersionEntity> findByCluster(String  clusterName) {
+    final TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
+        .createNamedQuery("findByCluster", HostVersionEntity.class);
+    query.setParameter("clusterName", clusterName);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Retrieve all of the host versions for the given cluster name, and state. <br/>
    * @param clusterName Cluster name
    * @param state repository version state

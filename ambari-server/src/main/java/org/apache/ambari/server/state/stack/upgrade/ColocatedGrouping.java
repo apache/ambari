@@ -90,13 +90,12 @@ public class ColocatedGrouping extends Grouping {
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
 
       int count = Double.valueOf(Math.ceil(
-          (double) m_batch.percent / 100 * hostsType.hosts.size())).intValue();
+          (double) m_batch.percent / 100 * hostsType.getHosts().size())).intValue();
 
       int i = 0;
-      for (String host : hostsType.hosts) {
+      for (String host : hostsType.getHosts()) {
         // This class required inserting a single host into the collection
-        HostsType singleHostsType = new HostsType();
-        singleHostsType.hosts.add(host);
+        HostsType singleHostsType = HostsType.single(host);
 
         Map<String, List<TaskProxy>> targetMap = ((i++) < count) ? initialBatch : finalBatches;
         List<TaskProxy> targetList = targetMap.get(host);

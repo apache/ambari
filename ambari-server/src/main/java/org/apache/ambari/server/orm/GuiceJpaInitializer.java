@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.orm;
 
+import org.apache.ambari.server.events.JpaInitializedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+
 import com.google.inject.Inject;
 import com.google.inject.persist.PersistService;
 
@@ -25,10 +28,11 @@ import com.google.inject.persist.PersistService;
  * This class needs to be instantiated with guice to initialize Guice-persist
  */
 public class GuiceJpaInitializer {
-
+  
   @Inject
-  public GuiceJpaInitializer(PersistService service) {
+  public GuiceJpaInitializer(PersistService service, AmbariEventPublisher publisher) {
     service.start();
+    publisher.publish(new JpaInitializedEvent());
   }
 
 }

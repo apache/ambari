@@ -24,6 +24,7 @@ import {TranslationModules} from '@app/test-config.spec';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {
   ServiceLogsHistogramDataService, serviceLogsHistogramData
@@ -37,6 +38,8 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {AuthService} from '@app/services/auth.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {TopMenuComponent} from './top-menu.component';
 
@@ -60,6 +63,7 @@ describe('TopMenuComponent', () => {
           auditLogs,
           serviceLogs,
           auditLogsFields,
+          auditLogsGraphData,
           serviceLogsFields,
           serviceLogsHistogramData,
           serviceLogsTruncated,
@@ -79,9 +83,12 @@ describe('TopMenuComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
+        AuthService,
+        UtilsService,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
+        AuditLogsGraphDataService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
