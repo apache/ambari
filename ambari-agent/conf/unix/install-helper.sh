@@ -59,6 +59,10 @@ do_install(){
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
   fi
 
+  # setting up /usr/sbin/ambari-agent symlink
+  rm -f "$AMBARI_AGENT_BINARY_SYMLINK"
+  ln -s "$AMBARI_AGENT_BINARY" "$AMBARI_AGENT_BINARY_SYMLINK"
+
   # these symlinks (or directories) where created in ambari releases prior to ambari-2.6.2. Do clean up.   
   rm -rf "$OLD_COMMON_DIR" "$OLD_RESOURCE_MANAGEMENT_DIR" "$OLD_JINJA_DIR" "$OLD_SIMPLEJSON_DIR" "$OLD_COMMON_DIR" "$OLD_AMBARI_AGENT_DIR"
   
