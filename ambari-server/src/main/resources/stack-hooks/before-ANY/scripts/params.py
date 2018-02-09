@@ -37,6 +37,7 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 
@@ -72,7 +73,7 @@ if (upgrade_type is not None) and version:
 ambari_java_home = default("/commandParams/ambari_java_home", None)
 ambari_jdk_name = default("/commandParams/ambari_jdk_name", None)
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+security_enabled = get_cluster_setting_value('security_enabled')
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
 # Some datanode settings
@@ -163,7 +164,7 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
-smoke_user =  config['configurations']['cluster-env']['smokeuser']
+smoke_user =  get_cluster_setting_value('smokeuser')
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
@@ -173,7 +174,7 @@ ranger_user = config['configurations']['ranger-env']["ranger_user"]
 zeppelin_user = config['configurations']['zeppelin-env']["zeppelin_user"]
 zeppelin_group = config['configurations']['zeppelin-env']["zeppelin_group"]
 
-user_group = config['configurations']['cluster-env']['user_group']
+user_group = get_cluster_setting_value('user_group')
 
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
@@ -219,9 +220,9 @@ proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 ranger_group = config['configurations']['ranger-env']['ranger_group']
 dfs_cluster_administrators_group = config['configurations']['hdfs-site']["dfs.cluster.administrators"]
 
-sysprep_skip_create_users_and_groups = default("/configurations/cluster-env/sysprep_skip_create_users_and_groups", False)
-ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
-fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
+sysprep_skip_create_users_and_groups = get_cluster_setting_value('sysprep_skip_create_users_and_groups')
+ignore_groupsusers_create = get_cluster_setting_value('ignore_groupsusers_create')
+fetch_nonlocal_groups = get_cluster_setting_value('fetch_nonlocal_groups')
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 if has_hbase_masters:
@@ -247,7 +248,7 @@ group_list = set(json.loads(config['hostLevelParams']['group_list']) + [user_gro
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
-override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()
+override_uid = get_cluster_setting_value('override_uid')
 
 # if NN HA on secure clutser, access Zookeper securely
 if stack_supports_zk_security and dfs_ha_enabled and security_enabled:
