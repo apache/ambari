@@ -50,7 +50,6 @@ import {
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
 import {LogsType, ScrollType, SortingType} from '@app/classes/string';
-
 import {Tab} from '@app/classes/models/tab';
 import {LogField} from '@app/classes/models/log-field';
 import {AuditLog} from '@app/classes/models/audit-log';
@@ -1050,6 +1049,7 @@ export class LogsContainerService {
 
   isFilterConditionDisplayed(key: string): boolean {
     return this.logsTypeMap[this.activeLogsType].listFilters.indexOf(key) > -1
+      && Boolean(this.filtersForm.controls[key]);
   }
 
   updateSelectedColumns(columnNames: string[], logsType: string): void {
