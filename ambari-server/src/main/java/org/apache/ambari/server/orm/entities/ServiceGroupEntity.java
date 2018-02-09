@@ -18,13 +18,10 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -75,7 +72,7 @@ public class ServiceGroupEntity {
   private String serviceGroupName;
 
   @Column(name = "stack_id", nullable = false, insertable = true, updatable = true)
-  private String stackId;
+  private Long stackId;
 
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
@@ -111,11 +108,11 @@ public class ServiceGroupEntity {
     this.serviceGroupName = serviceGroupName;
   }
 
-  public String getStackId() {
+  public Long getStackId() {
     return stackId;
   }
 
-  public void setStackId(String stackId) {
+  public void setStackId(Long stackId) {
     this.stackId = stackId;
   }
 
@@ -145,7 +142,7 @@ public class ServiceGroupEntity {
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (serviceGroupName != null ? !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null)
       return false;
-    if (stackId != null ? !stackId.equals(that.stackId) : that.stackId != null)
+    if (Long.valueOf(stackId) != Long.valueOf(((ServiceGroupEntity) o).stackId))
       return false;
 
     return true;
@@ -153,10 +150,7 @@ public class ServiceGroupEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterId != null ? clusterId.intValue() : 0;
-    result = 31 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
-    result = 31 * result + (stackId != null ? stackId.hashCode() : 0);
-    return result;
+    return Objects.hash(serviceGroupId, clusterId, serviceGroupName, stackId);
   }
 
   public ClusterEntity getClusterEntity() {

@@ -31,10 +31,12 @@ import org.apache.ambari.server.events.ServiceGroupRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntityPK;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   private final Cluster cluster;
 
   private final ClusterDAO clusterDAO;
+  private final StackDAO stackDAO;
   private final ServiceGroupDAO serviceGroupDAO;
   private final AmbariEventPublisher eventPublisher;
   private final Clusters clusters;
@@ -66,6 +69,7 @@ public class ServiceGroupImpl implements ServiceGroup {
                           @Assisted("stackId") String stackId,
                           @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies,
                           ClusterDAO clusterDAO,
+                          StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
@@ -73,17 +77,19 @@ public class ServiceGroupImpl implements ServiceGroup {
     this.cluster = cluster;
     this.clusters = clusters;
     this.clusterDAO = clusterDAO;
+    this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupName = serviceGroupName;
     this.stackId = stackId;
+    StackEntity stackEntity = stackDAO.find(new StackId(stackId));
 
     ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
     serviceGroupEntity.setClusterId(cluster.getClusterId());
     serviceGroupEntity.setServiceGroupId(serviceGroupId);
     serviceGroupEntity.setServiceGroupName(serviceGroupName);
-    serviceGroupEntity.setStackId(stackId);
+    serviceGroupEntity.setStackId(stackEntity.getStackId());
 
     if (serviceGroupDependencies == null) {
       this.serviceGroupDependencies = new HashSet<>();
@@ -100,18 +106,21 @@ public class ServiceGroupImpl implements ServiceGroup {
   public ServiceGroupImpl(@Assisted Cluster cluster,
                           @Assisted ServiceGroupEntity serviceGroupEntity,
                           ClusterDAO clusterDAO,
+                          StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
     this.cluster = cluster;
     this.clusters = clusters;
     this.clusterDAO = clusterDAO;
+    this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupId = serviceGroupEntity.getServiceGroupId();
     this.serviceGroupName = serviceGroupEntity.getServiceGroupName();
-    this.stackId = serviceGroupEntity.getStackId();
+    StackEntity stackEntity = stackDAO.findById(serviceGroupEntity.getStackId());
+    this.stackId = stackEntity.getStackName()+"-"+stackEntity.getStackVersion();
     this.serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
     this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
@@ -143,13 +152,16 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   public String getStackId() {
     ServiceGroupEntity entity = getServiceGroupEntity();
-    return entity.getStackId();
+    StackEntity stackEntity = stackDAO.findById(entity.getStackId());
+    return stackEntity.getStackName().concat("-").concat(stackEntity.getStackVersion());
   }
 
   @Override
   public void setStackId(String stackId) {
     ServiceGroupEntity entity = getServiceGroupEntity();
-    entity.setStackId(stackId);
+    String[] stackInfo = stackId.split("-");
+    StackEntity stackEntity = stackDAO.find(stackInfo[0], stackInfo[1]);
+    entity.setStackId(stackEntity.getStackId());
     serviceGroupDAO.merge(entity);
     this.stackId = stackId;
   }

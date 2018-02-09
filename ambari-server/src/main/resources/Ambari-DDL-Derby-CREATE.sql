@@ -123,10 +123,10 @@ CREATE TABLE servicegroups (
   id BIGINT NOT NULL,
   service_group_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
-  stack_id VARCHAR(255) NOT NULL,
+  stack_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT UQ_servicegroups_stack_id UNIQUE (stack_id));
+  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id));
 
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,

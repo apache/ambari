@@ -125,10 +125,10 @@ CREATE TABLE servicegroups (
   id BIGINT NOT NULL,
   service_group_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
-  stack_id VARCHAR(255) NOT NULL,
+  stack_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT UQ_servicegroups_stack_id UNIQUE (stack_id));
+  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id));
 
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,
@@ -1289,7 +1289,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('servicecomponent_version_id_seq', 0),
   ('blueprint_service_id_seq', 0),
   ('blueprint_mpack_instance_id_seq', 0),
-  ('hostgroup_component_id_seq', 0);
+  ('hostgroup_component_id_seq', 0),
   ('repo_os_id_seq', 0),
   ('repo_definition_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0);

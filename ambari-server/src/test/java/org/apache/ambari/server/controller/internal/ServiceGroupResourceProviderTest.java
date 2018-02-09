@@ -23,10 +23,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -89,20 +87,8 @@ public class ServiceGroupResourceProviderTest {
   }
 
   @Test
-  public void testCreateServiceGroupsWithMpacks() throws Exception {
-    // Valid Requesty with one mpack name per service group
-    String body = "[{\"ServiceGroupInfo\":{\"service_group_name\": \"CORE\",\"mpacks\": [{\"name\": \"HDPCORE\"}]}},{\"ServiceGroupInfo\": {\"service_group_name\": \"EDW-MKTG\",\"mpacks\": [{\"name\": \"EDW2\"}]}}]";
-    runTestCreateServiceGroupsWithMpacks(body);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testCreateServiceGroupsWithMultipleMpacks() throws Exception {
-    // Valid Requesty with one mpack name per service group
-    String body = "[{\"ServiceGroupInfo\":{\"service_group_name\": \"CORE\",\"mpacks\": [{\"name\": \"HDPCORE\"},{\"name\": \"HDPCORE2\"}]}},{\"ServiceGroupInfo\": {\"service_group_name\": \"EDW-MKTG\",\"mpacks\": [{\"name\": \"EDW2\"}]}}]";
-    runTestCreateServiceGroupsWithMpacks(body);
-  }
-
-  private static void runTestCreateServiceGroupsWithMpacks(String body) throws Exception{
+  public void testCreateServiceGroupsWithStackId() throws Exception {
+    String body = "[{\"ServiceGroupInfo\":{\"service_group_name\": \"CORE\",\"stack_id\": \"HDP-1.2.3\"}}]";
     String clusterName = "c1";
     JsonRequestBodyParser jsonParser = new JsonRequestBodyParser();
     RequestBody requestBody = jsonParser.parse(body).iterator().next();
@@ -122,15 +108,12 @@ public class ServiceGroupResourceProviderTest {
     ClusterController clusterController = createNiceMock(ClusterController.class);
     ServiceGroup coreServiceGroup = createNiceMock(ServiceGroup.class);
     ServiceGroup edmServiceGroup = createNiceMock(ServiceGroup.class);
-    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1l, "CORE", "HDP-2.6.0");
-    ServiceGroupResponse edmServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 2l, "EDM-MKTG", "EDM-1.1.0");
+    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1l, "CORE", "HDP-1.2.3");
     expect(ambariManagementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(ambariManagementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(cluster.addServiceGroup("CORE", "HDP-1.0")).andReturn(coreServiceGroup).anyTimes();
-    expect(cluster.addServiceGroup("EDW-MKTG", "HDP-1.0")).andReturn(edmServiceGroup).anyTimes();
-    expect(coreServiceGroup.convertToResponse()).andReturn(coreServiceGroupResponse).anyTimes();
-    expect(edmServiceGroup.convertToResponse()).andReturn(edmServiceGroupResponse).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    expect(cluster.addServiceGroup("CORE", "HDP-1.2.3")).andReturn(coreServiceGroup).anyTimes();
+    expect(coreServiceGroup.convertToResponse()).andReturn(coreServiceGroupResponse).anyTimes();
     expect(clusterController.getSchema(Resource.Type.ServiceGroup)).andReturn(serviceGroupSchema).anyTimes();
     expect(serviceGroupSchema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("ServiceGroupInfo/cluster_name").anyTimes();
     expect(serviceGroupSchema.getKeyPropertyId(Resource.Type.ServiceGroup)).andReturn("ServiceGroupInfo/service_group_name").anyTimes();

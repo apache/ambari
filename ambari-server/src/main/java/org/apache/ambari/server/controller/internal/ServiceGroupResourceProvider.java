@@ -19,13 +19,11 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -409,7 +407,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
       String stackVersion = request.getStackId();
       //TODO: ******* For test ********* this piece of code should be removed after web UI adds default stack id
       if (StringUtils.isBlank(stackVersion)) {
-        stackVersion = "HDP-3.0.0.0";
+        stackVersion = "HDP-2.0.6";
         request.setStackId(stackVersion);
         LOG.info("***** Add fake stack id in order to create cluster from web UI, this code will be removed after web UI adds default stack id");
       }
