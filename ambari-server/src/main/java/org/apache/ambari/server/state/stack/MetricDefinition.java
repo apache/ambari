@@ -22,6 +22,7 @@ import static java.util.Map.Entry;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -30,6 +31,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * Used to represent metrics for a stack component.
  */
 public class MetricDefinition {
+  private static final String OVERRIDDEN_HOST_PROP = "overridden_host";
   private String type = null;
   private Map<String, String> properties = null;
   private Map<String, Map<String, Metric>> metrics = null;
@@ -74,5 +76,10 @@ public class MetricDefinition {
     
     return sb.toString();
   }
-  
+
+  public Optional<String> getOverriddenHosts() {
+    return properties == null
+      ? Optional.empty()
+      : Optional.ofNullable(properties.get(OVERRIDDEN_HOST_PROP));
+  }
 }

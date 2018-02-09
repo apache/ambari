@@ -20,10 +20,14 @@ package org.apache.ambari.logsearch.model.request.impl;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.FieldParamDefinition;
+import org.apache.ambari.logsearch.model.request.UserParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class FieldAuditBarGraphRequest extends AuditBarGraphRequest implements FieldParamDefinition {
+public class FieldAuditBarGraphRequest extends AuditBarGraphRequest implements FieldParamDefinition, UserParamDefinition {
+
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_USERS)
+  private String userList;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_FIELD)
   private String field;
@@ -36,5 +40,15 @@ public class FieldAuditBarGraphRequest extends AuditBarGraphRequest implements F
   @Override
   public void setField(String field) {
     this.field = field;
+  }
+
+  @Override
+  public String getUserList() {
+    return userList;
+  }
+
+  @Override
+  public void setUserList(String userList) {
+    this.userList = userList;
   }
 }

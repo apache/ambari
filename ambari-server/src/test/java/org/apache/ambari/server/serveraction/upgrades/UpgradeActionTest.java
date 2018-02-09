@@ -314,7 +314,7 @@ public class UpgradeActionTest {
     Cluster cluster = clusters.getCluster(clusterName);
 
     // Install ZK and HDFS with some components
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", targetStack.getStackId());
     Service zk = installService(cluster, serviceGroup, "ZOOKEEPER", repositoryVersion2110);
     addServiceComponent(zk, "ZOOKEEPER_SERVER");
     addServiceComponent(zk, "ZOOKEEPER_CLIENT");
@@ -510,7 +510,7 @@ public class UpgradeActionTest {
     createHostVersions(repositoryVersion2201, hostName);
 
     // Install ZK with some components
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", repositoryVersion2111.getStackName()+"-"+repositoryVersion2111.getStackVersion());
     Service zk = installService(cluster, serviceGroup, "ZOOKEEPER", repositoryVersion2110);
     addServiceComponent(zk, "ZOOKEEPER_SERVER");
     addServiceComponent(zk, "ZOOKEEPER_CLIENT");

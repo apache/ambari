@@ -129,6 +129,7 @@ public class AlertMaintenanceModeListenerTest {
     EasyMock.expect(m_alertsDAO.merge(serviceAlert)).andReturn(serviceAlert).once();
 
     Service service = EasyMock.createNiceMock(Service.class);
+    EasyMock.expect(service.getClusterId()).andReturn(1L).anyTimes();
     EasyMock.expect(service.getName()).andReturn(SERVICE).atLeastOnce();
 
     EasyMock.replay(hostAlert, serviceAlert, componentAlert, service, m_alertsDAO);
@@ -154,8 +155,9 @@ public class AlertMaintenanceModeListenerTest {
     EasyMock.expect(m_alertsDAO.merge(componentAlert)).andReturn(componentAlert).once();
 
     ServiceComponentHost serviceComponentHost = EasyMock.createNiceMock(ServiceComponentHost.class);
+    EasyMock.expect(serviceComponentHost.getClusterId()).andReturn(1L).anyTimes();
     EasyMock.expect(serviceComponentHost.getHostName()).andReturn(HOSTNAME).atLeastOnce();
-    EasyMock.expect(serviceComponentHost.getServiceName()).andReturn(SERVICE).atLeastOnce();
+    EasyMock.expect(serviceComponentHost.getServiceType()).andReturn(SERVICE).atLeastOnce();
     EasyMock.expect(serviceComponentHost.getServiceComponentName()).andReturn(COMPONENT).atLeastOnce();
 
     EasyMock.replay(hostAlert, serviceAlert, componentAlert, serviceComponentHost, m_alertsDAO);

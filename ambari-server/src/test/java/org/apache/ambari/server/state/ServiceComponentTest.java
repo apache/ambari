@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -99,7 +100,7 @@ public class ServiceComponentTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         stackId.getStackVersion());
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service s = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
     cluster.addService(s);
     service = cluster.getService(serviceName);
@@ -449,7 +450,7 @@ public class ServiceComponentTest {
     StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
 
     RepositoryVersionEntity rve = new RepositoryVersionEntity(stackEntity, "HDP-2.2.0",
-        "2.2.0.1-1111", "[]");
+        "2.2.0.1-1111", new ArrayList<>());
 
     RepositoryVersionDAO repositoryDAO = injector.getInstance(RepositoryVersionDAO.class);
     repositoryDAO.create(rve);
@@ -507,7 +508,7 @@ public class ServiceComponentTest {
     StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
 
     RepositoryVersionEntity rve = new RepositoryVersionEntity(stackEntity, "HDP-2.2.0",
-        "2.2.0.1-1111", "[]");
+        "2.2.0.1-1111", new ArrayList<>());
 
     RepositoryVersionDAO repositoryDAO = injector.getInstance(RepositoryVersionDAO.class);
     repositoryDAO.create(rve);

@@ -168,7 +168,10 @@
       </commandScript>
       
       <requiredServices>
-        <service>HDFS</service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>
@@ -264,7 +267,10 @@
       </commandScript>
       
       <requiredServices>
-        <service>YARN</service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dir>configuration-mapred</configuration-dir>

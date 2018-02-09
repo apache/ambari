@@ -15,13 +15,12 @@
   limitations under the License.
 -->
 
-<dropdown-button class="pull-right" label="{{'logs.columns' | translate}}" [options]="columns" [isRightAlign]="true"
-                 [isMultipleChoice]="true" action="updateSelectedColumns"
-                 [additionalArgs]="logsTypeMapObject.fieldsModel"></dropdown-button>
+<dropdown-button class="pull-right" label="{{'logs.columns' | translate}}" (selectItem)="updateSelectedColumns($event)"
+                 [options]="columns" [isRightAlign]="true" [isMultipleChoice]="true"></dropdown-button>
 <form *ngIf="logs && logs.length" [formGroup]="filtersForm" class="row pull-right">
   <filter-dropdown class="col-md-12" label="{{filters.auditLogsSorting.label | translate}}"
                    formControlName="auditLogsSorting" [options]="filters.auditLogsSorting.options"
-                   [isRightAlign]="true"></filter-dropdown>
+                   [isRightAlign]="true" [showCommonLabelWithSelection]="true"></filter-dropdown>
 </form>
 <div class="panel panel-default">
   <div class="panel-body">

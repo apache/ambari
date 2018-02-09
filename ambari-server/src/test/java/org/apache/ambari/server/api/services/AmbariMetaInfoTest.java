@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AutoDeployInfo;
@@ -73,6 +74,7 @@ import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceCategory;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -134,10 +136,10 @@ public class AmbariMetaInfoTest {
   private static final int REPOS_CNT = 3;
   private static final int PROPERTIES_CNT = 64;
   private static final int OS_CNT = 4;
+  public static final File RESOURCES_ROOT = new File("src/test/resources/");
 
   private static TestAmbariMetaInfo metaInfo = null;
-  private final static Logger LOG =
-      LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+  private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
   private static final String HADOOP_ENV_FILE_NAME = "hadoop-env.xml";
   private static final String HDFS_LOG4J_FILE_NAME = "hdfs-log4j.xml";
@@ -154,12 +156,11 @@ public class AmbariMetaInfoTest {
   public static void beforeClass() throws Exception {
     File stacks = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
-    File resourcesRoot = new File("src/test/resources/");
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
-    metaInfo = createAmbariMetaInfo(stacks, version, resourcesRoot);
+    metaInfo = createAmbariMetaInfo(stacks, version, RESOURCES_ROOT);
   }
 
   @AfterClass
@@ -454,7 +455,7 @@ public class AmbariMetaInfoTest {
       f3.createNewFile();
     }
 
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, RESOURCES_ROOT);
 
     // Tests the stack is loaded as expected
     getServices();
@@ -741,7 +742,7 @@ public class AmbariMetaInfoTest {
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
 
 
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, new File(""));
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, RESOURCES_ROOT);
     Assert.assertEquals(1, ambariMetaInfo.getStackManager().getStacks().size());
     Assert.assertEquals(false, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").isValid());
     Assert.assertEquals(2, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").getErrors().size());
@@ -1546,6 +1547,30 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void testResolveComponentVersion() throws AmbariException {
+    ServiceInfo parentServiceInfo = metaInfo.getService("HDP", "2.0.6", "HBASE");
+    assertEquals("0.95.2.2.0.6.0", parentServiceInfo.getVersion());
+
+    ComponentInfo parentComponentInfo = metaInfo.getComponent("HDP", "2.0.6", "HBASE", "HBASE_MASTER");
+    assertEquals("0.95.2.2.0.6.0-hbase-master", parentComponentInfo.getVersion());
+
+    ComponentInfo childComponentInfo = metaInfo.getComponent("HDP", "2.0.6.1", "HBASE", "HBASE_MASTER");
+    assertEquals("0.95.2.2.0.6.1", childComponentInfo.getVersion());
+  }
+
+  @Test
+  public void testResolveServiceCategory() throws AmbariException {
+    ServiceInfo defaultServiceInfo = metaInfo.getService("HDP", "2.0.5", "HBASE");
+    assertEquals(ServiceCategory.LEGACY, defaultServiceInfo.getCategory());
+
+    ServiceInfo parentServiceInfo = metaInfo.getService("HDP", "2.0.6", "HBASE");
+    assertEquals(ServiceCategory.SERVER, parentServiceInfo.getCategory());
+
+    ServiceInfo childServiceInfo = metaInfo.getService("HDP", "2.0.6.1", "HBASE");
+    assertEquals(ServiceCategory.CLIENT, childServiceInfo.getCategory());;
+  }
+
+  @Test
   public void testGetComponentDependencies() throws AmbariException {
     List<DependencyInfo> dependencies = metaInfo.getComponentDependencies("HDP", "1.3.4", "HBASE", "HBASE_MASTER");
     assertEquals(2, dependencies.size());
@@ -1716,15 +1741,15 @@ public class AmbariMetaInfoTest {
 
     Clusters clusters = injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getClusterById(clusterId);
-    cluster.setDesiredStackVersion(
-        new StackId(STACK_NAME_HDP, stackVersion));
+    StackId stackId = new StackId(STACK_NAME_HDP, stackVersion);
+    cluster.setDesiredStackVersion(stackId);
 
     RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
         cluster.getCurrentStackVersion(), repoVersion);
-    ServiceGroup sg = cluster.addServiceGroup("core");
+    ServiceGroup sg = cluster.addServiceGroup("core", stackId.getStackId());
     cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
 
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
     List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
@@ -1748,7 +1773,7 @@ public class AmbariMetaInfoTest {
       dao.merge(definition);
     }
 
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     definitions = dao.findAll();
     assertEquals(13, definitions.size());
@@ -1782,7 +1807,7 @@ public class AmbariMetaInfoTest {
     assertEquals(13, definitions.size());
 
     // reconcile, which should disable our bad definition
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     // find all enabled for the cluster should find 6
     definitions = dao.findAllEnabled(cluster.getClusterId());
@@ -1795,6 +1820,60 @@ public class AmbariMetaInfoTest {
 
     entity = dao.findById(entity.getDefinitionId());
     assertFalse(entity.getEnabled());
+  }
+
+  /**
+   * Test scenario when service were removed and not mapped alerts need to be disabled
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertDefinitionMergingRemoveScenario() throws Exception {
+    final String repoVersion = "2.0.6-1234";
+    final String stackVersion = "2.0.6";
+
+    Injector injector = Guice.createInjector(Modules.override(
+      new InMemoryDefaultTestModule()).with(new MockModule()));
+
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(EntityManager.class);
+
+    OrmTestHelper ormHelper = injector.getInstance(OrmTestHelper.class);
+    long clusterId = ormHelper.createCluster("cluster" + System.currentTimeMillis());
+
+    Class<?> c = metaInfo.getClass().getSuperclass();
+
+    Field f = c.getDeclaredField("alertDefinitionDao");
+    f.setAccessible(true);
+    f.set(metaInfo, injector.getInstance(AlertDefinitionDAO.class));
+
+    f = c.getDeclaredField("ambariServiceAlertDefinitions");
+    f.setAccessible(true);
+    f.set(metaInfo, injector.getInstance(AmbariServiceAlertDefinitions.class));
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getClusterById(clusterId);
+    cluster.setDesiredStackVersion(
+      new StackId(STACK_NAME_HDP, stackVersion));
+
+    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
+      cluster.getCurrentStackVersion(), repoVersion);
+
+    ServiceGroup sg = cluster.addServiceGroup("core", "HDP-2.0.6");
+    cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
+
+    metaInfo.reconcileAlertDefinitions(clusters, false);
+
+    AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
+    List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
+    assertEquals(13, definitions.size());
+
+    cluster.deleteService("HDFS");
+    metaInfo.reconcileAlertDefinitions(clusters, false);
+    List<AlertDefinitionEntity> updatedDefinitions = dao.findAll(clusterId);
+    assertEquals(7, updatedDefinitions.size());
   }
 
   @Test
@@ -1907,6 +1986,35 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
   }
 
+  @Test
+  public void testGetVersionDefinitionsForDisabledStack() throws AmbariException {
+    Map<String, VersionDefinitionXml> versionDefinitions = metaInfo.getVersionDefinitions();
+    Assert.assertNotNull(versionDefinitions);
+    // Check presence
+    Map.Entry<String, VersionDefinitionXml> vdfEntry = null;
+    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
+      if (entry.getKey().equals("HDP-2.2.1")) {
+        vdfEntry = entry;
+      }
+    }
+    Assert.assertNotNull("Candidate stack and vdf for test case.", vdfEntry);
+    StackInfo stackInfo = metaInfo.getStack("HDP", "2.2.1");
+    // Strange that this is not immutable but works for this test !
+    stackInfo.setActive(false);
+
+    // Hate to use reflection hence changed contract to be package private
+    metaInfo.versionDefinitions = null;
+
+    versionDefinitions = metaInfo.getVersionDefinitions();
+    vdfEntry = null;
+    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
+      if (entry.getKey().equals("HDP-2.2.1")) {
+        vdfEntry = entry;
+      }
+    }
+    Assert.assertNull("Disabled stack should not be returned by the API", vdfEntry);
+  }
+
   private File getStackRootTmp(String buildDir) {
     return new File(buildDir + "/ambari-metaInfo");
   }
@@ -1942,7 +2050,7 @@ public class AmbariMetaInfoTest {
   private TestAmbariMetaInfo setupTempAmbariMetaInfoExistingDirs(String buildDir) throws Exception {
     File version = getVersion();
     File stackRootTmp = getStackRootTmp(buildDir);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, RESOURCES_ROOT);
     return ambariMetaInfo;
   }
 
@@ -2033,6 +2141,12 @@ public class AmbariMetaInfoTest {
       f = c.getDeclaredField("mpackManagerFactory");
       f.setAccessible(true);
       f.set(this, mpackManagerFactory);
+
+      // RootLevelSettingsManagerFactory
+      RootLevelSettingsManagerFactory rootLevelSettingsManagerFactory = injector.getInstance(RootLevelSettingsManagerFactory.class);
+      f = c.getDeclaredField("rootLevelSettingsManagerFactory");
+      f.setAccessible(true);
+      f.set(this, rootLevelSettingsManagerFactory);
 
       //AlertDefinitionDAO
       alertDefinitionDAO = createNiceMock(AlertDefinitionDAO.class);

@@ -19,7 +19,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,6 +39,9 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * An extension version is like a stack version but it contains custom services.  Linking an extension
  * version to the current stack version allows the cluster to install the custom services contained in
@@ -54,13 +56,27 @@ public class ExtensionVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String EXTENSION_ERROR_SET      = PropertyHelper.getPropertyId("Versions", "extension-errors");
   public static final String EXTENSION_PARENT_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "parent_extension_version");
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{EXTENSION_NAME_PROPERTY_ID, EXTENSION_VERSION_PROPERTY_ID}));
+  /**
+   * The key property ids for a ExtensionVersion resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.Extension, EXTENSION_NAME_PROPERTY_ID)
+      .put(Type.ExtensionVersion, EXTENSION_VERSION_PROPERTY_ID)
+      .build();
 
-  protected ExtensionVersionResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
+  /**
+   * The property ids for a ExtensionVersion resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      EXTENSION_VERSION_PROPERTY_ID,
+      EXTENSION_NAME_PROPERTY_ID,
+      EXTENSION_VALID_PROPERTY_ID,
+      EXTENSION_ERROR_SET,
+      EXTENSION_PARENT_PROPERTY_ID);
+
+  protected ExtensionVersionResourceProvider(
       AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Type.ExtensionVersion, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -121,7 +137,7 @@ public class ExtensionVersionResourceProvider extends ReadOnlyResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

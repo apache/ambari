@@ -67,10 +67,13 @@ import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -141,7 +144,10 @@ public class OrmTestHelper {
   @Inject
   private StackDAO stackDAO;
 
+  public static final StackId STACK_ID = new StackId("HDP", "2.2.0");
   public static final String CLUSTER_NAME = "test_cluster1";
+  public static final String SERVICE_GROUP_NAME = "CORE";
+  public static final String SERVICE_NAME = "HDFS";
 
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
@@ -152,7 +158,7 @@ public class OrmTestHelper {
    */
   @Transactional
   public void createDefaultData() {
-    StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
+    StackEntity stackEntity = stackDAO.find(STACK_ID);
 
     ResourceTypeEntity resourceTypeEntity =  new ResourceTypeEntity();
     resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
@@ -197,8 +203,14 @@ public class OrmTestHelper {
     host1.setHostStateEntity(hostStateEntity1);
     host2.setHostStateEntity(hostStateEntity2);
 
+    ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
+    serviceGroupEntity.setServiceGroupName(SERVICE_GROUP_NAME);
+    serviceGroupEntity.setClusterEntity(clusterEntity);
+
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
-    clusterServiceEntity.setServiceName("HDFS");
+    clusterServiceEntity.setServiceType("HDFS");
+    clusterServiceEntity.setServiceName(SERVICE_NAME);
+    clusterServiceEntity.setServiceGroupEntity(serviceGroupEntity);
     clusterServiceEntity.setClusterEntity(clusterEntity);
     List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<>();
     clusterServiceEntities.add(clusterServiceEntity);
@@ -209,6 +221,7 @@ public class OrmTestHelper {
     getEntityManager().persist(resourceTypeEntity);
     getEntityManager().persist(resourceEntity);
     getEntityManager().persist(clusterEntity);
+    getEntityManager().persist(serviceGroupEntity);
     getEntityManager().persist(hostStateEntity1);
     getEntityManager().persist(hostStateEntity2);
     getEntityManager().persist(clusterServiceEntity);
@@ -228,8 +241,7 @@ public class OrmTestHelper {
     PasswordEncoder encoder = injector.getInstance(PasswordEncoder.class);
 
     UserEntity admin = new UserEntity();
-    admin.setUserName(UserName.fromString("administrator"));
-    admin.setUserPassword(encoder.encode("admin"));
+    admin.setUserName(UserName.fromString("administrator").toString());
     admin.setPrincipal(principalEntity);
 
     Set<UserEntity> users = new HashSet<>();
@@ -243,11 +255,9 @@ public class OrmTestHelper {
     getEntityManager().persist(principalEntity);
 
     UserEntity userWithoutRoles = new UserEntity();
-    userWithoutRoles.setUserName(UserName.fromString("userWithoutRoles"));
-    userWithoutRoles.setUserPassword(encoder.encode("test"));
+    userWithoutRoles.setUserName(UserName.fromString("userWithoutRoles").toString());
     userWithoutRoles.setPrincipal(principalEntity);
     userDAO.create(userWithoutRoles);
-
   }
 
   @Transactional
@@ -405,7 +415,7 @@ public class OrmTestHelper {
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME, stackId.getStackId());
     cluster = initializeClusterWithStack(cluster);
 
     addHost(clusters, cluster, hostName);
@@ -637,7 +647,7 @@ public class OrmTestHelper {
     if (repositoryVersion == null) {
       try {
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), new ArrayList<>());
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
         ex.printStackTrace();
@@ -671,10 +681,28 @@ public class OrmTestHelper {
 
     if (repositoryVersion == null) {
       try {
-        String operatingSystems = "[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]";
+        List<RepoOsEntity> operatingSystems = new ArrayList<>();
+        RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+        repoDefinitionEntity1.setRepoID("HDP");
+        repoDefinitionEntity1.setBaseUrl("");
+        repoDefinitionEntity1.setRepoName("HDP");
+        RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+        repoDefinitionEntity2.setRepoID("HDP-UTILS");
+        repoDefinitionEntity2.setBaseUrl("");
+        repoDefinitionEntity2.setRepoName("HDP-UTILS");
+        RepoOsEntity repoOsEntity = new RepoOsEntity();
+        repoOsEntity.setFamily("redhat6");
+        repoOsEntity.setAmbariManaged(true);
+        repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+        repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+        operatingSystems.add(repoOsEntity);
+
 
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
+
+        repositoryVersion.setResolved(true);
+        repositoryVersion = repositoryVersionDAO.merge(repositoryVersion);
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
 

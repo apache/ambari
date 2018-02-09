@@ -36,7 +36,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
@@ -63,7 +63,7 @@ public class ClusterConfigurationRequest {
   private ClusterTopology clusterTopology;
   private BlueprintConfigurationProcessor configurationProcessor;
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
-  private Stack stack;
+  private StackDefinition stack;
   private boolean configureSecurity = false;
 
   public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial, StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {
@@ -237,11 +237,11 @@ public class ClusterConfigurationRequest {
 
     if(services != null) {
       for (String service : services) {
-        Collection<String> components = blueprint.getComponents(service);
+        Collection<String> components = blueprint.getComponentNames(service);
         serviceComponents.put(service,
             (components == null)
                 ? Collections.emptySet()
-                : new HashSet<>(blueprint.getComponents(service)));
+                : new HashSet<>(blueprint.getComponentNames(service)));
       }
     }
 
@@ -281,7 +281,7 @@ public class ClusterConfigurationRequest {
   private Map<String, String> createComponentHostMap(Blueprint blueprint) {
     Map<String, String> componentHostsMap = new HashMap<>();
     for (String service : blueprint.getServices()) {
-      Collection<String> components = blueprint.getComponents(service);
+      Collection<String> components = blueprint.getComponentNames(service);
       for (String component : components) {
         Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(component);
         // retrieve corresponding clusterInfoKey for component using StageUtils

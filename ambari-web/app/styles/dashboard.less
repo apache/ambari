@@ -32,9 +32,17 @@
     background-color: #ffffff;
   }
   #widgets-options-menu {
-    .add-widgets-text .dropdown-menu {
+    .add-widgets-text.pull-left .dropdown-menu {
       overflow: auto;
       width: 210px;
+      left: -210px;
+      .add-widgets-dropdown-list ul {
+        list-style: none;
+      }
+    }
+    .reset-all-widgets.pull-left .dropdown-menu {
+      width: 250px;
+      left: -250px;
     }
     .add-widgets-apply-button {
       margin: 0px 20px 20px 0px;
@@ -355,8 +363,8 @@
 
     #dashboard-widgets {
       .span2p4 {
-        width: 23.2%;
-        *width: 23.2%;
+        width: 23.1%;
+        *width: 23.1%;
       }
       .img-thumbnail {
         .caption {

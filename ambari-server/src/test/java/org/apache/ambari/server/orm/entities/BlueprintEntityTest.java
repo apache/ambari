@@ -50,13 +50,6 @@ public class BlueprintEntityTest {
   }
 
   @Test
-  public void testSetGetStack() {
-    BlueprintEntity entity = new BlueprintEntity();
-    entity.setStack(stackEntity);
-    assertEquals(stackEntity, entity.getStack());
-  }
-
-  @Test
   public void testSetGetHostGroups() {
     BlueprintEntity entity = new BlueprintEntity();
     Collection<HostGroupEntity> hostGroups = Collections.emptyList();

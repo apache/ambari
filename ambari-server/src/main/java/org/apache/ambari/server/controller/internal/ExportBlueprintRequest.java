@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostConfig;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintImpl;
 import org.apache.ambari.server.topology.Component;
@@ -49,6 +50,8 @@ import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Request to export a blueprint from an existing cluster.
@@ -135,7 +138,8 @@ public class ExportBlueprintRequest implements TopologyRequest {
       hostGroups.add(new HostGroupImpl(exportedHostGroup.getName(), bpName, stack, componentList,
           exportedHostGroup.getConfiguration(), String.valueOf(exportedHostGroup.getCardinality())));
     }
-    blueprint = new BlueprintImpl(bpName, hostGroups, stack, configuration, null);
+    ImmutableSet<StackId> stackIds = ImmutableSet.of(stack.getStackId());
+    blueprint = new BlueprintImpl(bpName, hostGroups, stack, stackIds, Collections.emptySet(), configuration, null, null);
   }
 
   private void createHostGroupInfo(Collection<ExportedHostGroup> exportedHostGroups) {

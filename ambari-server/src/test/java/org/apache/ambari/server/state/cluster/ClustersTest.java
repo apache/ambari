@@ -427,7 +427,7 @@ public class ClustersTest {
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-1.0");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     //Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
@@ -474,7 +474,7 @@ public class ClustersTest {
 
     ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();
@@ -578,7 +578,7 @@ public class ClustersTest {
 
     ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();

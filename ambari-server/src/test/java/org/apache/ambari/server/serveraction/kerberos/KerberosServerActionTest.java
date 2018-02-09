@@ -40,6 +40,9 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -48,6 +51,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -60,21 +64,36 @@ public class KerberosServerActionTest extends EasyMockSupport {
   File temporaryDirectory;
   private Injector injector;
   private KerberosServerAction action;
+  private Cluster cluster;
+  private KerberosKeytabController kerberosKeytabController;
 
   @Before
   public void setUp() throws Exception {
-    Cluster cluster = createMock(Cluster.class);
+    cluster = createMock(Cluster.class);
 
     Clusters clusters = createMock(Clusters.class);
     expect(clusters.getCluster(anyString())).andReturn(cluster).anyTimes();
 
     ExecutionCommand mockExecutionCommand = createMock(ExecutionCommand.class);
     HostRoleCommand mockHostRoleCommand = createMock(HostRoleCommand.class);
+    kerberosKeytabController = createMock(KerberosKeytabController.class);
+    expect(kerberosKeytabController.getFilteredKeytabs(null, null, null))
+      .andReturn(
+        Sets.newHashSet(new ResolvedKerberosKeytab(
+          null,
+          null,
+          null,
+          null,
+          null,
+          Sets.newHashSet(new ResolvedKerberosPrincipal(1l, "host", "principal", true, "/tmp", "SERVICE", "COMPONENT", "/tmp")),
+          true,
+          true))
+      ).anyTimes();
 
     action = new KerberosServerAction() {
 
       @Override
-      protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
+      protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                               KerberosOperationHandler operationHandler,
                                               Map<String, String> kerberosConfiguration,
                                               Map<String, Object> requestSharedDataContext)
@@ -84,7 +103,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
         if (requestSharedDataContext.get("FAIL") != null) {
           return createCommandReport(1, HostRoleStatus.FAILED, "{}", "ERROR", "ERROR");
         } else {
-          requestSharedDataContext.put(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL), evaluatedPrincipal);
+          requestSharedDataContext.put(resolvedPrincipal.getPrincipal(), resolvedPrincipal.getPrincipal());
           return null;
         }
       }
@@ -110,6 +129,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(KerberosOperationHandlerFactory.class).toInstance(createMock(KerberosOperationHandlerFactory.class));
+        bind(KerberosKeytabController.class).toInstance(kerberosKeytabController);
       }
     });
 

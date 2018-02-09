@@ -20,6 +20,9 @@ package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
+import org.apache.ambari.logsearch.solr.SolrConstants;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 
 import javax.inject.Named;
@@ -29,6 +32,10 @@ public class AuditLogRequestQueryConverter extends AbstractAuditLogRequestQueryC
 
   @Override
   public SimpleQuery extendLogQuery(AuditLogRequest request, SimpleQuery query) {
+    addInFiltersIfNotNullAndEnabled(
+      query, request.getUserList(),
+      SolrConstants.AuditLogConstants.AUDIT_REQUEST_USER,
+      StringUtils.isNotBlank(request.getUserList()));
     return query;
   }
 

@@ -16,8 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.ambari.logfeeder.util;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Type;
 import java.net.InetAddress;
@@ -26,31 +33,19 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.metrics.MetricData;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
-/**
- * This class contains utility methods used by LogFeeder
- */
 public class LogFeederUtil {
   private static final Logger LOG = Logger.getLogger(LogFeederUtil.class);
 
   private final static String GSON_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
   private static Gson gson = new GsonBuilder().setDateFormat(GSON_DATE_FORMAT).create();
-  
+
   public static Gson getGson() {
     return gson;
   }
 
   public static String hostName = null;
   public static String ipAddress = null;
-  
+
   static{
     try {
       InetAddress ip = InetAddress.getLocalHost();
@@ -65,7 +60,7 @@ public class LogFeederUtil {
         hostName = getHostName;
       }
       LOG.info("ipAddress=" + ipAddress + ", getHostName=" + getHostName + ", getCanonicalHostName=" + getCanonicalHostName +
-          ", hostName=" + hostName);
+        ", hostName=" + hostName);
     } catch (UnknownHostException e) {
       LOG.error("Error getting hostname.", e);
     }
@@ -76,7 +71,7 @@ public class LogFeederUtil {
     long currMS = System.currentTimeMillis();
     if (currStat > metric.prevLogValue) {
       LOG.info(prefixStr + ": total_count=" + metric.value + ", duration=" + (currMS - metric.prevLogTime) / 1000 +
-          " secs, count=" + (currStat - metric.prevLogValue) + postFix);
+        " secs, count=" + (currStat - metric.prevLogValue) + postFix);
     }
     metric.prevLogValue = currStat;
     metric.prevLogTime = currMS;
@@ -119,15 +114,15 @@ public class LogFeederUtil {
     private int counter = 0;
   }
 
-  private static Map<String, LogHistory> logHistoryList = new Hashtable<String, LogHistory>();
+  private static Map<String, LogFeederUtil.LogHistory> logHistoryList = new Hashtable<>();
 
   public static boolean logErrorMessageByInterval(String key, String message, Throwable e, Logger callerLogger, Level level) {
-    LogHistory log = logHistoryList.get(key);
+    LogFeederUtil.LogHistory log = logHistoryList.get(key);
     if (log == null) {
-      log = new LogHistory();
+      log = new LogFeederUtil.LogHistory();
       logHistoryList.put(key, log);
     }
-    
+
     if ((System.currentTimeMillis() - log.lastLogTime) > 30 * 1000) {
       log.lastLogTime = System.currentTimeMillis();
       if (log.counter > 0) {

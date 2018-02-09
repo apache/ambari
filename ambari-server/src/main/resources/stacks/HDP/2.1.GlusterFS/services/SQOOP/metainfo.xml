@@ -25,7 +25,10 @@
       </comment>
       <version>1.4.4.2.1</version>
       <requiredServices>
-        <service>GLUSTERFS</service>
+        <service>
+          <name>GLUSTERFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>      
     </service>
   </services>

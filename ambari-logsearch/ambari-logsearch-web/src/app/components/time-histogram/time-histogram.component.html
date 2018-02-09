@@ -15,4 +15,23 @@
   limitations under the License.
 -->
 
-<div #container></div>
+<header>
+  <div class="container-fluid">
+    <div class="row">
+      <div *ngIf="isTimeGraph && chartTimeGap" class="time-gap col-md-2 col-md-offset-5">
+        {{chartTimeGap.value}} {{chartTimeGap.label | translate}} {{'histogram.gap' | translate}}
+      </div>
+      <graph-legend [ngClass]="{'col-md-5 text-right': true, 'md-offset-7': !chartTimeGap}"
+                    [items]="legendItems"></graph-legend>
+    </div>
+  </div>
+</header>
+<div #graphContainer></div>
+<footer *ngIf="firstDateTick || lastDateTick">
+  <div *ngIf="firstDateTick">{{firstDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
+  <div *ngIf="lastDateTick">{{lastDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
+</footer>
+<graph-tooltip #tooltip [data]="tooltipInfo.data" [ngClass]="{'hide': !tooltipInfo.data}"
+               [style.top]="tooltipInfo.data ? tooltipPosition.top + 'px' : ''"
+               [style.left]="tooltipInfo.data ? tooltipPosition.left + 'px' : ''"
+               [title]="tooltipInfo.title | amTz: timeZone | amDateFormat: tickTimeFormat"></graph-tooltip>

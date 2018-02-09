@@ -229,7 +229,7 @@ public class ClusterTest {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     c1 = clusters.getCluster(clusterName);
-    serviceGroup = c1.addServiceGroup("CORE");
+    serviceGroup = c1.addServiceGroup("CORE", stackId.getStackId());
   }
 
   public ClusterEntity createDummyData() {
@@ -334,7 +334,7 @@ public class ClusterTest {
     }
 
     // Add Services
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service s1 = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), "HDFS", "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion);
     Service s3 = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), "GANGLIA", "GANGLIA", repositoryVersion);
@@ -1201,6 +1201,7 @@ public class ClusterTest {
   @Test
   public void testServiceConfigVersions() throws Exception {
     createDefaultCluster();
+    c1.addService(serviceGroup, "HDFS", "HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
@@ -1259,6 +1260,7 @@ public class ClusterTest {
   @Test
   public void testSingleServiceVersionForMultipleConfigs() throws Exception {
     createDefaultCluster();
+    c1.addService(serviceGroup, "HDFS", "HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
@@ -1381,6 +1383,7 @@ public class ClusterTest {
   public void testAllServiceConfigVersionsWithConfigGroups() throws Exception {
     // Given
     createDefaultCluster();
+    c1.addService(serviceGroup, "HDFS", "HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
         ImmutableMap.of("p1", "v1"), new HashMap<>());
@@ -1430,6 +1433,7 @@ public class ClusterTest {
   public void testAllServiceConfigVersionsWithDeletedConfigGroups() throws Exception {
     // Given
     createDefaultCluster();
+    c1.addService(serviceGroup, "HDFS", "HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
         ImmutableMap.of("p1", "v1"), new HashMap<>());
@@ -1868,7 +1872,7 @@ public class ClusterTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
 
-    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", stackId.getStackId());
     Service service = c1.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER", repositoryVersion);
     ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
     sc.addServiceComponentHost("h-1");
@@ -1973,7 +1977,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 
@@ -2063,7 +2067,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 
@@ -2156,7 +2160,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 
@@ -2234,7 +2238,7 @@ public class ClusterTest {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.getServiceGroup("CORE");
     Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 

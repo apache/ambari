@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -98,11 +100,11 @@ public class AmbariContextTest {
   private static final long CLUSTER_ID = 1L;
   private static final String STACK_NAME = "testStack";
   private static final String STACK_VERSION = "testVersion";
+  private static final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
   private static final String HOST_GROUP_1 = "group1";
   private static final String HOST_GROUP_2 = "group2";
   private static final String HOST1 = "host1";
   private static final String HOST2 = "host2";
-  StackId stackId = new StackId(STACK_NAME, STACK_VERSION);
 
   private static final AmbariContext context = new AmbariContext();
   private static final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
@@ -226,7 +228,7 @@ public class AmbariContextTest {
     expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
     expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
-        Collections.singletonList(repositoryVersion)).atLeastOnce();
+        singletonList(repositoryVersion)).atLeastOnce();
     replay(repositoryVersionDAO, repositoryVersion);
 
     context.configFactory = configFactory;
@@ -241,9 +243,12 @@ public class AmbariContextTest {
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
     expect(blueprint.getServices()).andReturn(blueprintServices).anyTimes();
-    expect(blueprint.getComponents("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();
-    expect(blueprint.getComponents("service2")).andReturn(Collections.singleton("s2Component1")).anyTimes();
+    expect(blueprint.getComponentNames("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();
+    expect(blueprint.getComponentNames("service2")).andReturn(Collections.singleton("s2Component1")).anyTimes();
+    expect(blueprint.getStackIdsForService("service1")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(blueprint.getStackIdsForService("service2")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
 
@@ -251,7 +256,7 @@ public class AmbariContextTest {
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
 
     for (Map.Entry<String, String> entry : configTypeServiceMapping.entrySet()) {
-      expect(stack.getServiceForConfigType(entry.getKey())).andReturn(entry.getValue()).anyTimes();
+      expect(stack.getServicesForConfigType(entry.getKey())).andReturn(Stream.of(entry.getValue())).anyTimes();
     }
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -331,7 +336,7 @@ public class AmbariContextTest {
     assertEquals(String.format("%s-%s", STACK_NAME, STACK_VERSION), clusterRequest.getStackVersion());
 
     Set<ServiceGroupRequest> serviceGroupRequests = serviceGroupRequestCapture.getValue();
-    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), AmbariContext.DEFAULT_SERVICE_GROUP_NAME));
+    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), AmbariContext.DEFAULT_SERVICE_GROUP_NAME, clusterRequest.getStackVersion()));
     assertEquals(expectedServiceGroupRequests, serviceGroupRequests);
 
     Collection<ServiceRequest> serviceRequests = serviceRequestCapture.getValue();

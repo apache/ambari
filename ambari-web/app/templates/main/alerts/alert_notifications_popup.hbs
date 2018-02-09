@@ -18,25 +18,25 @@
 
 <div class="popup-arrow-up"></div>
 <div class="notifications-header col-sm-12">
-  <div class="notifications-title">{{t alerts.dropdown.dialog.title}} ({{view.alertsNumber}})</div>
+  <div class="notifications-title pull-left">{{t alerts.dropdown.dialog.title}} ({{view.alertsNumber}})</div>
+  {{#if view.isLoaded}}
+    <div class="state-filter pull-right">
+      <span>{{t common.show}}:&nbsp;</span>
+      <div class="btn-group">
+        {{view Ember.Select
+               contentBinding="view.categories"
+               optionValuePath="content.value"
+               optionLabelPath="content.label"
+               selectionBinding="view.selectedCategory"
+               classNames="filter-select form-control"
+        }}
+      </div>
+    </div>
+  {{/if}}
 </div>
 
 <div class="notifications-body col-sm-12">
   {{#if view.isLoaded}}
-    <div class="table-controls row">
-      <div class="state-filter pull-right">
-        <span>{{t common.show}}:&nbsp;</span>
-        <div class="btn-group">
-          {{view Ember.Select
-          contentBinding="view.categories"
-          optionValuePath="content.value"
-          optionLabelPath="content.label"
-          selectionBinding="view.selectedCategory"
-          classNames="filter-select form-control"
-          }}
-        </div>
-      </div>
-    </div>
     <table class="alerts-table table table-hover">
       <tbody>
         {{#if view.isAlertEmptyList}}

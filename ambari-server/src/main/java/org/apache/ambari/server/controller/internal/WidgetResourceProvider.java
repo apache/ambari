@@ -123,7 +123,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
    *
    */
   public WidgetResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Type.Widget, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

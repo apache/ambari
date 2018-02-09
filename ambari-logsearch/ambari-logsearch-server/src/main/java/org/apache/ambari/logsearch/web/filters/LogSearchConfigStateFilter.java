@@ -47,13 +47,16 @@ public class LogSearchConfigStateFilter implements Filter {
   private static final Logger LOG = LoggerFactory.getLogger(LogSearchConfigStateFilter.class);
 
   private static final String CONFIG_NOT_AVAILABLE = "Configuration is not available";
+  private static final String CONFIG_API_DISABLED = "Configuration API is disabled";
 
   private final RequestMatcher requestMatcher;
   private final LogSearchConfigState logSearchConfigState;
+  private final boolean enabled;
   
-  public LogSearchConfigStateFilter(RequestMatcher requestMatcher, LogSearchConfigState logSearchConfigState) {
+  public LogSearchConfigStateFilter(RequestMatcher requestMatcher, LogSearchConfigState logSearchConfigState, boolean enabled) {
     this.requestMatcher = requestMatcher;
     this.logSearchConfigState = logSearchConfigState;
+    this.enabled = enabled;
   }
 
   @Override
@@ -67,9 +70,10 @@ public class LogSearchConfigStateFilter implements Filter {
     if (requestMatcher.matches(request)) {
       VResponse errorResponse = getErrorResponse();
       if (errorResponse != null) {
-        LOG.info("{} request is filtered out: {}", request.getRequestURL(), errorResponse.getMsgDesc());
+        int statusCode = enabled ? 500 : 409;
+          LOG.info("{} request is filtered out: {}", request.getRequestURL(), errorResponse.getMsgDesc());
         HttpServletResponse resp = (HttpServletResponse) servletResponse;
-        resp.setStatus(500);
+        resp.setStatus(statusCode);
         resp.setContentType("application/json");
         resp.getWriter().print(createStringFromErrorMessageObject(errorResponse));
         return;
@@ -80,6 +84,9 @@ public class LogSearchConfigStateFilter implements Filter {
   }
 
   private VResponse getErrorResponse() {
+    if (!enabled) {
+      return RESTErrorUtil.createMessageResponse(CONFIG_API_DISABLED, MessageEnums.CONFIGURATION_API_DISABLED);
+    }
     if (!logSearchConfigState.isLogSearchConfigAvailable()) {
       return RESTErrorUtil.createMessageResponse(CONFIG_NOT_AVAILABLE, MessageEnums.CONFIGURATION_NOT_AVAILABLE);
     }

@@ -80,7 +80,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   public static final String SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
   public static final String SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
   public static final String SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
-  public static final String SERVICE_GROUP_MPACKNAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpacks";
+  public static final String SERVICE_GROUP_STACK_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_id";
 
 
   private static Set<String> pkPropertyIds =
@@ -106,12 +106,12 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     PROPERTY_IDS.add(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_GROUP_MPACKNAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_GROUP_STACK_ID_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Mpack, SERVICE_GROUP_MPACKNAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Stack, SERVICE_GROUP_STACK_ID_PROPERTY_ID);
   }
 
   private Clusters clusters;
@@ -165,7 +165,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
         resource.setProperty(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
         resource.setProperty(SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId());
         resource.setProperty(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
-        resource.setProperty(SERVICE_GROUP_MPACKNAME_PROPERTY_ID, response.getMpackNames());
+        resource.setProperty(SERVICE_GROUP_STACK_ID_PROPERTY_ID, response.getStackId());
 
         associatedResources.add(resource);
       }
@@ -205,8 +205,8 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
         response.getServiceGroupId(), requestedIds);
       setResourceProperty(resource, SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID,
         response.getServiceGroupName(), requestedIds);
-      setResourceProperty(resource, SERVICE_GROUP_MPACKNAME_PROPERTY_ID,
-          response.getMpackNames(), requestedIds);
+      setResourceProperty(resource, SERVICE_GROUP_STACK_ID_PROPERTY_ID,
+          response.getStackId(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -276,12 +276,8 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   private ServiceGroupRequest getRequest(Map<String, Object> properties) {
     String clusterName = (String) properties.get(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     String serviceGroupName = (String) properties.get(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    ServiceGroupRequest svcRequest = new ServiceGroupRequest(clusterName, serviceGroupName);
-    Collection<Map<String,String>> mpackNames = (Collection<Map<String,String>>) properties.get(SERVICE_GROUP_MPACKNAME_PROPERTY_ID);
-    if (mpackNames != null) {
-      Set<String> mpackNamesSet = mpackNames.stream().flatMap(mpack -> mpack.values().stream()).collect(Collectors.toSet());
-      svcRequest.addMpackNames(mpackNamesSet);
-    }
+    String stackId = (String) properties.get(SERVICE_GROUP_STACK_ID_PROPERTY_ID);
+    ServiceGroupRequest svcRequest = new ServiceGroupRequest(clusterName, serviceGroupName, stackId);
     return svcRequest;
   }
 
@@ -304,8 +300,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
       // Already checked that service group does not exist
-      ServiceGroup sg = cluster.addServiceGroup(request.getServiceGroupName());
-      sg.setMpackNames(request.getMpackNames());
+      ServiceGroup sg = cluster.addServiceGroup(request.getServiceGroupName(), request.getStackId());
       createdSvcGrps.add(sg.convertToResponse());
     }
     return createdSvcGrps;
@@ -411,13 +406,21 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     for (ServiceGroupRequest request : requests) {
       final String clusterName = request.getClusterName();
       final String serviceGroupName = request.getServiceGroupName();
+      String stackVersion = request.getStackId();
+      //TODO: ******* For test ********* this piece of code should be removed after web UI adds default stack id
+      if (StringUtils.isBlank(stackVersion)) {
+        stackVersion = "HDP-3.0.0.0";
+        request.setStackId(stackVersion);
+        LOG.info("***** Add fake stack id in order to create cluster from web UI, this code will be removed after web UI adds default stack id");
+      }
 
       Validate.notNull(clusterName, "Cluster name should be provided when creating a service group");
       Validate.notEmpty(serviceGroupName, "Service group name should be provided when creating a service group");
+      Validate.notEmpty(stackVersion, "Stack version should be provided when creating a service group");
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a createServiceGroup request" +
-          ", clusterName=" + clusterName + ", serviceGroupName=" + serviceGroupName + ", request=" + request);
+          ", clusterName=" + clusterName + ", serviceGroupName=" + serviceGroupName + ", stackVersion=" + stackVersion + ", request=" + request);
       }
 
       if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER,
@@ -436,10 +439,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
       }
       serviceGroupNames.get(clusterName).add(serviceGroupName);
 
-      if (request.getMpackNames().size() != 1) {
-        String errmsg = "Invalid arguments, " + request.getMpackNames().size() + " mpack(s) found in the service group " + serviceGroupName + ", only one mpack is allowed";
-        throw new IllegalArgumentException(errmsg);
-      }
+      // TODO: Validate  stack version
 
       Cluster cluster;
       try {

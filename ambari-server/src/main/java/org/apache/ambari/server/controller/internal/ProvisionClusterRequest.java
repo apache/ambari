@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toList;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,11 +37,16 @@ import org.apache.ambari.server.topology.ConfigurationFactory;
 import org.apache.ambari.server.topology.Credential;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.ManagementPackMapping;
+import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
@@ -119,6 +127,13 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public static final String QUICKLINKS_PROFILE_SERVICES_PROPERTY = "quicklinks_profile/services";
 
+  public static final String MANAGEMENT_PACK_MAPPINGS_PROPERTY = "management_pack_mappings";
+
+  public static final String MPACK_INSTANCES_PROPERTY = BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID;
+
+  public static final String MPACK_INSTANCE_PROPERTY = "mpack_instance";
+
+  public static final String COMPONENT_NAME_PROPERTY = "component_name";
 
   /**
    * configuration factory
@@ -147,6 +162,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   private Long repoVersionId;
 
   private final String quickLinksProfileJson;
+
+  private Collection<MpackInstance> mpackInstances;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
@@ -196,10 +213,27 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     setProvisionAction(parseProvisionAction(properties));
 
+    processMpackInstances(properties);
+
     try {
       this.quickLinksProfileJson = processQuickLinksProfile(properties);
     } catch (QuickLinksProfileEvaluationException ex) {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
+    }
+  }
+
+  private void processMpackInstances(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+    if (properties.containsKey(MPACK_INSTANCES_PROPERTY)) {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      try {
+        String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY));
+        this.mpackInstances = mapper.readValue(mpackInstancesJson,
+          new TypeReference<Collection<MpackInstance>>() {});
+      }
+      catch (IOException ex) {
+        throw new InvalidTopologyTemplateException("Cannot process mpack instances.", ex);
+      }
     }
   }
 
@@ -338,6 +372,16 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     processHostCountAndPredicate(hostGroupProperties, hostGroupInfo);
     processGroupHosts(name, (Collection<Map<String, String>>)
       hostGroupProperties.get(HOSTGROUP_HOSTS_PROPERTY), hostGroupInfo);
+
+    // process mpack mappings
+    if (hostGroupProperties.containsKey(MANAGEMENT_PACK_MAPPINGS_PROPERTY)) {
+      Set<Map<String, String>> mpackMappingsRaw =
+        (Set<Map<String, String>>)hostGroupProperties.get(MANAGEMENT_PACK_MAPPINGS_PROPERTY);
+      Collection<ManagementPackMapping> mpackMappings = mpackMappingsRaw.stream().
+        map(mapping -> new ManagementPackMapping(mapping.get(COMPONENT_NAME_PROPERTY), mapping.get(MPACK_INSTANCE_PROPERTY))).
+        collect(toList());
+      hostGroupInfo.setManagementPackMappings(mpackMappings);
+    }
 
     // don't set the parent configuration
     hostGroupInfo.setConfiguration(configurationFactory.getConfiguration(
@@ -490,4 +534,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     return defaultPassword;
   }
 
+  public Collection<MpackInstance> getMpackInstances() {
+    return mpackInstances;
+  }
 }

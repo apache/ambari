@@ -330,9 +330,18 @@
       </commandScript>
 
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>YARN</service>
-        <service>TEZ</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>TEZ</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

@@ -57,11 +57,13 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   private Long serviceGroupId;
   private String serviceGroupName;
+  private String stackId;
   private Set<ServiceGroupKey> serviceGroupDependencies;
 
   @AssistedInject
   public ServiceGroupImpl(@Assisted Cluster cluster,
                           @Assisted("serviceGroupName") String serviceGroupName,
+                          @Assisted("stackId") String stackId,
                           @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies,
                           ClusterDAO clusterDAO,
                           ServiceGroupDAO serviceGroupDAO,
@@ -75,11 +77,13 @@ public class ServiceGroupImpl implements ServiceGroup {
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupName = serviceGroupName;
+    this.stackId = stackId;
 
     ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
     serviceGroupEntity.setClusterId(cluster.getClusterId());
     serviceGroupEntity.setServiceGroupId(serviceGroupId);
     serviceGroupEntity.setServiceGroupName(serviceGroupName);
+    serviceGroupEntity.setStackId(stackId);
 
     if (serviceGroupDependencies == null) {
       this.serviceGroupDependencies = new HashSet<>();
@@ -107,6 +111,7 @@ public class ServiceGroupImpl implements ServiceGroup {
 
     this.serviceGroupId = serviceGroupEntity.getServiceGroupId();
     this.serviceGroupName = serviceGroupEntity.getServiceGroupName();
+    this.stackId = serviceGroupEntity.getStackId();
     this.serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
     this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
@@ -136,33 +141,17 @@ public class ServiceGroupImpl implements ServiceGroup {
   }
 
   @Override
-  public Set<String> getMpackNames() {
+  public String getStackId() {
     ServiceGroupEntity entity = getServiceGroupEntity();
-    return entity.getMpackNames();
+    return entity.getStackId();
   }
 
   @Override
-  public void addMpackName(String mpackName){
+  public void setStackId(String stackId) {
     ServiceGroupEntity entity = getServiceGroupEntity();
-    if (entity.getMpackNames().add(mpackName)) {
-      serviceGroupDAO.merge(entity);
-    }
-  }
-
-  @Override
-  public void addMpackNames(Set<String> mpackNames) {
-    if (mpackNames != null) {
-      ServiceGroupEntity entity = getServiceGroupEntity();
-      entity.getMpackNames().addAll(mpackNames);
-      serviceGroupDAO.merge(entity);
-    }
-  }
-
-  @Override
-  public void setMpackNames(Set<String> mpackNames) {
-    ServiceGroupEntity entity = getServiceGroupEntity();
-    entity.getMpackNames().addAll(mpackNames);
+    entity.setStackId(stackId);
     serviceGroupDAO.merge(entity);
+    this.stackId = stackId;
   }
 
   @Override
@@ -178,8 +167,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   public ServiceGroupResponse convertToResponse() {
     ServiceGroupResponse r = new ServiceGroupResponse(cluster.getClusterId(),
-      cluster.getClusterName(), getServiceGroupId(), getServiceGroupName());
-    r.setMpackNames(getMpackNames());
+      cluster.getClusterName(), getServiceGroupId(), getServiceGroupName(), getStackId());
     return r;
   }
 
@@ -247,11 +235,7 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    sb.append("ServiceGroup={ serviceGroupName=").append(getServiceGroupName()).append(", clusterName=").append(cluster.getClusterName()).append(", clusterId=").append(cluster.getClusterId());
-    Set<String> mpackNames = getMpackNames();
-    if (!mpackNames.isEmpty()) {
-      sb.append(", mpackNames=").append(mpackNames.toString());
-    }
+    sb.append("ServiceGroup={ serviceGroupName=").append(getServiceGroupName()).append(", clusterName=").append(cluster.getClusterName()).append(", clusterId=").append(cluster.getClusterId()).append(", stackVersion=").append(getStackId());
     sb.append("}");
   }
 

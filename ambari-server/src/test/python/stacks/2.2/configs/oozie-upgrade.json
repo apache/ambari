@@ -66,7 +66,44 @@
     "role": "OOZIE_SERVER",
     "forceRefreshConfigTags": [], 
     "taskId": 305, 
-    "public_hostname": "c6402.ambari.apache.org", 
+    "public_hostname": "c6402.ambari.apache.org",
+    "repositoryFile": {
+        "resolved": true, 
+        "repoVersion": "2.6.4.0-52", 
+        "repositories": [
+            {
+                "tags": [], 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-52", 
+                "repoName": "HDP", 
+                "repoId": "HDP-2.6-repo-1", 
+                "applicableServices": []
+            }, 
+            {
+                "repoName": "HDP-GPL", 
+                "tags": [
+                    "GPL"
+                ], 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-52", 
+                "repoId": "HDP-2.6-GPL-repo-1"
+            }, 
+            {
+                "repoName": "HDP-UTILS", 
+                "tags": [], 
+                "ambariManaged": true, 
+                "baseUrl": "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6", 
+                "repoId": "HDP-UTILS-1.1.0.22-repo-1"
+            }
+        ], 
+        "feature": {
+            "preInstalled": false, 
+            "scoped": true
+        }, 
+        "stackName": "HDP", 
+        "repoVersionId": 1, 
+        "repoFileName": "ambari-hdp-1"
+    },
     "configurations": {
         "oozie-env": {
             "oozie_heapsize": "2048m", 

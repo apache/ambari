@@ -64,7 +64,8 @@ class SingleProcessStatusCommandsExecutor(StatusCommandsExecutor):
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
       self.statusCommandQueue.put(command)
-      logger.debug(pprint.pformat(command))
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(pprint.pformat(command))
 
   def process_results(self):
     """

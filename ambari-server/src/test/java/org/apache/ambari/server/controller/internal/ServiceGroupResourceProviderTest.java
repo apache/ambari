@@ -67,14 +67,12 @@ public class ServiceGroupResourceProviderTest {
 
   public static void createServiceGroups(AmbariManagementController controller, Set<ServiceGroupRequest> requests)
       throws AmbariException, AuthorizationException {
-    requests.stream().forEach(request->request.getMpackNames().add("dummy"));
     getProvider(controller).createServiceGroups(requests);
   }
 
   public static void createServiceGroup(AmbariManagementController controller, String clusterName, String serviceGroupName)
       throws AmbariException, AuthorizationException {
-    ServiceGroupRequest request = new ServiceGroupRequest(clusterName, serviceGroupName);
-    request.getMpackNames().add("dummy");
+    ServiceGroupRequest request = new ServiceGroupRequest(clusterName, serviceGroupName, "dummy-stack-name");
     createServiceGroups(controller, Collections.singleton(request));
   }
 
@@ -124,14 +122,12 @@ public class ServiceGroupResourceProviderTest {
     ClusterController clusterController = createNiceMock(ClusterController.class);
     ServiceGroup coreServiceGroup = createNiceMock(ServiceGroup.class);
     ServiceGroup edmServiceGroup = createNiceMock(ServiceGroup.class);
-    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1l, "CORE");
-    coreServiceGroupResponse.setMpackNames(new HashSet<String>(Arrays.asList("HDPCORE", "EDM")));
-    ServiceGroupResponse edmServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 2l, "EDM-MKTG");
-    edmServiceGroupResponse.setMpackNames(new HashSet<String>(Arrays.asList("EDM2")));
+    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1l, "CORE", "HDP-2.6.0");
+    ServiceGroupResponse edmServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 2l, "EDM-MKTG", "EDM-1.1.0");
     expect(ambariManagementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(ambariManagementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(cluster.addServiceGroup("CORE")).andReturn(coreServiceGroup).anyTimes();
-    expect(cluster.addServiceGroup("EDW-MKTG")).andReturn(edmServiceGroup).anyTimes();
+    expect(cluster.addServiceGroup("CORE", "HDP-1.0")).andReturn(coreServiceGroup).anyTimes();
+    expect(cluster.addServiceGroup("EDW-MKTG", "HDP-1.0")).andReturn(edmServiceGroup).anyTimes();
     expect(coreServiceGroup.convertToResponse()).andReturn(coreServiceGroupResponse).anyTimes();
     expect(edmServiceGroup.convertToResponse()).andReturn(edmServiceGroupResponse).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();

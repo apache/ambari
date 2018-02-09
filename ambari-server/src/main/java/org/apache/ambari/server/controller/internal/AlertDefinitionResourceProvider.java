@@ -172,7 +172,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    * @param controller
    */
   AlertDefinitionResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.AlertDefinition, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

@@ -1449,6 +1449,9 @@ public class DBAccessorImpl implements DBAccessor {
   public List<Integer> getIntColumnValues(String tableName, String columnName, String[] ConditionColumnNames,
                                           String[] values, boolean ignoreFailure) throws SQLException {
 
+    if (!tableExists(tableName)) {
+      throw new IllegalArgumentException(String.format("%s table does not exist", tableName));
+    }
     if (!tableHasColumn(tableName, columnName)) {
       throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, columnName));
     }

@@ -95,7 +95,7 @@ public interface Cluster {
    * @return
    * @throws AmbariException
    */
-  ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException;
+  ServiceGroup addServiceGroup(String serviceGroupName, String stackId) throws AmbariException;
 
   /**
    * Add service group dependency to the service group
@@ -906,4 +906,13 @@ public interface Cluster {
    */
   void addSuspendedUpgradeParameters(Map<String, String> commandParams,
                                      Map<String, String> roleParams);
+
+  /**
+   * Gets a mapping of service to component/version for every installed
+   * component in the cluster which advertises a version and for which the
+   * repository has been resolved.
+   *
+   * @return a mapping of service to component version, or an empty map.
+   */
+  Map<String, Map<String, String>> getComponentVersionMap();
 }

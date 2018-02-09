@@ -18,14 +18,14 @@
  */
 package org.apache.ambari.logfeeder.input.reader;
 
+import org.apache.log4j.Logger;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
-
-import org.apache.log4j.Logger;
 
 class GZIPReader extends InputStreamReader {
 

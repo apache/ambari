@@ -105,7 +105,7 @@ class CommandStatusDict():
           # Component status is useful once, removing it
           del self.current_state[key]
         elif command ['commandType'] in [ActionQueue.AUTO_EXECUTION_COMMAND]:
-          logger.debug("AUTO_EXECUTION_COMMAND task deleted " + str(command['commandId']))
+          logger.debug("AUTO_EXECUTION_COMMAND task deleted %s", command['commandId'])
           del self.current_state[key]
           pass
       result = {

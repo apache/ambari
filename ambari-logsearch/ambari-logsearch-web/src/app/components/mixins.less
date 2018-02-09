@@ -95,19 +95,24 @@
 
 .dropdown-item-default {
   display: block;
-  padding: 3px 20px;
-  clear: both;
-  font-weight: 400;
-  line-height: 1.42857143;
   color: #333;
-  white-space: nowrap;
   cursor: pointer;
 
-  &:hover {
+  &.active > a, &:hover {
     color: #262626;
     text-decoration: none;
     background-color: #F5F5F5;
   }
+}
+
+.dropdown-item-child-default {
+  display: block;
+  min-height: 24px;
+  padding: 3px 20px;
+  clear: both;
+  font-weight: 400;
+  line-height: 1.42857143;
+  white-space: nowrap;
 }
 
 .log-colors {
@@ -198,25 +203,11 @@
   display: inline-block;
   width: 0;
   height: 0;
-  margin-left: @caret-width * .85;
   vertical-align: @caret-width * .85;
   content: "";
   .caret-direction(@caret-width, @direction, @color);
 }
 // This is the main caret mixin to create the common and the direction related css
-.caret(@caret-width; @direction: down; @color: @base-font-color; @position: before) {
-
-  &::before when (@position = before) {
-    .caret-style(@caret-width, @direction, @color);
-  }
-  &::after when (@position = after) {
-    .caret-style(@caret-width, @direction, @color);
-  }
-
-  &:empty::before when (@position = before) {
-    margin-left: 0;
-  }
-  &:empty::after when (@position = after) {
-    margin-left: 0;
-  }
+.caret-mixin(@caret-width; @direction: down; @color: @base-font-color; @position: before) {
+  .caret-style(@caret-width, @direction, @color);
 }

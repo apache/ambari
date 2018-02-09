@@ -447,7 +447,7 @@ class TestController(unittest.TestCase):
     self.controller.sendRequest = sendRequest
 
     self.controller.responseId = 1
-    response = {"responseId":"2", "restartAgent":"false"}
+    response = {"responseId":"2", "restartAgent":False}
     sendRequest.return_value = response
 
     def one_heartbeat(*args, **kwargs):
@@ -521,7 +521,7 @@ class TestController(unittest.TestCase):
 
     # wrong responseId => restart
     self.controller.responseId = 2
-    response = {"responseId":"2", "restartAgent":"false"}
+    response = {"responseId":"2", "restartAgent":False}
 
     restartAgent = MagicMock(name="restartAgent")
     self.controller.restartAgent = restartAgent
@@ -553,7 +553,7 @@ class TestController(unittest.TestCase):
     # restartAgent command
     self.controller.responseId = 1
     self.controller.DEBUG_STOP_HEARTBEATING = False
-    response["restartAgent"] = "true"
+    response["restartAgent"] = True
     restartAgent = MagicMock(name="restartAgent")
     self.controller.restartAgent = restartAgent
     self.controller.heartbeatWithServer()
@@ -564,7 +564,7 @@ class TestController(unittest.TestCase):
     self.controller.responseId = 1
     self.controller.DEBUG_STOP_HEARTBEATING = False
     actionQueue.isIdle.return_value = False
-    response["restartAgent"] = "false"
+    response["restartAgent"] = False
     self.controller.heartbeatWithServer()
 
 

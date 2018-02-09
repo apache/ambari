@@ -79,7 +79,7 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
 
   setCustomTimeRange(): void {
     this.selection = {
-      label: 'filter.timeRange.custom',
+      label: this.logsContainer.customTimeRangeKey,
       value: {
         type: 'CUSTOM',
         start: this.startTime,

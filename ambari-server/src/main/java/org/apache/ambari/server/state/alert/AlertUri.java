@@ -17,7 +17,12 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.net.URI;
+import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -87,6 +92,13 @@ public class AlertUri {
   @SerializedName("connection_timeout")
   private float m_connectionTimeout = 5.0f;
 
+
+  /**
+   * An optional read timeout value for connections.
+   */
+  @SerializedName("read_timeout")
+  private float readTimeout = 15.0f;
+
   /**
    * If present, then the component supports HA mode and the properties
    * contained within need to be checked to see if an HA URI is required to be
@@ -115,6 +127,18 @@ public class AlertUri {
    */
   public void setHttpUri(String httpUri) {
     m_httpUri = httpUri;
+  }
+
+  public void setHttpsUri(String httpsUri) {
+    this.m_httpsUri = httpsUri;
+  }
+
+  public void setHttpsPropertyValue(String m_httpsPropertyValue) {
+    this.m_httpsPropertyValue = m_httpsPropertyValue;
+  }
+
+  public void setHttpsProperty(String m_httpsProperty) {
+    this.m_httpsProperty = m_httpsProperty;
   }
 
   /**
@@ -274,6 +298,23 @@ public class AlertUri {
     public String getHttpsPattern() {
       return m_httpsPattern;
     }
+  }
+
+  public URI resolve(Map<String, Map<String, String>> config) throws AmbariException {
+    VariableReplacementHelper variableReplacer = new VariableReplacementHelper();
+    String httpsProperty = variableReplacer.replaceVariables(m_httpsProperty, config);
+    String httpsPropertyValue = variableReplacer.replaceVariables(m_httpsPropertyValue, config);
+    return httpsProperty == null || !httpsProperty.equals(httpsPropertyValue)
+      ? URI.create(String.format("http://%s", variableReplacer.replaceVariables(m_httpUri, config)))
+      : URI.create(String.format("https://%s", variableReplacer.replaceVariables(m_httpsUri, config)));
+  }
+
+  public int getConnectionTimeoutMsec() {
+    return (int) m_connectionTimeout * 1000;
+  }
+
+  public int getReadTimeoutMsec() {
+    return (int) readTimeout * 1000;
   }
 
   /**

@@ -29,14 +29,14 @@ public class ServiceGroupResponse {
   private Long serviceGroupId;
   private String clusterName;
   private String serviceGroupName;
-  private Set<String> mpackNames;
+  private String stackId;
 
-  public ServiceGroupResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName) {
+  public ServiceGroupResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName, String stackId) {
     this.clusterId = clusterId;
     this.serviceGroupId = serviceGroupId;
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.mpackNames = new HashSet<>();
+    this.stackId = stackId;
 
   }
 
@@ -97,19 +97,17 @@ public class ServiceGroupResponse {
   }
 
   /**
-   * @return the list of mpack names
+   * @return the stack ID (stack name - stack Id)
    */
-  public Set<String> getMpackNames() {
-    return mpackNames;
+  public String getStackId() {
+    return stackId;
   }
 
   /**
-   * @param mpackNames the list of mpack names
+   * @param stackId the stack Id
    */
-  public void setMpackNames(Set<String> mpackNames) {
-    if (mpackNames != null) {
-      this.mpackNames = mpackNames;
-    }
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
   }
 
   @Override
@@ -131,7 +129,11 @@ public class ServiceGroupResponse {
       !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null) {
       return false;
     }
-    // ignore mpackNames
+
+    if (stackId != null ?
+        !stackId.equals(that.stackId) : that.stackId != null) {
+      return false;
+    }
 
     return true;
   }

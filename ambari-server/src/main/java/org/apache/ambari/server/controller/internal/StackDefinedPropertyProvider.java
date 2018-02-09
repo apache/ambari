@@ -47,6 +47,7 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.Metric;
@@ -155,6 +156,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     Map<String, Map<String, PropertyInfo>> jmxMap = new HashMap<>();
 
     List<PropertyProvider> additional = new ArrayList<>();
+    Map<String, String> overriddenHosts = new HashMap<>();
 
     try {
       for (Resource r : resources) {
@@ -183,6 +185,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         for (MetricDefinition m : defs) {
           if (m.getType().equals("ganglia")) {
             gangliaMap.put(componentName, getPropertyInfo(m));
+            m.getOverriddenHosts().ifPresent(host -> overriddenHosts.put(componentName, host));
           } else if (m.getType().equals("jmx")) {
             jmxMap.put(componentName, getPropertyInfo(m));
           } else {
@@ -207,7 +210,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
           MetricsPropertyProvider.createInstance(type, gangliaMap,
             streamProvider, sslConfig,
             cacheProvider,
-            metricHostProvider,
+            metricHostProvider(overriddenHosts),
             metricsServiceProvider, clusterNamePropertyId,
             hostNamePropertyId, componentNamePropertyId);
 
@@ -242,6 +245,10 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     }
 
     return resources;
+  }
+
+  private MetricHostProvider metricHostProvider(Map<String, String> overriddenHosts) {
+    return new OverriddenMetricsHostProvider(overriddenHosts, metricHostProvider, injector.getInstance(ConfigHelper.class));
   }
 
   @Override

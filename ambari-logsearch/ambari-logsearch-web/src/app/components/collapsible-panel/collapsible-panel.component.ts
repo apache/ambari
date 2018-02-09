@@ -39,21 +39,21 @@ export class CollapsiblePanelComponent {
    * @type {string}
    */
   @Input()
-  title: string = '';
+  commonTitle: string = '';
 
   /**
    * The panel's title for the opened state
    * @type {string}
    */
   @Input()
-  openTitle: string = 'common.hide';
+  openTitle?: string;
 
   /**
    * The panel's title fo the closed/collapsed state
    * @type {string}
    */
   @Input()
-  collapsedTitle: string = 'common.show';
+  collapsedTitle?: string;
 
   /**
    * This property indicates the position of the caret. It can be 'left' or 'right'
@@ -82,7 +82,7 @@ export class CollapsiblePanelComponent {
   /**
    * The goal is to simply negate the current collapse state.
    */
-  toggleCollapsed():void {
+  toggleCollapsed(): void {
     this.isCollapsed = !this.isCollapsed;
   }
 

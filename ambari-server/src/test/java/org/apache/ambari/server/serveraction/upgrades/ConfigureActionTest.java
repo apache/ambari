@@ -1719,7 +1719,7 @@ public class ConfigureActionTest {
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!
-    ServiceGroup serviceGroup = c.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c.addServiceGroup("CORE", repoVersion2110.getStackId().getStackId());
     Service service = installService(c, serviceGroup, "ZOOKEEPER", repoVersion2110);
     addServiceComponent(c, service, "ZOOKEEPER_SERVER");
     addServiceComponent(c, service, "ZOOKEEPER_CLIENT");

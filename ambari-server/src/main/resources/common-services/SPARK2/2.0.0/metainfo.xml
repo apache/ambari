@@ -191,9 +191,18 @@
       </commandScript>
 
       <requiredServices>
-        <service>HDFS</service>
-        <service>YARN</service>
-        <service>HIVE</service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>HIVE</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <osSpecifics>

@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +40,9 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 /**
  * Resource provider for Stack Dependency resource.
@@ -70,10 +72,31 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
   protected static final String AUTO_DEPLOY_LOCATION_ID = PropertyHelper
       .getPropertyId("auto_deploy", "location");
 
-  // Primary Key Fields
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      SERVICE_NAME_ID, COMPONENT_NAME_ID}));
+  /**
+   * The key property ids for a StackDependency resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Stack, STACK_NAME_ID)
+      .put(Resource.Type.StackVersion, STACK_VERSION_ID)
+      .put(Resource.Type.StackService, DEPENDENT_SERVICE_NAME_ID)
+      .put(Resource.Type.StackServiceComponent, DEPENDENT_COMPONENT_NAME_ID)
+      .put(Resource.Type.StackServiceComponentDependency, COMPONENT_NAME_ID)
+      .build();
+
+  /**
+   * The property ids for a StackDependency resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      STACK_NAME_ID,
+      STACK_VERSION_ID,
+      DEPENDENT_SERVICE_NAME_ID,
+      DEPENDENT_COMPONENT_NAME_ID,
+      SERVICE_NAME_ID,
+      COMPONENT_NAME_ID,
+      SCOPE_ID,
+      CONDITIONS_ID,
+      AUTO_DEPLOY_ENABLED_ID,
+      AUTO_DEPLOY_LOCATION_ID);
 
   /**
    * Provides stack information
@@ -85,12 +108,8 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
 
   /**
    * Constructor.
-   *
-   * @param propertyIds    the property ids
-   * @param keyPropertyIds the key property ids
    */
-  protected StackDependencyResourceProvider(Set<String> propertyIds,
-                                            Map<Resource.Type, String> keyPropertyIds) {
+  protected StackDependencyResourceProvider() {
     super(propertyIds, keyPropertyIds);
   }
 
@@ -108,7 +127,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   @Override

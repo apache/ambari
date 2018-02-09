@@ -56,9 +56,9 @@ credential_store_enabled = False
 if 'credentialStoreEnabled' in config:
   credential_store_enabled = config['credentialStoreEnabled']
 
-logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
+logsearch_server_conf = "/usr/lib/ambari-logsearch-portal/conf"
 logsearch_server_keys_folder = logsearch_server_conf + "/keys"
-logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
 logsearch_logfeeder_keys_folder = logsearch_logfeeder_conf + "/keys"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
@@ -131,6 +131,13 @@ if security_enabled:
     logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
     logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
 
+  zookeeper_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  external_zk_principal_enabled = default("/configurations/logsearch-common-env/logsearch_zookeeper_external_principal", False)
+  external_zk_principal_name = default("/configurations/logsearch-common-env/logsearch_zookeeper_external_principal", "zookeeper/_HOST@EXAMPLE.COM")
+  zk_principal_name = external_zk_principal_name if external_zk_principal_enabled else zookeeper_principal_name
+  zk_principal_user = zk_principal_name.split('/')[0]
+  zk_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client')
+
 logsearch_spnego_host = config['configurations']['logsearch-properties']['logsearch.spnego.kerberos.host'].replace('_HOST', _hostname_lowercase)
 
 #####################################
@@ -170,7 +177,7 @@ zookeeper_quorum = logsearch_solr_zk_quorum
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
-logsearch_log = logsearch_log_dir + '/logsearch.out'
+logsearch_log = 'logsearch.out'
 logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
 logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
@@ -304,7 +311,7 @@ logfeeder_json_log_maxbackupindex = default('/configurations/logfeeder-log4j/log
 
 # logfeeder-env configs
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']
-logfeeder_log = logfeeder_log_dir + '/logfeeder.out'
+logfeeder_log = 'logfeeder.out'
 logfeeder_max_mem = config['configurations']['logfeeder-env']['logfeeder_max_mem']
 solr_service_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_service_logs_enable', True)
 solr_audit_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_audit_logs_enable', True)

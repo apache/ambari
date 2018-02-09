@@ -18,92 +18,74 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('RemoteClustersListCtrl', ['$scope', '$routeParams', '$translate', 'RemoteCluster', function ($scope, $routeParams, $translate, RemoteCluster) {
+.controller('RemoteClustersListCtrl',
+['$scope', '$routeParams', '$translate', 'RemoteCluster', 'Settings', 'Pagination', 'Filters',
+function ($scope, $routeParams, $translate, RemoteCluster, Settings, Pagination, Filters) {
   var $t = $translate.instant;
 
+  $scope.minInstanceForPagination = Settings.minRowsToShowPagination;
   $scope.clusterName = $routeParams.clusterName;
   $scope.isLoading = false;
-
   $scope.constants = {
     groups: $t('common.clusters').toLowerCase()
   };
-
-  $scope.groupsPerPage = 10;
-  $scope.currentPage = 1;
-  $scope.totalGroups = 1;
-  $scope.currentNameFilter = '';
-  $scope.maxVisiblePages=20;
   $scope.tableInfo = {
+    filtered: 0,
     total: 0,
     showed: 0
   };
-
-  $scope.isNotEmptyFilter = true;
-
-  $scope.pageChanged = function() {
-    loadRemoteClusters();
-  };
-  $scope.groupsPerPageChanges = function() {
-    loadRemoteClusters();
-  };
-
-  $scope.resetPagination = function() {
-    $scope.currentPage = 1;
-    loadRemoteClusters();
-  };
-
-  $scope.typeFilterOptions = [
-    $t('common.any')
+  $scope.pagination = Pagination.create();
+  $scope.filters = [
+    {
+      key: 'clusterName',
+      label: $t('views.clusterName'),
+      options: []
+    },
+    {
+      key: 'service',
+      label: $t('common.services'),
+      customValueConverter: function (item) {
+        return item.ClusterInfo.services;
+      },
+      isMultiple: true,
+      options: []
+    }
   ];
 
-  $scope.currentTypeFilter = $scope.typeFilterOptions[0];
-
-  $scope.clearFilters = function () {
-    $scope.currentNameFilter = '';
-    $scope.currentTypeFilter = $scope.typeFilterOptions[0];
-    $scope.resetPagination();
+  $scope.toggleSearchBox = function () {
+    $('.search-box-button .popup-arrow-up, .search-box-row').toggleClass('hide');
   };
 
-  function loadRemoteClusters(){
-      $scope.isLoading = true;
-      RemoteCluster.all({
-        currentPage: $scope.currentPage,
-        groupsPerPage: $scope.groupsPerPage,
-        searchString: $scope.currentNameFilter,
-        service: $scope.currentTypeFilter
-      }).then(function(remoteclusters) {
-        $scope.isLoading = false;
+  $scope.filterClusters = function (appliedFilters) {
+    $scope.tableInfo.filtered = Filters.filterItems(appliedFilters, $scope.remoteClusters, $scope.filters);
+    $scope.pagination.resetPagination($scope.remoteClusters, $scope.tableInfo);
+  };
 
-        $scope.totalGroups = remoteclusters.itemTotal;
-        $scope.tableInfo.total = remoteclusters.itemTotal;
-        $scope.tableInfo.showed = remoteclusters.items.length;
+  $scope.pageChanged = function () {
+    $scope.pagination.pageChanged($scope.remoteClusters, $scope.tableInfo);
+  };
 
-        $scope.remoteClusters = remoteclusters.items;
+  $scope.resetPagination = function () {
+    $scope.pagination.resetPagination($scope.remoteClusters, $scope.tableInfo);
+  };
 
-        remoteclusters.items.map(function(clusteritem){
-          clusteritem.ClusterInfo.services.map(function(service){
-            var serviceIndex = $scope.typeFilterOptions.indexOf(service);
-            if(serviceIndex == -1){
-              $scope.typeFilterOptions.push(service);
-            }
-          })
-        })
-
-      })
-      .catch(function(data) {
+  function loadRemoteClusters() {
+    $scope.isLoading = true;
+    RemoteCluster.all().then(function (remoteclusters) {
+      $scope.isLoading = false;
+      $scope.remoteClusters = remoteclusters.items.map(function (item) {
+        item.clusterName = item.ClusterInfo.name;
+        return item;
+      });
+      $scope.tableInfo.total = $scope.remoteClusters.length;
+      $scope.filterClusters();
+      Filters.initFilterOptions($scope.filters, $scope.remoteClusters);
+    })
+      .catch(function (data) {
         console.error($t('remoteClusters.alerts.fetchError'), data);
       });
-  };
+  }
 
   loadRemoteClusters();
-
-  $scope.$watch(
-    function (scope) {
-      return Boolean(scope.currentNameFilter || (scope.currentTypeFilter));
-    },
-    function (newValue, oldValue, scope) {
-      scope.isNotEmptyFilter = newValue;
-    }
-  );
 
 }]);

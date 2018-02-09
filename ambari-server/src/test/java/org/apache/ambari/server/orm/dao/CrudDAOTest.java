@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -72,7 +73,7 @@ public class CrudDAOTest {
 
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("display name" + uniqueCounter);
-    entity.setOperatingSystems("repositories");
+    entity.addRepoOsEntities(new ArrayList<>());
     entity.setStack(stackEntity);
     entity.setVersion("version" + uniqueCounter);
     repositoryVersionDAO.create(entity);

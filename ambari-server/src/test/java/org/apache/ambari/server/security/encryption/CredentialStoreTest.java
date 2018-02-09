@@ -30,7 +30,7 @@ import org.junit.rules.TemporaryFolder;
 
 import junit.framework.Assert;
 
-public class CredentialStoreTest {
+public class  CredentialStoreTest {
 
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();

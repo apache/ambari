@@ -351,9 +351,18 @@
         <timeout>300</timeout>
     </commandScript>
     <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>HDFS</service>
-        <service>YARN</service>
+        <service>
+            <name>ZOOKEEPER</name>
+            <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+            <name>HDFS</name>
+            <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+            <name>YARN</name>
+            <dependencyType>INSTALL</dependencyType>
+        </service>
     </requiredServices>
 </service></services>
 </metainfo>

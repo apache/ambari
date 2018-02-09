@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.api.services.users;
 
+import static org.apache.ambari.server.controller.internal.UserResourceProvider.USER_RESOURCE_CATEGORY;
+import static org.apache.ambari.server.controller.internal.UserResourceProvider.USER_USERNAME_PROPERTY_ID;
+
 import java.util.Collections;
 
 import javax.ws.rs.DELETE;
@@ -31,12 +34,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.UserResponse;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.http.HttpStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -53,23 +56,32 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "Users", description = "Endpoint for user specific operations")
 public class UserService extends BaseService {
 
+  private static final String UPDATE_USER_REQUEST_TYPE = "org.apache.ambari.server.controller.UserRequestUpdateUserSwagger";
+  private static final String CREATE_USER_REQUEST_TYPE = "org.apache.ambari.server.controller.UserRequestCreateUserSwagger";
+  private static final String CREATE_USERS_REQUEST_TYPE = "org.apache.ambari.server.controller.UserRequestCreateUsersSwagger";;
+  private static final String USER_DEFAULT_SORT = USER_USERNAME_PROPERTY_ID + ".asc";
+
   /**
    * Gets all users.
    * Handles: GET /users requests.
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all users", nickname = "UserService#getUsers", notes = "Returns details of all users.", response = UserResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all users", response = UserResponse.UserResponseSwagger.class, responseContainer = "List")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter user details", defaultValue = "Users/*", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "Users/user_name.asc", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "page_size", value = "The number of resources to be returned for the paged response.", defaultValue = "10", dataType = "integer", paramType = "query"),
-    @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY, defaultValue = USER_USERNAME_PROPERTY_ID),
+      @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY, defaultValue = USER_DEFAULT_SORT),
+      @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+      @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+      @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = UserResponse.class, responseContainer = "List")}
-  )
+  @ApiResponses({
+      @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+      @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+      @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response getUsers(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET, createUserResource(null));
   }
@@ -78,23 +90,27 @@ public class UserService extends BaseService {
    * Gets a single user.
    * Handles: GET /users/{username} requests
    *
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param userName    the username
+   * @param headers  http headers
+   * @param ui       uri info
+   * @param userName the username
    * @return information regarding the created user
    */
   @GET
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get single user", nickname = "UserService#getUser", notes = "Returns user details.", response = UserResponse.class)
+  @ApiOperation(value = "Get single user", response = UserResponse.UserResponseSwagger.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter user details", defaultValue = "Users", dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY, defaultValue = USER_RESOURCE_CATEGORY + "/*"),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = UserResponse.class)}
-  )
+  @ApiResponses({
+      @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+      @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+      @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response getUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                          @ApiParam(value = "user name", required = true, defaultValue = "admin") @PathParam("userName") String userName) {
+                          @ApiParam(value = "user name", required = true) @PathParam("userName") String userName) {
     return handleRequest(headers, body, ui, Request.Type.GET, createUserResource(userName));
   }
 
@@ -102,13 +118,27 @@ public class UserService extends BaseService {
    * Creates a user.
    * Handles: POST /users
    *
-   * @param headers     http headers
-   * @param ui          uri info
+   * @param headers http headers
+   * @param ui      uri info
    * @return information regarding the created user
    */
-  @POST @ApiIgnore // until documented
+  @POST
   @Produces("text/plain")
-  public Response createUser(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  @ApiOperation(value = "Creates one or more users in a single request")
+  @ApiImplicitParams({
+      @ApiImplicitParam(dataType = CREATE_USERS_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
+  })
+  @ApiResponses({
+      @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+      @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+      @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+      @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+      @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+      @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response createUsers(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST, createUserResource(null));
   }
 
@@ -116,22 +146,28 @@ public class UserService extends BaseService {
    * Creates a user.
    * Handles: POST /users/{username}
    *
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param userName    the username
+   * @param headers  http headers
+   * @param ui       uri info
+   * @param userName the username
    * @return information regarding the created user
    */
   @POST
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Create new user", nickname = "UserService#createUser", notes = "Creates user resource.")
+  @ApiOperation(value = "Create new user")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.UserRequest", paramType = "body")
+      @ApiImplicitParam(dataType = CREATE_USER_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+  @ApiResponses({
+      @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+      @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+      @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+      @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+      @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+      @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response createUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @ApiParam(value = "user name", required = true) @PathParam("userName") String userName) {
     return handleRequest(headers, body, ui, Request.Type.POST, createUserResource(userName));
@@ -141,22 +177,27 @@ public class UserService extends BaseService {
    * Updates a specific user.
    * Handles: PUT /users/{userName}
    *
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param userName   the username
+   * @param headers  http headers
+   * @param ui       uri info
+   * @param userName the username
    * @return information regarding the updated user
    */
   @PUT
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Update user detail", nickname = "UserService#updateUser", notes = "Updates user resource.")
+  @ApiOperation(value = "Update user details")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.UserRequest", paramType = "body")
+      @ApiImplicitParam(dataType = UPDATE_USER_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+  @ApiResponses({
+      @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+      @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+      @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+      @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+      @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+      @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updateUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @ApiParam(value = "user name", required = true) @PathParam("userName") String userName) {
 
@@ -170,10 +211,10 @@ public class UserService extends BaseService {
   @DELETE
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Delete single user", nickname = "UserService#deleteUser", notes = "Delete user resource.")
+  @ApiOperation(value = "Delete single user")
   @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
+      @ApiResponse(code = 200, message = "Successful operation"),
+      @ApiResponse(code = 500, message = "Server Error")}
   )
   public Response deleteUser(@Context HttpHeaders headers, @Context UriInfo ui,
                              @ApiParam(value = "user name", required = true) @PathParam("userName") String userName) {
@@ -183,8 +224,7 @@ public class UserService extends BaseService {
   /**
    * Create a user resource instance.
    *
-   * @param userName  user name
-   *
+   * @param userName user name
    * @return a user resource instance
    */
   private ResourceInstance createUserResource(String userName) {

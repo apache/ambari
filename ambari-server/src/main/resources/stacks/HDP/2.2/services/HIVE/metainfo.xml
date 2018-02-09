@@ -139,7 +139,10 @@
       </themes>
 
       <requiredServices>
-        <service>PIG</service>
+        <service>
+          <name>PIG</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
     </service>

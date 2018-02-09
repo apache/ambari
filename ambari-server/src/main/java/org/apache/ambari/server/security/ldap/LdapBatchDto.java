@@ -24,34 +24,34 @@ import java.util.Set;
  * Contains information for batch database update on LDAP synchronization.
  */
 public class LdapBatchDto {
-  private final Set<String> groupsToBecomeLdap = new HashSet<>();
-  private final Set<String> groupsToBeCreated = new HashSet<>();
-  private final Set<String> groupsToBeRemoved = new HashSet<>();
-  private final Set<String> groupsProcessedInternal = new HashSet<>();
-  private final Set<String> usersSkipped = new HashSet<>();
-  private final Set<String> usersToBecomeLdap = new HashSet<>();
-  private final Set<String> usersToBeCreated = new HashSet<>();
-  private final Set<String> usersToBeRemoved = new HashSet<>();
+  private final Set<LdapGroupDto> groupsToBecomeLdap = new HashSet<>();
+  private final Set<LdapGroupDto> groupsToBeCreated = new HashSet<>();
+  private final Set<LdapGroupDto> groupsToBeRemoved = new HashSet<>();
+  private final Set<LdapGroupDto> groupsProcessedInternal = new HashSet<>();
+  private final Set<LdapUserDto> usersSkipped = new HashSet<>();
+  private final Set<LdapUserDto> usersToBecomeLdap = new HashSet<>();
+  private final Set<LdapUserDto> usersToBeCreated = new HashSet<>();
+  private final Set<LdapUserDto> usersToBeRemoved = new HashSet<>();
   private final Set<LdapUserGroupMemberDto> membershipToAdd = new HashSet<>();
   private final Set<LdapUserGroupMemberDto> membershipToRemove = new HashSet<>();
 
-  public Set<String> getUsersSkipped() {
+  public Set<LdapUserDto> getUsersSkipped() {
     return usersSkipped;
   }
 
-  public Set<String> getGroupsToBecomeLdap() {
+  public Set<LdapGroupDto> getGroupsToBecomeLdap() {
     return groupsToBecomeLdap;
   }
 
-  public Set<String> getGroupsToBeCreated() {
+  public Set<LdapGroupDto> getGroupsToBeCreated() {
     return groupsToBeCreated;
   }
 
-  public Set<String> getUsersToBecomeLdap() {
+  public Set<LdapUserDto> getUsersToBecomeLdap() {
     return usersToBecomeLdap;
   }
 
-  public Set<String> getUsersToBeCreated() {
+  public Set<LdapUserDto> getUsersToBeCreated() {
     return usersToBeCreated;
   }
 
@@ -63,15 +63,15 @@ public class LdapBatchDto {
     return membershipToRemove;
   }
 
-  public Set<String> getGroupsToBeRemoved() {
+  public Set<LdapGroupDto> getGroupsToBeRemoved() {
     return groupsToBeRemoved;
   }
 
-  public Set<String> getUsersToBeRemoved() {
+  public Set<LdapUserDto> getUsersToBeRemoved() {
     return usersToBeRemoved;
   }
 
-  public Set<String> getGroupsProcessedInternal() {
+  public Set<LdapGroupDto> getGroupsProcessedInternal() {
     return groupsProcessedInternal;
   }
 }

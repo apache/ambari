@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.query.render;
 
+import static java.util.stream.Collectors.toList;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.AmbariContext;
@@ -88,6 +90,8 @@ import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * ClusterBlueprintRenderer unit tests.
@@ -119,6 +123,8 @@ public class ClusterBlueprintRendererTest {
     new HashMap<>();
 
   private static final Configuration clusterConfig = new Configuration(clusterProps, clusterAttributes);
+  public static final StackId STACK_ID = new StackId("HDP", "1.3.3");
+
   @Before
   public void setup() throws Exception {
 
@@ -134,8 +140,10 @@ public class ClusterBlueprintRendererTest {
 
     Collection<Component> group1Components = Arrays.asList(
         new Component("JOBTRACKER"), new Component("TASKTRACKER"), new Component("NAMENODE"), new Component("DATANODE"), new Component("AMBARI_SERVER"));
+    Collection<String> group1ComponentNames = group1Components.stream().map(Component::getName).collect(toList());
 
     Collection<Component> group2Components = Arrays.asList(new Component("TASKTRACKER"), new Component("DATANODE"));
+    Collection<String> group2ComponentNames = group2Components.stream().map(Component::getName).collect(toList());
 
     Map<String, Configuration> hostGroupConfigs = new HashMap<>();
     hostGroupConfigs.put("host_group_1", emptyConfiguration);
@@ -157,16 +165,20 @@ public class ClusterBlueprintRendererTest {
 
     expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topology.getBlueprint()).andReturn(null).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getHostGroup("host_group_1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("host_group_2")).andReturn(group2).anyTimes();
-    expect(stack.getName()).andReturn("HDP").anyTimes();
-    expect(stack.getVersion()).andReturn("1.3.3").anyTimes();
+    expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
+    expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(group1.getName()).andReturn("host_group_1").anyTimes();
     expect(group2.getName()).andReturn("host_group_2").anyTimes();
+    expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
+    expect(group2.getComponentNames()).andReturn(group2ComponentNames).anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
 
@@ -209,7 +221,7 @@ public class ClusterBlueprintRendererTest {
 
     expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topology.getBlueprint()).andReturn(null).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(topology.getClusterId()).andReturn(new Long(1)).anyTimes();
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
@@ -449,8 +461,8 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals("HDP", properties.get("Blueprints").get("stack_name"));
-    assertEquals("1.3.3", properties.get("Blueprints").get("stack_version"));
+    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
+    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
 
     Map<String, Object> securityProperties = (Map<String, Object>) properties.get("Blueprints").get("security");
     assertEquals("KERBEROS", securityProperties.get("type"));
@@ -475,8 +487,8 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals("HDP", properties.get("Blueprints").get("stack_name"));
-    assertEquals("1.3.3", properties.get("Blueprints").get("stack_version"));
+    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
+    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
 
     Collection<Map<String, Object>> host_groups = (Collection<Map<String, Object>>) properties.get("").get("host_groups");
     assertEquals(2, host_groups.size());
@@ -554,8 +566,8 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals("HDP", properties.get("Blueprints").get("stack_name"));
-    assertEquals("1.3.3", properties.get("Blueprints").get("stack_version"));
+    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
+    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
 
     Collection<Map<String, Object>> host_groups = (Collection<Map<String, Object>>) properties.get("").get("host_groups");
     assertEquals(2, host_groups.size());

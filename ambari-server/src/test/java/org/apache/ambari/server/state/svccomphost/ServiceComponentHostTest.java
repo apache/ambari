@@ -133,7 +133,7 @@ public class ServiceComponentHostTest {
     createCluster(stackId, clusterName, repositoryVersion.getVersion());
 
 
-    serviceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "test_group", new HashSet<>());
+    serviceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "test_group", stackId.getStackId(), new HashSet<>());
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     Set<String> hostNames = new HashSet<>();
@@ -713,7 +713,7 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     createCluster(stackId, clusterName, "");
 
-    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", stackId.getStackId(), new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -906,7 +906,7 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     createCluster(stackId, clusterName, "");
 
-    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", stackId.getStackId(), new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -1035,7 +1035,7 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     createCluster(stackId, clusterName, "");
 
-    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", stackId.getStackId(), new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();

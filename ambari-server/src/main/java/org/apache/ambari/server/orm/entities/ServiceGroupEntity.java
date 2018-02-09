@@ -74,6 +74,9 @@ public class ServiceGroupEntity {
   @Column(name = "service_group_name", nullable = false, insertable = true, updatable = true)
   private String serviceGroupName;
 
+  @Column(name = "stack_id", nullable = false, insertable = true, updatable = true)
+  private String stackId;
+
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
@@ -83,14 +86,6 @@ public class ServiceGroupEntity {
 
   @OneToMany(mappedBy="serviceGroupDependency")
   private List<ServiceGroupDependencyEntity> dependencies;
-
-  @ElementCollection()
-  @CollectionTable(name = "servicegroup_mpacknames",
-                   joinColumns = {@JoinColumn(name = "service_group_id", referencedColumnName = "id"),
-                                  @JoinColumn(name = "service_group_cluster_id", referencedColumnName = "cluster_id")})
-  @Column(name = "mpack_name", unique = true, nullable = false)
-
-  private Set<String> mpackNames = new HashSet<>();
 
   public Long getClusterId() {
     return clusterId;
@@ -108,13 +103,20 @@ public class ServiceGroupEntity {
     this.serviceGroupId = serviceGroupId;
   }
 
-
   public String getServiceGroupName() {
     return serviceGroupName;
   }
 
   public void setServiceGroupName(String serviceGroupName) {
     this.serviceGroupName = serviceGroupName;
+  }
+
+  public String getStackId() {
+    return stackId;
+  }
+
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
   }
 
   public List<ServiceGroupDependencyEntity> getDependencies() {
@@ -133,16 +135,6 @@ public class ServiceGroupEntity {
     this.serviceGroupDependencies = serviceGroupDependencies;
   }
 
-  public Set<String> getMpackNames() {
-    return mpackNames;
-  }
-
-  public void setMpackNames(Set<String> mpackNames) {
-    if (mpackNames != null) {
-      this.mpackNames = mpackNames;
-    }
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -153,6 +145,8 @@ public class ServiceGroupEntity {
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (serviceGroupName != null ? !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null)
       return false;
+    if (stackId != null ? !stackId.equals(that.stackId) : that.stackId != null)
+      return false;
 
     return true;
   }
@@ -161,6 +155,7 @@ public class ServiceGroupEntity {
   public int hashCode() {
     int result = clusterId != null ? clusterId.intValue() : 0;
     result = 31 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
+    result = 31 * result + (stackId != null ? stackId.hashCode() : 0);
     return result;
   }
 

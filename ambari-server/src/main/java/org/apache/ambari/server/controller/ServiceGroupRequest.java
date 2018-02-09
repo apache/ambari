@@ -25,12 +25,12 @@ public class ServiceGroupRequest {
 
   private String clusterName; // REF
   private String serviceGroupName; // GET/CREATE/UPDATE/DELETE
-  private Set<String> mpackNames; // Associated mpack names
+  private String stackId; // Associated stack version info
 
-  public ServiceGroupRequest(String clusterName, String serviceGroupName) {
+  public ServiceGroupRequest(String clusterName, String serviceGroupName, String stackId) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    mpackNames = new HashSet<>();
+    this.stackId = stackId;
   }
 
   /**
@@ -62,28 +62,23 @@ public class ServiceGroupRequest {
   }
 
   /**
-   * @return a list of associated mpack names
+   * @return the stackId
    */
-  public Set<String> getMpackNames() {
-    return mpackNames;
+  public String getStackId() {
+    return stackId;
   }
 
   /**
-   * @param mpackNames a list of associated mpack names
+   * @param stackId the stackId to set
    */
-  public void addMpackNames(Set<String> mpackNames) {
-    if (mpackNames != null) {
-      this.mpackNames.addAll(mpackNames);
-    }
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("clusterName=").append(clusterName).append(", serviceGroupName=").append(serviceGroupName);
-    if (!mpackNames.isEmpty()) {
-      sb.append(",mpackNames=").append(mpackNames.toString());
-    }
+    sb.append("clusterName=").append(clusterName).append(", serviceGroupName=").append(serviceGroupName).append(", stackId=").append(stackId);
     return sb.toString();
   }
 
@@ -98,14 +93,11 @@ public class ServiceGroupRequest {
 
     ServiceGroupRequest other = (ServiceGroupRequest) obj;
 
-    // ignore mpackNames, even if they are different, we still consider sgrequests are the same
-
-    return Objects.equals(clusterName, other.clusterName) &&
-      Objects.equals(serviceGroupName, other.serviceGroupName);
+    return Objects.equals(clusterName, other.clusterName) && Objects.equals(serviceGroupName, other.serviceGroupName) && Objects.equals(stackId, other.stackId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(clusterName, serviceGroupName);
+    return Objects.hash(clusterName, serviceGroupName, stackId);
   }
 }
