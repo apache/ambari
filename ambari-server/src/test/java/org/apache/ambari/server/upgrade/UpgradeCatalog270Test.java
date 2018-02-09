@@ -261,7 +261,7 @@ public class UpgradeCatalog270Test {
     Method setStatusOfStagesAndRequests = UpgradeCatalog270.class.getDeclaredMethod("setStatusOfStagesAndRequests");
     Method updateLogSearchConfigs = UpgradeCatalog270.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateKerberosConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateKerberosConfigurations");
-    Method updateHostComponentLastStateTable = UpgradeCatalog300.class.getDeclaredMethod("updateHostComponentLastStateTable");
+    Method updateHostComponentLastStateTable = UpgradeCatalog270.class.getDeclaredMethod("updateHostComponentLastStateTable");
     Method upgradeLdapConfiguration = UpgradeCatalog270.class.getDeclaredMethod("upgradeLdapConfiguration");
     Method createRoleAuthorizations = UpgradeCatalog270.class.getDeclaredMethod("createRoleAuthorizations");
     Method addUserAuthenticationSequence = UpgradeCatalog270.class.getDeclaredMethod("addUserAuthenticationSequence");
@@ -292,7 +292,7 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.updateLogSearchConfigs();
-    upgradeCatalog300.updateHostComponentLastStateTable();
+    upgradeCatalog270.updateHostComponentLastStateTable();
     expectLastCall().once();
 
     upgradeCatalog270.updateKerberosConfigurations();
@@ -328,7 +328,7 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     Capture<DBAccessor.DBColumnInfo> lastValidColumn = newCapture();
-    dbAccessor.addColumn(eq(UpgradeCatalog300.COMPONENT_STATE_TABLE), capture(lastValidColumn));
+    dbAccessor.addColumn(eq(UpgradeCatalog270.COMPONENT_STATE_TABLE), capture(lastValidColumn));
 
     // removeSecurityState
     dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
@@ -454,7 +454,7 @@ public class UpgradeCatalog270Test {
     // Ambari configuration table addition...
 
     DBAccessor.DBColumnInfo capturedLastValidColumn = lastValidColumn.getValue();
-    Assert.assertEquals(UpgradeCatalog300.COMPONENT_LAST_STATE_COLUMN, capturedLastValidColumn.getName());
+    Assert.assertEquals(upgradeCatalog270.COMPONENT_LAST_STATE_COLUMN, capturedLastValidColumn.getName());
     Assert.assertEquals(State.UNKNOWN, capturedLastValidColumn.getDefaultValue());
     Assert.assertEquals(String.class, capturedLastValidColumn.getType());
 
