@@ -71,9 +71,7 @@ public class FeedResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
-    FeedResourceProvider provider = new FeedResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRFeed),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRFeed));
+    FeedResourceProvider provider = new FeedResourceProvider(service);
 
     provider.createResources(request);
 
@@ -114,9 +112,7 @@ public class FeedResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
-    FeedResourceProvider provider = new FeedResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRFeed),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRFeed));
+    FeedResourceProvider provider = new FeedResourceProvider(service);
 
     Set<Resource> resources = provider.getResources(request, null);
 
@@ -162,9 +158,7 @@ public class FeedResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
-    FeedResourceProvider provider = new FeedResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRFeed),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRFeed));
+    FeedResourceProvider provider = new FeedResourceProvider(service);
 
     provider.updateResources(request, null);
 
@@ -193,9 +187,7 @@ public class FeedResourceProviderTest {
     // replay
     replay(service);
 
-    FeedResourceProvider provider = new FeedResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRFeed),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRFeed));
+    FeedResourceProvider provider = new FeedResourceProvider(service);
 
     Predicate predicate = new PredicateBuilder().property(FeedResourceProvider.FEED_NAME_PROPERTY_ID).equals("Feed1").toPredicate();
 
@@ -203,18 +195,5 @@ public class FeedResourceProviderTest {
 
     // verify
     verify(service);
-  }
-
-  @Test
-  public void testGetKeyPropertyIds() throws Exception {
-    IvoryService service = createMock(IvoryService.class);
-
-    Map<Resource.Type, String> keyPropertyIds = PropertyHelper.getKeyPropertyIds(Resource.Type.DRFeed);
-
-    FeedResourceProvider provider = new FeedResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRFeed),
-        keyPropertyIds);
-
-    Assert.assertEquals(keyPropertyIds, provider.getKeyPropertyIds());
   }
 }

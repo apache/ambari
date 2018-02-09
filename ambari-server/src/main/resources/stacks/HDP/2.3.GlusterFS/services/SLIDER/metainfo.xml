@@ -47,8 +47,14 @@
       </osSpecifics>
 
       <requiredServices>
-        <service>YARN</service>
-        <service>ZOOKEEPER</service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
       
     </service>

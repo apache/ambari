@@ -20,13 +20,15 @@ package org.apache.ambari.logfeeder.output;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.filter.Filter;
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.InputFile;
+import org.apache.ambari.logfeeder.input.InputFileMarker;
 import org.apache.ambari.logfeeder.output.spool.LogSpooler;
 import org.apache.ambari.logfeeder.output.spool.LogSpoolerContext;
 import org.apache.ambari.logfeeder.output.spool.RolloverCondition;
 import org.apache.ambari.logfeeder.output.spool.RolloverHandler;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
+import org.apache.ambari.logfeeder.plugin.filter.Filter;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.S3Util;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
@@ -52,7 +54,7 @@ import java.util.Map;
  * <li>A batch mode, asynchronous, periodic upload of files</li>
  * </ul>
  */
-public class OutputS3File extends Output implements RolloverCondition, RolloverHandler {
+public class OutputS3File extends OutputFile implements RolloverCondition, RolloverHandler {
   private static final Logger LOG = Logger.getLogger(OutputS3File.class);
 
   public static final String GLOBAL_CONFIG_S3_PATH_SUFFIX = "global.config.json";
@@ -60,10 +62,11 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
   private LogSpooler logSpooler;
   private S3OutputConfiguration s3OutputConfiguration;
   private S3Uploader s3Uploader;
+  private LogFeederProps logFeederProps;
 
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    this.logFeederProps = logFeederProps;
     s3OutputConfiguration = S3OutputConfiguration.fromConfigBlock(this);
   }
 
@@ -76,9 +79,9 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
    */
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) {
-    String type = inputMarker.input.getInputDescriptor().getType();
+    String type = inputMarker.getInput().getInputDescriptor().getType();
     S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, false, type);
-    String resolvedPath = s3Uploader.uploadFile(inputFile, inputMarker.input.getInputDescriptor().getType());
+    String resolvedPath = s3Uploader.uploadFile(inputFile, inputMarker.getInput().getInputDescriptor().getType());
 
     uploadConfig(inputMarker, type, s3OutputConfiguration, resolvedPath);
   }
@@ -87,8 +90,8 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
       String resolvedPath) {
 
     ArrayList<FilterDescriptor> filters = new ArrayList<>();
-    addFilters(filters, inputMarker.input.getFirstFilter());
-    InputS3FileDescriptor inputS3FileDescriptorOriginal = (InputS3FileDescriptor) inputMarker.input.getInputDescriptor();
+    addFilters(filters, inputMarker.getInput().getFirstFilter());
+    InputS3FileDescriptor inputS3FileDescriptorOriginal = (InputS3FileDescriptor) inputMarker.getInput().getInputDescriptor();
     InputS3FileDescriptorImpl inputS3FileDescriptor = InputConfigGson.gson.fromJson(
         InputConfigGson.gson.toJson(inputS3FileDescriptorOriginal), InputS3FileDescriptorImpl.class);
     String s3CompletePath = LogFeederConstants.S3_PATH_START_WITH + s3OutputConfiguration.getS3BucketName() +
@@ -189,12 +192,17 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
    * @throws Exception
    */
   @Override
-  public void write(String block, InputMarker inputMarker) throws Exception {
+  public void write(String block, InputFileMarker inputMarker) throws Exception {
     if (logSpooler == null) {
-      logSpooler = createSpooler(inputMarker.input.getFilePath());
-      s3Uploader = createUploader(inputMarker.input.getInputDescriptor().getType());
+      if (inputMarker.getInput().getClass().isAssignableFrom(InputFile.class)) {
+        InputFile input = (InputFile) inputMarker.getInput();
+        logSpooler = createSpooler(input.getFilePath());
+        s3Uploader = createUploader(input.getInputDescriptor().getType());
+        logSpooler.add(block);
+      } else {
+        LOG.error("Cannot write from non local file...");
+      }
     }
-    logSpooler.add(block);
   }
 
   @VisibleForTesting
@@ -206,7 +214,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
 
   @VisibleForTesting
   protected LogSpooler createSpooler(String filePath) {
-    String spoolDirectory = LogFeederPropertiesUtil.getLogFeederTempDir() + "/s3/service";
+    String spoolDirectory = logFeederProps.getTmpDir() + "/s3/service";
     LOG.info(String.format("Creating spooler with spoolDirectory=%s, filePath=%s", spoolDirectory, filePath));
     return new LogSpooler(spoolDirectory, new File(filePath).getName()+"-", this, this,
         s3OutputConfiguration.getRolloverTimeThresholdSecs());

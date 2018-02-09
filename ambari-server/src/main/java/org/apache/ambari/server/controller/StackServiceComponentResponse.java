@@ -59,6 +59,11 @@ public class StackServiceComponentResponse {
   private String componentDisplayName;
 
   /**
+   * component version
+   */
+  private String componentVersion;
+
+  /**
    * component category
    */
   private String componentCategory;
@@ -118,6 +123,11 @@ public class StackServiceComponentResponse {
   private String reassignAllowed;
 
   /**
+   * @see ComponentInfo#componentType
+   */
+  private String componentType;
+
+  /**
    * Constructor.
    *
    * @param component
@@ -127,6 +137,7 @@ public class StackServiceComponentResponse {
     componentName = component.getName();
     componentDisplayName = component.getDisplayName();
     componentCategory = component.getCategory();
+    componentVersion = component.getVersion();
     isClient = component.isClient();
     isMaster = component.isMaster();
     cardinality = component.getCardinality();
@@ -139,6 +150,7 @@ public class StackServiceComponentResponse {
     bulkCommandMasterComponentName = getBulkCommandsMasterComponentName(component);
     reassignAllowed = component.getReassignAllowed();
     rollingRestartSupported = component.getRollingRestartSupported();
+    componentType = component.getComponentType();
 
     // the custom command names defined for this component
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
@@ -313,6 +325,25 @@ public class StackServiceComponentResponse {
    */
   public void setComponentCategory(String componentCategory) {
     this.componentCategory = componentCategory;
+  }
+
+  /**
+   * Get component version.
+   *
+   * @return component version
+   */
+  @ApiModelProperty(name = "component_version")
+  public String getComponentVersion() {
+    return componentVersion;
+  }
+
+  /**
+   * Set the component version.
+   *
+   * @param componentVersion  component version
+   */
+  public void setComponentVersion(String componentVersion) {
+    this.componentVersion = componentVersion;
   }
 
   /**
@@ -509,6 +540,10 @@ public class StackServiceComponentResponse {
   @ApiModelProperty(name = "bulk_commands_master_component_namen")
   public String getBulkCommandsMasterComponentName(){
     return bulkCommandMasterComponentName == null ? "":bulkCommandMasterComponentName;
+  }
+
+  public String getComponentType() {
+    return componentType;
   }
 
   /**

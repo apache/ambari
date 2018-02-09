@@ -277,6 +277,10 @@
   dependencies:
     "@types/d3-dsv" "*"
 
+"@types/d3-scale-chromatic@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/d3-scale-chromatic/-/d3-scale-chromatic-1.1.0.tgz#6a5033ed1b89b7bad38f5f085a4f16695f07fdf0"
+
 "@types/d3-scale@*":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@types/d3-scale/-/d3-scale-1.0.10.tgz#8c5c1dca54a159eed042b46719dbb3bdb7e8c842"
@@ -507,6 +511,10 @@ angular-moment-timezone@^0.2.1:
     moment-timezone "^0.5.13"
     rxjs "^5.1.0"
     zone.js "^0.8.4"
+
+angular-pipes@^6.5.3:
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/angular-pipes/-/angular-pipes-6.5.3.tgz#6bed37c51ebc2adaf3412663bfe25179d0489b02"
 
 angular2-moment@^1.3.3:
   version "1.4.0"
@@ -1768,6 +1776,12 @@ d3-request@1.0.6:
     d3-dispatch "1"
     d3-dsv "1"
     xmlhttprequest "1"
+
+d3-scale-chromatic@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/d3-scale-chromatic/-/d3-scale-chromatic-1.1.1.tgz#811406e8e09dab78a49dac4a32047d5d3edd0c44"
+  dependencies:
+    d3-interpolate "1"
 
 d3-scale@1.0.6:
   version "1.0.6"
@@ -4152,11 +4166,7 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
-ng2-auto-complete@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/ng2-auto-complete/-/ng2-auto-complete-0.12.0.tgz#9a78c39c5012404e7bc8365c03815ab7f68cea3d"
-
-ngx-bootstrap@^1.6.6:
+ngx-bootstrap@^1.9.3:
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/ngx-bootstrap/-/ngx-bootstrap-1.9.3.tgz#28e75d14fb1beaee609383d7694de4eb3ba03b26"
 

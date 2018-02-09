@@ -941,7 +941,7 @@ App.config = Em.Object.create({
       properties.forEach(function (_property) {
         var name, value;
         if (_property) {
-          _property = _property.split('=');
+          _property = _property.split(/=(.+)/);
           name = _property[0];
           value = (_property[1]) ? _property[1] : "";
           configs.push(Em.Object.create({

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
@@ -67,7 +68,7 @@ import org.apache.ambari.server.controller.internal.ServiceDependencyResourcePro
 import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -91,12 +92,11 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
-import org.apache.commons.lang.StringUtils;
+import org.apache.directory.api.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
@@ -213,97 +213,114 @@ public class AmbariContext {
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
                                     String repoVersionString, Long repoVersionId) {
-    Stack stack = topology.getBlueprint().getStack();
-    StackId stackId = new StackId(stack.getName(), stack.getVersion());
+    Map<StackId, Long> repoVersionByStack = new HashMap<>();
 
-    RepositoryVersionEntity repoVersion = null;
-    if (StringUtils.isEmpty(repoVersionString) && null == repoVersionId) {
-      List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
-
-      if (stackRepoVersions.isEmpty()) {
-        // !!! no repos, try to get the version for the stack
-        VersionDefinitionResourceProvider vdfProvider = getVersionDefinitionResourceProvider();
-
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(VersionDefinitionResourceProvider.VERSION_DEF_AVAILABLE_DEFINITION, stackId.toString());
-
-        Request request = new RequestImpl(Collections.<String>emptySet(),
-            Collections.singleton(properties), Collections.<String, String>emptyMap(), null);
-
-        Long defaultRepoVersionId = null;
-
-        try {
-          RequestStatus requestStatus = vdfProvider.createResources(request);
-          if (!requestStatus.getAssociatedResources().isEmpty()) {
-            Resource resource = requestStatus.getAssociatedResources().iterator().next();
-            defaultRepoVersionId = (Long) resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
-          }
-        } catch (Exception e) {
-          throw new IllegalArgumentException(String.format(
-              "Failed to create a default repository version definition for stack %s. "
-              + "This typically is a result of not loading the stack correctly or being able "
-              + "to load information about released versions.  Create a repository version "
-              + " and try again.", stackId), e);
-        }
-
-        repoVersion = repositoryVersionDAO.findByPK(defaultRepoVersionId);
-        // !!! better not!
-        if (null == repoVersion) {
-          throw new IllegalArgumentException(String.format(
-              "Failed to load the default repository version definition for stack %s. "
-              + "Check for a valid repository version and try again.", stackId));
-        }
-
-      } else if (stackRepoVersions.size() > 1) {
-
-        Function<RepositoryVersionEntity, String> function = new Function<RepositoryVersionEntity, String>() {
-          @Override
-          public String apply(RepositoryVersionEntity input) {
-            return input.getVersion();
-          }
-        };
-
-        Collection<String> versions = Collections2.transform(stackRepoVersions, function);
-
-        throw new IllegalArgumentException(String.format("Several repositories were found for %s:  %s.  Specify the version"
-            + " with '%s'", stackId, StringUtils.join(versions, ", "), ProvisionClusterRequest.REPO_VERSION_PROPERTY));
-      } else {
-        repoVersion = stackRepoVersions.get(0);
-        LOG.warn("Cluster is being provisioned using the single matching repository version {}", repoVersion.getVersion());
+    Set<StackId> stackIds = topology.getBlueprint().getStackIds();
+    for (StackId stackId : stackIds) {
+      RepositoryVersionEntity repoVersion = null;
+      if (stackIds.size() == 1) {
+        repoVersion = findSpecifiedRepo(repoVersionString, repoVersionId, stackId);
       }
-    } else if (null != repoVersionId){
+      if (null == repoVersion) {
+        repoVersion = findRepoForStack(stackId);
+      }
+      Preconditions.checkNotNull(repoVersion);
+      // only use a STANDARD repo when creating a new cluster
+      if (repoVersion.getType() != RepositoryType.STANDARD) {
+        throw new IllegalArgumentException(String.format(
+          "Unable to create a cluster using the following repository since it is not a STANDARD type: %s",
+          repoVersion
+        ));
+      }
+    }
+
+    StackId stackId = Iterables.getFirst(topology.getBlueprint().getStackIds(), null);
+    createAmbariClusterResource(clusterName, stackId, securityType);
+    createAmbariServiceAndComponentResources(topology, clusterName, repoVersionByStack);
+  }
+
+  private RepositoryVersionEntity findRepoForStack(StackId stackId) {
+    RepositoryVersionEntity repoVersion;
+    List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
+    if (stackRepoVersions.isEmpty()) {
+      // !!! no repos, try to get the version for the stack
+      VersionDefinitionResourceProvider vdfProvider = getVersionDefinitionResourceProvider();
+
+      Map<String, Object> properties = new HashMap<>();
+      properties.put(VersionDefinitionResourceProvider.VERSION_DEF_AVAILABLE_DEFINITION, stackId.toString());
+
+      Request request = new RequestImpl(Collections.emptySet(),
+        Collections.singleton(properties), Collections.emptyMap(), null
+      );
+
+      Long defaultRepoVersionId = null;
+
+      try {
+        RequestStatus requestStatus = vdfProvider.createResources(request);
+        if (!requestStatus.getAssociatedResources().isEmpty()) {
+          Resource resource = requestStatus.getAssociatedResources().iterator().next();
+          defaultRepoVersionId = (Long) resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
+        }
+      } catch (Exception e) {
+        throw new IllegalArgumentException(String.format(
+          "Failed to create a default repository version definition for stack %s. "
+            + "This typically is a result of not loading the stack correctly or being able "
+            + "to load information about released versions.  Create a repository version "
+            + " and try again.", stackId), e);
+      }
+
+      repoVersion = repositoryVersionDAO.findByPK(defaultRepoVersionId);
+      // !!! better not!
+      if (null == repoVersion) {
+        throw new IllegalArgumentException(String.format(
+          "Failed to load the default repository version definition for stack %s. "
+            + "Check for a valid repository version and try again.", stackId));
+      }
+
+    } else if (stackRepoVersions.size() > 1) {
+      String versions = stackRepoVersions.stream()
+        .map(RepositoryVersionEntity::getVersion)
+        .collect(joining(", "));
+
+      throw new IllegalArgumentException(String.format(
+        "Several repositories were found for %s:  %s.  Specify the version with '%s'",
+        stackId, versions, ProvisionClusterRequest.REPO_VERSION_PROPERTY
+      ));
+    } else {
+      repoVersion = stackRepoVersions.get(0);
+      LOG.info("Found single matching repository version {} for stack {}", repoVersion.getVersion(), stackId);
+    }
+    return repoVersion;
+  }
+
+  private RepositoryVersionEntity findSpecifiedRepo(String repoVersionString, Long repoVersionId, StackId stackId) {
+    RepositoryVersionEntity repoVersion = null;
+    if (null != repoVersionId) {
       repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
 
       if (null == repoVersion) {
         throw new IllegalArgumentException(String.format(
           "Could not identify repository version with repository version id %s for installing services. "
             + "Specify a valid repository version id with '%s'",
-          repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY));
+          repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY
+        ));
       }
-    } else {
+    } else if (Strings.isNotEmpty(repoVersionString)) {
       repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
 
       if (null == repoVersion) {
         throw new IllegalArgumentException(String.format(
           "Could not identify repository version with stack %s and version %s for installing services. "
             + "Specify a valid version with '%s'",
-          stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+          stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY
+        ));
       }
     }
-
-    // only use a STANDARD repo when creating a new cluster
-    if (repoVersion.getType() != RepositoryType.STANDARD) {
-      throw new IllegalArgumentException(String.format(
-          "Unable to create a cluster using the following repository since it is not a STANDARD type: %s",
-          repoVersion));
-    }
-
-    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
-    createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion.getId());
+    return repoVersion;
   }
 
-  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
-    String stackInfo = String.format("%s-%s", stackName, stackVersion);
+  public void createAmbariClusterResource(String clusterName, StackId stackId, SecurityType securityType) {
+    String stackInfo = stackId.toString();
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
 
     try {
@@ -325,9 +342,7 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName,
-      StackId stackId, Long repositoryVersionId) {
-
+  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName, Map<StackId, Long> repoVersionByStack) {
     Set<String> serviceGroups = Sets.newHashSet(DEFAULT_SERVICE_GROUP_NAME);
     Collection<String> services = topology.getBlueprint().getServices();
 
@@ -347,10 +362,13 @@ public class AmbariContext {
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
+      StackId stackId = Iterables.getOnlyElement(topology.getBlueprint().getStackIdsForService(service)); // FIXME temporarily assume each service is defined in only one mpack
+      Long repositoryVersionId = repoVersionByStack.get(stackId);
       serviceRequests.add(new ServiceRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, service,
-              repositoryVersionId, null, credentialStoreEnabled, null));
+        repositoryVersionId, null, credentialStoreEnabled, stackId
+      ));
 
-      for (String component : topology.getBlueprint().getComponents(service)) {
+      for (String component : topology.getBlueprint().getComponentNames(service)) {
         String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
         componentRequests.add(new ServiceComponentRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, component, null, recoveryEnabled));
       }
@@ -522,11 +540,10 @@ public class AmbariContext {
    * installed and started and that the monitoring screen for the cluster should be displayed to the user.
    *
    * @param clusterName  cluster name
-   * @param stackName    stack name
-   * @param stackVersion stack version
+   * @param stackId    stack ID
    */
-  public void persistInstallStateForUI(String clusterName, String stackName, String stackVersion) {
-    String stackInfo = String.format("%s-%s", stackName, stackVersion);
+  public void persistInstallStateForUI(String clusterName, StackId stackId) {
+    String stackInfo = stackId.toString();
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, "INSTALLED", null, stackInfo, null);
 
     try {
@@ -743,7 +760,7 @@ public class AmbariContext {
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
     Map<String, Map<String, Config>> groupConfigs = new HashMap<>();
-    Stack stack = topology.getBlueprint().getStack();
+    StackDefinition stack = topology.getBlueprint().getStack();
 
     // get the host-group config with cluster creation template overrides
     Configuration topologyHostGroupConfig = topology.
@@ -756,7 +773,13 @@ public class AmbariContext {
     // iterate over topo host group configs which were defined in
     for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {
       String type = entry.getKey();
-      String service = stack.getServiceForConfigType(type);
+      String service = stack.getServicesForConfigType(type)
+        .filter(each -> topology.getBlueprint().getServices().contains(each))
+        .findFirst()
+        // TODO check if this is required at all (might be handled by the "orphan" removal)
+        // TODO move this validation earlier
+        .orElseThrow(() -> new IllegalArgumentException("Specified configuration type is not associated with any service in the blueprint: " + type));
+
       Config config = configFactory.createReadOnly(type, groupName, entry.getValue(), null);
       //todo: attributes
       Map<String, Config> serviceConfigs = groupConfigs.get(service);

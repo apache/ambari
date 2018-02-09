@@ -114,7 +114,10 @@
       </commandScript>
       
       <requiredServices>
-        <service>OOZIE</service>
+        <service>
+          <name>OOZIE</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

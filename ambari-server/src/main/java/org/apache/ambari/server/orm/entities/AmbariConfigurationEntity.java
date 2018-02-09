@@ -76,7 +76,7 @@ public class AmbariConfigurationEntity {
   @Override
   public String toString() {
     return "AmbariConfigurationEntity{" +
-        ", category=" + categoryName +
+        " category=" + categoryName +
         ", name=" + propertyName +
         ", value=" + propertyValue +
         '}';

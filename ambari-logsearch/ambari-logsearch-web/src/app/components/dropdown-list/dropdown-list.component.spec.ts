@@ -24,8 +24,11 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
-import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {
+  ServiceLogsHistogramDataService, serviceLogsHistogramData
+} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -35,8 +38,8 @@ import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {AuthService} from '@app/services/auth.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {DropdownListComponent} from './dropdown-list.component';
 
@@ -62,6 +65,7 @@ describe('DropdownListComponent', () => {
           auditLogs,
           serviceLogs,
           auditLogsFields,
+          auditLogsGraphData,
           serviceLogsFields,
           serviceLogsHistogramData,
           appSettings,
@@ -80,11 +84,11 @@ describe('DropdownListComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
-        ComponentActionsService,
         HostsService,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
+        AuditLogsGraphDataService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         AppSettingsService,
@@ -93,7 +97,8 @@ describe('DropdownListComponent', () => {
         ComponentsService,
         ServiceLogsTruncatedService,
         TabsService,
-        AuthService
+        AuthService,
+        UtilsService
       ]
     })
     .compileComponents();

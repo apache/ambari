@@ -19,8 +19,9 @@
 
 package org.apache.ambari.logfeeder.mapper;
 
-import java.util.Map;
-
+import com.google.common.base.Splitter;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.plugin.filter.mapper.Mapper;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapAnonymizeDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
@@ -29,9 +30,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.google.common.base.Splitter;
+import java.util.Map;
 
-public class MapperAnonymize extends Mapper {
+public class MapperAnonymize extends Mapper<LogFeederProps> {
   private static final Logger LOG = Logger.getLogger(MapperAnonymize.class);
   
   private static final char DEFAULT_HIDE_CHAR = '*';
@@ -115,6 +116,6 @@ public class MapperAnonymize extends Mapper {
     
     sb.append(rest);
     
-    jsonObj.put(fieldName, sb.toString());
+    jsonObj.put(getFieldName(), sb.toString());
   }
 }

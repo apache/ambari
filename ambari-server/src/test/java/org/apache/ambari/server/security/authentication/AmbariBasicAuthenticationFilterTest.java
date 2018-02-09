@@ -18,110 +18,134 @@
 package org.apache.ambari.server.security.authentication;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.newCapture;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.security.AmbariEntryPoint;
-import org.apache.ambari.server.security.authorization.PermissionHelper;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
+import org.easymock.IAnswer;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.codec.Base64;
 
 public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
 
-  private AmbariBasicAuthenticationFilter underTest;
-
-  private AuditLogger mockedAuditLogger;
-
-  private PermissionHelper permissionHelper;
+  private AmbariAuthenticationEventHandler eventHandler;
 
   private AmbariEntryPoint entryPoint;
 
+  private AuthenticationManager authenticationManager;
+
   @Before
   public void setUp() {
-    mockedAuditLogger = createMock(AuditLogger.class);
-    permissionHelper = createMock(PermissionHelper.class);
-    entryPoint = createMock(AmbariEntryPoint.class);
-    underTest = new AmbariBasicAuthenticationFilter(null, entryPoint, mockedAuditLogger, permissionHelper);
-  }
-
-  @Test
-  public void testDoFilter() throws IOException, ServletException {
     SecurityContextHolder.getContext().setAuthentication(null);
+
+    eventHandler = createMock(AmbariAuthenticationEventHandler.class);
+    entryPoint = createMock(AmbariEntryPoint.class);
+    authenticationManager = createMock(AuthenticationManager.class);
+  }
+
+  @Test (expected = IllegalArgumentException.class)
+  public void ensureNonNullEventHandler() {
+    new AmbariBasicAuthenticationFilter(authenticationManager, entryPoint, null);
+  }
+
+  @Test
+  public void testDoFilterSuccessful() throws IOException, ServletException {
+    Capture<? extends AmbariAuthenticationFilter> captureFilter = newCapture(CaptureType.ALL);
+
     // GIVEN
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
+    HttpSession session = createMock(HttpSession.class);
     FilterChain filterChain = createMock(FilterChain.class);
-    expect(request.getHeader("Authorization")).andReturn("Basic ").andReturn(null);
-    expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4").anyTimes();
-    expect(mockedAuditLogger.isEnabled()).andReturn(true).anyTimes();
-    mockedAuditLogger.log(anyObject(AuditEvent.class));
-    expectLastCall().times(1);
+
+    expect(request.getHeader("Authorization")).andReturn("Basic YWRtaW46YWRtaW4=").once();
+    expect(request.getRemoteAddr()).andReturn("1.2.3.4").once();
+    expect(request.getSession(false)).andReturn(session).once();
+    expect(session.getId()).andReturn("sessionID").once();
+    expect(authenticationManager.authenticate(anyObject(Authentication.class)))
+        .andAnswer(new IAnswer<Authentication>() {
+          @Override
+          public Authentication answer() throws Throwable {
+            return (Authentication) getCurrentArguments()[0];
+          }
+        })
+        .anyTimes();
+
+    eventHandler.beforeAttemptAuthentication(capture(captureFilter), eq(request), eq(response));
+    expectLastCall().once();
+    eventHandler.onSuccessfulAuthentication(capture(captureFilter), eq(request), eq(response), anyObject(Authentication.class));
+    expectLastCall().once();
+
     filterChain.doFilter(request, response);
-    expectLastCall();
+    expectLastCall().once();
+
     replayAll();
     // WHEN
-    underTest.doFilter(request, response, filterChain);
+    AmbariAuthenticationFilter filter = new AmbariBasicAuthenticationFilter(authenticationManager, entryPoint, eventHandler);
+    filter.doFilter(request, response, filterChain);
     // THEN
     verifyAll();
+
+    List<? extends AmbariAuthenticationFilter> capturedFilters = captureFilter.getValues();
+    for (AmbariAuthenticationFilter capturedFiltered : capturedFilters) {
+      Assert.assertSame(filter, capturedFiltered);
+    }
   }
 
   @Test
-  public void testOnSuccessfulAuthentication() throws IOException, ServletException {
+  public void testDoFilterUnsuccessful() throws IOException, ServletException {
+    Capture<? extends AmbariAuthenticationFilter> captureFilter = newCapture(CaptureType.ALL);
+
     // GIVEN
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    Authentication authentication = createMock(Authentication.class);
+    HttpSession session = createMock(HttpSession.class);
+    FilterChain filterChain = createMock(FilterChain.class);
 
-    Map<String, List<String>> roles = new HashMap<>();
-    roles.put("a", Arrays.asList("r1", "r2", "r3"));
-    expect(permissionHelper.getPermissionLabels(authentication))
-        .andReturn(roles);
-    expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
-    expect(authentication.getName()).andReturn("admin");
-    expect(mockedAuditLogger.isEnabled()).andReturn(true);
-    mockedAuditLogger.log(anyObject(AuditEvent.class));
-    expectLastCall().times(1);
+    expect(request.getHeader("Authorization")).andReturn("Basic YWRtaW46YWRtaW4=").once();
+    expect(request.getRemoteAddr()).andReturn("1.2.3.4").once();
+    expect(request.getSession(false)).andReturn(session).once();
+    expect(session.getId()).andReturn("sessionID").once();
+    expect(authenticationManager.authenticate(anyObject(Authentication.class))).andThrow(new InvalidUsernamePasswordCombinationException("user")).once();
+
+    eventHandler.beforeAttemptAuthentication(capture(captureFilter), eq(request), eq(response));
+    expectLastCall().once();
+    eventHandler.onUnsuccessfulAuthentication(capture(captureFilter), eq(request), eq(response), anyObject(AmbariAuthenticationException.class));
+    expectLastCall().once();
+
+    entryPoint.commence(eq(request), eq(response), anyObject(AmbariAuthenticationException.class));
+    expectLastCall().once();
+
     replayAll();
     // WHEN
-    underTest.onSuccessfulAuthentication(request, response, authentication);
+    AmbariAuthenticationFilter filter = new AmbariBasicAuthenticationFilter(authenticationManager, entryPoint, eventHandler);
+    filter.doFilter(request, response, filterChain);
     // THEN
     verifyAll();
-  }
 
-  @Test
-  public void testOnUnsuccessfulAuthentication() throws IOException, ServletException {
-    // GIVEN
-    HttpServletRequest request = createMock(HttpServletRequest.class);
-    HttpServletResponse response = createMock(HttpServletResponse.class);
-    AuthenticationException authEx = createMock(AuthenticationException.class);
-    expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
-    expect(request.getHeader("Authorization")).andReturn(
-        "Basic " + new String(Base64.encode("admin:admin".getBytes("UTF-8"))));
-    expect(mockedAuditLogger.isEnabled()).andReturn(true);
-    mockedAuditLogger.log(anyObject(AuditEvent.class));
-    expectLastCall().times(1);
-    replayAll();
-    // WHEN
-    underTest.onUnsuccessfulAuthentication(request, response, authEx);
-    // THEN
-    verifyAll();
+    List<? extends AmbariAuthenticationFilter> capturedFilters = captureFilter.getValues();
+    for (AmbariAuthenticationFilter capturedFiltered : capturedFilters) {
+      Assert.assertSame(filter, capturedFiltered);
+    }
   }
 }

@@ -145,7 +145,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
    * @param controller
    */
   AlertResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.Alert, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

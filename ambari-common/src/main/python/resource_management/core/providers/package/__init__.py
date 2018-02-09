@@ -66,6 +66,21 @@ class PackageProvider(Provider):
     else:
       return self.resource.package_name
 
+  def check_uncompleted_transactions(self):
+    """
+    Check package manager against uncompleted transactions.
+
+    :rtype bool
+    """
+    return False
+
+  def print_uncompleted_transaction_hint(self):
+    """
+    Print friendly message about they way to fix the issue
+
+    """
+    pass
+
   def get_available_packages_in_repos(self, repositories):
     """
     Gets all (both installed and available) packages that are available at given repositories.

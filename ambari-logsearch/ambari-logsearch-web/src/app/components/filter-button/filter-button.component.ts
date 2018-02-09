@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 
-import {Component, Input, forwardRef} from '@angular/core';
+import {Component, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {ListItem} from "@app/classes/list-item";
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 
@@ -37,8 +36,8 @@ import {MenuButtonComponent} from '@app/components/menu-button/menu-button.compo
 })
 export class FilterButtonComponent extends MenuButtonComponent implements ControlValueAccessor {
 
-  constructor(protected actions: ComponentActionsService, private utils: UtilsService) {
-    super(actions);
+  constructor(private utils: UtilsService) {
+    super();
   }
 
   private selectedItems: ListItem[] = [];

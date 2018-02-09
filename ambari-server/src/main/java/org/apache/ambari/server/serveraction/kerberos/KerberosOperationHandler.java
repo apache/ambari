@@ -800,7 +800,12 @@ public abstract class KerberosOperationHandler {
       encryptionTypes = ENCRYPTION_TYPE_TRANSLATION_MAP.get(name.toLowerCase());
     }
 
-    return (encryptionTypes == null) ? Collections.emptySet() : encryptionTypes;
+    if (encryptionTypes == null) {
+      LOG.warn("The given encryption type name ({}) is not supported.", name);
+      return Collections.emptySet();
+    }
+
+    return encryptionTypes;
   }
 
   /**
@@ -810,8 +815,10 @@ public abstract class KerberosOperationHandler {
    * @param names     a String containing a delimited list of encryption type names
    * @param delimiter a String declaring the delimiter to use to split names, if null, " " is used.
    * @return a Set of EncryptionType values
+   * @throws KerberosOperationException When all the encryption type names are not supported
    */
-  protected Set<EncryptionType> translateEncryptionTypes(String names, String delimiter) {
+  protected Set<EncryptionType> translateEncryptionTypes(String names, String delimiter)
+      throws KerberosOperationException {
     Set<EncryptionType> encryptionTypes = new HashSet<>();
 
     if (!StringUtils.isEmpty(names)) {
@@ -820,6 +827,9 @@ public abstract class KerberosOperationHandler {
       }
     }
 
+    if (encryptionTypes.isEmpty()) {
+      throw new KerberosOperationException("All the encryption type names you set are not supported. Aborting.");
+    }
     return encryptionTypes;
   }
 

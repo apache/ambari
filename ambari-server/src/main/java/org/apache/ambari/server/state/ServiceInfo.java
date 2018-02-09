@@ -69,6 +69,7 @@ public class ServiceInfo implements Validable, Cloneable {
   private String schemaVersion;
 
   private String name;
+  private ServiceCategory category;
   private String displayName;
   private String version;
   private String comment;
@@ -284,7 +285,7 @@ public class ServiceInfo implements Validable, Cloneable {
 
   @XmlElementWrapper(name="requiredServices")
   @XmlElement(name="service")
-  private List<String> requiredServices = new ArrayList<>();
+  private List<RequiredService> requiredServices = new ArrayList<>();
 
   /**
    * Meaning: stores subpath from stack root to exact directory, that contains
@@ -348,6 +349,14 @@ public class ServiceInfo implements Validable, Cloneable {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public ServiceCategory getCategory() {
+    return category;
+  }
+
+  public void setCategory(ServiceCategory category) {
+    this.category = category;
   }
 
   public String getParent() {
@@ -417,7 +426,7 @@ public class ServiceInfo implements Validable, Cloneable {
   public void setComment(String comment) {
     this.comment = comment;
   }
-  public List<String> getRequiredServices() {
+  public List<RequiredService> getRequiredServices() {
     return requiredServices;
   }
 
@@ -437,7 +446,7 @@ public class ServiceInfo implements Validable, Cloneable {
     this.metricsFileName = metricsFileName;
   }
 
-  public void setRequiredServices(List<String> requiredServices) {
+  public void setRequiredServices(List<RequiredService> requiredServices) {
     this.requiredServices = requiredServices;
   }
   public List<PropertyInfo> getProperties() {
@@ -489,6 +498,11 @@ public class ServiceInfo implements Validable, Cloneable {
     return components;
   }
 
+  //Used only for testing purposes
+  public void setComponents(List<ComponentInfo> components) {
+    this.components = components;
+  }
+
   /**
    * Finds ComponentInfo by component name
    * @param componentName  name of the component
@@ -503,6 +517,9 @@ public class ServiceInfo implements Validable, Cloneable {
     return null;
   }
   public boolean isClientOnlyService() {
+    if (ServiceCategory.CLIENT.equals(category)) {
+      return true;
+    }
     if (components == null || components.isEmpty()) {
       return false;
     }

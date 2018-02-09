@@ -19,7 +19,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -28,32 +28,40 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
-import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * ExportBlueprintRequest unit tests.
  */
 @SuppressWarnings("unchecked")
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ExportBlueprintRequest.ExportedHostGroup.class})
 public class ExportBlueprintRequestTest {
   private static final String CLUSTER_NAME = "c1";
   private static final String CLUSTER_ID = "2";
@@ -66,12 +74,19 @@ public class ExportBlueprintRequestTest {
     f.setAccessible(true);
     f.set(null, controller);
 
-    expect(controller.getStackServices((Set<StackServiceRequest>)  anyObject())).andReturn(
-        Collections.emptySet()).anyTimes();
-    expect(controller.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.emptySet()).anyTimes();
+    AmbariMetaInfo metainfo = createNiceMock(AmbariMetaInfo.class);
+    expect(controller.getAmbariMetaInfo()).andReturn(metainfo).anyTimes();
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(metainfo.getStack("TEST", "1.0")).andReturn(stackInfo);
+    expect(stackInfo.getServices()).andReturn(Collections.emptySet()).anyTimes();
+    expect(stackInfo.getProperties()).andReturn(Collections.emptyList()).anyTimes();
 
-    replay(controller);
+    replay(controller, metainfo, stackInfo);
+
+    // This can save precious time
+    mockStatic(InetAddress.class);
+    expect(InetAddress.getByName(anyString())).andThrow(new UnknownHostException()).anyTimes();
+    PowerMock.replay(InetAddress.class);
   }
 
   @After

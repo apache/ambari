@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.Basic;
@@ -27,10 +28,8 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.apache.ambari.server.state.SecurityType;
@@ -59,21 +58,17 @@ public class BlueprintEntity {
   @Column(name = "security_descriptor_reference", nullable = true, insertable = true, updatable = true)
   private String securityDescriptorReference;
 
-  /**
-   * Unidirectional one-to-one association to {@link StackEntity}
-   */
-  @OneToOne
-  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = false)
-  private StackEntity stack;
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
+  private Collection<HostGroupEntity> hostGroups = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<HostGroupEntity> hostGroups;
+  private Collection<BlueprintConfigEntity> configurations = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<BlueprintConfigEntity> configurations;
+  private Collection<BlueprintSettingEntity> settings = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<BlueprintSettingEntity> settings;
+  private Collection<BlueprintMpackInstanceEntity> mpackInstances = new ArrayList<>();
 
 
   /**
@@ -92,25 +87,6 @@ public class BlueprintEntity {
    */
   public void setBlueprintName(String blueprintName) {
     this.blueprintName = blueprintName;
-  }
-
-  /**
-   * Gets the blueprint's stack.
-   *
-   * @return the stack.
-   */
-  public StackEntity getStack() {
-    return stack;
-  }
-
-  /**
-   * Sets the blueprint's stack.
-   *
-   * @param stack
-   *          the stack to set for the blueprint (not {@code null}).
-   */
-  public void setStack(StackEntity stack) {
-    this.stack = stack;
   }
 
   /**
@@ -181,5 +157,13 @@ public class BlueprintEntity {
 
   public void setSecurityDescriptorReference(String securityDescriptorReference) {
     this.securityDescriptorReference = securityDescriptorReference;
+  }
+
+  public Collection<BlueprintMpackInstanceEntity> getMpackInstances() {
+    return mpackInstances;
+  }
+
+  public void setMpackInstances(Collection<BlueprintMpackInstanceEntity> mpackInstances) {
+    this.mpackInstances = mpackInstances;
   }
 }

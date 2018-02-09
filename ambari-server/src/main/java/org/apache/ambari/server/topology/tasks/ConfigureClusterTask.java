@@ -71,8 +71,9 @@ public class ConfigureClusterTask implements Callable<Boolean> {
     Collection<String> requiredHostGroups = getTopologyRequiredHostGroups();
 
     if (!areHostGroupsResolved(requiredHostGroups)) {
-      LOG.info("Some host groups require more hosts, cluster configuration cannot begin");
-      throw new AsyncCallableService.RetryTaskSilently();
+      String msg = "Some host groups require more hosts, cluster configuration cannot begin";
+      LOG.info(msg);
+      throw new AsyncCallableService.RetryTaskSilently(msg);
     }
 
     LOG.info("All required host groups are complete, cluster configuration can now begin");

@@ -19,7 +19,7 @@
 import {QueryParams} from '@app/classes/queries/query-params';
 import {ScrollType} from '@app/classes/string';
 
-export const defaultParams = {
+const defaultParams = {
   numberRows: '10',
   scrollType: ''
 };

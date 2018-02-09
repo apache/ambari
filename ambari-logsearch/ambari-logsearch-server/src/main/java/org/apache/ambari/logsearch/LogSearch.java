@@ -36,7 +36,7 @@ public class LogSearch {
 
   public static void main(String[] args) {
 
-    String pidFile = System.getenv("PID_FILE") == null ? "logsearch.pid" : System.getenv("PID_FILE");
+    String pidFile = System.getenv("LOGSEARCH_PID_FILE") == null ? "logsearch.pid" : System.getenv("LOGSEARCH_PID_FILE");
     new SpringApplicationBuilder(LogSearch.class)
       .bannerMode(Banner.Mode.OFF)
       .listeners(new ApplicationPidFileWriter(pidFile))

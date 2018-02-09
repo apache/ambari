@@ -418,6 +418,33 @@ public class ComponentModuleTest {
   }
 
   @Test
+  public void testResolve_Version() throws Exception {
+    String version = "1.1";
+
+    // specified in child only
+    ComponentInfo info = new ComponentInfo();
+    ComponentInfo parentInfo = new ComponentInfo();
+    info.setVersion(version);
+
+    ComponentModule module = resolveComponent(info, parentInfo);
+    assertEquals(version, module.getModuleInfo().getVersion());
+
+    // specified in parent only, shouldn't be inherited
+    info.setVersion(null);
+    parentInfo.setVersion(version);
+
+    module = resolveComponent(info, parentInfo);
+    assertEquals(null, module.getModuleInfo().getVersion());
+
+    // specified in both
+    info.setVersion(version);
+    parentInfo.setVersion("1.0");
+
+    module = resolveComponent(info, parentInfo);
+    assertEquals(version, module.getModuleInfo().getVersion());
+  }
+
+  @Test
   public void testResolve_BulkCommandsDefinition(){
     BulkCommandDefinition bulkCommandsDefinition = new BulkCommandDefinition();
     ComponentInfo info = new ComponentInfo();

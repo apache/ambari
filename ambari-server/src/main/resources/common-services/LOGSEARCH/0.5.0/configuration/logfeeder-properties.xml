@@ -29,7 +29,7 @@
   </property>
   <property>
     <name>logfeeder.checkpoint.folder</name>
-    <value>/etc/ambari-logsearch-logfeeder/conf/checkpoints</value>
+    <value>/usr/lib/ambari-logsearch-logfeeder/conf/checkpoints</value>
     <description>Checkpoint folder for Log Feeder</description>
     <display-name>Log Feeder checkpoint dir</display-name>
     <value-attributes>

@@ -66,13 +66,8 @@ public class LoggingResourceProvider extends AbstractControllerResourceProvider 
   }
 
 
-  public LoggingResourceProvider(Set<String> propertyIds,
-                                 Map<Resource.Type, String> keyPropertyIds,
-                                 AmbariManagementController controller) {
-
-
-
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+  public LoggingResourceProvider(AmbariManagementController controller) {
+    super(Resource.Type.LoggingQuery, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

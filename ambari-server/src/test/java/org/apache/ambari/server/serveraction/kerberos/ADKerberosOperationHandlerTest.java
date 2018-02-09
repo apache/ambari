@@ -29,6 +29,7 @@ import static org.easymock.EasyMock.replay;
 
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,12 +72,14 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
   private static final String DEFAULT_LDAP_URL = "ldaps://10.0.100.4";
   private static final String DEFAULT_PRINCIPAL_CONTAINER_DN = "ou=HDP,DC=HDP01,DC=LOCAL";
   private static final String DEFAULT_REALM = "HDP01.LOCAL";
-  private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
-    {
-      put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
-      put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
-    }
-  };
+  private static final Map<String, String> KERBEROS_ENV_MAP;
+
+  static {
+    Map<String, String> map = new HashMap<>(DEFAULT_KERBEROS_ENV_MAP);
+    map.put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
+    map.put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
+    KERBEROS_ENV_MAP = Collections.unmodifiableMap(map);
+  }
 
   private static Method methodCreateInitialLdapContext;
 

@@ -20,16 +20,33 @@ package org.apache.ambari.server.security.authentication.pam;
 
 import javax.inject.Singleton;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AuthenticationServiceException;
 
 /**
  * PamAuthenticationFactory returns Pam library instances.
  */
 @Singleton
 public class PamAuthenticationFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(PamAuthenticationFactory.class);
 
-  public PAM createInstance(String pamConfig) throws PAMException {
-    return new PAM(pamConfig);
+  public PAM createInstance(Configuration configuration) {
+    String pamConfig = (configuration == null) ? null : configuration.getPamConfigurationFile();
+    return createInstance(pamConfig);
+  }
+
+  public PAM createInstance(String pamConfig) {
+    try {
+      //Set PAM configuration file (found under /etc/pam.d)
+      return new PAM(pamConfig);
+    } catch (PAMException e) {
+      String message = String.format("Unable to Initialize PAM: %s", e.getMessage());
+      LOG.error(message, e);
+      throw new AuthenticationServiceException(message, e);
+    }
   }
 }

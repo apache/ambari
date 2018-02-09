@@ -118,7 +118,7 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
    * Constructor.
    */
   AlertHistoryResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.AlertHistory, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   /**

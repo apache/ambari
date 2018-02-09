@@ -21,39 +21,42 @@ import {NgModule, CUSTOM_ELEMENTS_SCHEMA, Injector} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HttpModule, Http, XHRBackend, BrowserXhr, ResponseOptions, XSRFStrategy} from '@angular/http';
 import {InMemoryBackendService} from 'angular-in-memory-web-api';
-import {AlertModule} from 'ngx-bootstrap';
+import {TypeaheadModule, TooltipModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
-import {Ng2AutoCompleteModule} from 'ng2-auto-complete';
+import {NgStringPipesModule} from 'angular-pipes';
 
 import {environment} from '@envs/environment';
 
+import {ServiceInjector} from '@app/classes/service-injector';
+
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
+import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
 import {GraphsService} from '@app/services/storage/graphs.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 import {UserConfigsService} from '@app/services/storage/user-configs.service';
-import {FiltersService} from '@app/services/storage/filters.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuthService} from '@app/services/auth.service';
+import {HistoryManagerService} from '@app/services/history-manager.service';
 import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
@@ -86,6 +89,15 @@ import {LogFileEntryComponent} from '@app/components/log-file-entry/log-file-ent
 import {TabsComponent} from '@app/components/tabs/tabs.component';
 import {ServiceLogsTableComponent} from '@app/components/service-logs-table/service-logs-table.component';
 import {AuditLogsTableComponent} from '@app/components/audit-logs-table/audit-logs-table.component';
+import {AuditLogsEntriesComponent} from '@app/components/audit-logs-entries/audit-logs-entries.component';
+import {GraphLegendComponent} from '@app/components/graph-legend/graph-legend.component';
+import {HorizontalHistogramComponent} from '@app/components/horizontal-histogram/horizontal-histogram.component';
+import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip.component';
+import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
+import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
+import {ContextMenuComponent} from '@app/components/context-menu/context-menu.component';
+import {HistoryItemControlsComponent} from '@app/components/history-item-controls/history-item-controls.component';
+import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-index-filter.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -142,6 +154,15 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     TabsComponent,
     ServiceLogsTableComponent,
     AuditLogsTableComponent,
+    AuditLogsEntriesComponent,
+    GraphLegendComponent,
+    HorizontalHistogramComponent,
+    GraphTooltipComponent,
+    GraphLegendItemComponent,
+    TimeLineGraphComponent,
+    ContextMenuComponent,
+    HistoryItemControlsComponent,
+    LogIndexFilterComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -150,7 +171,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FormsModule,
     ReactiveFormsModule,
     HttpModule,
-    AlertModule.forRoot(),
+    TypeaheadModule.forRoot(),
+    TooltipModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -161,24 +183,24 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     StoreModule.provideStore(reducer),
     MomentModule,
     MomentTimezoneModule,
-    Ng2AutoCompleteModule
+    NgStringPipesModule
   ],
   providers: [
     HttpClientService,
-    ComponentActionsService,
     UtilsService,
     LogsContainerService,
     ComponentGeneratorService,
+    UserSettingsService,
     AppSettingsService,
     AppStateService,
     AuditLogsService,
+    AuditLogsGraphDataService,
     ServiceLogsService,
     ServiceLogsHistogramDataService,
     ServiceLogsTruncatedService,
     GraphsService,
     HostsService,
     UserConfigsService,
-    FiltersService,
     ClustersService,
     ComponentsService,
     ServiceLogsFieldsService,
@@ -189,11 +211,18 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       useFactory: getXHRBackend,
       deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
     },
-    AuthService
+    AuthService,
+    HistoryManagerService
   ],
   bootstrap: [AppComponent],
-  entryComponents: [NodeBarComponent],
+  entryComponents: [
+    NodeBarComponent,
+    HistoryItemControlsComponent
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {
+  constructor(private injector: Injector) {
+    ServiceInjector.injector = this.injector;
+  }
 }

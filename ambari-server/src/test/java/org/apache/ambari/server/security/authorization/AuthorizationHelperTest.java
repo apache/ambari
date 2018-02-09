@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -182,29 +183,6 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
 
     Integer userId = AuthorizationHelper.getAuthenticatedId();
     Assert.assertEquals(Integer.valueOf(-1), userId);
-  }
-
-  @Test
-  public void testLoginAliasAuthName() throws Exception {
-
-    reset(servletRequestAttributes);
-
-    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
-    expect(servletRequestAttributes.getAttribute(eq("user1@domain.com"), eq(RequestAttributes.SCOPE_SESSION)))
-      .andReturn("user1").atLeastOnce(); // user1@domain.com is a login alias for user1
-
-    replay(servletRequestAttributes);
-
-    Authentication auth = new UsernamePasswordAuthenticationToken("user1@domain.com", null);
-    SecurityContextHolder.getContext().setAuthentication(new AmbariAuthentication(auth, 0));
-
-    String user = AuthorizationHelper.getAuthenticatedName();
-    Assert.assertEquals("user1", user);
-
-    SecurityContextHolder.getContext().setAuthentication(null); // clean up security context
-
-    verify(servletRequestAttributes);
-
   }
 
   @Test

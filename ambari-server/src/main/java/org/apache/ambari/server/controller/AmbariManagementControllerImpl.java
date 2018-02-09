@@ -129,8 +129,8 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -147,9 +147,7 @@ import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.User;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
@@ -174,9 +172,10 @@ import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.OsSpecific;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
@@ -579,16 +578,34 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public MpackResponse registerMpack(MpackRequest request)
     throws IOException, AuthorizationException, ResourceAlreadyExistsException{
-
-
     MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
     updateStacks();
     return mpackResponse;
   }
 
   @Override
-  public List<Packlet> getPacklets(Long mpackId) {
-    return ambariMetaInfo.getPacklets(mpackId);
+  public Set<MpackResponse> getMpacks(){
+    Collection<Mpack> mpacks = ambariMetaInfo.getMpacks();
+    Set<MpackResponse> responseSet = new HashSet<>();
+    for (Mpack mpack : mpacks){
+      responseSet.add(new MpackResponse(mpack));
+    }
+    return responseSet;
+  }
+
+  @Override
+  public MpackResponse getMpack(Long mpackId) {
+    Mpack mpack = ambariMetaInfo.getMpack(mpackId);
+    if (mpack != null) {
+      return new MpackResponse(mpack);
+    }else{
+      return null;
+    }
+  }
+
+  @Override
+  public List<Module> getModules(Long mpackId) {
+    return ambariMetaInfo.getModules(mpackId);
   }
 
   @Override
@@ -903,7 +920,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
     Service service = cluster.getServiceByConfigType(configType);
-
     // Get the changes so that the user's intention can be determined. For example, maybe
     // the user wants to change the run-as user for a service or maybe the the cluster-wide
     // recovery mode setting.
@@ -1041,20 +1057,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     cluster.addConfig(config);
     return config;
-  }
-
-  @Override
-  public void createUsers(Set<UserRequest> requests) throws AmbariException {
-
-    for (UserRequest request : requests) {
-
-      if (null == request.getUsername() || request.getUsername().isEmpty() ||
-          null == request.getPassword() || request.getPassword().isEmpty()) {
-        throw new AmbariException("Username and password must be supplied.");
-      }
-
-      users.createUser(request.getUsername(), request.getPassword(), UserType.LOCAL, request.isActive(), request.isAdmin());
-    }
   }
 
   @Override
@@ -1594,70 +1596,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // We have to allow for multiple requests to account for multiple
     // configuration updates (create multiple configuration resources)...
     for (ClusterRequest request : requests) {
-      // TODO : Is there ever a real world case where we could have multiple non-null responses?
-
-      // ***************************************************
-      // set any session attributes for this cluster request
-      Cluster cluster;
-      if (request.getClusterId() == null) {
-        cluster = clusters.getCluster(request.getClusterName());
-      } else {
-        cluster = clusters.getClusterById(request.getClusterId());
-      }
-
-      if (cluster == null) {
-        throw new AmbariException("The cluster may not be null");
-      }
-
-      Map<String, Object> sessionAttributes = request.getSessionAttributes();
-
-      // TODO: Once the UI uses the Credential Resource API, remove this block to _clean_ the
-      // TODO: session attributes and store any KDC administrator credentials in the secure
-      // TODO: credential provider facility.
-      // For now, to keep things backwards compatible, get and remove the KDC administrator credentials
-      // from the session attributes and store them in the CredentialsProvider. The KDC administrator
-      // credentials are prefixed with kdc_admin/. The following attributes are expected, if setting
-      // the KDC administrator credentials:
-      //    kerberos_admin/principal
-      //    kerberos_admin/password
-      if((sessionAttributes != null) && !sessionAttributes.isEmpty()) {
-        Map<String, Object> cleanedSessionAttributes = new HashMap<>();
-        String principal = null;
-        char[] password = null;
-
-        for(Map.Entry<String,Object> entry: sessionAttributes.entrySet()) {
-          String name = entry.getKey();
-          Object value = entry.getValue();
-
-          if ("kerberos_admin/principal".equals(name)) {
-            if(value instanceof String) {
-              principal = (String)value;
-            }
-          }
-          else if ("kerberos_admin/password".equals(name)) {
-            if(value instanceof String) {
-              password = ((String) value).toCharArray();
-            }
-          } else {
-            cleanedSessionAttributes.put(name, value);
-          }
-        }
-
-        if(principal != null) {
-          // The KDC admin principal exists... set the credentials in the credentials store
-          credentialStoreService.setCredential(cluster.getClusterName(),
-              KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS,
-              new PrincipalKeyCredential(principal, password), CredentialStoreType.TEMPORARY);
-        }
-
-        sessionAttributes = cleanedSessionAttributes;
-      }
-      // TODO: END
-
-      cluster.addSessionAttributes(sessionAttributes);
-      //
-      // ***************************************************
-
       response = updateCluster(request, requestProperties);
     }
     return response;
@@ -3244,25 +3182,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       for (Service service : smokeTestServices) { // Creates smoke test commands
-        // find service component host
-        ServiceComponent component = getClientComponentForRunningAction(cluster, service);
-        String componentName = component != null ? component.getName() : null;
-        String clientHost = getClientHostForRunningAction(cluster, service, component);
         String smokeTestRole = actionMetadata.getServiceCheckAction(service.getServiceType());
+        try {
+          // find service component host
+          ServiceComponentHost componentForServiceCheck = customCommandExecutionHelper.
+              calculateServiceComponentHostForServiceCheck(cluster, service);
 
-        if (clientHost == null || smokeTestRole == null) {
-          LOG.info("Nothing to do for service check as could not find role or"
-              + " or host to run check on"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", serviceGroupName=" + service.getServiceGroupName()
-              + ", serviceName=" + service.getName()
-              + ", clientHost=" + clientHost
-              + ", serviceCheckRole=" + smokeTestRole);
-          continue;
+          if (StringUtils.isBlank(stage.getHostParamsStage())) {
+            RepositoryVersionEntity repositoryVersion = componentForServiceCheck.getServiceComponent().getDesiredRepositoryVersion();
+            stage.setHostParamsStage(StageUtils.getGson().toJson(
+                customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
+          }
+
+          customCommandExecutionHelper.addServiceCheckAction(stage, componentForServiceCheck.getHostName(), smokeTestRole,
+              nowTimestamp, componentForServiceCheck.getServiceGroupName(), componentForServiceCheck.getServiceName(),
+              componentForServiceCheck.getServiceComponentName(), null, false, false, service.getName());
+
+        } catch (AmbariException e) {
+            LOG.warn("Nothing to do for service check as could not find role or"
+                + " or host to run check on"
+                + ", clusterName=" + cluster.getClusterName()
+                + ", serviceGroupName=" + service.getServiceGroupName()
+                + ", serviceName=" + service.getName()
+                + ", serviceCheckRole=" + smokeTestRole
+                + "Actual reason : " + e.getMessage());
         }
-
-        customCommandExecutionHelper.addServiceCheckAction(stage, clientHost, smokeTestRole,
-            nowTimestamp, service.getServiceGroupName(), service.getName(), componentName, null, false, false);
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -3651,65 +3595,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return cluster.getServiceByComponentName(componentName).getName();
   }
 
-  /**
-   * Updates the users specified.
-   *
-   * @param requests the users to modify
-   *
-   * @throws AmbariException if the resources cannot be updated
-   * @throws IllegalArgumentException if the authenticated user is not authorized to update all of
-   * the requested properties
-   */
-  @Override
-  public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException {
-    boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
-        RoleAuthorization.AMBARI_MANAGE_USERS);
-    String authenticatedUsername = AuthorizationHelper.getAuthenticatedName();
-
-    for (UserRequest request : requests) {
-      String requestedUsername = request.getUsername();
-
-      // An administrator can modify any user, else a user can only modify themself.
-      if (!isUserAdministrator && (!authenticatedUsername.equalsIgnoreCase(requestedUsername))) {
-        throw new AuthorizationException();
-      }
-
-      User u = users.getAnyUser(requestedUsername);
-      if (null == u) {
-        continue;
-      }
-
-      if (null != request.isActive()) {
-        // If this value is being set, make sure the authenticated user is an administrator before
-        // allowing to change it. Only administrators should be able to change a user's active state
-        if (!isUserAdministrator) {
-          throw new AuthorizationException("The authenticated user is not authorized to update the requested resource property");
-        }
-        users.setUserActive(u.getUserName(), request.isActive());
-      }
-
-      if (null != request.isAdmin()) {
-        // If this value is being set, make sure the authenticated user is an administrator before
-        // allowing to change it. Only administrators should be able to change a user's administrative
-        // privileges
-        if (!isUserAdministrator) {
-          throw new AuthorizationException("The authenticated user is not authorized to update the requested resource property");
-        }
-
-        if (request.isAdmin()) {
-          users.grantAdminPrivilege(u.getUserId());
-        } else {
-          users.revokeAdminPrivilege(u.getUserId());
-        }
-      }
-
-      if (null != request.getOldPassword() && null != request.getPassword()) {
-        users.modifyPassword(u.getUserName(), request.getOldPassword(),
-            request.getPassword());
-      }
-    }
-  }
-
   @Override
   public synchronized void deleteCluster(ClusterRequest request)
       throws AmbariException {
@@ -3865,21 +3750,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       setMonitoringServicesRestartRequired(requests);
     }
     return deleteStatusMetaData;
-  }
-
-  @Override
-  public void deleteUsers(Set<UserRequest> requests)
-    throws AmbariException {
-
-    for (UserRequest r : requests) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a delete user request, username={}", r.getUsername());
-      }
-      User u = users.getAnyUser(r.getUsername());
-      if (null != u) {
-        users.removeUser(u);
-      }
-    }
   }
 
   @Override
@@ -4103,64 +3973,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Set<UserResponse> getUsers(Set<UserRequest> requests)
-      throws AmbariException, AuthorizationException {
-
-    Set<UserResponse> responses = new HashSet<>();
-
-    for (UserRequest r : requests) {
-
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a getUsers request, userRequest={}", r);
-      }
-
-      String requestedUsername = r.getUsername();
-      String authenticatedUsername = AuthorizationHelper.getAuthenticatedName();
-
-      // A user resource may be retrieved by an administrator or the same user.
-      if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_USERS)) {
-        if (null == requestedUsername) {
-          // Since the authenticated user is not the administrator, force only that user's resource
-          // to be returned
-          requestedUsername = authenticatedUsername;
-        } else if (!requestedUsername.equalsIgnoreCase(authenticatedUsername)) {
-          // Since the authenticated user is not the administrator and is asking for a different user,
-          // throw an AuthorizationException
-          throw new AuthorizationException();
-        }
-      }
-
-      // get them all
-      if (null == requestedUsername) {
-        for (User u : users.getAllUsers()) {
-          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
-              .isAdmin());
-          resp.setGroups(new HashSet<>(u.getGroups()));
-          responses.add(resp);
-        }
-      } else {
-
-        User u = users.getAnyUser(requestedUsername);
-        if (null == u) {
-          if (requests.size() == 1) {
-            // only throw exceptin if there is a single request
-            // if there are multiple requests, this indicates an OR predicate
-            throw new ObjectNotFoundException("Cannot find user '"
-                + requestedUsername + "'");
-          }
-        } else {
-          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
-              .isAdmin());
-          resp.setGroups(new HashSet<>(u.getGroups()));
-          responses.add(resp);
-        }
-      }
-    }
-
-    return responses;
-  }
-
-  @Override
   public Set<GroupResponse> getGroups(Set<GroupRequest> requests)
       throws AmbariException {
     final Set<GroupResponse> responses = new HashSet<>();
@@ -4193,79 +4005,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public void updateGroups(Set<GroupRequest> requests) throws AmbariException {
     // currently no group updates are supported
-  }
-
-  protected String getClientHostForRunningAction(Cluster cluster, Service service, ServiceComponent serviceComponent)
-      throws AmbariException {
-    if (serviceComponent != null && !serviceComponent.getServiceComponentHosts().isEmpty()) {
-      Set<String> candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
-      filterHostsForAction(candidateHosts, service, cluster, Resource.Type.Cluster);
-      return getHealthyHost(candidateHosts);
-    }
-    return null;
-  }
-
-  protected ServiceComponent getClientComponentForRunningAction(Cluster cluster,
-      Service service) throws AmbariException {
-    /*
-     * We assume Cluster level here. That means that we never run service
-     * checks on clients/hosts that are in maintenance state.
-     * That also means that we can not run service check if the only host
-     * that has client component is in maintenance state
-     */
-
-    StackId stackId = service.getDesiredStackId();
-    ComponentInfo compInfo =
-        ambariMetaInfo.getService(stackId.getStackName(),
-            stackId.getStackVersion(), service.getServiceType()).getClientComponent();
-    if (compInfo != null) {
-      try {
-        ServiceComponent serviceComponent =
-            service.getServiceComponent(compInfo.getName());
-        if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
-          return serviceComponent;
-        }
-      } catch (ServiceComponentNotFoundException e) {
-        LOG.warn("Could not find required component to run action"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", serviceName=" + service.getName()
-            + ", componentName=" + compInfo.getName());
-      }
-    }
-
-    // any component will do
-    Map<String, ServiceComponent> components = service.getServiceComponents();
-    if (!components.isEmpty()) {
-      for (ServiceComponent serviceComponent : components.values()) {
-        if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
-          return serviceComponent;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Utility method that filters out hosts from set based on their maintenance
-   * state status.
-   */
-  protected void filterHostsForAction(Set<String> candidateHosts, Service service,
-                                    final Cluster cluster,
-                                    final Resource.Type level)
-                                    throws AmbariException {
-    Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
-      candidateHosts, new MaintenanceStateHelper.HostPredicate() {
-        @Override
-        public boolean shouldHostBeRemoved(final String hostname)
-          throws AmbariException {
-          Host host = clusters.getHost(hostname);
-          return !maintenanceStateHelper.isOperationAllowed(
-            host, cluster.getClusterId(), level);
-        }
-      }
-    );
-    LOG.debug("Ignoring hosts when selecting available hosts for action due to maintenance state.Ignored hosts ={}, cluster={}, service={}",
-      ignoredHosts, cluster.getClusterName(), service.getName());
   }
 
   /**
@@ -4632,12 +4371,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          if (operatingSystem.getOsType().equals(osType)) {
-            for (RepositoryEntity repository: operatingSystem.getRepositories()) {
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          if (operatingSystem.getFamily().equals(osType)) {
+            for (RepoDefinitionEntity repository : operatingSystem.getRepoDefinitionEntities()) {
 
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
-                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "",
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepoID(),
+                  repository.getRepoName(), repository.getDistribution(), repository.getComponents(), "", "",
                       repository.getTags());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
@@ -5146,8 +4885,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getOsType());
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getFamily());
           if (null != versionDefinitionId) {
             response.setVersionDefinitionId(repositoryVersionId.toString());
           } else {
@@ -5155,7 +4894,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
           response.setStackName(repositoryVersion.getStackName());
           response.setStackVersion(repositoryVersion.getStackVersion());
-          response.setAmbariManagedRepos(operatingSystem.isAmbariManagedRepos());
+          response.setAmbariManagedRepos(operatingSystem.isAmbariManaged());
           responses.add(response);
         }
       }

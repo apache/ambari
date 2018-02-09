@@ -37,13 +37,6 @@ public interface BlueprintConfiguration {
   String getType();
 
   /**
-   * Set the blueprint name.
-   *
-   * @param blueprintName  blueprint name
-   */
-  void setBlueprintName(String blueprintName);
-
-  /**
    * Get the blueprint name.
    *
    * @return blueprint name

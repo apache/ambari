@@ -247,6 +247,7 @@ public class StackManagerTest {
     assertEquals("scripts/service_check.py", commandScript.getScript());
     assertEquals(CommandScriptDefinition.Type.PYTHON, commandScript.getScriptType());
     assertEquals(300, commandScript.getTimeout());
+    assertEquals("SOME_CLIENT_FOR_SERVICE_CHECK", commandScript.getClientComponentType());
     List<String> configDependencies = pigService.getConfigDependencies();
     assertEquals(1, configDependencies.size());
     assertEquals("global", configDependencies.get(0));

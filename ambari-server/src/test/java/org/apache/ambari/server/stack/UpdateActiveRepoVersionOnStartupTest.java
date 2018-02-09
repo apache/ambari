@@ -25,7 +25,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -33,6 +35,8 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -108,7 +112,38 @@ public class UpdateActiveRepoVersionOnStartupTest {
 
     RepositoryVersionEntity desiredRepositoryVersion = new RepositoryVersionEntity();
     desiredRepositoryVersion.setStack(stackEntity);
-    desiredRepositoryVersion.setOperatingSystems(resourceAsString("org/apache/ambari/server/stack/UpdateActiveRepoVersionOnStartupTest_initialRepos.json"));
+
+    List<RepoOsEntity> operatingSystems = new ArrayList<>();
+    RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+    repoDefinitionEntity1.setRepoID("HDP-UTILS-1.1.0.20");
+    repoDefinitionEntity1.setBaseUrl("http://192.168.99.100/repos/HDP-UTILS-1.1.0.20/");
+    repoDefinitionEntity1.setRepoName("HDP-UTILS");
+    RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+    repoDefinitionEntity2.setRepoID("HDP-2.4");
+    repoDefinitionEntity2.setBaseUrl("http://192.168.99.100/repos/HDP-2.4.0.0/");
+    repoDefinitionEntity2.setRepoName("HDP");
+    RepoOsEntity repoOsEntity1 = new RepoOsEntity();
+    repoOsEntity1.setFamily("redhat6");
+    repoOsEntity1.setAmbariManaged(true);
+    repoOsEntity1.addRepoDefinition(repoDefinitionEntity1);
+    repoOsEntity1.addRepoDefinition(repoDefinitionEntity2);
+    operatingSystems.add(repoOsEntity1);
+    RepoDefinitionEntity repoDefinitionEntity3 = new RepoDefinitionEntity();
+    repoDefinitionEntity3.setRepoID("HDP-UTILS-1.1.0.20");
+    repoDefinitionEntity3.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7");
+    repoDefinitionEntity3.setRepoName("HDP-UTILS");
+    RepoDefinitionEntity repoDefinitionEntity4 = new RepoDefinitionEntity();
+    repoDefinitionEntity4.setRepoID("HDP-2.4");
+    repoDefinitionEntity4.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/BUILDS/2.4.3.0-207");
+    repoDefinitionEntity4.setRepoName("HDP");
+    RepoOsEntity repoOsEntity2 = new RepoOsEntity();
+    repoOsEntity2.setFamily("redhat7");
+    repoOsEntity2.setAmbariManaged(true);
+    repoOsEntity2.addRepoDefinition(repoDefinitionEntity3);
+    repoOsEntity2.addRepoDefinition(repoDefinitionEntity4);
+    operatingSystems.add(repoOsEntity2);
+
+    desiredRepositoryVersion.addRepoOsEntities(operatingSystems);
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
     serviceDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);

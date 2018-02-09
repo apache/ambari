@@ -1,0 +1,23 @@
+<rules> <!-- TODO -->
+  <rule dir="IN" name="LOGSEARCH/logsearch/inbound" pattern="*://*:*/**/logsearch/api/v1/{**}?{**}">
+    <rewrite template="{$serviceUrl[LOGSEARCH]}/api/v1/{**}?{**}"/>
+  </rule>
+  <rule dir="OUT" name="LOGSEARCH/logsearch/href/outbound">
+    <match pattern="*://*:*/api/{**}?{**}"/>
+    <rewrite template="{$frontend[url]}/logsearch/api/{**}?{**}"/>
+  </rule>
+  <rule dir="OUT" name="LOGSEARCH/logsearch/context_path/outbound">
+    <match pattern="/{**}"/>
+    <rewrite template="{$frontend[path]}/logsearch/{**}"/>
+  </rule>
+  <filter name="LOGSEARCH/logsearch/api/outbound">
+    <content type="text/plain" asType="application/json">
+      <apply path="$.**.href" rule="LOGSEARCH/logsearch/href/outbound"/>
+      <apply path="$.**.context_path" rule="LOGSEARCH/logsearch/context_path/outbound"/>
+    </content>
+  </filter>
+  <filter name="LOGSEARCH/logsearch/api/inbound">
+    <content type="application/x-www-form-urlencoded" asType="application/octet-stream">
+    </content>
+  </filter>
+</rules>

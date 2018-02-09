@@ -117,13 +117,23 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RepositoryRequest> requests = new HashSet<>();
+    final Set<RepositoryRequest> requestsToVerifyBaseURLs = new HashSet<>();
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     if (iterator.hasNext()) {
       for (Map<String, Object> propertyMap : getPropertyMaps(iterator.next(), predicate)) {
-        requests.add(getRequest(propertyMap));
+        RepositoryRequest rr = getRequest(propertyMap);
+        if(rr.isVerifyBaseUrl()) {
+          requestsToVerifyBaseURLs.add(rr);
+        }
       }
+    }
+
+    //Validation only - used by the cluster installation
+    try {
+      getManagementController().verifyRepositories(requestsToVerifyBaseURLs);
+    } catch (AmbariException e) {
+      throw new SystemException("", e);
     }
 
     return getRequestStatus(null);

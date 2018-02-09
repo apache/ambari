@@ -155,7 +155,12 @@ public abstract class AmbariEvent {
     /**
      * Ambari configuration changed event;
      */
-    AMBARI_CONFIGURATION_CHANGED;
+    AMBARI_CONFIGURATION_CHANGED,
+    
+    /**
+     * JPA initialized
+     */
+    JPA_INITIALIZED;
 
   }
 

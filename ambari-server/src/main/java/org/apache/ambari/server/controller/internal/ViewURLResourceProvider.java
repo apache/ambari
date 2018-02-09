@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +47,7 @@ import org.apache.ambari.server.view.validation.ValidationException;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -70,22 +70,19 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
   /**
    * The key property ids for a view URL resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.ViewURL, URL_NAME_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.ViewURL, URL_NAME_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a view URL resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(URL_NAME_PROPERTY_ID);
-    propertyIds.add(URL_SUFFIX_PROPERTY_ID);
-    propertyIds.add(VIEW_INSTANCE_VERSION_PROPERTY_ID);
-    propertyIds.add(VIEW_INSTANCE_NAME_PROPERTY_ID);
-    propertyIds.add(VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      URL_NAME_PROPERTY_ID,
+      URL_SUFFIX_PROPERTY_ID,
+      VIEW_INSTANCE_VERSION_PROPERTY_ID,
+      VIEW_INSTANCE_NAME_PROPERTY_ID,
+      VIEW_INSTANCE_COMMON_NAME_PROPERTY_ID);
 
   @Inject
   private static ViewURLDAO viewURLDAO;
@@ -97,7 +94,7 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
    */
 
   public ViewURLResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+    super(Resource.Type.ViewURL, propertyIds, keyPropertyIds);
 
     EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_VIEWS);
     setRequiredCreateAuthorizations(requiredAuthorizations);

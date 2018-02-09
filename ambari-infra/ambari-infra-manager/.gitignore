@@ -1,2 +1,5 @@
 out/*
 *.pid
+Profile
+.env
+test-out

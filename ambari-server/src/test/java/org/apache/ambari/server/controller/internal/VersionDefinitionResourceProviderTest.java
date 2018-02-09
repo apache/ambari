@@ -537,7 +537,7 @@ public class VersionDefinitionResourceProviderTest {
 
     res = status.getAssociatedResources().iterator().next();
     Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
-    Assert.assertEquals("HDP-2.2.0.4-a", res.getPropertyValue("VersionDefinition/repository_version"));
+    Assert.assertEquals("2.2.0.4-a", res.getPropertyValue("VersionDefinition/repository_version"));
     Assert.assertEquals("HDP-2.2.0.4-a", res.getPropertyValue("VersionDefinition/display_name"));
     Assert.assertNotNull(res.getPropertyValue("VersionDefinition/show_available"));
     Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
@@ -631,8 +631,8 @@ public class VersionDefinitionResourceProviderTest {
     entity.setVersion("2.3.4.5-1234");
     dao.create(entity);
 
-    makeService("c1", "HDFS", parentEntity);
-    makeService("c1", "ZOOKEEPER", parentEntity);
+    makeService("HDFS", parentEntity);
+    makeService("ZOOKEEPER", parentEntity);
 
     Map<String, String> info = Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true");
 
@@ -667,8 +667,8 @@ public class VersionDefinitionResourceProviderTest {
     entity.setVersion("2.3.4.5-1234");
     dao.create(entity);
 
-    makeService("c1", "HDFS", parentEntity);
-    makeService("c1", "ZOOKEEPER", entity);
+    makeService("HDFS", parentEntity);
+    makeService("ZOOKEEPER", entity);
 
     Map<String, String> info = Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true");
 
@@ -685,18 +685,22 @@ public class VersionDefinitionResourceProviderTest {
   /**
    * Helper to create services that are tested with parent repo checks
    */
-  private void makeService(String clusterName, String serviceName, RepositoryVersionEntity serviceRepo) throws Exception {
+  private void makeService(String serviceName, RepositoryVersionEntity serviceRepo) throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
 
+    String clusterName = "c1";
+    String serviceGroupName = "CORE";
     Cluster cluster;
+    ServiceGroup serviceGroup;
     try {
-      cluster = clusters.getCluster("c1");
+      cluster = clusters.getCluster(clusterName);
+      serviceGroup = cluster.getServiceGroup(serviceGroupName);
     } catch (AmbariException e) {
-      clusters.addCluster("c1", parentEntity.getStackId());
-      cluster = clusters.getCluster("c1");
+      clusters.addCluster(clusterName, parentEntity.getStackId());
+      cluster = clusters.getCluster(clusterName);
+      serviceGroup = cluster.addServiceGroup(serviceGroupName);
     }
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     cluster.addService(serviceGroup, serviceName, serviceName, serviceRepo);
   }
 

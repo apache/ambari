@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, ContentChild, TemplateRef} from '@angular/core';
+import {Component} from '@angular/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Component({
@@ -30,9 +30,6 @@ export class MainContainerComponent {
     appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
     appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value);
   }
-
-  @ContentChild(TemplateRef)
-  template;
 
   isAuthorized: boolean = false;
 

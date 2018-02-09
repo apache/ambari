@@ -48,8 +48,8 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -337,11 +337,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
             final String operatingSystemsJson = gson.toJson(operatingSystems);
             try {
-              repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+              entity.addRepoOsEntities(repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson));
             } catch (Exception ex) {
               throw new AmbariException("Json structure for operating systems is incorrect", ex);
             }
-            entity.setOperatingSystems(operatingSystemsJson);
           }
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID)))) {
@@ -456,8 +455,8 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     Set<String> existingRepoUrls = new HashSet<>();
     List<RepositoryVersionEntity> existingRepoVersions = dao.findByStack(requiredStack);
     for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
-      for (OperatingSystemEntity operatingSystemEntity : existingRepoVersion.getOperatingSystems()) {
-        for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+      for (RepoOsEntity operatingSystemEntity : existingRepoVersion.getRepoOsEntities()) {
+        for (RepoDefinitionEntity repositoryEntity : operatingSystemEntity.getRepoDefinitionEntities()) {
           if (repositoryEntity.isUnique() && !existingRepoVersion.getId().equals(repositoryVersion.getId())) { // Allow modifying already defined repo version
             existingRepoUrls.add(repositoryEntity.getBaseUrl());
           }
@@ -473,12 +472,12 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
 
     final Set<String> osRepositoryVersion = new HashSet<>();
 
-    for (OperatingSystemEntity os: repositoryVersion.getOperatingSystems()) {
-      osRepositoryVersion.add(os.getOsType());
+    for (RepoOsEntity os : repositoryVersion.getRepoOsEntities()) {
+      osRepositoryVersion.add(os.getFamily());
 
-      for (RepositoryEntity repositoryEntity : os.getRepositories()) {
+      for (RepoDefinitionEntity repositoryEntity : os.getRepoDefinitionEntities()) {
         String baseUrl = repositoryEntity.getBaseUrl();
-        if (!skipUrlCheck && os.isAmbariManagedRepos() && existingRepoUrls.contains(baseUrl)) {
+        if (!skipUrlCheck && os.isAmbariManaged() && existingRepoUrls.contains(baseUrl)) {
           throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
                   "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
@@ -523,12 +522,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     final Object operatingSystems = properties.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
     final String operatingSystemsJson = gson.toJson(operatingSystems);
     try {
-      repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+      entity.addRepoOsEntities(repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson));
     } catch (Exception ex) {
       throw new AmbariException("Json structure for operating systems is incorrect", ex);
     }
-    entity.setOperatingSystems(operatingSystemsJson);
-
     return entity;
   }
 

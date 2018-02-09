@@ -187,8 +187,14 @@
       </commandScript>
 
       <requiredServices>
-        <service>FAKEZOOKEEPER</service>
-        <service>FAKEHDFS</service>
+        <service>
+          <name>FAKEZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>FAKEHDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
     </service>

@@ -40,7 +40,7 @@ def setup_logfeeder():
             recursive_ownership=True
             )
 
-  File(params.logfeeder_log,
+  File(format("{logfeeder_log_dir}/{logfeeder_log}"),
        mode=0644,
        content=''
        )

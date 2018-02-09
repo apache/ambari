@@ -118,7 +118,7 @@ public class AlertGroupResourceProvider extends
    * @param controller
    */
   AlertGroupResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.AlertGroup, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

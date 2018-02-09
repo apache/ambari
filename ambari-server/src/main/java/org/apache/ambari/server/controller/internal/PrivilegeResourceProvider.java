@@ -111,7 +111,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   public PrivilegeResourceProvider(Set<String> propertyIds,
                                    Map<Resource.Type, String> keyPropertyIds,
                                    Resource.Type resourceType) {
-    super(propertyIds, keyPropertyIds);
+    super(resourceType, propertyIds, keyPropertyIds);
     this.resourceType = resourceType;
   }
 
