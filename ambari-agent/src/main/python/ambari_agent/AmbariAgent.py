@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 import sys
-import subprocess
+from ambari_commons import subprocess32
 import signal
 from Controller import AGENT_AUTO_RESTART_EXIT_CODE
 
@@ -51,7 +51,7 @@ def main():
 
   try:
     while status == AGENT_AUTO_RESTART_EXIT_CODE:
-      mainProcess = subprocess.Popen(mergedArgs)
+      mainProcess = subprocess32.Popen(mergedArgs)
       mainProcess.communicate()
       status = mainProcess.returncode
       if os.path.isfile(AGENT_PID_FILE) and status == AGENT_AUTO_RESTART_EXIT_CODE:

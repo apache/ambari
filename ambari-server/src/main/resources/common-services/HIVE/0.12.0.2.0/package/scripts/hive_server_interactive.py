@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 # Python Imports
-import subprocess
+from ambari_commons import subprocess32
 import os
 import re
 import time
@@ -169,7 +169,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       stop_cmd = ["slider", "stop", params.llap_app_name]
 
-      code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
+      code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess32.PIPE, logoutput=True)
       if code == 0:
         Logger.info(format("Stopped {params.llap_app_name} application on Slider successfully"))
       elif code == 69 and output is not None and "Unknown application instance" in output:
@@ -265,7 +265,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       run_file_path = None
       try:
         Logger.info(format("LLAP start command: {cmd}"))
-        code, output, error = shell.checked_call(cmd, user=params.hive_user, quiet = True, stderr=subprocess.PIPE, logoutput=True)
+        code, output, error = shell.checked_call(cmd, user=params.hive_user, quiet = True, stderr=subprocess32.PIPE, logoutput=True)
 
         if code != 0 or output is None:
           raise Fail("Command failed with either non-zero return code or no output.")
@@ -371,7 +371,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       LLAP_APP_STATUS_CMD_TIMEOUT = 0
 
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
-      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess32.PIPE,
                                                logoutput=False)
       Logger.info("Received 'llapstatus' command 'output' : {0}".format(output))
       if code == 0:
@@ -402,7 +402,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus -w -r {percent_desired_instances_to_be_up} -i {refresh_rate} -t {total_timeout}")
       Logger.info("\n\n\n\n\n");
       Logger.info("LLAP status command : {0}".format(llap_status_cmd))
-      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess.PIPE,
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess32.PIPE,
                                                logoutput=True)
 
       if code == 0:

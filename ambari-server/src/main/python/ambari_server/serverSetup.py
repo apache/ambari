@@ -23,7 +23,7 @@ import os
 import re
 import shutil
 import sys
-import subprocess
+from ambari_commons import subprocess32
 import getpass
 import logging
 
@@ -800,10 +800,10 @@ class JDKSetupLinux(JDKSetup):
 
     cmd = " && ".join(cmds)
 
-    process = subprocess.Popen(cmd,
-                           stdout=subprocess.PIPE,
-                           stdin=subprocess.PIPE,
-                           stderr=subprocess.PIPE,
+    process = subprocess32.Popen(cmd,
+                           stdout=subprocess32.PIPE,
+                           stdin=subprocess32.PIPE,
+                           stderr=subprocess32.PIPE,
                            shell=True
                            )
     (stdoutdata, stderrdata) = process.communicate()

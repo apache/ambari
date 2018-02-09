@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from subprocess import call
+from ambari_commons.subprocess32 import call
 import sys
 import os
 import shutil

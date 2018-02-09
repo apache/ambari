@@ -22,7 +22,7 @@ __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_pac
 
 # Python Imports
 import os
-import subprocess
+from ambari_commons import subprocess32
 import ambari_simplejson as json
 
 # Local Imports
@@ -107,7 +107,7 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
+  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess32.PIPE)
 
   # <conf-selector-tool> can set more than one directory
   # per package, so return that list, especially for dry_run

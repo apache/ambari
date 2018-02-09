@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import json
 import socket
-import subprocess
+from ambari_commons import subprocess32
 
 from stacks.utils.RMFTestCase import *
 
