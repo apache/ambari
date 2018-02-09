@@ -144,7 +144,7 @@
                             {{/if}}
                           </div>
                           <div {{bindAttr class=":span8 :repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
-                            {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite"}}
+                            {{view view.repositoryTextField repositoryBinding="repository"}}
                             {{#if controller.selectedStack.usePublicRepo}}
                               {{#if repository.undo}}
                                 <i class="icon-undo" data-toggle="tooltip"
