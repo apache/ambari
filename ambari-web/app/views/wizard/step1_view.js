@@ -69,14 +69,14 @@ App.WizardStep1View = Em.View.extend({
    *
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete'),
+  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isAnyOsEmpty', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete'),
 
   /**
    * Show warning message flag
    *
    * @type {bool}
    */
-  warningExist: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled'),
+  warningExist: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isAnyOsEmpty'),
 
   skipVerifyBaseUrl: Em.computed.or('controller.selectedStack.skipValidationChecked', 'controller.selectedStack.useRedhatSatellite'),
 
@@ -170,12 +170,9 @@ App.WizardStep1View = Em.View.extend({
    * @type {bool}
    */
   invalidFormatUrlExist: function () {
-    if (this.get('controller.selectedStack.useRedhatSatellite')) {
-      return false;
-    }
     var allRepositories = this.get('allRepositories');
-    if (!allRepositories) {
-      return false;
+    if (this.get('controller.selectedStack.useRedhatSatellite')) {
+      allRepositories = allRepositories.filter(this.isRedhat);
     }
     return allRepositories.someProperty('invalidFormatError', true);
   }.property('controller.selectedStack.useRedhatSatellite', 'allRepositories.@each.invalidFormatError'),
@@ -193,16 +190,28 @@ App.WizardStep1View = Em.View.extend({
   isNoOsChecked: Em.computed.everyBy('controller.selectedStack.operatingSystems', 'isSelected', false),
 
   /**
-   * If all OSes are empty
+   *
+   * @param {App.Repository} item
+   * @returns {boolean}
+   */
+  isRedhat: function(item) {
+    return Boolean(item.get('osType') && item.get('osType').contains('redhat'));
+  },
+
+  /**
+   * If any OS is empty
    * @type {bool}
    */
-  isNoOsFilled: function () {
+  isAnyOsEmpty: function () {
     var operatingSystems = this.get('controller.selectedStack.operatingSystems');
-    if (this.get('controller.selectedStack.useRedhatSatellite') || Em.isNone(operatingSystems)) {
+    if (Em.isNone(operatingSystems)) {
       return false;
     }
     var selectedOS = operatingSystems.filterProperty('isSelected', true);
-    return selectedOS.everyProperty('isNotFilled', true);
+    if (this.get('controller.selectedStack.useRedhatSatellite')) {
+      selectedOS = selectedOS.filter(this.isRedhat);
+    }
+    return selectedOS.someProperty('isNotFilled', true);
   }.property('controller.selectedStack.operatingSystems.@each.isSelected', 'controller.selectedStack.operatingSystems.@each.isNotFilled', 'controller.selectedStack.useRedhatSatellite'),
 
   popoverView: Em.View.extend({
@@ -234,6 +243,16 @@ App.WizardStep1View = Em.View.extend({
         });
       }
     }
+  }),
+
+  repositoryTextField: Ember.TextField.extend({
+    repository: null,
+    placeholderBinding: "repository.placeholder",
+    valueBinding: "repository.baseUrl",
+    disabled: function() {
+      var isRedhat = this.get('parentView').isRedhat(this.get('repository'));
+      return this.get('controller.selectedStack.useRedhatSatellite') && !isRedhat;
+    }.property('controller.selectedStack.useRedhatSatellite')
   }),
 
   /**

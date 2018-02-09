@@ -188,7 +188,7 @@
                         <input type="text" class="form-control"
                                placeholder="{{(repository.Repositories.repo_name.indexOf('UTILS') < 0 )?('versions.repository.placeholder' | translate) : ''}}"
                                ng-model="repository.Repositories.base_url"
-                               ng-change="onRepoUrlChange(repository)" ng-disabled="useRedhatSatellite">
+                               ng-change="onRepoUrlChange(repository)" ng-disabled="useRedhatSatellite && os.OperatingSystems.os_type.indexOf('redhat') === -1">
                       </div>
                       <i class="fa fa-undo orange-icon cursor-pointer"
                          ng-if="selectedOption.index == 1 && repository.Repositories.base_url != repository.Repositories.initial_base_url
