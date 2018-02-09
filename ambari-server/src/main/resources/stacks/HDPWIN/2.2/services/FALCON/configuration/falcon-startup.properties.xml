@@ -104,6 +104,7 @@
   </property>
   <property>
     <name>*.falcon.graph.storage.directory</name>
+    <display-name>Falcon Graph Storage directory</display-name>
     <value>c:\hadoop\falcon\data\lineage\graphdb</value>
     <description/>
     <on-ambari-upgrade add="true"/>

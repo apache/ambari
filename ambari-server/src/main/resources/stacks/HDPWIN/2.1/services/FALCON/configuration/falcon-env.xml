@@ -57,6 +57,7 @@
   <!--embeddedmq properties-->
   <property>
     <name>falcon.embeddedmq.data</name>
+    <display-name>Falcon Embedded MQ Data</display-name>
     <value>c:\hadoop\falcon\embeddedmq\data</value>
     <description>Directory in which embeddedmq data is stored.</description>
     <on-ambari-upgrade add="true"/>

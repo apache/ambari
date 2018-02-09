@@ -17,11 +17,11 @@
 }}
 
 {{#if view.dataIsReady}}
-  {{#unless tab.isHiddenByFilter}}
+  {{#unless view.content.isHiddenByFilter}}
   <div class="section-layout-container">
     <div class="loading-overlay"></div>
     <table class="config-section-table">
-      {{#each row in tab.sectionRows}}
+      {{#each row in view.content.sectionRows}}
         <tr>
           {{#each section in row}}
             <td {{bindAttr class="section.isHiddenByFilter:invisible :config-section" colspan="section.columnSpan" rowspan="section.rowSpan"}}>
@@ -43,7 +43,10 @@
                               {{#if config.widget}}
                                 {{#if config.isVisible}}
                                   {{#unless config.isHiddenByFilter}}
-                                    {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
+                                    {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="view.content"}}
+                                    {{#if config.additionalView}}
+                                      {{view config.additionalView}}
+                                    {{/if}}
                                   {{/unless}}
                                 {{/if}}
                               {{/if}}
@@ -51,7 +54,7 @@
                             {{#if subsection.showTabs}}
                               <ul class="nav nav-tabs mbm">
                                 {{#each subSectionTab in subsection.subSectionTabs}}
-                                  <li rel='tooltip' {{bindAttr class="subSectionTab.isActive:active subSectionTab.isVisible::disabled" data-original-title="tab.tooltipMsg"}}>
+                                  <li rel='tooltip' {{bindAttr class="subSectionTab.isActive:active subSectionTab.isVisible::disabled" data-original-title="view.content.tooltipMsg"}}>
                                     <a href="#" {{action setActiveSubTab subSectionTab target="view"}}{{bindAttr data-target="subSectionTab.id"}} data-toggle="tab">
                                       {{subSectionTab.displayName}}
                                       {{#if subSectionTab.errorsCount}}
@@ -67,7 +70,10 @@
                                   <div {{bindAttr class=":tab-pane subSectionTab.isActive:active subSectionTab.id"}}>
                                     {{#if config.isVisible}}
                                       {{#unless config.isHiddenByFilter}}
-                                        {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
+                                        {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="view.content"}}
+                                        {{#if config.additionalView}}
+                                          {{view config.additionalView}}
+                                        {{/if}}
                                       {{/unless}}
                                     {{/if}}
                                   </div>

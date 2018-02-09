@@ -480,7 +480,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       App.showDependentConfigsPopup(recommendedChanges, requiredChanges, function() {
         self.onSaveRecommendedPopup(recommendedChanges.concat(requiredChanges));
         if (callback) callback();
-      }, secondary);
+      }, secondary, this);
     } else {
       if (callback) callback();
     }

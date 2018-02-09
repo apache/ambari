@@ -23,6 +23,7 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
+    <display-name>HBase root directory</display-name>
     <value>file:///C:/hadoop/hbase-ams</value>
     <description>
       Ambari Metrics service uses HBase as default storage backend. Set the rootdir for

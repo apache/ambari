@@ -55,6 +55,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.metastore.warehouse.dir</name>
+    <display-name>Hive Metastore Warehouse directory</display-name>
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
     <on-ambari-upgrade add="true"/>

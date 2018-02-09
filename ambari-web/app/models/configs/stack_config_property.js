@@ -199,6 +199,12 @@ App.StackConfigProperty = DS.Model.extend({
   index: DS.attr('number', {defaultValue: null}),
 
   /**
+   * defines if property is listed on some default config theme
+   * @type {boolean}
+   */
+  isInDefaultTheme: DS.attr('boolean', {defaultValue: false}),
+
+  /**
    * defines what kind of value this property contains
    * ex: string, digits, number, directories, custom
    * @property {string}

@@ -116,7 +116,7 @@ module.exports = function(config) {
       '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
       'app/templates/**/*.hbs': ['ember-precompiler-brunch', 'common-require'],
       'app!(assets)/**/!(karma_setup|tests).js': ['common-require', 'babel'],
-      'test/**/*.js': ['common-require', 'babel']
+      'test/**/*.js': ['common-require']
     },
 
     babelPreprocessor: {

@@ -107,6 +107,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.log-dirs</name>
+    <display-name>YARN NodeManager Log directories</display-name>
     <value>/var/log/hadoop/yarn</value>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -145,6 +146,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.remote-app-log-dir</name>
+    <display-name>YARN NodeManager Remote App Log directory</display-name>
     <value>/app-logs</value>
     <on-ambari-upgrade add="true"/>
   </property>

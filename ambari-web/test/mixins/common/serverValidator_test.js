@@ -158,6 +158,7 @@ describe('App.ServerValidatorMixin', function () {
         propertyName: 'p1',
         filename: 'f1',
         value: 'v1',
+        cssClass: 'warning',
         description: 'd1',
         serviceName: 'sName',
         id: 'p1_f1'
@@ -175,6 +176,7 @@ describe('App.ServerValidatorMixin', function () {
         propertyName: 'p1',
         filename: 'f1',
         value: 'v1',
+        cssClass: 'error',
         description: 'd1',
         serviceName: 'S Name',
         id: 'p1_f1'
@@ -184,6 +186,7 @@ describe('App.ServerValidatorMixin', function () {
     it('creates general issue object', function() {
       expect(instanceObject.createErrorMessage('GENERAL', null, ['msg3'])).to.eql({
         type: 'GENERAL',
+        cssClass: 'warning',
         isCriticalError: false,
         isError: false,
         isWarn: false,

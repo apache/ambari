@@ -35,7 +35,6 @@ App.themesMapper = App.QuickDataMapper.create({
   },
 
   sectionConfig: {
-    "id": "name",
     "name": "name",
     "display_name": "display-name",
     "row_index": "row-index",
@@ -48,7 +47,6 @@ App.themesMapper = App.QuickDataMapper.create({
   },
 
   subSectionConfig: {
-    "id": "name",
     "name": "name",
     "display_name": "display-name",
     "border": "border",
@@ -96,21 +94,24 @@ App.themesMapper = App.QuickDataMapper.create({
    * @param {Object} json - json to parse
    * @param {Object[]} tabs - tabs list
    */
-  mapThemeLayouts: function(json, tabs) {
-     var serviceName = Em.get(json, "ThemeInfo.service_name");
-     Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.layouts", []).forEach(function(layout) {
+  mapThemeLayouts: function (json, tabs) {
+    var serviceName = Em.get(json, "ThemeInfo.service_name");
+    var themeName = Em.get(json, "ThemeInfo.theme_data.Theme.name");
+    Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.layouts", []).forEach(function (layout) {
       if (layout.tabs) {
-        layout.tabs.forEach(function(tab) {
+        layout.tabs.forEach(function (tab) {
           var parsedTab = this.parseIt(tab, this.get("tabConfig"));
           parsedTab.id = serviceName + "_" + tab.name;
           parsedTab.service_name = serviceName;
+          parsedTab.theme_name = themeName;
 
           if (Em.get(tab, "layout.sections")) {
             var sections = [];
-            Em.get(tab, "layout.sections").forEach(function(section) {
+            Em.get(tab, "layout.sections").forEach(function (section) {
               var parsedSection = this.parseIt(section, this.get("sectionConfig"));
+              parsedSection.id = section.name + '_' + parsedTab.id;
               parsedSection.tab_id = parsedTab.id;
-              this.loadSubSections(section, parsedSection);
+              this.loadSubSections(section, parsedSection, serviceName, themeName);
               sections.push(parsedSection);
             }, this);
 
@@ -125,13 +126,14 @@ App.themesMapper = App.QuickDataMapper.create({
     }, this);
   },
 
-  loadSubSections: function(section, parsedSection) {
+  loadSubSections: function(section, parsedSection, serviceName, themeName) {
     if (section.subsections) {
       var subSections = [];
       var subSectionConditions = [];
       section.subsections.forEach(function(subSection) {
         var parsedSubSection = this.parseIt(subSection, this.get("subSectionConfig"));
         parsedSubSection.section_id = parsedSection.id;
+        parsedSubSection.id = parsedSubSection.name + '_' + serviceName + '_' + themeName;
 
         this.loadSubSectionTabs(subSection, parsedSubSection);
         if (parsedSubSection['depends_on']) {
@@ -179,9 +181,10 @@ App.themesMapper = App.QuickDataMapper.create({
    */
   mapThemeConfigs: function(json) {
     var serviceName = Em.get(json, "ThemeInfo.service_name");
+    var themeName = Em.get(json, "ThemeInfo.theme_data.Theme.name");
     Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.placement.configs", []).forEach(function(configLink) {
       var configId = this.getConfigId(configLink);
-      var subSectionId = configLink["subsection-name"];
+      var subSectionId = configLink["subsection-name"] ? configLink["subsection-name"] + '_' + serviceName + '_' + themeName : false;
       var subSectionTabId = configLink["subsection-tab-name"];
       var configProperty = App.configsCollection.getConfig(configId);
       var dependsOnConfigs = configLink["depends-on"] || [];
@@ -191,7 +194,6 @@ App.themesMapper = App.QuickDataMapper.create({
       } else if (subSectionId) {
         var subSection = App.SubSection.find(subSectionId);
       }
-
 
       if (configProperty && subSection) {
         if (!subSection.get('configProperties').contains(configProperty.id)) {
@@ -318,6 +320,7 @@ App.themesMapper = App.QuickDataMapper.create({
    * @param {Object} json - json to parse
    */
   mapThemeWidgets: function(json) {
+    var themeName = Em.get(json, 'ThemeInfo.theme_data.Theme.name');
     Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.widgets", []).forEach(function(widget) {
       var configId = this.getConfigId(widget);
       var configProperty = App.configsCollection.getConfig(configId);
@@ -325,6 +328,9 @@ App.themesMapper = App.QuickDataMapper.create({
       if (configProperty) {
         Em.set(configProperty, 'widget', widget.widget);
         Em.set(configProperty, 'widgetType', Em.get(widget, 'widget.type'));
+        if (themeName === 'default') {
+          Em.set(configProperty, 'isInDefaultTheme', true);
+        }
       } else {
         var split = widget.config.split("/");
         var fileName =  split[0] + '.xml';
@@ -333,6 +339,9 @@ App.themesMapper = App.QuickDataMapper.create({
         if (uiOnlyProperty) {
           uiOnlyProperty.set('widget', widget.widget);
           uiOnlyProperty.set('widgetType', Em.get(widget, 'widget.type'));
+          if (themeName === 'default') {
+            Em.set(uiOnlyProperty, 'isInDefaultTheme', true);
+          }
         }
       }
     }, this);

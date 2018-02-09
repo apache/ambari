@@ -58,6 +58,7 @@ limitations under the License.
   </property>
   <property>
     <name>templeton.hadoop.conf.dir</name>
+    <display-name>Templeton Hadoop Conf directory</display-name>
     <value>${env.HADOOP_HOME}\etc\hadoop</value>
     <description>The path to the Hadoop configuration.</description>
     <on-ambari-upgrade add="true"/>

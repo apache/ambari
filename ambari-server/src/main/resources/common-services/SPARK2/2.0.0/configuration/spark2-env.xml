@@ -54,6 +54,7 @@
   </property>
   <property>
     <name>spark_log_dir</name>
+    <display-name>Spark Log directory</display-name>
     <value>/var/log/spark2</value>
     <description>Spark Log Dir</description>
     <value-attributes>
@@ -63,6 +64,7 @@
   </property>
   <property>
     <name>spark_pid_dir</name>
+    <display-name>Spark PID directory</display-name>
     <value>/var/run/spark2</value>
     <value-attributes>
       <type>directory</type>

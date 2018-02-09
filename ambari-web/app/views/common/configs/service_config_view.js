@@ -163,7 +163,7 @@ App.ServiceConfigView = Em.View.extend({
       });
       var isAllConfigsHidden = configsToShow.get('length') == 0;
       var isAdvancedHidden = isAllConfigsHidden || configsToShow.filter(function (config) {
-        return Em.isNone(config.get('widget'));
+        return Em.isNone(config.get('isInDefaultTheme'));
       }).get('length') == 0;
       this.set('isAllConfigsHidden', isAllConfigsHidden);
       var advancedTab = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).findProperty('isAdvanced');
@@ -177,8 +177,8 @@ App.ServiceConfigView = Em.View.extend({
    */
   supportsConfigLayout: function() {
     var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController', 'mainHostServiceConfigsController'];
-    if (App.Tab.find().someProperty('serviceName', this.get('controller.selectedService.serviceName')) && supportedControllers.contains(this.get('controller.name'))) {
-      return !Em.isEmpty(App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).filterProperty('isAdvanced', false));
+     if (App.Tab.find().rejectProperty('isCategorized').someProperty('serviceName', this.get('controller.selectedService.serviceName')) && supportedControllers.contains(this.get('controller.name'))) {
+      return !Em.isEmpty(App.Tab.find().rejectProperty('isCategorized').filterProperty('serviceName', this.get('controller.selectedService.serviceName')).filterProperty('isAdvanced', false));
     } else {
       return false;
     }
@@ -245,7 +245,7 @@ App.ServiceConfigView = Em.View.extend({
    * @returns {Ember.A}
    */
   tabs: function() {
-    var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
+    var tabs = App.Tab.find().rejectProperty('isCategorized').filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
     var advancedTab = tabs.findProperty('isAdvanced', true);
     if (advancedTab) {
       advancedTab.set('isRendered', advancedTab.get('isActive'));
