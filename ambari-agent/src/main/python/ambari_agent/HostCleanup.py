@@ -36,9 +36,8 @@ import shlex
 import datetime
 import tempfile
 from AmbariConfig import AmbariConfig
-from ambari_agent.Constants import AGENT_TMP_DIR
 from ambari_commons import OSCheck, OSConst
-from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.constants import AMBARI_SUDO_BINARY, AGENT_TMP_DIR
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 
 logger = logging.getLogger()

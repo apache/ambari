@@ -32,7 +32,7 @@ from PythonReflectiveExecutor import PythonReflectiveExecutor
 from resource_management.libraries.functions.log_process_information import log_process_information
 from resource_management.core.utils import PasswordString
 import subprocess
-import Constants
+from ambari_commons.constants import AGENT_TMP_DIR
 import hostname
 
 
@@ -83,7 +83,7 @@ class CustomServiceOrchestrator():
     self.tmp_dir = config.get('agent', 'prefix')
     self.force_https_protocol = config.get_force_https_protocol_name()
     self.ca_cert_file_path = config.get_ca_cert_file_path()
-    self.exec_tmp_dir = Constants.AGENT_TMP_DIR
+    self.exec_tmp_dir = AGENT_TMP_DIR
     self.file_cache = FileCache(config)
     self.status_commands_stdout = os.path.join(self.tmp_dir,
                                                'status_command_stdout.txt')
