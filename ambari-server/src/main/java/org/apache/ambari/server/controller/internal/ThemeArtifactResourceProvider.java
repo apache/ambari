@@ -169,7 +169,10 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
         List<ThemeInfo> serviceThemes = new ArrayList<>();
         if (themeFileName != null) {
           LOG.debug("Getting themes from service {}, themes = {}", serviceInfo.getName(), serviceInfo.getThemesMap());
-          serviceThemes.add(serviceInfo.getThemesMap().get(themeFileName));
+          ThemeInfo serviceThemeInfo = serviceInfo.getThemesMap().get(themeFileName);
+          if (serviceThemeInfo != null) {
+            serviceThemes.add(serviceThemeInfo);
+          }
         } else {
           for (ThemeInfo themeInfo : serviceInfo.getThemesMap().values()) {
             if (themeInfo.getIsDefault()) {

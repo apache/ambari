@@ -28,6 +28,7 @@ limitations under the License.
   </property>
   <property>
     <name>templeton.hive.extra.files</name>
+    <display-name>Templeton Hive Extra Files</display-name>
     <value>/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib</value>
     <description>The resources in this list will be localized to the node running LaunchMapper and added to HADOOP_CLASSPTH
       before launching 'hive' command.  If the path /foo/bar is a directory, the contents of the the entire dir will be localized

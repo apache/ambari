@@ -22,6 +22,7 @@
 <configuration>
   <property>
     <name>hbase.bulkload.staging.dir</name>
+    <display-name>HBase Bulkload Staging directory</display-name>
     <value>/apps/hbase/staging</value>
     <description>A staging directory in default file system (HDFS)
     for bulk loading.

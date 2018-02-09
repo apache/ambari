@@ -31,6 +31,7 @@ Em.I18n.translations = {
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
     '<a href="{0}" target="_blank">{0}</a>',
 
+  'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
   'app.versionMismatchAlert.body': 'Ambari Server and Web Client versions do not match:<br> ' +
     '<br>Ambari Server: <strong>{0}</strong>' +
@@ -262,6 +263,8 @@ Em.I18n.translations = {
   'common.select': 'Select',
   'common.selected': 'Selected',
   'common.password': 'Password',
+  'common.confirm.password': 'Confirm Password',
+  'common.username': 'Username',
   'common.url': 'URL',
   'common.advanced': 'Advanced',
   'common.download': 'Download',
@@ -362,6 +365,7 @@ Em.I18n.translations = {
   'common.express.downgrade': 'Express Downgrade',
   'common.minute.ago': 'less than a minute ago',
   'common.views': 'Views',
+  'common.review': 'Review',
   'common.critical.error': 'Critical',
   'common.with': 'with',
   'common.propertyName': 'Property Name',
@@ -496,6 +500,7 @@ Em.I18n.translations = {
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.initValue': 'Initial value',
   'popup.dependent.configs.table.currentValue': 'Current Value',
+  'popup.dependent.configs.table.originalValue': 'Original Value',
   'popup.dependent.configs.table.recommendedValue': 'Recommended Value',
   'popup.dependent.configs.table.newValue': 'New Value',
   'popup.dependent.configs.table.undefined': 'Property undefined',
@@ -937,6 +942,13 @@ Em.I18n.translations = {
 
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',
+  'installer.step7.credentialsTab.body':'Please provide credentials for these services',
+  'installer.step7.databasesTab.body':'Please choose and configure the appropriate databases for these services',
+  'installer.step7.databasesTab.radioButton.default':'Use Ambari Database',
+  'installer.step7.databasesTab.radioButton.custom':'Use Custom Database',
+  'installer.step7.credentialsTab.usersGroups':'Users/Groups',
+  'installer.step7.credentialsTab.usernames':'Usernames',
+  'installer.step7.accountsTab.body': 'Please review these settings for Service Accounts',
   'installer.step7.attentionNeeded':'<b>Attention:</b> Some configurations need your attention before you can proceed.',
   'installer.step7.noIssues':'All configurations have been addressed.',
   'installer.step7.showPropertiesWithIssues':'Show me properties with issues',
@@ -961,7 +973,8 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.failed.body': 'Some services are not properly configured. You have to change the highlighted configs according to the recommended values.',
   'installer.step7.popup.validation.request.failed.body': 'The configuration changes could not be validated for consistency due to an unknown error.  Your changes have not been saved yet.  Would you like to proceed and save the changes?',
   'installer.step7.popup.validation.warning.header': 'Configurations',
-  'installer.step7.popup.validation.issues.body': 'The following configuration changes are highly recommended, but can be skipped.',
+  'installer.step7.popup.validation.issues.title': 'Highly Recommended Configurations',
+  'installer.step7.popup.validation.issues.body': 'Please review the folowing recommended changes, and click on the property name to change its value.',
   'installer.step7.popup.validation.criticalIssues.body': 'You must correct the following critical issues before proceeding:',
   'installer.step7.popup.oozie.derby.warning': 'Derby is not recommended for production use. With Derby, Oozie Server HA and concurrent connection support will not be available.',
   'installer.step7.oozie.database.new': 'New Derby Database',
@@ -987,7 +1000,10 @@ Em.I18n.translations = {
   'installer.step7.missing.service.body': '{0} service should be added to the cluster to {1}.',
   'assign.master.popup.header':'Select {0} host',
   'assign.master.popup.cancel.body':'Not selecting {0} host will disable interactive query.',
-
+  'installer.step7.recommendations.popover.header': 'Review Recommendations',
+  'installer.step7.recommendations.popover.message': '<p>Based on your configuration changes, Ambari is recommending the following dependent configuration changes. Ambari has updated all checked configuration changes to the <strong>Recommended Value</strong>. Uncheck any configuration to retain the <strong>Original Value</strong>.</p>',
+  'installer.step7.requirements.popover.header': 'Required Configurations',
+  'installer.step7.requirements.popover.message': '<p>The following properties must be set to proceed with the install.</p>',
 
   'installer.step8.header': 'Review',
   'installer.step8.body': 'Please review the configuration before installation',

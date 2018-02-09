@@ -30,6 +30,7 @@
   </property>
   <property>
     <name>zeppelin_user</name>
+    <display-name>Zeppelin User</display-name>
     <value>zeppelin</value>
     <property-type>USER</property-type>
     <description>User zeppelin daemon runs as</description>
@@ -51,6 +52,7 @@
   </property>
   <property>
     <name>zeppelin_group</name>
+    <display-name>Zeppelin Group</display-name>
     <value>zeppelin</value>
     <property-type>GROUP</property-type>
     <description>zeppelin group</description>

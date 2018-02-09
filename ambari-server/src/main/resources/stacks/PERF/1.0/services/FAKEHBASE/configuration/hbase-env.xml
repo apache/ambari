@@ -74,6 +74,7 @@
   </property>
   <property>
     <name>hbase_java_io_tmpdir</name>
+    <display-name>HBase Java IO Tmpdir</display-name>
     <value>/tmp</value>
     <description>Used in hbase-env.sh as FAKEHBASE_OPTS=-Djava.io.tmpdir=java_io_tmpdir</description>
     <value-attributes>

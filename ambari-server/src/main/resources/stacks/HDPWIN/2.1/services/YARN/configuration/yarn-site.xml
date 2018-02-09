@@ -61,6 +61,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.local-dirs</name>
+    <display-name>YARN NodeManager Local directories</display-name>
     <value>c:\hadoop\temp\local\hadoop-yarn</value>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -71,6 +72,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.log-dirs</name>
+    <display-name>YARN NodeManager Log directories</display-name>
     <value>c:\hadoop\logs\hadoop-yarn</value>
     <on-ambari-upgrade add="true"/>
   </property>

@@ -41,7 +41,12 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, App.Loadi
    */
   service: Em.computed.alias('controller.selectedService'),
 
-  templateName: require('templates/common/configs/service_config_layout_tab'),
+  templateName: function() {
+    var customTemplate = this.get('customTemplate');
+    return customTemplate ? customTemplate : require('templates/common/configs/service_config_layout_tab');
+  }.property('customTemplate'),
+
+  customTemplate: null,
 
   fieldToObserve: 'controller.recommendationsInProgress',
 
@@ -106,20 +111,20 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, App.Loadi
    * @param containerObject
    */
   setConfigsToContainer: function(containerObject) {
-    var self = this;
-    var service = this.get('controller.stepConfigs').findProperty('serviceName', this.get('controller.selectedService.serviceName'));
-    if (!service) return;
     containerObject.set('configs', []);
 
     containerObject.get('configProperties').forEach(function (configId) {
 
       var config = App.configsCollection.getConfig(configId);
-      var configProperty = service.get('configs').findProperty('id', Em.get(config, 'id'));
+      var stepConfig = this.get('controller.stepConfigs').findProperty('serviceName', Em.get(config, 'serviceName'));
+      if (!stepConfig) return;
+
+      var configProperty = stepConfig.get('configs').findProperty('id', Em.get(config, 'id'));
       if (!configProperty) return;
 
       containerObject.get('configs').pushObject(configProperty);
 
-      var widget = self.getWidgetView(config);
+      var widget = this.getWidgetView(config);
       Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' +  Em.get(config, 'widgetType'), widget);
 
       var additionalProperties = {
@@ -167,7 +172,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, App.Loadi
           stackConfigProperty: config
         });
       }
-    });
+    }, this);
   },
 
   /**

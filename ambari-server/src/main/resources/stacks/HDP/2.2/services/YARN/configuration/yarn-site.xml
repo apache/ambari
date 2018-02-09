@@ -48,6 +48,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.recovery.dir</name>
+    <display-name>YARN NodeManager Recovery directory</display-name>
     <value>{{yarn_log_dir_prefix}}/nodemanager/recovery-state</value>
     <description>
       The local filesystem directory in which the node manager will store
@@ -461,6 +462,7 @@
   </property>
   <property>
     <name>yarn.node-labels.fs-store.root-dir</name>
+    <display-name>YARN Node Labels FS Store Root directory</display-name>
     <value>/system/yarn/node-labels</value>
     <description>
       URI for NodeLabelManager.

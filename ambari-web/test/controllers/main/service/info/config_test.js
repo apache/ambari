@@ -1000,12 +1000,12 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   describe('#errorsCount', function () {
 
-    it('should ignore configs with widgets (enhanced configs)', function () {
+    it('should ignore configs with isInDefaultTheme=false', function () {
 
       mainServiceInfoConfigsController.reopen({selectedService: Em.Object.create({
         configsWithErrors: Em.A([
-          Em.Object.create({widget: {}}),
-          Em.Object.create({widget: null})
+          Em.Object.create({isInDefaultTheme: true}),
+          Em.Object.create({isInDefaultTheme: null})
         ])
       })});
 

@@ -39,4 +39,48 @@ $.fn.tooltip.Constructor.prototype.destroy = function() {
     that.$viewport = null
     that.$element = null
   })
-}
+};
+
+// function required for clearMenus
+var getParent = function($this) {
+  var selector = $this.attr('data-target');
+
+  if (!selector) {
+    selector = $this.attr('href');
+    selector = selector && /#[A-Za-z]/.test(selector) && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7;
+  }
+
+  var $parent = selector && $(selector);
+
+  return $parent && $parent.length ? $parent : $this.parent();
+};
+
+// new exclusion added, clicking on elements with class checkbox-label should be ignored to close dropdown
+var clearMenus = function (e) {
+  if (e && e.which === 3) return;
+  $('.dropdown-backdrop').remove();
+  $('[data-toggle="dropdown"]').each(function () {
+    var $this = $(this);
+    var $parent = getParent($this);
+    var relatedTarget = {relatedTarget: this};
+
+    if (!$parent.hasClass('open')) return;
+
+    if (e && e.type == 'click' && (/input|textarea/i.test(e.target.tagName) || e.target.className.contains('checkbox-label')) && $.contains($parent[0], e.target)) return;
+
+    $parent.trigger(e = $.Event('hide.bs.dropdown', relatedTarget));
+
+    if (e.isDefaultPrevented()) return;
+
+    $this.attr('aria-expanded', 'false');
+    $parent.removeClass('open').trigger($.Event('hidden.bs.dropdown', relatedTarget));
+  });
+};
+
+$(document).off('click.bs.dropdown.data-api');
+$(document).on('click.bs.dropdown.data-api', clearMenus);
+$(document).on('click.bs.dropdown.data-api', '.dropdown form', function (e) {
+  e.stopPropagation()
+});
+$(document).on('click.bs.dropdown.data-api', '[data-toggle="dropdown"]', $.fn.dropdown.Constructor.prototype.toggle);
+

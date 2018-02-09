@@ -101,6 +101,7 @@
   <!--embeddedmq properties-->
   <property>
     <name>falcon.embeddedmq.data</name>
+    <display-name>Falcon Embedded MQ Data</display-name>
     <value>/hadoop/falcon/embeddedmq/data</value>
     <description>Directory in which embeddedmq data is stored.</description>
     <value-attributes>

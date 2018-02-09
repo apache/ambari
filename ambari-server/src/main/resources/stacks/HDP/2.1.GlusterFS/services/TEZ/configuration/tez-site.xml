@@ -19,6 +19,7 @@
 <configuration supports_final="true">
   <property>
     <name>tez.lib.uris</name>
+    <display-name>TEZ Lib URIs</display-name>
     <value>glusterfs:///apps/tez/,glusterfs:///apps/tez/lib/</value>
     <description>The location of the Tez libraries which will be localized for DAGs</description>
     <on-ambari-upgrade add="true"/>
@@ -31,6 +32,7 @@
   </property>
   <property>
     <name>tez.staging-dir</name>
+    <display-name>TEZ Staging directory</display-name>
     <value>/tmp/${user.name}/staging</value>
     <description>The staging dir used while submitting DAGs</description>
     <on-ambari-upgrade add="true"/>

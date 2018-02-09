@@ -70,6 +70,7 @@ describe('App.themeMapper', function () {
         service_name: 'S1',
         theme_data: {
           Theme: {
+            name: 'theme1',
             configuration: {
               layouts: [
                 {
@@ -127,14 +128,14 @@ describe('App.themeMapper', function () {
           "column_index": 2,
           "column_span": 4,
           "display_name": "sec1",
-          "id": "SEC1",
+          "id": "SEC1_S1_t1",
           "name": "SEC1",
           "row_index": 1,
           "row_span": 3,
           "section_columns": 5,
           "section_rows": 6,
           "tab_id": "S1_t1"
-        }
+        }, 'S1', 'theme1'
       ])
     });
 
@@ -144,7 +145,7 @@ describe('App.themeMapper', function () {
         "column_index": 2,
         "column_span": 4,
         "display_name": "sec1",
-        "id": "SEC1",
+        "id": "SEC1_S1_t1",
         "name": "SEC1",
         "row_index": 1,
         "row_span": 3,
@@ -191,7 +192,7 @@ describe('App.themeMapper', function () {
     });
 
     it('loadSubSectionTabs should be called', function() {
-      App.themesMapper.loadSubSections(section, {id: 1});
+      App.themesMapper.loadSubSections(section, {id: 1}, 's1', 't1');
       expect(App.themesMapper.loadSubSectionTabs.getCall(0).args).to.be.eql([
         {
           "name": 'SSEC1',
@@ -213,7 +214,7 @@ describe('App.themeMapper', function () {
           "configProperties": [],
           "depends_on": [],
           "display_name": "ssec1",
-          "id": "SSEC1",
+          "id": "SSEC1_s1_t1",
           "left_vertical_splitter": 6,
           "name": "SSEC1",
           "row_index": 2,
@@ -224,7 +225,7 @@ describe('App.themeMapper', function () {
     });
 
     it('mapThemeConditions should be called', function() {
-      App.themesMapper.loadSubSections(section, {id: 1});
+      App.themesMapper.loadSubSections(section, {id: 1}, 's1', 't1');
       expect(App.themesMapper.mapThemeConditions.getCall(0).args).to.be.eql([
         [{
           "border": 1,
@@ -233,7 +234,7 @@ describe('App.themeMapper', function () {
           "configProperties": [],
           "depends_on": [],
           "display_name": "ssec1",
-          "id": "SSEC1",
+          "id": "SSEC1_s1_t1",
           "left_vertical_splitter": 6,
           "name": "SSEC1",
           "row_index": 2,
@@ -245,7 +246,7 @@ describe('App.themeMapper', function () {
     });
 
     it('App.store.safeLoadMany should be called', function() {
-      App.themesMapper.loadSubSections(section, {id: 1});
+      App.themesMapper.loadSubSections(section, {id: 1}, 's1', 't1');
       expect(App.store.safeLoadMany.getCall(0).args[1]).to.be.eql([
         {
           "border": 1,
@@ -254,7 +255,7 @@ describe('App.themeMapper', function () {
           "configProperties": [],
           "depends_on": [],
           "display_name": "ssec1",
-          "id": "SSEC1",
+          "id": "SSEC1_s1_t1",
           "left_vertical_splitter": 6,
           "name": "SSEC1",
           "row_index": 2,

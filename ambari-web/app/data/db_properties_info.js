@@ -118,7 +118,8 @@ module.exports = {
     },
     'DERBY': {
       'connection_url': 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true',
-      'driver': 'org.apache.derby.jdbc.EmbeddedDriver'
+      'driver': 'org.apache.derby.jdbc.EmbeddedDriver',
+      'db_type': 'derby'
     }
   }
 };

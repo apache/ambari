@@ -29,12 +29,15 @@ App.Tab = DS.Model.extend({
   sections: DS.hasMany('App.Section'),
   isAdvancedHidden: DS.attr('boolean', {defaultValue: false}),
   isRendered: DS.attr('boolean', {defaultValue: false}),
+  themeName: DS.attr('string'),
 
   /**
    * @type {boolean}
    * @default false
    */
   isActive: false,
+
+  isHidden: false,
 
   /**
    * Determines if all <code>configs</code> were attached to tab.
@@ -72,7 +75,15 @@ App.Tab = DS.Model.extend({
    * If it's an Advanced Tab it can't be hidden
    * @type {boolean}
    */
-  isHiddenByFilter: Em.computed.ifThenElseByKeys('isAdvanced', 'isAdvancedHidden', 'allSectionsAreHiddenByFilter')
+  isHiddenByFilter: Em.computed.ifThenElseByKeys('isAdvanced', 'isAdvancedHidden', 'allSectionsAreHiddenByFilter'),
+
+  /**
+   * define whether tab is related to specific category
+   * @type {boolean}
+   */
+  isCategorized: function () {
+    return !this.get('isAdvanced') && this.get('themeName') !== 'default';
+  }.property('isAdvanced', 'themeName')
 
 });
 
