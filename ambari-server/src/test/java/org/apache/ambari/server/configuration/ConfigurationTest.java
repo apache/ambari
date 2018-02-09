@@ -515,19 +515,6 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void testExperimentalConcurrentStageProcessing() throws Exception {
-    final Properties ambariProperties = new Properties();
-    final Configuration configuration = new Configuration(ambariProperties);
-
-    Assert.assertFalse(configuration.isExperimentalConcurrentStageProcessingEnabled());
-
-    ambariProperties.setProperty(Configuration.EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED.getKey(),
-        Boolean.TRUE.toString());
-
-    Assert.assertTrue(configuration.isExperimentalConcurrentStageProcessingEnabled());
-  }
-
-  @Test
   public void testServerLocksProfilingEnabled() throws Exception {
     final Properties ambariProperties = new Properties();
     final Configuration configuration = new Configuration(ambariProperties);

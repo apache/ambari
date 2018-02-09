@@ -220,6 +220,12 @@
       <groupId>org.springframework.security.kerberos</groupId>
       <artifactId>spring-security-kerberos-client</artifactId>
       <version>1.0.1.RELEASE</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

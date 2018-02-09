@@ -71,13 +71,13 @@ import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
+public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
   public static final String HOST_ID_COLUMN = "host_id";
   /**
    * Logger.
    */
-  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog300.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog270.class);
 
   protected static final String STAGE_TABLE = "stage";
   protected static final String STAGE_STATUS_COLUMN = "status";
@@ -173,7 +173,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    * @param injector Guice injector to track dependencies and uses bindings to inject them.
    */
   @Inject
-  public UpgradeCatalog300(Injector injector) {
+  public UpgradeCatalog270(Injector injector) {
     super(injector);
 
     daoUtils = injector.getInstance(DaoUtils.class);
@@ -186,7 +186,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getTargetVersion() {
-    return "3.0.0";
+    return "2.7.0";
   }
 
   // ----- AbstractUpgradeCatalog --------------------------------------------
@@ -196,7 +196,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getSourceVersion() {
-    return "2.6.0";
+    return "2.6.2";
   }
 
   /**
