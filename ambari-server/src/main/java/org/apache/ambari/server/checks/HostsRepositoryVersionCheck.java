@@ -82,6 +82,9 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
       if (hostVersion == null || !okStates.contains(hostVersion.getState())) {
         prerequisiteCheck.getFailedOn().add(host.getHostName());
+
+        prerequisiteCheck.getFailedDetail().add(
+            new HostDetail(host.getHostId(), host.getHostName()));
       }
     }
 

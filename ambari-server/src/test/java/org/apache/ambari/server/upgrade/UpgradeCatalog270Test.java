@@ -17,68 +17,68 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_PERMISSION_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_RESOURCE_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_DESIRED_STATE_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_NAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_STATE_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_HOST_ID;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_KEYTAB_PATH;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_PRINCIPAL_NAME;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_SERVICE_PRINCIPAL;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.HOSTS_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.HOST_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_KEYTAB_PRINCIPAL_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_KEYTAB_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_PRINCIPAL_HOST_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_PRINCIPAL_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KEYTAB_PATH_FIELD;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KKP_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KKP_MAPPING_SERVICE_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_GROUP_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_MEMBER_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_USER_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PK_KERBEROS_KEYTAB;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PK_KKP;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PK_KKP_MAPPING_SERVICE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PRINCIPAL_NAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_DISPLAY_STATUS_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SECURITY_STATE_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_DESIRED_STATE_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_NAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_DISPLAY_STATUS_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_STATUS_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.UNIQUE_USERS_0_INDEX;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.UNI_KKP;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_CONSECUTIVE_FAILURES_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_DISPLAY_NAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_LDAP_USER_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_LOCAL_USERNAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_NAME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_PASSWORD_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_TYPE_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_VERSION_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_CREATE_TIME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_PRIMARY_KEY;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_TABLE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_UPDATE_TIME_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.ADMINPRIVILEGE_PERMISSION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.ADMINPRIVILEGE_RESOURCE_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.ADMINPRIVILEGE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_DESIRED_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_HOST_ID;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_KEYTAB_PATH;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_PRINCIPAL_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.FK_KKP_SERVICE_PRINCIPAL;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.HOSTS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.HOST_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KERBEROS_KEYTAB_PRINCIPAL_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KERBEROS_KEYTAB_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KERBEROS_PRINCIPAL_HOST_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KERBEROS_PRINCIPAL_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KEYTAB_PATH_FIELD;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KKP_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.KKP_MAPPING_SERVICE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.MEMBERS_GROUP_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.MEMBERS_MEMBER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.MEMBERS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.MEMBERS_USER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KERBEROS_KEYTAB;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KKP;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KKP_MAPPING_SERVICE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PRINCIPAL_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_DISPLAY_STATUS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SECURITY_STATE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SERVICE_DESIRED_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SERVICE_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.STAGE_DISPLAY_STATUS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.STAGE_STATUS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.STAGE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.UNIQUE_USERS_0_INDEX;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.UNI_KKP;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_CONSECUTIVE_FAILURES_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_DISPLAY_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_LDAP_USER_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_LOCAL_USERNAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_USER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_USER_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_USER_PASSWORD_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_USER_TYPE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USERS_VERSION_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_CREATE_TIME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_PRIMARY_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_UPDATE_TIME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_ID_COLUMN;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -161,7 +161,7 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 
 @RunWith(EasyMockRunner.class)
-public class UpgradeCatalog300Test {
+public class UpgradeCatalog270Test {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
@@ -217,15 +217,15 @@ public class UpgradeCatalog300Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
-    Method showHcatDeletedUserMessage = UpgradeCatalog300.class.getDeclaredMethod("showHcatDeletedUserMessage");
-    Method setStatusOfStagesAndRequests = UpgradeCatalog300.class.getDeclaredMethod("setStatusOfStagesAndRequests");
-    Method updateLogSearchConfigs = UpgradeCatalog300.class.getDeclaredMethod("updateLogSearchConfigs");
-    Method updateKerberosConfigurations = UpgradeCatalog300.class.getDeclaredMethod("updateKerberosConfigurations");
-    Method upgradeLdapConfiguration = UpgradeCatalog300.class.getDeclaredMethod("upgradeLdapConfiguration");
-    Method createRoleAuthorizations = UpgradeCatalog300.class.getDeclaredMethod("createRoleAuthorizations");
-    Method addUserAuthenticationSequence = UpgradeCatalog300.class.getDeclaredMethod("addUserAuthenticationSequence");
+    Method showHcatDeletedUserMessage = UpgradeCatalog270.class.getDeclaredMethod("showHcatDeletedUserMessage");
+    Method setStatusOfStagesAndRequests = UpgradeCatalog270.class.getDeclaredMethod("setStatusOfStagesAndRequests");
+    Method updateLogSearchConfigs = UpgradeCatalog270.class.getDeclaredMethod("updateLogSearchConfigs");
+    Method updateKerberosConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateKerberosConfigurations");
+    Method upgradeLdapConfiguration = UpgradeCatalog270.class.getDeclaredMethod("upgradeLdapConfiguration");
+    Method createRoleAuthorizations = UpgradeCatalog270.class.getDeclaredMethod("createRoleAuthorizations");
+    Method addUserAuthenticationSequence = UpgradeCatalog270.class.getDeclaredMethod("addUserAuthenticationSequence");
 
-    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
         .addMockedMethod(showHcatDeletedUserMessage)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(setStatusOfStagesAndRequests)
@@ -237,35 +237,35 @@ public class UpgradeCatalog300Test {
         .createMock();
 
 
-    upgradeCatalog300.addNewConfigurationsFromXml();
+    upgradeCatalog270.addNewConfigurationsFromXml();
     expectLastCall().once();
 
-    upgradeCatalog300.showHcatDeletedUserMessage();
+    upgradeCatalog270.showHcatDeletedUserMessage();
     expectLastCall().once();
 
-    upgradeCatalog300.createRoleAuthorizations();
+    upgradeCatalog270.createRoleAuthorizations();
     expectLastCall().once();
 
-    upgradeCatalog300.setStatusOfStagesAndRequests();
+    upgradeCatalog270.setStatusOfStagesAndRequests();
     expectLastCall().once();
 
-    upgradeCatalog300.updateLogSearchConfigs();
+    upgradeCatalog270.updateLogSearchConfigs();
     expectLastCall().once();
 
-    upgradeCatalog300.updateKerberosConfigurations();
+    upgradeCatalog270.updateKerberosConfigurations();
     expectLastCall().once();
 
-    upgradeCatalog300.upgradeLdapConfiguration();
+    upgradeCatalog270.upgradeLdapConfiguration();
     expectLastCall().once();
 
-    upgradeCatalog300.addUserAuthenticationSequence();
+    upgradeCatalog270.addUserAuthenticationSequence();
     expectLastCall().once();
 
-    replay(upgradeCatalog300);
+    replay(upgradeCatalog270);
 
-    upgradeCatalog300.executeDMLUpdates();
+    upgradeCatalog270.executeDMLUpdates();
 
-    verify(upgradeCatalog300);
+    verify(upgradeCatalog270);
   }
 
   @Test
@@ -283,7 +283,7 @@ public class UpgradeCatalog300Test {
 
     // addOpsDisplayNameColumnToHostRoleCommand
     Capture<DBAccessor.DBColumnInfo> hrcOpsDisplayNameColumn = newCapture();
-    dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
+    dbAccessor.addColumn(eq(UpgradeCatalog270.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
     expectLastCall().once();
 
     // removeSecurityState
@@ -356,8 +356,8 @@ public class UpgradeCatalog300Test {
     replay(dbAccessor, configuration);
 
     Injector injector = Guice.createInjector(module);
-    UpgradeCatalog300 upgradeCatalog300 = injector.getInstance(UpgradeCatalog300.class);
-    upgradeCatalog300.executeDDLUpdates();
+    UpgradeCatalog270 upgradeCatalog270 = injector.getInstance(UpgradeCatalog270.class);
+    upgradeCatalog270.executeDDLUpdates();
 
     // Validate updateStageTableCaptures
     Assert.assertTrue(updateStageTableCaptures.hasCaptured());
@@ -369,7 +369,7 @@ public class UpgradeCatalog300Test {
     );
 
     DBAccessor.DBColumnInfo capturedOpsDisplayNameColumn = hrcOpsDisplayNameColumn.getValue();
-    Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedOpsDisplayNameColumn.getName());
+    Assert.assertEquals(UpgradeCatalog270.HRC_OPS_DISPLAY_NAME_COLUMN, capturedOpsDisplayNameColumn.getName());
     Assert.assertEquals(null, capturedOpsDisplayNameColumn.getDefaultValue());
     Assert.assertEquals(String.class, capturedOpsDisplayNameColumn.getType());
 
@@ -766,7 +766,7 @@ public class UpgradeCatalog300Test {
     replay(logFeederLog4jConf, logSearchLog4jConf);
     replay(logSearchServiceLogsConf, logSearchAuditLogsConf);
     replay(logFeederOutputConf);
-    new UpgradeCatalog300(injector2).updateLogSearchConfigs();
+    new UpgradeCatalog270(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
     Map<String, String> newLogFeederProperties = logFeederPropertiesCapture.getValue();
@@ -820,7 +820,7 @@ public class UpgradeCatalog300Test {
     expect(cluster1.getClusterName()).andReturn("c1").atLeastOnce();
     expect(cluster1.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster1.getConfig(eq("kerberos-env"), anyString())).andReturn(newConfig).atLeastOnce();
-    expect(cluster1.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated kerberos-env during Ambari Upgrade from 2.6.0 to 3.0.0.")).andReturn(response).once();
+    expect(cluster1.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated kerberos-env during Ambari Upgrade from 2.6.2 to 2.7.0.")).andReturn(response).once();
 
     Map<String, String> propertiesWithoutGroup = new HashMap<>();
     propertiesWithoutGroup.put("kdc_host", "host2.example.com");
@@ -864,19 +864,19 @@ public class UpgradeCatalog300Test {
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("configuration");
 
-    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class).addMockedMethod("getPrepareIdentityServerAction").addMockedMethod("executeInTransaction").createMock();
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class).addMockedMethod("getPrepareIdentityServerAction").addMockedMethod("executeInTransaction").createMock();
     PrepareKerberosIdentitiesServerAction mockAction = createNiceMock(PrepareKerberosIdentitiesServerAction.class);
-    expect(upgradeCatalog300.getPrepareIdentityServerAction()).andReturn(mockAction).times(2);
-    upgradeCatalog300.executeInTransaction(anyObject());
+    expect(upgradeCatalog270.getPrepareIdentityServerAction()).andReturn(mockAction).times(2);
+    upgradeCatalog270.executeInTransaction(anyObject());
     expectLastCall().times(2);
-    upgradeCatalog300.injector = injector;
+    upgradeCatalog270.injector = injector;
 
-    replay(upgradeCatalog300);
+    replay(upgradeCatalog270);
 
-    field.set(upgradeCatalog300, configuration);
-    upgradeCatalog300.updateKerberosConfigurations();
+    field.set(upgradeCatalog270, configuration);
+    upgradeCatalog270.updateKerberosConfigurations();
 
-    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog300);
+    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog270);
 
 
     Assert.assertEquals(1, capturedProperties.getValues().size());
@@ -906,8 +906,8 @@ public class UpgradeCatalog300Test {
     replay(configuration, entityManager, ambariConfigurationDao);
 
     final Injector injector = Guice.createInjector(module);
-    final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
-    upgradeCatalog300.upgradeLdapConfiguration();
+    final UpgradeCatalog270 upgradeCatalog270 = new UpgradeCatalog270(injector);
+    upgradeCatalog270.upgradeLdapConfiguration();
     verify(configuration, entityManager, ambariConfigurationDao);
   }
 
@@ -921,8 +921,8 @@ public class UpgradeCatalog300Test {
     replay(configuration, entityManager, ambariConfigurationDao);
 
     final Injector injector = Guice.createInjector(module);
-    final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
-    upgradeCatalog300.upgradeLdapConfiguration();
+    final UpgradeCatalog270 upgradeCatalog270 = new UpgradeCatalog270(injector);
+    upgradeCatalog270.upgradeLdapConfiguration();
 
     expectedException.expect(AssertionError.class);
     expectedException.expectMessage("Expectation failure on verify");

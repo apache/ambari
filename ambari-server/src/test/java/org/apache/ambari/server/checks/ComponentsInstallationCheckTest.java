@@ -293,6 +293,7 @@ public class ComponentsInstallationCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 2. Ensure that AMS is ignored even if their current state is not INSTALLED
     Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALL_FAILED);
@@ -300,6 +301,7 @@ public class ComponentsInstallationCheckTest {
     check = new PrerequisiteCheck(null, null);
     componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 3: Change TEZ client state to INSTALL_FAILED, should fail
     Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
@@ -307,6 +309,7 @@ public class ComponentsInstallationCheckTest {
     componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(check.getFailReason().indexOf("Service components in INSTALL_FAILED state") > -1);
+    Assert.assertEquals(1, check.getFailedDetail().size());
 
     // Case 4: Change TEZ client state to INSTALL_FAILED and place TEZ in Maintenance mode, should succeed
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.ON);
@@ -314,6 +317,7 @@ public class ComponentsInstallationCheckTest {
     check = new PrerequisiteCheck(null, null);
     componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 5: Change TEZ client state to INSTALL_FAILED and place host2 in Maintenance mode, should succeed
     Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
@@ -322,5 +326,6 @@ public class ComponentsInstallationCheckTest {
     check = new PrerequisiteCheck(null, null);
     componentsInstallationCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
   }
 }

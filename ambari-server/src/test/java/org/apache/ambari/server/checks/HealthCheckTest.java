@@ -82,6 +82,7 @@ public class HealthCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     healthCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
   }
 
   @Test
@@ -112,5 +113,6 @@ public class HealthCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     healthCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
     Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+    Assert.assertFalse(check.getFailedDetail().isEmpty());
   }
 }

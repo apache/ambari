@@ -170,6 +170,7 @@ public class InstallPackagesCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     installPackagesCheck.perform(check, checkRequest);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 2: Install Packages failed on host1
     Mockito.when(hostVersionEntities.get(0).getState()).thenReturn(RepositoryVersionState.INSTALL_FAILED);
@@ -178,5 +179,6 @@ public class InstallPackagesCheckTest {
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertNotNull(check.getFailedOn());
     Assert.assertTrue(check.getFailedOn().contains("host1"));
+    Assert.assertFalse(check.getFailedDetail().isEmpty());
   }
 }
