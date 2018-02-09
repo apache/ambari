@@ -39,7 +39,7 @@ import glob
 import pwd
 import re
 from AmbariConfig import AmbariConfig
-from ambari_agent.Constants import AGENT_TMP_DIR
+from ambari_commons.constants import AGENT_TMP_DIR
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl

@@ -789,7 +789,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
   public List<KerberosIdentityDescriptor> getIdentitiesSkipReferences() {
     return nullToEmpty(getIdentities())
       .stream()
-      .filter(identity -> !identity.getReferencedServiceName().isPresent() && identity.getName() != null && !identity.getName().startsWith("/"))
+      .filter(identity -> !identity.getReferencedServiceName().isPresent() && !identity.isReference())
       .collect(toList());
   }
 
