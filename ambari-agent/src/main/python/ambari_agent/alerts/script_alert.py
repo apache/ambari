@@ -25,7 +25,7 @@ import re
 from alerts.base_alert import BaseAlert
 from resource_management.core.environment import Environment
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
-from ambari_agent import Constants
+from ambari_commons.constants import AGENT_TMP_DIR
 
 logger = logging.getLogger("ambari_alerts")
 
@@ -111,7 +111,7 @@ class ScriptAlert(BaseAlert):
       matchObj = re.match( r'((.*)services(.*)package)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        with Environment(basedir, tmp_dir=Constants.AGENT_TMP_DIR, logger=logging.getLogger('ambari_alerts')) as env:
+        with Environment(basedir, tmp_dir=AGENT_TMP_DIR, logger=logging.getLogger('ambari_alerts')) as env:
           result = cmd_module.execute(configurations, self.parameters, self.host_name)
       else:
         result = cmd_module.execute(configurations, self.parameters, self.host_name)

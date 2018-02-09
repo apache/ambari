@@ -29,7 +29,7 @@ from tempfile import gettempdir
 from resource_management import *
 from utils import get_property_value
 from ambari_commons.os_utils import remove_file
-from ambari_agent import Constants
+from ambari_commons.constants import AGENT_TMP_DIR
 
 class KerberosScript(Script):
   KRB5_REALM_PROPERTIES = [
@@ -286,7 +286,7 @@ class KerberosScript(Script):
 
   @staticmethod
   def clear_tmp_cache():
-    tmp_dir = Constants.AGENT_TMP_DIR
+    tmp_dir = AGENT_TMP_DIR
     if tmp_dir is None:
       tmp_dir = gettempdir()
     curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
