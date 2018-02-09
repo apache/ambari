@@ -24,7 +24,6 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core import sudo
-import subprocess
 
 class ServiceCheck(Script):
   def service_check(self, env):

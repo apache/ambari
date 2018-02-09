@@ -20,7 +20,7 @@ limitations under the License.
 
 import os.path
 import logging
-import subprocess
+from ambari_commons import subprocess32
 from resource_management.core import shell
 from resource_management.core.shell import call
 from resource_management.core.exceptions import ExecuteTimeoutException, Fail
@@ -156,7 +156,7 @@ class Hardware:
       command.append("-l")
 
     try:
-      code, out, err = shell.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=int(timeout), quiet=True)
+      code, out, err = shell.call(command, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, timeout=int(timeout), quiet=True)
       dfdata = out
     except Exception as ex:
       logger.warn("Checking disk usage failed: " + str(ex))
