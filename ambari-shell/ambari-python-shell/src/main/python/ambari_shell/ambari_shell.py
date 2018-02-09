@@ -36,7 +36,7 @@ import argparse
 import readline
 import ConfigParser
 import StringIO
-import subprocess
+from ambari_commons import subprocess32
 import textwrap
 
 import utils.displayutils

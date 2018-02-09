@@ -49,7 +49,7 @@ class PythonReflectiveExecutor(PythonExecutor):
     logger.debug("Running command reflectively " + pprint.pformat(pythonCommand))
     
     script_dir = os.path.dirname(script)
-    self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
+    self.open_subprocess32_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
     returncode = 1
 
     try:

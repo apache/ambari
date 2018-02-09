@@ -41,7 +41,7 @@ from resource_management.libraries.functions.hdfs_utils import is_https_enabled_
 
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import subprocess
+from ambari_commons import subprocess32
 
 JSON_PATH = '/var/lib/ambari-agent/tmp/hdfs_resources_{timestamp}.json'
 JAR_PATH = '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
