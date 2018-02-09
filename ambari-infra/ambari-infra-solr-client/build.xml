@@ -27,7 +27,7 @@
 
   <target name="package">
     <delete dir="target/package"/>
-    <delete dir="target/ext"/>
+    <delete dir="target/migrate"/>
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset dir="target/libs"/>
     </copy>
