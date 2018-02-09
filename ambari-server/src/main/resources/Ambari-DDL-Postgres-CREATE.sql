@@ -1287,7 +1287,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('servicecomponent_version_id_seq', 0),
   ('blueprint_service_id_seq', 0),
   ('blueprint_mpack_instance_id_seq', 0),
-  ('hostgroup_component_id_seq', 0);
+  ('hostgroup_component_id_seq', 0),
   ('repo_os_id_seq', 0),
   ('repo_definition_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0);
