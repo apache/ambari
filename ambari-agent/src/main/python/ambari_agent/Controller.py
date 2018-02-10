@@ -30,7 +30,7 @@ import urllib2
 import pprint
 from random import randint
 import re
-import subprocess
+from ambari_commons import subprocess32
 import functools
 
 import hostname
@@ -599,12 +599,12 @@ class Controller(threading.Thread):
         if os.path.exists(source_file) and not os.path.exists(destination_file):
           command = "mkdir -p %s" % os.path.dirname(destination_file)
           logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
-          return_code = subprocess.call(command, shell=True)
+          return_code = subprocess32.call(command, shell=True)
           logger.info("Return code: %d" % return_code)
 
           command = "mv %s %s" % (source_file, destination_file)
           logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
-          return_code = subprocess.call(command, shell=True)
+          return_code = subprocess32.call(command, shell=True)
           logger.info("Return code: %d" % return_code)
     except Exception, e:
       logger.error("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))

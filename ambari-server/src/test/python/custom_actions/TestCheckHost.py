@@ -22,7 +22,7 @@ from stacks.utils.RMFTestCase import *
 import json
 import os
 import socket
-import subprocess
+from ambari_commons import subprocess32
 from ambari_commons import inet_utils, OSCheck
 from resource_management import Script, ConfigDictionary
 from resource_management.core.exceptions import Fail

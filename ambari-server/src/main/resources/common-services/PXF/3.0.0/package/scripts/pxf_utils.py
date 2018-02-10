@@ -20,7 +20,7 @@ from resource_management.core.logger import Logger
 import socket
 import urllib2
 import urllib
-import subprocess
+from ambari_commons import subprocess32
 
 def makeHTTPCall(url, header={}, body=None):
   # timeout in seconds
@@ -45,5 +45,5 @@ def makeHTTPCall(url, header={}, body=None):
     
 
 def runLocalCmd(cmd):
-  return subprocess.call(cmd, shell=True)  
+  return subprocess32.call(cmd, shell=True)  
 

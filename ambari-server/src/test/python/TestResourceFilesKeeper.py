@@ -20,7 +20,7 @@ import os
 os.environ["ROOT"] = ""
 
 import time
-import subprocess
+from ambari_commons import subprocess32
 import os
 import logging
 import tempfile
@@ -28,7 +28,7 @@ import pprint
 from xml.dom import minidom
 
 from unittest import TestCase
-from subprocess import Popen
+from ambari_commons.subprocess32 import Popen
 from mock.mock import MagicMock, call
 from mock.mock import patch
 from mock.mock import create_autospec
