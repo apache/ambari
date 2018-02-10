@@ -87,7 +87,7 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
             )
 
 def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java64_home,
-                      shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10,
+                      shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10, implicitRouting = False,
                       router_name = None, router_field = None, jaas_file = None, key_store_location = None,
                       key_store_password = None, key_store_type = None, trust_store_location = None,
                       trust_store_password = None, trust_store_type = None, java_opts=None):
@@ -107,7 +107,9 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
 
   create_collection_cmd = format('{solr_cli_prefix} --create-collection --collection {collection} --config-set {config_set} '\
                                  '--shards {shards} --replication {replication_factor} --max-shards {max_shards} --retry {retry} '\
-                                 '--interval {interval} --no-sharding')
+                                 '--interval {interval}')
+
+  create_collection_cmd = create_collection_cmd + ' --implicit-routing' if implicitRouting else create_collection_cmd
   appendableDict = {}
   appendableDict["--router-name"] = router_name
   appendableDict["--router-field"] = router_field
