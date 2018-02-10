@@ -43,5 +43,4 @@ ALERTS_STATUS_REPORTS_ENDPOINT = '/reports/alerts_status'
 HEARTBEAT_ENDPOINT = '/heartbeat'
 REGISTRATION_ENDPOINT = '/register'
 
-AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
 CORRELATION_ID_STRING = 'correlationId'
