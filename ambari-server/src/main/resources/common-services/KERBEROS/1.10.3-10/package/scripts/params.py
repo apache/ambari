@@ -17,12 +17,12 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.script.script import Script
-from utils import get_property_value, get_unstructured_data
+from ambari_commons.kerberos.utils import get_property_value, get_unstructured_data
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.script.script import Script
 
 
 krb5_conf_dir = '/etc'
@@ -115,6 +115,7 @@ if config is not None:
     test_keytab_file = None
     encryption_types = None
     manage_krb5_conf = "true"
+    force_tcp = "false"
     krb5_conf_template = None
 
     krb5_conf_data = get_property_value(configurations, 'krb5-conf')
@@ -148,6 +149,7 @@ if config is not None:
       krb5_conf_path = krb5_conf_dir + '/' + krb5_conf_file
 
       manage_krb5_conf = get_property_value(krb5_conf_data, 'manage_krb5_conf', "true")
+      force_tcp = get_property_value(krb5_conf_data, 'force_tcp', "false")
 
     # For backward compatibility, ensure that kdc_host exists. This may be needed if the krb5.conf
     # template in krb5-conf/content had not be updated during the Ambari upgrade to 2.4.0 - which

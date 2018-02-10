@@ -1,14 +1,18 @@
 {
   "common.title": "Log Search",
-  "common.hide": "Hide",
-  "common.show": "Show",
   "common.serviceLogs": "Service Logs",
   "common.auditLogs": "Audit Logs",
+  "common.summary": "Summary",
+  "common.logs": "Logs",
+  "common.name": "Name",
+  "common.value": "Value",
+  "common.settings": "Settings",
 
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
   "modal.apply": "Apply",
   "modal.close": "Close",
+  "modal.save": "Save",
 
   "authorization.logout": "Logout",
   "authorization.name": "Username",
@@ -20,14 +24,17 @@
   "topMenu.redo": "Redo",
   "topMenu.refresh": "Refresh",
   "topMenu.history": "History",
+  "topMenu.filter": "Filter",
 
   "filter.all": "All",
 
   "filter.clusters": "Clusters",
   "filter.components": "Components",
   "filter.levels": "Levels",
+  "filter.include": "Include",
   "filter.exclude": "Exclude",
   "filter.hosts": "Hosts",
+  "filter.users": "Users",
 
   "filter.capture": "Capture",
   "filter.capture.triggeringRefresh": "Triggering auto-refresh in {{remainingSeconds}} sec",
@@ -159,6 +166,14 @@
   "logs.noEventFound": "No event found",
   "logs.hideGraph": "Hide Graph",
   "logs.showGraph": "Show Graph",
+  "logs.topUsers": "Top {{number}} Users",
+  "logs.topResources": "Top {{number}} Resources",
+  "logs.brokenListLayoutMessage": "Some information may not be visible.",
+  "logs.brokenListLayoutTooltip": "It seems that your screen is too narrow to display this number of columns.",
+  "logs.tableLayoutBtnTooltip": "Table layout. Optimal when you want to display only few columns.",
+  "logs.flexLayoutBtnTooltip": "Flexible layout. Optimal when your screen is narrow or you want to display more columns.",
+  "logs.toggleLabels": "Turn on/off the labels.",
+  "logs.duration": "Duration",
 
   "histogram.gap": "gap",
   "histogram.gaps": "gaps",
@@ -169,5 +184,16 @@
   "histogram.gap.hour": "hour",
   "histogram.gap.hours": "hours",
   "histogram.gap.day": "day",
-  "histogram.gap.days": "days"
+  "histogram.gap.days": "days",
+  "histogram.gap.week": "week",
+  "histogram.gap.weeks": "weeks",
+
+  "logIndexFilter.title": "Log Index Filter",
+  "logIndexFilter.caption": "For each cluster, choose the components, hosts and log levels that will be indexed in the log feeder",
+  "logIndexFilter.select": "Select",
+  "logIndexFilter.selectCluster": "Select Cluster",
+  "logIndexFilter.override": "Override Hosts",
+  "logIndexFilter.addHosts": "Add Hosts",
+  "logIndexFilter.hostname": "Hostname",
+  "logIndexFilter.expiryDate": "Expiry Date"
 }

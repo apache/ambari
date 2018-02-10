@@ -41,7 +41,7 @@ import org.springframework.boot.system.ApplicationPidFileWriter;
 public class InfraManager {
 
   public static void main(String[] args) {
-    String pidFile = System.getenv("PID_FILE") == null ? "infra-manager.pid" : System.getenv("PID_FILE");
+    String pidFile = System.getenv("INFRA_MANAGER_PID_FILE") == null ? "infra-manager.pid" : System.getenv("INFRA_MANAGER_PID_FILE");
     new SpringApplicationBuilder(InfraManager.class)
       .bannerMode(Banner.Mode.OFF)
       .listeners(new ApplicationPidFileWriter(pidFile))

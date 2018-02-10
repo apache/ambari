@@ -160,8 +160,10 @@ if has_metric_collector:
 kerberos_security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configurations']['kafka-broker']) and
-                         ((config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL") or
-                          (config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_PLAINTEXT")))
+                         ((config['configurations']['kafka-broker']['security.inter.broker.protocol'] in ("PLAINTEXTSASL", "SASL_PLAINTEXT")) or
+                         ((config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_SSL") and
+                           check_stack_feature(StackFeature.KAFKA_EXTENDED_SASL_SUPPORT, stack_version_formatted))))
+
 
 kafka_other_sasl_enabled = not kerberos_security_enabled and check_stack_feature(StackFeature.KAFKA_LISTENERS, stack_version_formatted) and \
                           check_stack_feature(StackFeature.KAFKA_EXTENDED_SASL_SUPPORT, stack_version_formatted) and \

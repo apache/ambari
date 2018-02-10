@@ -23,12 +23,8 @@
     {{view.parentView.warningMessage}}
   </div>
   <form>
-    <div class="form-group">
-      <div class="radio">
-        <label {{bindAttr class="view.parentView.hasExistedGroups::message"}}>
-          {{view view.selectConfigGroupRadioButton}}
-        </label>
-      </div>
+    <div>
+      {{view view.selectConfigGroupRadioButton}}
     </div>
     {{#if view.parentView.availableConfigGroups.length}}
       <div class="select-create-config-group-div">
@@ -48,19 +44,15 @@
             {{/each}}
           </ul>
         </div>
-        <div class="message">{{t config.group.selection.dialog.option.select.msg}}</div>
+        <div>{{t config.group.selection.dialog.option.select.msg}}</div>
       </div>
     {{else}}
       <div class="select-create-config-group-div">
         <div class="alert alert-block">{{view.parentView.noGroups}}</div>
       </div>
     {{/if}}
-    <div class="form-group">
-      <div class="radio">
-        <label>
-          {{view view.createConfigGroupRadioButton}}
-        </label>
-      </div>
+    <div>
+      {{view view.createConfigGroupRadioButton}}
     </div>
     <div class="select-create-config-group-div">
       <div class="row">
@@ -70,7 +62,7 @@
         </div>
       </div>
       <div class="clearfix"></div>
-      <div class="message">{{view.parentView.createNewGroupDescription}}</div>
+      <div>{{view.parentView.createNewGroupDescription}}</div>
     </div>
   </form>
 </div>

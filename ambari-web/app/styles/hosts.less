@@ -283,21 +283,42 @@
   }
   .code-snippet {
     margin: 10px 0;
-    white-space:normal;
+    white-space: normal;
   }
   .warnings-list {
-    .block {
-      table {
-        width: 100%;
-        td, th {
-          text-align: left;
-          padding-left: 15px;
+    .panel {
+      padding: 0;
+      .panel-heading {
+        i {
+          margin-right: 5px;
+          position: relative;
+          top: 0;
+          &.panel-toggle {
+            font-size: 16px;
+            color: #1491c1;
+          }
         }
-        thead tr:first-child th {
-          font-weight: normal;
+        a, a:visited, a:focus {
+          color: black;
+          text-decoration: none;
         }
       }
-      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      td, th {
+        text-align: left;
+        padding-left: 15px;
+      }
+      thead tr:first-child th {
+        font-weight: normal;
+      }
+    }
+    margin-top: 10px;
+    .panel-heading {
+      i {
+        line-height: 19px;
+      }
     }
   }
   .glyphicon-warning-sign {
@@ -374,18 +395,11 @@
 
   .host-components {
     padding: 10px;
-    border-radius: 4px;
-    background: #FFF;
-    .component-name-block-wrapper {
-      display: table;
-      height: 34px;
-      .component-name-block {
-        white-space: normal;
-        word-wrap: break-word;
-        display: table-cell;
-        vertical-align: middle;
-      }
-
+    .component-name-block {
+      white-space: normal;
+      word-wrap: break-word;
+      display: table-cell;
+      vertical-align: middle;
     }
     .dropdown-menu {
       .disabled {
@@ -397,14 +411,15 @@
         pointer-events: auto;
       }
     }
-    .status-icons {
-      line-height: 34px;
-    }
-    .client-list {
-      ul {
-        list-style: none;
-      }
-    }
+  }
+
+  .status-icons span {
+    padding-right: 2px;
+  }
+
+  .action-icon {
+    padding: 2px 5px 0 5px;
+    font-size: 16px;
   }
 
   .logs-tab-content {

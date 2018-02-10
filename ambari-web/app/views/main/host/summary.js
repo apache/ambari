@@ -120,94 +120,41 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
 
   /**
    * Update <code>sortedComponents</code>
-   * Master components first, then slaves
+   * Master components first, then slaves and clients
    */
   sortedComponentsFormatter: function() {
-    var updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
-    var self = this;
-    var hostComponentViewMap = this.get('hostComponentViewMap');
+    const updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
+    const hostComponentViewMap = this.get('hostComponentViewMap');
+    const masters = [], slaves = [], clients = [];
     // Remove deleted components
-    this.get('sortedComponents').forEach(function(sortedComponent, index) {
-      if (!self.get('content.hostComponents').findProperty('id', sortedComponent.get('id'))) {
-        self.get('sortedComponents').removeAt(index, 1);
+    this.get('sortedComponents').forEach((sortedComponent, index) => {
+      if (!this.get('content.hostComponents').findProperty('id', sortedComponent.get('id'))) {
+        this.get('sortedComponents').removeAt(index, 1);
       }
     });
 
     this.get('content.hostComponents').forEach(function (component) {
-      if (component.get('isMaster') || component.get('isSlave')) {
-        var obj = this.get('sortedComponents').findProperty('id', component.get('id'));
-        if (obj) {
-          // Update existing component
-          updatebleProperties.forEach(function(property) {
-            obj.set(property, component.get(property));
-          });
-        }
-        else {
-          // Add new component
-          component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
-          if (component.get('isMaster')) {
-            // Masters should be before slaves
-            var lastMasterIndex = 0, atLeastOneMasterExists = false;
-            this.get('sortedComponents').forEach(function(sortedComponent, index) {
-              if (sortedComponent.get('isMaster')) {
-                lastMasterIndex = index;
-                atLeastOneMasterExists = true;
-              }
-            });
-            this.get('sortedComponents').insertAt(atLeastOneMasterExists ? lastMasterIndex + 1 : 0, component);
-          }
-          else {
-            // it is slave 100%
-            this.get('sortedComponents').pushObject(component);
-          }
+      const obj = this.get('sortedComponents').findProperty('id', component.get('id'));
+      if (obj) {
+        // Update existing component
+        updatebleProperties.forEach(function (property) {
+          obj.set(property, component.get(property));
+        });
+      } else {
+        component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
+        if (component.get('isMaster')) {
+          masters.push(component);
+        } else if (component.get('isSlave')) {
+          slaves.push(component);
+        } else if (component.get('isClient')) {
+          component.set('isLast', true);
+          component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
+          clients.pushObject(component);
         }
       }
     }, this);
+    this.set('sortedComponents', masters.concat(slaves, clients));
   },
-
-  /**
-   * List of installed clients
-   * @type {App.HostComponent[]}
-   */
-  clients: function () {
-    var clients = [];
-    this.get('content.hostComponents').forEach(function (component) {
-      if (!component.get('componentName')) {
-        //temporary fix because of different data in hostComponents and serviceComponents
-        return;
-      }
-      if (!component.get('isSlave') && !component.get('isMaster')) {
-        if (clients.length) {
-          clients[clients.length - 1].set('isLast', false);
-        }
-        component.set('isLast', true);
-        component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
-        clients.push(component);
-      }
-    }, this);
-    return clients;
-  }.property('content.hostComponents.length', 'content.hostComponents.@each.workStatus'),
-
-  anyClientFailedToInstall: Em.computed.someBy('clients', 'isInstallFailed', true),
-
-  /**
-   * Check if some clients not installed or started
-   *
-   * @type {bool}
-   **/
-  areClientsNotInstalled: Em.computed.or('anyClientFailedToInstall', 'installableClientComponents.length'),
-
-  /**
-   * Check if some clients have stale configs
-   * @type {bool}
-   */
-  areClientWithStaleConfigs: Em.computed.someBy('clients', 'staleConfigs', true),
-
-  /**
-   * List of install failed clients
-   * @type {App.HostComponent[]}
-   */
-  installFailedClients: Em.computed.filterBy('clients', 'workStatus', 'INSTALL_FAILED'),
 
   /**
    * Template for addable component
@@ -231,26 +178,6 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @type {bool}
    */
   addComponentDisabled: Em.computed.or('!isAddComponent', '!addableComponents.length'),
-
-  /**
-   * List of client's that may be installed to the current host
-   * @type {String[]}
-   */
-  installableClientComponents: function() {
-    var clientComponents = App.StackServiceComponent.find().filterProperty('isClient');
-    var installedServices = this.get('installedServices');
-    var installedClients = this.get('clients').mapProperty('componentName');
-    return clientComponents.filter(function(component) {
-      // service for current client is installed but client isn't installed on current host
-      return installedServices.contains(component.get('serviceName')) && !installedClients.contains(component.get('componentName'));
-    });
-  }.property('content.hostComponents.length', 'installedServices.length'),
-
-  notInstalledClientComponents: function () {
-    return this.get('clients').filter(function(component) {
-      return ['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'));
-    }).concat(this.get('installableClientComponents'));
-  }.property('installableClientComponents.length', 'clients.length'),
 
   /**
    * List of components that may be added to the current host

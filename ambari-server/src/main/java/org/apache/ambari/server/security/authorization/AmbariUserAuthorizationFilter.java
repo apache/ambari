@@ -30,7 +30,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
 import org.apache.commons.lang.math.NumberUtils;
@@ -70,18 +72,18 @@ public class AmbariUserAuthorizationFilter implements Filter {
             return;
           }
           Integer userId = Integer.parseInt(userToken);
-          User user = users.getUser(userId);
-          if (user == null) {
+          UserEntity userEntity = users.getUserEntity(userId);
+          if (userEntity == null) {
             httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
             httpResponse.flushBuffer();
             return;
-          } if (!user.isActive()) {
+          } if (!userEntity.getActive()) {
             httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "User is not active");
             httpResponse.flushBuffer();
             return;
           } else {
-            Collection<AmbariGrantedAuthority> userAuthorities =
-              users.getUserAuthorities(user.getUserName(), user.getUserType());
+            Collection<AmbariGrantedAuthority> userAuthorities = users.getUserAuthorities(userEntity);
+            User user = users.getUser(userEntity);
             AmbariUserAuthentication authentication = new AmbariUserAuthentication(token, user, userAuthorities);
             authentication.setAuthenticated(true);
             SecurityContextHolder.getContext().setAuthentication(authentication);

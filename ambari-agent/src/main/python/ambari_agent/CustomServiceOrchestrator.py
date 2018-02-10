@@ -31,6 +31,8 @@ from resource_management.libraries.functions.log_process_information import log_
 from resource_management.core.utils import PasswordString
 from ambari_agent.Utils import Utils
 import subprocess
+from ambari_commons.constants import AGENT_TMP_DIR
+import hostname
 import Constants
 
 
@@ -82,7 +84,7 @@ class CustomServiceOrchestrator():
     self.tmp_dir = self.config.get('agent', 'prefix')
     self.force_https_protocol = self.config.get_force_https_protocol_name()
     self.ca_cert_file_path = self.config.get_ca_cert_file_path()
-    self.exec_tmp_dir = Constants.AGENT_TMP_DIR
+    self.exec_tmp_dir = AGENT_TMP_DIR
     self.file_cache = initializer_module.file_cache
     self.status_commands_stdout = os.path.join(self.tmp_dir,
                                                'status_command_stdout.txt')
@@ -108,7 +110,7 @@ class CustomServiceOrchestrator():
 
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
-      logger.debug('Maps taskId=%s to pid=%s' % (task_id, processId))
+      logger.debug('Maps taskId=%s to pid=%s', task_id, processId)
       self.commands_in_progress[task_id] = processId
 
   def cancel_command(self, task_id, reason):
@@ -440,7 +442,7 @@ class CustomServiceOrchestrator():
   def command_canceled_reason(self, task_id):
     with self.commands_in_progress_lock:
       if self.commands_in_progress.has_key(task_id):#Background command do not push in this collection (TODO)
-        logger.debug('Pop with taskId %s' % task_id)
+        logger.debug('Pop with taskId %s', task_id)
         pid = self.commands_in_progress.pop(task_id)
         if not isinstance(pid, int):
           reason = pid

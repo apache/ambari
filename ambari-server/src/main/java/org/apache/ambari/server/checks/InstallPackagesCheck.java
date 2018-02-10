@@ -18,9 +18,10 @@
 package org.apache.ambari.server.checks;
 
 import java.text.MessageFormat;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -73,14 +74,15 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
       return;
     }
 
-    final Set<String> failedHosts = new HashSet<>();
+    final Set<HostDetail> failedHosts = new TreeSet<>();
 
     for (Host host : cluster.getHosts()) {
       if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
         for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
           if (StringUtils.equals(hve.getRepositoryVersion().getVersion(), repositoryVersion.getVersion())
               && hve.getState() == RepositoryVersionState.INSTALL_FAILED) {
-            failedHosts.add(host.getHostName());
+
+            failedHosts.add(new HostDetail(host.getHostId(), host.getHostName()));
           }
         }
       }
@@ -92,9 +94,16 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
               "in Maintenance mode: {4}", cluster.getClusterName(), targetStackId.getStackName(),
           targetStackId.getStackVersion(), repositoryVersion.getVersion(),
           StringUtils.join(failedHosts, ", "));
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedHosts));
+
+      LinkedHashSet<String> failedHostNames = failedHosts.stream().map(
+          failedHost -> failedHost.hostName).collect(
+              Collectors.toCollection(LinkedHashSet::new));
+
+      prerequisiteCheck.setFailedOn(failedHostNames);
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(message);
+      prerequisiteCheck.getFailedDetail().addAll(failedHosts);
+
       return;
     }
 

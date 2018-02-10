@@ -19,9 +19,11 @@ package org.apache.ambari.server.configuration.spring;
 
 import org.apache.ambari.server.agent.stomp.AgentsRegistrationQueue;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandlerImpl;
+import org.apache.ambari.server.security.authentication.AmbariLocalAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.pam.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
-import org.apache.ambari.server.security.authorization.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
@@ -66,11 +68,6 @@ public class GuiceBeansConfig {
   }
 
   @Bean
-  public AmbariLocalUserProvider localUserProvider() {
-    return injector.getInstance(AmbariLocalUserProvider.class);
-  }
-
-  @Bean
   public AmbariLdapDataPopulator ambariLdapDataPopulator() {
     return injector.getInstance(AmbariLdapDataPopulator.class);
   }
@@ -84,10 +81,24 @@ public class GuiceBeansConfig {
   public AmbariInternalAuthenticationProvider ambariInternalAuthenticationProvider() {
     return injector.getInstance(AmbariInternalAuthenticationProvider.class);
   }
+  @Bean
+  public AmbariJwtAuthenticationProvider ambariJwtAuthenticationProvider() {
+    return injector.getInstance(AmbariJwtAuthenticationProvider.class);
+  }
 
   @Bean
   public AmbariPamAuthenticationProvider ambariPamAuthenticationProvider() {
     return injector.getInstance(AmbariPamAuthenticationProvider.class);
+  }
+
+  @Bean
+  public AmbariLocalAuthenticationProvider ambariLocalAuthenticationProvider() {
+    return injector.getInstance(AmbariLocalAuthenticationProvider.class);
+  }
+
+  @Bean
+  public AmbariAuthenticationEventHandlerImpl ambariAuthenticationEventHandler() {
+    return injector.getInstance(AmbariAuthenticationEventHandlerImpl.class);
   }
 
 

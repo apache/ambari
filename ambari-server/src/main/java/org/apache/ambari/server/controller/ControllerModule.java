@@ -75,6 +75,8 @@ import org.apache.ambari.server.controller.internal.RepositoryVersionResourcePro
 import org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.controller.internal.UserAuthenticationSourceResourceProvider;
+import org.apache.ambari.server.controller.internal.UserResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
@@ -154,6 +156,7 @@ import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.slf4j.Logger;
@@ -352,6 +355,7 @@ public class ControllerModule extends AbstractModule {
     // So it's an "additional time", given to stage to finish execution before
     // it is considered as timed out
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+    bindConstant().annotatedWith(Names.named("alertServiceCorePoolSize")).to(configuration.getAlertServiceCorePoolSize());
 
     bindConstant().annotatedWith(Names.named("dbInitNeeded")).to(dbInitNeeded);
     bindConstant().annotatedWith(Names.named("statusCheckInterval")).to(5000L);
@@ -393,6 +397,7 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(DatabaseConsistencyCheckHelper.class);
     requestStaticInjection(KerberosChecker.class);
     requestStaticInjection(AuthorizationHelper.class);
+    requestStaticInjection(PasswordUtils.class);
 
     bindByAnnotation(null);
     bindNotificationDispatchers(null);
@@ -461,6 +466,8 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("repositoryVersion"), RepositoryVersionResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostKerberosIdentity"), HostKerberosIdentityResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("user"), UserResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("userAuthenticationSource"), UserAuthenticationSourceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("credential"), CredentialResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("kerberosDescriptor"), KerberosDescriptorResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("upgrade"), UpgradeResourceProvider.class)

@@ -70,23 +70,28 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     for (String serviceName : servicesInUpgrade) {
       final Service service = cluster.getService(serviceName);
       // Skip service if it is in maintenance mode
-      if (service.getMaintenanceState() != MaintenanceState.ON) {
-        Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
-        for (Map.Entry<String, ServiceComponent> component : serviceComponents.entrySet()) {
-          ServiceComponent serviceComponent = component.getValue();
-          if (serviceComponent.isVersionAdvertised()) {
-            List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
-                service.getName(), serviceComponent.getName());
+      if (service.getMaintenanceState() == MaintenanceState.ON) {
+        continue;
+      }
 
-            for (HostComponentSummary hcs : hostComponentSummaries) {
-              // Skip host if it is in maintenance mode
-              Host host = clustersProvider.get().getHost(hcs.getHostName());
-              if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
-                if (hcs.getCurrentState() == State.INSTALL_FAILED) {
-                  failedServiceNames.add(service.getName());
-                  installFailedHostComponents.add(MessageFormat.format(
-                      "[{0}:{1} on {2}]", service.getName(), serviceComponent.getName(), hcs.getHostName()));
-                }
+      Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+      for (Map.Entry<String, ServiceComponent> component : serviceComponents.entrySet()) {
+        ServiceComponent serviceComponent = component.getValue();
+        if (serviceComponent.isVersionAdvertised()) {
+          List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
+              service.getName(), serviceComponent.getName());
+
+          for (HostComponentSummary hcs : hostComponentSummaries) {
+            // Skip host if it is in maintenance mode
+            Host host = clustersProvider.get().getHost(hcs.getHostName());
+            if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
+              if (hcs.getCurrentState() == State.INSTALL_FAILED) {
+
+                prerequisiteCheck.getFailedDetail().add(hcs);
+
+                failedServiceNames.add(service.getName());
+                installFailedHostComponents.add(MessageFormat.format("[{0}:{1} on {2}]",
+                    service.getName(), serviceComponent.getName(), hcs.getHostName()));
               }
             }
           }
@@ -97,6 +102,7 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     if(!installFailedHostComponents.isEmpty()) {
       String message = MessageFormat.format("Service components in INSTALL_FAILED state: {0}.",
           StringUtils.join(installFailedHostComponents, ", "));
+
       prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedServiceNames));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(

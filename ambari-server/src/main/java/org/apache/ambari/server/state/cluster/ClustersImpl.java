@@ -52,7 +52,7 @@ import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.RequestOperationLevelDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
@@ -119,8 +119,6 @@ public class ClustersImpl implements Clusters {
   @Inject
   private RequestOperationLevelDAO requestOperationLevelDAO;
   @Inject
-  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
-  @Inject
   private HostConfigMappingDAO hostConfigMappingDAO;
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -136,6 +134,8 @@ public class ClustersImpl implements Clusters {
   private TopologyHostInfoDAO topologyHostInfoDAO;
   @Inject
   private TopologyManager topologyManager;
+  @Inject
+  private KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
 
   /**
    * Data access object for stacks.
@@ -659,7 +659,7 @@ public class ClustersImpl implements Clusters {
     deleteConfigGroupHostMapping(hostEntity.getHostId());
 
     // Remove mapping of principals to the unmapped host
-    kerberosPrincipalHostDAO.removeByHost(hostEntity.getHostId());
+    kerberosKeytabPrincipalDAO.removeByHost(hostEntity.getHostId());
   }
 
   @Transactional

@@ -20,10 +20,13 @@ package org.apache.ambari.server.configuration;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,6 +36,7 @@ import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,19 +58,15 @@ import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.authorization.UserType;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
@@ -76,7 +76,7 @@ import org.apache.ambari.server.upgrade.AbstractUpgradeCatalog;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.ambari.server.utils.HostUtils;
-import org.apache.ambari.server.utils.Parallel;
+import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.cli.CommandLine;
@@ -92,6 +92,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
@@ -181,24 +182,6 @@ public class Configuration {
    * The minimum JDK version supported by Ambari.
    */
   public static final float JDK_MIN_VERSION = 1.7f;
-
-  /**
-   * The default regex pattern to use when replacing the member attribute ID
-   * value with a placeholder, such as {@code ${member}}. This is used in cases
-   * where a UID of an LDAP member is not a full CN or unique ID.
-   */
-  private static final String LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT = "";
-
-  /**
-   * The default LDAP filter to use when syncing user or group members. This
-   * default filter can include a {@code {member}} placeholder which allows
-   * substitution of a direct ID. For example:
-   *
-   * <pre>
-   * (&(objectclass=posixaccount)(dn={member})) -> (&(objectclass=posixaccount)(dn=cn=mycn,dc=apache,dc=org))
-   * </pre>
-   */
-  private static final String LDAP_SYNC_MEMBER_FILTER_DEFAULT = "";
 
   /**
    * The prefix for any configuration property which will be appended to
@@ -389,7 +372,7 @@ public class Configuration {
    */
   @Markdown(description = "The location and name of the Python script used to bootstrap new Ambari Agent hosts.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SCRIPT = new ConfigurationProperty<>(
-      "bootstrap.script", AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py"));
+      "bootstrap.script", AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_server/bootstrap.py"));
 
   /**
    * The location and name of the Python script executed on the Ambari Agent
@@ -398,7 +381,7 @@ public class Configuration {
   @Markdown(description = "The location and name of the Python script executed on the Ambari Agent host during the bootstrap process.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SETUP_AGENT_SCRIPT = new ConfigurationProperty<>(
       "bootstrap.setup_agent.script",
-      AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py"));
+      AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_server/setupAgent.py"));
 
   /**
    * The password to set on the {@code AMBARI_PASSPHRASE} environment variable
@@ -697,10 +680,10 @@ public class Configuration {
    */
   @Markdown(
       description = "Determines how to handle username collision while updating from LDAP.",
-      examples = { "skip", "convert" }
+      examples = {"skip", "convert", "add"}
   )
   public static final ConfigurationProperty<String> LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR = new ConfigurationProperty<>(
-      "ldap.sync.username.collision.behavior", "convert");
+      "ldap.sync.username.collision.behavior", "add");
 
   /**
    * The location on the Ambari Server where stack extensions exist.
@@ -821,7 +804,7 @@ public class Configuration {
    * @see ClientSecurityType
    */
   @Markdown(
-      examples = { "local", "ldap" },
+      examples = { "local", "ldap", "pam" },
       description = "The type of authentication mechanism used by Ambari.")
   public static final ConfigurationProperty<String> CLIENT_SECURITY = new ConfigurationProperty<>(
       "client.security", null);
@@ -985,252 +968,6 @@ public class Configuration {
   @Markdown(description = "The name of the MySQL JDBC JAR connector.")
   public static final ConfigurationProperty<String> MYSQL_JAR_NAME = new ConfigurationProperty<>(
       "db.mysql.jdbc.name", "mysql-connector-java.jar");
-
-  /**
-   * For development purposes only, should be changed to 'false'
-   */
-  @Markdown(description = "An internal property used for unit testing and development purposes.")
-  public static final ConfigurationProperty<String> IS_LDAP_CONFIGURED = new ConfigurationProperty<>(
-      "ambari.ldap.isConfigured", "false");
-
-  /**
-   * Determines whether to use LDAP over SSL (LDAPS).
-   */
-  @Markdown(description = "Determines whether to use LDAP over SSL (LDAPS).")
-  public static final ConfigurationProperty<String> LDAP_USE_SSL = new ConfigurationProperty<>(
-      "authentication.ldap.useSSL", "false");
-
-  /**
-   * The default value is used for embedded purposes only.
-   */
-  @Markdown(description = "The LDAP URL used for connecting to an LDAP server when authenticating users. This should include both the host name and port.")
-  public static final ConfigurationProperty<String> LDAP_PRIMARY_URL = new ConfigurationProperty<>(
-      "authentication.ldap.primaryUrl", "localhost:33389");
-
-  /**
-   * A second LDAP URL to use as a backup when authenticating users.
-   */
-  @Markdown(description = "A second LDAP URL to use as a backup when authenticating users. This should include both the host name and port.")
-  public static final ConfigurationProperty<String> LDAP_SECONDARY_URL = new ConfigurationProperty<>(
-      "authentication.ldap.secondaryUrl", null);
-
-  /**
-   * The base DN to use when filtering LDAP users and groups.
-   */
-  @Markdown(description = "The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled.")
-  public static final ConfigurationProperty<String> LDAP_BASE_DN = new ConfigurationProperty<>(
-      "authentication.ldap.baseDn", "dc=ambari,dc=apache,dc=org");
-
-  /**
-   * Determines whether LDAP requests can connect anonymously or if a managed
-   * user is required to connect.
-   */
-  @Markdown(description = "Determines whether LDAP requests can connect anonymously or if a managed user is required to connect.")
-  public static final ConfigurationProperty<String> LDAP_BIND_ANONYMOUSLY = new ConfigurationProperty<>(
-      "authentication.ldap.bindAnonymously", "true");
-
-  /**
-   * The DN of the manager account to use when binding to LDAP if
-   * {@link #LDAP_BIND_ANONYMOUSLY} is turned off.
-   */
-  @Markdown(description = "The DN of the manager account to use when binding to LDAP if anonymous binding is disabled.")
-  public static final ConfigurationProperty<String> LDAP_MANAGER_DN = new ConfigurationProperty<>(
-      "authentication.ldap.managerDn", null);
-
-  /**
-   * The password for the account used to bind to LDAP if
-   * {@link #LDAP_BIND_ANONYMOUSLY} is turned off.
-   */
-  @Markdown(description = "The password for the manager account used to bind to LDAP if anonymous binding is disabled.")
-  public static final ConfigurationProperty<String> LDAP_MANAGER_PASSWORD = new ConfigurationProperty<>(
-      "authentication.ldap.managerPassword", null);
-
-  /**
-   * The attribute used for determining what the distinguished name property is.
-   */
-  @Markdown(description = "The attribute used for determining what the distinguished name property is.")
-  public static final ConfigurationProperty<String> LDAP_DN_ATTRIBUTE = new ConfigurationProperty<>(
-      "authentication.ldap.dnAttribute", "dn");
-
-  /**
-   * The attribute used for determining the user name.
-   */
-  @Markdown(description = "The attribute used for determining the user name, such as `uid`.")
-  public static final ConfigurationProperty<String> LDAP_USERNAME_ATTRIBUTE = new ConfigurationProperty<>(
-      "authentication.ldap.usernameAttribute", "uid");
-
-  /**
-   * Declares whether to force the ldap user name to be lowercase or leave as-is. This is useful when
-   * local user names are expected to be lowercase but the LDAP user names are not.
-   */
-  @Markdown(description = "Declares whether to force the ldap user name to be lowercase or leave as-is." +
-      " This is useful when local user names are expected to be lowercase but the LDAP user names are not.")
-  public static final ConfigurationProperty<String> LDAP_USERNAME_FORCE_LOWERCASE = new ConfigurationProperty<>(
-      "authentication.ldap.username.forceLowercase", "false");
-
-  /**
-   * The filter used when searching for users in LDAP.
-   */
-  @Markdown(description = "The filter used when searching for users in LDAP.")
-  public static final ConfigurationProperty<String> LDAP_USER_BASE = new ConfigurationProperty<>(
-      "authentication.ldap.userBase", "ou=people,dc=ambari,dc=apache,dc=org");
-
-  /**
-   * The class to which user objects in LDAP belong.
-   */
-  @Markdown(description = "The class to which user objects in LDAP belong.")
-  public static final ConfigurationProperty<String> LDAP_USER_OBJECT_CLASS = new ConfigurationProperty<>(
-      "authentication.ldap.userObjectClass", "person");
-
-  /**
-   * The filter used when searching for groups in LDAP.
-   */
-  @Markdown(description = "The filter used when searching for groups in LDAP.")
-  public static final ConfigurationProperty<String> LDAP_GROUP_BASE = new ConfigurationProperty<>(
-      "authentication.ldap.groupBase", "ou=groups,dc=ambari,dc=apache,dc=org");
-
-  /**
-   * The class to which group objects in LDAP belong.
-   */
-  @Markdown(description = "The class to which group objects in LDAP belong.")
-  public static final ConfigurationProperty<String> LDAP_GROUP_OBJECT_CLASS = new ConfigurationProperty<>(
-      "authentication.ldap.groupObjectClass", "group");
-
-  /**
-   * The attribute used to determine the group name.
-   */
-  @Markdown(description = "The attribute used to determine the group name in LDAP.")
-  public static final ConfigurationProperty<String> LDAP_GROUP_NAMING_ATTR = new ConfigurationProperty<>(
-      "authentication.ldap.groupNamingAttr", "cn");
-
-  /**
-   * The LDAP attribute which identifies group membership.
-   */
-  @Markdown(description = "The LDAP attribute which identifies group membership.")
-  public static final ConfigurationProperty<String> LDAP_GROUP_MEMBERSHIP_ATTR = new ConfigurationProperty<>(
-      "authentication.ldap.groupMembershipAttr", "member");
-
-  /**
-   * A comma-separate list of groups which would give a user administrative access to Ambari.
-   */
-  @Markdown(
-      description = "A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.",
-      examples = { "administrators", "Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators" })
-  public static final ConfigurationProperty<String> LDAP_ADMIN_GROUP_MAPPING_RULES = new ConfigurationProperty<>(
-      "authorization.ldap.adminGroupMappingRules", "Ambari Administrators");
-
-  /**
-   * When authentication through LDAP is enabled then Ambari Server uses this
-   * filter to lookup the user in LDAP based on the provided ambari user name.
-   *
-   * If it is not set then
-   * {@code (&({usernameAttribute}={0})(objectClass={userObjectClass}))} is
-   * used.
-   */
-  @Markdown(
-      description = "A filter used to lookup a user in LDAP based on the Ambari user name",
-      examples = { "(&({usernameAttribute}={0})(objectClass={userObjectClass}))" })
-  public static final ConfigurationProperty<String> LDAP_USER_SEARCH_FILTER = new ConfigurationProperty<>(
-      "authentication.ldap.userSearchFilter",
-      "(&({usernameAttribute}={0})(objectClass={userObjectClass}))");
-
-  /**
-   * This configuration controls whether the use of alternate user search filter
-   * is enabled. If the default LDAP user search filter is not able to find the
-   * authenticating user in LDAP than Ambari can fall back an alternative user
-   * search filter if this functionality is enabled.
-   *
-   * If it is not set then the default
-   */
-  @Markdown(description = "Determines whether a secondary (alternate) LDAP user search filer is used if the primary filter fails to find a user.")
-  public static final ConfigurationProperty<String> LDAP_ALT_USER_SEARCH_ENABLED = new ConfigurationProperty<>(
-      "authentication.ldap.alternateUserSearchEnabled", "false");
-
-  /**
-   * When authentication through LDAP is enabled Ambari Server uses this filter
-   * by default to lookup the user in LDAP when the user provides beside user
-   * name additional information. There might be cases when
-   * {@link #LDAP_USER_SEARCH_FILTER} may match multiple users in LDAP. In such
-   * cases the user is prompted to provide additional info, e.g. the domain he
-   * or she wants ot log in upon login beside the username. This filter will be
-   * used by Ambari Server to lookup users in LDAP if the login name the user
-   * logs in contains additional information beside ambari user name.
-   * <p>
-   * Note: Currently the use of alternate user search filter is triggered only
-   * if the user login name is in the username@domain format (e.g.
-   * user1@x.y.com) which is the userPrincipalName format used in AD.
-   * </p>
-   */
-  @Markdown(description = "An alternate LDAP user search filter which can be used if `authentication.ldap.alternateUserSearchEnabled` is enabled and the primary filter fails to find a user.")
-  public static final ConfigurationProperty<String> LDAP_ALT_USER_SEARCH_FILTER = new ConfigurationProperty<>(
-      "authentication.ldap.alternateUserSearchFilter",
-      "(&(userPrincipalName={0})(objectClass={userObjectClass}))");
-
-  /**
-   * The DN to use when searching for LDAP groups.
-   */
-  @Markdown(description = "The DN to use when searching for LDAP groups.")
-  public static final ConfigurationProperty<String> LDAP_GROUP_SEARCH_FILTER = new ConfigurationProperty<>(
-      "authorization.ldap.groupSearchFilter", "");
-
-  /**
-   * Determines whether to follow LDAP referrals when the LDAP controller doesn't have the requested object.
-   */
-  @Markdown(description = "Determines whether to follow LDAP referrals to other URLs when the LDAP controller doesn't have the requested object.")
-  public static final ConfigurationProperty<String> LDAP_REFERRAL = new ConfigurationProperty<>(
-      "authentication.ldap.referral", "follow");
-
-  /**
-   * Determines whether results from LDAP are paginated when requested.
-   */
-  @Markdown(description = "Determines whether results from LDAP are paginated when requested.")
-  public static final ConfigurationProperty<String> LDAP_PAGINATION_ENABLED = new ConfigurationProperty<>(
-      "authentication.ldap.pagination.enabled", "true");
-
-  /**
-   * Regex pattern to use when replacing the user member attribute
-   * ID value with a placeholder. This is used in cases where a UID of an LDAP
-   * member is not a full CN or unique ID.
-   */
-  @Markdown(
-      description = "Regex pattern to use when replacing the user member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID (e.g.: `member: <SID=123>;<GID=123>;cn=myCn,dc=org,dc=apache`)",
-      examples = { "(?<sid>.*);(?<guid>.*);(?<member>.*)" })
-  public static final ConfigurationProperty<String> LDAP_SYNC_USER_MEMBER_REPLACE_PATTERN = new ConfigurationProperty<>(
-      "authentication.ldap.sync.userMemberReplacePattern",
-      LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT);
-
-  /**
-   * Regex pattern to use when replacing the group member attribute
-   * ID value with a placeholder. This is used in cases where a UID of an LDAP
-   * member is not a full CN or unique ID.
-   */
-  @Markdown(
-      description = "Regex pattern to use when replacing the group member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID (e.g.: `member: <SID=123>;<GID=123>;cn=myCn,dc=org,dc=apache`)",
-      examples = { "(?<sid>.*);(?<guid>.*);(?<member>.*)" })
-  public static final ConfigurationProperty<String> LDAP_SYCN_GROUP_MEMBER_REPLACE_PATTERN = new ConfigurationProperty<>(
-      "authentication.ldap.sync.groupMemberReplacePattern",
-      LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT);
-
-  /**
-   * Filter to use for syncing user members of group from LDAP. (by default it is not used)
-   */
-  @Markdown(
-    description = "Filter to use for syncing user members of a group from LDAP (by default it is not used).",
-    examples = {"(&(objectclass=posixaccount)(uid={member}))"})
-  public static final ConfigurationProperty<String> LDAP_SYNC_USER_MEMBER_FILTER = new ConfigurationProperty<>(
-      "authentication.ldap.sync.userMemberFilter",
-      LDAP_SYNC_MEMBER_FILTER_DEFAULT);
-
-  /**
-   * Filter to use for syncing group members of a group from LDAP. (by default it is not used)
-   */
-  @Markdown(
-    description = "Filter to use for syncing group members of a group from LDAP. (by default it is not used)",
-    examples = {"(&(objectclass=posixgroup)(cn={member}))"})
-  public static final ConfigurationProperty<String> LDAP_SYNC_GROUP_MEMBER_FILTER = new ConfigurationProperty<>(
-      "authentication.ldap.sync.groupMemberFilter",
-      LDAP_SYNC_MEMBER_FILTER_DEFAULT);
-
 
   /**
    * Enable the profiling of internal locks.
@@ -1474,14 +1211,6 @@ public class Configuration {
   @Markdown(description = "The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO")
   public static final ConfigurationProperty<String> KERBEROS_AUTH_SPNEGO_KEYTAB_FILE = new ConfigurationProperty<>(
       "authentication.kerberos.spnego.keytab.file", "/etc/security/keytabs/spnego.service.keytab");
-
-  /**
-   * A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user
-   * account for the user-supplied Kerberos identity during authentication via SPNEGO.
-   */
-  @Markdown(description = "A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user account for the user-supplied Kerberos identity during authentication via SPNEGO")
-  public static final ConfigurationProperty<String> KERBEROS_AUTH_USER_TYPES = new ConfigurationProperty<>(
-      "authentication.kerberos.user.types", "LDAP");
 
   /**
    * The auth-to-local rules set to use when translating a user's principal name to a local user name
@@ -2087,8 +1816,6 @@ public class Configuration {
   public static final ConfigurationProperty<String> LEGACY_OVERRIDE = new ConfigurationProperty<>(
     "repositories.legacy-override.enabled", "false");
 
-  private static final String LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT = "";
-
   /**
    * The time, in {@link TimeUnit#MILLISECONDS}, that agent connections can remain open and idle.
    */
@@ -2366,16 +2093,6 @@ public class Configuration {
   @Markdown(description = "Determines whether to use to SSL to connect to Ambari Metrics when retrieving metric data.")
   public static final ConfigurationProperty<Boolean> AMBARI_METRICS_HTTPS_ENABLED = new ConfigurationProperty<>(
       "server.timeline.metrics.https.enabled", Boolean.FALSE);
-
-  /**
-   * Governs the use of {@link Parallel} to process {@link StageEntity}
-   * instances into {@link Stage}.
-   */
-  @Markdown(
-      internal = true,
-      description = "Determines whether to allow stages retrieved from the database to be processed by multiple threads.")
-  public static final ConfigurationProperty<Boolean> EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED = new ConfigurationProperty<>(
-      "experimental.concurrency.stage_processing.enabled", Boolean.FALSE);
 
   /**
    * The full path to the XML file that describes the different alert templates.
@@ -2806,6 +2523,13 @@ public class Configuration {
     "logsearch.portal.read.timeout", 5000);
 
   /**
+   * External logsearch portal address, can be used with internal logfeeder, as the same logsearch portal can store logs for different clusters
+   */
+  @Markdown(description = "Address of an external LogSearch Portal service. (managed outside of Ambari) Using Ambari Credential store is required for this feature (credential: 'logsearch.admin.credential')")
+  public static final ConfigurationProperty<String> LOGSEARCH_PORTAL_EXTERNAL_ADDRESS = new ConfigurationProperty<>(
+    "logsearch.portal.external.address", "");
+
+  /**
    * Global disable flag for AmbariServer Metrics.
    */
   @Markdown(description = "Global disable flag for AmbariServer Metrics.")
@@ -2847,6 +2571,30 @@ public class Configuration {
   public static final ConfigurationProperty<String> DISPATCH_PROPERTY_SCRIPT_DIRECTORY = new ConfigurationProperty<>(
           "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
 
+  @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
+  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.passwords.encryption.enabled", false);
+
+  /**
+   * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
+   */
+  @Markdown(description = "The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures.")
+  public static final ConfigurationProperty<Integer> MAX_LOCAL_AUTHENTICATION_FAILURES = new ConfigurationProperty<>(
+    "authentication.local.max.failures", 0);
+
+  /**
+   * A flag to determine whether locked out messages are to be shown to users, if relevant, when authenticating into Ambari
+   */
+  @Markdown(description = "Show or hide whether the user account is disabled or locked out, if relevant, when an authentication attempt fails.")
+  public static final ConfigurationProperty<String> SHOW_LOCKED_OUT_USER_MESSAGE = new ConfigurationProperty<>(
+    "authentication.local.show.locked.account.messages", "false");
+
+  /**
+   * The core pool size of the executor service that runs server side alerts.
+   */
+  @Markdown(description = "The core pool size of the executor service that runs server side alerts.")
+  public static final ConfigurationProperty<Integer> SERVER_SIDE_ALERTS_CORE_POOL_SIZE = new ConfigurationProperty<>(
+          "alerts.server.side.scheduler.threadpool.size.core", 4);
+
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -2858,8 +2606,6 @@ public class Configuration {
   private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
   private Map<String, String> agentConfigsMap;
-  private CredentialProvider credentialProvider = null;
-  private volatile boolean credentialProviderInitialized = false;
   private Properties customDbProperties = null;
   private Properties customPersistenceProperties = null;
   private Long configLastModifiedDateForCustomJDBC = 0L;
@@ -2885,12 +2631,38 @@ public class Configuration {
 
   /**
    * Ldap username collision handling behavior.
-   * CONVERT - convert existing local users to LDAP users.
+   * ADD - append the new LDAP entry to the set of existing authentication methods.
+   * CONVERT - remove all authentication methods except for the new LDAP entry.
    * SKIP - skip existing local users.
    */
   public enum LdapUsernameCollisionHandlingBehavior {
+    ADD,
     CONVERT,
-    SKIP
+    SKIP;
+
+    /**
+     * Safely translates a user-supplied behavior name to a {@link LdapUsernameCollisionHandlingBehavior}.
+     * <p>
+     * If the user-supplied value is empty or invalid, the default value is returned.
+     *
+     * @param value        a user-supplied behavior name value
+     * @param defaultValue the default value
+     * @return a {@link LdapUsernameCollisionHandlingBehavior}
+     */
+    public static LdapUsernameCollisionHandlingBehavior translate(String value, LdapUsernameCollisionHandlingBehavior defaultValue) {
+      String processedValue = StringUtils.upperCase(StringUtils.trim(value));
+
+      if (StringUtils.isEmpty(processedValue)) {
+        return defaultValue;
+      } else {
+        try {
+          return valueOf(processedValue);
+        } catch (IllegalArgumentException e) {
+          LOG.warn("Invalid LDAP username collision value ({}), using the default value ({})", value, defaultValue.name().toLowerCase());
+          return defaultValue;
+        }
+      }
+    }
   }
 
   /**
@@ -3154,8 +2926,7 @@ public class Configuration {
       System.setProperty(JAVAX_SSL_TRUSTSTORE, getProperty(SSL_TRUSTSTORE_PATH));
     }
     if (getProperty(SSL_TRUSTSTORE_PASSWORD) != null) {
-      String ts_password = readPasswordFromStore(
-          getProperty(SSL_TRUSTSTORE_PASSWORD));
+      String ts_password = PasswordUtils.getInstance().readPasswordFromStore(getProperty(SSL_TRUSTSTORE_PASSWORD), getMasterKeyLocation(), isMasterKeyPersisted(), getMasterKeyStoreLocation());
       if (ts_password != null) {
         System.setProperty(JAVAX_SSL_TRUSTSTORE_PASSWORD, ts_password);
       } else {
@@ -3165,24 +2936,6 @@ public class Configuration {
     }
     if (getProperty(SSL_TRUSTSTORE_TYPE) != null) {
       System.setProperty(JAVAX_SSL_TRUSTSTORE_TYPE, getProperty(SSL_TRUSTSTORE_TYPE));
-    }
-  }
-
-  private synchronized void loadCredentialProvider() {
-    if (!credentialProviderInitialized) {
-      try {
-        credentialProvider = new CredentialProvider(null,
-          getMasterKeyLocation(),
-          isMasterKeyPersisted(),
-          getMasterKeyStoreLocation());
-      } catch (Exception e) {
-        LOG.info("Credential provider creation failed. Reason: " + e.getMessage());
-        if (LOG.isDebugEnabled()) {
-          e.printStackTrace();
-        }
-        credentialProvider = null;
-      }
-      credentialProviderInitialized = true;
     }
   }
 
@@ -3202,7 +2955,7 @@ public class Configuration {
 
     // load the properties
     try {
-      properties.load(inputStream);
+      properties.load(new InputStreamReader(inputStream, Charsets.UTF_8));
       inputStream.close();
     } catch (FileNotFoundException fnf) {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
@@ -3212,6 +2965,48 @@ public class Configuration {
     }
 
     return properties;
+  }
+
+  /**
+   * Writes the given properties into the configuration file
+   *
+   * @param propertiesToWrite
+   *          the properties to be stored
+   * @param append
+   *          if {@code true} the given properties will be added at the end of the
+   *          configuration file; otherwise a brand new configuration file will be
+   *          produced
+   * @throws AmbariException
+   *           if there was any issue when clearing ambari.properties
+   */
+  private void writeConfigFile(Properties propertiesToStore, boolean append) throws AmbariException {
+    File configFile = null;
+    try {
+      configFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
+      propertiesToStore.store(new OutputStreamWriter(new FileOutputStream(configFile, append), Charsets.UTF_8), null);
+    } catch (Exception e) {
+      LOG.error("Cannot write properties [" + propertiesToStore + "] into configuration file [" + configFile + ", " + append + "] ");
+      throw new AmbariException("Error while clearing ambari.properties", e);
+    }
+  }
+
+  /**
+   * Removing the given properties from ambari.properties (i.e. at upgrade time)
+   *
+   * @param propertiesToBeCleared
+   *          the properties to be removed
+   * @throws AmbariException
+   *           if there was any issue when clearing ambari.properties
+   */
+  public void removePropertiesFromAmbariProperties(Collection<String> propertiesToBeRemoved) throws AmbariException {
+    final Properties existingProperties = readConfigFile();
+    propertiesToBeRemoved.forEach(key -> {
+      existingProperties.remove(key);
+    });
+    writeConfigFile(existingProperties, false);
+
+    // reloading properties
+    this.properties = readConfigFile();
   }
 
   /**
@@ -4088,7 +3883,7 @@ public class Configuration {
     String dbpasswd = null;
     boolean isPasswordAlias = false;
     if (CredentialProvider.isAliasString(passwdProp)) {
-      dbpasswd = readPasswordFromStore(passwdProp);
+      dbpasswd = PasswordUtils.getInstance().readPasswordFromStore(passwdProp, getMasterKeyLocation(), isMasterKeyPersisted(), getMasterKeyStoreLocation());
       isPasswordAlias =true;
     }
 
@@ -4098,7 +3893,7 @@ public class Configuration {
       LOG.error("Can't read db password from keystore. Please, check master key was set correctly.");
       throw new RuntimeException("Can't read db password from keystore. Please, check master key was set correctly.");
     } else {
-      return readPasswordFromFile(passwdProp, SERVER_JDBC_USER_PASSWD.getDefaultValue());
+      return PasswordUtils.getInstance().readPasswordFromFile(passwdProp, SERVER_JDBC_USER_PASSWD.getDefaultValue());
     }
   }
 
@@ -4116,117 +3911,7 @@ public class Configuration {
 
   public String getRcaDatabasePassword() {
     String passwdProp = properties.getProperty(SERVER_JDBC_RCA_USER_PASSWD.getKey());
-    if (passwdProp != null) {
-      String dbpasswd = readPasswordFromStore(passwdProp);
-      if (dbpasswd != null) {
-        return dbpasswd;
-      }
-    }
-    return readPasswordFromFile(passwdProp, SERVER_JDBC_RCA_USER_PASSWD.getDefaultValue());
-  }
-
-  private String readPasswordFromFile(String filePath, String defaultPassword) {
-    if (filePath == null) {
-      LOG.debug("DB password file not specified - using default");
-      return defaultPassword;
-    } else {
-      LOG.debug("Reading password from file {}", filePath);
-      String password;
-      try {
-        password = FileUtils.readFileToString(new File(filePath));
-        password = StringUtils.chomp(password);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to read database password", e);
-      }
-      return password;
-    }
-  }
-
-  String readPasswordFromStore(String aliasStr) {
-    String password = null;
-    loadCredentialProvider();
-    if (credentialProvider != null) {
-      char[] result = null;
-      try {
-        result = credentialProvider.getPasswordForAlias(aliasStr);
-      } catch (AmbariException e) {
-        LOG.error("Error reading from credential store.");
-        e.printStackTrace();
-      }
-      if (result != null) {
-        password = new String(result);
-      } else {
-        if (CredentialProvider.isAliasString(aliasStr)) {
-          LOG.error("Cannot read password for alias = " + aliasStr);
-        } else {
-          LOG.warn("Raw password provided, not an alias. It cannot be read from credential store.");
-        }
-      }
-    }
-    return password;
-  }
-
-  /**
-   * Gets parameters of LDAP server to connect to
-   * @return LdapServerProperties object representing connection parameters
-   */
-  public LdapServerProperties getLdapServerProperties() {
-    LdapServerProperties ldapServerProperties = new LdapServerProperties();
-
-    ldapServerProperties.setPrimaryUrl(getProperty(LDAP_PRIMARY_URL));
-    ldapServerProperties.setSecondaryUrl(getProperty(LDAP_SECONDARY_URL));
-    ldapServerProperties.setUseSsl(Boolean.parseBoolean(getProperty(LDAP_USE_SSL)));
-    ldapServerProperties.setAnonymousBind(Boolean.parseBoolean(getProperty(LDAP_BIND_ANONYMOUSLY)));
-    ldapServerProperties.setManagerDn(getProperty(LDAP_MANAGER_DN));
-    String ldapPasswordProperty = getProperty(LDAP_MANAGER_PASSWORD);
-    String ldapPassword = null;
-    if (CredentialProvider.isAliasString(ldapPasswordProperty)) {
-      ldapPassword = readPasswordFromStore(ldapPasswordProperty);
-    }
-    if (ldapPassword != null) {
-      ldapServerProperties.setManagerPassword(ldapPassword);
-    } else {
-      if (ldapPasswordProperty != null && new File(ldapPasswordProperty).exists()) {
-        ldapServerProperties.setManagerPassword(readPasswordFromFile(ldapPasswordProperty, ""));
-      }
-    }
-
-    ldapServerProperties.setBaseDN(getProperty(LDAP_BASE_DN));
-    ldapServerProperties.setUsernameAttribute(getProperty(LDAP_USERNAME_ATTRIBUTE));
-    ldapServerProperties.setForceUsernameToLowercase(Boolean.parseBoolean(getProperty(LDAP_USERNAME_FORCE_LOWERCASE)));
-    ldapServerProperties.setUserBase(getProperty(LDAP_USER_BASE));
-    ldapServerProperties.setUserObjectClass(getProperty(LDAP_USER_OBJECT_CLASS));
-    ldapServerProperties.setDnAttribute(getProperty(LDAP_DN_ATTRIBUTE));
-    ldapServerProperties.setGroupBase(getProperty(LDAP_GROUP_BASE));
-    ldapServerProperties.setGroupObjectClass(getProperty(LDAP_GROUP_OBJECT_CLASS));
-    ldapServerProperties.setGroupMembershipAttr(getProperty(LDAP_GROUP_MEMBERSHIP_ATTR));
-    ldapServerProperties.setGroupNamingAttr(getProperty(LDAP_GROUP_NAMING_ATTR));
-    ldapServerProperties.setAdminGroupMappingRules(getProperty(LDAP_ADMIN_GROUP_MAPPING_RULES));
-    ldapServerProperties.setAdminGroupMappingMemberAttr(getProperty(LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT));
-    ldapServerProperties.setUserSearchFilter(getProperty(LDAP_USER_SEARCH_FILTER));
-    ldapServerProperties.setAlternateUserSearchFilter(getProperty(LDAP_ALT_USER_SEARCH_FILTER));
-    ldapServerProperties.setGroupSearchFilter(getProperty(LDAP_GROUP_SEARCH_FILTER));
-    ldapServerProperties.setReferralMethod(getProperty(LDAP_REFERRAL));
-    ldapServerProperties.setSyncUserMemberReplacePattern(getProperty(LDAP_SYNC_USER_MEMBER_REPLACE_PATTERN));
-    ldapServerProperties.setSyncGroupMemberReplacePattern(getProperty(LDAP_SYCN_GROUP_MEMBER_REPLACE_PATTERN));
-    ldapServerProperties.setSyncUserMemberFilter(getProperty(LDAP_SYNC_USER_MEMBER_FILTER));
-    ldapServerProperties.setSyncGroupMemberFilter(getProperty(LDAP_SYNC_GROUP_MEMBER_FILTER));
-    ldapServerProperties.setPaginationEnabled(
-        Boolean.parseBoolean(getProperty(LDAP_PAGINATION_ENABLED)));
-
-    if (properties.containsKey(LDAP_GROUP_BASE) || properties.containsKey(LDAP_GROUP_OBJECT_CLASS)
-        || properties.containsKey(LDAP_GROUP_MEMBERSHIP_ATTR)
-        || properties.containsKey(LDAP_GROUP_NAMING_ATTR)
-        || properties.containsKey(LDAP_ADMIN_GROUP_MAPPING_RULES)
-        || properties.containsKey(LDAP_GROUP_SEARCH_FILTER)) {
-      ldapServerProperties.setGroupMappingEnabled(true);
-    }
-
-    return ldapServerProperties;
-  }
-
-  public boolean isLdapConfigured() {
-    return Boolean.parseBoolean(getProperty(IS_LDAP_CONFIGURED));
+    return PasswordUtils.getInstance().readPassword(passwdProp, SERVER_JDBC_RCA_USER_PASSWD.getDefaultValue());
   }
 
   public String getServerOsType() {
@@ -5135,8 +4820,6 @@ public class Configuration {
   }
 
   /**
-
-  /**
    * Gets the default KDC port to use when no port is specified in KDC hostname
    *
    * @return the default KDC port to use.
@@ -5180,10 +4863,9 @@ public class Configuration {
    * @return true if ambari need to skip existing user during LDAP sync.
    */
   public LdapUsernameCollisionHandlingBehavior getLdapSyncCollisionHandlingBehavior() {
-    if (getProperty(LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR).toLowerCase().equals("skip")) {
-      return LdapUsernameCollisionHandlingBehavior.SKIP;
-    }
-    return LdapUsernameCollisionHandlingBehavior.CONVERT;
+    return LdapUsernameCollisionHandlingBehavior.translate(
+        getProperty(LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR),
+        LdapUsernameCollisionHandlingBehavior.ADD);
   }
 
   /**
@@ -5441,7 +5123,7 @@ public class Configuration {
     if (enableJwt) {
       String providerUrl = getProperty(JWT_AUTH_PROVIDER_URL);
       if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.", providerUrl);
+        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.");
         return null;
       }
       String publicKeyPath = getProperty(JWT_PUBLIC);
@@ -5489,19 +5171,6 @@ public class Configuration {
    */
   public String getServerTempDir() {
     return getProperty(SERVER_TMP_DIR);
-  }
-
-  /**
-   * Gets whether to use experiemental concurrent processing to convert
-   * {@link StageEntity} instances into {@link Stage} instances. The default is
-   * {@code false}.
-   *
-   * @return {code true} if the experimental feature is enabled, {@code false}
-   *         otherwise.
-   */
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
-  public boolean isExperimentalConcurrentStageProcessingEnabled() {
-    return Boolean.parseBoolean(getProperty(EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED));
   }
 
   /**
@@ -5626,10 +5295,6 @@ public class Configuration {
   public Integer getAmbariSNMPUdpBindPort() {
     String udpPort = getProperty(ALERTS_AMBARI_SNMP_DISPATCH_UDP_PORT);
     return StringUtils.isEmpty(udpPort) ? null : Integer.parseInt(udpPort);
-  }
-
-  public boolean isLdapAlternateUserSearchEnabled() {
-    return Boolean.parseBoolean(getProperty(LDAP_ALT_USER_SEARCH_ENABLED));
   }
 
   /**
@@ -5787,6 +5452,14 @@ public class Configuration {
     return NumberUtils.toInt(getProperty(LOGSEARCH_PORTAL_READ_TIMEOUT));
   }
 
+  /**
+   * External address of logsearch portal (managed outside of ambari)
+   * @return Address string for logsearch portal (e.g.: https://c6401.ambari.apache.org:61888)
+   */
+  public String getLogSearchPortalExternalAddress() {
+    return getProperty(LOGSEARCH_PORTAL_EXTERNAL_ADDRESS);
+  }
+
 
   /**
    *
@@ -5818,6 +5491,13 @@ public class Configuration {
    */
   public String getDispatchScriptDirectory() {
     return getProperty(DISPATCH_PROPERTY_SCRIPT_DIRECTORY);
+  }
+
+  /**
+   * @return  whether security password encryption is enabled or not (defaults to {@code false})
+   */
+  public boolean isSecurityPasswordEncryptionEnabled() {
+    return Boolean.parseBoolean(getProperty(SECURITY_PASSWORD_ENCRYPTON_ENABLED));
   }
 
   /**
@@ -5997,7 +5677,6 @@ public class Configuration {
     private ConfigurationProperty(String key, T defaultValue) {
       m_key = key;
       m_defaultValue = defaultValue;
-
     }
 
     /**
@@ -6211,37 +5890,6 @@ public class Configuration {
       return kerberosAuthProperties;
     }
 
-    // Get and process the configured user type values to convert the comma-delimited string of
-    // user types into a ordered (as found in the comma-delimited value) list of UserType values.
-    String userTypes = getProperty(KERBEROS_AUTH_USER_TYPES);
-    List<UserType> orderedUserTypes = new ArrayList<>();
-
-    String[] types = userTypes.split(",");
-    for (String type : types) {
-      type = type.trim();
-
-      if (!type.isEmpty()) {
-        try {
-          orderedUserTypes.add(UserType.valueOf(type.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-          String message = String.format("While processing ordered user types from %s, " +
-                  "%s was found to be an invalid user type.",
-              KERBEROS_AUTH_USER_TYPES.getKey(), type);
-          LOG.error(message);
-          throw new IllegalArgumentException(message, e);
-        }
-      }
-    }
-
-    // If no user types have been specified, assume only LDAP users...
-    if (orderedUserTypes.isEmpty()) {
-      LOG.info("No (valid) user types were specified in {}. Using the default value of LOCAL.",
-          KERBEROS_AUTH_USER_TYPES.getKey());
-      orderedUserTypes.add(UserType.LDAP);
-    }
-
-    kerberosAuthProperties.setOrderedUserTypes(orderedUserTypes);
-
     // Get and process the SPNEGO principal name.  If it exists and contains the host replacement
     // indicator (_HOST), replace it with the hostname of the current host.
     String spnegoPrincipalName = getProperty(KERBEROS_AUTH_SPNEGO_PRINCIPAL);
@@ -6302,7 +5950,6 @@ public class Configuration {
             "\t{}: {}\n" +
             "\t{}: {}\n" +
             "\t{}: {}\n" +
-            "\t{}: {}\n" +
             "\t{}: {}\n",
         KERBEROS_AUTH_ENABLED.getKey(),
         kerberosAuthProperties.isKerberosAuthenticationEnabled(),
@@ -6310,8 +5957,6 @@ public class Configuration {
         kerberosAuthProperties.getSpnegoPrincipalName(),
         KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(),
         kerberosAuthProperties.getSpnegoKeytabFilePath(),
-        KERBEROS_AUTH_USER_TYPES.getKey(),
-        kerberosAuthProperties.getOrderedUserTypes(),
         KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(),
         kerberosAuthProperties.getAuthToLocalRules());
 
@@ -6352,5 +5997,17 @@ public class Configuration {
 
   public String getAutoGroupCreation() {
     return getProperty(AUTO_GROUP_CREATION);
+  }
+
+  public int getMaxAuthenticationFailures() {
+    return Integer.parseInt(getProperty(MAX_LOCAL_AUTHENTICATION_FAILURES));
+  }
+
+  public boolean showLockedOutUserMessage() {
+    return Boolean.parseBoolean(getProperty(SHOW_LOCKED_OUT_USER_MESSAGE));
+  }
+
+  public int getAlertServiceCorePoolSize() {
+    return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
   }
 }

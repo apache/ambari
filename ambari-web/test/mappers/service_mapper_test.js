@@ -21,6 +21,7 @@ var App = require('app');
 require('utils/helper');
 require('mappers/server_data_mapper');
 require('mappers/service_metrics_mapper');
+var dateUtils = require('utils/date/date');
 
 describe('App.serviceMetricsMapper', function () {
 
@@ -220,7 +221,7 @@ describe('App.serviceMetricsMapper', function () {
         message: 'Storm mapper, stack version 2.1',
         expectedValues: {
           total_executors: 2,
-          nimbus_uptime: "3.96 hours",
+          nimbus_uptime: 14250000,
           free_slots: 2,
           used_slots: 0,
           total_slots: 2,
@@ -256,10 +257,12 @@ describe('App.serviceMetricsMapper', function () {
 
     beforeEach(function () {
       this.stub = sinon.stub(App, 'get');
+      sinon.stub(dateUtils, 'timingFormat', function(arg) {return arg;});
     });
 
     afterEach(function () {
       App.get.restore();
+      dateUtils.timingFormat.restore();
     });
 
     tests.forEach(function(test) {

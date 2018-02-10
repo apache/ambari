@@ -161,18 +161,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
    */
   anyWarnings: Em.computed.or('anyGeneralWarnings', 'anyHostWarnings'),
 
-  openSlavesAndClientsIssues: function () {
-    App.ModalPopup.show({
-      'data-qa': 'slave-clients-issues-modal',
-      header: Em.I18n.t('installer.step6.validationSlavesAndClients.popup.header'),
-      bodyClass: Em.View.extend({
-        controller: this,
-        templateName: require('templates/wizard/step6/step6_issues_popup')
-      }),
-      secondary: null
-    });
-  },
-
   /**
    * Verify condition that at least one checkbox of each component was checked
    * @method clearError

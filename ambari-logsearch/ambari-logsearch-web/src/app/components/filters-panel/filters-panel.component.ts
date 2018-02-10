@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import {Component, OnChanges, SimpleChanges, Input} from '@angular/core';
+import {Component, OnChanges, SimpleChanges, Input, ViewContainerRef} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/observable/from';
 import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {LogsType} from '@app/classes/string';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
@@ -33,7 +34,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 })
 export class FiltersPanelComponent implements OnChanges {
 
-  constructor(private logsContainer: LogsContainerService) {
+  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef) {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -62,15 +63,19 @@ export class FiltersPanelComponent implements OnChanges {
 
   searchBoxItems: Observable<ListItem[]>;
 
-  get filters(): {[key: string]: FilterCondition} {
+  get containerEl(): Element {
+    return this.viewContainerRef.element.nativeElement;
+  }
+
+  get filters(): HomogeneousObject<FilterCondition> {
     return this.logsContainer.filters;
   }
 
   /**
    * Object with options for search box parameter values
-   * @returns {[key: string]: ListItem[]}
+   * @returns HomogeneousObject<ListItem[]>
    */
-  get options(): {[key: string]: ListItem[]} {
+  get options(): HomogeneousObject<ListItem[]> {
     return Object.keys(this.filters).filter((key: string): boolean => {
       const condition = this.filters[key];
       return Boolean(condition.fieldName && condition.options);
@@ -90,10 +95,6 @@ export class FiltersPanelComponent implements OnChanges {
     return this.logsContainer.queryParameterAdd;
   }
 
-  get captureSeconds(): number {
-    return this.logsContainer.captureSeconds;
-  }
-
   searchBoxValueUpdate: Subject<void> = new Subject();
 
   isFilterConditionDisplayed(key: string): boolean {
@@ -102,6 +103,15 @@ export class FiltersPanelComponent implements OnChanges {
 
   updateSearchBoxValue(): void {
     this.searchBoxValueUpdate.next();
+  }
+
+  proceedWithExclude(item: string): void {
+    this.queryParameterNameChange.next({
+      item: {
+        value: item
+      },
+      isExclude: true
+    });
   }
 
 }

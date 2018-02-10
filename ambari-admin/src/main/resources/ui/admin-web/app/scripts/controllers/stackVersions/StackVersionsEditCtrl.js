@@ -36,7 +36,7 @@ angular.module('ambariAdminConsole')
   $scope.isGPLAccepted = false;
 
   $scope.isGPLRepo = function (repository) {
-    return repository.Repositories.tags && repository.Repositories.tags.indexOf('GPL') >= 0;
+    return repository.Repositories.tags.indexOf('GPL') >= 0;
   };
 
   $scope.showRepo = function (repository) {
@@ -136,7 +136,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.isDeletable = function() {
-    return !($scope.repoStatus == 'current' || $scope.repoStatus == 'installed');
+    return !($scope.repoStatus === 'CURRENT' || $scope.repoStatus === 'INSTALLED');
   };
 
   $scope.disableUnusedOS = function() {

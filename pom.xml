@@ -251,6 +251,7 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>.github/</exclude>
             <exclude>**/repo_*.j2</exclude>
             <exclude>**/ambari-log4j.spec</exclude>
             <exclude>**/version.txt</exclude>

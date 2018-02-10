@@ -142,6 +142,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new UserResourceDefinition();
         break;
 
+      case UserAuthenticationSource:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.UserAuthenticationSource, "source", "sources");
+        break;
+
       case Group:
         resourceDefinition = new GroupResourceDefinition();
         break;

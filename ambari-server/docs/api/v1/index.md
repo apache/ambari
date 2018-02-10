@@ -372,6 +372,18 @@ Permission resources are used to help determine authorization rights for a user.
 
 [Permission Resources](permission-resources.md)
 
+#### users
+User resources represent users that may use Ambari. A user is given permissions to perform tasks within Ambari.  
+
+[User Resources](user-resources.md)
+
+#### authentication sources
+Authentication source resources are child resources of [user resources](#users). Each source represent an authentication 
+source that a user may use to login into Ambari.  There are different types of authentication sources
+such as (but not limited to) local, LDAP, JWT, and Kerberos.
+
+[Authentication Source Resources](authentication-source-resources.md)
+
 Partial Response
 ----
 

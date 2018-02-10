@@ -43,6 +43,13 @@ public class ScriptSource extends ParameterizedSource {
     return m_path;
   }
 
+  public void setPath(String path) {
+    m_path = path;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
     return Objects.hash(super.hashCode(), m_path);

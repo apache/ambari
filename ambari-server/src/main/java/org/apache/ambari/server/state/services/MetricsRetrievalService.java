@@ -59,7 +59,7 @@ import com.google.inject.Inject;
  * The {@link MetricsRetrievalService} is used as a headless, autonomous service
  * which encapsulates:
  * <ul>
- * <li>An {@link ExecutorService} for fullfilling remote metric URL requests
+ * <li>An {@link ExecutorService} for fulfilling remote metric URL requests
  * <li>A cache for JMX metrics
  * <li>A cache for REST metrics
  * </ul>
@@ -272,7 +272,7 @@ public class MetricsRetrievalService extends AbstractService {
    * {@link #getCachedRESTMetric(String)}, depending on the type of metric
    * requested.
    * <p/>
-   * Callers need not worry about invoking this mulitple times for the same URL
+   * Callers need not worry about invoking this multiple times for the same URL
    * endpoint. A single endpoint will only be enqueued once regardless of how
    * many times this method is called until it has been fully retrieved and
    * parsed. If the last endpoint request was too recent, then this method will
@@ -351,7 +351,7 @@ public class MetricsRetrievalService extends AbstractService {
    * Gets a cached REST metric in the form of a {@link Map}. If there is no
    * metric data cached for the given URL, then {@code null} is returned.
    * <p/>
-   * The onky way this cache is populated is by requesting the data to be loaded
+   * The only way this cache is populated is by requesting the data to be loaded
    * asynchronously via
    * {@link #submitRequest(MetricSourceType, StreamProvider, String)} with the
    * {@link MetricSourceType#REST} type.
@@ -365,7 +365,7 @@ public class MetricsRetrievalService extends AbstractService {
   }
 
   /**
-   * Encapsulates the common logic for all metric {@link Runnable} instnaces.
+   * Encapsulates the common logic for all metric {@link Runnable} instances.
    */
   private static abstract class MetricRunnable implements Runnable {
 

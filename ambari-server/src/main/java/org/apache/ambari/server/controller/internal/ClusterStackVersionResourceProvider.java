@@ -62,8 +62,8 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -546,13 +546,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     final AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
 
     // build the list of OS repos
-    List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
-    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
-    for (OperatingSystemEntity operatingSystem : operatingSystems) {
-      if (operatingSystem.isAmbariManagedRepos()) {
-        perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
+    List<RepoOsEntity> operatingSystems = repoVersionEnt.getRepoOsEntities();
+    Map<String, List<RepoDefinitionEntity>> perOsRepos = new HashMap<>();
+    for (RepoOsEntity operatingSystem : operatingSystems) {
+      if (operatingSystem.isAmbariManaged()) {
+        perOsRepos.put(operatingSystem.getFamily(), operatingSystem.getRepoDefinitionEntities());
       } else {
-        perOsRepos.put(operatingSystem.getOsType(), Collections.<RepositoryEntity> emptyList());
+        perOsRepos.put(operatingSystem.getFamily(), Collections.<RepoDefinitionEntity>emptyList());
       }
     }
 
@@ -699,9 +699,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
-    OperatingSystemEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
+    RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
 
-    if (CollectionUtils.isEmpty(osEntity.getRepositories())) {
+    if (CollectionUtils.isEmpty(osEntity.getRepoDefinitionEntities())) {
       throw new SystemException(String.format("Repositories for os type %s are not defined for version %s of Stack %s.",
             osFamily, repoVersion.getVersion(), stackId));
     }

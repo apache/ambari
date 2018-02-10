@@ -48,7 +48,7 @@ export interface SortingListItem extends ListItem {
 export interface FilterCondition {
   label?: string;
   options?: (ListItem | TimeUnitListItem[])[];
-  defaultSelection?: ListItem | ListItem[] | number;
+  defaultSelection?: ListItem | ListItem[] | number | boolean;
   iconClass?: string;
   fieldName?: string;
 }

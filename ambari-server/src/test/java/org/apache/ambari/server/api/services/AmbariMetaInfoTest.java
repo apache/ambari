@@ -48,6 +48,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -133,8 +134,7 @@ public class AmbariMetaInfoTest {
   private static final int OS_CNT = 4;
 
   private static TestAmbariMetaInfo metaInfo = null;
-  private final static Logger LOG =
-      LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+  private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
   private static final String HADOOP_ENV_FILE_NAME = "hadoop-env.xml";
   private static final String HDFS_LOG4J_FILE_NAME = "hdfs-log4j.xml";
@@ -1719,7 +1719,7 @@ public class AmbariMetaInfoTest {
 
     cluster.addService("HDFS", repositoryVersion);
 
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
     List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
@@ -1743,7 +1743,7 @@ public class AmbariMetaInfoTest {
       dao.merge(definition);
     }
 
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     definitions = dao.findAll();
     assertEquals(13, definitions.size());
@@ -1777,7 +1777,7 @@ public class AmbariMetaInfoTest {
     assertEquals(13, definitions.size());
 
     // reconcile, which should disable our bad definition
-    metaInfo.reconcileAlertDefinitions(clusters);
+    metaInfo.reconcileAlertDefinitions(clusters, false);
 
     // find all enabled for the cluster should find 6
     definitions = dao.findAllEnabled(cluster.getClusterId());
@@ -1790,6 +1790,59 @@ public class AmbariMetaInfoTest {
 
     entity = dao.findById(entity.getDefinitionId());
     assertFalse(entity.getEnabled());
+  }
+
+  /**
+   * Test scenario when service were removed and not mapped alerts need to be disabled
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertDefinitionMergingRemoveScenario() throws Exception {
+    final String repoVersion = "2.0.6-1234";
+    final String stackVersion = "2.0.6";
+
+    Injector injector = Guice.createInjector(Modules.override(
+      new InMemoryDefaultTestModule()).with(new MockModule()));
+
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(EntityManager.class);
+
+    OrmTestHelper ormHelper = injector.getInstance(OrmTestHelper.class);
+    long clusterId = ormHelper.createCluster("cluster" + System.currentTimeMillis());
+
+    Class<?> c = metaInfo.getClass().getSuperclass();
+
+    Field f = c.getDeclaredField("alertDefinitionDao");
+    f.setAccessible(true);
+    f.set(metaInfo, injector.getInstance(AlertDefinitionDAO.class));
+
+    f = c.getDeclaredField("ambariServiceAlertDefinitions");
+    f.setAccessible(true);
+    f.set(metaInfo, injector.getInstance(AmbariServiceAlertDefinitions.class));
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getClusterById(clusterId);
+    cluster.setDesiredStackVersion(
+      new StackId(STACK_NAME_HDP, stackVersion));
+
+    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
+      cluster.getCurrentStackVersion(), repoVersion);
+
+    cluster.addService("HDFS", repositoryVersion);
+
+    metaInfo.reconcileAlertDefinitions(clusters, false);
+
+    AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
+    List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
+    assertEquals(13, definitions.size());
+
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
+    metaInfo.reconcileAlertDefinitions(clusters, false);
+    List<AlertDefinitionEntity> updatedDefinitions = dao.findAll(clusterId);
+    assertEquals(7, updatedDefinitions.size());
   }
 
   @Test
@@ -1900,6 +1953,35 @@ public class AmbariMetaInfoTest {
 
     Assert.assertNotNull(widgetsFile);
     Assert.assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
+  }
+
+  @Test
+  public void testGetVersionDefinitionsForDisabledStack() throws AmbariException {
+    Map<String, VersionDefinitionXml> versionDefinitions = metaInfo.getVersionDefinitions();
+    Assert.assertNotNull(versionDefinitions);
+    // Check presence
+    Map.Entry<String, VersionDefinitionXml> vdfEntry = null;
+    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
+      if (entry.getKey().equals("HDP-2.2.1")) {
+        vdfEntry = entry;
+      }
+    }
+    Assert.assertNotNull("Candidate stack and vdf for test case.", vdfEntry);
+    StackInfo stackInfo = metaInfo.getStack("HDP", "2.2.1");
+    // Strange that this is not immutable but works for this test !
+    stackInfo.setActive(false);
+
+    // Hate to use reflection hence changed contract to be package private
+    metaInfo.versionDefinitions = null;
+
+    versionDefinitions = metaInfo.getVersionDefinitions();
+    vdfEntry = null;
+    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
+      if (entry.getKey().equals("HDP-2.2.1")) {
+        vdfEntry = entry;
+      }
+    }
+    Assert.assertNull("Disabled stack should not be returned by the API", vdfEntry);
   }
 
   private File getStackRootTmp(String buildDir) {

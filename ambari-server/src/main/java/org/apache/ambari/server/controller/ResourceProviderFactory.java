@@ -44,6 +44,12 @@ public interface ResourceProviderFactory {
   @Named("member")
   ResourceProvider getMemberResourceProvider(AmbariManagementController managementController);
 
+  @Named("user")
+  ResourceProvider getUserResourceProvider(AmbariManagementController managementController);
+
+  @Named("userAuthenticationSource")
+  ResourceProvider getUserAuthenticationSourceResourceProvider();
+
   @Named("hostKerberosIdentity")
   ResourceProvider getHostKerberosIdentityResourceProvider(AmbariManagementController managementController);
 

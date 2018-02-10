@@ -17,7 +17,13 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+
+import org.apache.ambari.server.alerts.Threshold;
+import org.apache.ambari.server.state.AlertState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -160,6 +166,37 @@ public class Reporting {
       Objects.equals(m_ok, other.m_ok) &&
       Objects.equals(m_warning, other.m_warning) &&
       Objects.equals(m_type, other.m_type);
+  }
+
+  public AlertState state(double value) {
+    return getThreshold().state(value);
+  }
+
+  private Threshold getThreshold() {
+    return new Threshold(getOk().getValue(), getWarning().getValue(), getCritical().getValue());
+  }
+
+  public String formatMessage(double value, List<Object> args) {
+    List<Object> copy = new ArrayList<>(args);
+    copy.add(value);
+    return MessageFormat.format(message(value), copy.toArray());
+  }
+
+  private String message(double value) {
+    switch (state(value)) {
+      case OK:
+        return getOk().getText();
+      case WARNING:
+        return getWarning().getText();
+      case CRITICAL:
+        return getCritical().getText();
+      case UNKNOWN:
+        return "Unknown";
+      case SKIPPED:
+        return "Skipped";
+      default:
+        throw new IllegalStateException("Invalid alert state: " + state(value));
+    }
   }
 
   /**

@@ -568,7 +568,8 @@ class RecoveryManager:
 
 
     if dictionary and "recoveryConfig" in dictionary:
-      logger.info("RecoverConfig = " + pprint.pformat(dictionary["recoveryConfig"]))
+      if logger.isEnabledFor(logging.INFO):
+        logger.info("RecoverConfig = %s", pprint.pformat(dictionary["recoveryConfig"]))
       config = dictionary["recoveryConfig"]
       if "type" in config:
         if config["type"] in ["AUTO_INSTALL_START", "AUTO_START", "FULL"]:
@@ -677,10 +678,10 @@ class RecoveryManager:
     """
     if not self.enabled():
       return
-      
+
     if not command.has_key(self.ROLE_COMMAND) or not self.configured_for_recovery(command['role']):
       return
-      
+
     if status == ActionQueue.COMPLETED_STATUS:
       if command[self.ROLE_COMMAND] == self.ROLE_COMMAND_START:
         self.update_current_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
@@ -712,10 +713,10 @@ class RecoveryManager:
     """
     if not self.enabled():
       return
-      
+
     if not self.COMMAND_TYPE in command or not command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
       return
-      
+
     if not self.ROLE in command:
       return
 

@@ -14,6 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "LOG FEEDER"
-mvn clean compile
-mvn exec:java
+mvn clean spring-boot:run

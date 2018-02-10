@@ -61,6 +61,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -68,6 +69,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.state.Cluster;
@@ -405,7 +407,13 @@ public class AmbariCustomCommandExecutionHelper {
       Map<String, String> hostLevelParams = new TreeMap<>();
 
       // Set parameters required for re-installing clients on restart
-      hostLevelParams.put(REPO_INFO, ambariMetaInfo.getRepoInfoString(cluster, component, host));
+      String repoInfoString;
+      try {
+        repoInfoString = repoVersionHelper.getRepoInfoString(cluster, component, host);
+      } catch (SystemException e) {
+        throw new RuntimeException(e);
+      }
+      hostLevelParams.put(REPO_INFO, repoInfoString);
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
@@ -514,7 +522,13 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
 
-      execCmd.setRepositoryFile(ambariMetaInfo.getCommandRepository(cluster, component, host));
+      CommandRepository commandRepository;
+      try {
+        commandRepository = repoVersionHelper.getCommandRepository(cluster, component, host);
+      } catch (SystemException e) {
+        throw new RuntimeException(e);
+      }
+      execCmd.setRepositoryFile(commandRepository);
 
       // perform any server side command related logic - eg - set desired states on restart
       applyCustomCommandBackendLogic(cluster, serviceName, componentName, commandName, hostName);

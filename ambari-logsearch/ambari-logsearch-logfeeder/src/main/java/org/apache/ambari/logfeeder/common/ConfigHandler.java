@@ -16,39 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.ambari.logfeeder.common;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.lang.reflect.Type;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.common.collect.Maps;
+import com.google.gson.reflect.TypeToken;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
-import org.apache.ambari.logfeeder.filter.Filter;
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.InputManager;
 import org.apache.ambari.logfeeder.input.InputSimulate;
-import org.apache.ambari.logfeeder.metrics.MetricData;
-import org.apache.ambari.logfeeder.output.Output;
-import org.apache.ambari.logfeeder.output.OutputManager;
-import org.apache.ambari.logfeeder.util.AliasUtil;
+import org.apache.ambari.logfeeder.plugin.common.AliasUtil;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
+import org.apache.ambari.logfeeder.plugin.filter.Filter;
+import org.apache.ambari.logfeeder.plugin.input.Input;
+import org.apache.ambari.logfeeder.plugin.manager.InputManager;
+import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
+import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
@@ -58,17 +39,32 @@ import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterDescriptorImpl;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
-import org.apache.log4j.Level;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-
-import com.google.gson.reflect.TypeToken;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ConfigHandler implements InputConfigMonitor {
-  private static final Logger LOG = Logger.getLogger(ConfigHandler.class);
+  private static final Logger LOG = Logger.getLogger(org.apache.ambari.logfeeder.common.ConfigHandler.class);
 
   private final LogSearchConfigLogFeeder logSearchConfig;
 
@@ -85,9 +81,9 @@ public class ConfigHandler implements InputConfigMonitor {
   private final List<InputDescriptor> inputConfigList = new ArrayList<>();
   private final List<FilterDescriptor> filterConfigList = new ArrayList<>();
   private final List<Map<String, Object>> outputConfigList = new ArrayList<>();
-  
+
   private boolean simulateMode = false;
-  
+
   public ConfigHandler(LogSearchConfigLogFeeder logSearchConfig) {
     this.logSearchConfig = logSearchConfig;
   }
@@ -98,13 +94,13 @@ public class ConfigHandler implements InputConfigMonitor {
     logSearchConfig.init(Maps.fromProperties(logFeederProps.getProperties()), logFeederProps.getClusterName());
     loadOutputs();
     simulateIfNeeded();
-    
+
     inputManager.init();
     outputManager.init();
-    
+
     logSearchConfig.monitorOutputProperties(outputManager.getOutputsToMonitor());
   }
-  
+
   private void loadConfigFiles() throws Exception {
     List<String> configFiles = getConfigFiles();
     for (String configFileName : configFiles) {
@@ -124,13 +120,13 @@ public class ConfigHandler implements InputConfigMonitor {
 
   private List<String> getConfigFiles() {
     List<String> configFiles = new ArrayList<>();
-    
+
     String logFeederConfigFilesProperty = logFeederProps.getConfigFiles();
     LOG.info("logfeeder.config.files=" + logFeederConfigFilesProperty);
     if (logFeederConfigFilesProperty != null) {
       configFiles.addAll(Arrays.asList(logFeederConfigFilesProperty.split(",")));
     }
-    
+
     return configFiles;
   }
 
@@ -146,26 +142,30 @@ public class ConfigHandler implements InputConfigMonitor {
 
   private void loadConfigsUsingClassLoader(String configFileName) throws Exception {
     try (BufferedInputStream fis = (BufferedInputStream) this.getClass().getClassLoader().getResourceAsStream(configFileName)) {
+      ClassPathResource configFile = new ClassPathResource(configFileName);
+      if (!configFile.exists()) {
+        throw new FileNotFoundException(configFileName);
+      }
       String configData = IOUtils.toString(fis, Charset.defaultCharset());
       loadConfigs(configData);
     }
   }
-  
+
   @Override
   public void loadInputConfigs(String serviceName, InputConfig inputConfig) throws Exception {
     inputConfigList.clear();
     filterConfigList.clear();
-    
+
     inputConfigList.addAll(inputConfig.getInput());
     filterConfigList.addAll(inputConfig.getFilter());
-    
+
     if (simulateMode) {
       InputSimulate.loadTypeToFilePath(inputConfigList);
     } else {
       loadInputs(serviceName);
       loadFilters(serviceName);
       assignOutputsToInputs(serviceName);
-      
+
       inputManager.startInputs(serviceName);
     }
   }
@@ -185,7 +185,7 @@ public class ConfigHandler implements InputConfigMonitor {
     if (inputConfigList.isEmpty()) {
       throw new IllegalArgumentException("Log Id " + logId + " was not found in shipper configuriaton");
     }
-    
+
     for (FilterDescriptor filterDescriptor : inputConfig.getFilter()) {
       if ("grok".equals(filterDescriptor.getFilter())) {
         // Thus ensure that the log entry passed will be parsed immediately
@@ -196,7 +196,7 @@ public class ConfigHandler implements InputConfigMonitor {
     loadInputs("test");
     loadFilters("test");
     List<Input> inputList = inputManager.getInputList("test");
-    
+
     return inputList != null && inputList.size() == 1 ? inputList.get(0) : null;
   }
 
@@ -221,17 +221,17 @@ public class ConfigHandler implements InputConfigMonitor {
       }
     }
   }
-  
+
   @Override
   public List<String> getGlobalConfigJsons() {
     return globalConfigJsons;
   }
-  
+
   private void simulateIfNeeded() throws Exception {
     int simulatedInputNumber = logFeederProps.getInputSimulateConfig().getSimulateInputNumber();
     if (simulatedInputNumber == 0)
       return;
-    
+
     InputConfigImpl simulateInputConfig = new InputConfigImpl();
     List<InputDescriptorImpl> inputConfigDescriptors = new ArrayList<>();
     simulateInputConfig.setInput(inputConfigDescriptors);
@@ -243,9 +243,9 @@ public class ConfigHandler implements InputConfigMonitor {
       inputDescriptor.setAddFields(new HashMap<String, String>());
       inputConfigDescriptors.add(inputDescriptor);
     }
-    
+
     loadInputConfigs("Simulation", simulateInputConfig);
-    
+
     simulateMode = true;
   }
 
@@ -261,7 +261,7 @@ public class ConfigHandler implements InputConfigMonitor {
         LOG.error("Output block doesn't have destination element");
         continue;
       }
-      Output output = (Output) AliasUtil.getClassInstance(value, AliasType.OUTPUT);
+      Output output = (Output) AliasUtil.getClassInstance(value, AliasUtil.AliasType.OUTPUT);
       if (output == null) {
         LOG.error("Output object could not be found");
         continue;
@@ -272,7 +272,7 @@ public class ConfigHandler implements InputConfigMonitor {
 
       // We will only check for is_enabled out here. Down below we will check whether this output is enabled for the input
       if (output.isEnabled()) {
-        output.logConfigs(Level.INFO);
+        output.logConfigs();
         outputManager.add(output);
       } else {
         LOG.info("Output is disabled. So ignoring it. " + output.getShortDescription());
@@ -291,7 +291,7 @@ public class ConfigHandler implements InputConfigMonitor {
         LOG.error("Input block doesn't have source element");
         continue;
       }
-      Input input = (Input) AliasUtil.getClassInstance(source, AliasType.INPUT);
+      Input input = (Input) AliasUtil.getClassInstance(source, AliasUtil.AliasType.INPUT);
       if (input == null) {
         LOG.error("Input object could not be found");
         continue;
@@ -303,7 +303,7 @@ public class ConfigHandler implements InputConfigMonitor {
         input.setOutputManager(outputManager);
         input.setInputManager(inputManager);
         inputManager.add(serviceName, input);
-        input.logConfigs(Level.INFO);
+        input.logConfigs();
       } else {
         LOG.info("Input is disabled. So ignoring it. " + input.getShortDescription());
       }
@@ -333,7 +333,7 @@ public class ConfigHandler implements InputConfigMonitor {
           LOG.error("Filter block doesn't have filter element");
           continue;
         }
-        Filter filter = (Filter) AliasUtil.getClassInstance(value, AliasType.FILTER);
+        Filter filter = (Filter) AliasUtil.getClassInstance(value, AliasUtil.AliasType.FILTER);
         if (filter == null) {
           LOG.error("Filter object could not be found");
           continue;
@@ -343,9 +343,9 @@ public class ConfigHandler implements InputConfigMonitor {
 
         filter.setOutputManager(outputManager);
         input.addFilter(filter);
-        filter.logConfigs(Level.INFO);
+        filter.logConfigs();
       }
-      
+
       if (input.getFirstFilter() == null) {
         toRemoveInputList.add(input);
       }
@@ -379,7 +379,7 @@ public class ConfigHandler implements InputConfigMonitor {
         }
       }
     }
-    
+
     // In case of simulation copies of the output are added for each simulation instance, these must be added to the manager
     for (Output output : InputSimulate.getSimulateOutputs()) {
       output.setLogSearchConfig(logSearchConfig);
@@ -430,7 +430,7 @@ public class ConfigHandler implements InputConfigMonitor {
     inputManager.logStats();
     outputManager.logStats();
   }
-  
+
   public void addMetrics(List<MetricData> metricsList) {
     inputManager.addMetricsContainers(metricsList);
     outputManager.addMetricsContainers(metricsList);

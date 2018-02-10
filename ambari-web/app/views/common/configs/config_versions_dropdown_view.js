@@ -34,6 +34,17 @@ App.ConfigVersionsDropdownView = Em.View.extend({
   isCompareMode: false,
   displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
 
+  didInsertElement: function() {
+    this.$().on("shown.bs.dropdown", function() {
+      const versionsBlock = $(this).find('.versions-list');
+      if (versionsBlock.height() < versionsBlock.prop('scrollHeight')) {
+        versionsBlock.addClass('bottom-shadow');
+      } else {
+        versionsBlock.removeClass('bottom-shadow');
+      }
+    });
+  },
+
   mainClickAction: function (event) {
     if (this.get('isSecondary')) {
       this.get('parentView').compare(event);
@@ -46,7 +57,7 @@ App.ConfigVersionsDropdownView = Em.View.extend({
     return this.get('serviceVersions').filter((serviceVersion) => {
       if (!this.get('filterValue').trim()) return true;
       const searchString = Em.I18n.t('common.version') + ' ' + serviceVersion.get('version') + ' ' + serviceVersion.get('notes');
-      return searchString.indexOf(this.get('filterValue').trim()) !== -1;
+      return searchString.toLowerCase().indexOf(this.get('filterValue').trim().toLowerCase()) !== -1;
     });
   }.property('serviceVersions.length', 'filterValue')
 });

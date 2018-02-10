@@ -24,11 +24,21 @@
                 {{'views.create' | translate}}
             </button>
         </div>
+        <div class="search-box-button pull-right">
+            <button class="btn btn-default" ng-click="toggleSearchBox()">
+                <i class="fa fa-filter" aria-hidden="true"></i>
+            </button>
+            <div class="popup-arrow-up hide"></div>
+        </div>
+    </div>
+
+    <div class="search-box-row hide">
+        <combo-search suggestions="filters" filter-change="filterInstances" placeholder="Search"></combo-search>
     </div>
 
     <table class="table table-striped table-hover">
         <thead>
-        <tr class="fix-bottom">
+        <tr>
             <th class="col-md-2">
                 <span>{{'common.name' | translate}}</span>
             </th>
@@ -44,39 +54,6 @@
             <th class="col-md-2 entity-actions">
                 <span>{{'common.actions' | translate}}</span>
             </th>
-        </tr>
-        <tr class="fix-top">
-            <th>
-                <div class="search-container">
-                    <input type="text" class="form-control" placeholder="{{'common.any' | translate}}"
-                           ng-model="instanceNameFilter" ng-change="filterInstances()">
-                    <button type="button" class="close clearfilter" ng-show="instanceNameFilter"
-                            ng-click="instanceNameFilter=''; filterInstances()">
-                        <span aria-hidden="true">&times;</span>
-                        <span class="sr-only">{{'common.controls.close' | translate}}</span>
-                    </button>
-                </div>
-            </th>
-            <th>
-                <div class="search-container">
-                    <input type="text" class="form-control" placeholder="{{'common.any' | translate}}"
-                           ng-model="instanceUrlFilter" ng-change="filterInstances()">
-                    <button type="button" class="close clearfilter" ng-show="instanceUrlFilter"
-                            ng-click="instanceUrlFilter=''; filterInstances()">
-                        <span aria-hidden="true">&times;</span>
-                        <span class="sr-only">{{'common.controls.close' | translate}}</span>
-                    </button>
-                </div>
-            </th>
-            <th>
-                <select class="form-control typefilter v-small-input"
-                        ng-model="instanceTypeFilter"
-                        ng-options="item.label for item in typeFilterOptions"
-                        ng-change="filterInstances()">
-                </select>
-            </th>
-            <th></th>
-            <th></th>
         </tr>
         </thead>
 
@@ -138,13 +115,12 @@
     <div class="col-sm-12 table-bar" ng-show="instances.length >= minInstanceForPagination">
         <div class="pull-left filtered-info">
             <span>{{'common.filterInfo' | translate:{showed: tableInfo.showed, total: tableInfo.filtered, term: urs.urls} }}</span>
-            <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
         </div>
         <div class="pull-right left-margin">
-            <pagination class="paginator" total-items="tableInfo.filtered" max-size="maxVisiblePages" items-per-page="instancesPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+            <pagination class="paginator" total-items="tableInfo.filtered" max-size="pagination.maxVisiblePages" items-per-page="pagination.itemsPerPage" ng-model="pagination.currentPage" ng-change="pageChanged()"></pagination>
         </div>
         <div class="pull-right">
-            <select class="form-control" ng-model="instancesPerPage" ng-change="resetPagination()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
+            <select class="form-control" ng-model="pagination.itemsPerPage" ng-change="resetPagination()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
         </div>
     </div>
 

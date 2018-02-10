@@ -19,9 +19,8 @@
   <property environment="env"/>
   <property name="debuglevel" value="source,lines,vars"/>
   <dirname property="builddir" file="build.xml"/>
-  <property name="target" value="1.7"/>
-  <property name="source" value="1.7"/>
-  <property file="build.properties"/>
+  <property name="target" value="1.8"/>
+  <property name="source" value="1.8"/>
 
   <target name="init">
   </target>
@@ -31,20 +30,34 @@
     <delete dir="target/package"/>
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset dir="target/libs"/>
+      <fileset file="target/ambari-logsearch-server*.jar"/>
     </copy>
     <copy todir="target/classes/static" includeEmptyDirs="no">
       <fileset dir="target/dist"/>
     </copy>
-    <copy todir="target/package/classes" includeEmptyDirs="no">
-      <fileset dir="target/classes"/>
+    <copy todir="target/package/webapp/static" includeEmptyDirs="no">
+      <fileset dir="target/classes/static"/>
     </copy>
-    <copy todir="target/package/solr_configsets" includeEmptyDirs="yes">
+    <copy todir="target/package/webapp/swagger" includeEmptyDirs="no">
+      <fileset dir="target/classes/swagger"/>
+    </copy>
+    <copy todir="target/package/conf" includeEmptyDirs="no">
+      <fileset file="src/main/scripts/logsearch-env.sh"/>
+      <fileset file="target/classes/log4j.xml"/>
+      <fileset file="target/classes/default.properties"/>
+      <fileset file="target/classes/logsearch.properties"/>
+      <fileset file="target/classes/info.properties"/>
+      <fileset file="target/classes/user_pass.json"/>
+      <fileset file="target/classes/HadoopServiceConfig.json"/>
+    </copy>
+    <copy todir="target/package/conf/solr_configsets" includeEmptyDirs="yes">
       <fileset dir="src/main/configsets"/>
     </copy>
-    <copy todir="target/package" includeEmptyDirs="no">
-      <fileset file="src/main/scripts/*"/>
+    <copy todir="target/package/bin" includeEmptyDirs="no">
+      <fileset file="src/main/scripts/logsearch.sh"/>
     </copy>
-    <chmod file="target/package/*.sh" perm="755"/>
+    <chmod file="target/package/bin/logsearch.sh" perm="755"/>
+    <chmod file="target/package/conf/logsearch-env.sh" perm="755"/>
     <tar compression="gzip" destfile="target/ambari-logsearch-portal.tar.gz">
       <tarfileset mode="755" dir="target/package">
         <include name="*.sh"/>
@@ -53,10 +66,5 @@
         <exclude name="*.sh"/>
       </tarfileset>
     </tar>
-
   </target>
-
-
-  <target description="Build all projects which reference this project. Useful to propagate changes."
-          name="build-refprojects"/>
 </project>

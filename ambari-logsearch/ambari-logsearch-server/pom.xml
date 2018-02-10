@@ -44,7 +44,6 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <build>
-        <finalName>LogSearch</finalName>
         <resources>
           <resource>
             <directory>src/main/resources</directory>
@@ -77,16 +76,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
             <version>${spring-boot.version}</version>
-            <configuration>
-              <classifier>exec</classifier>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>repackage</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -231,6 +220,12 @@
       <groupId>org.springframework.security.kerberos</groupId>
       <artifactId>spring-security-kerberos-client</artifactId>
       <version>1.0.1.RELEASE</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -445,10 +440,12 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
+      <version>1.8</version>
     </dependency>
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
+      <version>2.5</version>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>

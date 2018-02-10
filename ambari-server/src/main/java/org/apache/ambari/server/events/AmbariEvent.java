@@ -163,6 +163,11 @@ public abstract class AmbariEvent {
     AMBARI_CONFIGURATION_CHANGED,
 
     /**
+     * JPA initialized
+     */
+    JPA_INITIALIZED,
+
+    /**
      * Host component's stale config status has been changed.
      */
     STALE_CONFIGS_UPDATE;

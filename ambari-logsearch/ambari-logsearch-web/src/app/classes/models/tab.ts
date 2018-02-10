@@ -16,19 +16,19 @@
  * limitations under the License.
  */
 
+import {HomogeneousObject} from '@app/classes/object';
+
 export interface Tab {
   id: string;
-  type: string;
   isActive?: boolean;
   isCloseable?: boolean;
   label: string;
-  appState?: object;
+  appState?: HomogeneousObject<any>;
 }
 
 export const initialTabs: Tab[] = [
   {
     id: 'serviceLogs',
-    type: 'serviceLogs',
     isActive: true,
     label: 'common.serviceLogs',
     appState: {
@@ -38,7 +38,6 @@ export const initialTabs: Tab[] = [
   },
   {
     id: 'auditLogs',
-    type: 'auditLogs',
     isActive: false,
     label: 'common.auditLogs',
     appState: {

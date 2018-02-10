@@ -34,7 +34,7 @@ public enum MessageEnums {
   ZK_CONFIG_NOT_READY("logsearch.zk.config.error", "Collection configuration has not uploaded yet"),
   SOLR_COLLECTION_NOT_READY("logsearch.solr.collection.error", "Solr has not accessible yet for collection."),
   CONFIGURATION_NOT_AVAILABLE("logsearch.config.not_available", "Log Search configuration is not available"),
-  
+  CONFIGURATION_API_DISABLED("logsearch.config.api.disabled", "Log Search configuration is not available"),
   // Common Validations
   INVALID_PASSWORD("logsearch.validation.invalid_password", "Invalid password"),
   INVALID_INPUT_DATA("logsearch.validation.invalid_input_data", "Invalid input data"),

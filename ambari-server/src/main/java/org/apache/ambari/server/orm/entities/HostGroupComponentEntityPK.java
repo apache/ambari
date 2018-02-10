@@ -18,13 +18,15 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
 
 /**
  * Composite primary key for HostGroupComponentEntity.
  */
-public class HostGroupComponentEntityPK {
+public class HostGroupComponentEntityPK implements Serializable {
 
   @Id
   @Column(name = "hostgroup_name", nullable = false, insertable = true, updatable = false, length = 100)

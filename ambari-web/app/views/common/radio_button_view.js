@@ -35,6 +35,8 @@ App.RadioButtonView = App.CheckboxView.extend({
    */
   selection: null,
 
+  classNames: ['radio'],
+
   /**
    * <code>value</code> html attribute of radio button
    * @type {[type]}

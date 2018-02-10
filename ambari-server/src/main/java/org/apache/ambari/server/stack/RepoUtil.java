@@ -28,8 +28,8 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RepositoryResponse;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.commons.collections.CollectionUtils;
@@ -66,8 +66,11 @@ public class RepoUtil {
    */
   final static String REPOSITORY_FILE_NAME = "repoinfo.xml";
 
-  private static final Function<RepositoryEntity, String> REPO_ENTITY_TO_NAME = new Function<RepositoryEntity, String>() {
-    @Override  public String apply(@Nullable RepositoryEntity input) { return input.getName(); }
+  private static final Function<RepoDefinitionEntity, String> REPO_ENTITY_TO_NAME = new Function<RepoDefinitionEntity, String>() {
+    @Override
+    public String apply(@Nullable RepoDefinitionEntity input) {
+      return input.getRepoName();
+    }
   };
 
 
@@ -117,16 +120,16 @@ public class RepoUtil {
    * @param stackReposByOs - Stack repositories loaded from the disk (including service repositories), grouped by os.
    * @return {@code true} if there were added repositories
    */
-  public static boolean addServiceReposToOperatingSystemEntities(List<OperatingSystemEntity> operatingSystems,
-      ListMultimap<String, RepositoryInfo> stackReposByOs) {
+  public static boolean addServiceReposToOperatingSystemEntities(List<RepoOsEntity> operatingSystems,
+                                                                 ListMultimap<String, RepositoryInfo> stackReposByOs) {
     Set<String> addedRepos = new HashSet<>();
-    for (OperatingSystemEntity os : operatingSystems) {
-      List<RepositoryInfo> serviceReposForOs = stackReposByOs.get(os.getOsType());
-      ImmutableSet<String> repoNames = ImmutableSet.copyOf(Lists.transform(os.getRepositories(), REPO_ENTITY_TO_NAME));
+    for (RepoOsEntity os : operatingSystems) {
+      List<RepositoryInfo> serviceReposForOs = stackReposByOs.get(os.getFamily());
+      ImmutableSet<String> repoNames = ImmutableSet.copyOf(Lists.transform(os.getRepoDefinitionEntities(), REPO_ENTITY_TO_NAME));
       for (RepositoryInfo repoInfo : serviceReposForOs)
         if (!repoNames.contains(repoInfo.getRepoName())) {
-          os.getRepositories().add(toRepositoryEntity(repoInfo));
-          addedRepos.add(String.format("%s (%s)", repoInfo.getRepoId(), os.getOsType()));
+          os.addRepoDefinition(toRepositoryEntity(repoInfo));
+          addedRepos.add(String.format("%s (%s)", repoInfo.getRepoId(), os.getFamily()));
         }
     }
     LOG.info("Added {} service repos: {}", addedRepos.size(),Iterables.toString(addedRepos));
@@ -184,11 +187,11 @@ public class RepoUtil {
     return responses;
   }
 
-  private static RepositoryEntity toRepositoryEntity(RepositoryInfo repoInfo) {
-    RepositoryEntity re = new RepositoryEntity();
+  private static RepoDefinitionEntity toRepositoryEntity(RepositoryInfo repoInfo) {
+    RepoDefinitionEntity re = new RepoDefinitionEntity();
     re.setBaseUrl(repoInfo.getBaseUrl());
-    re.setName(repoInfo.getRepoName());
-    re.setRepositoryId(repoInfo.getRepoId());
+    re.setRepoName(repoInfo.getRepoName());
+    re.setRepoID(repoInfo.getRepoId());
     re.setDistribution(repoInfo.getDistribution());
     re.setComponents(repoInfo.getComponents());
     re.setTags(repoInfo.getTags());

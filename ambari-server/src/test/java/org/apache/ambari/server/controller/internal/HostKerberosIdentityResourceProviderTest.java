@@ -39,9 +39,10 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
@@ -189,8 +190,12 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
     expect(kerberosPrincipalDAO.exists("principal2/Host100@EXAMPLE.COM")).andReturn(true).times(1);
     expect(kerberosPrincipalDAO.exists("principal5@EXAMPLE.COM")).andReturn(false).times(1);
 
-    KerberosPrincipalHostDAO kerberosPrincipalHostDAO = createStrictMock(KerberosPrincipalHostDAO.class);
-    expect(kerberosPrincipalHostDAO.exists("principal1@EXAMPLE.COM", 100L, "/etc/security/keytabs/principal1.headless.keytab")).andReturn(true).times(1);
+    KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO = createStrictMock(KerberosKeytabPrincipalDAO.class);
+    KerberosKeytabPrincipalEntity distributedEntity = new KerberosKeytabPrincipalEntity();
+    distributedEntity.setDistributed(true);
+    expect(kerberosKeytabPrincipalDAO.findByNaturalKey(100L,"/etc/security/keytabs/principal1.headless.keytab", "principal1@EXAMPLE.COM"))
+      .andReturn(distributedEntity)
+      .times(1);
 
     HostEntity host100 = createStrictMock(HostEntity.class);
     expect(host100.getHostId()).andReturn(100L).times(1);
@@ -228,9 +233,9 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
     field.setAccessible(true);
     field.set(provider, kerberosPrincipalDAO);
 
-    field = HostKerberosIdentityResourceProvider.class.getDeclaredField("kerberosPrincipalHostDAO");
+    field = HostKerberosIdentityResourceProvider.class.getDeclaredField("kerberosKeytabPrincipalDAO");
     field.setAccessible(true);
-    field.set(provider, kerberosPrincipalHostDAO);
+    field.set(provider, kerberosKeytabPrincipalDAO);
 
     field = HostKerberosIdentityResourceProvider.class.getDeclaredField("hostDAO");
     field.setAccessible(true);
