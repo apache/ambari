@@ -367,7 +367,6 @@
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>conf/windows/ca.config</exclude>
             <exclude>conf/windows/krb5JAASLogin.conf</exclude>
-            <exclude>**/*.iml</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
             <exclude>**/repo_suse_rhel.j2</exclude>
