@@ -996,21 +996,32 @@ export class LogsContainerService {
     return request;
   }
 
-  loadComponents(): Observable<Response> {
-    const request = this.httpClient.get('components');
-    request.subscribe((response: Response): void => {
-      const jsonResponse = response.json(),
-        components = jsonResponse && jsonResponse.vNodeList.map((item): NodeItem => Object.assign(item, {
-            value: item.logLevelCount.reduce((currentValue: number, currentItem): number => {
-              return currentValue + Number(currentItem.value);
-            }, 0)
-          }));
+  loadComponents(): Observable<Response[]> {
+    const requestComponentsData:Observable<Response> = this.httpClient.get('components');
+    const requestComponentsName:Observable<Response> = this.httpClient.get('serviceComponentsName');
+    const requests = Observable.combineLatest(requestComponentsName, requestComponentsData);
+    requests.subscribe((responses:Response[]) => {
+      const componentsNames = responses[0].json();
+      const componentsData = responses[1].json();
+      const components = componentsData && componentsData.vNodeList.map((item): NodeItem => {
+        const component = componentsNames.metadata.find(component => component.name === item.name);
+        return Object.assign(item, {
+          label: component.label || item.name,
+          group: component && component.group && {
+            name: component.group,
+            label: componentsNames.groups[component.group]
+          },
+          value: item.logLevelCount.reduce((currentValue: number, currentItem): number => {
+            return currentValue + Number(currentItem.value);
+          }, 0)
+        });
+      });
       if (components) {
-        this.utils.pushUniqueValues(this.filters.components.options, components.map(this.utils.getListItemFromNode));
+        this.utils.pushUniqueValues(this.filters.components.options, components.map(node => this.utils.getListItemFromNode(node, true) ));
         this.componentsStorage.addInstances(components);
       }
     });
-    return request;
+    return requests;
   }
 
   loadHosts(): Observable<Response> {
