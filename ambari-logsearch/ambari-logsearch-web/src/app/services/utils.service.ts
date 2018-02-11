@@ -122,11 +122,13 @@ export class UtilsService {
   /**
    * Get instance for dropdown list from NodeItem object
    * @param node {NodeItem}
+   * @param addGroup {boolean}
    * @returns {ListItem}
    */
-  getListItemFromNode(node: NodeItem): ListItem {
+  getListItemFromNode(node: NodeItem, addGroup: boolean = false): ListItem {
+    const group: string = addGroup && node.group ? `${node.group.label || node.group.name}: ` : '';
     return {
-      label: `${node.name} (${node.value})`,
+      label: `${group}${node.label || node.name} (${node.value})`,
       value: node.name
     };
   }

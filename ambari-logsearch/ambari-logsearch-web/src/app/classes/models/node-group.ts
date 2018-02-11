@@ -16,18 +16,10 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/classes/models/common-entry';
-import {NodeGroup} from "@app/classes/models/node-group";
-
-export interface NodeItem {
+/**
+ * A simple interface for the component's groups (aka services)
+ */
+export interface NodeGroup {
   name: string;
-  type?: string;
-  value: string;
   label?: string;
-  group?: NodeGroup;
-  isParent: boolean;
-  isRoot: boolean;
-  childs?: NodeItem[];
-  logLevelCount?: CommonEntry[];
-  vNodeList?: CommonEntry[];
 }
