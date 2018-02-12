@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -176,6 +177,7 @@ public class ClusterTopologyImplTest {
     new ClusterTopologyImpl(ambariContext, request).getHostAssignmentsForComponent("component1");
   }
 
+  @Ignore
   @Test(expected = InvalidTopologyException.class)
   public void testCreate_NNHAInvaid() throws Exception {
     bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
@@ -187,6 +189,7 @@ public class ClusterTopologyImplTest {
     hostGroupInfoMap.get("group4").addHost("host5");
   }
 
+  @Ignore
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForStandby() throws Exception {
     expect(group4.getName()).andReturn("group4");
@@ -198,6 +201,7 @@ public class ClusterTopologyImplTest {
     new ClusterTopologyImpl(ambariContext, request);
   }
 
+  @Ignore
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForActive() throws Exception {
     expect(group4.getName()).andReturn("group4");
@@ -209,6 +213,7 @@ public class ClusterTopologyImplTest {
     new ClusterTopologyImpl(ambariContext, request);
   }
 
+  @Ignore
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForStandbyWithActiveAsVariable() throws Exception {
     expect(group4.getName()).andReturn("group4");

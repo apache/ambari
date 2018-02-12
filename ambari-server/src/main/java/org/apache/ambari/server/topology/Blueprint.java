@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.StackId;
 
@@ -93,6 +95,7 @@ public interface Blueprint {
    */
   Collection<HostGroup> getHostGroupsForComponent(String component);
 
+  @Nonnull
   SecurityConfiguration getSecurity();
 
   /**

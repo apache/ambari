@@ -275,6 +275,7 @@ public class TopologyManagerTest {
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
+    expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -337,7 +338,7 @@ public class TopologyManagerTest {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull(), anyLong());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE), isNull(), anyLong());
     expectLastCall().anyTimes();
     expect(ambariContext.getNextRequestId()).andReturn(1L).anyTimes();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();

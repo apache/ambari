@@ -453,6 +453,7 @@ public class AmbariContext {
 
     for (Component component : components) {
       String serviceName = component.getServiceInstance();
+      // FIXME handle null serviceName
       String componentName = component.getName();
       try {
         if (cluster.getService(serviceName) != null && !componentName.equals(RootComponent.AMBARI_SERVER.name())) {

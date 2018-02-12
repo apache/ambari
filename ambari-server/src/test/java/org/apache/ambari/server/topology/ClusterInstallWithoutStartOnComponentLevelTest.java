@@ -29,7 +29,6 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.newCapture;
 
 import java.lang.reflect.Field;
@@ -271,6 +270,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(topology.isValidConfigType(anyString())).andReturn(true).anyTimes();
     expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
+    expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -359,7 +359,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) eq("1"), anyLong());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE), eq("1"), anyLong());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();

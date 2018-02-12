@@ -75,7 +75,6 @@ public class BlueprintImpl implements Blueprint {
     // create config first because it is set as a parent on all host-group configs
     configuration = processConfiguration(entity.getConfigurations());
     hostGroups = parseBlueprintHostGroups(entity);
-    // configuration.setParentConfiguration(stack.getConfiguration(getServices())); // FIXME services not available at this time, need to set parent config somewhere else
     setting = new Setting(parseSetting(entity.getSettings()));
     repoSettings = processRepoSettings();
   }
@@ -93,23 +92,21 @@ public class BlueprintImpl implements Blueprint {
       hostGroups.put(hostGroup.getName(), hostGroup);
     }
     this.configuration = configuration;
-    // if the parent isn't set, the stack configuration is set as the parent
-    // parent is set to non-null, but empty config when exporting blueprint to prevent exporting stack default config
-//    if (configuration.getParentConfiguration() == null) {
-//      configuration.setParentConfiguration(stack.getConfiguration(getServices())); // FIXME services not available at this time
-//    }
     this.setting = setting != null ? setting : new Setting(ImmutableMap.of());
     repoSettings = processRepoSettings();
   }
 
+  @Override
   public String getName() {
     return name;
   }
 
+  @Override
   public Set<StackId> getStackIds() {
     return stackIds;
   }
 
+  @Override
   public SecurityConfiguration getSecurity() {
     return security;
   }
@@ -151,6 +148,7 @@ public class BlueprintImpl implements Blueprint {
     return resultGroups;
   }
 
+  @Override
   public BlueprintEntity toEntity() {
     BlueprintEntity entity = new BlueprintEntity();
     entity.setBlueprintName(name);
@@ -438,6 +436,7 @@ public class BlueprintImpl implements Blueprint {
     return setting != null ? setting.processRepoSettings() : Collections.emptyList();
   }
 
+  @Override
   public List<RepositorySetting> getRepositorySettings(){
     return repoSettings;
   }

@@ -51,7 +51,6 @@ import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
-import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -278,31 +277,19 @@ public class TopologyManager {
   public RequestStatusResponse provisionCluster(final ProvisionClusterRequest request) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
 
-    final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
+    final ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
-    final StackDefinition stack = topology.getStack();
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
 
-    SecurityType securityType = null;
-    Credential credential = null;
-
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
-
-    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
-      securityType = SecurityType.KERBEROS;
-      addKerberosClient(topology);
-
+    SecurityType securityType = securityConfiguration.getType();
+    if (securityType == SecurityType.KERBEROS && addKerberosClient(topology)) {
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getServices()));
-
-      credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
-      if (credential == null) {
-        throw new InvalidTopologyException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
-      }
+      topology.setBlueprintParentConfig();
     }
 
     topologyValidatorService.validateTopologyConfiguration(topology);
@@ -310,11 +297,12 @@ public class TopologyManager {
     // create resources
     ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);
 
-    if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
+    if (securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
     }
 
-    if (credential != null) {
+    if (securityType == SecurityType.KERBEROS) {
+      Credential credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       submitCredential(clusterName, credential);
     }
 
@@ -425,31 +413,28 @@ public class TopologyManager {
 
   /**
    * Retrieve security info from Blueprint if missing from Cluster Template request.
-   *
-   * @param request
-   * @return
    */
   private SecurityConfiguration processSecurityConfiguration(ProvisionClusterRequest request) {
-    LOG.debug("Getting security configuration from the request ...");
     SecurityConfiguration securityConfiguration = request.getSecurityConfiguration();
+    SecurityConfiguration blueprintSecurity = request.getBlueprint().getSecurity();
 
     if (securityConfiguration == null) {
-      // todo - perform this logic at request creation instead!
       LOG.debug("There's no security configuration in the request, retrieving it from the associated blueprint");
-      securityConfiguration = request.getBlueprint().getSecurity();
-      if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS &&
-          securityConfiguration.getDescriptorReference() != null) {
-        securityConfiguration = securityConfigurationFactory.loadSecurityConfigurationByReference
-          (securityConfiguration.getDescriptorReference());
+      securityConfiguration = blueprintSecurity;
+      if (securityConfiguration.getType() == SecurityType.KERBEROS && securityConfiguration.getDescriptorReference() != null) {
+        securityConfiguration = securityConfigurationFactory.loadSecurityConfigurationByReference(securityConfiguration.getDescriptorReference());
       }
+    } else if (securityConfiguration.getType() == SecurityType.NONE && blueprintSecurity.getType() == SecurityType.KERBEROS) {
+      throw new IllegalArgumentException("Setting security to NONE is not allowed as security type in blueprint is set to KERBEROS!");
     }
+
     return securityConfiguration;
   }
 
   private void submitKerberosDescriptorAsArtifact(String clusterName, String descriptor) {
 
     ResourceProvider artifactProvider =
-        ambariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);
+        AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);
 
     Map<String, Object> properties = new HashMap<>();
     properties.put(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY, "kerberos_descriptor");
@@ -1098,10 +1083,12 @@ public class TopologyManager {
    *
    * @param topology  cluster topology
    */
-  private void addKerberosClient(ClusterTopology topology) {
+  private boolean addKerberosClient(ClusterTopology topology) {
+    boolean changed = false;
     for (HostGroup group : topology.getBlueprint().getHostGroups().values()) {
-      group.addComponent(new Component("KERBEROS_CLIENT"));
+      changed |= group.addComponent(new Component("KERBEROS_CLIENT"));
     }
+    return changed;
   }
 
   /**

@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Represents a cluster topology.
@@ -75,17 +76,20 @@ public class ClusterTopologyImpl implements ClusterTopology {
     if (topologyRequest instanceof ProvisionClusterRequest) {
       ProvisionClusterRequest provisionRequest = (ProvisionClusterRequest) topologyRequest;
       defaultPassword = provisionRequest.getDefaultPassword();
-      stackIds = provisionRequest.getStackIds();
+      stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), provisionRequest.getStackIds()));
+      stack = ambariContext.composeStacks(stackIds);
+      setBlueprintParentConfig();
     } else {
       defaultPassword = null;
       stackIds = ImmutableSet.of();
+      stack = null;
     }
-    stack = ambariContext.composeStacks(stackIds);
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
+  }
 
-    // todo extract validation to specialized service
-    validateTopology();
+  void setBlueprintParentConfig() {
+    blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServices()));
   }
 
   @Override
@@ -280,6 +284,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
       && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
   }
 
+  // FIXME move out
   private void validateTopology()
       throws InvalidTopologyException {
 

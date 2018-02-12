@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.topology.TopologyManager.KDC_ADMIN_CREDENTIAL;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,6 +30,7 @@ import java.util.Set;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilder;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileEvaluationException;
@@ -197,15 +199,16 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     }
 
     this.securityConfiguration = securityConfiguration;
+    this.credentialsMap = parseCredentials(properties);
+    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS && getCredentialsMap().get(KDC_ADMIN_CREDENTIAL) == null) {
+      throw new InvalidTopologyTemplateException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
+    }
 
-    Configuration configuration = configurationFactory.getConfiguration(
-      (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
+    Configuration configuration = configurationFactory.getConfiguration((Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
     configuration.setParentConfiguration(blueprint.getConfiguration());
     setConfiguration(configuration);
 
     parseHostGroupInfo(properties);
-
-    this.credentialsMap = parseCredentials(properties);
 
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
 
