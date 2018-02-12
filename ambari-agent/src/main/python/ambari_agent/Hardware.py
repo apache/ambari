@@ -40,7 +40,7 @@ class Hardware:
   CHECK_REMOTE_MOUNTS_KEY = 'agent.check.remote.mounts'
   CHECK_REMOTE_MOUNTS_TIMEOUT_KEY = 'agent.check.mounts.timeout'
   CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT = '10'
-  IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys"]
+  IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys", "boot"]
   IGNORE_DEVICES = ["proc", "tmpfs", "cgroup", "mqueue", "shm"]
   LINUX_PATH_SEP = "/"
 
