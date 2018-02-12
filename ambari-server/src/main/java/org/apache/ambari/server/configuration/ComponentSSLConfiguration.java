@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.configuration;
 
+import org.apache.ambari.server.utils.PasswordUtils;
+
 /**
  * Configuration for SSL communication between Ambari and 3rd party services.
  * Currently, the following services are supported with SSL communication:
@@ -116,7 +118,7 @@ public class ComponentSSLConfiguration {
 
   private String getPassword(Configuration configuration) {
     String rawPassword = configuration.getProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey());
-    String password    = configuration.readPasswordFromStore(rawPassword);
+    String password    = PasswordUtils.getInstance().readPasswordFromStore(rawPassword, configuration.getMasterKeyLocation(), configuration.isMasterKeyPersisted(), configuration.getMasterKeyStoreLocation());
 
     return password == null ? rawPassword : password;
   }

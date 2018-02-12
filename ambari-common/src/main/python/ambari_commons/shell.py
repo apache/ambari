@@ -27,8 +27,7 @@ from contextlib import contextmanager
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
-from ambari_commons.process_utils import get_flat_process_tree, kill_pids, wait_for_entire_process_tree_death, \
-  get_processes_running, get_command_by_pid
+from resource_management.core import sudo
 
 logger = logging.getLogger()
 
@@ -231,35 +230,170 @@ class shellRunnerWindows(shellRunner):
     return _dict_to_object({'exitCode': code, 'output': out, 'error': err})
 
 
-#linux specific code
+def get_all_children(base_pid):
+  """
+  Return all child PIDs of base_pid process
+
+  :param base_pid starting PID to scan for children
+  :return tuple of the following: pid, binary name, command line incl. binary
+
+  :type base_pid int
+  :rtype list[(int, str, str)]
+  """
+  parent_pid_path_pattern = "/proc/{0}/task/{0}/children"
+  comm_path_pattern = "/proc/{0}/comm"
+  cmdline_path_pattern = "/proc/{0}/cmdline"
+
+  def read_children(pid):
+    try:
+      with open(parent_pid_path_pattern.format(pid), "r") as f:
+        return [int(item) for item in f.readline().strip().split(" ")]
+    except (IOError, ValueError):
+      return []
+
+  def read_command(pid):
+    try:
+      with open(comm_path_pattern.format(pid), "r") as f:
+        return f.readline().strip()
+    except IOError:
+      return ""
+
+  def read_cmdline(pid):
+    try:
+      with open(cmdline_path_pattern.format(pid), "r") as f:
+        return f.readline().strip()
+    except IOError:
+      return ""
+
+  pids = []
+  scan_pending = [int(base_pid)]
+
+  while scan_pending:
+    curr_pid = scan_pending.pop(0)
+    children = read_children(curr_pid)
+
+    pids.append((curr_pid, read_command(curr_pid), read_cmdline(curr_pid)))
+    scan_pending.extend(children)
+
+  return pids
+
+
+def is_pid_exists(pid):
+  """
+  Check if process with PID still exist (not counting it real state)
+
+  :type pid int
+  :rtype bool
+  """
+  pid_path = "/proc/{0}"
+  try:
+    return os.path.exists(pid_path.format(pid))
+  except (OSError, IOError):
+    logger.debug("Failed to check PID existence")
+    return False
+
+
+def get_existing_pids(pids):
+  """
+  Check if process with pid still exists (not counting it real state).
+
+  Optimized to check PID list at once.
+
+  :param pids list of PIDs to filter
+  :return list of still existing PID
+
+  :type pids list[int]
+  :rtype list[int]
+  """
+
+  existing_pid_list = []
+
+  try:
+    all_existing_pid_list = [int(item) for item in os.listdir("/proc") if item.isdigit()]
+  except (OSError, IOError):
+    logger.debug("Failed to check PIDs existence")
+    return existing_pid_list
+
+  for pid_item in pids:
+    if pid_item in all_existing_pid_list:
+      existing_pid_list.append(pid_item)
+
+  return existing_pid_list
+
+
+def wait_for_process_list_kill(pids, timeout=5, check_step_time=0.1):
+  """
+  Process tree waiter
+
+  :type pids list[int]
+  :type timeout int|float
+  :type check_step_time int|float
+
+  :param pids list of PIDs to watch
+  :param timeout how long wait till giving up, seconds. Set 0 for nowait or None for infinite time
+  :param check_step_time how often scan for existing PIDs, seconds
+  """
+  from threading import Thread, Event
+  import time
+
+  stop_waiting = Event()
+
+  def _wait_loop():
+    while not stop_waiting.is_set() and get_existing_pids(pids):
+      time.sleep(check_step_time)
+
+  if timeout == 0:  # no need for loop if no timeout is set
+    return
+
+  th = Thread(target=_wait_loop)
+  stop_waiting.clear()
+
+  th.start()
+  th.join(timeout=timeout)
+  stop_waiting.set()
+
+  th.join()
+
+
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def kill_process_with_children(parent_pid):
+def kill_process_with_children(base_pid):
   """
-  Kills process tree starting from a given pid.
-  :param parent_pid: head of tree
-  :param graceful_kill_delays: map <command name, custom delay between SIGTERM and SIGKILL>
-  :return:
+  Process tree killer
+
+  :type base_pid int
   """
+  exception_list = ["apt-get", "apt", "yum", "zypper", "zypp"]
+  signals_to_post = {
+    "SIGTERM": signal.SIGTERM,
+    "SIGKILL": signal.SIGKILL
+  }
+  full_child_pids = get_all_children(base_pid)
+  all_child_pids = [item[0] for item in full_child_pids if item[1].lower() not in exception_list and item[0] != os.getpid()]
+  error_log = []
 
-  pids = get_flat_process_tree(parent_pid)
-  try:
-    kill_pids(pids, signal.SIGTERM)
-  except Exception, e:
-    logger.warn("Failed to kill PID %d" % parent_pid)
-    logger.warn("Reported error: " + repr(e))
+  for sig_name, sig in signals_to_post.items():
+    # we need to kill processes from the bottom of the tree
+    pids_to_kill = sorted(get_existing_pids(all_child_pids), reverse=True)
+    for pid in pids_to_kill:
+      try:
+        sudo.kill(pid, sig)
+      except OSError as e:
+        error_log.append((sig_name, pid, repr(e)))
 
-  wait_for_entire_process_tree_death(pids)
+    if pids_to_kill:
+      wait_for_process_list_kill(pids_to_kill)
+      still_existing_pids = get_existing_pids(pids_to_kill)
+      if still_existing_pids:
+        logger.warn("These PIDs {0} did not respond to {1} signal. Detailed commands list:\n {2}".format(
+          ", ".join([str(i) for i in still_existing_pids]),
+          sig_name,
+          "\n".join([i[2] for i in full_child_pids if i[0] in still_existing_pids])
+        ))
 
-  try:
-    running_processes = get_processes_running(pids)
-    if running_processes:
-      process_names = map(lambda x: get_command_by_pid(x),  running_processes)
-      logger.warn("These PIDs %s did not die after SIGTERM, sending SIGKILL. Exact commands to be killed:\n %s" %
-                  (", ".join(running_processes), "\n".join(process_names)))
-      kill_pids(running_processes, signal.SIGKILL)
-  except Exception, e:
-    logger.error("Failed to send SIGKILL to PID %d. Process exited?" % parent_pid)
-    logger.error("Reported error: " + repr(e))
+  if get_existing_pids(all_child_pids) and error_log:  # we're unable to kill all requested PIDs
+    logger.warn("Process termination error log:\n")
+    for error_item in error_log:
+      logger.warn("PID: {0}, Process: {1}, Exception message: {2}".format(*error_item))
 
 
 def _changeUid():

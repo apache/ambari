@@ -35,6 +35,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
+import org.apache.ambari.server.state.ServiceCategory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
 import org.apache.ambari.server.state.ThemeInfo;
@@ -208,6 +209,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getServiceAdvisorType() == null) {
       ServiceInfo.ServiceAdvisorType serviceAdvisorType = parent.getServiceAdvisorType();
       serviceInfo.setServiceAdvisorType(serviceAdvisorType == null ? ServiceInfo.ServiceAdvisorType.PYTHON : serviceAdvisorType);
+    }
+    if (serviceInfo.getCategory() == null) {
+      ServiceCategory category = parent.getCategory();
+      serviceInfo.setCategory(category == null ? ServiceCategory.LEGACY : category);
     }
     if (serviceInfo.getVersion() == null) {
       serviceInfo.setVersion(parent.getVersion());
@@ -602,11 +607,26 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       ServiceModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     serviceInfo.getComponents().clear();
+
+    //component version should not inherit from parent service
+    //make deep copy of all the parent components and set component versions to null
+    //TODO get rid of this when we move to only standalone stack definitions
+    Map<String, ComponentModule> parentComponentsCopy = new HashMap<>();
+    parent.componentModules.values().forEach(componentModule -> parentComponentsCopy.put(componentModule.getId(),
+        new ComponentModule(new ComponentInfo(componentModule.getModuleInfo()))));
+    //set nulls to component versions
+    parentComponentsCopy.values().forEach(componentModule -> componentModule.getModuleInfo().setVersion(null));
+
     Collection<ComponentModule> mergedModules = mergeChildModules(
-        allStacks, commonServices, extensions, componentModules, parent.componentModules);
+        allStacks, commonServices, extensions, componentModules, parentComponentsCopy);
     componentModules.clear();
     for (ComponentModule module : mergedModules) {
       if (!module.isDeleted()){
+        //if the version is not defined for component, set the service version
+        if (module.getModuleInfo().getVersion() == null) {
+          module.getModuleInfo().setVersion(serviceInfo.getVersion());
+        }
+
         componentModules.put(module.getId(), module);
         serviceInfo.getComponents().add(module.getModuleInfo());
       }

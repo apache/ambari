@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-
-import org.apache.ambari.server.security.authorization.UserType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -58,17 +53,6 @@ public class AmbariKerberosAuthenticationPropertiesTest {
 
     properties.setSpnegoKeytabFilePath("something else");
     Assert.assertEquals("something else", properties.getSpnegoKeytabFilePath());
-  }
-
-  @Test
-  public void testOrderedUserTypes() throws Exception {
-    AmbariKerberosAuthenticationProperties properties = new AmbariKerberosAuthenticationProperties();
-
-    properties.setOrderedUserTypes(new ArrayList<>(Arrays.asList(UserType.LDAP, UserType.LOCAL)));
-    Assert.assertEquals(new ArrayList<>(Arrays.asList(UserType.LDAP, UserType.LOCAL)), properties.getOrderedUserTypes());
-
-    properties.setOrderedUserTypes(Collections.singletonList(UserType.JWT));
-    Assert.assertEquals(new ArrayList<>(Collections.singletonList(UserType.JWT)), properties.getOrderedUserTypes());
   }
 
   @Test

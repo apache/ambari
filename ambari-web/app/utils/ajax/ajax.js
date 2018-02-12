@@ -303,8 +303,7 @@ var urls = {
       return {
         data: JSON.stringify({
           RequestInfo: {
-            query: data.query,
-            force_delete_components: true
+            query: data.query
           }
         })
       }
@@ -1847,7 +1846,8 @@ var urls = {
       return {
         data: JSON.stringify({
           "Repositories": {
-            "base_url": data.baseUrl
+            "base_url": data.baseUrl,
+            "repo_name": data.repoName
           }
         })
       }
@@ -1902,6 +1902,36 @@ var urls = {
 
   'admin.kerberos_security.regenerate_keytabs': {
     'real': '/clusters/{clusterName}?regenerate_keytabs={type}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Clusters" : {
+            "security_type" : "KERBEROS"
+          }
+        })
+      }
+    }
+  },
+
+  'admin.kerberos_security.regenerate_keytabs.service' : {
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_components={serviceName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Clusters" : {
+            "security_type" : "KERBEROS"
+          }
+        })
+      }
+    }
+  },
+
+  'admin.kerberos_security.regenerate_keytabs.host' : {
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_hosts={hostName}',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {

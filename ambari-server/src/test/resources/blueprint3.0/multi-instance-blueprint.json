@@ -1,0 +1,104 @@
+{
+  "host_groups" : [
+    {
+      "name" : "master",
+      "components" : [
+        {
+          "name" : "NAMENODE"
+        },
+        {
+          "name" : "ZOOKEEPER_SERVER",
+          "mpack-instance": "HDPCORE-3.0",
+          "service-instance": "ZK1"
+        },
+        {
+          "name" : "SECONDARY_NAMENODE"
+        }
+      ],
+      "cardinality" : "1"
+    }
+  ],
+  "Blueprints" : {
+    "blueprint_name" : "test-blueprint",
+    "stack_name" : "HDP",
+    "stack_version" : "2.6"
+  },
+  "settings" : {
+    "deployment_settings": [
+      { "skip_failure":"true" }
+    ],
+    "repository_settings":[
+      {
+        "override_strategy":"ALWAYS_APPLY",
+        "operating_system":"redhat7",
+        "repo_id":"HDP",
+        "base_url":"http://myserver/hdp"
+      },
+      {
+        "override_strategy":"APPLY_WHEN_MISSING",
+        "operating_system":"redhat7",
+        "repo_id":"HDP-UTIL-1.1",
+        "base_url":"http://myserver/hdp-util"
+      }
+    ],
+    "recovery_settings":[
+      { "recovery_enabled":"true" }
+    ],
+    "service_settings":[
+      {
+        "name":"HDFS",
+        "recovery_enabled":"false"
+      }
+    ],
+    "component_settings":[
+      {
+        "name":"SECONDARY_NAMENODE",
+        "recovery_enabled" : "true"
+      }
+    ]
+  },
+  "configurations": [],
+
+  "mpack_instances" : [
+    {
+      "name" : "HDPCORE-3.0",
+      "version" : "3.0.0.0",
+      "url" : "http://www.hortonworks.com/path/to/hdpcore.tar.gz",
+      "configurations" : [],
+      "service_instances" : [
+        {
+          "name" : "ZK1",
+          "type" : "ZOOKEEPER",
+          "configurations" : [
+            {
+              "zoo.cfg" : {
+                "properties" : {
+                  "dataDir" : "/zookeeper1"
+                }
+              }
+            }
+          ],
+          "settings" : []
+        },
+        {
+          "name" : "ZK2",
+          "type" : "ZOOKEEPER",
+          "configurations" : [
+            {
+              "zoo.cfg" : {
+                "properties" : {
+                  "dataDir" : "/zookeeper2"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "EDW-3.1",
+      "version" : "3.1.0.0",
+      "url" : "http://www.hortonworks.com/path/to/edw.tar.gz"
+    }
+  ]
+}

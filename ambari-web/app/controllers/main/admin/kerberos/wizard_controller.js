@@ -23,6 +23,15 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
 
   exceptionsOnSkipClient: [{'KDC': 'realm'}, {'KDC': 'kdc_type'}, {'Advanced kerberos-env': 'executable_search_paths'}],
 
+  exceptionsForNonAdOption: [
+    {"Advanced kerberos-env": "password_length"},
+    {"Advanced kerberos-env": "password_min_digits"},
+    {"Advanced kerberos-env": "password_min_lowercase_letters"},
+    {"Advanced kerberos-env": "password_min_punctuation"},
+    {"Advanced kerberos-env": "password_min_uppercase_letters"},
+    {"Advanced kerberos-env": "password_min_whitespace"}
+  ],
+
   name: 'kerberosWizardController',
 
   totalSteps: 8,
@@ -161,14 +170,17 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
    * @param {boolean} newValue
    * @param {Array} exceptions
    */
-  overrideVisibility: function (itemsArray, newValue, exceptions) {
+  overrideVisibility: function (itemsArray, newValue, exceptions, inverse) {
     newValue = newValue || false;
 
     for (var i = 0, len = itemsArray.length; i < len; i += 1) {
       if (!App.isEmptyObject(itemsArray[i])) {
         var isException = exceptions.filterProperty(itemsArray[i].category, itemsArray[i].name);
-        if (!isException.length) {
+        if (!isException.length && !inverse) {
           itemsArray[i].isVisible = newValue;
+        }
+        if (isException.length && inverse) {
+            itemsArray[i].isVisible = newValue;
         }
       }
     }
@@ -345,7 +357,7 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     var primaryText = Em.I18n.t('common.exitAnyway');
     var msg = isCritical ? Em.I18n.t('admin.kerberos.wizard.exit.critical.msg')
       : Em.I18n.t('admin.kerberos.wizard.exit.warning.msg');
-    return App.showConfirmationPopup(primary, msg, null, null, primaryText, isCritical);
+    return App.showConfirmationPopup(primary, msg, null, null, primaryText, isCritical ? 'danger' : 'success');
   },
 
   /**

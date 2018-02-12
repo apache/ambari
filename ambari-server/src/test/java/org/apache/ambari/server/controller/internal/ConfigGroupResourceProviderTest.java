@@ -102,8 +102,6 @@ public class ConfigGroupResourceProviderTest {
 
     return (ConfigGroupResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
   }
 

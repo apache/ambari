@@ -47,7 +47,7 @@ responces = [
   """
   {
     "responseId":"n",
-    "restartAgent": "False",
+    "restartAgent": false,
     "executionCommands":
       [{
         "commandId": "31-1",
@@ -89,7 +89,7 @@ responces = [
   """
   {
     "responseId":"n",
-    "restartAgent": "False",
+    "restartAgent": false,
     "executionCommands": [],
     "statusCommands":[]
   }
@@ -183,7 +183,7 @@ if __name__ == '__main__':
 #  s =   """
 #  {
 #    "responseId":"n",
-#    "restartAgent": "False",
+#    "restartAgent": false,
 #    "executionCommands":
 #      [{
 #        "commandId": "31-1",

@@ -362,6 +362,8 @@
       "zeppelin.notebook.s3.bucket": "zeppelin",
       "zeppelin.notebook.homescreen.hide": "false",
       "zeppelin.server.allowed.origins": "*",
+      "zeppelin.server.kerberos.keytab": "",
+      "zeppelin.server.kerberos.principal": "",
       "zeppelin.interpreter.config.upgrade": "true"
     },
     "zoo.cfg": {

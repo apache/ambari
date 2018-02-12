@@ -27,6 +27,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_stack_version, get_major_version
+from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 from string import lower
 
 config = Script.get_config()
@@ -47,7 +48,7 @@ major_stack_version = get_major_version(stack_version_formatted)
 service_name = config['serviceName']
 
 # logsearch configuration
-logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
 
 agent_cache_dir = config['hostLevelParams']['agentCacheDir']
 service_package_folder = config['commandParams']['service_package_folder']
@@ -64,7 +65,7 @@ mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 versioned_stack_root = '/usr/hdp/current'
 
 #security params
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+security_enabled = get_cluster_setting_value('security_enabled')
 
 #java params
 java_home = config['hostLevelParams']['java_home']
@@ -94,7 +95,7 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 
 #users and groups
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-user_group = config['configurations']['cluster-env']['user_group']
+user_group = get_cluster_setting_value('user_group')
 
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_host) == 0

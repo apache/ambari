@@ -18,11 +18,11 @@
 @import 'mixins';
 
 :host {
-  .full-size;
+  background-color: @main-background-color; // TODO implement actual color
   display: flex;
   flex-direction: column;
-  background-color: @main-background-color; // TODO implement actual color
   line-height: @default-line-height;
+  min-height: 100vh;
 
   .navbar {
     margin-bottom: 0;

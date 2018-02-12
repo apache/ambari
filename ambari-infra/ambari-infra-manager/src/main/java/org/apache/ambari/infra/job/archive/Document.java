@@ -26,7 +26,6 @@ import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
 
-// TODO: create entities for each solr collections
 public class Document {
   private final Map<String, String> fieldMap;
 
@@ -43,7 +42,7 @@ public class Document {
   }
 
   @JsonAnyGetter
-  private Map<String, String> getFieldMap() {
+  public Map<String, String> getFieldMap() {
     return fieldMap;
   }
 

@@ -27,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.controller.GroupPrivilegeResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -34,6 +36,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
@@ -52,16 +57,23 @@ import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.EasyMockSupport;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import junit.framework.Assert;
 
 /**
  * GroupPrivilegeResourceProvider tests.
  */
-public class GroupPrivilegeResourceProviderTest extends AbstractPrivilegeResourceProviderTest {
+public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
 
   @Test(expected = SystemException.class)
   public void testCreateResources() throws Exception {
@@ -79,7 +91,7 @@ public class GroupPrivilegeResourceProviderTest extends AbstractPrivilegeResourc
   public void testGetResources_NonAdministrator() throws Exception {
     getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("user1", 2L), "Group1");
   }
-  
+
   @Test(expected = SystemException.class)
   public void testUpdateResources() throws Exception {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
@@ -230,7 +242,7 @@ public class GroupPrivilegeResourceProviderTest extends AbstractPrivilegeResourc
     expect(groupEntity.getGroupName()).andReturn("group1").atLeastOnce();
 
     ClusterDAO clusterDAO = createMock(ClusterDAO.class);
-    
+
     ViewInstanceDAO viewInstanceDAO = createMock(ViewInstanceDAO.class);
     expect(viewInstanceDAO.findByResourceId(1L)).andReturn(viewInstanceEntity).atLeastOnce();
 
@@ -328,8 +340,32 @@ public class GroupPrivilegeResourceProviderTest extends AbstractPrivilegeResourc
     final ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);
     final PrivilegeDAO privilegeDAO = createMock(PrivilegeDAO.class);
 
-    final TestUsers users = new TestUsers();
-    users.setPrivilegeDAO(privilegeDAO);
+    final Injector injector = Guice.createInjector(new AbstractModule() {
+                                                     @Override
+                                                     protected void configure() {
+                                                       bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+                                                       bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+                                                       bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+                                                       bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+                                                       bind(HookService.class).toInstance(createMock(HookService.class));
+                                                       bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+
+                                                       bind(GroupDAO.class).toInstance(groupDAO);
+                                                       bind(ClusterDAO.class).toInstance(clusterDAO);
+                                                       bind(ViewInstanceDAO.class).toInstance(viewInstanceDAO);
+                                                       bind(GroupEntity.class).toInstance(groupEntity);
+                                                       bind(PrincipalEntity.class).toInstance(principalEntity);
+                                                       bind(PrivilegeEntity.class).toInstance(privilegeEntity);
+                                                       bind(PermissionEntity.class).toInstance(permissionEntity);
+                                                       bind(PrincipalTypeEntity.class).toInstance(principalTypeEntity);
+                                                       bind(ResourceEntity.class).toInstance(resourceEntity);
+                                                       bind(ResourceTypeEntity.class).toInstance(resourceTypeEntity);
+                                                       bind(PrivilegeDAO.class).toInstance(privilegeDAO);
+                                                     }
+                                                   }
+    );
+
+    final Users users = injector.getInstance(Users.class);
 
     List<PrincipalEntity> groupPrincipals = new LinkedList<>();
     groupPrincipals.add(principalEntity);

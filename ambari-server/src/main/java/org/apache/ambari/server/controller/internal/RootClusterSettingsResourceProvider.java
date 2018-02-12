@@ -87,7 +87,7 @@ public class RootClusterSettingsResourceProvider extends ReadOnlyResourceProvide
   }
 
   protected RootClusterSettingsResourceProvider(@Assisted AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Type.RootClusterSetting, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
 

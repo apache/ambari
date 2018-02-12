@@ -47,6 +47,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Provider;
 //
 /**
@@ -72,10 +73,11 @@ public class ConfigurationMergeCheckTest {
     expect(cluster.getCurrentStackVersion()).andReturn(stackId_1_0).anyTimes();
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(new HashMap<String, Service>() {{
-      put("HDFS", EasyMock.createMock(Service.class));
-    }}).anyTimes();
-
+    Service hdfs = EasyMock.createMock(Service.class);
+    expect(cluster.getServices()).andReturn(ImmutableMap.of("HDFS", hdfs)).anyTimes();
+    expect(cluster.getService("HDFS")).andReturn(hdfs).anyTimes();
+    expect(hdfs.getServiceType()).andReturn("HDFS").anyTimes();
+    expect(hdfs.getDesiredStackId()).andReturn(stackId_1_0).anyTimes();
 
     m_configMap.put(CONFIG_PROPERTY, "1024m");
     Config config = EasyMock.createMock(Config.class);
@@ -87,7 +89,7 @@ public class ConfigurationMergeCheckTest {
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn("1.1.0.0-1234");
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.1"));
 
-    replay(clusters, cluster, config);
+    replay(clusters, cluster, config, hdfs);
   }
 
   @Test

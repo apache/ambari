@@ -20,8 +20,8 @@ package org.apache.ambari.server.controller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
-import org.apache.ambari.server.state.Packlet;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class MpackResponseTest {
   public Mpack setupMpack() {
     Mpack mpack = new Mpack();
     mpack.setMpackId(100L);
-    mpack.setPacklets(new ArrayList<Packlet>());
+    mpack.setModules(new ArrayList<Module>());
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(100L);
     mpack.setVersion("3.0");

@@ -85,36 +85,6 @@ CREATE TABLE clusters (
   CONSTRAINT FK_clusters_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id));
 
-CREATE TABLE configuration_base (
-  id BIGINT NOT NULL,
-  version_tag VARCHAR(255) NOT NULL,
-  version BIGINT NOT NULL,
-  type VARCHAR(255) NOT NULL,
-  data VARCHAR(3000) NOT NULL,
-  attributes VARCHAR(3000),
-  create_timestamp BIGINT NOT NULL,
-  CONSTRAINT PK_configuration_base PRIMARY KEY (id)
-);
-
-CREATE TABLE clusterconfig (
-  config_id BIGINT NOT NULL,
-  version_tag VARCHAR(255) NOT NULL,
-  version BIGINT NOT NULL,
-  type_name VARCHAR(255) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  stack_id BIGINT NOT NULL,
-  selected SMALLINT NOT NULL DEFAULT 0,
-  config_data VARCHAR(3000) NOT NULL,
-  config_attributes VARCHAR(3000),
-  create_timestamp BIGINT NOT NULL,
-  unmapped SMALLINT NOT NULL DEFAULT 0,
-  selected_timestamp BIGINT NOT NULL DEFAULT 0,
-  CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
-  CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT UQ_config_type_tag UNIQUE (version_tag, type_name, cluster_id),
-  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
-
 CREATE TABLE ambari_configuration (
   category_name VARCHAR(100) NOT NULL,
   property_name VARCHAR(100) NOT NULL,
@@ -164,8 +134,8 @@ CREATE TABLE servicegroupdependencies (
   dependent_service_group_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
   CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
-  CONSTRAINT FK_servicegroupdependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
@@ -210,8 +180,8 @@ CREATE TABLE servicedependencies (
   dependent_service_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicedependencies PRIMARY KEY (id),
   CONSTRAINT UQ_servicedependencies UNIQUE (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
-  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
-  CONSTRAINT FK_servicedependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+  CONSTRAINT FK_svcdep_svc_grp_clstr_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
+  CONSTRAINT FK_svcdep_dep_scv_grp_clstr_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
@@ -226,7 +196,7 @@ CREATE TABLE serviceconfig (
   note VARCHAR(3000),
   CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
   CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT FK_serviceconfig_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT FK_serviceconfig_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version));
 
 CREATE TABLE serviceconfighosts (
@@ -256,7 +226,6 @@ CREATE TABLE repo_version (
   stack_id BIGINT NOT NULL,
   version VARCHAR(255) NOT NULL,
   display_name VARCHAR(128) NOT NULL,
-  repositories VARCHAR(3000) NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved SMALLINT NOT NULL DEFAULT 0,
@@ -270,6 +239,31 @@ CREATE TABLE repo_version (
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
   CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
 
+CREATE TABLE repo_os (
+  id BIGINT NOT NULL,
+  repo_version_id BIGINT NOT NULL,
+  family VARCHAR(255) NOT NULL DEFAULT '',
+  ambari_managed SMALLINT DEFAULT 1,
+  CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
+
+CREATE TABLE repo_definition (
+  id BIGINT NOT NULL,
+  repo_os_id BIGINT,
+  repo_name VARCHAR(255) NOT NULL,
+  repo_id VARCHAR(255) NOT NULL,
+  base_url VARCHAR(2048) NOT NULL,
+  distribution VARCHAR(2048),
+  components VARCHAR(2048),
+  unique_repo SMALLINT DEFAULT 1,
+  mirrors VARCHAR(2048),
+  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
+
+CREATE TABLE repo_tags (
+  repo_definition_id BIGINT NOT NULL,
+  tag VARCHAR(255) NOT NULL,
+  CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
@@ -367,16 +361,27 @@ CREATE TABLE adminprincipal (
 CREATE TABLE users (
   user_id INTEGER,
   principal_id BIGINT NOT NULL,
-  ldap_user INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL,
-  user_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
-  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
+  consecutive_failures INTEGER NOT NULL DEFAULT 0,
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
+  display_name VARCHAR(255) NOT NULL,
+  local_username VARCHAR(255) NOT NULL,
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  version BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
-  CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type));
+  CONSTRAINT UNQ_users_0 UNIQUE (user_name));
+
+CREATE TABLE user_authentication (
+  user_authentication_id INTEGER,
+  user_id INTEGER NOT NULL,
+  authentication_type VARCHAR(50) NOT NULL,
+  authentication_key CLOB,
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id));
 
 CREATE TABLE groups (
   group_id INTEGER,
@@ -543,8 +548,8 @@ CREATE TABLE hostconfigmapping (
   selected INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
   CONSTRAINT PK_hostconfigmapping PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp),
-  CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_hostconfmapping_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT FK_hostconfmapping_clstr_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
+  CONSTRAINT FK_hostconfmapping_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
 CREATE TABLE metainfo (
@@ -606,9 +611,42 @@ CREATE TABLE blueprint (
   blueprint_name VARCHAR(255) NOT NULL,
   security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_descriptor_reference VARCHAR(255),
-  stack_id BIGINT NOT NULL,
-  CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name),
-  CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
+
+CREATE TABLE blueprint_mpack_instance(
+  id BIGINT NOT NULL,
+  blueprint_name VARCHAR(255) NOT NULL,
+  mpack_name VARCHAR(255) NOT NULL,
+  mpack_version VARCHAR(255) NOT NULL,
+  mpack_uri VARCHAR(255),
+  mpack_id BIGINT,
+  CONSTRAINT PK_blueprint_mpack_inst PRIMARY KEY (id),
+  CONSTRAINT FK_mpi_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name),
+  CONSTRAINT FK_mpi_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks(id));
+
+CREATE TABLE blueprint_service (
+  id BIGINT NOT NULL,
+  mpack_instance_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_blueprint_service PRIMARY KEY (id),
+  CONSTRAINT FK_blueprint_svc_mpack_inst FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
+
+CREATE TABLE blueprint_service_config (
+  service_id BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  config_data VARCHAR(3000) NOT NULL,
+  config_attributes VARCHAR(3000),
+  CONSTRAINT PK_bp_svc_conf PRIMARY KEY (service_id, type_name),
+  CONSTRAINT FK_bp_svc_config_to_service FOREIGN KEY (service_id) REFERENCES blueprint_service (id));
+
+CREATE TABLE blueprint_mpack_configuration (
+  mpack_instance_id BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  config_data VARCHAR(3000) NOT NULL,
+  config_attributes VARCHAR(3000),
+  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_instance_id, type_name),
+  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -618,11 +656,15 @@ CREATE TABLE hostgroup (
   CONSTRAINT FK_hg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
 
 CREATE TABLE hostgroup_component (
+  id BIGINT NOT NULL,
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
+  mpack_name VARCHAR(255),
+  mpack_version VARCHAR(100),
+  service_name VARCHAR(255),
   provision_action VARCHAR(255),
-  CONSTRAINT PK_hostgroup_component PRIMARY KEY (blueprint_name, hostgroup_name, name),
+  CONSTRAINT PK_hostgroup_component PRIMARY KEY (id),
   CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup (blueprint_name, name));
 
 CREATE TABLE blueprint_configuration (
@@ -871,6 +913,8 @@ CREATE TABLE topology_host_request (
   group_id BIGINT NOT NULL,
   stage_id BIGINT NOT NULL,
   host_name VARCHAR(255),
+  status VARCHAR(255),
+  status_message VARCHAR(1024),
   CONSTRAINT PK_topology_host_request PRIMARY KEY (id),
   CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id),
   CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id));
@@ -1021,21 +1065,35 @@ CREATE TABLE kerberos_principal (
 
 CREATE TABLE kerberos_keytab (
   keytab_path VARCHAR(255) NOT NULL,
-  CONSTRAINT PK_krb_keytab_path_host_id PRIMARY KEY (keytab_path)
+  owner_name VARCHAR(255),
+  owner_access VARCHAR(255),
+  group_name VARCHAR(255),
+  group_access VARCHAR(255),
+  is_ambari_keytab SMALLINT NOT NULL DEFAULT 0,
+  write_ambari_jaas SMALLINT NOT NULL DEFAULT 0,
+  CONSTRAINT PK_kerberos_keytab PRIMARY KEY (keytab_path)
 );
 
-
-CREATE TABLE kerberos_principal_host (
-  principal_name VARCHAR(255) NOT NULL,
+CREATE TABLE kerberos_keytab_principal (
+  kkp_id BIGINT NOT NULL DEFAULT 0,
   keytab_path VARCHAR(255) NOT NULL,
+  principal_name VARCHAR(255) NOT NULL,
+  host_id BIGINT,
   is_distributed SMALLINT NOT NULL DEFAULT 0,
-  host_id BIGINT NOT NULL,
-  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY (principal_name, keytab_path, host_id),
-  CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
-  CONSTRAINT FK_krb_pr_host_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path)
+  CONSTRAINT PK_kkp PRIMARY KEY (kkp_id),
+  CONSTRAINT FK_kkp_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path),
+  CONSTRAINT FK_kkp_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT FK_kkp_principal_name FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
+  CONSTRAINT UNI_kkp UNIQUE(keytab_path, principal_name, host_id)
 );
 
+CREATE TABLE kkp_mapping_service (
+  kkp_id BIGINT NOT NULL DEFAULT 0,
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_kkp_mapping_service PRIMARY KEY (kkp_id, service_name, component_name),
+  CONSTRAINT FK_kkp_service_principal FOREIGN KEY (kkp_id) REFERENCES kerberos_keytab_principal (kkp_id)
+);
 
 CREATE TABLE kerberos_descriptor
 (
@@ -1168,6 +1226,8 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 -- BEGIN;
 INSERT INTO ambari_sequences (sequence_name, sequence_value)
+  SELECT 'kkp_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
   SELECT 'cluster_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'cluster_setting_id_seq', 1 FROM SYSIBM.SYSDUMMY1
@@ -1183,6 +1243,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   SELECT 'host_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'user_id_seq', 2 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 'user_authentication_id_seq', 2 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'group_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
@@ -1229,6 +1291,10 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'config_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   union all
   select 'repo_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'repo_os_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'repo_definition_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'host_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
@@ -1286,7 +1352,13 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'servicecomponent_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'hostcomponentdesiredstate_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
+  select 'hostcomponentdesiredstate_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'blueprint_service_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'blueprint_mpack_instance_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'hostgroup_component_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
 
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
@@ -1323,8 +1395,14 @@ INSERT INTO adminprincipal (principal_id, principal_type_id)
   UNION ALL
   SELECT 13, 8 FROM SYSIBM.SYSDUMMY1;
 
-INSERT INTO Users (user_id, principal_id, user_name, user_password)
-  SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' FROM SYSIBM.SYSDUMMY1;
+-- Insert the default administrator user.
+insert into users(user_id, principal_id, user_name, display_name, local_username, create_time)
+  SELECT 1, 1, 'admin', 'Administrator', 'admin', CURRENT_TIMESTAMP FROM SYSIBM.SYSDUMMY1;
+
+-- Insert the LOCAL authentication data for the default administrator user.
+-- The authentication_key value is the salted digest of the password: admin
+insert into user_authentication(user_authentication_id, user_id, authentication_type, authentication_key, create_time, update_time)
+  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP FROM SYSIBM.SYSDUMMY1;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 FROM SYSIBM.SYSDUMMY1

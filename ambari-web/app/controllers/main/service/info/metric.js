@@ -374,6 +374,19 @@ App.MainServiceInfoMetricsController = Em.Controller.extend(App.WidgetSectionMix
         }
       }),
       isShowMineOnly: false,
+      showTopShadow: false,
+
+      didInsertElement: function() {
+        this._super();
+        this.$().find('.modal-body').on('scroll', (event) => {
+          const modalBody = $(event.currentTarget);
+          if (modalBody.scrollTop() > 0) {
+            modalBody.addClass('top-shadow');
+          } else {
+            modalBody.removeClass('top-shadow');
+          }
+        });
+      },
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/modal_popups/widget_browser_popup'),
         controller: self,

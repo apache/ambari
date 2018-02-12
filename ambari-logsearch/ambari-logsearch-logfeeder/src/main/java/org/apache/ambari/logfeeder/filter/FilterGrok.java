@@ -19,6 +19,20 @@
 
 package org.apache.ambari.logfeeder.filter;
 
+import com.google.gson.reflect.TypeToken;
+import oi.thekraken.grok.api.Grok;
+import oi.thekraken.grok.api.exception.GrokException;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
+import org.apache.ambari.logfeeder.plugin.filter.Filter;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
@@ -31,22 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.exception.GrokException;
-
-import org.apache.ambari.logfeeder.common.LogFeederException;
-import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.metrics.MetricData;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
-import com.google.gson.reflect.TypeToken;
-
-public class FilterGrok extends Filter {
+public class FilterGrok extends Filter<LogFeederProps> {
   private static final Logger LOG = Logger.getLogger(FilterGrok.class);
 
   private static final String GROK_PATTERN_FILE = "grok-patterns";
@@ -73,14 +72,14 @@ public class FilterGrok extends Filter {
   private MetricData grokErrorMetric = new MetricData("filter.error.grok", false);
 
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
 
     try {
-      messagePattern = escapePattern(((FilterGrokDescriptor)filterDescriptor).getMessagePattern());
-      multilinePattern = escapePattern(((FilterGrokDescriptor)filterDescriptor).getMultilinePattern());
-      sourceField = ((FilterGrokDescriptor)filterDescriptor).getSourceField();
-      removeSourceField = BooleanUtils.toBooleanDefaultIfNull(filterDescriptor.isRemoveSourceField(), removeSourceField);
+      messagePattern = escapePattern(((FilterGrokDescriptor)getFilterDescriptor()).getMessagePattern());
+      multilinePattern = escapePattern(((FilterGrokDescriptor)getFilterDescriptor()).getMultilinePattern());
+      sourceField = getFilterDescriptor().getSourceField();
+      removeSourceField = BooleanUtils.toBooleanDefaultIfNull(getFilterDescriptor().isRemoveSourceField(), removeSourceField);
 
       LOG.info("init() done. grokPattern=" + messagePattern + ", multilinePattern=" + multilinePattern + ", " +
       getShortDescription());
@@ -160,7 +159,7 @@ public class FilterGrok extends Filter {
   }
 
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException {
+  public void apply(String inputStr, InputMarker inputMarker) throws Exception {
     if (grokMessage == null) {
       return;
     }
@@ -195,7 +194,7 @@ public class FilterGrok extends Filter {
   }
 
   @Override
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogFeederException {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
     if (sourceField != null) {
       savedInputMarker = inputMarker;
       applyMessage((String) jsonObj.get(sourceField), jsonObj, null);
@@ -205,7 +204,7 @@ public class FilterGrok extends Filter {
     }
   }
 
-  private void applyMessage(String inputStr, Map<String, Object> jsonObj, String multilineJsonStr) throws LogFeederException {
+  private void applyMessage(String inputStr, Map<String, Object> jsonObj, String multilineJsonStr) throws Exception {
     String jsonStr = grokMessage.capture(inputStr);
 
     boolean parseError = false;
@@ -250,7 +249,7 @@ public class FilterGrok extends Filter {
     String logMessageKey = this.getClass().getSimpleName() + "_PARSEERROR";
     int inputStrLength = inputStr != null ? inputStr.length() : 0;
     LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Error parsing string. length=" + inputStrLength + ", input=" +
-        input.getShortDescription() + ". First upto 100 characters=" + StringUtils.abbreviate(inputStr, 100), null, LOG,
+        getInput().getShortDescription() + ". First upto 100 characters=" + StringUtils.abbreviate(inputStr, 100), null, LOG,
         Level.WARN);
   }
 
@@ -260,7 +259,7 @@ public class FilterGrok extends Filter {
       Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
       try {
         applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
-      } catch (LogFeederException e) {
+      } catch (Exception e) {
         LOG.error(e.getLocalizedMessage(), e.getCause());
       }
       strBuff = null;

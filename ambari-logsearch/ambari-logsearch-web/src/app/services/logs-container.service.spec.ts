@@ -22,8 +22,11 @@ import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
-import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {
+  ServiceLogsHistogramDataService, serviceLogsHistogramData
+} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -32,8 +35,7 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {ListItem} from '@app/classes/list-item';
-import {NodeItem} from '@app/classes/models/node-item';
+import {UtilsService} from '@app/services/utils.service';
 
 import {LogsContainerService} from './logs-container.service';
 
@@ -53,6 +55,7 @@ describe('LogsContainerService', () => {
           auditLogs,
           serviceLogs,
           auditLogsFields,
+          auditLogsGraphData,
           serviceLogsFields,
           serviceLogsHistogramData,
           appSettings,
@@ -69,6 +72,7 @@ describe('LogsContainerService', () => {
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
+        AuditLogsGraphDataService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         AppSettingsService,
@@ -82,7 +86,8 @@ describe('LogsContainerService', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        }
+        },
+        UtilsService
       ]
     });
   });
@@ -91,28 +96,4 @@ describe('LogsContainerService', () => {
     expect(service).toBeTruthy();
   }));
 
-  describe('#getListItemFromString()', () => {
-    it('should convert string to ListItem', inject([LogsContainerService], (service: LogsContainerService) => {
-      const getListItemFromString: (name: string) => ListItem = service['getListItemFromString'];
-      expect(getListItemFromString('customName')).toEqual({
-        label: 'customName',
-        value: 'customName'
-      });
-    }));
-  });
-
-  describe('#getListItemFromNode()', () => {
-    it('should convert NodeItem to ListItem', inject([LogsContainerService], (service: LogsContainerService) => {
-      const getListItemFromNode: (node: NodeItem) => ListItem = service['getListItemFromNode'];
-      expect(getListItemFromNode({
-        name: 'customName',
-        value: '1',
-        isParent: true,
-        isRoot: true
-      })).toEqual({
-        label: 'customName (1)',
-        value: 'customName'
-      });
-    }));
-  });
 });

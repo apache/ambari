@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,8 +43,17 @@ public class UserResourceDefinitionTest {
 
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
+    Set<Resource.Type> expectedSubResourceDefinitionTypes = new HashSet<>();
+    expectedSubResourceDefinitionTypes.add(Resource.Type.UserAuthenticationSource);
+    expectedSubResourceDefinitionTypes.add(Resource.Type.UserPrivilege);
+    expectedSubResourceDefinitionTypes.add(Resource.Type.ActiveWidgetLayout);
+
     final UserResourceDefinition userResourceDefinition = new UserResourceDefinition();
     Set<SubResourceDefinition> subResourceDefinitions = userResourceDefinition.getSubResourceDefinitions();
-    Assert.assertEquals(2, subResourceDefinitions.size());
+    Assert.assertEquals(expectedSubResourceDefinitionTypes.size(), subResourceDefinitions.size());
+
+    for(SubResourceDefinition subResourceDefinition : subResourceDefinitions) {
+      Assert.assertTrue(expectedSubResourceDefinitionTypes.contains(subResourceDefinition.getType()));
+    }
   }
 }

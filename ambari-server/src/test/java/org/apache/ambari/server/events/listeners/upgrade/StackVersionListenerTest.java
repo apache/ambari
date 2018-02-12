@@ -19,6 +19,7 @@ package org.apache.ambari.server.events.listeners.upgrade;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.reset;
 
 import java.lang.reflect.Field;
 
@@ -100,7 +101,8 @@ public class StackVersionListenerTest extends EasyMockSupport {
     expect(service.getServiceComponent(SERVICE_COMPONENT_NAME)).andReturn(
         serviceComponent).anyTimes();
     expect(sch.getDesiredStackId()).andReturn(stackId).atLeastOnce();
-    expect(sch.getServiceName()).andReturn(SERVICE_NAME).atLeastOnce();
+    expect(sch.getServiceName()).andReturn(SERVICE_NAME).anyTimes();
+    expect(sch.getServiceType()).andReturn(SERVICE_NAME).atLeastOnce();
     expect(sch.getServiceComponentName()).andReturn(SERVICE_COMPONENT_NAME).atLeastOnce();
 
     expect(ambariMetaInfoProvider.get()).andReturn(ambariMetaInfo).atLeastOnce();
@@ -202,8 +204,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
   @Test
   public void testNoActionTakenOnNullVersion() {
-    expect(componentInfo.isVersionAdvertised()).andReturn(true).once();
-    resetAll();
+    reset(ambariMetaInfoProvider, ambariMetaInfo, service, serviceComponent, sch, componentInfo);
     replayAll();
 
     sendEventAndVerify(null);

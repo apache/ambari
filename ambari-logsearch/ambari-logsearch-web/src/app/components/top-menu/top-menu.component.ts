@@ -20,6 +20,8 @@ import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {FilterCondition, TimeUnitListItem} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
+import {AuthService} from '@app/services/auth.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
@@ -29,18 +31,26 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 })
 export class TopMenuComponent {
 
-  constructor(private logsContainer: LogsContainerService) {
+  constructor(private authService: AuthService, private logsContainer: LogsContainerService) {
   }
 
   get filtersForm(): FormGroup {
     return this.logsContainer.filtersForm;
   };
 
-  get filters(): {[key: string]: FilterCondition} {
+  get filters(): HomogeneousObject<FilterCondition> {
     return this.logsContainer.filters;
   };
 
-  //TODO implement loading of real data into subItems
+  openSettings = (): void => {};
+
+  /**
+   * Request a logout action from AuthService
+   */
+  logout = (): void => {
+    this.authService.logout();
+  };
+
   readonly items = [
     {
       iconClass: 'fa fa-user grey',
@@ -48,11 +58,17 @@ export class TopMenuComponent {
       isRightAlign: true,
       subItems: [
         {
-          label: 'Options'
+          label: 'common.settings',
+          onSelect: this.openSettings,
+          iconClass: 'fa fa-cog'
+        },
+        {
+          isDivider: true
         },
         {
           label: 'authorization.logout',
-          action: 'logout'
+          onSelect: this.logout,
+          iconClass: 'fa fa-sign-out'
         }
       ]
     }

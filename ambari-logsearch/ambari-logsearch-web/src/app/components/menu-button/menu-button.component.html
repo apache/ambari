@@ -23,7 +23,9 @@
     <i *ngIf="hasCaret" [ngClass]="['fa ', caretClass ]"></i>
     <span *ngIf="label" class="menu-button-label">{{label}}</span>
   </a>
-  <ul data-component="dropdown-list" *ngIf="hasSubItems" [items]="subItems" (selectedItemChange)="onDropdownItemChange($event)"
-      [isMultipleChoice]="isMultipleChoice" [additionalLabelComponentSetter]="additionalLabelComponentSetter"
-      [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"></ul>
+  <ul data-component="dropdown-list" *ngIf="hasSubItems" [items]="subItems"
+      (selectedItemChange)="onDropdownItemChange($event)" [isMultipleChoice]="isMultipleChoice"
+      [additionalLabelComponentSetter]="additionalLabelComponentSetter"
+      [ngClass]="'dropdown-menu' + (isRightAlign ? ' dropdown-menu-right' : '') + (listClass ? ' ' + listClass : '')"
+  ></ul>
 </div>

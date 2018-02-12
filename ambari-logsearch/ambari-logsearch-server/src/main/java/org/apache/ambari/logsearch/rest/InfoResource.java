@@ -38,6 +38,7 @@ import java.util.Map;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_ALL_PROPERTIES_INFO_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_ALL_SHIPPER_CONFIG_INFO_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_APP_DETAILS_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_FEATURES_LIST;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_LOGSEARCH_PROPERTIES_INFO_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.GET_AUTH_DETAILS_OD;
 
@@ -58,14 +59,6 @@ public class InfoResource {
   }
 
   @GET
-  @Path("/auth")
-  @Produces({"application/json"})
-  @ApiOperation(GET_AUTH_DETAILS_OD)
-  public Map<String, Boolean> getAuthInfo() {
-    return infoManager.getAuthMap();
-  }
-
-  @GET
   @Path("/properties")
   @Produces({"application/json"})
   @ApiOperation(GET_ALL_PROPERTIES_INFO_OD)
@@ -79,6 +72,22 @@ public class InfoResource {
   @ApiOperation(GET_LOGSEARCH_PROPERTIES_INFO_OD)
   public List<PropertyDescriptionData> getPropertyFileDescription(@PathParam("propertyFile") String propertyFile) {
     return infoManager.getLogSearchPropertyDescriptions(propertyFile);
+  }
+
+  @GET
+  @Path("/features")
+  @Produces({"application/json"})
+  @ApiOperation(GET_FEATURES_LIST)
+  public Map<String, Object> getFeatures() {
+    return infoManager.getFeaturesMap();
+  }
+
+  @GET
+  @Path("/features/auth")
+  @Produces({"application/json"})
+  @ApiOperation(GET_AUTH_DETAILS_OD)
+  public Map<String, Boolean> getAuthInfo() {
+    return infoManager.getAuthMap();
   }
 
   @GET

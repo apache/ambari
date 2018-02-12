@@ -228,6 +228,33 @@
   </property>
 
   <property>
+    <name>infra_solr_zookeeper_quorum</name>
+    <value>{zookeeper_quorum}</value>
+    <display-name>Infra Solr Znode</display-name>
+    <description>Placeholder for Infra Solr Zookeeper connection string. (Use the cluster one by default, you can override this with a custom one if ZK needs to be external)</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>infra_solr_zookeeper_external_principal</name>
+    <value>zookeeper/_HOST@EXAMPLE.COM</value>
+    <display-name>External ZK principal</display-name>
+    <description>The kerberos service principal name for external ZooKeeper.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>infra_solr_zookeeper_external_enabled</name>
+    <value>false</value>
+    <display-name>Enable External ZK</display-name>
+    <description>Enable external ZooKeeper. If the Solr is secure, the external ZK should be secure as well.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
     <name>infra_solr_kerberos_name_rules</name>
     <value>DEFAULT</value>
     <display-name>Infra Solr Kerberos name rules</display-name>
@@ -249,6 +276,6 @@
       <property-file-name>infra-solr-env.sh.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="false" update="true"/>
   </property>
 </configuration>

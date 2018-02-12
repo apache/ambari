@@ -58,7 +58,6 @@ public class BlueprintConfigEntity implements BlueprintConfiguration {
   @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
   private BlueprintEntity blueprint;
 
-
   /**
    * Get the configuration type.
    *

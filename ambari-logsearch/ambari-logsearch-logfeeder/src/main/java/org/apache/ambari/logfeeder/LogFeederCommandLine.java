@@ -19,25 +19,25 @@
 
 package org.apache.ambari.logfeeder;
 
+import com.google.gson.GsonBuilder;
+import org.apache.ambari.logfeeder.common.LogEntryParseTester;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.LogManager;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class LogFeederCommandLine {
-
-  private static final Logger LOG = LoggerFactory.getLogger(LogFeederCommandLine.class);
-
-  private static final String MONITOR_COMMAND = "monitor";
   
   private static final String TEST_COMMAND = "test";
   private static final String TEST_LOG_ENTRY_OPTION = "test-log-entry";
@@ -45,11 +45,9 @@ public class LogFeederCommandLine {
   private static final String TEST_GLOBAL_CONFIG_OPTION = "test-global-config";
   private static final String TEST_LOG_ID_OPTION = "test-log-id";
   
-  private static final String COMMAND_LINE_SYNTAX = "java org.apache.ambari.logfeeder.LogFeeder -(monitor|test) [args]";
-  
-  private CommandLine cli;
+  private static final String COMMAND_LINE_SYNTAX = "java org.apache.ambari.logfeeder.LogFeederCommandLine --test [args]";
 
-  public LogFeederCommandLine(String[] args) {
+  public static void main(String[] args) {
     Options options = new Options();
     HelpFormatter helpFormatter = new HelpFormatter();
     helpFormatter.setDescPadding(10);
@@ -58,11 +56,6 @@ public class LogFeederCommandLine {
     Option helpOption = Option.builder("h")
       .longOpt("help")
       .desc("Print commands")
-      .build();
-
-    Option monitorOption = Option.builder("m")
-      .longOpt(MONITOR_COMMAND)
-      .desc("Monitor log files")
       .build();
 
     Option testOption = Option.builder("t")
@@ -95,7 +88,6 @@ public class LogFeederCommandLine {
       .build();
 
     options.addOption(helpOption);
-    options.addOption(monitorOption);
     options.addOption(testOption);
     options.addOption(testLogEntryOption);
     options.addOption(testShipperConfOption);
@@ -104,26 +96,20 @@ public class LogFeederCommandLine {
 
     try {
       CommandLineParser cmdLineParser = new DefaultParser();
-      cli = cmdLineParser.parse(options, args);
+      CommandLine cli = cmdLineParser.parse(options, args);
 
       if (cli.hasOption('h')) {
         helpFormatter.printHelp(COMMAND_LINE_SYNTAX, options);
         System.exit(0);
       }
       String command = "";
-      if (cli.hasOption("m")) {
-        command = MONITOR_COMMAND;
-      } else if (cli.hasOption("t")) {
+      if (cli.hasOption("t")) {
         command = TEST_COMMAND;
         validateRequiredOptions(cli, command, testLogEntryOption, testShipperConfOption);
-      } else {
-        List<String> commands = Arrays.asList(MONITOR_COMMAND, TEST_COMMAND);
-        helpFormatter.printHelp(COMMAND_LINE_SYNTAX, options);
-        LOG.error(String.format("One of the supported commands is required (%s)", StringUtils.join(commands, "|")));
-        System.exit(1);
       }
+      test(cli);
     } catch (Exception e) {
-      LOG.error("Error parsing command line parameters", e);
+      e.printStackTrace();
       helpFormatter.printHelp(COMMAND_LINE_SYNTAX, options);
       System.exit(1);
     }
@@ -141,28 +127,23 @@ public class LogFeederCommandLine {
         String.format("The following options required for '%s' : %s", command, StringUtils.join(requiredOptions, ",")));
     }
   }
-  
-  public boolean isMonitor() {
-    return cli.hasOption('m');
-  }
-  
-  public boolean isTest() {
-    return cli.hasOption('t');
-  }
-  
-  public String getTestLogEntry() {
-    return cli.getOptionValue("tle");
-  }
-  
-  public String getTestShipperConfig() {
-    return cli.getOptionValue("tsc");
-  }
-  
-  public String getTestGlobalConfigs() {
-    return cli.getOptionValue("tgc");
-  }
-  
-  public String getTestLogId() {
-    return cli.getOptionValue("tli");
+
+  private static void test(CommandLine cli) {
+    try {
+      LogManager.shutdown();
+      String testLogEntry = cli.getOptionValue("tle");
+      String testShipperConfig = FileUtils.readFileToString(new File(cli.getOptionValue("tsc")), Charset.defaultCharset());
+      List<String> testGlobalConfigs = new ArrayList<>();
+      for (String testGlobalConfigFile : cli.getOptionValue("tgc").split(",")) {
+        testGlobalConfigs.add(FileUtils.readFileToString(new File(testGlobalConfigFile), Charset.defaultCharset()));
+      }
+      String testLogId = cli.getOptionValue("tli");
+      Map<String, Object> result = new LogEntryParseTester(testLogEntry, testShipperConfig, testGlobalConfigs, testLogId).parse();
+      String parsedLogEntry = new GsonBuilder().setPrettyPrinting().create().toJson(result);
+      System.out.println("The result of the parsing is:\n" + parsedLogEntry);
+    } catch (Exception e) {
+      System.out.println("Exception occurred, could not test if log entry is parseable");
+      e.printStackTrace(System.out);
+    }
   }
 }

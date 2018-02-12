@@ -43,7 +43,10 @@
       </components>
 
       <requiredServices>
-         <service>HAWQ</service>
+        <service>
+          <name>HAWQ</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <osSpecifics>

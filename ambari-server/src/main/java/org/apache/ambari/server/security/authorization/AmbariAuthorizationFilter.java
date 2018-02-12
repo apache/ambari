@@ -300,7 +300,7 @@ public class AmbariAuthorizationFilter implements Filter {
       String username = configuration.getDefaultApiAuthenticatedUser();
 
       if (!StringUtils.isEmpty(username)) {
-        final User user = users.getUser(username, UserType.LOCAL);
+        final User user = users.getUser(username);
 
         if (user != null) {
           Principal principal = new Principal() {
@@ -311,7 +311,7 @@ public class AmbariAuthorizationFilter implements Filter {
           };
 
           defaultUser = new UsernamePasswordAuthenticationToken(principal, null,
-              users.getUserAuthorities(user.getUserName(), user.getUserType()));
+              users.getUserAuthorities(user.getUserName()));
         }
       }
     }

@@ -150,7 +150,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
    * @param managementController  the Ambari management controller
    */
   StageResourceProvider(AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.Stage, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   // ----- AbstractResourceProvider ------------------------------------------

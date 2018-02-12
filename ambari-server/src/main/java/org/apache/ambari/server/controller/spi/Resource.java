@@ -148,6 +148,7 @@ public interface Resource {
     StackLevelConfiguration,
     LdapSyncEvent,
     UserPrivilege,
+    UserAuthenticationSource,
     GroupPrivilege,
     RepositoryVersion,
     CompatibleRepositoryVersion,
@@ -283,6 +284,7 @@ public interface Resource {
     public static final Type StackLevelConfiguration = InternalType.StackLevelConfiguration.getType();
     public static final Type LdapSyncEvent = InternalType.LdapSyncEvent.getType();
     public static final Type UserPrivilege = InternalType.UserPrivilege.getType();
+    public static final Type UserAuthenticationSource = InternalType.UserAuthenticationSource.getType();
     public static final Type GroupPrivilege = InternalType.GroupPrivilege.getType();
     public static final Type RepositoryVersion = InternalType.RepositoryVersion.getType();
     public static final Type CompatibleRepositoryVersion = InternalType.CompatibleRepositoryVersion.getType();

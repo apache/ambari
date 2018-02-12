@@ -28,7 +28,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,7 +39,6 @@ import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,11 +71,8 @@ public class StackAdvisorResourceProviderTest {
 
   @Nonnull
   private RecommendationResourceProvider createRecommendationResourceProvider() {
-    Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
-    Set<String> propertyIds = Collections.emptySet();
     AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
-    return new RecommendationResourceProvider(propertyIds,
-        keyPropertyIds, ambariManagementController);
+    return new RecommendationResourceProvider(ambariManagementController);
   }
 
   @Nonnull
@@ -136,11 +131,8 @@ public class StackAdvisorResourceProviderTest {
  
   @Test
   public void testStackAdvisorWithEmptyHosts() {
-    Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
-    Set<String> propertyIds = Collections.emptySet();
     AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
-    RecommendationResourceProvider provider = new RecommendationResourceProvider(propertyIds,
-            keyPropertyIds, ambariManagementController);
+    RecommendationResourceProvider provider = new RecommendationResourceProvider(ambariManagementController);
 
     Request request = mock(Request.class);
     Set<Map<String, Object>> propertiesSet = new HashSet<>();

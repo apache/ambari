@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 
+import {LogLevel} from '@app/classes/string';
+
 export interface Filter {
   label: string;
   hosts: string[];
-  defaultLevels: string[];
-  overrideLevels: string[];
-  expiryTime: string;
+  defaultLevels: LogLevel[];
+  overrideLevels: LogLevel[];
+  expiryTime: string | null;
 }

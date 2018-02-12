@@ -40,7 +40,7 @@ from ambari_server.serverConfiguration import configDefaults, get_resources_loca
   check_database_name_property, get_ambari_properties, get_ambari_version, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
   update_database_name_property, get_admin_views_dir, get_views_dir, get_views_jars, \
-  AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
+  AMBARI_PROPERTIES_FILE, CLIENT_SECURITY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
   AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir, write_gpl_license_accepted
 from ambari_server.setupSecurity import adjust_directory_permissions, \
@@ -304,9 +304,9 @@ def upgrade(args):
   for views_jar in views_jars:
     os.utime(views_jar, None)
 
-  # check if ambari has obsolete LDAP configuration
-  if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
-    args.warnings.append("Existing LDAP configuration is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")
+  # check if ambari is configured to use LDAP authentication
+  if properties.get_property(CLIENT_SECURITY) == "ldap":
+    args.warnings.append("LDAP authentication is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")
 
   # adding custom jdbc name and previous custom jdbc properties
   # we need that to support new dynamic jdbc names for upgraded ambari

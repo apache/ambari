@@ -31,6 +31,18 @@ export class mockBackendService extends InMemoryBackendService {
 
 export class mockApiDataService implements InMemoryDbService {
 
+  private filterByMessage = (value: string, filterValue: string): boolean => {
+    return value.toLowerCase().indexOf(filterValue.toLowerCase()) > -1;
+  };
+
+  private filterByStartTime = (value: number, filterValue: number | string | Date | moment.Moment): boolean => {
+    return value >= moment(filterValue).valueOf();
+  };
+
+  private filterByEndTime = (value: number, filterValue: number | string | Date | moment.Moment): boolean => {
+    return value <= moment(filterValue).valueOf();
+  };
+
   private readonly filterMap = {
     'api/v1/service/logs': {
       pathToCollection: 'logList',
@@ -50,15 +62,15 @@ export class mockApiDataService implements InMemoryDbService {
         },
         iMessage: {
           key: 'log_message',
-          filterFunction: (value, filterValue) => value.toLowerCase().indexOf(filterValue.toLowerCase()) > -1
+          filterFunction: this.filterByMessage
         },
         from: {
           key: 'logtime',
-          filterFunction: (value, filterValue) => value >= moment(filterValue).valueOf()
+          filterFunction: this.filterByStartTime
         },
         to: {
           key: 'logtime',
-          filterFunction: (value, filterValue) => value < moment(filterValue).valueOf()
+          filterFunction: this.filterByEndTime
         },
         hostList: {
           key: 'host',
@@ -76,15 +88,19 @@ export class mockApiDataService implements InMemoryDbService {
         },
         iMessage: {
           key: 'log_message',
-          filterFunction: (value, filterValue) => value.toLowerCase().indexOf(filterValue.toLowerCase()) > -1
+          filterFunction: this.filterByMessage
         },
         from: {
           key: 'evtTime',
-          filterFunction: (value, filterValue) => value >= moment(filterValue).valueOf()
+          filterFunction: this.filterByStartTime
         },
         to: {
           key: 'evtTime',
-          filterFunction: (value, filterValue) => value < moment(filterValue).valueOf()
+          filterFunction: this.filterByEndTime
+        },
+        userList: {
+          key: 'reqUser',
+          isValuesList: true
         }
       }
     }
@@ -126,9 +142,11 @@ export class mockApiDataService implements InMemoryDbService {
         }
       }, interceptorArgs.db);
       if (is404) {
-        return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(new Response(createErrorResponse(
-          interceptorArgs.requestInfo.req, 404, 'Not found'
-        ))));
+        return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
+          new Response(createErrorResponse(
+            interceptorArgs.requestInfo.req, 404, 'Not found'
+          )))
+        );
       } else {
         let filteredData;
         const filterMapItem = this.filterMap[path];
@@ -143,10 +161,11 @@ export class mockApiDataService implements InMemoryDbService {
                 paramFilter = filterMapItem.filters[key],
                 paramValuesList = paramFilter && paramFilter.isValuesList && paramValue ? paramValue.split(',') : [],
                 currentValue = paramFilter && item[paramFilter.key];
-              if (paramFilter &&
-                ((paramFilter.filterFunction && !paramFilter.filterFunction(currentValue, paramValue)) ||
+              if (
+                paramFilter && ((paramFilter.filterFunction && !paramFilter.filterFunction(currentValue, paramValue)) ||
                 (!paramFilter.filterFunction && !paramFilter.isValuesList && currentValue !== paramValue) ||
-                (!paramFilter.filterFunction && paramFilter.isValuesList && paramValuesList.indexOf(currentValue) === -1))) {
+                (!paramFilter.filterFunction && paramFilter.isValuesList && paramValuesList.indexOf(currentValue) === -1))
+              ) {
                 result = false;
               }
             });
@@ -181,15 +200,17 @@ export class mockApiDataService implements InMemoryDbService {
         } else {
           filteredData = allData;
         }
-        return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.next(new Response(new ResponseOptions({
-          status: 200,
-          body: filteredData
-        }))));
+        return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.next(
+          new Response(new ResponseOptions({
+            status: 200,
+            body: filteredData
+          })))
+        );
       }
     }
   }
 
-  post(interceptorArgs: any) {
+  post(interceptorArgs: any): Observable<Response> {
     // TODO implement posting data to mock object except login call
     return this.get(interceptorArgs);
   }

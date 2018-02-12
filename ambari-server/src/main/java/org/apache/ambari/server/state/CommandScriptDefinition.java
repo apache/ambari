@@ -44,6 +44,8 @@ public class CommandScriptDefinition {
    */
   private int timeout = 0;
 
+  private String clientComponentType = null;
+
 
   public String getScript() {
     return script;
@@ -55,6 +57,10 @@ public class CommandScriptDefinition {
 
   public int getTimeout() {
     return timeout;
+  }
+
+  public String getClientComponentType() {
+    return clientComponentType;
   }
 
   public enum Type {
@@ -77,7 +83,8 @@ public class CommandScriptDefinition {
     return new EqualsBuilder().
             append(script, rhs.script).
             append(scriptType, rhs.scriptType).
-            append(timeout, rhs.timeout).isEquals();
+            append(timeout, rhs.timeout).
+            append(clientComponentType, rhs.clientComponentType).isEquals();
   }
 
   @Override
@@ -85,6 +92,7 @@ public class CommandScriptDefinition {
     return new HashCodeBuilder(17, 31).
             append(script).
             append(scriptType).
-            append(timeout).toHashCode();
+            append(timeout).
+            append(clientComponentType).toHashCode();
   }
 }

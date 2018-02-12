@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
@@ -43,7 +44,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -51,6 +51,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
@@ -89,6 +90,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Inject
   private LogSearchConfigState logSearchConfigState;
 
+  @Inject
+  private LogSearchConfigApiConfig logSearchConfigApiConfig;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http
@@ -117,7 +121,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .addFilterBefore(logsearchJwtFilter(), LogsearchSecurityContextFormationFilter.class)
       .logout()
         .logoutUrl("/logout")
-        .deleteCookies(LOGSEARCH_SESSION_ID)
+        .deleteCookies(getCookies())
         .logoutSuccessHandler(new LogsearchLogoutSuccessHandler());
   }
 
@@ -184,7 +188,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogSearchConfigStateFilter logSearchConfigStateFilter() {
-    return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState);
+    return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState, logSearchConfigApiConfig.isConfigApiEnabled());
   }
 
   @Bean
@@ -193,7 +197,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     matchers.add(new AntPathRequestMatcher("/docs/**"));
     matchers.add(new AntPathRequestMatcher("/swagger-ui/**"));
     matchers.add(new AntPathRequestMatcher("/swagger.html"));
-    matchers.add(new AntPathRequestMatcher("/"));
+    if (!authPropsConfig.isAuthJwtEnabled()) {
+      matchers.add(new AntPathRequestMatcher("/"));
+    }
     matchers.add(new AntPathRequestMatcher("/login"));
     matchers.add(new AntPathRequestMatcher("/logout"));
     matchers.add(new AntPathRequestMatcher("/resources/**"));
@@ -202,7 +208,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     matchers.add(new AntPathRequestMatcher("/assets/**"));
     matchers.add(new AntPathRequestMatcher("/templates/**"));
     matchers.add(new AntPathRequestMatcher("/api/v1/info/**"));
-    matchers.add(new AntPathRequestMatcher("/api/v1/public/**"));
     matchers.add(new AntPathRequestMatcher("/api/v1/swagger.json"));
     matchers.add(new AntPathRequestMatcher("/api/v1/swagger.yaml"));
     return new OrRequestMatcher(matchers);
@@ -222,6 +227,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   public RequestMatcher logsearchConfigRequestMatcher() {
     return new AntPathRequestMatcher("/api/v1/shipper/**");
+  }
+
+  private String[] getCookies() {
+    List<String> cookies = new ArrayList<>();
+    cookies.add(LOGSEARCH_SESSION_ID);
+    if (authPropsConfig.isAuthJwtEnabled()) {
+      cookies.add(authPropsConfig.getCookieName());
+    }
+    return cookies.toArray(new String[0]);
   }
 
 }

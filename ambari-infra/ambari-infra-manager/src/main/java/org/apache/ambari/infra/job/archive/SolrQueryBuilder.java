@@ -20,25 +20,27 @@ package org.apache.ambari.infra.job.archive;
 
 import org.apache.solr.client.solrj.SolrQuery;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.solr.client.solrj.SolrQuery.ORDER.asc;
 
 public class SolrQueryBuilder {
 
-  public static final Pattern PARAMETER_PATTERN = Pattern.compile("\\$\\{[a-z]+\\}");
-
+  private static final String INTERVAL_START = "start";
+  private static final String INTERVAL_END = "end";
   private String queryText;
-  private String endValue;
+  private final Map<String, String> interval;
   private String filterQueryText;
   private Document document;
   private String[] sortFields;
 
   public SolrQueryBuilder() {
     this.queryText = "*:*";
+    interval = new HashMap<>();
+    interval.put(INTERVAL_START, "*");
+    interval.put(INTERVAL_END, "*");
   }
 
   public SolrQueryBuilder setQueryText(String queryText) {
@@ -46,8 +48,13 @@ public class SolrQueryBuilder {
     return this;
   }
 
-  public SolrQueryBuilder setEndValue(String endValue) {
-    this.endValue = endValue;
+  public SolrQueryBuilder setInterval(String startValue, String endValue) {
+    if (isBlank(startValue))
+      startValue = "*";
+    if (isBlank(endValue))
+      endValue = "*";
+    this.interval.put(INTERVAL_START, startValue);
+    this.interval.put(INTERVAL_END, endValue);
     return this;
   }
 
@@ -70,25 +77,17 @@ public class SolrQueryBuilder {
   public SolrQuery build() {
     SolrQuery solrQuery = new SolrQuery();
 
-    String query = queryText;
-    query = setEndValueOn(query);
-
-    solrQuery.setQuery(query);
+    SolrParametrizedString queryText = new SolrParametrizedString(this.queryText).set(interval);
+    solrQuery.setQuery(queryText.toString());
 
     if (filterQueryText != null) {
-      String filterQuery = filterQueryText;
-      filterQuery = setEndValueOn(filterQuery);
+      SolrParametrizedString filterQuery = new SolrParametrizedString(filterQueryText)
+              .set(interval);
 
-      Set<String> paramNames = collectParamNames(filterQuery);
       if (document != null) {
-        for (String parameter : paramNames) {
-          if (document.get(parameter) != null)
-            filterQuery = filterQuery.replace(String.format("${%s}", parameter), document.get(parameter));
-        }
+        filterQuery = filterQuery.set(document.getFieldMap());
+        solrQuery.setFilterQueries(filterQuery.toString());
       }
-
-      if (document == null && paramNames.isEmpty() || document != null && !paramNames.isEmpty())
-        solrQuery.setFilterQueries(filterQuery);
     }
 
     if (sortFields != null) {
@@ -97,19 +96,5 @@ public class SolrQueryBuilder {
     }
 
     return solrQuery;
-  }
-
-  private String setEndValueOn(String query) {
-    if (endValue != null)
-      query = query.replace("${end}", endValue);
-    return query;
-  }
-
-  private Set<String> collectParamNames(String filterQuery) {
-    Matcher matcher = PARAMETER_PATTERN.matcher(filterQuery);
-    Set<String> parameters = new HashSet<>();
-    while (matcher.find())
-      parameters.add(matcher.group().replace("${", "").replace("}", ""));
-    return parameters;
   }
 }

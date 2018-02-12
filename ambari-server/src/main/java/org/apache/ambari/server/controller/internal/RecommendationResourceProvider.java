@@ -46,6 +46,9 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 public class RecommendationResourceProvider extends StackAdvisorResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(RecommendationResourceProvider.class);
@@ -56,10 +59,13 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
   protected static final String HOSTS_PROPERTY_ID = "hosts";
   protected static final String SERVICES_PROPERTY_ID = "services";
   protected static final String RECOMMEND_PROPERTY_ID = "recommend";
+  protected static final String RECOMMENDATIONS_PROPERTY_ID = "recommendations";
 
   protected static final String CONFIG_GROUPS_PROPERTY_ID = PropertyHelper
       .getPropertyId("recommendations", "config-groups");
 
+  protected static final String BLUEPRINT_PROPERTY_ID = PropertyHelper
+      .getPropertyId("recommendations", "blueprint");
   protected static final String BLUEPRINT_CONFIGURATIONS_PROPERTY_ID = PropertyHelper
       .getPropertyId("recommendations/blueprint", "configurations");
 
@@ -72,13 +78,56 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
       "recommendations/blueprint_cluster_binding", "host_groups");
   protected static final String BINDING_HOST_GROUPS_NAME_PROPERTY_ID = "name";
   protected static final String BINDING_HOST_GROUPS_HOSTS_PROPERTY_ID = "hosts";
+  protected static final String CHANGED_CONFIGURATIONS_PROPERTY_ID = "changed_configurations";
+  protected static final String BINDING_PROPERTY_ID = PropertyHelper
+      .getPropertyId("recommendations", "blueprint_cluster_binding");
+  protected static final String USER_CONTEXT_PROPERTY_ID = "user_context";
+  protected static final String USER_CONTEXT_OPERATION_PROPERTY_ID = PropertyHelper
+      .getPropertyId(USER_CONTEXT_PROPERTY_ID, "operation");
+  protected static final String USER_CONTEXT_OPERATION_DETAILS_PROPERTY_ID = PropertyHelper
+      .getPropertyId(USER_CONTEXT_PROPERTY_ID, "operation_details");
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{RECOMMENDATION_ID_PROPERTY_ID}));
 
-  protected RecommendationResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds, AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The key property ids for a Recommendation resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.Recommendation, RECOMMENDATION_ID_PROPERTY_ID)
+      .put(Type.Stack, STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a Recommendation resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      RECOMMENDATION_ID_PROPERTY_ID,
+      STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID,
+      RECOMMEND_PROPERTY_ID,
+      HOSTS_PROPERTY_ID,
+      SERVICES_PROPERTY_ID,
+      CONFIG_GROUPS_PROPERTY_ID,
+      CHANGED_CONFIGURATIONS_PROPERTY_ID,
+      USER_CONTEXT_PROPERTY_ID,
+      USER_CONTEXT_OPERATION_PROPERTY_ID,
+      USER_CONTEXT_OPERATION_DETAILS_PROPERTY_ID,
+      RECOMMENDATIONS_PROPERTY_ID,
+      BLUEPRINT_PROPERTY_ID,
+      BLUEPRINT_CONFIGURATIONS_PROPERTY_ID,
+      BLUEPRINT_HOST_GROUPS_PROPERTY_ID,
+      PropertyHelper.getPropertyId(BLUEPRINT_HOST_GROUPS_PROPERTY_ID, BLUEPRINT_HOST_GROUPS_NAME_PROPERTY_ID),
+      PropertyHelper.getPropertyId(BLUEPRINT_HOST_GROUPS_PROPERTY_ID, BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY_ID),
+      BINDING_PROPERTY_ID,
+      BINDING_HOST_GROUPS_PROPERTY_ID,
+      PropertyHelper.getPropertyId(BINDING_HOST_GROUPS_PROPERTY_ID, BINDING_HOST_GROUPS_NAME_PROPERTY_ID),
+      PropertyHelper.getPropertyId(BINDING_HOST_GROUPS_PROPERTY_ID, BINDING_HOST_GROUPS_HOSTS_PROPERTY_ID),
+      BINDING_HOST_GROUPS_NAME_PROPERTY_ID,
+      BINDING_HOST_GROUPS_HOSTS_PROPERTY_ID);
+
+
+  protected RecommendationResourceProvider(AmbariManagementController managementController) {
+    super(Type.Recommendation, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -155,7 +204,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

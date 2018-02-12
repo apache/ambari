@@ -147,8 +147,14 @@
       </commandScript>
 
       <requiredServices>
-        <service>YARN</service>
-        <service>TEZ</service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>TEZ</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <osSpecifics>

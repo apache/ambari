@@ -89,7 +89,7 @@ public class RegistryResourceProvider extends AbstractControllerResourceProvider
    */
   protected RegistryResourceProvider(
     final AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.Registry, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   @Override
