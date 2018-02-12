@@ -52,9 +52,9 @@
             },
             {
               "name": "atlas_atlas_server_infra-solr",
-              "reference": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
+              "reference": "/AMBARI_INFRA_SOLR/INFRA_SOLR/infra-solr",
               "when" : {
-                "contains" : ["services", "AMBARI_INFRA"]
+                "contains" : ["services", "AMBARI_INFRA_SOLR"]
               }
             }
           ]

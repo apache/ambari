@@ -1,5 +1,5 @@
 {
-  "AMBARI_INFRA": {
+  "AMBARI_INFRA_SOLR": {
     "INFRA_SOLR": [
       {
         "name": "infra_solr",

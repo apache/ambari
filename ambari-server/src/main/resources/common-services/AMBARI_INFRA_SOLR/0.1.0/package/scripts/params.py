@@ -17,13 +17,15 @@ limitations under the License.
 
 """
 
+import os
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
-import os
+
 import status_params
+
 
 def get_port_from_url(address):
   if not is_empty(address):

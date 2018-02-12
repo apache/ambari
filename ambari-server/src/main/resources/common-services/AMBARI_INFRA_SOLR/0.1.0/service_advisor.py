@@ -21,12 +21,6 @@ limitations under the License.
 import imp
 import os
 import traceback
-import re
-import socket
-import fnmatch
-
-
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')

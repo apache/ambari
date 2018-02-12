@@ -19,8 +19,8 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>AMBARI_INFRA</name>
-      <extends>common-services/AMBARI_INFRA/0.1.0</extends>
+      <name>AMBARI_INFRA_SOLR</name>
+      <extends>common-services/AMBARI_INFRA_SOLR/0.1.0</extends>
     </service>
   </services>
 </metainfo>

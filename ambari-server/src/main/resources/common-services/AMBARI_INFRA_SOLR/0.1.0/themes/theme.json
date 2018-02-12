@@ -1,6 +1,6 @@
 {
   "name": "default",
-  "description": "Default theme for AMBARI_INFRA service",
+  "description": "Default theme for AMBARI_INFRA_SOLR service",
   "configuration": {
     "layouts": [
       {

@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
@@ -44,12 +45,22 @@ import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCat
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -60,7 +71,11 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -73,7 +88,6 @@ import com.google.inject.Injector;
 
 public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
-  public static final String HOST_ID_COLUMN = "host_id";
   /**
    * Logger.
    */
@@ -161,6 +175,19 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String FK_KKP_SERVICE_PRINCIPAL = "FK_kkp_service_principal";
   protected static final String KKP_ID_SEQ_NAME = "kkp_id_seq";
   protected static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
+  protected static final String HOST_ID_COLUMN = "host_id";
+
+  protected static final String CLUSTER_ID_COLUMN = "cluster_id";
+  public static final String[] COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {COMPONENT_NAME_COLUMN, SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
+  public static final String[] SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
+  protected static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
+  protected static final String CLUSTER_SERVICES_TABLE = "clusterservices";
+  protected static final String SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK = "srvccmponentdesiredstatesrvcnm";
+  protected static final String SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK = "servicedesiredstateservicename";
+  protected static final String COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcmpnntdesiredstatecmpnntnme";
+  protected static final String COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK = "hstcomponentstatecomponentname";
+  public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
+  public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
   @Inject
   DaoUtils daoUtils;
@@ -656,6 +683,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     upgradeLdapConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
+    renameAmbariInfra();
+    updateKerberosDescriptorArtifacts();
   }
 
   protected void addUserAuthenticationSequence() throws SQLException {
@@ -760,13 +789,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Collection<Config> configs = cluster.getAllConfigs();
-          for (Config config : configs) {
-            String configType = config.getType();
-            if (configType.endsWith("-logsearch-conf")) {
-              configHelper.removeConfigsByType(cluster, configType);
-            }
-          }
+          cluster.getAllConfigs().stream()
+                  .map(Config::getType)
+                  .filter(configType -> configType.endsWith("-logsearch-conf"))
+                  .collect(Collectors.toSet())
+          .forEach(configType -> configHelper.removeConfigsByType(cluster, configType));
 
           Config logSearchEnv = cluster.getDesiredConfigByType("logsearch-env");
 
@@ -864,6 +891,129 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  protected void renameAmbariInfra() throws SQLException {
+    LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR");
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK);
+    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK);
+    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
+    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
+    try {
+      dbAccessor.updateTable(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+    }
+    finally {
+      dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
+              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
+              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
+              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
+              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+    }
+
+
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+    if (MapUtils.isEmpty(clusterMap))
+      return;
+
+    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
+    for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.findAll()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(serviceConfigEntity.getServiceName())) {
+        serviceConfigEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        serviceConfigDAO.merge(serviceConfigEntity);
+      }
+    }
+
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    for (final Cluster cluster : clusterMap.values()) {
+      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionDAO.findByService(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME)) {
+        alertDefinitionEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertDefinitionDAO.merge(alertDefinitionEntity);
+      }
+    }
+
+    AlertDispatchDAO alertDispatchDAO = injector.getInstance(AlertDispatchDAO.class);
+    for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(alertGroupEntity.getServiceName())) {
+        alertGroupEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertGroupEntity.setGroupName(AMBARI_INFRA_NEW_NAME);
+        alertDispatchDAO.merge(alertGroupEntity);
+      }
+    }
+
+    AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
+    for (AlertHistoryEntity alertHistoryEntity : alertsDAO.findAll()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(alertHistoryEntity.getServiceName())) {
+        alertHistoryEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertsDAO.merge(alertHistoryEntity);
+      }
+    }
+  }
+
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity == null)
+      return;
+
+    Map<String, Object> data = artifactEntity.getArtifactData();
+    if (data == null)
+      return;
+
+    final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+    if (kerberosDescriptor == null)
+      return;
+
+    Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
+    KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
+    if (ambariInfraService == null)
+      return;
+
+    ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
+    services.remove(AMBARI_INFRA_OLD_NAME);
+    services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
+    kerberosDescriptor.setServices(services);
+
+    for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
+      updateKerberosIdentities(serviceDescriptor);
+      for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
+        updateKerberosIdentities(componentDescriptor);
+      }
+    }
+
+    artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+    artifactDAO.merge(artifactEntity);
+  }
+
+  private void updateKerberosIdentities(AbstractKerberosDescriptorContainer descriptorContainer) {
+    if (descriptorContainer.getIdentities() == null)
+      return;
+    descriptorContainer.getIdentities().stream()
+            .filter(identityDescriptor -> identityDescriptor.getReference() != null && identityDescriptor.getReference().contains(AMBARI_INFRA_OLD_NAME))
+            .forEach(identityDescriptor -> identityDescriptor.setReference(identityDescriptor.getReference().replace(AMBARI_INFRA_OLD_NAME, AMBARI_INFRA_NEW_NAME)));
+    descriptorContainer.getIdentities().stream()
+            .filter(identityDescriptor -> identityDescriptor.getWhen() != null).collect(Collectors.toList())
+            .forEach(identityDescriptor -> {
+              Map<String, Object> whenMap = identityDescriptor.getWhen().toMap();
+              if (whenMap.containsKey("contains")) {
+                List<String> serviceList = (List<String>) whenMap.get("contains");
+                if (serviceList.contains(AMBARI_INFRA_OLD_NAME)) {
+                  serviceList.remove(AMBARI_INFRA_OLD_NAME);
+                  serviceList.add(AMBARI_INFRA_NEW_NAME);
+                  identityDescriptor.setWhen(org.apache.ambari.server.collections.PredicateUtils.fromMap((Map<?, ?>) whenMap));
+                }
+              }
+            });
   }
 
   protected PrepareKerberosIdentitiesServerAction getPrepareIdentityServerAction() {

@@ -19,8 +19,8 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>AMBARI_INFRA</name>
-      <displayName>Ambari Infra</displayName>
+      <name>AMBARI_INFRA_SOLR</name>
+      <displayName>Infra Solr</displayName>
       <comment>Core shared service used by Ambari managed components.</comment>
       <version>0.1.0</version>
       <components>
