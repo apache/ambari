@@ -27,7 +27,6 @@ from contextlib import contextmanager
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
-from resource_management.core import sudo
 
 logger = logging.getLogger()
 
@@ -353,6 +352,8 @@ def kill_process_with_children(base_pid):
   Process tree killer
   :type base_pid int
   """
+  from resource_management.core import sudo  # to avoid circular dependency
+
   exception_list = ["apt-get", "apt", "yum", "zypper", "zypp"]
   signals_to_post = {
     "SIGTERM": signal.SIGTERM,
@@ -401,7 +402,7 @@ class shellRunnerLinux(shellRunner):
     import pwd
 
     try:
-      if user != None:
+      if user is not None:
         user = pwd.getpwnam(user)[2]
       else:
         user = os.getuid()
