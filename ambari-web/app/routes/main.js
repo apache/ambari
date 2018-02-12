@@ -664,7 +664,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       },
       exitRoute: function (router, context, callback) {
         var controller = router.get('mainAdminServiceAutoStartController');
-        if (!controller.get('isSaveDisabled')) {
+        if (controller.get('isModified')) {
           controller.showSavePopup(callback);
         } else {
           callback();
