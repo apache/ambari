@@ -402,31 +402,32 @@ describe('App.InstallerController', function () {
   })
 
   describe('#setStepsEnable', function() {
-
     beforeEach(function () {
       var steps = Em.A([
         Em.Object.create({
           step: 0,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 1,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 2,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 3,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 4,
-          value: false
+          value: true
         })
       ]);
+      
       installerController.set('isStepDisabled', steps);
+      
       installerController.set('steps', [
         "step0",
         "step1",
@@ -434,11 +435,19 @@ describe('App.InstallerController', function () {
         "step3",
         "step4"
       ]);
-      //installerController.totalSteps = steps.length - 1;
-      installerController.set('currentStep',2);
+      
+      installerController.set('currentStep', 2);
     });
 
-    it ('Should enable next steps', function() {
+    it('Should enable next steps', function() {
+      var stepController = Em.Object.create({
+        isStepDisabled: function () {
+          return false;
+        }
+      });
+
+      sinon.stub(installerController, 'getStepController').returns(stepController);
+
       var expected = [
         {
           "step": 0,
@@ -446,23 +455,28 @@ describe('App.InstallerController', function () {
         },
         {
           "step": 1,
-          "value": true
+          "value": false
         },
         {
           "step": 2,
-          "value": true
+          "value": false
         },
         {
           "step": 3,
-          "value": true
+          "value": false
         },
         {
           "step": 4,
-          "value": true
+          "value": false
         }
       ];
+
+      installerController.setStepsEnable();
+
       var res = JSON.parse(JSON.stringify(installerController.get('isStepDisabled')));
       expect(res).to.eql(expected);
+
+      installerController.getStepController.restore();
     });
   });
 
@@ -482,60 +496,6 @@ describe('App.InstallerController', function () {
 
       it('cluster info is loaded', function () {
         expect(loadCluster).to.be.true;
-      });
-    });
-
-    describe('Should load stacks', function() {
-      var loadStacks = false;
-      var checker = {
-        loadStacks: function() {
-          return {
-            done: function(callback) {
-              callback(true);
-            }
-          };
-        }
-      };
-
-      beforeEach(function () {
-        sinon.spy(checker, 'loadStacks');
-        installerController.loadMap['step1'][0].callback.call(checker);
-      });
-
-      afterEach(function() {
-        checker.loadStacks.restore();
-      });
-
-      it('should call loadStacks, stack info not loaded', function () {
-        expect(checker.loadStacks.calledOnce).to.be.true;
-      });
-    });
-
-    describe('Should load stacks async', function() {
-      var checker = {
-        loadStacksVersions: Em.K
-      };
-
-      beforeEach(function () {
-        sinon.spy(checker, 'loadStacksVersions');
-      });
-
-      afterEach(function() {
-        checker.loadStacksVersions.restore();
-      });
-
-      it('stack versions are loaded', function () {
-        installerController.loadMap['step1'][1].callback.call(checker, true).then(function(data){
-          expect(data).to.be.true;
-        });
-        expect(checker.loadStacksVersions.called).to.be.false;
-      });
-
-      it('should call loadStacksVersions, stack versions not loaded', function () {
-        installerController.loadMap['step1'][1].callback.call(checker, false).then(function(data){
-          expect(data).to.be.true;
-        });
-        expect(checker.loadStacksVersions.calledOnce).to.be.true;
       });
     });
 
@@ -573,23 +533,6 @@ describe('App.InstallerController', function () {
       });
     });
 
-    describe('Should load loadServices', function() {
-      var loadServices = false;
-      var checker = {
-        loadServices: function() {
-          loadServices = true;
-        }
-      };
-
-      beforeEach(function () {
-        installerController.loadMap['step4'][0].callback.call(checker);
-      });
-
-      it('services are loaded', function () {
-        expect(loadServices).to.be.true;
-      });
-    });
-
     describe('Should load loadServices (2)', function() {
       var setSkipSlavesStep = false;
       var loadMasterComponentHosts = false;
@@ -612,6 +555,9 @@ describe('App.InstallerController', function () {
         },
         loadRecommendations: function() {
           loadRecommendations = true;
+        },
+        getStepIndex: function () {
+          return 0;
         }
       };
 
@@ -975,6 +921,7 @@ describe('App.InstallerController', function () {
 
   describe('#loadMasterComponentHosts', function() {
     beforeEach(function () {
+      installerController.set('content.masterComponentHosts', null);
       sinon.stub(installerController, 'getDBProperties', function() {
         return {
           masterComponentHosts: Em.A([
@@ -1000,7 +947,7 @@ describe('App.InstallerController', function () {
     afterEach(function () {
       installerController.getDBProperties.restore();
     });
-    it ('Should load hosts', function() {
+    it('Should load hosts', function() {
       installerController.loadMasterComponentHosts();
       expect(installerController.get('content.masterComponentHosts')).to.eql([
         {
@@ -1285,4 +1232,153 @@ describe('App.InstallerController', function () {
 
   });
 
+  describe('#setStepSaved', function() {
+    beforeEach(function() {
+      installerController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+
+      installerController.set('content.stepsSavedState', null);
+    });
+
+    it('Should save step and unsave all subsequent steps when step is not saved yet', function() {
+      var expected = Em.Object.create({
+        "1": true,
+        "2": false,
+        "3": false,
+        "4": false
+      });
+
+      installerController.setStepSaved('step1');
+      var actual = installerController.get('content.stepsSavedState');
+      expect(actual).to.deep.equal(expected);
+      expect(installerController.getStepSavedState('step1')).to.be.true;
+    });
+
+    it('Should do nothing when step is already saved', function() {
+      var expected = Em.Object.create({
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+      installerController.set('content.stepsSavedState', expected);
+
+      installerController.setStepSaved('step1');
+      var actual = installerController.get('content.stepsSavedState');
+      expect(actual).to.deep.equal(expected);
+      expect(installerController.getStepSavedState('step1')).to.be.true;
+    });
+  });
+
+  describe('#setStepUnsaved', function() {
+    beforeEach(function() {
+      installerController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+
+      var initial = Em.Object.create({
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+      installerController.set('content.stepsSavedState', initial);
+    });
+
+    it('Should set step to unsaved', function() {
+      var expected = Em.Object.create({
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+
+      installerController.setStepUnsaved('step1');
+      var actual = installerController.get('content.stepsSavedState');
+      expect(actual).to.deep.equal(expected);
+      expect(installerController.getStepSavedState('step1')).to.be.false;
+    });
+  });
+
+  describe('#getStepSavedState', function() {
+    beforeEach(function() {
+      installerController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+
+      var initial = Em.Object.create({
+        "1": true,
+        "2": false
+      })
+      installerController.set('content.stepsSavedState', initial);
+    });
+
+    it('Should return false for bad step name', function() {
+      expect(installerController.getStepSavedState('step5')).to.be.false;
+    });
+
+    it('Should return false for step that was never saved', function() {
+      expect(installerController.getStepSavedState('step0')).to.be.false;
+    });
+  });
+
+  describe('#hasErrors', function () {
+    before(function () {
+      installerController.addError("There is an error.");
+    });
+
+    it('Should return true if there are errors.', function () {
+      var hasErrors = installerController.get('hasErrors');
+
+      expect(hasErrors).to.be.true;
+    });
+
+    it('Should return false if there are no errors.', function () {
+      installerController.clearErrors();
+      var hasErrors = installerController.get('hasErrors');
+
+      expect(hasErrors).to.be.false;
+    });
+  });
+
+  describe('#getStepController', function () {
+    var wizardStep0Controller = {};
+    var wizardStep1Controller = {};
+    var wizardStep2Controller = {};
+
+    before(function () {
+      installerController.set('steps', [
+        "step0",
+        "step1",
+        "step2"
+      ]);
+
+      App.router.set('wizardStep0Controller', wizardStep0Controller);
+      App.router.set('wizardStep1Controller', wizardStep1Controller);
+      App.router.set('wizardStep2Controller', wizardStep2Controller);
+    });
+
+    it('Should return controller for the step number provided.', function () {
+      var stepController = installerController.getStepController(2);
+      expect(stepController).to.equal(wizardStep2Controller);
+    });
+
+    it('Should return controller for the step name provided.', function () {
+      var stepController = installerController.getStepController("step1");
+      expect(stepController).to.equal(wizardStep1Controller);
+    });
+  });
 });

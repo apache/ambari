@@ -377,6 +377,10 @@ var urls = {
     }
   },
 
+  'common.delete.registered.host': {
+    'real': '/hosts/{hostName}',
+    'type': 'DELETE'
+  },
   'common.delete.host': {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'type': 'DELETE'
@@ -2018,6 +2022,9 @@ var urls = {
     'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}',
     'type': 'DELETE'
   },
+  'wizard.mpack_service_components': {
+    'real': '/stacks/{stackName}/versions/{stackVersion}/services/{serviceName}?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,components/dependencies/Dependencies/service_name,artifacts/Artifacts/artifact_name'
+  },
   'wizard.service_components': {
     'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,components/dependencies/Dependencies/service_name,artifacts/Artifacts/artifact_name',
     'mock': '/data/stacks/HDP-2.1/service_components.json'
@@ -3096,6 +3103,102 @@ var urls = {
   'service.components.load': {
     real: '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?fields=components&minimal_response=true',
     mock: '/data/services/components.json'
+  },
+
+  /** Mpack related APIs */
+  'mpack.download_by_url': {
+    real: '/mpacks',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          Body: {
+            "MpackInfo" : {
+              "mpack_uri": data.url
+            }
+          }
+        })
+      };
+    }
+  },
+
+  'mpack.download': {
+    real: '/mpacks',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          Body: {
+            "MpackInfo" : {
+              "mpack_name" : data.name,
+              "mpack_version" : data.version,
+              "registry_id" : data.registry
+            }
+          }
+        })
+      };
+    }
+  },
+
+  'mpack.get_registered_mpacks': {
+    real: '/mpacks?fields=*',
+  },
+
+  'mpack.create_version_definition': {
+    real: '/version_definitions',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          Body: {
+            "VersionDefinition": {
+		          "available": `${data.name}-${data.version}`
+	          }
+          }
+        })
+      };
+    }
+  },
+
+  'mpack.get_version_definition': {
+    real: '/version_definitions/{id}?fields=VersionDefinition/*,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version',
+  },
+
+  'mpack.get_version_definitions': {
+    real: '/version_definitions?fields=VersionDefinition/*,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version',
+  },
+
+  'registry.all': {
+    real: '/registries?fields=mpacks/*,mpacks/versions/RegistryMpackVersionInfo/*,scenarios/*'
+  },
+
+  'registry.mpacks.versions': {
+    real: '/registries?fields=mpacks/*,mpacks/versions/RegistryMpackVersionInfo/*',
+  },
+
+  'registry.mpacks': {
+    real: '/registries/{registryId}/mpacks',
+  },
+
+  'registry.mpack': {
+    real: '/registries/{registryId}/mpacks/{name}',
+  },
+
+  'registry.mpack.version': {
+    real: '/registries/{registryId}/mpacks/{name}/versions/{version}',
+  },
+
+  'registry.recommendation.usecases': {
+    real: '/registries/{registryId}/recommendations',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          recommend: "scenario-mpacks",
+          selected_scenarios: data.usecases
+        })
+      };
+    }
   }
 };
 /**

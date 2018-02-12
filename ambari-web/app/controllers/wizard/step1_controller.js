@@ -18,6 +18,7 @@
 
 var App = require('app');
 var arrayUtils = require('utils/array_utils');
+require('./wizardStep_controller');
 
 /**
  * @typedef {Em.Object} StackType
@@ -35,9 +36,11 @@ var StackType = Em.Object.extend({
   isSelected: Em.computed.someBy('stacks', 'isSelected', true)
 });
 
-App.WizardStep1Controller = Em.Controller.extend({
+App.WizardStep1Controller = App.WizardStepController.extend({
 
   name: 'wizardStep1Controller',
+
+  stepName: 'step1',
 
   /**
    * Skip repo-validation

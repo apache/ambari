@@ -1,0 +1,121 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="customProductRepos" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
+  <h4 class="step-title">{{t installer.customProductRepos.header}}</h4>
+  {{#if wizardController.hasErrors}}
+  {{#each error in wizardController.errors}}
+  <div class="alert alert-danger" role="alert"><strong>{{t common.error}}</strong> {{error}}</div>
+  {{/each}}
+  {{/if}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{#if App.router.nextBtnClickInProgress}}
+      {{view App.SpinnerView}}
+      {{else}}
+      <p class="step-description">{{t installer.customProductRepos.body.description}}</p>
+      <div class="dropdown pull-right">
+        <button id="osMenu" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">{{t installer.customProductRepos.addRemoveOs}}</button>
+        <ul class="dropdown-menu" aria-labelledby="osMenu">
+          {{#each os in operatingSystems}}
+          <li>
+            {{view App.CheckboxView nameBinding="os.type" checkedBinding="os.selected" labelBinding="os.type" changeBinding="view.selectedOsChanged"}}
+          </li>
+          {{/each}}
+        </ul>
+      </div>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th class="col-sm-2">{{t common.mpack}}</th>
+            <th class="col-sm-1">{{t common.operatingSystem}}</th>
+            <th class="col-sm-1">{{t common.repository}}</th>
+            <th class="col-sm-1">{{t common.public}} {{t common.link}}</th>
+            <th class="col-sm-7">
+              {{t common.download}} {{t common.url}} 
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#if controller.anySelectedOs}}
+            {{#each mpack in mpacks}}
+              {{#each os in mpack.operatingSystems}}
+                {{#if os.selected}}
+                  {{#each repo in os.repos}}
+                  <tr {{bindAttr class="os.isFirstSelected:mpack-firstOs repo.isFirst:os-firstRepo"}}>
+                    {{#if os.isFirstSelected}}
+                      {{#if repo.isFirst}}
+                      <td class="col-sm-2">{{mpack.displayName}}&nbsp;{{mpack.version}}</td>
+                      {{else}}
+                      <td class="col-sm-2"></td>
+                      {{/if}}
+                    {{else}}
+                    <td class="col-sm-2"></td>
+                    {{/if}}
+                    {{#if repo.isFirst}}
+                    <td class="col-sm-1">{{os.type}}</td>
+                    {{else}}
+                    <td class="col-sm-1"></td>
+                    {{/if}}
+                    <td class="col-sm-1">{{repo.repoId}}</td>
+                    <td class="col-sm-1">
+                      <a target="_blank" {{bindAttr href="repo.publicUrl"}}><i class="icon icon-external-link"></i></a>
+                    </td>
+                    <td class="col-sm-7">
+                      <div class="input-group required">
+                        {{view Em.TextField class="form-control" valueBinding="repo.downloadUrl"}}
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default icon-button-addon" {{bindAttr title="view.revertButtonTooltip" value="repo.id" }} {{action revertUrl target="view" }}>
+                            <i class="icon icon-rotate-left"></i>
+                          </button>
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                  {{/each}}
+                {{/if}}
+              {{/each}}
+            {{/each}}
+          {{else}}
+          <tr>
+            <td class="table-placeholder" colspan="5">
+              <div class="no-data">{{t installer.customProductRepos.noSelectedOs}}</div>
+            </td>
+          </tr>
+          {{/if}}
+        </tbody>
+      </table>
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+<div class="wizard-footer col-md-12">
+  <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action backTransition}} {{QAAttr "wizard-back"}}>
+    &larr; {{t common.back}}
+    {{#if App.router.backBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+  </button>
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
+    {{#if App.router.nextBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+    {{t common.next}} &rarr;
+  </button>
+</div>

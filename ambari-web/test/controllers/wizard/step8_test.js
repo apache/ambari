@@ -55,81 +55,117 @@ var configs = Em.A([
 ]);
 
 var services = Em.A([
-        Em.Object.create({
-          serviceName: 's1',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's01',
-          isClientOnlyService: false,
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isClient: true
-            })
-          ]),
-          configTypes: {
-            site1 : [],
-            site2 : []
-          },
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's2',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's02',
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isMaster: true
-            })
-          ]),
-          configTypes: {
-            site3 : []
-          },
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's3',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's03',
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isHAComponentOnly: true
-            })
-          ]),
-          configTypes: {},
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's4',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's03',
-          isClientOnlyService: true,
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isClient: true
-            })
-          ]),
-          configTypes: {},
-          isHiddenOnSelectServicePage: false
-        })
+  Em.Object.create({
+    serviceName: 's1',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's01',
+    isClientOnlyService: false,
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isClient: true
+      })
+    ]),
+    configTypes: {
+      site1 : [],
+      site2 : []
+    },
+    isHiddenOnSelectServicePage: false
+  }),
+  Em.Object.create({
+    serviceName: 's2',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's02',
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isMaster: true
+      })
+    ]),
+    configTypes: {
+      site3 : []
+    },
+    isHiddenOnSelectServicePage: false
+  }),
+  Em.Object.create({
+    serviceName: 's3',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's03',
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isHAComponentOnly: true
+      })
+    ]),
+    configTypes: {},
+    isHiddenOnSelectServicePage: false
+  }),
+  Em.Object.create({
+    serviceName: 's4',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's03',
+    isClientOnlyService: true,
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isClient: true
+      })
+    ]),
+    configTypes: {},
+    isHiddenOnSelectServicePage: false
+  })
 ]);
+
+var getStacks = function () {
+  return Em.A([
+    Em.Object.create({isSelected: false, hostName: 'h1'}),
+    Em.Object.create({
+      isSelected: true,
+      hostName: 'h2',
+      operatingSystems: Em.A([Em.Object.create({
+        name:'windows',
+        isSelected: true,
+        repositories: Em.A([Em.Object.create({
+          baseUrl: "url",
+          osType: "2",
+          repoId: "3"
+        })])
+      })])
+    }),
+    Em.Object.create({isSelected: false, hostName: 'h3'})
+  ]);
+};
+
+var getStack = function () {
+  return Em.Object.create({
+    isSelected: true,
+    hostName: 'h2',
+    operatingSystems: Em.A([Em.Object.create({
+      name:'windows',
+      isSelected: true,
+      repositories: Em.A([Em.Object.create({
+        baseUrl: "url",
+        osType: "2",
+        repoId: "3"
+      })])
+    })])
+  })
+};
 
 function getController() {
   return App.WizardStep8Controller.create({
     configs: configs,
-    content: {controllerName: ''}
+    content: {controllerName: ''},
+    getSelectedStack: getStack,
+    downloadConfig: { useRedhatSatellite: false }
   });
-}
+};
 
 describe('App.WizardStep8Controller', function () {
 
   beforeEach(function () {
     installerStep8Controller = getController();
   });
-
-  App.TestAliases.testAsComputedFilterBy(getController(), 'installedServices', 'content.services', 'isInstalled', true);
 
   App.TestAliases.testAsComputedEqual(getController(), 'isManualKerberos', 'App.router.mainAdminKerberosController.kdc_type', 'none');
 
@@ -158,9 +194,11 @@ describe('App.WizardStep8Controller', function () {
           return Em.Object.create({isSelected: true, isInstalled: false, serviceName: serviceName});
         });
         installerStep8Controller = App.WizardStep8Controller.create({
-          content: {controllerName: 'addServiceController', services: mappedServices},
+          content: {controllerName: 'addServiceController'},
+          selectedServices: mappedServices,
           configs: configs
         });
+
         var serviceData = installerStep8Controller.createSelectedServicesData();
         expect(serviceData.mapProperty('ServiceInfo.service_name')).to.eql(test.selectedServices.toArray());
         installerStep8Controller.clearStep();
@@ -530,25 +568,7 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#loadClusterInfo', function () {
     beforeEach(function () {
-      sinon.stub(App.Stack, 'find', function(){
-        return Em.A([
-          Em.Object.create({isSelected: false, hostName: 'h1'}),
-          Em.Object.create({
-            isSelected: true,
-            hostName: 'h2',
-            operatingSystems: Em.A([Em.Object.create({
-              name:'windows',
-              isSelected: true,
-              repositories: Em.A([Em.Object.create({
-                baseUrl: "url",
-                osType: "2",
-                repoId: "3"
-              })])
-            })])
-          }),
-          Em.Object.create({isSelected: false, hostName: 'h3'})
-        ]);
-      });
+      sinon.stub(App.Stack, 'find', getStacks);
     });
     afterEach(function () {
       App.Stack.find.restore();
@@ -1163,7 +1183,17 @@ describe('App.WizardStep8Controller', function () {
 
       it('App.currentStackVersion should be changed if localRepo selected', function() {
         App.set('currentStackVersion', 'HDP-2.3');
-        installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: true}}});
+        installerStep8Controller.reopen({
+          content: {controllerName: 'installerController', installOptions: { localRepo: true }},
+          getSelectedStack: function () {
+            return Em.Object.create({
+              id: "HDP-2.3-2.3.4.4-1234",
+              isSelected: true,
+              repositoryVersion: "2.3.4.4-1234",
+              stackNameVersion: "HDPLocal-2.3"
+            });
+          }
+        });
         var data = {
           data: JSON.stringify({ "Clusters": {"version": 'HDPLocal-2.3'}})
         };
@@ -1173,7 +1203,17 @@ describe('App.WizardStep8Controller', function () {
 
       it('App.currentStackVersion shouldn\'t be changed if localRepo ins\'t selected', function() {
         App.set('currentStackVersion', 'HDP-2.3');
-        installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: false}}});
+        installerStep8Controller.reopen({
+          content: {controllerName: 'installerController', installOptions: { localRepo: false }},
+          getSelectedStack: function () {
+            return Em.Object.create({
+              id: "HDP-2.3-2.3.4.4-1234",
+              isSelected: true,
+              repositoryVersion: "2.3.4.4-1234",
+              stackNameVersion: "HDP-2.3"
+            });
+          }
+        });
         var data = {
           data: JSON.stringify({ "Clusters": {"version": 'HDP-2.3'}})
         };
@@ -1952,9 +1992,9 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
-  describe('#_startDeploy', function () {
+  describe('#startDeploy', function () {
 
-    var stubbedNames = ['createCluster', 'createServiceGroup', 'createSelectedServices', 'createConfigurations',
+    var stubbedNames = ['createCluster', 'createServiceGroups', 'createSelectedServices', 'createConfigurations',
         'applyConfigurationsToCluster', 'createComponents', 'registerHostsToCluster', 'createConfigurationGroups',
         'createMasterHostComponents', 'createSlaveAndClientsHostComponents', 'createAdditionalClientComponents',
         'createAdditionalHostComponents'],
@@ -2034,7 +2074,7 @@ describe('App.WizardStep8Controller', function () {
             return Em.get(this, key);
           });
           installerStep8Controller.set('content.controllerName', item.controllerName);
-          installerStep8Controller._startDeploy();
+          installerStep8Controller.startDeploy();
         });
 
         stubbedNames.forEach(function (name) {
@@ -2386,10 +2426,15 @@ describe('App.WizardStep8Controller', function () {
        installerStep8Controller.set('content.services', services.filterProperty('isSelected'));
        installerStep8Controller.set('content.hosts', hosts);
        installerStep8Controller.set('content.configGroups', configGroups);
-       installerStep8Controller.set('selectedServices', services.filterProperty('isSelected'));
+       sinon.stub(App.StackService, 'find', function () {
+         return services.filterProperty('isSelected');
+       });
        sinon.spy(installerStep8Controller, 'getConfigurationDetailsForConfigType');
        sinon.spy(installerStep8Controller, 'hostInExistingHostGroup');
        sinon.spy(installerStep8Controller, 'hostInChildHostGroup');
+     });
+     afterEach(function () {
+       App.StackService.find.restore();
      });
      it('should call generateBlueprint', function() {
        installerStep8Controller.generateBlueprint();

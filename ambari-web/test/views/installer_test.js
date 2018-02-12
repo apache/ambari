@@ -20,13 +20,8 @@ var App = require('app');
 
 require('views/installer');
 
-var view,
-  stepsCount = 11,
-  properties = [];
-
-for (var i = 0; i < stepsCount; i++ ) {
-  properties.push('isStep' + i + 'Disabled');
-}
+var view;
+var steps;
 
 describe('App.InstallerView', function () {
 
@@ -34,6 +29,13 @@ describe('App.InstallerView', function () {
     view = App.InstallerView.create({
       controller: App.InstallerController.create()
     });
+
+    steps = view.get('controller.steps');
+
+    for (var i = 0; i < steps.length; i++ ) {
+      const stepName = steps[i].charAt(0).toUpperCase() + steps[i].slice(1);
+      properties.push('is' + stepName + 'Disabled');
+    }
   });
 
   properties.forEach(function (item, index) {

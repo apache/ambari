@@ -437,7 +437,7 @@ describe('App.AddServiceController', function() {
       describe(item.title, function () {
 
         beforeEach(function () {
-          sinon.stub(addServiceController, 'getDBProperty').withArgs('clientInfo').returns(item.clients);
+          sinon.stub(addServiceController, 'getDBProperty').withArgs('clients').returns(item.clients);
           sinon.stub(addServiceController, 'saveClients', Em.K);
           addServiceController.set('content.clients', []);
           addServiceController.loadClients();
