@@ -1739,10 +1739,10 @@ Em.I18n.translations = {
   'admin.misc.nothingToShow': 'No user accounts to display',
 
   'admin.serviceAutoStart.title': "Service Auto Start",
-  'admin.serviceAutoStart.header': "Service Auto Start Configuration",
   'admin.serviceAutoStart.header.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
-  'admin.serviceAutoStart.body.text': "Auto-Start Services",
+  'admin.serviceAutoStart.general.switcher': "Auto Start Settings",
   'admin.serviceAutoStart.tooltip.text': "{0} components enabled",
+  'admin.serviceAutoStart.column.autoStart': "Auto Start",
 
   'admin.stackVersions.filter.notInstalled': "Not Installed ({0})",
   'admin.stackVersions.filter.all': "All ({0})",
