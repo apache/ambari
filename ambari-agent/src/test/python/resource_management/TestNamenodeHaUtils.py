@@ -62,6 +62,7 @@ class TestNamenodeHaUtils(TestCase):
     # federated config dfs.internal.nameservices in hdfs-site
     hdfs_site = {
       "dfs.internal.nameservices": "ns1,ns2",
+      "dfs.nameservices": "ns1,ns2,exns1,exns2"
     }
 
     self.assertEqual(["ns1","ns2"], get_nameservices(hdfs_site))
