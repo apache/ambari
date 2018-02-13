@@ -16,7 +16,7 @@ limitations under the License.
 -->
 
 # Host Component Resources
-###API Summary
+### API Summary
 
 
 - [List host components](host-components.md)
@@ -24,7 +24,7 @@ limitations under the License.
 - [Create host component](create-hostcomponent.md)
 - [Update host component](update-hostcomponent.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>
@@ -67,7 +67,7 @@ limitations under the License.
 
 
 
-###States
+### States
 
 The current state of a host component resource can be determined by looking at the ServiceComponentInfo/state property.
 
@@ -147,13 +147,13 @@ The following table lists the possible values of the service resource ServiceCom
 </table>
 
 
-###Starting a Host Component
+### Starting a Host Component
 A component can be started through the API by setting its state to be STARTED (see [update host component](update-hostcomponent.md)).
 
-###Stopping a Host Component
+### Stopping a Host Component
 A component can be stopped through the API by setting its state to be INSTALLED (see [update host component](update-hostcomponent.md)).
 
-###Maintenance
+### Maintenance
 
 The user can update the desired state of a host component through the API to be MAINTENANCE (see [update host component](update-hostcomponent.md)).  When a host component is into maintenance state it is basically taken off line. This state can be used, for example, to move a component like NameNode.  The NameNode component can be put in MAINTENANCE mode and then a new NameNode can be created for the service. 
 

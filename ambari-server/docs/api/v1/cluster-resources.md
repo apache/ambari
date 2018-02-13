@@ -18,14 +18,14 @@ limitations under the License.
 # Cluster Resources
 Cluster resources represent named Hadoop clusters.  Clusters are top level resources.
 
-###API Summary
+### API Summary
 
 - [List clusters](clusters.md)
 - [View cluster information](clusters-cluster.md)
 - [Create cluster](create-cluster.md)
 - [Delete cluster](delete-cluster.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>
