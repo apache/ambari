@@ -150,7 +150,7 @@ public class UpgradeSummaryResourceProviderTest {
 
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
-    repoVersionEntity.setOperatingSystems("");
+    repoVersionEntity.addRepoOsEntities(new ArrayList<>());
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setVersion("2.2.0.0");
     repoVersionDAO.create(repoVersionEntity);

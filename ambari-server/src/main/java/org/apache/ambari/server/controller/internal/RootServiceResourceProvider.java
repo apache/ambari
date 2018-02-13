@@ -37,7 +37,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
 
@@ -45,12 +46,21 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
   public static final String SERVICE_NAME = "service_name";
   public static final String SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_NAME;
 
-  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(SERVICE_NAME_PROPERTY_ID);
+  /**
+   * The key property ids for a RootService resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.RootService, SERVICE_NAME_PROPERTY_ID)
+      .build();
 
-  protected RootServiceResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The property ids for a RootService resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      SERVICE_NAME_PROPERTY_ID);
+
+  protected RootServiceResourceProvider(AmbariManagementController managementController) {
+    super(Type.RootService, propertyIds, keyPropertyIds, managementController);
   }
   
   @Override
@@ -94,7 +104,7 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return PK_PROPERTY_IDS;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

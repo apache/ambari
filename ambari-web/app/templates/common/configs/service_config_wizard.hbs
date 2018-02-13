@@ -19,10 +19,10 @@
 {{#if view.supportsHostOverrides}}
   <div class="alert alert-info config-manage-nav">
     {{t common.group}}&nbsp;
-	  <span class="btn-group config-groups-dropdown">
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first" data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-        <span class="caret"></span>
+	  <div class="btn-group config-groups-dropdown">
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first" data-toggle="dropdown">
+        <span class="caret pull-caret-right"></span>
+        {{selectedConfigGroup.displayNameHosts}}
       </button>
 		  <ul class="dropdown-menu config-groups-dropdown-menu">
         <!-- available config group menu links -->
@@ -34,7 +34,7 @@
           </li>
         {{/each}}
       </ul>
-		</span>
+		</div>
     {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
       {{#if controller.isHostsConfigsPage}}
         &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>

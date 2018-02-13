@@ -22,12 +22,16 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
+import {TooltipModule} from 'ngx-bootstrap';
 import {TranslationModules} from '@app/test-config.spec';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
-import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {
+  ServiceLogsHistogramDataService, serviceLogsHistogramData
+} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
@@ -39,12 +43,11 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {AuthService} from '@app/services/auth.service';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 
-import {ServiceLogsTableComponent} from './service-logs-table.component';
+import {ServiceLogsTableComponent, ListLayout} from './service-logs-table.component';
 
 describe('ServiceLogsTableComponent', () => {
   let component: ServiceLogsTableComponent;
@@ -75,6 +78,7 @@ describe('ServiceLogsTableComponent', () => {
           auditLogs,
           serviceLogs,
           auditLogsFields,
+          auditLogsGraphData,
           serviceLogsFields,
           serviceLogsHistogramData,
           serviceLogsTruncated,
@@ -84,7 +88,8 @@ describe('ServiceLogsTableComponent', () => {
           clusters,
           components,
           hosts
-        })
+        }),
+        TooltipModule.forRoot()
       ],
       providers: [
         LogsContainerService,
@@ -96,6 +101,7 @@ describe('ServiceLogsTableComponent', () => {
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
+        AuditLogsGraphDataService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
@@ -106,7 +112,6 @@ describe('ServiceLogsTableComponent', () => {
         ComponentsService,
         HostsService,
         ComponentGeneratorService,
-        ComponentActionsService,
         AuthService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -123,4 +128,15 @@ describe('ServiceLogsTableComponent', () => {
   it('should create component', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should change the layout to TABLE', () => {
+    component.setLayout(ListLayout.Table);
+    expect(component.layout).toEqual(ListLayout.Table);
+  });
+
+  it('should change the layout to FLEX', () => {
+    component.setLayout(ListLayout.Flex);
+    expect(component.layout).toEqual(ListLayout.Flex);
+  });
+
 });

@@ -48,7 +48,7 @@ export interface SortingListItem extends ListItem {
 export interface FilterCondition {
   label?: string;
   options?: (ListItem | TimeUnitListItem[])[];
-  defaultSelection?: ListItem | ListItem[] | number;
+  defaultSelection?: ListItem | ListItem[] | number | boolean;
   iconClass?: string;
   fieldName?: string;
 }
@@ -65,6 +65,6 @@ export interface SearchBoxParameterProcessed extends SearchBoxParameter {
 }
 
 export interface SearchBoxParameterTriggered {
-  value: string;
+  item: ListItem;
   isExclude: boolean;
 }

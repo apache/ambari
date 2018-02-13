@@ -123,6 +123,11 @@ describe('App.BreadcrumbsView', function () {
       expect(view.get('items')).to.be.empty;
     });
 
+    it('`step1` route is ignored', function () {
+      currentState = getCurrentState({}, {name: 'step1'});
+      expect(view.get('items')).to.be.empty;
+    });
+
     it('last item is disabled by default', function () {
       currentState = getCurrentState({breadcrumbs: {label: 'parent'}}, {breadcrumbs: {label: 'child'}});
       expect(view.get('items.length')).to.be.equal(2);

@@ -19,7 +19,6 @@ package org.apache.ambari.server.agent;
 
 
 import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
-import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 
 import java.util.ArrayList;
@@ -53,8 +52,8 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
-import org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -133,10 +132,10 @@ public class HeartbeatProcessor extends AbstractService{
   AmbariMetaInfo ambariMetaInfo;
 
   @Inject
-  KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
+  KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
 
   @Inject
-  KerberosKeytabDAO kerberosKeytabDao;
+  KerberosKeytabDAO kerberosKeytabDAO;
 
   @Inject
   Gson gson;
@@ -429,7 +428,7 @@ public class HeartbeatProcessor extends AbstractService{
 
         String customCommand = report.getCustomCommand();
 
-        if (SET_KEYTAB.equalsIgnoreCase(customCommand) || REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
+        if (SET_KEYTAB.equalsIgnoreCase(customCommand)) {
           WriteKeytabsStructuredOut writeKeytabsStructuredOut;
           try {
             writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
@@ -445,18 +444,10 @@ public class HeartbeatProcessor extends AbstractService{
                 for (Map.Entry<String, String> entry : keytabs.entrySet()) {
                   String principal = entry.getKey();
                   String keytabPath = entry.getValue();
-                  KerberosPrincipalHostEntity kphe = kerberosPrincipalHostDAO.find(principal, host.getHostId(), keytabPath);
-                  kphe.setDistributed(true);
-                  kerberosPrincipalHostDAO.merge(kphe);
-                }
-              }
-            } else if (REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
-              Map<String, String> deletedKeytabs = writeKeytabsStructuredOut.getRemovedKeytabs();
-              if (deletedKeytabs != null) {
-                for (Map.Entry<String, String> entry : deletedKeytabs.entrySet()) {
-                  String keytabPath = entry.getValue();
-                  kerberosPrincipalHostDAO.removeByKeytabPath(keytabPath);
-                  kerberosKeytabDao.remove(keytabPath);
+                  for (KerberosKeytabPrincipalEntity kkpe: kerberosKeytabPrincipalDAO.findByHostAndKeytab(host.getHostId(), keytabPath)) {
+                    kkpe.setDistributed(true);
+                    kerberosKeytabPrincipalDAO.merge(kkpe);
+                  }
                 }
               }
             }
@@ -465,9 +456,9 @@ public class HeartbeatProcessor extends AbstractService{
           ListKeytabsStructuredOut structuredOut = gson.fromJson(report.getStructuredOut(), ListKeytabsStructuredOut.class);
           for (MissingKeytab each : structuredOut.missingKeytabs) {
             LOG.info("Missing principal: {} for keytab: {} on host: {}", each.principal, each.keytabFilePath, hostname);
-            KerberosPrincipalHostEntity kphe = kerberosPrincipalHostDAO.find(each.principal, host.getHostId(), each.keytabFilePath);
-            kphe.setDistributed(false);
-            kerberosPrincipalHostDAO.merge(kphe);
+            KerberosKeytabPrincipalEntity kkpe = kerberosKeytabPrincipalDAO.findByHostKeytabAndPrincipal(host.getHostId(), each.keytabFilePath, each.principal);
+            kkpe.setDistributed(false);
+            kerberosKeytabPrincipalDAO.merge(kkpe);
           }
         }
       }

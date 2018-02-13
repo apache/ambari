@@ -199,10 +199,9 @@ describe('App.ManageConfigGroupsController', function() {
     var service = Em.Object.create({});
     manageConfigGroupsController.set('hostsModifiedConfigGroups', {});
     describe("#controller passed", function () {
-      controller = Em.Object.create({
+      var popup = manageConfigGroupsController.manageConfigurationGroups(Em.Object.create({
         content: Em.Object.create()
-      });
-      var popup = manageConfigGroupsController.manageConfigurationGroups(controller, service);
+      }), service);
 
       describe("#onPrimary()", function () {
         beforeEach(function () {

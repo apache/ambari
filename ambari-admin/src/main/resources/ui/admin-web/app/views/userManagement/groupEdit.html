@@ -27,11 +27,11 @@
         <button
           ng-switch-when="true"
           class="btn disabled deletegroup-btn"
-          tooltip="{{'common.cannotDelete' | translate: '{term: constants.group}'}}">
-          {{'common.delete' | translate: '{term: constants.group}'}}
+          tooltip="{{'common.cannotDelete' | translate:{term: constants.group} }}">
+          {{'common.delete' | translate:{term: constants.group} }}
         </button>
         <button ng-switch-when="false" class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)">
-          {{'common.delete' | translate: '{term: constants.group}'}}
+          {{'common.delete' | translate:{term: constants.group} }}
         </button>
       </div>
     </div>
@@ -50,7 +50,7 @@
         <editable-list items-source="group.editingUsers" resource-type="User" editable="group.group_type == 'LOCAL'"></editable-list>
       </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-show="cluster">
       <label for="role" class="col-sm-2 roles-label">
         {{'groups.role' | translate}}
         <i class="fa fa-question-circle" aria-hidden="true" ng-click="showHelpPage()"></i>
@@ -86,7 +86,7 @@
             </td>
           </tr>
           <tr>
-            <td ng-show="noClusterPriv">{{'common.alerts.noPrivileges' | translate: '{term: constants.cluster}'}}</td>
+            <td ng-show="noClusterPriv">{{'common.alerts.noPrivileges' | translate:{term: constants.cluster} }}</td>
           </tr>
           </tbody>
           <thead class="view-permission-header">
@@ -109,12 +109,12 @@
             </td>
           </tr>
           <tr>
-            <td ng-show="noViewPriv">{{'common.alerts.noPrivileges' | translate: '{term: constants.view}'}}</td>
+            <td ng-show="noViewPriv">{{'common.alerts.noPrivileges' | translate:{term: constants.view} }}</td>
           </tr>
           </tbody>
         </table>
         <div class="alert alert-info" ng-show="hidePrivileges">
-          {{'common.alerts.noPrivilegesDescription' | translate: '{term: constants.group.toLowerCase()}'}}
+          {{'common.alerts.noPrivilegesDescription' | translate:{term: constants.group.toLowerCase()} }}
         </div>
       </div>
     </div>

@@ -19,6 +19,17 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.InputFileMarker;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.output.Output;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -26,24 +37,17 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-
-public class OutputFile extends Output {
+public class OutputFile extends Output<LogFeederProps, InputFileMarker> {
   private static final Logger LOG = Logger.getLogger(OutputFile.class);
 
   private PrintWriter outWriter;
   private String filePath = null;
   private String codec;
+  private LogFeederProps logFeederProps;
 
   @Override
-  public void init() throws Exception {
-    super.init();
-
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    this.logFeederProps = logFeederProps;
     filePath = getStringValue("path");
     if (StringUtils.isEmpty(filePath)) {
       LOG.error("Filepath config property <path> is not set in config file.");
@@ -86,11 +90,11 @@ public class OutputFile extends Output {
         // Ignore this exception
       }
     }
-    isClosed = true;
+    setClosed(true);
   }
 
   @Override
-  public void write(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
+  public void write(Map<String, Object> jsonObj, InputFileMarker inputMarker) throws Exception {
     String outStr = null;
     CSVPrinter csvPrinter = null;
     try {
@@ -117,7 +121,7 @@ public class OutputFile extends Output {
   }
 
   @Override
-  synchronized public void write(String block, InputMarker inputMarker) throws Exception {
+  synchronized public void write(String block, InputFileMarker inputMarker) throws Exception {
     if (outWriter != null && block != null) {
       statMetric.value++;
 
@@ -127,8 +131,32 @@ public class OutputFile extends Output {
   }
 
   @Override
+  public Long getPendingCount() {
+    return null;
+  }
+
+  @Override
+  public String getWriteBytesMetricName() {
+    return "output.kafka.write_bytes";
+  }
+
+  @Override
   public String getShortDescription() {
     return "output:destination=file,path=" + filePath;
+  }
+
+  @Override
+  public String getStatMetricName() {
+    return "output.file.write_logs";
+  }
+
+  @Override
+  public String getOutputType() {
+    throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
+  }
+
+  @Override
+  public void outputConfigChanged(OutputProperties outputProperties) {
   }
 
   @Override

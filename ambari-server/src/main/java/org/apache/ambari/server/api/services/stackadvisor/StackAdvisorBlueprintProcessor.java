@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.services.stackadvisor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +28,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.St
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
 import org.apache.ambari.server.topology.Blueprint;
@@ -77,26 +76,27 @@ public class StackAdvisorBlueprintProcessor {
    * @param userProvidedConfigurations User configurations of cluster provided in Blueprint + Cluster template
    */
   public void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> userProvidedConfigurations) throws ConfigurationTopologyException {
-    StackAdvisorRequest request = createStackAdvisorRequest(clusterTopology, StackAdvisorRequestType.CONFIGURATIONS);
-    try {
-      RecommendationResponse response = stackAdvisorHelper.recommend(request);
-      addAdvisedConfigurationsToTopology(response, clusterTopology, userProvidedConfigurations);
-    } catch (StackAdvisorException e) {
-      throw new ConfigurationTopologyException(RECOMMENDATION_FAILED, e);
-    } catch (IllegalArgumentException e) {
-      throw new ConfigurationTopologyException(INVALID_RESPONSE, e);
+    for (StackId stackId : clusterTopology.getBlueprint().getStackIds()) {
+      StackAdvisorRequest request = createStackAdvisorRequest(clusterTopology, stackId, StackAdvisorRequestType.CONFIGURATIONS);
+      try {
+        RecommendationResponse response = stackAdvisorHelper.recommend(request);
+        addAdvisedConfigurationsToTopology(response, clusterTopology, userProvidedConfigurations);
+      } catch (StackAdvisorException e) {
+        throw new ConfigurationTopologyException(RECOMMENDATION_FAILED, e);
+      } catch (IllegalArgumentException e) {
+        throw new ConfigurationTopologyException(INVALID_RESPONSE, e);
+      }
     }
   }
 
-  private StackAdvisorRequest createStackAdvisorRequest(ClusterTopology clusterTopology, StackAdvisorRequestType requestType) {
-    Stack stack = clusterTopology.getBlueprint().getStack();
+  private StackAdvisorRequest createStackAdvisorRequest(ClusterTopology clusterTopology, StackId stackId, StackAdvisorRequestType requestType) {
     Map<String, Set<String>> hgComponentsMap = gatherHostGroupComponents(clusterTopology);
     Map<String, Set<String>> hgHostsMap = gatherHostGroupBindings(clusterTopology);
     Map<String, Set<String>> componentHostsMap = gatherComponentsHostsMap(hgComponentsMap,
             hgHostsMap);
     return StackAdvisorRequest.StackAdvisorRequestBuilder
-      .forStack(stack.getName(), stack.getVersion())
-      .forServices(new ArrayList<>(clusterTopology.getBlueprint().getServices()))
+      .forStack(stackId)
+      .forServices(clusterTopology.getBlueprint().getStack().getServices(stackId))
       .forHosts(gatherHosts(clusterTopology))
       .forHostsGroupBindings(gatherHostGroupBindings(clusterTopology))
       .forHostComponents(gatherHostGroupComponents(clusterTopology))

@@ -49,8 +49,14 @@
         </component>
       </components>
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>ECS</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>ECS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
     </service>
   </services>

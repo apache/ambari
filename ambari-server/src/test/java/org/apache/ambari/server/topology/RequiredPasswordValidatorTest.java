@@ -149,12 +149,12 @@ public class RequiredPasswordValidatorTest extends EasyMockSupport {
 
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
-    expect(group1.getComponents("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
-    expect(group1.getComponents("service2")).andReturn(Arrays.asList("component3")).anyTimes();
-    expect(group1.getComponents("service3")).andReturn(Collections.emptySet()).anyTimes();
-    expect(group2.getComponents("service1")).andReturn(Arrays.asList("component1")).anyTimes();
-    expect(group2.getComponents("service2")).andReturn(Collections.emptySet()).anyTimes();
-    expect(group2.getComponents("service3")).andReturn(Arrays.asList("component4")).anyTimes();
+    expect(group1.getComponentNames("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
+    expect(group1.getComponentNames("service2")).andReturn(Arrays.asList("component3")).anyTimes();
+    expect(group1.getComponentNames("service3")).andReturn(Collections.emptySet()).anyTimes();
+    expect(group2.getComponentNames("service1")).andReturn(Arrays.asList("component1")).anyTimes();
+    expect(group2.getComponentNames("service2")).andReturn(Collections.emptySet()).anyTimes();
+    expect(group2.getComponentNames("service3")).andReturn(Arrays.asList("component4")).anyTimes();
 
     expect(stack.getServiceForComponent("component1")).andReturn("service1").anyTimes();
     expect(stack.getServiceForComponent("component2")).andReturn("service1").anyTimes();

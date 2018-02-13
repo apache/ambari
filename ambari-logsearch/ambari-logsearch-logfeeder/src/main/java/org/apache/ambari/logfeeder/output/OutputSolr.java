@@ -19,25 +19,10 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.DateUtil;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
@@ -56,7 +41,23 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.cloud.CollectionStateWatcher;
 import org.apache.solr.common.cloud.DocCollection;
 
-public class OutputSolr extends Output implements CollectionStateWatcher {
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+public class OutputSolr extends Output<LogFeederProps, InputMarker> implements CollectionStateWatcher {
 
   private static final Logger LOG = Logger.getLogger(OutputSolr.class);
 
@@ -88,6 +89,8 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   private BlockingQueue<OutputData> outgoingBuffer = null;
   private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
 
+  private LogFeederProps logFeederProps;
+
   @Override
   public boolean monitorConfigChanges() {
     return true;
@@ -99,18 +102,18 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   }
 
   @Override
-  protected String getStatMetricName() {
+  public String getStatMetricName() {
     return "output.solr.write_logs";
   }
 
   @Override
-  protected String getWriteBytesMetricName() {
+  public String getWriteBytesMetricName() {
     return "output.solr.write_bytes";
   }
   
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    this.logFeederProps = logFeederProps;
     initParams();
     setupSecurity();
     createOutgoingBuffer();
@@ -121,7 +124,7 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   private void initParams() throws Exception {
     type = getStringValue("type");
     while (true) {
-      OutputSolrProperties outputSolrProperties = logSearchConfig.getOutputSolrProperties(type);
+      OutputSolrProperties outputSolrProperties = getLogSearchConfig().getOutputSolrProperties(type);
       if (outputSolrProperties == null) {
         LOG.info("Output solr properties for type " + type + " is not available yet.");
         try { Thread.sleep(OUTPUT_PROPERTIES_WAIT_MS); } catch (Exception e) { LOG.warn(e); }
@@ -175,8 +178,8 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   }
 
   private void setupSecurity() {
-    String jaasFile = LogFeederPropertiesUtil.getSolrJaasFile();
-    boolean securityEnabled = LogFeederPropertiesUtil.isSolrKerberosEnabled();
+    String jaasFile = logFeederProps.getLogFeederSecurityConfig().getSolrJaasFile();
+    boolean securityEnabled = logFeederProps.getLogFeederSecurityConfig().isSolrKerberosEnabled();
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
       HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
@@ -325,7 +328,7 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   }
 
   @Override
-  public long getPendingCount() {
+  public Long getPendingCount() {
     long pendingCount = 0;
     for (SolrWorkerThread solrWorkerThread : workerThreadList) {
       pendingCount += solrWorkerThread.localBuffer.size();
@@ -476,7 +479,8 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
               Level.ERROR);
         }
       }
-      latestInputMarkers.put(outputData.inputMarker.base64FileKey, outputData.inputMarker);
+      latestInputMarkers.put(outputData.inputMarker.getAllProperties().get("base64_file_key").toString(),
+        outputData.inputMarker);
       localBuffer.add(document);
     }
 
@@ -511,7 +515,7 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
       statMetric.value += localBuffer.size();
       writeBytesMetric.value += localBufferBytesSize;
       for (InputMarker inputMarker : latestInputMarkers.values()) {
-        inputMarker.input.checkIn(inputMarker);
+        inputMarker.getInput().checkIn(inputMarker);
       }
     }
 

@@ -22,12 +22,13 @@
       <name>HBASE</name>
       <comment>Non-relational distributed database and centralized service for configuration management &amp; synchronization</comment>
       <version>0.95.2.2.0.6.0</version>
-
+      <category>SERVER</category>
       <components>
         <component>
           <name>HBASE_MASTER</name>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <version>0.95.2.2.0.6.0-hbase-master</version>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

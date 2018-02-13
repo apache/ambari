@@ -474,7 +474,7 @@ public class ClustersTest {
 
     ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();
@@ -578,7 +578,7 @@ public class ClustersTest {
 
     ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();

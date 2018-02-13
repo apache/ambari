@@ -42,8 +42,18 @@ public class ConfigurationServiceTest extends BaseServiceTest {
     Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
+    service = new TestConfigurationService("clusterName", "serviceGroupName", "serviceName");
+    m = service.getClass().getMethod("getConfigurations", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
     //createConfigurations
     service = new TestConfigurationService("clusterName");
+    m = service.getClass().getMethod("createConfigurations", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
+
+    service = new TestConfigurationService("clusterName", "serviceGroupName", "serviceName");
     m = service.getClass().getMethod("createConfigurations", String.class, HttpHeaders.class, UriInfo.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
@@ -53,16 +63,29 @@ public class ConfigurationServiceTest extends BaseServiceTest {
 
 
   private class TestConfigurationService extends ConfigurationService {
-    private String m_clusterId;
+    private final String m_clusterId;
+    private final String m_serviceId;
+    private final String m_serviceGroupName;
 
     private TestConfigurationService(String clusterId) {
       super(clusterId);
       m_clusterId = clusterId;
+      m_serviceGroupName = null;
+      m_serviceId = null;
     }
 
+    private TestConfigurationService(String clusterId, String serviceGroupName, String serviceId) {
+      super(clusterId, serviceGroupName, serviceId);
+      m_clusterId = clusterId;
+      m_serviceGroupName = serviceGroupName;
+      m_serviceId = serviceId;
+    }
 
-    ResourceInstance createConfigurationResource(String clusterName) {
+    @Override
+    ResourceInstance createConfigurationResource(String clusterName, String serviceGroupName, String serviceName) {
       assertEquals(m_clusterId, clusterName);
+      assertEquals(m_serviceGroupName, serviceGroupName);
+      assertEquals(m_serviceId, serviceName);
       return getTestResource();
     }
 

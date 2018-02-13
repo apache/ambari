@@ -852,7 +852,7 @@ App.WizardStep3Controller = App.WizardStepController.extend(App.ReloadPopupMixin
         function () {
           self._submitProceed();
         },
-        Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
+        Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'), null, Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings.header'), null, 'warning');
     }
     this._submitProceed();
   },

@@ -47,7 +47,7 @@ class TestLogSearch(RMFTestCase):
                               cd_access = 'a',
                               mode = 0755
     )
-    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf',
+    self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal/conf',
                               owner = 'logsearch',
                               group = 'hadoop',
                               create_parents = True,
@@ -55,7 +55,7 @@ class TestLogSearch(RMFTestCase):
                               cd_access = 'a',
                               mode = 0755
     )
-    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf/solr_configsets',
+    self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal/conf/solr_configsets',
                               owner = 'logsearch',
                               group = 'hadoop',
                               create_parents = True,
@@ -63,7 +63,7 @@ class TestLogSearch(RMFTestCase):
                               cd_access = 'a',
                               mode = 0755
                               )
-    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf/keys',
+    self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal/conf/keys',
                               owner = 'logsearch',
                               group = 'hadoop',
                               cd_access = 'a',
@@ -76,15 +76,15 @@ class TestLogSearch(RMFTestCase):
                               mode = 0644,
                               content = ''
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ks_pass.txt',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/keys/ks_pass.txt',
                               action = ['delete']
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ts_pass.txt',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/keys/ts_pass.txt',
                               action = ['delete']
     )
-    self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
+    self.assertResourceCalled('PropertiesFile', '/usr/lib/ambari-logsearch-portal/conf/logsearch.properties',
                               properties = {'common-property': 'common-value',
-                                            'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch.jceks',
+                                            'hadoop.security.credential.provider.path': 'jceks://file/usr/lib/ambari-logsearch-portal/conf/logsearch.jceks',
                                             'logsearch.audit.logs.split.interval.mins': '1',
                                             'logsearch.auth.external_auth.enabled': 'false',
                                             'logsearch.auth.external_auth.host_url': 'http://c6401.ambari.apache.org:8080',
@@ -115,38 +115,38 @@ class TestLogSearch(RMFTestCase):
                                             'logsearch.spnego.kerberos.host': 'localhost'
                               }
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/HadoopServiceConfig.json',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/HadoopServiceConfig.json',
                               owner = 'logsearch',
                               group='hadoop',
                               content = Template('HadoopServiceConfig.json.j2')
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/log4j.xml',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/log4j.xml',
                               owner = 'logsearch',
                               group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-log4j']['content'])
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch-env.sh',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/logsearch-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-env']['content']),
                               mode = 0755,
                               owner = "logsearch",
                               group='hadoop'
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch-admin.json',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/logsearch-admin.json',
                               owner = 'logsearch',
                               group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-admin-json']['content'])
                               )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf/solrconfig.xml',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf/solrconfig.xml',
                               owner = 'logsearch',
                               group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-service_logs-solrconfig']['content'])
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf/solrconfig.xml',
+    self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf/solrconfig.xml',
                               owner = 'logsearch',
                               group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
-    self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/etc/ambari-logsearch-portal/conf/solr_configsets'),
+    self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/usr/lib/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo = True
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 30 --interval 5')
@@ -174,7 +174,6 @@ class TestLogSearch(RMFTestCase):
     )
 
     self.configureResourcesCalled()
-    self.assertResourceCalled('Execute', "/usr/lib/ambari-logsearch-portal/run.sh",
-                              environment = {'LOGSEARCH_INCLUDE': '/etc/ambari-logsearch-portal/conf/logsearch-env.sh'},
+    self.assertResourceCalled('Execute', "/usr/lib/ambari-logsearch-portal/bin/logsearch.sh start",
                               user = "logsearch"
     )

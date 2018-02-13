@@ -81,7 +81,10 @@ limitations under the License.
       </commandScript>
 
       <requiredServices>
-        <service>HDFS</service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

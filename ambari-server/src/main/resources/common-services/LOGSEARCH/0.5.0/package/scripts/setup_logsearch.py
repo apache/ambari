@@ -53,7 +53,7 @@ def setup_logsearch():
             owner=params.logsearch_user,
             group=params.user_group)
 
-  File(params.logsearch_log,
+  File(format("{logsearch_log_dir}/{logsearch_log}"),
        mode=0644,
        owner=params.logsearch_user,
        group=params.user_group,
@@ -154,4 +154,5 @@ def check_znode():
     zookeeper_quorum=params.logsearch_solr_zk_quorum,
     solr_znode=params.logsearch_solr_zk_znode,
     java64_home=params.java64_home,
-    retry=30, interval=5)
+    retry=30, interval=5,
+    java_opts=params.zk_security_opts if params.security_enabled else None)

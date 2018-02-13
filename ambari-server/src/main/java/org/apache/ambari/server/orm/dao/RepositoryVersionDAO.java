@@ -24,6 +24,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.RepositoryType;
@@ -159,14 +160,14 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @param stackEntity Stack entity.
    * @param version Stack version, e.g., 2.2 or 2.2.0.1-885
    * @param displayName Unique display name
-   * @param operatingSystems JSON structure of repository URLs for each OS
+   * @param repoOsEntities structure of repository URLs for each OS
    * @return Returns the object created if successful, and throws an exception otherwise.
    * @throws AmbariException
    */
   public RepositoryVersionEntity create(StackEntity stackEntity,
-      String version, String displayName,
-      String operatingSystems) throws AmbariException {
-      return create(stackEntity, version, displayName, operatingSystems,
+                                        String version, String displayName,
+                                        List<RepoOsEntity> repoOsEntities) throws AmbariException {
+    return create(stackEntity, version, displayName, repoOsEntities,
           RepositoryType.STANDARD);
   }
 
@@ -176,15 +177,15 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @param stackEntity Stack entity.
    * @param version Stack version, e.g., 2.2 or 2.2.0.1-885
    * @param displayName Unique display name
-   * @param operatingSystems JSON structure of repository URLs for each OS
+   * @param repoOsEntities structure of repository URLs for each OS
    * @param type  the repository type
    * @return Returns the object created if successful, and throws an exception otherwise.
    * @throws AmbariException
    */
   @Transactional
   public RepositoryVersionEntity create(StackEntity stackEntity,
-      String version, String displayName,
-      String operatingSystems, RepositoryType type) throws AmbariException {
+                                        String version, String displayName, List<RepoOsEntity> repoOsEntities,
+                                        RepositoryType type) throws AmbariException {
 
     if (stackEntity == null || version == null || version.isEmpty()
         || displayName == null || displayName.isEmpty()) {
@@ -211,7 +212,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     }
 
     RepositoryVersionEntity newEntity = new RepositoryVersionEntity(
-        stackEntity, version, displayName, operatingSystems);
+        stackEntity, version, displayName, repoOsEntities);
     newEntity.setType(type);
     this.create(newEntity);
     return newEntity;

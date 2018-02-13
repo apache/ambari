@@ -63,7 +63,7 @@ public abstract class RegistryAdvisorResourceProvider extends AbstractController
    */
   protected RegistryAdvisorResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds,
     AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.Registry, propertyIds, keyPropertyIds, managementController);
   }
 
   /**

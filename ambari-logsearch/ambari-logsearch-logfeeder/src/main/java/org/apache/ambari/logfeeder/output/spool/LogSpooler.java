@@ -19,11 +19,14 @@
 package org.apache.ambari.logfeeder.output.spool;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -32,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * A class that manages local storage of log events before they are uploaded to the output destinations.
  *
- * This class should be used by any {@link Output}s that wish to upload log files to an
+ * This class should be used by any {@link org.apache.ambari.logfeeder.plugin.output.Output}s that wish to upload log files to an
  * output destination on a periodic batched basis. Log events should be added to an instance
  * of this class to be stored locally. This class determines when to
  * rollover using calls to an interface {@link RolloverCondition}. Likewise, it uses an interface
@@ -57,7 +60,7 @@ public class LogSpooler {
   /**
    * Create an instance of the LogSpooler.
    * @param spoolDirectory The directory under which spooler files are created.
-   *                       Should be unique per instance of {@link Output}
+   *                       Should be unique per instance of {@link org.apache.ambari.logfeeder.plugin.output.Output}
    * @param sourceFileNamePrefix The prefix with which the locally spooled files are created.
    * @param rolloverCondition An object of type {@link RolloverCondition} that will be used to
    *                          determine when to rollover.
@@ -73,7 +76,7 @@ public class LogSpooler {
   /**
    * Create an instance of the LogSpooler.
    * @param spoolDirectory The directory under which spooler files are created.
-   *                       Should be unique per instance of {@link Output}
+   *                       Should be unique per instance of {@link org.apache.ambari.logfeeder.plugin.output.Output}
    * @param sourceFileNamePrefix The prefix with which the locally spooled files are created.
    * @param rolloverCondition An object of type {@link RolloverCondition} that will be used to
    *                          determine when to rollover.

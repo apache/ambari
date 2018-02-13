@@ -22,6 +22,13 @@
   src: url('fonts/Roboto-Regular-webfont.eot');
   src: url('fonts/Roboto-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('fonts/Roboto-Regular-webfont.woff') format('woff'), url('fonts/Roboto-Regular-webfont.ttf') format('truetype'), url('fonts/Roboto-Regular-webfont.svg#robotoregular') format('svg');
 }
+@font-face {
+  font-family: 'Roboto';
+  font-weight: bold;
+  font-style: normal;
+  src: url('fonts/Roboto-Bold-webfont.eot');
+  src: url('fonts/Roboto-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('fonts/Roboto-Bold-webfont.woff') format('woff'), url('fonts/Roboto-Bold-webfont.ttf') format('truetype'), url('fonts/Roboto-Bold-webfont.svg#robotobold') format('svg');
+}
 .font-mixin {
   font-family: 'Roboto', sans-serif;
   font-weight: normal;
@@ -624,8 +631,8 @@ h2.table-title {
   top: 9px;
   line-height: 16px;
   text-align: center;
-  width: 20px;
-  height: 20px;
+  width: 23px;
+  height: 23px;
   border: 2px solid #1EB475;
   border-radius: 50%;
   font-size: 12px;
@@ -642,6 +649,7 @@ h2.table-title {
   font-size: 14px;
   color: #999;
   margin-left: 30px;
+  margin-bottom: 5px;
 }
 .wizard .wizard-body .wizard-nav .nav li .step-index {
   line-height: 18px;
@@ -680,7 +688,7 @@ h2.table-title {
   background-color: #1EB475;
   content: "";
   top: 25px;
-  left: 29px;
+  left: 31px;
 }
 .wizard .wizard-body .wizard-nav .nav li.completed:last-child:after {
   content: none;

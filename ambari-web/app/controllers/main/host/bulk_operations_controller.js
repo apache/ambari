@@ -65,7 +65,7 @@ App.BulkOperationsController = Em.Controller.extend({
           this.bulkOperationForHostsReinstall(operationData, hosts);
         }
         else if (operationData.action === 'DELETE'){
-          this.bulkOperationForHostsDeleteDryRun(operationData, hosts);
+          this._bulkOperationForHostsDelete(hosts);
         }
         else {
           if (operationData.action === 'PASSIVE_STATE') {
@@ -262,118 +262,83 @@ App.BulkOperationsController = Em.Controller.extend({
   },
 
   /**
-   * Calling dry_run for bulk delete selected hosts
-   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
-   * @param {Ember.Enumerable} hosts - list of affected hosts
-   */
-  bulkOperationForHostsDeleteDryRun: function (operationData, hosts) {
-    var self = this;
-    App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
-      return App.ajax.send({
-        name: 'common.hosts.delete',
-        sender: self,
-        data: {
-          urlParams: "/?dry_run=true",
-          query: 'Hosts/host_name.in(' + hosts.mapProperty('hostName').join(',') + ')',
-          hosts: hosts.mapProperty('hostName')
-        },
-        success: 'bulkOperationForHostsDeleteDryRunCallback',
-        error: 'bulkOperationForHostsDeleteDryRunCallback',
-        showLoadingPopup: true
-      });
-    });
-  },
-
-  /**
-   * Show popup after dry_run for bulk delete hosts
-   * @method bulkOperationForHostsDeleteDryRunCallback
-   */
-  bulkOperationForHostsDeleteDryRunCallback: function (arg0, arg1, arg2, arg3, arg4) {
-    var self = this;
-    var deletableHosts = [];
-    var undeletableHosts = [];
-    if (arg1 == "error") {
-      var request = arg0;
-      var params = arg4;
-      var response = JSON.parse(request.responseText);
-      var host = Ember.Object.create({
+  * Check which hosts can be deleted and warn the user about it in advance
+  * @param {Ember.Enumerable} hosts - list of affected hosts
+  */
+  _bulkOperationForHostsDelete: function (hosts) {
+    var self = this,
+        hostNamesToDelete = [],
+        hostsNotToDelete = [];
+    var createNonDeletableComponents = function (hostName, message) {
+      return Em.Object.create({
         error: {
-          key: params.hosts[0],
-          code: response.status,
-          message: response.message
+          key: hostName,
+          message: message
         },
         isCollapsed: true,
         isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
       });
-      undeletableHosts.push(host);
-    } else {
-      var data = arg0;
-      var params = arg2;
-      if (data) {
-        data.deleteResult.forEach(function (host) {
-          if (host.deleted) {
-            deletableHosts.push(host);
-          } else {
-            var _host = Ember.Object.create({
-              error: host.error,
-              isCollapsed: true,
-              isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
-            });
-            undeletableHosts.push(_host);
-          }
-        });
+    };
+    hosts.forEach(function (host) {
+      var hostComponents = App.HostComponent.find().filterProperty('hostName', host.hostName);
+      var hostInfo = App.router.get('mainHostDetailsController').getHostComponentsInfo(hostComponents);
+      console.dir(hostInfo);
+      if (hostInfo.nonDeletableComponents.length > 0) {
+        hostsNotToDelete.push(createNonDeletableComponents(host.hostName, Em.I18n.t('hosts.bulkOperation.deleteHosts.nonDeletableComponents').format(hostInfo.nonDeletableComponents.join(", "))));
+      } else if (hostInfo.nonAddableMasterComponents.length > 0) {
+        hostsNotToDelete.push(createNonDeletableComponents(host.hostName, Em.I18n.t('hosts.bulkOperation.deleteHosts.nonAddableMasterComponents').format(hostInfo.nonAddableMasterComponents.join(", "))));
+      } else if (hostInfo.lastMasterComponents.length > 0) {
+        hostsNotToDelete.push(createNonDeletableComponents(host.hostName, Em.I18n.t('hosts.bulkOperation.deleteHosts.lastMasterComponents').format(hostInfo.lastMasterComponents.join(", "))));
+      } else if (hostInfo.runningComponents.length > 0) {
+        hostsNotToDelete.push(createNonDeletableComponents(host.hostName, Em.I18n.t('hosts.bulkOperation.deleteHosts.runningComponents').format(hostInfo.runningComponents.join(", "))));
       } else {
-        var host = {
-          deleted: {
-            key: params.hosts[0]
-          }
-        };
-        deletableHosts.push(host);
+        hostNamesToDelete.push(host.hostName);
       }
-    }
+    });
 
-    if (undeletableHosts.length) {
-      return App.ModalPopup.show({
-        header: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.header'),
-
-        primary: deletableHosts.length ? Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.primary').format(deletableHosts.length) : null,
-
-        onPrimary: function () {
-          this._super();
-          self.bulkOperationForHostsDelete(deletableHosts);
-        },
-        bodyClass: Em.View.extend({
-          templateName: require('templates/main/host/delete_hosts_dry_run_popup'),
-          message: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.message').format(undeletableHosts.length),
-          undeletableHosts: undeletableHosts,
-          onToggleHost: function (host) {
-            host.contexts[0].toggleProperty('isCollapsed');
-          }
-        })
-      });
-    } else if (deletableHosts.length) {
-      this.bulkOperationForHostsDelete(deletableHosts);
-    }
+    return App.ModalPopup.show({
+      header: hostNamesToDelete.length ? Em.I18n.t('hosts.bulkOperation.deleteHosts.confirm.header') : Em.I18n.t('rolling.nothingToDo.header'),
+      primary: hostNamesToDelete.length ? Em.I18n.t('common.next') : null,
+      primaryClass: 'btn-default',
+      onPrimary: function () {
+        this._super();
+        self.bulkOperationForHostsDelete(hostNamesToDelete);
+      },
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/bulk_add_delete_confirm_popup'),
+        modifyMessage: Em.I18n.t('hosts.bulkOperation.deleteHosts.confirm.delete'),
+        skipMessage: hostNamesToDelete.length ? Em.I18n.t('hosts.bulkOperation.deleteHosts.cannot.delete1') : Em.I18n.t('hosts.bulkOperation.deleteHosts.cannot.delete2'),
+        skippedHosts: hostsNotToDelete.length ? hostsNotToDelete : null,
+        hostsToModify: hostNamesToDelete.length ? hostNamesToDelete.join("\n") : null,
+        onToggleHost: function (host) {
+          host.contexts[0].toggleProperty('isCollapsed');
+        }
+      })
+    });
   },
 
   /**
    * Bulk delete selected hosts
-   * @param {Ember.Enumerable} hosts - list of affected hosts
+   * @param {String} hosts - list of affected host names
    */
   bulkOperationForHostsDelete: function (hosts) {
-    var self = this;
+    var confirmKey = 'delete',
+        self = this;
     App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
       return App.ModalPopup.show({
         header: Em.I18n.t('hosts.bulkOperation.deleteHosts.confirmation.header'),
-
+        confirmInput: '',
+        disablePrimary: Em.computed.notEqual('confirmInput', confirmKey),
+        primary: Em.I18n.t('common.confirm'),
+        primaryClass: 'btn-warning',
         onPrimary: function () {
           this._super();
           return App.ajax.send({
             name: 'common.hosts.delete',
             sender: self,
             data: {
-              query: 'Hosts/host_name.in(' + hosts.mapProperty('deleted.key').join(',') + ')',
-              hosts: hosts.mapProperty('deleted.key')
+              query: 'Hosts/host_name.in(' + hosts.join(',') + ')',
+              hosts: hosts
             },
             success: 'bulkOperationForHostsDeleteCallback',
             error: 'bulkOperationForHostsDeleteCallback',
@@ -382,7 +347,8 @@ App.BulkOperationsController = Em.Controller.extend({
         },
         bodyClass: Em.View.extend({
           templateName: require('templates/main/host/delete_hosts_popup'),
-          hosts: hosts
+          hostNames: hosts,
+          typeMessage: Em.I18n.t('services.service.confirmDelete.popup.body.type').format(confirmKey),
         })
       });
     });
@@ -414,9 +380,7 @@ App.BulkOperationsController = Em.Controller.extend({
       var params = arg2;
       if (data) {
         data.deleteResult.forEach(function (host) {
-          if (host.deleted) {
-            deletedHosts.push(host);
-          } else {
+          if (!host.deleted) {
             var _host = Ember.Object.create({
               error: host.error,
               isCollapsed: true,
@@ -425,14 +389,8 @@ App.BulkOperationsController = Em.Controller.extend({
             undeletableHosts.push(_host);
           }
         });
-      } else {
-        var host = {
-          deleted: {
-            key: params.hosts[0]
-          }
-        };
-        deletedHosts.push(host);
       }
+      deletedHosts = params.hosts;
     }
 
     return App.ModalPopup.show({
@@ -444,7 +402,7 @@ App.BulkOperationsController = Em.Controller.extend({
         templateName: require('templates/main/host/delete_hosts_result_popup'),
         message: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.message').format(undeletableHosts.length),
         undeletableHosts: undeletableHosts,
-        deletedHosts: deletedHosts.sortProperty('deleted.key'),
+        deletedHosts: deletedHosts,
         onToggleHost: function (host) {
           host.contexts[0].toggleProperty('isCollapsed');
         }
@@ -542,70 +500,44 @@ App.BulkOperationsController = Em.Controller.extend({
   _getComponentsFromServerForHostComponentsAddCallback: function (operationData, data, hosts) {
     var self = this;
 
-    hosts = hosts.mapProperty('hostName');
-
     var allHostsWithComponent = data.items.mapProperty('Hosts.host_name');
-    var hostsWithComponent = hosts.filter(function (host) {
-      return allHostsWithComponent.contains(host);
+    var hostsWithComponent = [];
+    hosts.forEach(function (host) {
+      if(allHostsWithComponent.contains(host.hostName)) {
+        hostsWithComponent.push(Em.Object.create({
+          error: {
+            key: host.hostName,
+            message: Em.I18n.t('hosts.bulkOperation.confirmation.add.component.skip').format(operationData.componentNameFormatted)
+          },
+          isCollapsed: true,
+          isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
+        }));
+      }
     });
     var hostsWithOutComponent = hosts.filter(function(host) {
-      return !hostsWithComponent.contains(host);
+      return !hostsWithComponent.findProperty('error.key', host.hostName);
     });
 
-    var minShown = 3;
+    hostsWithOutComponent = hostsWithOutComponent.mapProperty('hostName');
 
-    if (hostsWithOutComponent.length) {
-      return App.ModalPopup.show({
-        header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
-        hostNames: hostsWithOutComponent.join("\n"),
-        visibleHosts: self._showHostNames(hostsWithOutComponent, "\n", minShown),
-        hostNamesSkippedVisible: self._showHostNames(hostsWithComponent, "\n", minShown),
-        expanded: false,
-
-        hostNamesSkipped: function() {
-          return hostsWithComponent.length ? hostsWithComponent.join("\n") : false;
-        }.property(),
-
-        didInsertElement: function() {
-          this._super();
-          this.set('expanded', hostsWithOutComponent.length <= minShown);
-        },
-
-        onPrimary: function() {
-          self.bulkAddHostComponents(operationData, hostsWithOutComponent);
-          this._super();
-        },
-        bodyClass: Em.View.extend({
-          templateName: require('templates/main/host/bulk_operation_confirm_popup'),
-          message: Em.I18n.t('hosts.bulkOperation.confirmation.add.component').format(operationData.message, operationData.componentNameFormatted, hostsWithOutComponent.length),
-          warningInfo: Em.I18n.t('hosts.bulkOperation.confirmation.add.component.skip').format(operationData.componentNameFormatted),
-          textareaVisible: false,
-          textTrigger: function() {
-            this.toggleProperty('textareaVisible');
-          },
-
-          showAll: function() {
-            this.set('parentView.visibleHosts', this.get('parentView.hostNames'));
-            this.set('parentView.hostNamesSkippedVisible', this.get('parentView.hostNamesSkipped'));
-            this.set('parentView.expanded', true);
-          },
-          putHostNamesToTextarea: function() {
-            var hostNames = this.get('parentView.hostNames');
-            if (this.get('textareaVisible')) {
-              var wrapper = $(".task-detail-log-maintext");
-              $('.task-detail-log-clipboard').html(hostNames).width(wrapper.width()).height(250);
-              Em.run.next(function() {
-                $('.task-detail-log-clipboard').select();
-              });
-            }
-          }.observes('textareaVisible')
-        })
-      });
-    }
     return App.ModalPopup.show({
-      header: Em.I18n.t('rolling.nothingToDo.header'),
-      body: Em.I18n.t('hosts.bulkOperation.confirmation.add.component.nothingToDo.body').format(operationData.componentNameFormatted),
-      secondary: false
+      header: hostsWithOutComponent.length ? Em.I18n.t('hosts.bulkOperation.confirmation.header') : Em.I18n.t('rolling.nothingToDo.header'),
+      primary: hostsWithOutComponent.length ? Em.I18n.t('hosts.host.addComponent.popup.confirm') : null,
+
+      onPrimary: function() {
+        self.bulkAddHostComponents(operationData, hostsWithOutComponent);
+        this._super();
+      },
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/bulk_add_delete_confirm_popup'),
+        modifyMessage: Em.I18n.t('hosts.bulkOperation.confirmation.add.component').format(operationData.componentNameFormatted),
+        skipMessage: hostsWithOutComponent.length ? Em.I18n.t('hosts.bulkOperation.confirmation.cannot.add1') : Em.I18n.t('hosts.bulkOperation.confirmation.cannot.add2').format(operationData.componentNameFormatted),
+        hostsToModify: hostsWithOutComponent.length ? hostsWithOutComponent.join("\n") : null,
+        skippedHosts: hostsWithComponent.length ? hostsWithComponent : null,
+        onToggleHost: function (host) {
+          host.contexts[0].toggleProperty('isCollapsed');
+        }
+      })
     });
   },
   /**
@@ -669,11 +601,11 @@ App.BulkOperationsController = Em.Controller.extend({
       hosts: hosts.mapProperty('hostName'),
       displayParams: ['host_components/HostRoles/state']
     }, function (data) {
-      return self._getComponentsFromServerForHostComponentsDeleteCallback(operationData, data);
+      return self._getComponentsFromServerForHostComponentsDeleteCallback(operationData, data, hosts);
     });
   },
 
-  _getComponentsFromServerForHostComponentsDeleteCallback: function (operationData, data) {
+  _getComponentsFromServerForHostComponentsDeleteCallback: function (operationData, data, requestedHosts) {
     var self = this;
     var minToInstall = App.StackServiceComponent.find(operationData.componentName).get('minToInstall');
     var installedCount = App.HostComponent.getCount(operationData.componentName, 'totalCount');
@@ -683,13 +615,6 @@ App.BulkOperationsController = Em.Controller.extend({
       return [App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(state);
     }).mapProperty('Hosts.host_name');
 
-    if (!hostsToDelete.length) {
-      return App.ModalPopup.show({
-        header: Em.I18n.t('rolling.nothingToDo.header'),
-        body: Em.I18n.t('hosts.bulkOperation.confirmation.delete.component.nothingToDo.body').format(operationData.componentNameFormatted),
-        secondary: false
-      });
-    }
     if (installedCount - hostsToDelete.length < minToInstall) {
       return App.ModalPopup.show({
         header: Em.I18n.t('rolling.nothingToDo.header'),
@@ -698,56 +623,45 @@ App.BulkOperationsController = Em.Controller.extend({
       });
     }
 
-    var hostsToSkip = installedHosts.filter(function (host) {
-      return !hostsToDelete.contains(host);
+    var hostsNotToDelete = [];
+
+    requestedHosts.mapProperty('hostName').forEach(function (host) {
+      if (!hostsToDelete.contains(host)) {
+        var hostToSkip = Em.Object.create({
+          error : {
+            key: host,
+            message: null,
+          },
+          isCollapsed : true,
+          isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
+        });
+        if(installedHosts.contains(host)) {
+          hostToSkip.error.message = Em.I18n.t('hosts.bulkOperation.confirmation.delete.component.notStopped').format(operationData.componentNameFormatted);
+        } else {
+          hostToSkip.error.message = Em.I18n.t('hosts.bulkOperation.confirmation.delete.component.notInstalled').format(operationData.componentNameFormatted);
+        }
+        hostsNotToDelete.push(hostToSkip);
+      }
     });
 
-    var minShown = 3;
-
     return App.ModalPopup.show({
-      header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
-      hostNames: hostsToDelete.join("\n"),
-      visibleHosts: self._showHostNames(hostsToDelete, "\n", minShown),
-      hostNamesSkippedVisible: self._showHostNames(hostsToSkip, "\n", minShown),
-      expanded: false,
-
-      hostNamesSkipped: function() {
-        return hostsToSkip.length ? hostsToSkip.join("\n") : false;
-      }.property(),
-
-      didInsertElement: function() {
-        this.set('expanded', hostsToDelete.length <= minShown);
-        this._super();
-      },
+      header: hostsToDelete.length ? Em.I18n.t('hosts.bulkOperation.confirmation.header') : Em.I18n.t('rolling.nothingToDo.header'),
+      primary: hostsToDelete.length ? Em.I18n.t('hosts.host.deleteComponent.popup.confirm') : null,
+      primaryClass: 'btn-warning',
 
       onPrimary: function() {
         self.bulkDeleteHostComponents(operationData, hostsToDelete);
         this._super();
       },
       bodyClass: Em.View.extend({
-        templateName: require('templates/main/host/bulk_operation_confirm_popup'),
-        message: Em.I18n.t('hosts.bulkOperation.confirmation.add.component').format(operationData.message, operationData.componentNameFormatted, hostsToDelete.length),
-        warningInfo: Em.I18n.t('hosts.bulkOperation.confirmation.delete.component.skip').format(operationData.componentNameFormatted),
-        textareaVisible: false,
-        textTrigger: function() {
-          this.toggleProperty('textareaVisible');
-        },
-
-        showAll: function() {
-          this.set('parentView.visibleHosts', this.get('parentView.hostNames'));
-          this.set('parentView.hostNamesSkippedVisible', this.get('parentView.hostNamesSkipped'));
-          this.set('parentView.expanded', true);
-        },
-        putHostNamesToTextarea: function() {
-          var hostNames = this.get('parentView.hostNames');
-          if (this.get('textareaVisible')) {
-            var wrapper = $(".task-detail-log-maintext");
-            $('.task-detail-log-clipboard').html(hostNames).width(wrapper.width()).height(250);
-            Em.run.next(function() {
-              $('.task-detail-log-clipboard').select();
-            });
-          }
-        }.observes('textareaVisible')
+        templateName: require('templates/main/host/bulk_add_delete_confirm_popup'),
+        modifyMessage: Em.I18n.t('hosts.bulkOperation.confirmation.delete.component').format(operationData.componentNameFormatted),
+        skipMessage: hostsToDelete.length ? Em.I18n.t('hosts.bulkOperation.confirmation.delete.component.cannot1') :  Em.I18n.t('hosts.bulkOperation.confirmation.delete.component.cannot2').format(operationData.componentNameFormatted),
+        hostsToModify: hostsToDelete.length ? hostsToDelete.join("\n") : null,
+        skippedHosts: hostsNotToDelete.length ? hostsNotToDelete : null,
+        onToggleHost: function (host) {
+          host.contexts[0].toggleProperty('isCollapsed');
+        }
       })
     });
   },
@@ -784,6 +698,7 @@ App.BulkOperationsController = Em.Controller.extend({
   bulkOperationForHostComponentsDeleteCallback: function (arg0, arg1, arg2, arg3, arg4) {
     var deletedHosts = [];
     var undeletableHosts = [];
+    var componentName = arg2.componentName;
     if (arg1 == "error") {
       var request = arg0;
       let params = arg4;
@@ -803,9 +718,7 @@ App.BulkOperationsController = Em.Controller.extend({
       let params = arg2;
       if (data) {
         data.deleteResult.forEach(function (host) {
-          if (host.deleted) {
-            deletedHosts.push(host);
-          } else {
+          if (!host.deleted) {
             var _host = Ember.Object.create({
               error: host.error,
               isCollapsed: true,
@@ -814,9 +727,8 @@ App.BulkOperationsController = Em.Controller.extend({
             undeletableHosts.push(_host);
           }
         });
-      } else {
-        deletedHosts.pushObjects(params.hostNames.map(hostName => ({deleted: {key: `${hostName}/${params.componentName}`}})));
       }
+      deletedHosts = (params.hostNames);
     }
 
     return App.ModalPopup.show({
@@ -826,9 +738,10 @@ App.BulkOperationsController = Em.Controller.extend({
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/delete_hosts_result_popup'),
-        message: Em.I18n.t('hosts.bulkOperation.delete.component.dryRun.message').format(undeletableHosts.length),
+        message: Em.I18n.t('hosts.bulkOperation.delete.component.dryRun.message').format(componentName),
+        componentName: componentName,
         undeletableHosts: undeletableHosts,
-        deletedHosts: deletedHosts.sortProperty('deleted.key'),
+        deletedHosts: deletedHosts,
         deleteComponents: true,
         onToggleHost: function (host) {
           host.contexts[0].toggleProperty('isCollapsed');
@@ -1174,28 +1087,24 @@ App.BulkOperationsController = Em.Controller.extend({
       return;
     }
 
-    if ('SET_RACK_INFO' === operationData.action) {
+    if (['SET_RACK_INFO', 'ADD', 'DELETE'].contains(operationData.action)) {
       return self.bulkOperation(operationData, hosts);
     }
 
-    var hostNames = hosts.mapProperty('hostName');
-    var hostNamesSkipped = [];
-    if ('DECOMMISSION' === operationData.action) {
-      hostNamesSkipped = this._getSkippedForDecommissionHosts(json, hosts, operationData);
-    }
-    if ('PASSIVE_STATE' === operationData.action) {
-      hostNamesSkipped = this._getSkippedForPassiveStateHosts(hosts);
-    }
+     var hostNames = hosts.mapProperty('hostName');
+     var hostNamesSkipped = [];
+     if ('DECOMMISSION' === operationData.action) {
+       hostNamesSkipped = this._getSkippedForDecommissionHosts(json, hosts, operationData);
+     }
+     if ('PASSIVE_STATE' === operationData.action) {
+       hostNamesSkipped = this._getSkippedForPassiveStateHosts(hosts);
+     }
 
     var message = "";
     if (operationData.componentNameFormatted) {
       message = Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length);
     } else {
-      if (operationData.action == 'DELETE') {
-        message = Em.I18n.t('hosts.bulkOperation.confirmation.delete.hosts').format(hostNames.length);
-      } else {
-        message = Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
-      }
+      message = Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
     }
 
 

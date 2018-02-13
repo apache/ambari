@@ -20,13 +20,18 @@ package org.apache.ambari.logsearch.model.request.impl;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.TopParamDefinition;
+import org.apache.ambari.logsearch.model.request.UserParamDefinition;
 
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
-public class TopFieldAuditLogRequest extends FieldAuditLogRequest implements TopParamDefinition {
+public class TopFieldAuditLogRequest extends FieldAuditLogRequest implements TopParamDefinition, UserParamDefinition {
 
   @PathParam(LogSearchConstants.REQUEST_PARAM_TOP)
   private Integer top;
+
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_USERS)
+  private String userList;
 
   @Override
   public Integer getTop() {
@@ -36,5 +41,15 @@ public class TopFieldAuditLogRequest extends FieldAuditLogRequest implements Top
   @Override
   public void setTop(Integer top) {
     this.top = top;
+  }
+
+  @Override
+  public String getUserList() {
+    return userList;
+  }
+
+  @Override
+  public void setUserList(String userList) {
+    this.userList = userList;
   }
 }

@@ -33,6 +33,7 @@ public class MpackResponse {
   private String mpackUri;
   private Long registryId;
   private String stackId;
+  private String description;
 
   public MpackResponse(Mpack mpack) {
     this.mpackId = mpack.getMpackId();
@@ -41,6 +42,7 @@ public class MpackResponse {
     this.mpackName = mpack.getName();
     this.registryId = mpack.getRegistryId();
     this.stackId = mpack.getStackId();
+    this.description = mpack.getDescription();
   }
 
   public String getMpackVersion() {
@@ -90,6 +92,16 @@ public class MpackResponse {
   public void setMpackId(Long mpackId) {
     this.mpackId = mpackId;
   }
+
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
 
   @Override
   public int hashCode() {

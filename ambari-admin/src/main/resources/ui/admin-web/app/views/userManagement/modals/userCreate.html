@@ -38,6 +38,7 @@
              tooltip="{{'users.userNameTip' | translate}}"
              autocomplete="off"
              tooltip-trigger="focus"
+             tooltip-placement="top"
              class="form-control"
              ng-model="formData.userName"
              name="userName"
@@ -98,7 +99,7 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-show="cluster">
       <div class="form-group col-sm-6"
            ng-class="{ 'has-error': form.userCreateForm.role.$error.required && form.userCreateForm.submitted }">
         <label for="role" class="nowrap roles-label">

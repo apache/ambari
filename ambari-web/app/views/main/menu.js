@@ -216,6 +216,10 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
 
     hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
 
+    isClientOnlyService : function(){
+      return App.get('services.clientOnly').contains(this.get('content.serviceName'));
+    }.property('content.serviceName'),
+
     isConfigurable: function () {
       return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
     }.property('App.services.noConfigTypes','content.serviceName'),

@@ -67,6 +67,11 @@ public class LogsearchJWTFilter extends AbstractJWTFilter {
   }
 
   @Override
+  protected List<String> getUserAgentList() {
+    return authPropsConfig.getUserAgentList();
+  }
+
+  @Override
   protected Collection<? extends GrantedAuthority> getAuthorities() {
     return null; // TODO
   }

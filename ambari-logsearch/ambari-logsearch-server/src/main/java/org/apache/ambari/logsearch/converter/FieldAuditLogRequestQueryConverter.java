@@ -20,7 +20,10 @@ package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.FieldAuditLogRequest;
+import org.apache.ambari.logsearch.solr.SolrConstants;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.solr.core.query.FacetOptions;
+import org.springframework.data.solr.core.query.SimpleFacetQuery;
 
 import javax.inject.Named;
 
@@ -50,4 +53,10 @@ public class FieldAuditLogRequestQueryConverter extends AbstractLogRequestFacetQ
     return LogType.AUDIT;
   }
 
+  @Override
+  public void appendFacetQuery(SimpleFacetQuery facetQuery, FieldAuditLogRequest request) {
+    addInFiltersIfNotNullAndEnabled(facetQuery, request.getUserList(),
+      SolrConstants.AuditLogConstants.AUDIT_REQUEST_USER,
+      StringUtils.isNotBlank(request.getUserList()));
+  }
 }

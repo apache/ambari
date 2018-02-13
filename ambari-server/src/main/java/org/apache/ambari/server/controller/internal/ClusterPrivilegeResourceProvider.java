@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +36,9 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 /**
  * Resource provider for cluster privileges.
@@ -56,25 +58,22 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_ID_PROPERTY_ID);
-    propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
-    propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
-    propertyIds.add(PERMISSION_LABEL_PROPERTY_ID);
-    propertyIds.add(PRINCIPAL_NAME_PROPERTY_ID);
-    propertyIds.add(PRINCIPAL_TYPE_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      PRIVILEGE_CLUSTER_NAME_PROPERTY_ID,
+      PRIVILEGE_ID_PROPERTY_ID,
+      PERMISSION_NAME_PROPERTY_ID,
+      PERMISSION_NAME_PROPERTY_ID,
+      PERMISSION_LABEL_PROPERTY_ID,
+      PRINCIPAL_NAME_PROPERTY_ID,
+      PRINCIPAL_TYPE_PROPERTY_ID);
 
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.Cluster, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ClusterPrivilege, PRIVILEGE_ID_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Cluster, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID)
+      .put(Resource.Type.ClusterPrivilege, PRIVILEGE_ID_PROPERTY_ID)
+      .build();
 
   // ----- Constructors ------------------------------------------------------
 

@@ -68,7 +68,7 @@ def setup_ranger_admin(upgrade_type=None):
     create_parents = True
   )
 
-  copy_jdbc_connector()
+  copy_jdbc_connector(ranger_home)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
     content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -256,12 +256,11 @@ def setup_ranger_db(stack_version=None):
   import params
   
   ranger_home = params.ranger_home
-  version = params.version
+
   if stack_version is not None:
     ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
-    version = stack_version
 
-  copy_jdbc_connector(stack_version=version)
+  copy_jdbc_connector(ranger_home)
 
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = {'audit_store': params.ranger_audit_source_type},
@@ -291,11 +290,11 @@ def setup_ranger_db(stack_version=None):
           user=params.unix_user,
   )
 
-
 def setup_java_patch(stack_version=None):
   import params
 
   ranger_home = params.ranger_home
+
   if stack_version is not None:
     ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
 
@@ -309,7 +308,6 @@ def setup_java_patch(stack_version=None):
           logoutput=True,
           user=params.unix_user,
   )
-
 
 def do_keystore_setup(upgrade_type=None):
   import params
@@ -382,7 +380,7 @@ def password_validation(password):
   else:
     Logger.info("password validated")
 
-def copy_jdbc_connector(stack_version=None):
+def copy_jdbc_connector(ranger_home):
   import params
 
   if params.jdbc_jar_name is None and params.driver_curl_source.endswith("/None"):
@@ -397,10 +395,6 @@ def copy_jdbc_connector(stack_version=None):
     content = DownloadSource(params.driver_curl_source),
     mode = 0644
   )
-
-  ranger_home = params.ranger_home
-  if stack_version is not None:
-    ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
 
   driver_curl_target = format("{ranger_home}/ews/lib/{jdbc_jar_name}")
 
@@ -441,7 +435,7 @@ def copy_jdbc_connector(stack_version=None):
       properties = {'SQL_CONNECTOR_JAR': format('{driver_curl_target}')},
        owner = params.unix_user,
     )
- 
+
 def setup_usersync(upgrade_type=None):
   import params
 
@@ -802,7 +796,6 @@ def get_ranger_plugin_principals(services_defaults_tuple_list):
     user_principal = default(format("configurations/ranger-{service}-audit/xasecure.audit.jaas.Client.option.principal"), default_value)
     user_principals.append(user_principal)
   return user_principals
-
 
 def setup_tagsync_ssl_configs():
   import params

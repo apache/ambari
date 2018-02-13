@@ -18,34 +18,37 @@
  */
 package org.apache.ambari.logfeeder.input;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.ambari.logfeeder.util.S3Util;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.solr.common.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class InputS3File extends AbstractInputFile {
+import java.io.BufferedReader;
+import java.io.File;
+
+public class InputS3File extends InputFile {
+
+  private static final Logger LOG = LoggerFactory.getLogger(InputS3File.class);
 
   @Override
   public boolean isReady() {
-    if (!isReady) {
+    if (!isReady()) {
       // Let's try to check whether the file is available
-      logFiles = getActualFiles(logPath);
-      if (!ArrayUtils.isEmpty(logFiles)) {
-        if (tail && logFiles.length > 1) {
-          LOG.warn("Found multiple files (" + logFiles.length + ") for the file filter " + filePath +
-              ". Will use only the first one. Using " + logFiles[0].getAbsolutePath());
+      setLogFiles(getActualFiles(getLogPath()));
+      if (!ArrayUtils.isEmpty(getLogFiles())) {
+        if (isTail() && getLogFiles().length > 1) {
+          LOG.warn("Found multiple files (" + getLogFiles().length + ") for the file filter " + getFilePath() +
+              ". Will use only the first one. Using " + getLogFiles()[0].getAbsolutePath());
         }
-        LOG.info("File filter " + filePath + " expanded to " + logFiles[0].getAbsolutePath());
-        isReady = true;
+        LOG.info("File filter " + getFilePath() + " expanded to " + getLogFiles()[0].getAbsolutePath());
+        setReady(true);
       } else {
-        LOG.debug(logPath + " file doesn't exist. Ignoring for now");
+        LOG.debug(getLogPath() + " file doesn't exist. Ignoring for now");
       }
     }
-    return isReady;
+    return isReady();
   }
 
   private File[] getActualFiles(String searchPath) {
@@ -54,14 +57,13 @@ public class InputS3File extends AbstractInputFile {
   }
 
   @Override
-  void start() throws Exception {
-    if (ArrayUtils.isEmpty(logFiles)) {
+  public void start() throws Exception {
+    if (ArrayUtils.isEmpty(getLogFiles())) {
       return;
     }
-
-    for (int i = logFiles.length - 1; i >= 0; i--) {
-      File file = logFiles[i];
-      if (i == 0 || !tail) {
+    for (int i = getLogFiles().length - 1; i >= 0; i--) {
+      File file = getLogFiles()[i];
+      if (i == 0 || !isTail()) {
         try {
           processFile(file, i == 0);
           if (isClosed() || isDrain()) {
@@ -77,24 +79,25 @@ public class InputS3File extends AbstractInputFile {
   }
 
   @Override
-  protected BufferedReader openLogFile(File logPathFile) throws IOException {
-    String s3AccessKey = ((InputS3FileDescriptor)inputDescriptor).getS3AccessKey();
-    String s3SecretKey = ((InputS3FileDescriptor)inputDescriptor).getS3SecretKey();
+  public BufferedReader openLogFile(File logPathFile) throws Exception {
+    String s3AccessKey = ((InputS3FileDescriptor)getInputDescriptor()).getS3AccessKey();
+    String s3SecretKey = ((InputS3FileDescriptor)getInputDescriptor()).getS3SecretKey();
     BufferedReader br = S3Util.getReader(logPathFile.getPath(), s3AccessKey, s3SecretKey);
-    fileKey = getFileKey(logPathFile);
-    base64FileKey = Base64.byteArrayToBase64(fileKey.toString().getBytes());
+    Object fileKey = getFileKey(logPathFile);
+    setFileKey(fileKey);
+    String base64FileKey = Base64.byteArrayToBase64(getFileKey().toString().getBytes());
+    setBase64FileKey(base64FileKey);
     LOG.info("fileKey=" + fileKey + ", base64=" + base64FileKey + ". " + getShortDescription());
     return br;
   }
 
-  @Override
-  protected Object getFileKey(File logFile) {
+  private Object getFileKey(File logFile) {
     return logFile.getPath();
   }
   
   @Override
   public void close() {
     super.close();
-    isClosed = true;
+    setClosed(true);
   }
 }

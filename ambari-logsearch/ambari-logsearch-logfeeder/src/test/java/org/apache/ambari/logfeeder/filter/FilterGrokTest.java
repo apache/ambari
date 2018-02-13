@@ -20,9 +20,10 @@ package org.apache.ambari.logfeeder.filter;
 
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.output.OutputManager;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.InputFileMarker;
+import org.apache.ambari.logfeeder.plugin.input.Input;
+import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterGrokDescriptorImpl;
 import org.apache.log4j.Logger;
@@ -52,7 +53,7 @@ public class FilterGrokTest {
     filterGrok.loadConfig(filterGrokDescriptor);
     filterGrok.setOutputManager(mockOutputManager);
     filterGrok.setInput(EasyMock.mock(Input.class));
-    filterGrok.init();
+    filterGrok.init(new LogFeederProps());
   }
 
   @Test
@@ -64,12 +65,12 @@ public class FilterGrokTest {
     filterGrokDescriptor.setMultilinePattern("^(%{TIMESTAMP_ISO8601:logtime})");
     init(filterGrokDescriptor);
 
-    mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
+    mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputFileMarker.class));
     EasyMock.expectLastCall();
     EasyMock.replay(mockOutputManager);
 
-    filterGrok.apply("2016-04-08 15:55:23,548 INFO This is a test", new InputMarker(null, null, 0));
-    filterGrok.apply("2016-04-08 15:55:24,548 WARN Next message", new InputMarker(null, null, 0));
+    filterGrok.apply("2016-04-08 15:55:23,548 INFO This is a test", new InputFileMarker(null, null, 0));
+    filterGrok.apply("2016-04-08 15:55:24,548 WARN Next message", new InputFileMarker(null, null, 0));
 
     EasyMock.verify(mockOutputManager);
     Map<String, Object> jsonParams = capture.getValue();
@@ -90,7 +91,7 @@ public class FilterGrokTest {
     filterGrokDescriptor.setMultilinePattern("^(%{TIMESTAMP_ISO8601:logtime})");
     init(filterGrokDescriptor);
 
-    mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
+    mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputFileMarker.class));
     EasyMock.expectLastCall();
     EasyMock.replay(mockOutputManager);
 
@@ -98,7 +99,7 @@ public class FilterGrokTest {
         + "as one may expect";
     String[] messageLines = multiLineMessage.split("\r\n");
     for (int i = 0; i < messageLines.length; i++)
-      filterGrok.apply((i == 0 ? "2016-04-08 15:55:23,548 INFO " : "") + messageLines[i], new InputMarker(null, null, 0));
+      filterGrok.apply((i == 0 ? "2016-04-08 15:55:23,548 INFO " : "") + messageLines[i], new InputFileMarker(null, null, 0));
     filterGrok.flush();
 
     EasyMock.verify(mockOutputManager);
@@ -120,12 +121,12 @@ public class FilterGrokTest {
     filterGrokDescriptor.setMultilinePattern("^(%{TIMESTAMP_ISO8601:logtime})");
     init(filterGrokDescriptor);
 
-    mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
+    mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputFileMarker.class));
     EasyMock.expectLastCall().anyTimes();
     EasyMock.replay(mockOutputManager);
 
-    filterGrok.apply("04/08/2016 15:55:23,548 INFO This is a test", new InputMarker(null, null, 0));
-    filterGrok.apply("04/08/2016 15:55:24,548 WARN Next message", new InputMarker(null, null, 0));
+    filterGrok.apply("04/08/2016 15:55:23,548 INFO This is a test", new InputFileMarker(null, null, 0));
+    filterGrok.apply("04/08/2016 15:55:24,548 WARN Next message", new InputFileMarker(null, null, 0));
 
     EasyMock.verify(mockOutputManager);
     assertFalse("Something was captured!", capture.hasCaptured());
@@ -141,8 +142,8 @@ public class FilterGrokTest {
 
     EasyMock.replay(mockOutputManager);
 
-    filterGrok.apply("2016-04-08 15:55:23,548 INFO This is a test", new InputMarker(null, null, 0));
-    filterGrok.apply("2016-04-08 15:55:24,548 WARN Next message", new InputMarker(null, null, 0));
+    filterGrok.apply("2016-04-08 15:55:23,548 INFO This is a test", new InputFileMarker(null, null, 0));
+    filterGrok.apply("2016-04-08 15:55:24,548 WARN Next message", new InputFileMarker(null, null, 0));
 
     EasyMock.verify(mockOutputManager);
     assertFalse("Something was captured", capture.hasCaptured());

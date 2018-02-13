@@ -17,19 +17,28 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.Properties;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
 import org.apache.directory.server.core.annotations.ApplyLdifFiles;
@@ -37,8 +46,12 @@ import org.apache.directory.server.core.annotations.ContextEntry;
 import org.apache.directory.server.core.annotations.CreateDS;
 import org.apache.directory.server.core.annotations.CreatePartition;
 import org.apache.directory.server.core.integ.FrameworkRunner;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -70,17 +83,27 @@ import com.google.inject.Injector;
 @ApplyLdifFiles("users_for_dn_with_space.ldif")
 public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLdapAuthenticationProviderBaseTest {
 
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
   private static Injector injector;
 
   @Inject
-  private AmbariLdapAuthenticationProvider authenticationProvider;
-  @Inject
   private UserDAO userDAO;
+
   @Inject
   private Users users;
 
   @Inject
   Configuration configuration;
+
+  @Mock(type = MockType.NICE)
+  private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
+
+  @Mock(type = MockType.NICE)
+  private AmbariLdapConfigurationProvider ldapConfigurationProvider;
+
+  private AmbariLdapAuthenticationProvider authenticationProvider;
 
   @Before
   public void setUp() throws Exception {
@@ -89,7 +112,16 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     injector.injectMembers(this);
 
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
-    configuration.setProperty(Configuration.LDAP_PRIMARY_URL, "localhost:" + getLdapServer().getPort());
+    final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration();
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "localhost");
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, String.valueOf(getLdapServer().getPort()));
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "dc=ambari,dc=the apache,dc=org");
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.GROUP_BASE, "ou=the groups,dc=ambari,dc=the apache,dc=org");
+    expect(ldapConfigurationProvider.get()).andReturn(ldapConfiguration).anyTimes();
+    expect(authoritiesPopulator.getGrantedAuthorities(anyObject(), anyObject())).andReturn(Collections.emptyList()).anyTimes();
+    replayAll();
+
+    authenticationProvider = new AmbariLdapAuthenticationProvider(users, configuration, ldapConfigurationProvider, authoritiesPopulator);
   }
 
   @After
@@ -104,9 +136,25 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
   }
 
   @Test
-  public void testAuthenticate() throws Exception {
-    assertNull("User alread exists in DB", userDAO.findLdapUserByName("the allowedUser"));
-    users.createUser("the allowedUser", "password", UserType.LDAP, true, false);
+  public void testAuthenticateMatchingDN() throws Exception {
+    testAuthenticate("uid=the allowedUser,ou=the people,dc=ambari,dc=the apache,dc=org");
+  }
+
+  @Test
+  public void testAuthenticateNullDN() throws Exception {
+    testAuthenticate(null);
+  }
+
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
+  public void testAuthenticateNonMatchingDN() throws Exception {
+    testAuthenticate("This is not a matching DN");
+  }
+
+  private void testAuthenticate(String dn) throws AmbariException {
+    assertNull("User already exists in DB", userDAO.findUserByName("the allowedUser"));
+    UserEntity userEntity = users.createUser("the allowedUser", null, null);
+    users.addLdapAuthentication(userEntity, dn);
+
     Authentication authentication = new UsernamePasswordAuthenticationToken("the allowedUser", "password");
     Authentication result = authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());
@@ -131,9 +179,6 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
     properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
-    //make ambari detect active configuration
-    properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=ambari,dc=the apache,dc=org");
-    properties.setProperty(Configuration.LDAP_GROUP_BASE.getKey(), "ou=the groups,dc=ambari,dc=the apache,dc=org");
     return properties;
   }
 }

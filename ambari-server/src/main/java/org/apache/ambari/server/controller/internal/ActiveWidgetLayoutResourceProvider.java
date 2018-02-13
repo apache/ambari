@@ -126,7 +126,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
    *
    */
   public ActiveWidgetLayoutResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Type.ActiveWidgetLayout, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -160,7 +160,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
       }
 
       java.lang.reflect.Type type = new TypeToken<Set<Map<String, String>>>(){}.getType();
-        Set<Map<String, String>> activeWidgetLayouts = gson.fromJson(userDAO.findSingleUserByName(userName).getActiveWidgetLayouts(), type);
+        Set<Map<String, String>> activeWidgetLayouts = gson.fromJson(userDAO.findUserByName(userName).getActiveWidgetLayouts(), type);
         if (activeWidgetLayouts != null) {
           for (Map<String, String> widgetLayoutId : activeWidgetLayouts) {
             layoutEntities.add(widgetLayoutDAO.findById(Long.parseLong(widgetLayoutId.get(ID))));

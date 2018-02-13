@@ -16,7 +16,7 @@
 -->
 
 <header>
-  <nav class="navbar navbar-fixed-top">
+  <nav class="navbar">
     <div class="container-fluid">
       <h1 [ngClass]="{'full-flex-width': !isAuthorized, 'pull-left': true}">{{'common.title' | translate}}</h1>
       <top-menu *ngIf="isAuthorized"></top-menu>
@@ -24,11 +24,4 @@
   </nav>
 </header>
 
-<main-container>
-  <ng-template>
-    <!-- hidden element for moving the main bar outside the fixed header -->
-    <div class="navbar invisible">
-      <h1>&nbsp;</h1>
-    </div>
-  </ng-template>
-</main-container>
+<main-container></main-container>

@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,8 +74,9 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ExtensionInfo;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -83,6 +85,9 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.ScriptSource;
+import org.apache.ambari.server.state.alert.Source;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
@@ -157,7 +162,7 @@ public class AmbariMetaInfo {
   private File customActionRoot;
   private File mpacksV2Staging;
   private String commonKerberosDescriptorFileLocation;
-  private Map<String, VersionDefinitionXml> versionDefinitions = null;
+  Map<String, VersionDefinitionXml> versionDefinitions = null;
 
 
   @Inject
@@ -690,12 +695,12 @@ public class AmbariMetaInfo {
   }
 
   /**
-   * Gets the packlet information for given mpack.
+   * Gets the module information for given mpack.
    * @param mpackId
-   * @return List of Packlets.
+   * @return List of Modules.
    */
-  public List<Packlet> getPacklets(Long mpackId) {
-    return mpackManager.getPacklets(mpackId);
+  public List<Module> getModules(Long mpackId) {
+    return mpackManager.getModules(mpackId);
   }
 
 
@@ -1201,6 +1206,30 @@ public class AmbariMetaInfo {
   }
 
   /**
+   * Returns new definitions for the merge
+   *
+   * @param definitions List of the definitions
+   * @param clusterId Cluster ID
+   * @param mappedEntities Mapped entities
+   * @return Entities to merge
+   */
+  private List<AlertDefinitionEntity> getDefinitionsForMerge(List<AlertDefinition> definitions, long clusterId,
+                                                             Map<String, AlertDefinitionEntity> mappedEntities ) {
+    List<AlertDefinitionEntity> definitionsForMerge = new ArrayList<>();
+
+    for (AlertDefinition definition: definitions) {
+      AlertDefinitionEntity entity = mappedEntities.get(definition.getName());
+
+      // no entity means this is new; create a new entity
+      if (null == entity) {
+        entity = alertDefinitionFactory.coerce(clusterId, definition);
+        definitionsForMerge.add(entity);
+      }
+    }
+    return definitionsForMerge;
+  }
+
+  /**
    * Compares the alert definitions defined on the stack with those in the
    * database and merges any new or updated definitions. This method will first
    * determine the services that are installed on each cluster to prevent alert
@@ -1211,9 +1240,10 @@ public class AmbariMetaInfo {
    * service.
    *
    * @param clusters all clusters
-   * @throws AmbariException
+   * @param updateScriptPaths whether existing script-based alerts should be updated
+   *        with possibly new paths from the stack definition
    */
-  public void reconcileAlertDefinitions(Clusters clusters)
+  public void reconcileAlertDefinitions(Clusters clusters, boolean updateScriptPaths)
       throws AmbariException {
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
@@ -1223,18 +1253,12 @@ public class AmbariMetaInfo {
 
     // for every cluster
     for (Cluster cluster : clusterMap.values()) {
-      long clusterId = cluster.getClusterId();
 
-      // creating a mapping between names and service/component for fast lookups
-//      Collection<ServiceInfo> stackServices = new ArrayList<>();
+      long clusterId = cluster.getClusterId();
       Map<String, ServiceInfo> stackServiceMap = new HashMap<>();
       Map<String, ComponentInfo> stackComponentMap = new HashMap<>();
 
-
-      Map<String, Service> clusterServiceMap = cluster.getServices();
-      Set<String> clusterServiceNames = clusterServiceMap.keySet();
-
-      // for every service installed in that cluster, get the service metainfo
+      // for every service installed in that cluster, get the service MetaInfo
       // and off of that the alert definitions
       List<AlertDefinition> stackDefinitions = new ArrayList<>(50);
 
@@ -1281,48 +1305,42 @@ public class AmbariMetaInfo {
         // use the REST APIs to modify them instead
         AlertDefinition databaseDefinition = alertDefinitionFactory.coerce(entity);
         if (!stackDefinition.deeplyEquals(databaseDefinition)) {
-          // this is the code that would normally merge the stack definition
-          // into the database; this is not the behavior we want today
-
-          // entity = alertDefinitionFactory.merge(stackDefinition, entity);
-          // persist.add(entity);
 
           LOG.debug(
               "The alert named {} has been modified from the stack definition and will not be merged",
               stackDefinition.getName());
+
+          if (updateScriptPaths) {
+            Source databaseSource = databaseDefinition.getSource();
+            Source stackSource = stackDefinition.getSource();
+            if (databaseSource.getType() == SourceType.SCRIPT && stackSource.getType() == SourceType.SCRIPT) {
+              ScriptSource databaseScript = (ScriptSource) databaseSource;
+              ScriptSource stackScript = (ScriptSource) stackSource;
+              String oldPath = databaseScript.getPath();
+              String newPath = stackScript.getPath();
+              if (!Objects.equals(oldPath, newPath)) {
+                databaseScript.setPath(newPath);
+                entity = alertDefinitionFactory.mergeSource(databaseScript, entity);
+                persist.add(entity);
+
+                LOG.info("Updating script path for the alert named {} from '{}' to '{}'",
+                  stackDefinition.getName(), oldPath, newPath
+                );
+              }
+            }
+          }
         }
       }
 
       // ambari agent host-only alert definitions
-      List<AlertDefinition> agentDefinitions = ambariServiceAlertDefinitions.getAgentDefinitions();
-      for (AlertDefinition agentDefinition : agentDefinitions) {
-        AlertDefinitionEntity entity = mappedEntities.get(agentDefinition.getName());
-
-        // no entity means this is new; create a new entity
-        if (null == entity) {
-          entity = alertDefinitionFactory.coerce(clusterId, agentDefinition);
-          persist.add(entity);
-        }
-      }
+      persist.addAll(getDefinitionsForMerge(ambariServiceAlertDefinitions.getAgentDefinitions(), clusterId, mappedEntities));
 
       // ambari server host-only alert definitions
-      List<AlertDefinition> serverDefinitions = ambariServiceAlertDefinitions.getServerDefinitions();
-      for (AlertDefinition serverDefinition : serverDefinitions) {
-        AlertDefinitionEntity entity = mappedEntities.get(serverDefinition.getName());
-
-        // no entity means this is new; create a new entity
-        if (null == entity) {
-          entity = alertDefinitionFactory.coerce(clusterId, serverDefinition);
-          persist.add(entity);
-        }
-      }
+      persist.addAll(getDefinitionsForMerge(ambariServiceAlertDefinitions.getServerDefinitions(), clusterId, mappedEntities));
 
       // persist any new or updated definition
       for (AlertDefinitionEntity entity : persist) {
-        if (LOG.isDebugEnabled()) {
-          LOG.info("Merging Alert Definition {} into the database",
-              entity.getDefinitionName());
-        }
+        LOG.debug("Merging Alert Definition {} into the database", entity.getDefinitionName());
         alertDefinitionDao.createOrUpdate(entity);
       }
 
@@ -1353,20 +1371,17 @@ public class AmbariMetaInfo {
           continue;
         }
 
-        StackId stackId = cluster.getService(serviceName).getDesiredStackId();
-
         if (!stackServiceMap.containsKey(serviceName)) {
-          LOG.info(
-              "The {} service has been marked as deleted for stack {}, disabling alert {}",
-              serviceName, stackId, definition.getDefinitionName());
+
+           LOG.info( "The {} service has been marked as deleted for cluster {}, disabling alert {}",
+              serviceName, cluster.getClusterName(), definition.getDefinitionName());
 
           definitionsToDisable.add(definition);
-        } else if (null != componentName
-            && !stackComponentMap.containsKey(componentName)) {
-          LOG.info(
-              "The {} component {} has been marked as deleted for stack {}, disabling alert {}",
-              serviceName, componentName, stackId,
-              definition.getDefinitionName());
+        } else if (null != componentName && !stackComponentMap.containsKey(componentName)) {
+
+          StackId stackId = cluster.getService(serviceName).getDesiredStackId();
+          LOG.info( "The {} component {} has been marked as deleted for stack {}, disabling alert {}",
+              serviceName, componentName, stackId, definition.getDefinitionName());
 
           definitionsToDisable.add(definition);
         }
@@ -1539,12 +1554,12 @@ public class AmbariMetaInfo {
     versionDefinitions = new HashMap<>();
 
     for (StackInfo stack : getStacks()) {
-      for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
-        versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
-            stack.getVersion(), definition.release.version), definition);
-      }
-
       if (stack.isActive() && stack.isValid()) {
+        for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
+          versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
+            stack.getVersion(), definition.release.version), definition);
+        }
+        
         try {
           // !!! check for a "latest-vdf" one.  This will be used for the default if one is not found.
           VersionDefinitionXml xml = stack.getLatestVersionDefinition();
@@ -1640,5 +1655,27 @@ public class AmbariMetaInfo {
 
   public File getCommonWidgetsDescriptorFile() {
     return commonWidgetsDescriptorFile;
+  }
+
+  /***
+   * Fetch all mpacks from mpackMap
+   * @return all mpacks from mpackMap - in memory data structure
+   */
+  public Collection<Mpack> getMpacks() {
+    if (mpackManager.getMpackMap() != null) {
+      return mpackManager.getMpackMap().values();
+    }
+    return Collections.emptySet();
+  }
+
+  /***
+   * Fetch a particular mpack based on mpackid
+   * @return a single mpack
+   */
+  public Mpack getMpack(Long mpackId) {
+    if (mpackManager.getMpackMap() != null && mpackManager.getMpackMap().containsKey(mpackId)) {
+      return mpackManager.getMpackMap().get(mpackId);
+    }
+    return null;
   }
 }

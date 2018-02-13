@@ -20,11 +20,13 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.google.gson.annotations.SerializedName;
@@ -105,10 +107,10 @@ public class CommandRepository {
    * @param osType        the OS type for the repositories
    * @param repositories  the repository entities that should be processed into a file
    */
-  public void setRepositories(String osType, Collection<RepositoryEntity> repositories) {
+  public void setRepositories(String osType, Collection<RepoDefinitionEntity> repositories) {
     m_repositories = new ArrayList<>();
 
-    for (RepositoryEntity entity : repositories) {
+    for (RepoDefinitionEntity entity : repositories) {
       m_repositories.add(new Repository(osType, entity));
     }
   }
@@ -255,6 +257,10 @@ public class CommandRepository {
     @SerializedName("mirrorsList")
     private String m_mirrorsList;
 
+    @SerializedName("tags")
+    private Set<RepoTag> m_tags;
+
+
     private transient String m_osType;
 
     private Repository(RepositoryInfo info) {
@@ -265,16 +271,18 @@ public class CommandRepository {
       m_distribution = info.getDistribution();
       m_components = info.getComponents();
       m_mirrorsList = info.getMirrorsList();
+      m_tags = info.getTags();
     }
 
-    private Repository(String osType, RepositoryEntity entity) {
+    private Repository(String osType, RepoDefinitionEntity entity) {
       m_baseUrl = entity.getBaseUrl();
-      m_repoId = entity.getRepositoryId();
-      m_repoName = entity.getName();
+      m_repoId = entity.getRepoID();
+      m_repoName = entity.getRepoName();
       m_distribution = entity.getDistribution();
       m_components = entity.getComponents();
-      m_mirrorsList = entity.getMirrorsList();
+      m_mirrorsList = entity.getMirrors();
       m_osType = osType;
+      m_tags = entity.getTags();
     }
 
     public void setRepoId(String repoId){

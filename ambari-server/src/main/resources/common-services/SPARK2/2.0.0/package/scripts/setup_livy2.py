@@ -29,8 +29,10 @@ def setup_livy(env, type, upgrade_type = None, action = None):
             owner=params.livy2_user,
             group=params.user_group,
             mode=0775,
+            cd_access = 'a',
             create_parents = True
   )
+
   if type == 'server' and action == 'config':
     params.HdfsResource(params.livy2_hdfs_user_dir,
                         type="directory",

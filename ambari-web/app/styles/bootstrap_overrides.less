@@ -141,6 +141,14 @@ select.form-control {
   }
 }
 
+//vertical alignment for extra high icons
+.glyphicon-repeat,
+.glyphicon-time,
+.glyphicon-refresh,
+.glyphicon-remove {
+  top: 2px;
+}
+
 
 .tooltip {
   z-index: 10000;
@@ -273,12 +281,12 @@ select.form-control {
 }
 
 .dropdown-submenu.pull-left {
-  float: none;
+  float: none!important;
 }
 
 .dropdown-submenu.pull-left > .dropdown-menu {
   left: -100%;
-  margin-left: 10px;
+  width: 100%;
 }
 
 .dropdown-submenu > a.disabled:after {
@@ -292,6 +300,10 @@ select.form-control {
 .nav-list > li.active > a, .nav-list > li.active > a:hover {
   background-color: #666;
   color: #fff;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+  background-color: transparent;
 }
 
 @media (max-width: 992px) {
@@ -576,4 +588,13 @@ select.form-control {
   position: absolute;
   bottom: 0;
   left: 0;
+}
+
+.table.table-hover .action {
+  padding-right: 10px;
+}
+
+.btn-group.open .dropdown-menu input[type="checkbox"] + label,
+.dropdown.open .dropdown-menu input[type="checkbox"] + label {
+  line-height: 1.3em;
 }

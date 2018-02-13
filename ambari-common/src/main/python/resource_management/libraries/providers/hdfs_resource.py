@@ -204,6 +204,8 @@ class WebHDFSUtil:
     depending on if query was successful or not, we can assert this for them
     """
     target = HdfsResourceProvider.parse_path(target)
+    if not target:
+      raise Fail("Target cannot be empty")
 
     url = format("{address}/webhdfs/v1{target}?op={operation}", address=self.address)
     request_args = kwargs

@@ -22,20 +22,24 @@
   max-height: @dropdown-max-height;
   overflow-y: auto;
 
-  .list-item-label {
+  > li {
     .dropdown-item-default;
 
-    label {
-      margin-bottom: 0;
-      cursor: pointer;
-    }
+    .list-item-label {
+      .dropdown-item-child-default;
 
-    input[type=checkbox]:checked + label:after {
-      top: @checkbox-top;
-    }
+      label {
+        margin-bottom: 0;
+        cursor: pointer;
+      }
 
-    .label-container {
-      width: 100%;
+      input[type=checkbox]:checked + label:after {
+        top: @checkbox-top;
+      }
+
+      .label-container {
+        width: 100%;
+      }
     }
   }
 }

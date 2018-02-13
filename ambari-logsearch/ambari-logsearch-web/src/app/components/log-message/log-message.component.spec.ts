@@ -15,15 +15,22 @@
  * limitations under the License.
  */
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {NgStringPipesModule} from 'angular-pipes';
 
 import {LogMessageComponent} from './log-message.component';
 
 describe('LogMessageComponent', () => {
   let component: LogMessageComponent;
   let fixture: ComponentFixture<LogMessageComponent>;
+  const messages = {
+    noNewLine: 'There is no newline here.',
+    withNewLine: `This is the first line.
+    This is the second one.`
+  };
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [NgStringPipesModule],
       declarations: [ LogMessageComponent ]
     })
     .compileComponents();
@@ -32,6 +39,7 @@ describe('LogMessageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(LogMessageComponent);
     component = fixture.componentInstance;
+    component.message = messages.withNewLine;
     fixture.detectChanges();
   });
 
@@ -59,6 +67,12 @@ describe('LogMessageComponent', () => {
     let currentState = component.isOpen;
     component.toggleOpen();
     expect(component.isOpen).toEqual(!currentState);
+  });
+
+  it('should set the addCaret prop to TRUE if the message prop has new line character.', () => {
+    component.message = messages.withNewLine;
+    component.checkAddCaret();
+    expect(component['addCaret']).toEqual(true);
   });
 
 });

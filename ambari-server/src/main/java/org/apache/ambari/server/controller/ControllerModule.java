@@ -63,6 +63,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterSettingResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
@@ -79,6 +80,8 @@ import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResour
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.controller.internal.UserAuthenticationSourceResourceProvider;
+import org.apache.ambari.server.controller.internal.UserResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
@@ -166,10 +169,13 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintValidator;
+import org.apache.ambari.server.topology.BlueprintValidatorImpl;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -376,6 +382,7 @@ public class ControllerModule extends AbstractModule {
     // So it's an "additional time", given to stage to finish execution before
     // it is considered as timed out
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+    bindConstant().annotatedWith(Names.named("alertServiceCorePoolSize")).to(configuration.getAlertServiceCorePoolSize());
 
     bindConstant().annotatedWith(Names.named("dbInitNeeded")).to(dbInitNeeded);
     bindConstant().annotatedWith(Names.named("statusCheckInterval")).to(5000L);
@@ -416,6 +423,7 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(DatabaseConsistencyCheckHelper.class);
     requestStaticInjection(KerberosChecker.class);
     requestStaticInjection(AuthorizationHelper.class);
+    requestStaticInjection(PasswordUtils.class);
 
     bindByAnnotation(null);
     bindNotificationDispatchers(null);
@@ -492,6 +500,8 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("repositoryVersion"), RepositoryVersionResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostKerberosIdentity"), HostKerberosIdentityResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("user"), UserResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("userAuthenticationSource"), UserAuthenticationSourceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("credential"), CredentialResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("kerberosDescriptor"), KerberosDescriptorResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("upgrade"), UpgradeResourceProvider.class)
@@ -499,6 +509,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("alertTarget"), AlertTargetResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("viewInstance"), ViewInstanceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("rootServiceHostComponentConfiguration"), RootServiceComponentConfigurationResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named(BlueprintResourceProvider.NAME), BlueprintResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
@@ -530,6 +541,7 @@ public class ControllerModule extends AbstractModule {
     bind(RegistryFactory.class).to(RegistryFactoryImpl.class);
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
+    bind(BlueprintValidator.class).to(BlueprintValidatorImpl.class);
     bind(BlueprintFactory.class);
 
     install(new FactoryModuleBuilder().implement(AmbariEvent.class, Names.named("userCreated"), UserCreatedEvent.class).build(AmbariEventFactory.class));

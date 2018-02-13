@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,16 +40,16 @@ import com.google.inject.Injector;
 
 public class IPAKerberosOperationHandlerTest extends KDCKerberosOperationHandlerTest {
 
-  private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
-    {
-      put(IPAKerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, null);
-      put(IPAKerberosOperationHandler.KERBEROS_ENV_KDC_HOSTS, "localhost");
-      put(IPAKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
-      put(IPAKerberosOperationHandler.KERBEROS_ENV_USER_PRINCIPAL_GROUP, "");
-    }
-  };
-
   private static Injector injector;
+
+  private static final Map<String, String> KERBEROS_ENV_MAP;
+
+  static {
+    Map<String, String> map = new HashMap<>(DEFAULT_KERBEROS_ENV_MAP);
+    map.put(IPAKerberosOperationHandler.KERBEROS_ENV_USER_PRINCIPAL_GROUP, "");
+    KERBEROS_ENV_MAP = Collections.unmodifiableMap(map);
+  }
+
 
   @BeforeClass
   public static void beforeIPAKerberosOperationHandlerTest() throws Exception {

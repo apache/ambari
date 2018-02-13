@@ -2126,8 +2126,9 @@ describe('App.WizardStep8Controller', function () {
     ];
 
     before(function () {
-      sinon.stub(App.StackServiceComponent, 'find').returns([
-        Em.Object.create({
+      var mock = sinon.stub(App.StackServiceComponent, 'find');
+      var components = [
+        App.StackServiceComponent.createRecord({
           componentName: 'c0',
           isMaster: true,
           dependencies: [
@@ -2145,7 +2146,7 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c1',
           isMaster: true,
           dependencies: [
@@ -2163,7 +2164,7 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c2',
           isMaster: true,
           dependencies: [
@@ -2181,14 +2182,14 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c3',
           isMaster: true,
           dependencies: []
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c4',
-          isSlave: true,
+          componentCategory: 'SLAVE',
           dependencies: [
             {
               componentName: 'c1'
@@ -2204,9 +2205,9 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c5',
-          isSlave: true,
+          componentCategory: 'SLAVE',
           dependencies: [
             {
               componentName: 'c4'
@@ -2222,9 +2223,9 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c6',
-          isSlave: true,
+          componentCategory: 'SLAVE',
           dependencies: [
             {
               componentName: 'c1'
@@ -2240,12 +2241,12 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c7',
-          isSlave: true,
+          componentCategory: 'SLAVE',
           dependencies: []
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c8',
           isClient: true,
           dependencies: [
@@ -2263,7 +2264,7 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c9',
           isClient: true,
           dependencies: [
@@ -2281,7 +2282,7 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c10',
           isClient: true,
           dependencies: [
@@ -2299,12 +2300,16 @@ describe('App.WizardStep8Controller', function () {
             }
           ]
         }),
-        Em.Object.create({
+        App.StackServiceComponent.createRecord({
           componentName: 'c11',
           isClient: true,
           dependencies: []
         })
-      ]);
+      ];
+      components.forEach(function(component) {
+        mock.withArgs(component.get('componentName')).returns(component);
+      });
+      mock.returns(components);
     });
 
     after(function () {

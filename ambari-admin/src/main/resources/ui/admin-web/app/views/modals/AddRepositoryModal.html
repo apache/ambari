@@ -21,7 +21,7 @@
 <form class="form-horizontal" name="addRepoForm" novalidate>
     <div class="modal-body">
         <div class="alert alert-warning hide-soft" ng-class="{'visible' : showAlert}" role="alert">
-            {{'versions.alerts.repositoryExists' | translate: '{os: repo.selectedOS}'}}
+            {{'versions.alerts.repositoryExists' | translate:{os: repo.selectedOS} }}
         </div>
         <div class="form-group">
             <div class="col-sm-3">

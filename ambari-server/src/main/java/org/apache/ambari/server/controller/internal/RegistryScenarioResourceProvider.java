@@ -84,7 +84,7 @@ public class RegistryScenarioResourceProvider extends AbstractControllerResource
    * @param managementController the management controller
    */
   protected RegistryScenarioResourceProvider(final AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.RegistryScenario, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   /**

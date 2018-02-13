@@ -48,6 +48,7 @@ import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -221,6 +222,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     Service zookeeper = createNiceMock(Service.class);
     expect(zookeeper.getName()).andReturn("ZOOKEEPER").atLeastOnce();
+    expect(zookeeper.getServiceType()).andReturn("ZOOKEEPER").atLeastOnce();
     expect(zookeeper.getServiceComponents()).andReturn(
       new HashMap<>()).once();
     zookeeper.setDesiredRepositoryVersion(repoVersion220);
@@ -232,7 +234,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
     expect(cluster.getDesiredConfigByType("foo-site")).andReturn(fooConfig);
     expect(cluster.getDesiredConfigByType("bar-site")).andReturn(barConfig);
-    expect(cluster.getService("ZOOKEEPER")).andReturn(zookeeper);
+    expect(cluster.getService("ZOOKEEPER")).andReturn(zookeeper).anyTimes();
     expect(cluster.getDesiredConfigByType("foo-type")).andReturn(fooConfig);
     expect(cluster.getDesiredConfigByType("bar-type")).andReturn(barConfig);
 
@@ -360,6 +362,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     Service zookeeper = createNiceMock(Service.class);
     expect(zookeeper.getName()).andReturn(serviceName).atLeastOnce();
+    expect(zookeeper.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(zookeeper.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>()).once();
     zookeeper.setDesiredRepositoryVersion(repoVersion220);
     expectLastCall().once();
@@ -369,7 +372,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     expect(cluster.getDesiredStackVersion()).andReturn(stack220);
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
     expect(cluster.getDesiredConfigByType(fooSite)).andReturn(fooConfig);
-    expect(cluster.getService(serviceName)).andReturn(zookeeper);
+    expect(cluster.getService(serviceName)).andReturn(zookeeper).anyTimes();
 
     ConfigHelper configHelper = m_injector.getInstance(ConfigHelper.class);
 
@@ -462,6 +465,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
       binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
       binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+      binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(m_metainfo);
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);

@@ -27,7 +27,7 @@ import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PR
 @Configuration
 public class LogSearchSslConfig {
 
-  public static final String LOGSEARCH_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
+  public static final String LOGSEARCH_CERT_DEFAULT_FOLDER = "/usr/lib/ambari-logsearch-portal/conf/keys";
   public static final String LOGSEARCH_CERT_DEFAULT_ALGORITHM = "sha256WithRSA";
   public static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
 

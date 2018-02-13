@@ -57,14 +57,13 @@ def setup_kms_db(stack_version=None):
   if params.has_ranger_admin:
 
     kms_home = params.kms_home
-    version = params.version
+
     if stack_version is not None:
       kms_home = format("{stack_root}/{stack_version}/ranger-kms")
-      version = stack_version
 
     password_validation(params.kms_master_key_password, 'KMS master key')
 
-    copy_jdbc_connector(stack_version=version)
+    copy_jdbc_connector(kms_home)
 
     env_dict = {'RANGER_KMS_HOME':kms_home, 'JAVA_HOME': params.java_home}
     if params.db_flavor.lower() == 'sqla':
@@ -150,7 +149,7 @@ def kms(upgrade_type=None):
       cd_access = "a"
     )
 
-    copy_jdbc_connector()
+    copy_jdbc_connector(params.kms_home)
 
     File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
       content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -345,7 +344,7 @@ def kms(upgrade_type=None):
     else:
       File(format('{kms_conf_dir}/core-site.xml'), action="delete")
 
-def copy_jdbc_connector(stack_version=None):
+def copy_jdbc_connector(kms_home):
   import params
 
   if params.jdbc_jar_name is None and params.driver_curl_source.endswith("/None"):
@@ -356,10 +355,6 @@ def copy_jdbc_connector(stack_version=None):
   if params.driver_curl_source and not params.driver_curl_source.endswith("/None"):
     if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
       File(params.previous_jdbc_jar, action='delete')
-
-  kms_home = params.kms_home
-  if stack_version is not None:
-    kms_home = format("{stack_root}/{stack_version}/ranger-kms")
 
   driver_curl_target = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
 

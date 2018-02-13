@@ -19,7 +19,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,6 +38,9 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.commons.lang.StringUtils;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 public class StackConfigurationResourceProvider extends
     ReadOnlyResourceProvider {
@@ -79,15 +81,35 @@ public class StackConfigurationResourceProvider extends
   public static final String PROPERTY_FINAL_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "final");
 
+  /**
+   * The key property ids for a StackConfiguration resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.Stack, STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
+      .put(Type.StackService, SERVICE_NAME_PROPERTY_ID)
+      .put(Type.StackConfiguration, PROPERTY_NAME_PROPERTY_ID)
+      .build();
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
-      STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID, PROPERTY_NAME_PROPERTY_ID}));
+  /**
+   * The property ids for a StackConfiguration resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID,
+      SERVICE_NAME_PROPERTY_ID,
+      PROPERTY_NAME_PROPERTY_ID,
+      PROPERTY_VALUE_PROPERTY_ID,
+      PROPERTY_VALUE_ATTRIBUTES_PROPERTY_ID,
+      PROPERTY_DEPENDS_ON_PROPERTY_ID,
+      PROPERTY_DESCRIPTION_PROPERTY_ID,
+      PROPERTY_DISPLAY_NAME_PROPERTY_ID,
+      PROPERTY_PROPERTY_TYPE_PROPERTY_ID,
+      PROPERTY_TYPE_PROPERTY_ID,
+      PROPERTY_FINAL_PROPERTY_ID);
 
-  protected StackConfigurationResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  protected StackConfigurationResourceProvider(AmbariManagementController managementController) {
+    super(Type.StackConfiguration, propertyIds, keyPropertyIds, managementController);
   }
 
 
@@ -188,7 +210,7 @@ public class StackConfigurationResourceProvider extends
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

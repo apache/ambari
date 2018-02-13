@@ -295,9 +295,7 @@ switch ($($args[0])){
   }
   "setup-ldap"
   {
-    echo "Setting up LDAP for Ambari Server"
     _pstart $args
-    echo "Ambari Server LDAP setup finished"
   }
   "setup-security"
   {

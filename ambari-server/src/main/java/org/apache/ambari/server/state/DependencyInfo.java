@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.collections.CollectionUtils;
 
@@ -39,6 +40,7 @@ public class DependencyInfo {
    * The name of the component which is the dependency.
    * Specified in the form serviceName/componentName.
    */
+  @XmlTransient // bound via setter, to also set serviceName and componentName
   private String name;
 
   /**
@@ -49,11 +51,13 @@ public class DependencyInfo {
   /**
    * Service name of the dependency.
    */
+  @XmlTransient // set via #setName
   private String serviceName;
 
   /**
    * Component name of the dependency.
    */
+  @XmlTransient // set via #setName
   private String componentName;
 
   /**
@@ -76,6 +80,7 @@ public class DependencyInfo {
    * @param name the name of the component which is the dependency
    *             in the form serviceName/componentName
    */
+  @XmlElement
   public void setName(String name) {
     if (! name.contains("/")) {
       throw new IllegalArgumentException("Invalid dependency name specified in stack.  " +

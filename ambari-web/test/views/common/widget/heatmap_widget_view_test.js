@@ -190,6 +190,14 @@ describe('App.HeatmapWidgetView', function () {
 
   describe("#computeExpression()", function () {
 
+    beforeEach(function() {
+      sinon.stub(view, 'convertDataWhenMB');
+    });
+
+    afterEach(function() {
+      view.convertDataWhenMB.restore();
+    });
+
     var testCases = [
       {
         expressions: [],
@@ -202,7 +210,7 @@ describe('App.HeatmapWidgetView', function () {
           name: 'm1',
           hostName: 'host1'
         }],
-        expected: {}
+        expected: {'host1': undefined}
       },
       {
         expressions: ['1'],
@@ -244,7 +252,7 @@ describe('App.HeatmapWidgetView', function () {
           data: '0/0'
         }],
         expected: {
-          'host1': 0
+          'host1': 'NaN'
         }
       },
       {
@@ -254,7 +262,7 @@ describe('App.HeatmapWidgetView', function () {
           hostName: 'host1',
           data: '2'
         }],
-        expected: {}
+        expected: {'host1': undefined}
       }
     ];
 
@@ -263,6 +271,19 @@ describe('App.HeatmapWidgetView', function () {
          " metrics=" + JSON.stringify(test.metrics), function() {
         expect(view.computeExpression(test.expressions, test.metrics)).to.be.eql(test.expected);
       });
+    });
+  });
+
+  describe('#convertDataWhenMB', function() {
+
+    it('should convert MB to bytes', function() {
+      var metric = {
+        metric_path: 'readM',
+        data: 1
+      };
+      view.convertDataWhenMB(metric);
+      expect(metric.data).to.be.equal(1 * 1024 * 1024);
+      expect(metric.originalData).to.be.equal(1);
     });
   });
 });

@@ -20,109 +20,19 @@ describe('#Cluster', function () {
 
   describe('GroupsListCtrl', function() {
 
-    var scope, ctrl, $t, $httpBackend;
+    var $scope, ctrl, $t, $httpBackend, $group;
 
     beforeEach(module('ambariAdminConsole', function () {}));
 
-    beforeEach(inject(function($rootScope, $controller, _$translate_, _$httpBackend_) {
-      scope = $rootScope.$new();
+    beforeEach(inject(function($rootScope, $controller, _$translate_, _$httpBackend_, _Group_) {
+      $scope = $rootScope.$new();
       $t = _$translate_.instant;
       $httpBackend = _$httpBackend_;
+      $group = _Group_;
       ctrl = $controller('GroupsListCtrl', {
-        $scope: scope
+        $scope: $scope
       });
     }));
-
-    describe('#clearFilters()', function () {
-
-      it('should clear filters and reset pagination', function () {
-        scope.currentPage = 2;
-        scope.filter.name = 'a';
-        scope.filter.type = {
-          label: $t('common.local'),
-          value: false
-        };
-        scope.clearFilters();
-        expect(scope.filter.name).toEqual('');
-        expect(scope.filter.type).toEqual({
-          label: $t('common.all'),
-          value: '*'
-        });
-        expect(scope.currentPage).toEqual(1);
-      });
-
-    });
-
-    describe('#isNotEmptyFilter', function () {
-
-      var cases = [
-        {
-          currentNameFilter: '',
-          currentTypeFilter: null,
-          isNotEmptyFilter: false,
-          title: 'no filters'
-        },
-        {
-          currentNameFilter: '',
-          currentTypeFilter: {
-            value: '*'
-          },
-          isNotEmptyFilter: false,
-          title: 'empty filters'
-        },
-        {
-          currentNameFilter: 'a',
-          currentTypeFilter: {
-            value: '*'
-          },
-          isNotEmptyFilter: true,
-          title: 'name filter'
-        },
-        {
-          currentNameFilter: '0',
-          currentTypeFilter: {
-            value: '*'
-          },
-          isNotEmptyFilter: true,
-          title: 'name filter with "0" as string'
-        },
-        {
-          currentNameFilter: '',
-          currentTypeFilter: {
-            value: false
-          },
-          isNotEmptyFilter: true,
-          title: 'type filter'
-        },
-        {
-          currentNameFilter: 'a',
-          currentTypeFilter: {
-            value: false
-          },
-          isNotEmptyFilter: true,
-          title: 'both filters'
-        },
-        {
-          currentNameFilter: '0',
-          currentTypeFilter: {
-            value: false
-          },
-          isNotEmptyFilter: true,
-          title: 'both filters with "0" as string'
-        }
-      ];
-
-      cases.forEach(function (item) {
-        it(item.title, function () {
-          $httpBackend.expectGET(/\/api\/v1\/groups/).respond(200);
-          scope.filter.name = item.currentNameFilter;
-          scope.filter.type = item.currentTypeFilter;
-          scope.$digest();
-          expect(scope.isNotEmptyFilter).toEqual(item.isNotEmptyFilter);
-        });
-      });
-
-    });
 
   });
 

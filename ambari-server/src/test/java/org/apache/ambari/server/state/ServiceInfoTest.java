@@ -117,6 +117,108 @@ public class ServiceInfoTest {
   }
 
   @Test
+  public void testRequiredServices() throws Exception {
+
+    String serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>CUSTOM</name>\n" +
+            "      <requiredServices>\n" +
+            "        <service>\n" +
+            "          <name>INSTALL_DEP</name>\n" +
+            "          <dependencyType>INSTALL</dependencyType>\n" +
+            "        </service>\n" +
+            "        <service>\n" +
+            "          <name>RUNTIME_DEP</name>\n" +
+            "          <dependencyType>RUNTIME</dependencyType>\n" +
+            "        </service>" +
+            "      </requiredServices>\n" +
+            "    </service>\n" +
+            "    <service>\n" +
+            "      <name>DEFAULT</name>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+
+    List<RequiredService> requiredServices = serviceInfoMap.get("CUSTOM").getRequiredServices();
+    assertFalse(requiredServices.isEmpty());
+    assertEquals(2, requiredServices.size());
+    for (RequiredService requiredService : requiredServices) {
+      if (requiredService.getName().equals("INSTALL_DEP")) {
+        assertEquals(ServiceDependencyType.INSTALL, requiredService.getDependencyType());
+      }
+      if (requiredService.getName().equals("RUNTIME_DEP")) {
+        assertEquals(ServiceDependencyType.RUNTIME, requiredService.getDependencyType());
+      }
+    }
+
+    assertTrue(serviceInfoMap.get("DEFAULT").getRequiredServices().isEmpty());
+  }
+
+  @Test
+  public void testServiceCategory() throws Exception {
+
+    String serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>CLIENT_SERVICE_NAME</name>\n" +
+        "      <category>CLIENT</category>\n" +
+        "    </service>\n" +
+        "    <service>\n" +
+        "      <name>SERVER_SERVICE_NAME</name>\n" +
+        "      <category>SERVER</category>\n" +
+        "    </service>\n" +
+        "    <service>\n" +
+        "      <name>DEFAULT</name>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+
+
+    assertEquals(ServiceCategory.CLIENT, serviceInfoMap.get("CLIENT_SERVICE_NAME").getCategory());
+    assertEquals(ServiceCategory.SERVER, serviceInfoMap.get("SERVER_SERVICE_NAME").getCategory());
+    //the default LEGACY value is set in stack manager, not the service info, this is needed for inheritance
+    assertNull(serviceInfoMap.get("DEFAULT").getCategory());
+  }
+
+  @Test
+  public void testComponentVersion() throws Exception {
+
+    String serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>service_name</name>\n" +
+        "      <version>service-version</version>" +
+        "      <components>\n" +
+        "        <component>\n" +
+        "          <name>HBASE_MASTER</name>\n" +
+        "          <version>component-version</version>\n" +
+        "        </component>\n" +
+        "        <component>\n" +
+        "          <name>HBASE_MASTER_2</name>\n" +
+        "        </component>\n" +
+      "        </components>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+
+
+    assertEquals("service-version", serviceInfoMap.get("service_name").getVersion());
+    assertEquals("component-version", serviceInfoMap.get("service_name").getComponentByName("HBASE_MASTER").getVersion());
+    //the component version is set to service version in stack module, not the service module
+    assertNull(serviceInfoMap.get("service_name").getComponentByName("HBASE_MASTER_2").getVersion());
+  }
+
+  @Test
   public void testSelectionField() throws Exception {
     String serviceInfoXmlDeprecated = "<metainfo>\n" +
         "  <schemaVersion>2.0</schemaVersion>\n" +

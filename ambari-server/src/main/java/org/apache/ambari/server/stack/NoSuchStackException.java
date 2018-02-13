@@ -18,11 +18,21 @@
 
 package org.apache.ambari.server.stack;
 
+import org.apache.ambari.server.state.StackId;
+
 /**
- * Indicates that the requested Stack doesn't esist.
+ * Indicates that the requested Stack doesn't exist.
  */
-public class NoSuchStackException extends Exception {
+public class NoSuchStackException extends IllegalArgumentException {
+  public NoSuchStackException(StackId stackId) {
+    this(stackId.getStackName(), stackId.getStackVersion());
+  }
   public NoSuchStackException(String stackName, String stackVersion) {
     super(String.format("The requested stack doesn't exist. Name='%s' Version='%s'", stackName, stackVersion));
   }
+
+  public NoSuchStackException(String stackName, String stackVersion, Throwable cause) {
+    super(String.format("The requested stack doesn't exist. Name='%s' Version='%s'", stackName, stackVersion), cause);
+  }
+
 }

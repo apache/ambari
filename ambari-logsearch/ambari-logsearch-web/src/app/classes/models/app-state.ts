@@ -17,7 +17,13 @@
  */
 
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
+import {ListItem} from '@app/classes/list-item';
 import {LogsType} from '@app/classes/string';
+
+export interface History {
+  items: ListItem[];
+  currentId: number;
+}
 
 export interface AppState {
   isAuthorized: boolean;
@@ -28,6 +34,7 @@ export interface AppState {
   isServiceLogContextView: boolean;
   activeLog: ActiveServiceLogEntry | null;
   activeFilters: object;
+  history: History;
 }
 
 export const initialState: AppState = {
@@ -38,5 +45,9 @@ export const initialState: AppState = {
   isServiceLogsFileView: false,
   isServiceLogContextView: false,
   activeLog: null,
-  activeFilters: null
+  activeFilters: null,
+  history: {
+    items: [],
+    currentId: -1
+  }
 };
