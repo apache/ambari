@@ -132,13 +132,6 @@ public class StacksServiceTest extends BaseServiceTest {
     args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name", "artifact-name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //get themes by file name for all services
-    service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getStackTypedThemes", String.class, HttpHeaders.class, UriInfo.class,
-        String.class, String.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "themeName"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
     return listInvocations;
   }
 
@@ -190,12 +183,6 @@ public class StacksServiceTest extends BaseServiceTest {
 
     @Override
     ResourceInstance createStackServiceArtifactsResource(String stackName, String stackVersion, String serviceName, String artifactName) {
-      return getTestResource();
-    }
-
-    @Override
-    ResourceInstance createStackServiceThemesResource(String stackName, String stackVersion, String serviceName,
-                                                      String themeName) {
       return getTestResource();
     }
 
