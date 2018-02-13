@@ -25,3 +25,24 @@ export interface LogLevelObject {
   label: string;
   color: string;
 }
+
+/**
+ * This is an interface for the service and audit log fields.
+ */
+export interface LogField {
+  group?: string; // eg.: HDFS, Ambari, etc this prop is only used in Audit logs
+  label: string;
+  name: string;
+  filterable: boolean; // it can be used in a filter query
+  visible: boolean; // visible by default in the log list
+}
+
+/**
+ * This is an interface for the service and audit log fields.
+ */
+export interface AuditFieldsDefinitionSet {
+  defaults: LogField[],
+  overrides: {
+    [key: string]: LogField[]
+  }
+}

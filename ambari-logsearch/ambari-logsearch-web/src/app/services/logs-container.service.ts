@@ -31,7 +31,7 @@ import * as moment from 'moment-timezone';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
-import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsFieldsService, ResponseRootProperties} from '@app/services/storage/audit-logs-fields.service';
 import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
@@ -51,11 +51,9 @@ import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
 import {LogsType, ScrollType, SortingType} from '@app/classes/string';
 import {Tab} from '@app/classes/models/tab';
-import {LogField} from '@app/classes/models/log-field';
+import {AuditFieldsDefinitionSet} from "@app/classes/object";
 import {AuditLog} from '@app/classes/models/audit-log';
-import {AuditLogField} from '@app/classes/models/audit-log-field';
 import {ServiceLog} from '@app/classes/models/service-log';
-import {ServiceLogField} from '@app/classes/models/service-log-field';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
@@ -601,17 +599,10 @@ export class LogsContainerService {
 
   activeLogsType: LogsType;
 
-  filtersFormChange: Subject<void> = new Subject();
+  // Todo move this prop to a state of the audit log container
+  activeAuditGroup: string = ResponseRootProperties.DEFAULTS;
 
-  private columnsMapper<FieldT extends LogField>(fields: FieldT[]): ListItem[] {
-    return fields.filter((field: FieldT): boolean => field.isAvailable).map((field: FieldT): ListItem => {
-      return {
-        value: field.name,
-        label: field.displayName || field.name,
-        isChecked: field.isDisplayed
-      };
-    });
-  }
+  filtersFormChange: Subject<void> = new Subject();
 
   private logsMapper<LogT extends AuditLog & ServiceLog>(result: [LogT[], ListItem[]]): LogT[] {
     const [logs, fields] = result;
@@ -631,9 +622,9 @@ export class LogsContainerService {
 
   private serviceLogsSource: Observable<ServiceLog[]> = this.serviceLogsStorage.getAll();
 
-  auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getAll().map(this.columnsMapper);
+  auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getParameter(ResponseRootProperties.DEFAULTS).map(this.utils.logFieldToListItemMapper);
 
-  serviceLogsColumns: Observable<ListItem[]> = this.serviceLogsFieldsStorage.getAll().map(this.columnsMapper);
+  serviceLogsColumns: Observable<ListItem[]> = this.serviceLogsFieldsStorage.getAll().map(this.utils.logFieldToListItemMapper);
 
   serviceLogs: Observable<ServiceLog[]> = Observable.combineLatest(
     this.serviceLogsSource, this.serviceLogsColumns
@@ -827,19 +818,15 @@ export class LogsContainerService {
     this.httpClient.get('serviceLogsFields').subscribe((response: Response): void => {
       const jsonResponse = response.json();
       if (jsonResponse) {
-        this.serviceLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, ServiceLogField));
+        this.serviceLogsFieldsStorage.addInstances(jsonResponse);
       }
     });
     this.httpClient.get('auditLogsFields').subscribe((response: Response): void => {
-      const jsonResponse = response.json();
+      const jsonResponse:AuditFieldsDefinitionSet = response.json();
       if (jsonResponse) {
-        this.auditLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, AuditLogField));
+        this.auditLogsFieldsStorage.setParameters(jsonResponse);
       }
     });
-  }
-
-  private getColumnsArray(keysObject: any, fieldClass: any): any[] {
-    return Object.keys(keysObject).map((key: string): {fieldClass} => new fieldClass(key));
   }
 
   getStartTimeMoment = (selection: TimeUnitListItem, end: moment.Moment): moment.Moment | undefined => {
@@ -1000,13 +987,13 @@ export class LogsContainerService {
     const requestComponentsData:Observable<Response> = this.httpClient.get('components');
     const requestComponentsName:Observable<Response> = this.httpClient.get('serviceComponentsName');
     const requests = Observable.combineLatest(requestComponentsName, requestComponentsData);
-    requests.subscribe((responses:Response[]) => {
-      const componentsNames = responses[0].json();
-      const componentsData = responses[1].json();
+    requests.subscribe(([componentsNamesResponse, componentsDataResponse]:Response[]) => {
+      const componentsNames = componentsNamesResponse.json();
+      const componentsData = componentsDataResponse.json();
       const components = componentsData && componentsData.vNodeList.map((item): NodeItem => {
         const component = componentsNames.metadata.find(component => component.name === item.name);
         return Object.assign(item, {
-          label: component.label || item.name,
+          label: component && (component.label || item.name),
           group: component && component.group && {
             name: component.group,
             label: componentsNames.groups[component.group]
@@ -1064,9 +1051,12 @@ export class LogsContainerService {
   }
 
   updateSelectedColumns(columnNames: string[], logsType: string): void {
-    this.logsTypeMap[logsType].fieldsModel.mapCollection(item => Object.assign({}, item, {
-      isDisplayed: columnNames.indexOf(item.name) > -1
-    }));
+    const functionName: string = logsType === 'auditLogs' ? 'mapFieldSetGroup' : 'mapCollection';
+    const modifierFn: Function = (item) => Object.assign({}, item, {
+      visible: columnNames.indexOf(item.name) > -1
+    });
+    const params = [modifierFn, logsType === 'auditLogs' ? this.activeAuditGroup : undefined];
+    this.logsTypeMap[logsType].fieldsModel[functionName](...params);
   }
 
   openServiceLog(log: ServiceLog): void {
