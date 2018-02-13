@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
+import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.NEVER_APPLY;
+import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
@@ -57,6 +61,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.BlueprintBasedClusterProvisionRequest;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
@@ -67,7 +72,9 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.topology.ResolvedComponent;
+import org.apache.ambari.server.topology.SecurityConfiguration;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -138,10 +145,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   private Cluster cluster;
 
   @Mock
-  private TopologyRequest topologyRequestMock;
+  private ProvisionClusterRequest topologyRequestMock;
 
   @Mock(type = MockType.NICE)
   private ConfigHelper configHelper;
+
+  @Mock(type = MockType.NICE)
+  private SecurityConfigurationFactory securityFactory;
 
   @Before
   public void init() throws Exception {
@@ -152,19 +162,17 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
     // return false for all components since for this test we don't care about the value
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.emptyMap()).anyTimes();
 
-    expect(serviceInfo.getRequiredProperties()).andReturn(
-      Collections.emptyMap()).anyTimes();
+    expect(serviceInfo.getRequiredProperties()).andReturn(Collections.emptyMap()).anyTimes();
     expect(serviceInfo.getRequiredServices()).andReturn(Collections.emptyList()).anyTimes();
 
     setupGetServiceForComponentExpectations();
 
     expect(stack.getCardinality("MYSQL_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
 
-    Set<String> emptySet = Collections.emptySet();
-    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(Collections.emptySet()).anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(configHelper.getDefaultStackProperties(
@@ -290,7 +298,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -338,14 +346,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
     assertEquals(properties.size(), 3);
-    assertEquals(((Map) properties.get("kerberos-env")).size(), 0);
-    assertEquals(((Map) properties.get("krb5-conf")).size(), 0);
-    assertEquals(((Map) properties.get("tez-site")).size(), 0);
+    assertEquals((properties.get("kerberos-env")).size(), 0);
+    assertEquals((properties.get("krb5-conf")).size(), 0);
+    assertEquals((properties.get("tez-site")).size(), 0);
   }
 
   @Test
@@ -372,7 +380,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = ImmutableSet.of(group1, group2);
 
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -416,7 +424,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -464,7 +472,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -499,7 +507,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -532,7 +540,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -578,7 +586,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -625,7 +633,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -680,7 +688,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -723,7 +731,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -756,7 +764,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -808,7 +816,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -891,7 +899,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -928,7 +936,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -940,8 +948,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
    * There is no support currently for deploying a fully Kerberized
    * cluster with Blueprints.  This test verifies the current treatment
    * of Kerberos-related properties in a Blueprint export.
-   *
-   * @throws Exception
    */
   @Test
   public void testKerberosConfigExport() throws Exception {
@@ -979,7 +985,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1043,7 +1049,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1116,7 +1122,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1176,7 +1182,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1212,7 +1218,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1275,7 +1281,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1352,7 +1358,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1418,7 +1424,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1494,7 +1500,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1581,7 +1587,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1674,7 +1680,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1770,7 +1776,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").remove("oozie.service.JPAService.jdbc.url");
     }
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1833,7 +1839,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor blueprintConfigurationProcessor = new BlueprintConfigurationProcessor(topology);
 
     assertTrue(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
@@ -1872,7 +1878,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor blueprintConfigurationProcessor = new BlueprintConfigurationProcessor(topology);
 
     assertTrue(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
@@ -1935,7 +1941,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -2015,7 +2021,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -2064,7 +2070,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -2103,7 +2109,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -2145,7 +2151,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     Set<String> configTypesUpdated =
@@ -2201,7 +2207,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2248,7 +2254,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2296,7 +2302,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     // todo: set as BP hostgroup
     topology.getHostGroupInfo().get("group2").getConfiguration().setParentConfiguration(group2BPConfig);
 
@@ -2335,7 +2341,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     //todo: should throw a checked exception, not the exception expected by the api
@@ -2378,7 +2384,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     try {
@@ -2422,7 +2428,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2458,7 +2464,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2490,7 +2496,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
     String updatedVal = topology.getConfiguration().getFullProperties().get("core-site").get("fs.defaultFS");
@@ -2535,7 +2541,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
     String updatedVal = topology.getConfiguration().getFullProperties().get("hbase-site").get("hbase.zookeeper.quorum");
@@ -2592,7 +2598,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
     String updatedVal = topology.getConfiguration().getFullProperties().get("webhcat-site").get("templeton.zookeeper.hosts");
@@ -2643,7 +2649,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
 
     BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
     String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
@@ -2677,7 +2683,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
 
     BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
     String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
@@ -2712,7 +2718,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
 
     BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
     String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
@@ -2732,7 +2738,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
     TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup), NEVER_APPLY);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
@@ -2772,7 +2778,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration clusterConfig = new Configuration(configProperties, Collections.emptyMap());
 
     TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.emptySet(), Collections.emptySet());
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup));
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup), NEVER_APPLY);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
@@ -2860,7 +2866,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
     expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2935,7 +2941,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2984,7 +2990,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("HIVE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -3048,7 +3054,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("HIVE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -3109,7 +3115,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       hostGroups.add(new TestHostGroup("host_group_" + i, components, Collections.singleton(hostNames[i])));
     }
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
     String updatedValue = webHCatSiteProperties.get(propertyKey);
@@ -3163,7 +3169,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForBlueprintExport();
 
@@ -3217,7 +3223,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -3283,7 +3289,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForBlueprintExport();
 
@@ -3337,7 +3343,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("RESOURCEMANAGER")).andReturn(new Cardinality("1-2")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -3424,7 +3430,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("RESOURCEMANAGER")).andReturn(new Cardinality("1-2")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForBlueprintExport();
 
@@ -3507,7 +3513,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -3556,7 +3562,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group3);
 
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3607,7 +3613,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3657,7 +3663,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3692,7 +3698,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3724,7 +3730,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3756,7 +3762,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3788,7 +3794,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3820,7 +3826,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3852,7 +3858,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3898,7 +3904,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3956,7 +3962,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4014,7 +4020,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4055,7 +4061,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4111,7 +4117,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group3);
     hostGroups.add(group4);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4185,7 +4191,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4221,7 +4227,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4254,7 +4260,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4269,7 +4275,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
 
     // customized stack calls for this test only
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site"));
@@ -4297,7 +4303,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4313,7 +4319,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
 
     // customized stack calls for this test only
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site")).anyTimes();
@@ -4338,7 +4344,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4353,7 +4359,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.emptyMap()).anyTimes();
 
     // customized stack calls for this test only
@@ -4380,7 +4386,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4396,7 +4402,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
 
     // customized stack calls for this test only
     Set<String> excludedConfigTypes = new HashSet<>();
@@ -4429,7 +4435,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4467,7 +4473,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -4508,7 +4514,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -4544,7 +4550,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -4600,7 +4606,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
@@ -4622,7 +4628,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -4679,7 +4685,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
@@ -4701,7 +4707,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -4759,7 +4765,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
@@ -4780,7 +4786,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -4847,7 +4853,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
 
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
@@ -4869,7 +4875,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -4917,7 +4923,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
-    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
@@ -4938,7 +4944,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -4976,7 +4982,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -5029,7 +5035,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -5093,7 +5099,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -5133,7 +5139,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(stack.getCardinality("GANGLIA_SERVER")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -5181,7 +5187,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -5276,7 +5282,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
     expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     Set<String> updatedConfigTypes =
@@ -5395,7 +5401,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
     expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     Set<String> updatedConfigTypes =
@@ -5464,7 +5470,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new ArrayList<>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -5611,7 +5617,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -5653,7 +5659,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -5704,7 +5710,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -5744,7 +5750,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -5777,7 +5783,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -5812,7 +5818,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -5856,7 +5862,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -5901,7 +5907,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -5945,7 +5951,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -5988,7 +5994,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6032,7 +6038,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6123,7 +6129,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology1 = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology1 = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology1);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6171,7 +6177,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6203,7 +6209,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6234,7 +6240,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6265,7 +6271,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6297,7 +6303,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -6347,9 +6353,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration clusterConfig = new Configuration(properties,
       Collections.emptyMap(), parentConfig);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, ONLY_STACK_DEFAULTS_APPLY);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
-    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     reset(stack);
@@ -6407,9 +6412,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration clusterConfig = new Configuration(properties,
       Collections.emptyMap(), parentConfig);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, ONLY_STACK_DEFAULTS_APPLY);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
-    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     reset(stack);
@@ -6476,9 +6480,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration clusterConfig = new Configuration(properties,
       Collections.emptyMap(), parentClusterConfig);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, ALWAYS_APPLY);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
-    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ALWAYS_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     // WHEN
     Set<String> configTypes = configProcessor.doUpdateForClusterCreate();
@@ -6531,9 +6534,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Configuration clusterConfig = new Configuration(properties,
       Collections.emptyMap(), parentClusterConfig);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
-    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     // WHEN
     configProcessor.doUpdateForClusterCreate();
@@ -6572,7 +6574,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -6608,7 +6610,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -6645,7 +6647,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -6700,7 +6702,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -6759,7 +6761,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1);//, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -6825,7 +6827,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -6899,7 +6901,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -6965,7 +6967,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7037,7 +7039,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7088,7 +7090,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7128,7 +7130,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singleton(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7173,7 +7175,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7227,7 +7229,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
 
@@ -7272,7 +7274,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7318,7 +7320,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7372,7 +7374,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7428,7 +7430,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7472,7 +7474,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7516,7 +7518,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
 
@@ -7561,7 +7563,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // When
@@ -7816,7 +7818,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -7848,7 +7850,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -7871,7 +7873,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     Long clusterId = topology.getClusterId();
     Map<String, String> typeProps = new HashMap<>();
     typeProps.put("atlas.cluster.name", String.valueOf(clusterId));
@@ -7901,8 +7903,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    Long clusterId = topology.getClusterId();
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
 
     Map<String, String> hiveSiteProps = new HashMap<>();
     hiveSiteProps.put("hive.exec.post.hooks", someString);
@@ -7939,8 +7940,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("druid-common", druidCommon);
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, Collections.emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = Sets.newHashSet("DRUID_COORDINATOR");
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
@@ -7950,7 +7951,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Arrays.asList(group1, group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -7980,7 +7981,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -8010,7 +8011,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -8045,7 +8046,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -8080,8 +8081,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    expect(stack.isPasswordProperty((String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true).once();
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    expect(stack.isPasswordProperty(anyObject(), anyObject(), anyObject())).andReturn(true).once();
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -8160,7 +8161,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
 
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, NEVER_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     configProcessor.doUpdateForClusterCreate();
@@ -8213,7 +8214,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   private ClusterTopology createClusterTopology(Blueprint blueprint, Configuration configuration,
-                                                Collection<TestHostGroup> hostGroups)
+                                                Collection<TestHostGroup> hostGroups, ConfigRecommendationStrategy recommendation)
     throws InvalidTopologyException {
 
 
@@ -8221,6 +8222,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
     Map<String, HostGroup> allHostGroups = new HashMap<>();
+    Map<String, Set<ResolvedComponent>> resolvedComponents = new HashMap<>();
 
     for (TestHostGroup hostGroup : hostGroups) {
       HostGroupInfo groupInfo = new HostGroupInfo(hostGroup.name);
@@ -8232,11 +8234,14 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       for (String componentName : hostGroup.components) {
         componentList.add(new Component(componentName, null, stack.getServiceForComponent(componentName), null));
       }
+      Set<ResolvedComponent> components = componentList.stream()
+        .map(comp -> new ResolvedComponent(STACK_ID, comp.getServiceInstance(), comp.getServiceInstance(), comp))
+        .collect(toSet());
 
       //create host group which is set on topology
       allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, componentList, EMPTY_CONFIG, "1"));
-
       hostGroupInfo.put(hostGroup.name, groupInfo);
+      resolvedComponents.put(hostGroup.name, components);
     }
 
     for (HostGroup group : allHostGroups.values()) {
@@ -8245,17 +8250,27 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(bp.getHostGroups()).andReturn(allHostGroups).anyTimes();
 
-    expect(topologyRequestMock.getClusterId()).andReturn(1L).anyTimes();
     expect(topologyRequestMock.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topologyRequestMock.getClusterId()).andReturn(1L).anyTimes();
+    expect(topologyRequestMock.getConfigRecommendationStrategy()).andReturn(recommendation).anyTimes();
     expect(topologyRequestMock.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(topologyRequestMock.getDefaultPassword()).andReturn("secret").anyTimes();
     expect(topologyRequestMock.getHostGroupInfo()).andReturn(hostGroupInfo).anyTimes();
+    expect(topologyRequestMock.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(topologyRequestMock.getProvisionAction()).andReturn(ProvisionAction.INSTALL_AND_START).anyTimes();
+    expect(topologyRequestMock.getSecurityConfiguration()).andReturn(SecurityConfiguration.NONE).anyTimes();
+    expect(topologyRequestMock.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(bp.getConfiguration()).andReturn(Configuration.createEmpty()).anyTimes();
+    expect(bp.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(bp.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
+    expect(securityFactory.loadSecurityConfigurationByReference(anyString())).andReturn(null).anyTimes();
+    replay(bp, topologyRequestMock, securityFactory);
 
-    replay(bp, topologyRequestMock);
+    BlueprintBasedClusterProvisionRequest request = new BlueprintBasedClusterProvisionRequest(ambariContext, securityFactory, bp, topologyRequestMock);
 
-    ClusterTopology topology = new ClusterTopologyImpl(ambariContext, topologyRequestMock);
-    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.NEVER_APPLY);
-
-    return topology;
+    ClusterTopologyImpl clusterTopology = new ClusterTopologyImpl(ambariContext, request, resolvedComponents);
+    clusterTopology.setClusterId(1L);
+    return clusterTopology;
   }
 
   private class TestHostGroup {

@@ -1,5 +1,3 @@
-package org.apache.ambari.server.topology.validators;
-
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +12,29 @@ package org.apache.ambari.server.topology.validators;
  * limitations under the License.
  */
 
-import java.util.Collection;
+package org.apache.ambari.server.topology.validators;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.ResolvedComponent;
 
 /**
  * Validates that all required passwords are provided.
  */
 public class RequiredPasswordValidator implements TopologyValidator {
-
-  // todo remove the field as all the information is available in the topology being validated
-  private String defaultPassword;
-
-  public RequiredPasswordValidator() {
-  }
 
   /**
    * Validate that all required password properties have been set or that 'default_password' is specified.
@@ -48,8 +44,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
    */
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
-    defaultPassword = topology.getDefaultPassword();
-    Map<String, Map<String, Collection<String>>> missingPasswords = validateRequiredPasswords(topology);
+    Map<String, Map<String, Set<String>>> missingPasswords = validateRequiredPasswords(topology);
 
     if (! missingPasswords.isEmpty()) {
       throw new InvalidTopologyException("Missing required password properties.  Specify a value for these " +
@@ -67,86 +62,45 @@ public class RequiredPasswordValidator implements TopologyValidator {
    *
    * @throws IllegalArgumentException if blueprint contains invalid information
    */
+  private Map<String, Map<String, Set<String>>> validateRequiredPasswords(ClusterTopology topology) {
+    Map<String, Map<String, Set<String>>> missingProperties = new HashMap<>();
 
-  //todo: this is copied/pasted from Blueprint and is currently only used by validatePasswordProperties()
-  //todo: seems that we should have some common place for this code so it can be used by BP and here?
-  private Map<String, Map<String, Collection<String>>> validateRequiredPasswords(ClusterTopology topology) {
-
-    Map<String, Map<String, Collection<String>>> missingProperties =
-      new HashMap<>();
+    StackDefinition stack = topology.getStack();
+    String defaultPassword = topology.getDefaultPassword();
+    boolean hasDefaultPassword = defaultPassword != null && !defaultPassword.trim().isEmpty();
 
     for (Map.Entry<String, HostGroupInfo> groupEntry: topology.getHostGroupInfo().entrySet()) {
       String hostGroupName = groupEntry.getKey();
       Map<String, Map<String, String>> groupProperties =
           groupEntry.getValue().getConfiguration().getFullProperties(3);
 
-      Collection<String> processedServices = new HashSet<>();
-      Blueprint blueprint = topology.getBlueprint();
-      StackDefinition stack = topology.getStack();
+      Map<String, Set<String>> missingPropertiesInHostGroup = topology.getComponentsInHostGroup(hostGroupName)
+        .filter(component -> !RootComponent.AMBARI_SERVER.name().equals(component.getComponentName()))
+        .map(ResolvedComponent::getServiceType)
+        .distinct()
+        .flatMap(serviceType -> stack.getRequiredConfigurationProperties(serviceType, PropertyInfo.PropertyType.PASSWORD).stream())
+        .filter(property -> !propertyExists(groupProperties, property.getType(), property.getName()))
+        .collect(groupingBy(Stack.ConfigProperty::getType, mapping(Stack.ConfigProperty::getName, toSet())));
 
-      HostGroup hostGroup = blueprint.getHostGroup(hostGroupName);
-      for (String component : hostGroup.getComponentNames()) {
-        //for now, AMBARI is not recognized as a service in Stacks
-        if (component.equals(RootComponent.AMBARI_SERVER.name())) {
-          continue;
-        }
-
-        String serviceName = stack.getServiceForComponent(component);
-        if (processedServices.add(serviceName)) {
-          //todo: do I need to subtract excluded configs?
-          Collection<Stack.ConfigProperty> requiredProperties =
-              stack.getRequiredConfigurationProperties(serviceName, PropertyInfo.PropertyType.PASSWORD);
-
-          for (Stack.ConfigProperty property : requiredProperties) {
-            String category = property.getType();
-            String name = property.getName();
-            if (! propertyExists(topology, groupProperties, category, name)) {
-              Map<String, Collection<String>> missingHostGroupPropsMap = missingProperties.computeIfAbsent(hostGroupName, __ -> new HashMap<>());
-              Collection<String> missingHostGroupTypeProps = missingHostGroupPropsMap.computeIfAbsent(category, __ -> new HashSet<>());
-              missingHostGroupTypeProps.add(name);
+      if (!missingPropertiesInHostGroup.isEmpty()) {
+        if (hasDefaultPassword) {
+          for (Map.Entry<String, Set<String>> entry : missingPropertiesInHostGroup.entrySet()) {
+            String type = entry.getKey();
+            for (String name : entry.getValue()) {
+              topology.getConfiguration().setProperty(type, name, defaultPassword);
             }
           }
+        } else {
+          missingProperties.put(hostGroupName, missingPropertiesInHostGroup);
         }
       }
     }
     return missingProperties;
   }
 
-  private boolean propertyExists(ClusterTopology topology, Map<String, Map<String, String>> props, String type, String property) {
+  private boolean propertyExists(Map<String, Map<String, String>> props, String type, String property) {
     Map<String, String> typeProps = props.get(type);
-    return (typeProps != null && typeProps.containsKey(property)) || setDefaultPassword(topology, type, property);
+    return typeProps != null && typeProps.containsKey(property);
   }
 
-  /**
-   * Attempt to set the default password in cluster configuration for missing password property.
-   *
-   * @param configType       configuration type
-   * @param property         password property name
-   *
-   * @return true if password was set, otherwise false.  Currently the password will always be set
-   *         unless it is null
-   */
-  private boolean setDefaultPassword(ClusterTopology topology, String configType, String property) {
-    boolean setDefaultPassword = false;
-    if (defaultPassword != null && ! defaultPassword.trim().isEmpty()) {
-      topology.getConfiguration().setProperty(configType, property, defaultPassword);
-      setDefaultPassword = true;
-    }
-    return setDefaultPassword;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    RequiredPasswordValidator that = (RequiredPasswordValidator) o;
-
-    return defaultPassword == null ? that.defaultPassword == null : defaultPassword.equals(that.defaultPassword);
-  }
-
-  @Override
-  public int hashCode() {
-    return defaultPassword != null ? defaultPassword.hashCode() : 0;
-  }
 }

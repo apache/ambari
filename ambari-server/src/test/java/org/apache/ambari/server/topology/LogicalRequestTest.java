@@ -199,7 +199,7 @@ public class LogicalRequestTest extends EasyMockSupport {
 
     expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).atLeastOnce();
     expect(blueprint.getHostGroup(eq("host_group_1"))).andReturn(hostGroup1).atLeastOnce();
-    expect(clusterTopology.containsMasterComponent(hostGroup1)).andReturn(false).atLeastOnce();
+    expect(clusterTopology.containsMasterComponent("host_group_1")).andReturn(false).atLeastOnce();
 
     replayAll();
 
@@ -302,7 +302,7 @@ public class LogicalRequestTest extends EasyMockSupport {
 
     expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).atLeastOnce();
     expect(blueprint.getHostGroup(eq("host_group_2"))).andReturn(hostGroup2).atLeastOnce();
-    expect(clusterTopology.containsMasterComponent(hostGroup2)).andReturn(false).atLeastOnce();
+    expect(clusterTopology.containsMasterComponent("host_group_2")).andReturn(false).atLeastOnce();
 
     replayAll();
 
@@ -413,7 +413,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).atLeastOnce();
     expect(logicalRequestEntity.getTopologyHostRequestEntities()).andReturn(reservedHostRequestEntities).atLeastOnce();
     expect(blueprint.getHostGroup(eq("host_group_1"))).andReturn(hostGroup1).atLeastOnce();
-    expect(clusterTopology.containsMasterComponent(hostGroup1)).andReturn(false).atLeastOnce();
+    expect(clusterTopology.containsMasterComponent("host_group_1")).andReturn(false).atLeastOnce();
 
 
     replayAll();
@@ -511,7 +511,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).atLeastOnce();
     expect(logicalRequestEntity.getTopologyHostRequestEntities()).andReturn(reservedHostRequestEntities).atLeastOnce();
     expect(blueprint.getHostGroup(eq("host_group_1"))).andReturn(hostGroup1).atLeastOnce();
-    expect(clusterTopology.containsMasterComponent(hostGroup1)).andReturn(false).atLeastOnce();
+    expect(clusterTopology.containsMasterComponent("host_group_1")).andReturn(false).atLeastOnce();
 
     replayAll();
 
@@ -597,7 +597,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).anyTimes();
     expect(logicalRequestEntity.getTopologyHostRequestEntities()).andReturn(hostRequests).anyTimes();
     expect(blueprint.getHostGroup(eq(hostGroupEntity.getName()))).andReturn(hostGroup1).anyTimes();
-    expect(clusterTopology.containsMasterComponent(hostGroup1)).andReturn(false).anyTimes();
+    expect(clusterTopology.containsMasterComponent(hostGroupName)).andReturn(false).anyTimes();
 
     replayAll();
 

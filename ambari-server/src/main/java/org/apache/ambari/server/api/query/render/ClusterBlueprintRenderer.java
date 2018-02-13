@@ -197,7 +197,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    Set<StackId> stackIds = topology.getBlueprint().getStackIds();
+    Set<StackId> stackIds = topology.getStackIds();
     if (stackIds.size() == 1) {
       StackId stackId = Iterables.getOnlyElement(stackIds);
       blueprintResource.setProperty("Blueprints/stack_name", stackId.getStackName());
@@ -210,8 +210,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       try {
         String clusterName = topology.getAmbariContext().getClusterName(topology.getClusterId());
-        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(topology.getAmbariContext()
-          .getClusterController(), clusterName);
+        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(AmbariContext.getClusterController(), clusterName);
         if (kerberosDescriptor != null) {
           securityConfigMap.put(SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, kerberosDescriptor);
         }

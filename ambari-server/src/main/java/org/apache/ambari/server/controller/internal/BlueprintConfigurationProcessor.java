@@ -44,7 +44,6 @@ import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
-import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
@@ -168,6 +167,23 @@ public class BlueprintConfigurationProcessor {
    */
   private static Set<String> configPropertiesWithHASupport =
     new HashSet<>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url", "xasecure.audit.destination.hdfs.dir"));
+
+  public static boolean isNameNodeHAEnabled(Map<String, Map<String, String>> configurationProperties) {
+    return configurationProperties.containsKey("hdfs-site") &&
+           (configurationProperties.get("hdfs-site").containsKey("dfs.nameservices") ||
+            configurationProperties.get("hdfs-site").containsKey("dfs.internal.nameservices"));
+  }
+
+  /**
+   * Static convenience function to determine if Yarn ResourceManager HA is enabled
+   * @param configProperties configuration properties for this cluster
+   * @return true if Yarn ResourceManager HA is enabled
+   *         false if Yarn ResourceManager HA is not enabled
+   */
+  public static boolean isYarnResourceManagerHAEnabled(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("yarn-site") && configProperties.get("yarn-site").containsKey("yarn.resourcemanager.ha.enabled")
+      && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
+  }
 
   /**
    * Statically-defined list of filters to apply on property exports.
@@ -354,7 +370,8 @@ public class BlueprintConfigurationProcessor {
     // set of properties (copy) doesn't include the removed properties.  If an updater
     // removes a property other than the property it is registered for then we will
     // have an issue as it won't be removed from the clusterProps map as it is a copy.
-    Map<String, Map<String, String>> clusterProps = clusterConfig.getFullProperties();
+    Map<String, Map<String, String>> configProperties = clusterConfig.getFullProperties();
+    Map<String, Map<String, String>> clusterProps = configProperties;
     for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
         String type = entry.getKey();
@@ -402,10 +419,10 @@ public class BlueprintConfigurationProcessor {
     }
 
     //todo: lots of hard coded HA rules included here
-    if (clusterTopology.isNameNodeHAEnabled()) {
+    if (isNameNodeHAEnabled(configProperties)) {
 
       // add "dfs.internal.nameservices" if it's not specified
-      Map<String, String> hdfsSiteConfig = clusterConfig.getFullProperties().get("hdfs-site");
+      Map<String, String> hdfsSiteConfig = configProperties.get("hdfs-site");
       String nameservices = hdfsSiteConfig.get("dfs.nameservices");
       String int_nameservices = hdfsSiteConfig.get("dfs.internal.nameservices");
       if(int_nameservices == null && nameservices != null) {
@@ -490,15 +507,16 @@ public class BlueprintConfigurationProcessor {
    */
   public void doUpdateForBlueprintExport() {
     // HA configs are only processed in cluster configuration, not HG configurations
-    if (clusterTopology.isNameNodeHAEnabled()) {
+    Map<String, Map<String, String>> configProperties = clusterTopology.getConfiguration().getFullProperties();
+    if (isNameNodeHAEnabled(configProperties)) {
       doNameNodeHAUpdate();
     }
 
-    if (clusterTopology.isYarnResourceManagerHAEnabled()) {
+    if (isYarnResourceManagerHAEnabled(configProperties)) {
       doYarnResourceManagerHAUpdate();
     }
 
-    if (isOozieServerHAEnabled(clusterTopology.getConfiguration().getFullProperties())) {
+    if (isOozieServerHAEnabled(configProperties)) {
       doOozieServerHAUpdate();
     }
 
@@ -626,7 +644,6 @@ public class BlueprintConfigurationProcessor {
    * @param advisedConfigurations advised configuration instance
    */
   private void doFilterStackDefaults(Map<String, AdvisedConfiguration> advisedConfigurations) {
-    Blueprint blueprint = clusterTopology.getBlueprint();
     Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServices());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
     for (Map.Entry<String, AdvisedConfiguration> adConfEntry : advisedConfigurations.entrySet()) {
@@ -705,15 +722,16 @@ public class BlueprintConfigurationProcessor {
   private Collection<Map<String, Map<String, PropertyUpdater>>> createCollectionOfUpdaters() {
     Collection<Map<String, Map<String, PropertyUpdater>>> updaters = allUpdaters;
 
-    if (clusterTopology.isNameNodeHAEnabled()) {
+    Map<String, Map<String, String>> configProperties = clusterTopology.getConfiguration().getFullProperties();
+    if (isNameNodeHAEnabled(configProperties)) {
       updaters = addNameNodeHAUpdaters(updaters);
     }
 
-    if (clusterTopology.isYarnResourceManagerHAEnabled()) {
+    if (isYarnResourceManagerHAEnabled(configProperties)) {
       updaters = addYarnResourceManagerHAUpdaters(updaters);
     }
 
-    if (isOozieServerHAEnabled(clusterTopology.getConfiguration().getFullProperties())) {
+    if (isOozieServerHAEnabled(configProperties)) {
       updaters = addOozieServerHAUpdaters(updaters);
     }
 
@@ -1473,7 +1491,8 @@ public class BlueprintConfigurationProcessor {
           if (matchingGroupCount == 0 && cardinality.isValidCount(0)) {
             return origValue;
           } else {
-            if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroupCount == 2)) {
+            Map<String, Map<String, String>> configProperties = topology.getConfiguration().getFullProperties();
+            if (isComponentNameNode() && (matchingGroupCount == 2) && isNameNodeHAEnabled(configProperties)) {
               // if this is the defaultFS property, it should reflect the nameservice name,
               // rather than a hostname (used in non-HA scenarios)
               if (properties.containsKey("core-site") && properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
@@ -1499,13 +1518,13 @@ public class BlueprintConfigurationProcessor {
 
             }
 
-            if (topology.isNameNodeHAEnabled() && isComponentSecondaryNameNode() && (matchingGroupCount == 0)) {
+            if (isComponentSecondaryNameNode() && (matchingGroupCount == 0) && isNameNodeHAEnabled(configProperties)) {
               // if HDFS HA is enabled, then no replacement is necessary for properties that refer to the SECONDARY_NAMENODE
               // eventually this type of information should be encoded in the stacks
               return origValue;
             }
 
-            if (topology.isYarnResourceManagerHAEnabled() && isComponentResourceManager() && (matchingGroupCount == 2)) {
+            if (isComponentResourceManager() && (matchingGroupCount == 2) && isYarnResourceManagerHAEnabled(configProperties)) {
               if (!origValue.contains("localhost")) {
                 // if this Yarn property is a FQDN, then simply return it
                 return origValue;
@@ -2067,7 +2086,7 @@ public class BlueprintConfigurationProcessor {
       while (m.find()) {
         String groupName = m.group(1);
 
-        if (!topology.getBlueprint().getHostGroups().containsKey(groupName)) {
+        if (!topology.getHostGroupInfo().containsKey(groupName)) {
           throw new IllegalArgumentException(
               "Unable to match blueprint host group token to a host group: " + groupName);
         }
@@ -2990,7 +3009,7 @@ public class BlueprintConfigurationProcessor {
     );
 
     try {
-      for (StackId stackId : clusterTopology.getBlueprint().getStackIds()) {
+      for (StackId stackId : clusterTopology.getStackIds()) {
         Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
         if (defaultStackProperties.containsKey(CLUSTER_ENV_CONFIG_TYPE_NAME)) {
           Map<String, String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
@@ -3320,7 +3339,7 @@ public class BlueprintConfigurationProcessor {
      * namenode.
      */
     private final Set<String> setOfHDFSPropertyNamesNonHA =
-      Collections.unmodifiableSet(new HashSet<>(Arrays.asList("dfs.namenode.http-address", "dfs.namenode.https-address", "dfs.namenode.rpc-address")));
+      ImmutableSet.of("dfs.namenode.http-address", "dfs.namenode.https-address", "dfs.namenode.rpc-address");
 
 
     /**
@@ -3335,13 +3354,8 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-      if (topology.isNameNodeHAEnabled()) {
-        if (setOfHDFSPropertyNamesNonHA.contains(propertyName)) {
-          return false;
-        }
-      }
-
-      return true;
+      return !setOfHDFSPropertyNamesNonHA.contains(propertyName)
+        || !isNameNodeHAEnabled(topology.getConfiguration().getFullProperties());
     }
   }
 

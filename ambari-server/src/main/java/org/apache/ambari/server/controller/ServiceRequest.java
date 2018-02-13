@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.Objects;
+
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.StackId;
 
@@ -196,4 +198,32 @@ public class ServiceRequest {
   public void setResolvedRepository(RepositoryVersionEntity repositoryVersion) { resolvedRepository = repositoryVersion; }
 
   public RepositoryVersionEntity getResolvedRepository() { return resolvedRepository; }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ServiceRequest other = (ServiceRequest) obj;
+
+    return Objects.equals(clusterName, other.clusterName) &&
+      Objects.equals(serviceGroupName, other.serviceGroupName) &&
+      Objects.equals(serviceType, other.serviceType) &&
+      Objects.equals(serviceName, other.serviceName) &&
+      Objects.equals(desiredState, other.desiredState) &&
+      Objects.equals(maintenanceState, other.maintenanceState) &&
+      Objects.equals(credentialStoreEnabled, other.credentialStoreEnabled) &&
+      Objects.equals(credentialStoreSupported, other.credentialStoreSupported) &&
+      Objects.equals(desiredStackId, other.desiredStackId) &&
+      Objects.equals(desiredRepositoryVersionId, other.desiredRepositoryVersionId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(clusterName, serviceGroupName, serviceType, serviceName, desiredState, maintenanceState, credentialStoreEnabled, credentialStoreSupported, desiredStackId, desiredRepositoryVersionId);
+  }
 }

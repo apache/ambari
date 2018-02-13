@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -258,8 +259,9 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(blueprint.getSetting()).andReturn(SETTING).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
-    expect(topology.getComponentNames("service1")).andReturn(Arrays.asList("component1", "component3")).anyTimes();
-    expect(topology.getComponentNames("service2")).andReturn(Arrays.asList("component2", "component4")).anyTimes();
+    expect(topology.getComponents()).andReturn(Stream.of(
+      // FIXME add ResolvedComponents for both services
+    )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.singleton(group1)).anyTimes();
@@ -272,7 +274,6 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(topology.isValidConfigType(anyString())).andReturn(true).anyTimes();
-    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
     expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     // don't expect toEntity()
 
@@ -323,7 +324,7 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
 
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(topology.containsMasterComponent(group1)).andReturn(true).anyTimes();
+    expect(topology.containsMasterComponent("group1")).andReturn(true).anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
     expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
     expect(group1.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.emptyList()).anyTimes();
@@ -332,7 +333,7 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(group1.getName()).andReturn("group1").anyTimes();
 
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(topology.containsMasterComponent(group2)).andReturn(false).anyTimes();
+    expect(topology.containsMasterComponent("group2")).andReturn(false).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2ComponentNames).anyTimes();
     expect(group2.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.emptyList()).anyTimes();

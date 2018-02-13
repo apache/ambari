@@ -1064,9 +1064,9 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       ServiceComponentRequest rInvalid1 =
-          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", null);
+          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", State.INSTALLED.name());
       ServiceComponentRequest rInvalid2 =
-          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", null);
+          new ServiceComponentRequest(cluster1, serviceGroupName, "HDFS", "HDFS_CLIENT", State.STARTED.name());
       set1.add(rInvalid1);
       set1.add(rInvalid2);
       ComponentResourceProviderTest.createComponents(controller, set1);
@@ -3172,7 +3172,7 @@ public class AmbariManagementControllerTest {
       req1 = new ServiceRequest(cluster1, serviceGroupName, serviceName1, repositoryVersion02.getId(),
           State.INSTALLED.toString(), null);
       req2 = new ServiceRequest(cluster1, serviceGroupName, serviceName1, repositoryVersion02.getId(),
-          State.INSTALLED.toString(), null);
+          State.STARTED.toString(), null);
       reqs.add(req1);
       reqs.add(req2);
       ServiceResourceProviderTest.updateServices(controller, reqs, mapRequestProps, true, false);

@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -261,8 +262,9 @@ public class TopologyManagerTest {
 
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
-    expect(clusterTopologyMock.getComponentNames("service1")).andReturn(Arrays.asList("component1", "component3")).anyTimes();
-    expect(clusterTopologyMock.getComponentNames("service2")).andReturn(Arrays.asList("component2", "component4")).anyTimes();
+    expect(clusterTopologyMock.getComponents()).andReturn(Stream.of(
+      // FIXME add ResolvedComponents for both services
+    )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.singleton(group1)).anyTimes();
@@ -274,7 +276,6 @@ public class TopologyManagerTest {
     expect(clusterTopologyMock.getStack()).andReturn(stack).anyTimes();
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
-    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
     expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
     // don't expect toEntity()
 
@@ -315,14 +316,14 @@ public class TopologyManagerTest {
 
 
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(clusterTopologyMock.containsMasterComponent(group1)).andReturn(true).anyTimes();
+    expect(clusterTopologyMock.containsMasterComponent("group1")).andReturn(true).anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
     expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
     expect(group1.getConfiguration()).andReturn(topoGroup1Config).anyTimes();
     expect(group1.getName()).andReturn("group1").anyTimes();
 
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(clusterTopologyMock.containsMasterComponent(group2)).andReturn(false).anyTimes();
+    expect(clusterTopologyMock.containsMasterComponent("group2")).andReturn(false).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2ComponentNames).anyTimes();
     expect(group2.getConfiguration()).andReturn(topoGroup2Config).anyTimes();

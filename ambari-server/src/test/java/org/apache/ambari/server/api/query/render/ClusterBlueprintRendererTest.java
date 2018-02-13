@@ -163,7 +163,6 @@ public class ClusterBlueprintRendererTest {
     groupInfoMap.put("host_group_1", group1Info);
     groupInfoMap.put("host_group_2", group2Info);
 
-    expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
@@ -219,7 +218,6 @@ public class ClusterBlueprintRendererTest {
     groupInfoMap.put("host_group_1", group1Info);
     groupInfoMap.put("host_group_2", group2Info);
 
-    expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();

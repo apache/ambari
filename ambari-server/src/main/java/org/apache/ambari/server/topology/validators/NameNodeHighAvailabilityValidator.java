@@ -21,7 +21,6 @@ package org.apache.ambari.server.topology.validators;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +28,6 @@ import java.util.Set;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ClusterTopologyImpl;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.slf4j.Logger;
@@ -49,14 +47,14 @@ public class NameNodeHighAvailabilityValidator implements TopologyValidator {
 
     Map<String, Map<String, String>> clusterConfigurations = topology.getConfiguration().getProperties();
 
-    if (!ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations)) {
+    if (!BlueprintConfigurationProcessor.isNameNodeHAEnabled(clusterConfigurations)) {
       LOG.info("NAMENODE HA is not enabled, skipping validation of {}", blueprint.getName());
       return;
     }
 
     LOG.info("Validating NAMENODE HA for blueprint: {}", blueprint.getName());
 
-    List<HostGroup> hostGroupsForComponent = new ArrayList<>(topology.getBlueprint().getHostGroupsForComponent("NAMENODE"));
+    List<String> hostGroupsForComponent = new ArrayList<>(topology.getHostGroupsForComponent("NAMENODE"));
 
     for (HostGroup hostGroup : topology.getBlueprint().getHostGroups().values()) {
       Map<String, Map<String, String>> operationalConfiguration = new HashMap<>(clusterConfigurations);
@@ -72,13 +70,8 @@ public class NameNodeHighAvailabilityValidator implements TopologyValidator {
              throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
           }
           if (BlueprintConfigurationProcessor.HOST_GROUP_PLACEHOLDER_PATTERN.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && BlueprintConfigurationProcessor.HOST_GROUP_PLACEHOLDER_PATTERN.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()) {
-            for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
-               Iterator<String> itr = givenHostGroups.iterator();
-               while(itr.hasNext()){
-                  if(itr.next().contains(hostGroupForComponent.getName())){
-                     itr.remove();
-                  }
-               }
+            for (String hostGroupForComponent : hostGroupsForComponent) {
+              givenHostGroups.removeIf(s -> s.contains(hostGroupForComponent));
             }
           }
 

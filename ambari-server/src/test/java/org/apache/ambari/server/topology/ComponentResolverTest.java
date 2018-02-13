@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.topology.validators;
+package org.apache.ambari.server.topology;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -25,17 +25,17 @@ import static org.easymock.EasyMock.reset;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.internal.StackDefinition;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.validators.RejectUnknownComponents;
+import org.apache.ambari.server.topology.validators.TopologyValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 
-public class RejectUnknownComponentsTest {
+public class ComponentResolverTest {
 
-  private TopologyValidator validator = new RejectUnknownComponents();
+  private final TopologyValidator validator = new RejectUnknownComponents();
   private final ClusterTopology topology = createNiceMock(ClusterTopology.class);
   private final StackDefinition stack = createNiceMock(StackDefinition.class);
 
@@ -73,7 +73,7 @@ public class RejectUnknownComponentsTest {
   }
 
   private void componentsInTopologyAre(String... components) {
-    expect(topology.getComponentNames()).andReturn(Stream.of(components)).anyTimes();
+    expect(topology.getComponents()).andReturn(Stream.empty()).anyTimes(); // FIXME
     replay(topology);
   }
 

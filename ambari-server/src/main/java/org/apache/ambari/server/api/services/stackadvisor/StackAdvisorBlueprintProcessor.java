@@ -75,7 +75,7 @@ public class StackAdvisorBlueprintProcessor {
    * @param userProvidedConfigurations User configurations of cluster provided in Blueprint + Cluster template
    */
   public void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> userProvidedConfigurations) throws ConfigurationTopologyException {
-    for (StackId stackId : clusterTopology.getBlueprint().getStackIds()) {
+    for (StackId stackId : clusterTopology.getStackIds()) {
       StackAdvisorRequest request = createStackAdvisorRequest(clusterTopology, stackId, StackAdvisorRequestType.CONFIGURATIONS);
       try {
         RecommendationResponse response = stackAdvisorHelper.recommend(request);

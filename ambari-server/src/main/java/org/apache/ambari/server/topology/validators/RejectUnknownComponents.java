@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.joining;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.ResolvedComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,8 @@ public class RejectUnknownComponents implements TopologyValidator {
 
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
-    String unknownComponents = topology.getComponentNames()
+    String unknownComponents = topology.getComponents()
+      .map(ResolvedComponent::getComponentName)
       .filter(c -> !RootComponent.AMBARI_SERVER.name().equals(c))
       .filter(c -> !topology.getStack().getComponents().contains(c))
       .collect(joining(", "));

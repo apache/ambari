@@ -240,16 +240,16 @@ public class AmbariContextTest {
 
     expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprintName()).andReturn(BP_NAME).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.singletonMap(HOST_GROUP_1, group1Info)).anyTimes();
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
     expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
     expect(topology.getServices()).andReturn(blueprintServices).anyTimes();
-    expect(topology.getComponentNames("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();
-    expect(topology.getComponentNames("service2")).andReturn(Collections.singleton("s2Component1")).anyTimes();
-    expect(topology.getStackIdsForService("service1")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
-    expect(topology.getStackIdsForService("service2")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(topology.getComponents()).andReturn(Stream.of(
+      // FIXME add ResolvedComponents for both services
+    )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();

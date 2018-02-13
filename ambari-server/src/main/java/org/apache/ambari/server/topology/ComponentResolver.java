@@ -44,23 +44,22 @@ public class ComponentResolver {
 
   private static final Logger LOG = LoggerFactory.getLogger(ComponentResolver.class);
 
-  private final ClusterTopology topology;
+  private final BlueprintBasedClusterProvisionRequest request;
   private final Map<String, ServiceInstance> uniqueServices;
   private final Map<String, Map<String, ServiceInstance>> mpackServices;
 
-  public ComponentResolver(ClusterTopology topology) {
-    this.topology = topology;
-
-    uniqueServices = topology.getUniqueServices();
-    mpackServices = topology.getServicesByMpack();
+  public ComponentResolver(BlueprintBasedClusterProvisionRequest request) {
+    this.request = request;
+    uniqueServices = request.getUniqueServices();
+    mpackServices = request.getServicesByMpack();
   }
 
   public Map<String, Set<ResolvedComponent>> resolve() {
     Map<String, Set<ResolvedComponent>> result = new HashMap<>();
     List<String> problems = new LinkedList<>();
 
-    StackDefinition stack = topology.getStack();
-    for (HostGroup hg : topology.getHostGroups()) {
+    StackDefinition stack = request.getStack();
+    for (HostGroup hg : request.getHostGroups().values()) {
       result.put(hg.getName(), new HashSet<>());
 
       for (Component comp : hg.getComponents()) {
@@ -130,8 +129,7 @@ public class ComponentResolver {
       if (service != null) {
         String serviceType = service.getType();
 
-        return stream
-          .filter(pair -> pair.getRight().equals(serviceType));
+        return stream.filter(pair -> pair.getRight().equals(serviceType));
       }
     }
 
@@ -141,8 +139,7 @@ public class ComponentResolver {
   // if component references a specific mpack instance, filter the stream by the name of that mpack
   private Stream<Pair<StackId, String>> filterByMpackName(Component comp, Stream<Pair<StackId, String>> stream) {
     if (!Strings.isNullOrEmpty(comp.getMpackInstance())) {
-      return stream
-        .filter(pair -> pair.getLeft().getStackName().equals(comp.getMpackInstance()));
+      return stream.filter(pair -> pair.getLeft().getStackName().equals(comp.getMpackInstance()));
     }
 
     return stream;

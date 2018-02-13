@@ -19,8 +19,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
@@ -31,14 +29,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
@@ -47,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 /**
  * Represents a cluster topology.
@@ -62,50 +58,53 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private Long clusterId;
   private final Blueprint blueprint;
   private final Configuration configuration;
-  private ConfigRecommendationStrategy configRecommendationStrategy;
-  private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
+  private final ConfigRecommendationStrategy configRecommendationStrategy;
+  private final ProvisionAction provisionAction;
   private final Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final AmbariContext ambariContext;
+  private final BlueprintBasedClusterProvisionRequest provisionRequest;
   private final String defaultPassword;
-  private final Map<String, MpackInstance> mpacks;
+  private final Map<String, Set<ResolvedComponent>> resolvedComponents;
 
   public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
     this.ambariContext = ambariContext;
     this.clusterId = topologyRequest.getClusterId();
-    // provision cluster currently requires that all hostgroups have same BP so it is ok to use root level BP here
     this.blueprint = topologyRequest.getBlueprint();
     this.configuration = topologyRequest.getConfiguration();
+    configRecommendationStrategy = ConfigRecommendationStrategy.NEVER_APPLY;
+    provisionAction = topologyRequest instanceof BaseClusterRequest ? ((BaseClusterRequest) topologyRequest).getProvisionAction() : INSTALL_AND_START; // FIXME
 
-    // FIXME smelling more and more
-    // 1. shouldn't have to cast
-    // 2. what about replayed request
-    // ->
-    // 1. interface to combine blueprint and provision request
-    // 2. replayed request should simply be a provision or scale request
-    // 3. do not create a ClusterTopologyImpl for scale request -- create for original provision request only
-    if (topologyRequest instanceof ProvisionClusterRequest) {
-      ProvisionClusterRequest provisionRequest = (ProvisionClusterRequest) topologyRequest;
-      defaultPassword = provisionRequest.getDefaultPassword();
-      stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), provisionRequest.getStackIds()));
-      stack = ambariContext.composeStacks(stackIds);
-      setBlueprintParentConfig();
-      mpacks = ImmutableMap.copyOf(Stream.concat(blueprint.getMpacks().stream(), provisionRequest.getMpackInstances().stream())
-        .collect(toMap(
-          MpackInstance::getMpackName,
-          Function.identity())));
-    } else {
-      defaultPassword = null;
-      stackIds = ImmutableSet.of();
-      stack = null;
-      mpacks = ImmutableMap.of();
-    }
+    provisionRequest = null;
+    defaultPassword = null;
+    stackIds = ImmutableSet.of();
+    stack = null;
+    resolvedComponents = ImmutableMap.of();
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
   }
 
-  void setBlueprintParentConfig() {
+  // FIXME 2. replayed request should simply be a provision or scale request
+  // FIXME 3. do not create a ClusterTopologyImpl for scale request -- create for original provision request only
+  public ClusterTopologyImpl(
+    AmbariContext ambariContext,
+    BlueprintBasedClusterProvisionRequest request,
+    Map<String, Set<ResolvedComponent>> resolvedComponents
+  ) throws InvalidTopologyException {
+    this.ambariContext = ambariContext;
+    this.blueprint = request.getBlueprint();
+    this.configuration = request.getConfiguration();
+    this.provisionRequest = request;
+    this.resolvedComponents = resolvedComponents;
+    configRecommendationStrategy = request.getConfigRecommendationStrategy();
+    provisionAction = request.getProvisionAction();
+
+    defaultPassword = provisionRequest.getDefaultPassword();
+    stackIds = request.getStackIds();
+    stack = request.getStack();
+
     blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServices()));
+    registerHostGroupInfo(request.getHostGroupInfo());
   }
 
   @Override
@@ -118,7 +117,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
     return clusterId;
   }
 
-  @Override
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
   }
@@ -126,6 +124,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Blueprint getBlueprint() {
     return blueprint;
+  }
+
+  @Override
+  public String getBlueprintName() {
+    return blueprint.getName();
   }
 
   @Override
@@ -144,29 +147,31 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
+  public Setting getSetting() {
+    return provisionRequest.getSetting();
+  }
+
+  @Override
   public Map<String, HostGroupInfo> getHostGroupInfo() {
     return hostGroupInfoMap;
   }
 
   @Override
-  public Iterable<HostGroup> getHostGroups() {
+  public Collection<HostGroup> getHostGroups() {
     return blueprint.getHostGroups().values();
   }
 
-  //todo: do we want to return groups with no requested hosts?
   @Override
   public Collection<String> getHostGroupsForComponent(String component) {
-    Collection<String> resultGroups = new ArrayList<>();
-    for (HostGroup group : getBlueprint().getHostGroups().values() ) {
-      if (group.getComponentNames().contains(component)) {
-        resultGroups.add(group.getName());
-      }
-    }
-    return resultGroups;
+    return resolvedComponents.entrySet().stream()
+      .filter(e -> e.getValue().stream().anyMatch(c -> component.equals(c.getComponentName())))
+      .map(Map.Entry::getKey)
+      .collect(toSet());
   }
 
   @Override
   public String getHostGroupForHost(String hostname) {
+    // FIXME change to map lookup
     for (HostGroupInfo groupInfo : hostGroupInfoMap.values() ) {
       if (groupInfo.getHostNames().contains(hostname)) {
         // a host can only be associated with a single host group
@@ -223,71 +228,26 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   @Override
   public Collection<String> getServices() {
-    return getComponentNames()
-      .map(stack::getServiceForComponent)
+    return getComponents()
+      .map(ResolvedComponent::getServiceName)
       .collect(toSet());
   }
 
   @Override
-  public MpackInstance getMpack(String name) {
-    return mpacks.get(name);
+  public Stream<ResolvedComponent> getComponents() {
+    return resolvedComponents.values().stream()
+      .flatMap(Collection::stream);
   }
 
   @Override
-  public Map<String, Map<String, ServiceInstance>> getServicesByMpack() {
-    Map<String, Map<String, ServiceInstance>> result = new HashMap<>();
-    for (MpackInstance mpack : mpacks.values()) {
-      Map<String, ServiceInstance> services = mpack.getServiceInstances().stream()
-        .collect(toMap(ServiceInstance::getName, Function.identity()));
-      result.put(mpack.getMpackName(), services);
-    }
-    return result;
+  public Stream<ResolvedComponent> getComponentsInHostGroup(String hostGroup) {
+    return resolvedComponents.computeIfAbsent(hostGroup, __ -> ImmutableSet.of()).stream();
   }
 
   @Override
-  public Map<String, ServiceInstance> getUniqueServices() {
-    Map<String, ServiceInstance> map = mpacks.values().stream()
-      .flatMap(mpack -> mpack.getServiceInstances().stream())
-      .collect(toMap(ServiceInstance::getName, Function.identity(), (s1, s2) -> null));
-    map.entrySet().removeIf(e -> e.getValue() == null); // remove non-unique names mapped to null
-    return map;
-  }
-
-  @Override
-  public Stream<String> getComponentNames() {
-    return getComponents()
-      .map(Component::getName);
-  }
-
-  @Override
-  public Stream<Component> getComponents() {
-    return getBlueprint().getHostGroups().values().stream()
-      .flatMap(hostGroup -> hostGroup.getComponents().stream());
-  }
-
-  @Override
-  public Set<StackId> getStackIdsForService(String service) {
-    return stack.getStacksForService(service);
-  }
-
-  @Override
-  public Collection<Component> getComponents(String service) {
-    return getComponents()
-      .filter(c -> stack.getComponents(service).contains(c.getName()))
-      .collect(toSet());
-  }
-
-  @Override
-  public Collection<String> getComponentNames(String service) {
-    return getComponents(service).stream().map(Component::getName).collect(toList());
-  }
-
-  @Override
-  public boolean containsMasterComponent(HostGroup hostGroup) {
-    return hostGroup.getComponentNames().stream()
-      .map(stack::isMasterComponent)
-      .findAny()
-      .orElse(false);
+  public boolean containsMasterComponent(String hostGroup) {
+    return resolvedComponents.getOrDefault(hostGroup, ImmutableSet.of()).stream()
+      .anyMatch(ResolvedComponent::isMasterComponent);
   }
 
   @Override
@@ -303,38 +263,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
     }
   }
 
-  @Override
-  public boolean isNameNodeHAEnabled() {
-    return isNameNodeHAEnabled(configuration.getFullProperties());
-  }
-
-  public static boolean isNameNodeHAEnabled(Map<String, Map<String, String>> configurationProperties) {
-    return configurationProperties.containsKey("hdfs-site") &&
-           (configurationProperties.get("hdfs-site").containsKey("dfs.nameservices") ||
-            configurationProperties.get("hdfs-site").containsKey("dfs.internal.nameservices"));
-  }
-
-  @Override
-  public boolean isYarnResourceManagerHAEnabled() {
-    return isYarnResourceManagerHAEnabled(configuration.getFullProperties());
-  }
-
-  /**
-   * Static convenience function to determine if Yarn ResourceManager HA is enabled
-   * @param configProperties configuration properties for this cluster
-   * @return true if Yarn ResourceManager HA is enabled
-   *         false if Yarn ResourceManager HA is not enabled
-   */
-  static boolean isYarnResourceManagerHAEnabled(Map<String, Map<String, String>> configProperties) {
-    return configProperties.containsKey("yarn-site") && configProperties.get("yarn-site").containsKey("yarn.resourcemanager.ha.enabled")
-      && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
-  }
-
   // FIXME move out
   private void validateTopology()
       throws InvalidTopologyException {
 
-    if(isNameNodeHAEnabled()){
+    if (BlueprintConfigurationProcessor.isNameNodeHAEnabled(getConfiguration().getFullProperties())) {
         Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
         if (nnHosts.size() != 2) {
             throw new InvalidTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
@@ -399,11 +332,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy) {
-    this.configRecommendationStrategy = strategy;
-  }
-
-  @Override
   public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
     return this.configRecommendationStrategy;
   }
@@ -411,11 +339,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public ProvisionAction getProvisionAction() {
     return provisionAction;
-  }
-
-  @Override
-  public void setProvisionAction(ProvisionAction provisionAction) {
-    this.provisionAction = provisionAction;
   }
 
   @Override

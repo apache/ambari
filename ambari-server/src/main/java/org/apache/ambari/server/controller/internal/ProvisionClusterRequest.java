@@ -44,6 +44,7 @@ import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.ManagementPackMapping;
 import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
+import org.apache.ambari.server.topology.ProvisionRequest;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ import com.google.common.base.Strings;
  * Request for provisioning a cluster.
  */
 @SuppressWarnings("unchecked")
-public class ProvisionClusterRequest extends BaseClusterRequest {
+public class ProvisionClusterRequest extends BaseClusterRequest implements ProvisionRequest {
   /**
    * host groups property name
    */
@@ -278,6 +279,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     this.clusterName = clusterName;
   }
 
+  @Override
   public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
     return configRecommendationStrategy;
   }
@@ -517,15 +519,18 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     return quickLinksProfileJson;
   }
 
+  @Override
   public String getDefaultPassword() {
     return defaultPassword;
   }
 
+  @Override
   public Set<StackId> getStackIds() {
     return stackIds;
   }
 
-  public Collection<MpackInstance> getMpackInstances() {
+  @Override
+  public Collection<MpackInstance> getMpacks() {
     return mpackInstances;
   }
 }

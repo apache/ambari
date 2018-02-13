@@ -19,7 +19,6 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -105,6 +104,9 @@ public interface Blueprint {
    */
   BlueprintEntity toEntity();
 
-  List<RepositorySetting> getRepositorySettings();
+  /**
+   * Add the kerberos client to all host groups in the blueprint.
+   */
+  boolean ensureKerberosClientIsPresent();
 
 }

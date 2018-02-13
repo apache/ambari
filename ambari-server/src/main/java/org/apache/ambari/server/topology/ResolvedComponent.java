@@ -45,8 +45,19 @@ public class ResolvedComponent {
     return serviceType;
   }
 
+  public String getComponentName() {
+    return component.getName();
+  }
+
   public Component getComponent() {
     return component;
   }
 
+  public String getServiceGroupName() {
+    return stackId.toString(); // FIXME
+  }
+
+  public boolean isMasterComponent() {
+    return false; // FIXME
+  }
 }

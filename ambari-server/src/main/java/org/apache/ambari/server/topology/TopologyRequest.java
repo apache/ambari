@@ -43,10 +43,6 @@ public interface TopologyRequest {
    */
   Type getType();
 
-  //todo: only a single BP may be specified so all host groups have the same bp.
-  //todo: BP really needs to be associated with the HostGroupInfo, even for create which will have a single BP
-  //todo: for all HG's.
-
   /**
    * Get the blueprint instance associated with the request.
    *

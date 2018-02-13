@@ -436,9 +436,15 @@ public class BlueprintImpl implements Blueprint {
     return setting != null ? setting.processRepoSettings() : Collections.emptyList();
   }
 
-  @Override
-  public List<RepositorySetting> getRepositorySettings(){
-    return repoSettings;
+  /**
+   * Add the Kerberos client to all host groups.
+   */
+  public boolean ensureKerberosClientIsPresent() {
+    boolean changed = false;
+    for (HostGroup group : getHostGroups().values()) {
+      changed |= group.addComponent(new Component("KERBEROS_CLIENT"));
+    }
+    return changed;
   }
 
 }

@@ -98,7 +98,7 @@ public class HostRequest implements Comparable<HostRequest> {
     this.hostGroup = hostGroup;
     hostgroupName = hostGroup.getName();
     this.predicate = predicate;
-    containsMaster = topology.containsMasterComponent(hostGroup);
+    containsMaster = topology.containsMasterComponent(hostgroupName);
     this.topology = topology;
     this.skipFailure = skipFailure;
     createTasks(this.skipFailure);
@@ -121,14 +121,14 @@ public class HostRequest implements Comparable<HostRequest> {
     this.requestId = requestId;
     this.id = id;
     clusterId = topology.getClusterId();
-    blueprint = topology.getBlueprint().getName();
+    blueprint = topology.getBlueprintName();
     hostgroupName = entity.getTopologyHostGroupEntity().getName();
     hostGroup = topology.getBlueprint().getHostGroup(hostgroupName);
     hostname = entity.getHostName();
     setStatus(entity.getStatus());
     statusMessage = entity.getStatusMessage();
     this.predicate = toPredicate(predicate);
-    containsMaster = topology.containsMasterComponent(hostGroup);
+    containsMaster = topology.containsMasterComponent(hostgroupName);
     this.topology = topology;
     this.skipFailure = skipFailure;
 

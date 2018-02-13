@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.StackDefinition;
@@ -42,18 +44,18 @@ public interface ClusterTopology {
   Long getClusterId();
 
   /**
-   * Set the id of the cluster.
-   *
-   * @param clusterId cluster id
-   */
-  void setClusterId(Long clusterId);
-
-  /**
    * Get the blueprint associated with the cluster.
    *
    * @return associated blueprint
    */
   Blueprint getBlueprint();
+
+  /**
+   * Get the name of the blueprint associated with the cluster.
+   *
+   * @return associated blueprint's name
+   */
+  String getBlueprintName();
 
   /**
    * Get the stack associated with the blueprint.
@@ -80,6 +82,15 @@ public interface ClusterTopology {
   Configuration getConfiguration();
 
   /**
+   * Get the Blueprint cluster scoped setting.
+   * The blueprint cluster scoped setting has the setting properties
+   * with the setting names associated with the blueprint.
+   *
+   * @return blueprint cluster scoped setting
+   */
+  Setting getSetting();
+
+  /**
    * Get host group information.
    *
    * @return map of host group name to host group information
@@ -93,6 +104,7 @@ public interface ClusterTopology {
    *
    * @return collection of host group names which contain the specified component
    */
+  @Deprecated // 1. component name is not enough, 2. only used for stack-specific checks/updates
   Collection<String> getHostGroupsForComponent(String component);
 
   /**
@@ -113,6 +125,7 @@ public interface ClusterTopology {
    *
    * @return collection of hosts for the specified component; will not return null
    */
+  @Deprecated
   Collection<String> getHostAssignmentsForComponent(String component);
 
   /**
@@ -123,57 +136,20 @@ public interface ClusterTopology {
   Collection<String> getServices();
 
   /**
-   * @return the mpack instance defined in the topology with the given name
-   */
-  MpackInstance getMpack(String name);
-
-  Map<String, Map<String,ServiceInstance>> getServicesByMpack();
-
-  /**
-   * @return service instances defined in the topology, mapped by service name,
-   * whose name is unique across all mpacks.
-   */
-  Map<String, ServiceInstance> getUniqueServices();
-
-  /**
    * Get all of the components represented in the blueprint.
    *
    * @return collection of all represented components
    */
-  Stream<Component> getComponents();
+  Stream<ResolvedComponent> getComponents();
 
   /**
-   * Get the names of all of the components represented in the blueprint.
+   * Get the components that are included in the specified host group.
    *
-   * @return collection of all represented component names
+   * @param hostGroup host group name
+   * @return stream of components for the service
    */
-  Stream<String> getComponentNames();
-
-  /**
-   * Look up the stacks that define <code>service</code>.
-   * To be used only after checking that services map to
-   * @param service the name of the service as defined in the stack (mpack), eg. ZOOKEEPER
-   * @return the ID of the stack that defines the given service
-   */
-  Set<StackId> getStackIdsForService(String service);
-
-  /**
-   * Get the components that are included in the blueprint for the specified service.
-   *
-   * @param service  service name
-   *
-   * @return collection of components for the service.  Will not return null.
-   */
-  Collection<Component> getComponents(String service);
-
-  /**
-   * Get the components that are included in the blueprint for the specified service.
-   *
-   * @param service  service name
-   *
-   * @return collection of component names for the service.  Will not return null.
-   */
-  Collection<String> getComponentNames(String service);
+  @Nonnull
+  Stream<ResolvedComponent> getComponentsInHostGroup(String hostGroup);
 
   /**
    * A config type is valid if there are services related to except cluster-env and global.
@@ -202,20 +178,6 @@ public interface ClusterTopology {
   void addHostToTopology(String hostGroupName, String host) throws InvalidTopologyException, NoSuchHostGroupException;
 
   /**
-   * Determine if NameNode HA is enabled.
-   *
-   * @return true if NameNode HA is enabled; false otherwise
-   */
-  boolean isNameNodeHAEnabled();
-
-  /**
-   * Determine if Yarn ResourceManager HA is enabled.
-   *
-   * @return true if Yarn ResourceManager HA is enabled; false otherwise
-   */
-  boolean isYarnResourceManagerHAEnabled();
-
-  /**
    * Determine if the cluster is kerberos enabled.
    *
    * @return true if the cluster is kerberos enabled; false otherwise
@@ -239,15 +201,7 @@ public interface ClusterTopology {
    */
   RequestStatusResponse startHost(String hostName, boolean skipFailure);
 
-  void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy);
-
   ConfigRecommendationStrategy getConfigRecommendationStrategy();
-
-  /**
-   * Set request provision action : INSTALL vs INSTALL_AND_START
-   * @param provisionAction @ProvisionAction
-   */
-  void setProvisionAction(ProvisionAction provisionAction);
 
   ProvisionAction getProvisionAction();
 
@@ -269,7 +223,7 @@ public interface ClusterTopology {
    *
    * @return true if the host group contains a master component; false otherwise
    */
-  boolean containsMasterComponent(HostGroup hostGroup);
+  boolean containsMasterComponent(String hostGroup);
 
-  Iterable<HostGroup> getHostGroups();
+  Collection<HostGroup> getHostGroups();
 }

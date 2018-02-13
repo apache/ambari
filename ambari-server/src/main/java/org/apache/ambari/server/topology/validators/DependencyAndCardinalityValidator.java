@@ -18,14 +18,10 @@
 
 package org.apache.ambari.server.topology.validators;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.StackDefinition;
@@ -35,7 +31,6 @@ import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ClusterTopologyImpl;
 import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.InvalidTopologyException;
@@ -52,7 +47,7 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
     Blueprint blueprint = topology.getBlueprint();
-    LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
+    LOGGER.info("Validating topology for blueprint: [{}]", topology.getBlueprintName());
 
     StackDefinition stack = topology.getStack();
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
@@ -76,52 +71,13 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
           cardinalityFailures.addAll(verifyComponentInAllHostGroups(blueprint, new Component(component), autoDeploy));
         } else {
           cardinalityFailures.addAll(verifyComponentCardinalityCount(
-            stack, blueprint, new Component(component), cardinality, autoDeploy));
+            stack, topology, blueprint, new Component(component), cardinality, autoDeploy));
         }
       }
     }
 
     if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
       generateInvalidTopologyException(missingDependencies, cardinalityFailures);
-    }
-  }
-
-  public void validateRequiredProperties(ClusterTopology topology) throws InvalidTopologyException {
-    // we don't want to include default stack properties so we can't just use hostGroup full properties
-    Map<String, Map<String, String>> clusterConfigurations = topology.getConfiguration().getProperties();
-
-    for (HostGroup hostGroup : topology.getBlueprint().getHostGroups().values()) {
-      Map<String, Map<String, String>> operationalConfiguration = new HashMap<>(clusterConfigurations);
-
-      operationalConfiguration.putAll(hostGroup.getConfiguration().getProperties());
-      for (String component : hostGroup.getComponentNames()) {
-        if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
-          Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
-          if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
-            List<HostGroup> hostGroupsForComponent = new ArrayList<>(topology.getBlueprint().getHostGroupsForComponent(component));
-            Set<String> givenHostGroups = new HashSet<>();
-            givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
-            givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
-            if(givenHostGroups.size() != hostGroupsForComponent.size()) {
-               throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-            }
-            if (BlueprintConfigurationProcessor.HOST_GROUP_PLACEHOLDER_PATTERN.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && BlueprintConfigurationProcessor.HOST_GROUP_PLACEHOLDER_PATTERN.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()) {
-              for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
-                 Iterator<String> itr = givenHostGroups.iterator();
-                 while(itr.hasNext()){
-                    if(itr.next().contains(hostGroupForComponent.getName())){
-                       itr.remove();
-                    }
-                 }
-              }
-            }
-
-            if(!givenHostGroups.isEmpty()){
-              throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-            }
-          }
-        }
-      }
     }
   }
 
@@ -166,7 +122,7 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
         boolean isClientDependency = stack.getComponentInfo(dependency.getComponentName()).isClient();
         if (isClientDependency && !topology.getServices().contains(dependency.getServiceName())) {
           LOGGER.debug("The service [{}] for component [{}] is missing from the blueprint [{}], skipping dependency",
-              dependency.getServiceName(), dependency.getComponentName(), topology.getBlueprint().getName());
+              dependency.getServiceName(), dependency.getComponentName(), topology.getBlueprintName());
           continue;
         }
 
@@ -179,7 +135,7 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
         if(dependency.hasDependencyConditions()) {
           boolean conditionsSatisfied = true;
           for (DependencyConditionInfo dependencyCondition : dependency.getDependencyConditions()) {
-            if (!dependencyCondition.isResolved(blueprint.getConfiguration().getFullProperties())) {
+            if (!dependencyCondition.isResolved(topology.getConfiguration().getFullProperties())) {
               conditionsSatisfied = false;
               break;
             }
@@ -190,7 +146,7 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
         }
         if (dependencyScope.equals("cluster")) {
           Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
-            stack, blueprint, new Component(componentName), new Cardinality("1+"), autoDeployInfo);
+            stack, topology, blueprint, new Component(componentName), new Cardinality("1+"), autoDeployInfo);
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
@@ -228,15 +184,16 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
    */
   private Collection<String> verifyComponentCardinalityCount(
     StackDefinition stack,
+    ClusterTopology topology,
     Blueprint blueprint,
     Component component,
     Cardinality cardinality,
     AutoDeployInfo autoDeploy
   ) {
-    Map<String, Map<String, String>> configProperties = blueprint.getConfiguration().getProperties();
+    Map<String, Map<String, String>> configProperties = topology.getConfiguration().getProperties();
     Collection<String> cardinalityFailures = new HashSet<>();
     //todo: don't hard code this HA logic here
-    if (ClusterTopologyImpl.isNameNodeHAEnabled(configProperties) &&
+    if (BlueprintConfigurationProcessor.isNameNodeHAEnabled(configProperties) &&
         (component.getName().equals("SECONDARY_NAMENODE"))) {
       // override the cardinality for this component in an HA deployment,
       // since the SECONDARY_NAMENODE should not be started in this scenario

@@ -226,7 +226,7 @@ public class AmbariContext {
                                     String repoVersionString, Long repoVersionId) {
     Map<StackId, Long> repoVersionByStack = new HashMap<>();
 
-    Set<StackId> stackIds = topology.getBlueprint().getStackIds();
+    Set<StackId> stackIds = topology.getStackIds();
     for (StackId stackId : stackIds) {
       RepositoryVersionEntity repoVersion = null;
       if (stackIds.size() == 1) {
@@ -245,8 +245,7 @@ public class AmbariContext {
       }
     }
 
-    StackId stackId = Iterables.getFirst(topology.getBlueprint().getStackIds(), null);
-    createAmbariClusterResource(clusterName, stackId, securityType);
+    createAmbariClusterResource(clusterName, topology.getStackIds(), securityType);
     createAmbariServiceAndComponentResources(topology, clusterName, repoVersionByStack);
   }
 
@@ -330,19 +329,15 @@ public class AmbariContext {
     return repoVersion;
   }
 
-  public void createAmbariClusterResource(String clusterName, StackId stackId, SecurityType securityType) {
-    String stackInfo = stackId.toString();
+  private void createAmbariClusterResource(String clusterName, Set<StackId> stackIds, SecurityType securityType) {
+    String stackInfo = stackIds.iterator().next().toString(); // temporary
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
 
     try {
-      RetryHelper.executeWithRetry(new Callable<Object>() {
-        @Override
-        public Object call() throws Exception {
-          getController().createCluster(clusterRequest);
-          return null;
-        }
+      RetryHelper.executeWithRetry(() -> {
+        getController().createCluster(clusterRequest);
+        return null;
       });
-
     } catch (AmbariException e) {
       LOG.error("Failed to create Cluster resource: ", e);
       if (e.getCause() instanceof DuplicateResourceException) {
@@ -353,37 +348,23 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName, Map<StackId, Long> repoVersionByStack) {
-    Set<String> serviceGroups = Sets.newHashSet(DEFAULT_SERVICE_GROUP_NAME);
-    Collection<String> services = topology.getServices();
-
-    try {
-      Cluster cluster = getController().getClusters().getCluster(clusterName);
-      serviceGroups.removeAll(cluster.getServiceGroups().keySet());
-      services.removeAll(cluster.getServices().keySet());
-    } catch (AmbariException e) {
-      throw new RuntimeException("Failed to persist service and component resources: " + e, e);
-    }
-
-    Set<ServiceGroupRequest> serviceGroupRequests = serviceGroups.stream()
-      .map(serviceGroupName -> new ServiceGroupRequest(clusterName, serviceGroupName))
+  private void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName, Map<StackId, Long> repoVersionByStack) {
+    Set<ServiceGroupRequest> serviceGroupRequests = topology.getComponents()
+      .map(c -> new ServiceGroupRequest(clusterName, c.getServiceGroupName()))
       .collect(toSet());
 
-    Set<ServiceRequest> serviceRequests = new HashSet<>();
-    Set<ServiceComponentRequest> componentRequests = new HashSet<>();
-    for (String service : services) {
-      String credentialStoreEnabled = topology.getBlueprint().getSetting().getCredentialStoreEnabled(service);
-      StackId stackId = Iterables.getOnlyElement(topology.getStackIdsForService(service)); // FIXME temporarily assume each service is defined in only one mpack
-      Long repositoryVersionId = repoVersionByStack.get(stackId);
-      serviceRequests.add(new ServiceRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, service,
-        repositoryVersionId, null, credentialStoreEnabled, stackId
-      ));
+    Set<ServiceRequest> serviceRequests = topology.getComponents()
+      .map(c -> new ServiceRequest(
+          clusterName, c.getServiceGroupName(), c.getServiceName(), c.getServiceType(), repoVersionByStack.get(c.getStackId()), null,
+          topology.getSetting().getCredentialStoreEnabled(c.getServiceName()), // FIXME settings by service type or name?
+          c.getStackId()
+        ))
+      .collect(toSet());
 
-      for (String component : topology.getComponentNames(service)) {
-        String recoveryEnabled = topology.getBlueprint().getSetting().getRecoveryEnabled(service, component);
-        componentRequests.add(new ServiceComponentRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, component, null, recoveryEnabled));
-      }
-    }
+    Set<ServiceComponentRequest> componentRequests = topology.getComponents()
+      .map(c -> new ServiceComponentRequest(clusterName, c.getServiceGroupName(), c.getServiceName(), c.getComponentName(), null,
+        topology.getSetting().getRecoveryEnabled(c.getServiceName(), c.getComponentName()))) // FIXME settings by service type or name?
+      .collect(toSet());
 
     try {
       if (!serviceGroupRequests.isEmpty()) {
@@ -500,7 +481,7 @@ public class AmbariContext {
   }
 
   public void registerHostWithConfigGroup(final String hostName, final ClusterTopology topology, final String groupName) {
-    String qualifiedGroupName = getConfigurationGroupName(topology.getBlueprint().getName(), groupName);
+    String qualifiedGroupName = getConfigurationGroupName(topology.getBlueprintName(), groupName);
 
     Lock configGroupLock = configGroupCreateLock.get(qualifiedGroupName);
 
@@ -799,7 +780,7 @@ public class AmbariContext {
       serviceConfigs.put(type, config);
     }
 
-    String bpName = topology.getBlueprint().getName();
+    String bpName = topology.getBlueprintName();
     for (Map.Entry<String, Map<String, Config>> entry : groupConfigs.entrySet()) {
       String service = entry.getKey();
       Map<String, Config> serviceConfigs = entry.getValue();
