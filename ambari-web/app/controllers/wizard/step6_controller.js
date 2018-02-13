@@ -470,6 +470,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       service.get('serviceComponents').forEach(function (component) {
         component.get('dependencies').forEach(function (dependency) {
           var dependentService = App.StackService.find().findProperty('serviceName', dependency.serviceName);
+          if (!dependentService) {
+            return;
+          }
           var dependentComponent = dependentService.get('serviceComponents').findProperty('componentName', dependency.componentName);
           if (dependentComponent.get('isSlave') && dependentService.get('isInstalled')) {
             dependentSlaves[dependentComponent.get('componentName')] = [];
