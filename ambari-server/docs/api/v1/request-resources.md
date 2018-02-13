@@ -18,11 +18,11 @@ limitations under the License.
 # Request Resources
  
  
-###API Summary 
+### API Summary
 
 - [List requests](requests.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>

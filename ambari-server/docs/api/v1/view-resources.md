@@ -17,7 +17,7 @@ limitations under the License.
 
 # View Resources
 
-#####Get Views
+##### Get Views
 The user may query for all of the deployed views.  Note that views are a top level resources (they are not sub-resources of a cluster).
 
     GET http://<server>:8080/api/v1/views/
@@ -40,7 +40,7 @@ The user may query for all of the deployed views.  Note that views are a top lev
       ]
     }
 
-#####Get View
+##### Get View
 To get a specific view, request it by name.  Note that the response shows all of the versions of the view as sub-resources.
 
     GET http://<server>:8080/api/v1/views/FILES/
@@ -62,7 +62,7 @@ To get a specific view, request it by name.  Note that the response shows all of
     }
 
 
-#####Get Versions
+##### Get Versions
 The user may request all of the versions of a named view.
 
     GET http://<server>:8080/api/v1/views/FILES/versions/
@@ -80,7 +80,7 @@ The user may request all of the versions of a named view.
       ]
     }
 
-#####Get Version
+##### Get Version
 A specific version can be requested.  Note that all of the instances of the view version are included in the response.
 
     GET http://<server>:8080/api/v1/views/FILES/versions/0.1.0/
@@ -117,7 +117,7 @@ A specific version can be requested.  Note that all of the instances of the view
       ]
     }
 
-#####Get Instances
+##### Get Instances
 The user may request all of the instances of a view.
 
     GET http://<server>:8080/api/v1/views/FILES/versions/0.1.0/instances/
@@ -137,7 +137,7 @@ The user may request all of the instances of a view.
     }
 
 
-#####Get Instance
+##### Get Instance
 A specific view instance may be requested by specifying its name.  Note that the instance resources are listed as sub-resources.
 
     GET http://<server>:8080/api/v1/views/FILES/versions/0.1.0/instances/FILES_1
@@ -165,12 +165,12 @@ A specific view instance may be requested by specifying its name.  Note that the
       ]
     }
     
-#####Create Instance
+##### Create Instance
 New view instances may be created through the API.
 
     POST http://<server>:8080/api/v1/views/FILES/versions/0.1.0/instances/FILES_2
     
-#####Update Instance
+##### Update Instance
 The properties of a view instance may be updated through the API.
 
     PUT http://<server>:8080/api/v1/views/FILES/versions/0.1.0/instances/FILES_2
@@ -182,20 +182,20 @@ The properties of a view instance may be updated through the API.
         }
     }]
 
-#####Delete Instance
+##### Delete Instance
 A view instances may be deleted through the API.
 
     DELETE http://<server>:8080/api/v1/views/FILES/versions/0.1.0/instances/FILES_2
     
 
-#####Resources
+##### Resources
 A view resource may be accessed through the REST API.  The href for each view resource can be found in a request for the parent view instance.  The resource endpoints and behavior depends on the implementation of the JAX-RS annotated service class specified for the resource element in the view.xml. 
 
     GET http://<server>:8080/api/v1/views/FILES/versions/0.1.0/instances/FILES_1/resources/files/fileops/listdir?path=%2F
     
     [{"path":"/app-logs","replication":0,"isDirectory":true,"len":0,"owner":"yarn","group":"hadoop","permission":"-rwxrwxrwx","accessTime":0,"modificationTime":1400006792122,"blockSize":0},{"path":"/mapred","replication":0,"isDirectory":true,"len":0,"owner":"mapred","group":"hdfs","permission":"-rwxr-xr-x","accessTime":0,"modificationTime":1400006653817,"blockSize":0},{"path":"/mr-history","replication":0,"isDirectory":true,"len":0,"owner":"hdfs","group":"hdfs","permission":"-rwxr-xr-x","accessTime":0,"modificationTime":1400006653822,"blockSize":0},{"path":"/tmp","replication":0,"isDirectory":true,"len":0,"owner":"hdfs","group":"hdfs","permission":"-rwxrwxrwx","accessTime":0,"modificationTime":1400006720415,"blockSize":0},{"path":"/user","replication":0,"isDirectory":true,"len":0,"owner":"hdfs","group":"hdfs","permission":"-rwxr-xr-x","accessTime":0,"modificationTime":1400006610050,"blockSize":0}]
 
-#####Managed Resources
+##### Managed Resources
 Any managed resources for a view may also be accessed through the REST API.  Note that instances of a managed resource appear as sub-resources of an instance under the plural name specified for the resource in the view.xml.  In this example, a list of managed resources named **'scripts'** is included in the response for the view instance … 
  
     GET http://<server>:8080/api/v1/views/PIG/versions/0.1.0/instances/INSTANCE_1
