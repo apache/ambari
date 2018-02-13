@@ -46,8 +46,29 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
       currentTypehead.find($('.selectize-input')).append( itemHtml );
 
     }
-  },
 
+    Selectize.prototype.onMouseDown = function(e) {
+
+      var self = this;
+      var defaultPrevented = e.isDefaultPrevented();
+      var $target = $(e.target);
+
+      if (self.isFocused) {
+        if (e.target !== self.$control_input[0]) {
+          if (self.settings.mode === 'single') {
+            self.isOpen ? self.close() : self.open();
+          } else if (!defaultPrevented) {
+            self.setActiveItem(null);
+          }
+          return false;
+        }
+      } else {
+        if (!defaultPrevented) {
+            self.focus();
+        }
+      }
+    };
+  },
   removeExcludedObserver: function () {
     var options = this.get('content');
 
