@@ -548,12 +548,12 @@ public class MpackManager {
 
       stackEntity.setStackName(stackName);
       stackEntity.setStackVersion(stackVersion);
-      stackEntity.setCurrentMpackId(mpack.getMpackId());
+      stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.create(stackEntity);
     } else {
       LOG.info("Updating stack {}-{} to the database", stackName, stackVersion);
 
-      stackEntity.setCurrentMpackId(mpack.getMpackId());
+      stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.merge(stackEntity);
     }
   }
