@@ -196,7 +196,7 @@ public class StackDAO {
   public StackEntity findByMpack(Long mpackId) {
     TypedQuery<StackEntity> query = entityManagerProvider.get().createNamedQuery(
             "StackEntity.findByMpack", StackEntity.class);
-    query.setParameter("currentMpackId", mpackId);
+    query.setParameter("mpackId", mpackId);
 
     return daoUtils.selectOne(query);
   }

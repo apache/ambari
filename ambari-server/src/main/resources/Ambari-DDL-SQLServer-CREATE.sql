@@ -50,9 +50,9 @@ CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
-  current_mpack_id BIGINT,
+  mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY CLUSTERED (stack_id),
-  CONSTRAINT FK_mpacks FOREIGN KEY (current_mpack_id) REFERENCES mpacks(id),
+  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(
@@ -96,6 +96,71 @@ CREATE TABLE clusters (
   CONSTRAINT PK_clusters PRIMARY KEY CLUSTERED (cluster_id),
   CONSTRAINT FK_clusters_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id));
+
+CREATE TABLE ambari_configuration (
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name)
+);
+
+CREATE TABLE hosts (
+  host_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  cpu_count INTEGER NOT NULL,
+  ph_cpu_count INTEGER,
+  cpu_info VARCHAR(255) NOT NULL,
+  discovery_status VARCHAR(2000) NOT NULL,
+  host_attributes VARCHAR(MAX) NOT NULL,
+  ipv4 VARCHAR(255),
+  ipv6 VARCHAR(255),
+  public_host_name VARCHAR(255),
+  last_registration_time BIGINT NOT NULL,
+  os_arch VARCHAR(255) NOT NULL,
+  os_info VARCHAR(1000) NOT NULL,
+  os_type VARCHAR(255) NOT NULL,
+  rack_info VARCHAR(255) NOT NULL,
+  total_mem BIGINT NOT NULL,
+  CONSTRAINT PK_hosts PRIMARY KEY CLUSTERED (host_id),
+  CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));
+
+CREATE TABLE clustersettings (
+  id BIGINT NOT NULL,
+  setting_name VARCHAR(255) NOT NULL,
+  setting_value VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  CONSTRAINT PK_clustersettings PRIMARY KEY (id),
+  CONSTRAINT FK_clustersettings_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
+CREATE TABLE servicegroups (
+  id BIGINT NOT NULL,
+  service_group_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  stack_id BIGINT NOT NULL,
+  CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
+  CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
+CREATE TABLE servicegroupdependencies (
+  id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  service_group_cluster_id BIGINT NOT NULL,
+  dependent_service_group_id BIGINT NOT NULL,
+  dependent_service_group_cluster_id BIGINT NOT NULL,
+  CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+
+CREATE TABLE clusterservices (
+  id BIGINT NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  service_type VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  service_enabled INT NOT NULL,
+  CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
+  CONSTRAINT UQ_service_id UNIQUE (id),
+  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterconfig (
   config_id BIGINT NOT NULL,

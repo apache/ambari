@@ -92,14 +92,13 @@ public class StackVersionResourceDefinition extends BaseResourceDefinition {
   }
 
   /***
-   * Post processing to change the name of the result node to current_mpack
+   * Post processing to change the name of the result node to stack
    */
   private class StackVersionPostProcessor implements PostProcessor {
     @Override
     public void process(Request request, TreeNode<Resource> resultNode, String href) {
       if (href.contains("/mpacks/")) {
         resultNode.setName("stack");
-
       }
     }
   }
