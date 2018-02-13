@@ -38,9 +38,9 @@ CREATE TABLE stack (
   stack_id NUMERIC(19) NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
-  current_mpack_id BIGINT,
+  mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
-  CONSTRAINT FK_mpacks FOREIGN KEY (current_mpack_id) REFERENCES mpacks(id),
+  CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
 CREATE TABLE extension(

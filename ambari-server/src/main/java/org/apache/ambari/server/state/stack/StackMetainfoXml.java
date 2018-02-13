@@ -130,6 +130,10 @@ public class StackMetainfoXml implements Validable{
   public void setVersion(Version version) {
     this.version = version;
   }
+  
+  public void setOsSpecifics(List<OsSpecific> osSpecifics) {
+    this.osSpecifics = osSpecifics;
+  }
 
   /**
    * Internal list of os-specific details (loaded from xml). Added at schema ver 2

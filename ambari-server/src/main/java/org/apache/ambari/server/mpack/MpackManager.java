@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +47,7 @@ import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -328,6 +330,17 @@ public class MpackManager {
     version.setActive(true);
     generatedMetainfo.setVersion(version);
 
+    //Add osSpecifics to the metainfo.xml
+    OsSpecific osSpecific = new OsSpecific("any");
+    OsSpecific.Package pkg = new OsSpecific.Package();
+    pkg.setName(mpack.getName().toLowerCase());
+    ArrayList<OsSpecific.Package> packageArrayList = new ArrayList<>();
+    packageArrayList.add(pkg);
+    ArrayList<OsSpecific> osSpecificArrayList = new ArrayList<>();
+    osSpecificArrayList.add(osSpecific);
+    osSpecific.addPackages(packageArrayList);
+    generatedMetainfo.setOsSpecifics(osSpecificArrayList);
+
     Map<String, String> prerequisites = mpack.getPrerequisites();
     if (prerequisites != null && prerequisites.containsKey(MIN_JDK_PROPERTY)) {
       generatedMetainfo.setMinJdk(mpack.getPrerequisites().get(MIN_JDK_PROPERTY));
@@ -548,12 +561,12 @@ public class MpackManager {
 
       stackEntity.setStackName(stackName);
       stackEntity.setStackVersion(stackVersion);
-      stackEntity.setCurrentMpackId(mpack.getMpackId());
+      stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.create(stackEntity);
     } else {
       LOG.info("Updating stack {}-{} to the database", stackName, stackVersion);
 
-      stackEntity.setCurrentMpackId(mpack.getMpackId());
+      stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.merge(stackEntity);
     }
   }
