@@ -16,50 +16,66 @@
  * limitations under the License.
  */
 
-import {Component, OnChanges, SimpleChanges, Input, ViewContainerRef} from '@angular/core';
+import {Component, OnDestroy, Input, ViewContainerRef, OnInit} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/observable/from';
+import {TakeUntilDestroy} from "angular2-take-until-destroy";
 import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {LogsType} from '@app/classes/string';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {UtilsService} from "@app/services/utils.service";
+import {AppStateService} from "@app/services/storage/app-state.service";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
   selector: 'filters-panel',
   templateUrl: './filters-panel.component.html',
   styleUrls: ['./filters-panel.component.less']
 })
-export class FiltersPanelComponent implements OnChanges {
-
-  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef) {
+@TakeUntilDestroy
+export class FiltersPanelComponent implements OnDestroy, OnInit {
+  componentDestroy;
+  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef,
+              private utils: UtilsService, private appState: AppStateService) {
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.hasOwnProperty('logsType')) {
-      let result;
-      switch (changes.logsType.currentValue) {
-        case 'auditLogs':
-          result = this.logsContainer.auditLogsColumns;
-          break;
-        case 'serviceLogs':
-          result = this.logsContainer.serviceLogsColumns;
-          break;
-        default:
-          result = Observable.from([]);
-          break;
-      }
-      this.searchBoxItems = result;
+  ngOnInit() {
+    this.appState.getParameter('activeLogsType').takeUntil(this.componentDestroy()).subscribe(this.onLogsTypeChange);
+  }
+
+  ngOnDestroy() {}
+
+  private onLogsTypeChange = (currentLogsType: LogsType): void => {
+    const logsType = this.logsContainer.logsTypeMap[currentLogsType];
+    const fieldsModel: any = logsType && logsType.fieldsModel;
+    let subType:string;
+    let fields:Observable<any>;
+    switch (currentLogsType) {
+      case 'auditLogs':
+        fields = fieldsModel.getParameter(subType ? 'overrides' : 'defaults');
+        if (subType) {
+          fields = fields.map(items => items[subType]);
+        }
+        break;
+      case 'serviceLogs':
+        fields = fieldsModel.getAll();
+        break;
+      default:
+        fields = Observable.from([]);
+        break;
     }
-  }
+    this.searchBoxItems = fields.map(items => items.filter(field => field.filterable))
+      .map(this.utils.logFieldToListItemMapper);
+  };
 
   @Input()
   filtersForm: FormGroup;
 
-  @Input()
-  logsType: LogsType;
+  private subscriptions$: Subscription[] = [];
 
   searchBoxItems: Observable<ListItem[]>;
 

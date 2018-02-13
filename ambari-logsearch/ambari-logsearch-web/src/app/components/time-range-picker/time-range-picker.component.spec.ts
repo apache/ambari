@@ -19,7 +19,7 @@
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -46,14 +46,6 @@ describe('TimeRangePickerComponent', () => {
   let fixture: ComponentFixture<TimeRangePickerComponent>;
 
   beforeEach(async(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       declarations: [TimeRangePickerComponent],
       imports: [
@@ -75,10 +67,7 @@ describe('TimeRangePickerComponent', () => {
         ...TranslationModules
       ],
       providers: [
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
+        ...MockHttpRequestModules,
         LogsContainerService,
         UtilsService,
         AppSettingsService,
