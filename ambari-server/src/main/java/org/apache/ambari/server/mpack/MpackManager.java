@@ -551,7 +551,7 @@ public class MpackManager {
       stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.create(stackEntity);
     } else {
-      LOG.error("Updating stack {}-{} to the database", stackName, stackVersion);
+      LOG.info("Updating stack {}-{} to the database", stackName, stackVersion);
 
       stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.merge(stackEntity);
