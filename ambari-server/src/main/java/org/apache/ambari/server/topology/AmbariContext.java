@@ -452,9 +452,8 @@ public class AmbariContext {
     final Set<ServiceComponentHostRequest> requests = new HashSet<>();
 
     for (Component component : components) {
-      String serviceName = component.getServiceInstance();
-      // FIXME handle null serviceName
       String componentName = component.getName();
+      String serviceName = component.getServiceInstance();
       try {
         if (cluster.getService(serviceName) != null && !componentName.equals(RootComponent.AMBARI_SERVER.name())) {
           requests.add(new ServiceComponentHostRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, serviceName, componentName, hostName, null));

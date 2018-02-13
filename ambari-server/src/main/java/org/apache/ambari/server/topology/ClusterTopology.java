@@ -123,6 +123,19 @@ public interface ClusterTopology {
   Collection<String> getServices();
 
   /**
+   * @return the mpack instance defined in the topology with the given name
+   */
+  MpackInstance getMpack(String name);
+
+  Map<String, Map<String,ServiceInstance>> getServicesByMpack();
+
+  /**
+   * @return service instances defined in the topology, mapped by service name,
+   * whose name is unique across all mpacks.
+   */
+  Map<String, ServiceInstance> getUniqueServices();
+
+  /**
    * Get all of the components represented in the blueprint.
    *
    * @return collection of all represented components
@@ -257,4 +270,6 @@ public interface ClusterTopology {
    * @return true if the host group contains a master component; false otherwise
    */
   boolean containsMasterComponent(HostGroup hostGroup);
+
+  Iterable<HostGroup> getHostGroups();
 }

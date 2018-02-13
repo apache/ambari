@@ -282,9 +282,6 @@ public class TopologyManager {
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
 
-    // get the id prior to creating ambari resources which increments the counter
-    final Long provisionId = ambariContext.getNextRequestId();
-
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
     SecurityType securityType = securityConfiguration.getType();
     if (securityType == SecurityType.KERBEROS && addKerberosClient(topology)) {
@@ -292,7 +289,12 @@ public class TopologyManager {
       topology.setBlueprintParentConfig();
     }
 
-    topologyValidatorService.validateTopologyConfiguration(topology);
+    Map<String, Set<ResolvedComponent>> resolved = new ComponentResolver(topology).resolve();
+    // FIXME use resolved components in topology
+    topologyValidatorService.validateTopologyConfiguration(topology); // FIXME known stacks validation is too late here
+
+    // get the id prior to creating ambari resources which increments the counter
+    final Long provisionId = ambariContext.getNextRequestId();
 
     // create resources
     ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);

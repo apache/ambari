@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -207,10 +209,10 @@ public class CompositeStack implements StackDefinition {
   }
 
   @Override
-  public Collection<String> getServicesForComponents(Collection<String> components) {
+  @Nonnull
+  public Stream<Pair<StackId, String>> getServicesForComponent(String component) {
     return stacks.stream()
-      .flatMap(m -> m.getServicesForComponents(components).stream())
-      .collect(toSet());
+      .flatMap(stack -> stack.getServicesForComponent(component));
   }
 
   @Override

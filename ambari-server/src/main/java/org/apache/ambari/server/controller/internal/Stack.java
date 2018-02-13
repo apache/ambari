@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
@@ -41,6 +43,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -370,13 +373,12 @@ public class Stack implements StackDefinition {
   }
 
   @Override
-  public Collection<String> getServicesForComponents(Collection<String> components) {
-    Set<String> services = new HashSet<>();
-    for (String component : components) {
-      services.add(getServiceForComponent(component));
-    }
-
-    return services;
+  @Nonnull
+  public Stream<Pair<StackId, String>> getServicesForComponent(String component) {
+    String service = getServiceForComponent(component);
+    return service != null
+      ? Stream.of(Pair.of(getStackId(), service))
+      : Stream.empty();
   }
 
   @Override

@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
@@ -31,6 +33,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.validators.DependencyAndCardinalityValidator;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Encapsulates stack information.
@@ -201,13 +204,10 @@ public interface StackDefinition {
   String getServiceForComponent(String component);
 
   /**
-   * Get the names of the services which contains the specified components.
-   *
-   * @param components collection of components
-   *
-   * @return collection of services which contain the specified components
+   * Get (stackID, service) pairs which contain the specified component in this stack.
    */
-  Collection<String> getServicesForComponents(Collection<String> components);
+  @Nonnull
+  Stream<Pair<StackId, String>> getServicesForComponent(String component);
 
   /**
    * Obtain the service name which corresponds to the specified configuration.

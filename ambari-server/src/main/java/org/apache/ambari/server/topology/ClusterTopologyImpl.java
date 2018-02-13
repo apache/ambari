@@ -20,6 +20,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
@@ -43,6 +45,7 @@ import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -65,6 +68,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final AmbariContext ambariContext;
   private final String defaultPassword;
+  private final Map<String, MpackInstance> mpacks;
 
   public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
     this.ambariContext = ambariContext;
@@ -73,16 +77,28 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.blueprint = topologyRequest.getBlueprint();
     this.configuration = topologyRequest.getConfiguration();
 
+    // FIXME smelling more and more
+    // 1. shouldn't have to cast
+    // 2. what about replayed request
+    // ->
+    // 1. interface to combine blueprint and provision request
+    // 2. replayed request should simply be a provision or scale request
+    // 3. do not create a ClusterTopologyImpl for scale request -- create for original provision request only
     if (topologyRequest instanceof ProvisionClusterRequest) {
       ProvisionClusterRequest provisionRequest = (ProvisionClusterRequest) topologyRequest;
       defaultPassword = provisionRequest.getDefaultPassword();
       stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), provisionRequest.getStackIds()));
       stack = ambariContext.composeStacks(stackIds);
       setBlueprintParentConfig();
+      mpacks = ImmutableMap.copyOf(Stream.concat(blueprint.getMpacks().stream(), provisionRequest.getMpackInstances().stream())
+        .collect(toMap(
+          MpackInstance::getMpackName,
+          Function.identity())));
     } else {
       defaultPassword = null;
       stackIds = ImmutableSet.of();
       stack = null;
+      mpacks = ImmutableMap.of();
     }
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
@@ -130,6 +146,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Map<String, HostGroupInfo> getHostGroupInfo() {
     return hostGroupInfoMap;
+  }
+
+  @Override
+  public Iterable<HostGroup> getHostGroups() {
+    return blueprint.getHostGroups().values();
   }
 
   //todo: do we want to return groups with no requested hosts?
@@ -205,6 +226,31 @@ public class ClusterTopologyImpl implements ClusterTopology {
     return getComponentNames()
       .map(stack::getServiceForComponent)
       .collect(toSet());
+  }
+
+  @Override
+  public MpackInstance getMpack(String name) {
+    return mpacks.get(name);
+  }
+
+  @Override
+  public Map<String, Map<String, ServiceInstance>> getServicesByMpack() {
+    Map<String, Map<String, ServiceInstance>> result = new HashMap<>();
+    for (MpackInstance mpack : mpacks.values()) {
+      Map<String, ServiceInstance> services = mpack.getServiceInstances().stream()
+        .collect(toMap(ServiceInstance::getName, Function.identity()));
+      result.put(mpack.getMpackName(), services);
+    }
+    return result;
+  }
+
+  @Override
+  public Map<String, ServiceInstance> getUniqueServices() {
+    Map<String, ServiceInstance> map = mpacks.values().stream()
+      .flatMap(mpack -> mpack.getServiceInstances().stream())
+      .collect(toMap(ServiceInstance::getName, Function.identity(), (s1, s2) -> null));
+    map.entrySet().removeIf(e -> e.getValue() == null); // remove non-unique names mapped to null
+    return map;
   }
 
   @Override
