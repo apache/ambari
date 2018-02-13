@@ -50,9 +50,9 @@ def setup_stack_symlinks(struct_out_file):
     return
 
   # get the packages which the stack-select tool should be used on
-  stack_packages = stack_select.get_packages(stack_select.PACKAGE_SCOPE_INSTALL)
-  if stack_packages is None:
-    return
+  #stack_packages = stack_select.get_packages(stack_select.PACKAGE_SCOPE_INSTALL)
+  #if stack_packages is None:
+    #return
 
   json_version = load_version(struct_out_file)
 

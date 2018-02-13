@@ -21,6 +21,7 @@ from ambari_commons.os_check import OSCheck
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.resources.repository import Repository
+from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 from resource_management.libraries.functions.is_empty import is_empty
 import ambari_simplejson as json
 
@@ -36,8 +37,8 @@ class RepositoryUtil:
 
     # repo templates
     repo_file = config['repositoryFile']
-    repo_rhel_suse =  config['configurations']['cluster-env']['repo_suse_rhel_template']
-    repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
+    repo_rhel_suse =  get_cluster_setting_value('repo_rhel_suse_template')
+    repo_ubuntu =  get_cluster_setting_value('repo_ubuntu_template')
 
     if is_empty(repo_file):
       return
