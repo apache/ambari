@@ -258,6 +258,7 @@ describe('App.QuickViewLinks', function () {
       sinon.stub(quickViewLinks, 'setEmptyLinks');
       sinon.stub(quickViewLinks, 'setSingleHostLinks');
       sinon.stub(quickViewLinks, 'setMultipleHostLinks');
+      sinon.stub(quickViewLinks, 'setMultipleGroupLinks');
       quickViewLinks.set('content.quickLinks', []);
     });
     afterEach(function () {
@@ -266,6 +267,8 @@ describe('App.QuickViewLinks', function () {
       quickViewLinks.setEmptyLinks.restore();
       quickViewLinks.setSingleHostLinks.restore();
       quickViewLinks.setMultipleHostLinks.restore();
+      quickViewLinks.setMultipleGroupLinks.restore();
+      quickViewLinks.get('masterGroups').clear();
     });
     it("no hosts", function () {
       this.mock.returns([]);
@@ -292,6 +295,14 @@ describe('App.QuickViewLinks', function () {
       this.mock.returns([{hostName: 'host1'}, {hostName: 'host2'}]);
       quickViewLinks.setQuickLinksSuccessCallback();
       expect(quickViewLinks.setMultipleHostLinks.calledWith(
+        [{hostName: 'host1'}, {hostName: 'host2'}]
+      )).to.be.true;
+    });
+    it("multiple grouped hosts", function () {
+      this.mock.returns([{hostName: 'host1'}, {hostName: 'host2'}]);
+      quickViewLinks.set('masterGroups', [{}, {}]);
+      quickViewLinks.setQuickLinksSuccessCallback();
+      expect(quickViewLinks.setMultipleGroupLinks.calledWith(
         [{hostName: 'host1'}, {hostName: 'host2'}]
       )).to.be.true;
     });
