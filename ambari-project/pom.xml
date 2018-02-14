@@ -485,6 +485,13 @@
         <artifactId>swagger-maven-plugin</artifactId>
         <version>${swagger.maven.plugin.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.inferred</groupId>
+        <artifactId>freebuilder</artifactId>
+        <version>1.14.8</version>
+        <optional>true</optional>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <build>
