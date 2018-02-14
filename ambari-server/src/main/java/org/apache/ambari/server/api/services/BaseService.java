@@ -89,7 +89,6 @@ public abstract class BaseService {
   protected static final String PARAM_TYPE_BODY = "body";
 
   protected static final String FIELDS_SEPARATOR = ", ";
-
   private final static Logger LOG = LoggerFactory.getLogger(BaseService.class);
 
   /**

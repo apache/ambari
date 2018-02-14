@@ -20,6 +20,8 @@ package org.apache.ambari.logfeeder.metrics;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -29,11 +31,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class MetricsManagerTest {
@@ -41,11 +41,6 @@ public class MetricsManagerTest {
   private MetricsManager manager;
   private LogFeederAMSClient mockClient;
   private Capture<TimelineMetrics> capture;
-  
-  @BeforeClass
-  public static void loadProperties() throws Exception {
-    LogFeederPropertiesUtil.loadProperties("logfeeder.properties");
-  }
   
   @Before
   public void init() throws Exception {

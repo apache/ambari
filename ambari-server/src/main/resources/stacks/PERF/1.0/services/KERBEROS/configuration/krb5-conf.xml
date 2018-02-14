@@ -71,4 +71,15 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>force_tcp</name>
+    <display-name>Force TCP</display-name>
+    <description>Indicates whether to use TCP (instead of UDP) when communicating with Kerberos</description>
+	<value>false</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

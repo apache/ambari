@@ -23,6 +23,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.ambari.logsearch.conf.LogSearchConfigApiConfig;
 import org.apache.ambari.logsearch.conf.LogSearchConfigMapHolder;
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
@@ -48,6 +49,9 @@ public class LogSearchConfigConfigurer implements Configurer {
   @Inject
   private LogSearchConfigMapHolder logSearchConfigMapHolder;
 
+  @Inject
+  private LogSearchConfigApiConfig logSearchConfigApiConfig;
+
   @PostConstruct
   @Override
   public void start() {
@@ -57,9 +61,13 @@ public class LogSearchConfigConfigurer implements Configurer {
         logger.info("Started thread to set up log search config");
         while (true) {
           try {
-            logSearchConfig = LogSearchConfigFactory.createLogSearchConfigServer(logSearchConfigMapHolder.getLogsearchProperties(),
+            if (logSearchConfigApiConfig.isConfigApiEnabled()) {
+              logSearchConfig = LogSearchConfigFactory.createLogSearchConfigServer(logSearchConfigMapHolder.getLogsearchProperties(),
                 LogSearchConfigServerZK.class);
-            logSearchConfigState.setLogSearchConfigAvailable(true);
+              logSearchConfigState.setLogSearchConfigAvailable(true);
+            } else {
+              logger.info("Config API is disabled. Shipper configs won't be accessible from the Rest API.");
+            }
             break;
           } catch (Exception e) {
             logger.warn("Could not initialize Log Search config, going to sleep for " + RETRY_INTERVAL_SECONDS + " seconds ", e);

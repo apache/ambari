@@ -173,7 +173,7 @@ public class HostOrderGrouping extends Grouping {
           // !!! if the hosts do not contain the current one, that means the component
           // either doesn't exist or the downgrade is to the current target version.
           // hostsType better not be null either, but check anyway
-          if (null != hostsType && !hostsType.hosts.contains(hostName)) {
+          if (null != hostsType && !hostsType.getHosts().contains(hostName)) {
             RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
                 sch.getServiceName());
 

@@ -198,24 +198,24 @@ class TestRangerAdmin(RMFTestCase):
                               )
 
     self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar',
-                                          '/usr/hdp/2.6.0.0-801/ranger-admin/ews/lib'),
+                                          '/usr/hdp/current/ranger-admin/ews/lib'),
                               sudo = True,
                               path = ['/bin', '/usr/bin/']
                               )
 
-    self.assertResourceCalled('File', '/usr/hdp/2.6.0.0-801/ranger-admin/ews/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/ews/lib/mysql-connector-java.jar',
                               mode = 0644
                               )
 
-    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/2.6.0.0-801/ranger-admin/install.properties',
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
                               properties = self.getConfig()['configurations']['admin-properties'],
                               owner = 'ranger'
                               )
 
-    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/2.6.0.0-801/ranger-admin/install.properties',
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
                               owner = 'ranger',
                               properties = {'SQL_CONNECTOR_JAR':
-                                              '/usr/hdp/2.6.0.0-801/ranger-admin/ews/lib/mysql-connector-java.jar'}
+                                              '/usr/hdp/current/ranger-admin/ews/lib/mysql-connector-java.jar'}
                               )
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
                               owner = 'ranger',

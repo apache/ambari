@@ -299,6 +299,11 @@ public class ConfigHelper {
     return properties;
   }
 
+  public Map<String, Map<String, String>> getEffectiveConfigProperties(String clusterName, String hostName) throws AmbariException {
+    Cluster cluster = clusters.getCluster(clusterName);
+    return getEffectiveConfigProperties(cluster, getEffectiveDesiredTags(cluster, hostName));
+  }
+
   /**
    * Get all config attributes for a cluster given a set of configType to
    * versionTags map. This helper method merges all the override tags with a
@@ -846,7 +851,7 @@ public class ConfigHelper {
           stackId.getStackVersion());
 
       for (ServiceInfo serviceInfo : stack.getServices()) {
-        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getServiceType());
+        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
         Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
         serviceProperties.addAll(stackProperties);
 

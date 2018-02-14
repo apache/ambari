@@ -1,7 +1,6 @@
 package org.apache.ambari.server.controller.logging;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,16 +31,14 @@ public interface LoggingRequestHelper {
   LogQueryResponse sendQueryRequest(Map<String, String> queryParameters);
 
   /**
-   * Sends a request to obtain the log file name for a given component, on
-   *   a given host
+   * Sends a request to obtain the log file names for a given host
    *
-   * @param componentName the component name
    * @param hostName the host name
    *
-   * @return a Set of Strings that include the log file names associated
-   *         with this component/host combination
+   * @return a HostLogFilesResponse, containing include the log file names for components associated
+   *         with a hostname
    */
-  Set<String> sendGetLogFileNamesRequest(String componentName, String hostName);
+  HostLogFilesResponse sendGetLogFileNamesRequest(String hostName);
 
   /**
    * Sends a request to obtain the log level counts for a given component on

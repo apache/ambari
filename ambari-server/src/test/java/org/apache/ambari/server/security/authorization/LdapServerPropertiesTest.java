@@ -18,20 +18,19 @@
 package org.apache.ambari.server.security.authorization;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.apache.ambari.server.audit.AuditLoggerModule;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 
 public class LdapServerPropertiesTest {
 
@@ -41,9 +40,6 @@ public class LdapServerPropertiesTest {
   private static final String INCORRECT_USER_SEARCH_FILTER = "Incorrect search filter";
 
   protected LdapServerProperties ldapServerProperties;
-
-  @Inject
-  Configuration configuration;
 
   public LdapServerPropertiesTest() {
     injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule(), new LdapModule());
@@ -98,13 +94,9 @@ public class LdapServerPropertiesTest {
 
   @Test
   public void testEquals() throws Exception {
-    LdapServerProperties properties1 = configuration.getLdapServerProperties();
-    LdapServerProperties properties2 = configuration.getLdapServerProperties();
-    assertTrue("Properties object is same", properties1 != properties2);
-    assertTrue("Objects are not equal", properties1.equals(properties2));
-    assertTrue("Hash codes are not equal", properties1.hashCode() == properties2.hashCode());
-    properties2.setSecondaryUrl("5.6.7.8:389");
-    assertFalse("Objects are equal", properties1.equals(properties2));
+    EqualsVerifier<LdapServerProperties> verifier = EqualsVerifier.forClass(LdapServerProperties.class);
+    verifier.suppress(Warning.NONFINAL_FIELDS);
+    verifier.verify();
   }
 
   @Test

@@ -78,6 +78,8 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+ import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+ import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -120,9 +122,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -151,23 +150,43 @@ public class ClusterStackVersionResourceProviderTest {
   private ActionManager actionManager;
   private AmbariManagementController managementController;
 
-  public static final String OS_JSON = "[\n" +
-          "   {\n" +
-          "      \"repositories\":[\n" +
-          "         {\n" +
-          "            \"Repositories/base_url\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\n" +
-          "            \"Repositories/repo_name\":\"HDP-UTILS\",\n" +
-          "            \"Repositories/repo_id\":\"HDP-UTILS-1.1.0.20\"\n" +
-          "         },\n" +
-          "         {\n" +
-          "            \"Repositories/base_url\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\n" +
-          "            \"Repositories/repo_name\":\"HDP\",\n" +
-          "            \"Repositories/repo_id\":\"HDP-2.2\"\n" +
-          "         }\n" +
-          "      ],\n" +
-          "      \"OperatingSystems/os_type\":\"redhat6\"\n" +
-          "   }\n" +
-          "]";
+   public static final List<RepoOsEntity> REPO_OS_ENTITIES = new ArrayList<>();
+
+   static {
+     RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+     repoDefinitionEntity1.setRepoID("HDP-UTILS-1.1.0.20");
+     repoDefinitionEntity1.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
+     repoDefinitionEntity1.setRepoName("HDP-UTILS");
+     RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+     repoDefinitionEntity2.setRepoID("HDP-2.2");
+     repoDefinitionEntity2.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
+     repoDefinitionEntity2.setRepoName("HDP");
+     RepoOsEntity repoOsEntity = new RepoOsEntity();
+     repoOsEntity.setFamily("redhat6");
+     repoOsEntity.setAmbariManaged(true);
+     repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+     repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+     REPO_OS_ENTITIES.add(repoOsEntity);
+   }
+
+   public static final List<RepoOsEntity> REPO_OS_NOT_MANAGED = new ArrayList<>();
+
+   static {
+     RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+     repoDefinitionEntity1.setRepoID("HDP-UTILS-1.1.0.20");
+     repoDefinitionEntity1.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
+     repoDefinitionEntity1.setRepoName("HDP-UTILS");
+     RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+     repoDefinitionEntity2.setRepoID("HDP-2.2");
+     repoDefinitionEntity2.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0");
+     repoDefinitionEntity2.setRepoName("HDP");
+     RepoOsEntity repoOsEntity = new RepoOsEntity();
+     repoOsEntity.setFamily("redhat6");
+     repoOsEntity.setAmbariManaged(false);
+     repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+     repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+     REPO_OS_NOT_MANAGED.add(repoOsEntity);
+   }
 
   @Before
   public void setup() throws Exception {
@@ -227,7 +246,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setId(1l);
-    repoVersion.setOperatingSystems(OS_JSON);
+    repoVersion.addRepoOsEntities(REPO_OS_ENTITIES);
     repoVersion.setStack(stackEntity);
 
     final String hostWithoutVersionableComponents = "host2";
@@ -401,7 +420,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setId(1l);
-    repoVersion.setOperatingSystems(OS_JSON);
+    repoVersion.addRepoOsEntities(REPO_OS_ENTITIES);
     repoVersion.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersion.setVersionXsd("version_definition.xsd");
     repoVersion.setType(RepositoryType.PATCH);
@@ -491,7 +510,7 @@ public class ClusterStackVersionResourceProviderTest {
             EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).times(1); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -562,8 +581,6 @@ public class ClusterStackVersionResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     injector.injectMembers(provider);
@@ -622,7 +639,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setId(1l);
-    repoVersion.setOperatingSystems(OS_JSON);
+     repoVersion.addRepoOsEntities(REPO_OS_ENTITIES);
     repoVersion.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersion.setVersionXsd("version_definition.xsd");
     repoVersion.setType(RepositoryType.STANDARD);
@@ -714,7 +731,7 @@ public class ClusterStackVersionResourceProviderTest {
             EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).anyTimes(); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
@@ -843,12 +860,6 @@ public class ClusterStackVersionResourceProviderTest {
    }
 
    private void testCreateResourcesWithNonManagedOS(Authentication authentication) throws Exception {
-    JsonArray json = new JsonParser().parse(OS_JSON).getAsJsonArray();
-
-    JsonObject jsonObj = json.get(0).getAsJsonObject();
-    jsonObj.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, false);
-
-    String os_json = json.toString();
 
     Cluster cluster = createNiceMock(Cluster.class);
     StackId stackId = new StackId("HDP", "2.0.1");
@@ -861,7 +872,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setId(1l);
-    repoVersion.setOperatingSystems(os_json);
+     repoVersion.addRepoOsEntities(REPO_OS_NOT_MANAGED);
     repoVersion.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersion.setVersionXsd("version_definition.xsd");
     repoVersion.setType(RepositoryType.STANDARD);
@@ -1091,7 +1102,7 @@ public class ClusterStackVersionResourceProviderTest {
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setStack(stack);
     repoVersion.setId(1l);
-    repoVersion.setOperatingSystems(OS_JSON);
+     repoVersion.addRepoOsEntities(REPO_OS_ENTITIES);
     repoVersion.setVersionXml(xml);
     repoVersion.setVersionXsd("version_definition.xsd");
     repoVersion.setType(RepositoryType.STANDARD);
@@ -1303,7 +1314,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setId(1l);
-    repoVersionEntity.setOperatingSystems(OS_JSON);
+    repoVersionEntity.addRepoOsEntities(REPO_OS_ENTITIES);
     repoVersionEntity.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersionEntity.setVersionXsd("version_definition.xsd");
     repoVersionEntity.setType(RepositoryType.STANDARD);
@@ -1379,8 +1390,7 @@ public class ClusterStackVersionResourceProviderTest {
         EasyMock.anyObject(), anyObject(String.class))).andReturn(
             packages).anyTimes(); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(), eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
     expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(
@@ -1469,24 +1479,22 @@ public class ClusterStackVersionResourceProviderTest {
     expect(repoVersion.getStackName()).andReturn("HDP").anyTimes();
 
 
-    String os_json = "[\n" +
-        "   {\n" +
-        "      \"repositories\":[\n" +
-        "         {\n" +
-        "            \"Repositories/base_url\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos-ppc7/2.x/updates/2.2.0.0\",\n" +
-        "            \"Repositories/repo_name\":\"HDP-UTILS\",\n" +
-        "            \"Repositories/repo_id\":\"HDP-UTILS-1.1.0.20\"\n" +
-        "         },\n" +
-        "         {\n" +
-        "            \"Repositories/base_url\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos-ppc7/2.x/updates/2.2.0.0\",\n" +
-        "            \"Repositories/repo_name\":\"HDP\",\n" +
-        "            \"Repositories/repo_id\":\"HDP-2.2\"\n" +
-        "         }\n" +
-        "      ],\n" +
-        "      \"OperatingSystems/os_type\":\"redhat-ppc7\"\n" +
-        "   }\n" +
-        "]";
-    expect(repoVersion.getOperatingSystems()).andReturn(rvh.parseOperatingSystems(os_json)).anyTimes();
+    List<RepoOsEntity> oss = new ArrayList<>();
+    RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+    repoDefinitionEntity1.setRepoID("HDP-UTILS-1.1.0.20");
+    repoDefinitionEntity1.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos-ppc7/2.x/updates/2.2.0.0");
+    repoDefinitionEntity1.setRepoName("HDP-UTILS");
+    RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+    repoDefinitionEntity2.setRepoID("HDP-2.2");
+    repoDefinitionEntity2.setBaseUrl("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos-ppc7/2.x/updates/2.2.0.0");
+    repoDefinitionEntity2.setRepoName("HDP");
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
+    repoOsEntity.setFamily("redhat-ppc7");
+    repoOsEntity.setAmbariManaged(true);
+    repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+    repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+    oss.add(repoOsEntity);
+    expect(repoVersion.getRepoOsEntities()).andReturn(oss).anyTimes();
     expect(repoVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
 
     Map<String, Host> hostsForCluster = new HashMap<>();
@@ -1555,7 +1563,7 @@ public class ClusterStackVersionResourceProviderTest {
       .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
 
-    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -1906,12 +1914,6 @@ public class ClusterStackVersionResourceProviderTest {
 
    @Test
    public void testCreateResourcesPatch() throws Exception {
-     JsonArray json = new JsonParser().parse(OS_JSON).getAsJsonArray();
-
-     JsonObject jsonObj = json.get(0).getAsJsonObject();
-     jsonObj.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, false);
-
-     String os_json = json.toString();
 
      Cluster cluster = createNiceMock(Cluster.class);
      StackId stackId = new StackId("HDP", "2.0.1");
@@ -1922,7 +1924,7 @@ public class ClusterStackVersionResourceProviderTest {
 
      RepositoryVersionEntity fromRepo = new RepositoryVersionEntity();
      fromRepo.setId(0L);
-     fromRepo.setOperatingSystems(os_json);
+     fromRepo.addRepoOsEntities(REPO_OS_NOT_MANAGED);
      fromRepo.setVersionXsd("version_definition.xsd");
      fromRepo.setType(RepositoryType.STANDARD);
      fromRepo.setStack(fromStack);
@@ -1986,7 +1988,7 @@ public class ClusterStackVersionResourceProviderTest {
 
      RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
      repoVersion.setId(1l);
-     repoVersion.setOperatingSystems(os_json);
+     repoVersion.addRepoOsEntities(REPO_OS_NOT_MANAGED);
      repoVersion.setVersionXml(xmlString);
      repoVersion.setVersionXsd("version_definition.xsd");
      repoVersion.setType(RepositoryType.PATCH);
@@ -2196,7 +2198,6 @@ public class ClusterStackVersionResourceProviderTest {
 
      Resource.Type type = Type.ClusterStackVersion;
      return (ClusterStackVersionResourceProvider) AbstractControllerResourceProvider.getResourceProvider(type,
-         PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
          amc);
    }
 

@@ -33,17 +33,8 @@ angular.module('ambariAdminConsole')
   var $t = $translate.instant;
 
   return {
-    list: function(params) {
-      return $http.get(
-        Settings.baseUrl + '/users/?'
-        + 'Users/user_name.matches(.*'+params.searchString+'.*)'
-        + '&fields=privileges/PrivilegeInfo/*,Users'
-        + '&from=' + (params.currentPage-1)*params.usersPerPage
-        + '&page_size=' + params.usersPerPage
-        + (params.user_type === '*' ? '' : '&Users/user_type=' + params.user_type)
-        + (params.active === '*' ? '' : '&Users/active=' + params.active)
-        + (params.admin ? '&Users/admin=true' : '')
-      );
+    list: function() {
+      return $http.get(Settings.baseUrl + '/users?fields=Users/*,privileges/*');
     },
     listByName: function(name) {
       return $http.get(
@@ -87,6 +78,15 @@ angular.module('ambariAdminConsole')
       return $http.get(Settings.baseUrl + '/users/' + userId + '/privileges', {
         params:{
           'fields': '*'
+        }
+      });
+    },
+    resetLoginFailures: function(userId) {
+      return $http({
+        method: 'PUT',
+        url: Settings.baseUrl + '/users/' + userId,
+        data: {
+          'Users/consecutive_failures': 0
         }
       });
     },

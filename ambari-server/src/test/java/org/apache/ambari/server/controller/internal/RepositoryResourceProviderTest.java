@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.RepositoryRequest;
 import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -176,6 +177,7 @@ public class RepositoryResourceProviderTest {
 
     // set expectations
     expect(managementController.getRepositories(EasyMock.anyObject())).andReturn(allResponse).times(1);
+    managementController.verifyRepositories(EasyMock.<Set<RepositoryRequest>>anyObject());
 
     // replay
     replay(managementController);

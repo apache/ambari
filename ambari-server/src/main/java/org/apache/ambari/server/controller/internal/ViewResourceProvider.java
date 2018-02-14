@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +37,9 @@ import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * Resource provider for view instances.
  */
@@ -52,18 +54,15 @@ public class ViewResourceProvider extends AbstractAuthorizedResourceProvider {
   /**
    * The key property ids for a view resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.View, VIEW_NAME_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a view resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(VIEW_NAME_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      VIEW_NAME_PROPERTY_ID);
 
 
   // ----- Constructors ------------------------------------------------------
@@ -72,7 +71,7 @@ public class ViewResourceProvider extends AbstractAuthorizedResourceProvider {
    * Construct a view resource provider.
    */
   public ViewResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+    super(Resource.Type.View, propertyIds, keyPropertyIds);
 
     EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_VIEWS);
     setRequiredCreateAuthorizations(requiredAuthorizations);

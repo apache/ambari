@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -138,6 +139,16 @@ public class PersistedStateImpl implements PersistedState {
       Long topologyRequestId = logicalRequest.getTopologyRequestId();
       topologyLogicalRequestDAO.remove(logicalRequest);
       topologyRequestDAO.removeByPK(topologyRequestId);
+    }
+  }
+
+  @Override
+  public void setHostRequestStatus(long hostRequestId, HostRoleStatus status, String message) {
+    TopologyHostRequestEntity hostRequestEntity = hostRequestDAO.findById(hostRequestId);
+    if (hostRequestEntity != null) {
+      hostRequestEntity.setStatus(status);
+      hostRequestEntity.setStatusMessage(message);
+      hostRequestDAO.merge(hostRequestEntity);
     }
   }
 

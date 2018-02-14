@@ -22,7 +22,6 @@ from resource_management.libraries.functions.check_process_status import check_p
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from setup_logsearch import setup_logsearch
-from logsearch_common import kill_process
 
 class LogSearch(Script):
   def install(self, env):
@@ -41,8 +40,7 @@ class LogSearch(Script):
     env.set_params(params)
     self.configure(env)
 
-    Execute(format("{logsearch_dir}/run.sh"),
-            environment={'LOGSEARCH_INCLUDE': format('{logsearch_server_conf}/logsearch-env.sh')},
+    Execute(format("{logsearch_dir}/bin/logsearch.sh start"),
             user=params.logsearch_user
             )
 
@@ -50,7 +48,9 @@ class LogSearch(Script):
     import params
     env.set_params(params)
 
-    kill_process(params.logsearch_pid_file, params.logsearch_user, params.logsearch_log_dir)
+    Execute(format("{logsearch_dir}/bin/logsearch.sh stop"),
+            user=params.logsearch_user
+            )
 
   def status(self, env):
     import status_params

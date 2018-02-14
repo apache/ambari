@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,6 +76,8 @@ public class HostGroupInfo {
    * compiled host predicate
    */
   Predicate predicate;
+
+  private Collection<ManagementPackMapping> managementPackMappings = new ArrayList<>();
 
 
   /**
@@ -242,4 +245,11 @@ public class HostGroupInfo {
     }
   }
 
+  public Collection<ManagementPackMapping> getManagementPackMappings() {
+    return managementPackMappings;
+  }
+
+  public void setManagementPackMappings(Collection<ManagementPackMapping> managementPackMappings) {
+    this.managementPackMappings = managementPackMappings;
+  }
 }

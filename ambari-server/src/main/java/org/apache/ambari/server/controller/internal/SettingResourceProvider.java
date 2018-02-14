@@ -103,7 +103,7 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
   }
 
   protected SettingResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+    super(Resource.Type.Setting, propertyIds, keyPropertyIds);
     EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_SETTINGS);
     setRequiredCreateAuthorizations(requiredAuthorizations);
     setRequiredDeleteAuthorizations(requiredAuthorizations);

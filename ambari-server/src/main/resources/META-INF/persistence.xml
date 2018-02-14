@@ -23,6 +23,10 @@
     <class>org.apache.ambari.server.orm.entities.BlueprintConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.BlueprintSettingEntity</class>
     <class>org.apache.ambari.server.orm.entities.BlueprintEntity</class>
+    <class>org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.BlueprintMpackConfigEntity</class>
+    <class>org.apache.ambari.server.orm.entities.BlueprintServiceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.BlueprintServiceConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceGroupEntity</class>
@@ -50,7 +54,8 @@
     <class>org.apache.ambari.server.orm.entities.HostVersionEntity</class>
     <class>org.apache.ambari.server.orm.entities.KerberosPrincipalEntity</class>
     <class>org.apache.ambari.server.orm.entities.KerberosKeytabEntity</class>
-    <class>org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity</class>
+    <class>org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity</class>
+    <class>org.apache.ambari.server.orm.entities.KerberosKeytabServiceMappingEntity</class>
     <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
     <class>org.apache.ambari.server.orm.entities.MemberEntity</class>
     <class>org.apache.ambari.server.orm.entities.MetainfoEntity</class>
@@ -60,6 +65,8 @@
     <class>org.apache.ambari.server.orm.entities.PrincipalTypeEntity</class>
     <class>org.apache.ambari.server.orm.entities.PrivilegeEntity</class>
     <class>org.apache.ambari.server.orm.entities.RepositoryVersionEntity</class>
+    <class>org.apache.ambari.server.orm.entities.RepoOsEntity</class>
+    <class>org.apache.ambari.server.orm.entities.RepoDefinitionEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestOperationLevelEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestResourceFilterEntity</class>
@@ -79,6 +86,7 @@
     <class>org.apache.ambari.server.orm.entities.UpgradeItemEntity</class>
     <class>org.apache.ambari.server.orm.entities.UpgradeHistoryEntity</class>
     <class>org.apache.ambari.server.orm.entities.UserEntity</class>
+    <class>org.apache.ambari.server.orm.entities.UserAuthenticationEntity</class>
     <class>org.apache.ambari.server.orm.entities.WidgetEntity</class>
     <class>org.apache.ambari.server.orm.entities.ViewEntity</class>
     <class>org.apache.ambari.server.orm.entities.ViewEntityEntity</class>

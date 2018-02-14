@@ -33,7 +33,6 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorC
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
-
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -122,9 +121,7 @@ public class StackAdvisorHelper {
       throws StackAdvisorException {
       requestId = generateRequestId();
 
-    // TODO, need to pass the service Name that was modified.
-    // For now, hardcode
-    String serviceName = "ZOOKEEPER";
+    String serviceName = request.getServices().stream().findAny().orElse(null);
 
     ServiceInfo.ServiceAdvisorType serviceAdvisorType = getServiceAdvisorType(request.getStackName(), request.getStackVersion(), serviceName);
     StackAdvisorCommand<RecommendationResponse> command = createRecommendationCommand(serviceName, request);

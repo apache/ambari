@@ -26,9 +26,10 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +44,7 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
    * some user accounts and groups may not have been available (at the OS level) when the keytab files
    * were created.
    *
-   * @param identityRecord           a Map containing the data for the current identity record
-   * @param evaluatedPrincipal       a String indicating the relevant principal
+   * @param resolvedPrincipal        a ResolvedKerberosPrincipal object to process
    * @param operationHandler         a KerberosOperationHandler used to perform Kerberos-related
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
@@ -54,39 +54,39 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
    * @throws AmbariException
    */
   @Override
-  protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
+  protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                           KerberosOperationHandler operationHandler,
                                           Map<String, String> kerberosConfiguration,
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
 
-    if (identityRecord != null) {
+    if (resolvedPrincipal != null) {
       // If the record's HOSTNAME value is "ambari-server", rather than an actual hostname it will
       // not match the Ambari server's host name. This will occur if the there is no agent installed
       // on the Ambari server host.  This is ok, since any keytab files installed on the Ambari server
       // host will already have the permissions set so that only the Ambari server can read it.
       // There is no need to update the permissions for those keytab files so that installed services
       // can access them since no services will be installed on the host.
-      if (StageUtils.getHostName().equals(identityRecord.get(KerberosIdentityDataFile.HOSTNAME))) {
+      if (StageUtils.getHostName().equals(resolvedPrincipal.getHostName())) {
 
         // If the principal name exists in one of the shared data maps, it has been processed by the
         // current "Enable Kerberos" or "Add component" workflow and therefore should already have
         // the correct permissions assigned. The relevant keytab files can be skipped.
         Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
-        if ((principalPasswordMap == null) || !principalPasswordMap.containsKey(evaluatedPrincipal)) {
+        if ((principalPasswordMap == null) || !principalPasswordMap.containsKey(resolvedPrincipal.getPrincipal())) {
 
-          String keytabFilePath = identityRecord.get(KerberosIdentityDataFile.KEYTAB_FILE_PATH);
+          String keytabFilePath = resolvedPrincipal.getKeytabPath();
 
           if (!StringUtils.isEmpty(keytabFilePath)) {
             Set<String> visited = (Set<String>) requestSharedDataContext.get(this.getClass().getName() + "_visited");
 
             if (!visited.contains(keytabFilePath)) {
-              String ownerName = identityRecord.get(KerberosIdentityDataFile.KEYTAB_FILE_OWNER_NAME);
-              String ownerAccess = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS);
+              String ownerName = resolvedPrincipal.getResolvedKerberosKeytab().getOwnerName();
+              String ownerAccess = resolvedPrincipal.getResolvedKerberosKeytab().getOwnerAccess();
               boolean ownerWritable = "w".equalsIgnoreCase(ownerAccess) || "rw".equalsIgnoreCase(ownerAccess);
               boolean ownerReadable = "r".equalsIgnoreCase(ownerAccess) || "rw".equalsIgnoreCase(ownerAccess);
-              String groupName = identityRecord.get(KerberosIdentityDataFile.KEYTAB_FILE_GROUP_NAME);
-              String groupAccess = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS);
+              String groupName = resolvedPrincipal.getResolvedKerberosKeytab().getGroupName();
+              String groupAccess = resolvedPrincipal.getResolvedKerberosKeytab().getGroupAccess();
               boolean groupWritable = "w".equalsIgnoreCase(groupAccess) || "rw".equalsIgnoreCase(groupAccess);
               boolean groupReadable = "r".equalsIgnoreCase(groupAccess) || "rw".equalsIgnoreCase(groupAccess);
 

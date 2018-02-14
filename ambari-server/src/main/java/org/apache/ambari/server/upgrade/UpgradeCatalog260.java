@@ -531,6 +531,9 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   public Integer getCurrentVersionID() throws AmbariException, SQLException {
+    if (!dbAccessor.tableExists(CLUSTER_VERSION_TABLE)) {
+      return null;
+    }
     List<Integer> currentVersionList = dbAccessor.getIntColumnValues(CLUSTER_VERSION_TABLE, REPO_VERSION_ID_COLUMN,
         new String[]{STATE_COLUMN}, new String[]{CURRENT}, false);
     if (currentVersionList.isEmpty()) {

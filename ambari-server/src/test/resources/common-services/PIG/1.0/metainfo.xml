@@ -55,6 +55,7 @@
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
+        <clientComponentType>SOME_CLIENT_FOR_SERVICE_CHECK</clientComponentType>
       </commandScript>
 
       <configuration-dependencies>

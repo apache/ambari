@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
@@ -72,7 +73,7 @@ public class RepositoryVersionDAOTest {
 
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("display name");
-    entity.setOperatingSystems("repositories");
+    entity.addRepoOsEntities(new ArrayList<>());
     entity.setStack(stackEntity);
     entity.setVersion("version");
     repositoryVersionDAO.create(entity);
@@ -93,13 +94,13 @@ public class RepositoryVersionDAOTest {
     // Assert the version must be unique
     RepositoryVersionEntity dupVersion = new RepositoryVersionEntity();
     dupVersion.setDisplayName("display name " + uuid);
-    dupVersion.setOperatingSystems("repositories");
+    dupVersion.addRepoOsEntities(new ArrayList<>());
     dupVersion.setStack(stackEntity);
     dupVersion.setVersion(first.getVersion());
 
     boolean exceptionThrown = false;
     try {
-      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getOperatingSystemsJson());
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getRepoOsEntities());
     } catch (AmbariException e) {
       exceptionThrown = true;
       Assert.assertTrue(e.getMessage().contains("already exists"));
@@ -112,7 +113,7 @@ public class RepositoryVersionDAOTest {
     // The version must belong to the stack
     dupVersion.setVersion("2.3-1234");
     try {
-      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getOperatingSystemsJson());
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getRepoOsEntities());
     } catch (AmbariException e) {
       exceptionThrown = true;
       Assert.assertTrue(e.getMessage().contains("needs to belong to stack"));
@@ -123,7 +124,7 @@ public class RepositoryVersionDAOTest {
     // Success
     dupVersion.setVersion(stackEntity.getStackVersion() + "-1234");
     try {
-      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getOperatingSystemsJson());
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getRepoOsEntities());
     } catch (AmbariException e) {
       Assert.fail("Did not expect a failure creating the Repository Version");
     }
@@ -175,7 +176,7 @@ public class RepositoryVersionDAOTest {
 
     final RepositoryVersionEntity hdp206RepoEntity = new RepositoryVersionEntity();
     hdp206RepoEntity.setDisplayName("HDP-2.0.6.0-1234");
-    hdp206RepoEntity.setOperatingSystems("repositories");
+    hdp206RepoEntity.addRepoOsEntities(new ArrayList<>());
     hdp206RepoEntity.setStack(hdp206StackEntity);
     hdp206RepoEntity.setVersion("HDP-2.0.6.0-1234");
     repositoryVersionDAO.create(hdp206RepoEntity);
@@ -190,7 +191,7 @@ public class RepositoryVersionDAOTest {
 
     final RepositoryVersionEntity other10RepoEntity = new RepositoryVersionEntity();
     other10RepoEntity.setDisplayName("OTHER-1.0.1.0-1234");
-    other10RepoEntity.setOperatingSystems("repositories");
+    other10RepoEntity.addRepoOsEntities(new ArrayList<>());
     other10RepoEntity.setStack(other10StackEntity);
     other10RepoEntity.setVersion("OTHER-1.0.1.0-1234");
     repositoryVersionDAO.create(other10RepoEntity);

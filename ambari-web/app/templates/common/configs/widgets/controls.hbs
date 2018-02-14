@@ -123,16 +123,6 @@
         &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
     {{/if}}
   </div>
-{{else}}
-  {{#unless view.isBeingCompared}} {{! subview(ConfigWidgetComparisonView) will take care of config being compared}}
-    {{#unless view.canEdit}}
-      {{#if view.config.supportsFinal}}
-      <div class="widget-config-controls version-labels">
-        <i {{bindAttr class=":glyphicon :glyphicon-lock view.config.isFinal::hidden" }}></i>
-      </div>
-      {{/if}}
-    {{/unless}}
-  {{/unless}}
 {{/if}}
 
 
@@ -144,9 +134,4 @@
     isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
     }}
   {{/unless}}
-{{/if}}
-
-{{#if view.isComparison}}
-  <div class="clearfix"></div>
-  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
 {{/if}}

@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
+import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.AbstractHttpConnection;

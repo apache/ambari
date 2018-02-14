@@ -65,8 +65,6 @@ public class RequestScheduleResourceProviderTest {
     return (RequestScheduleResourceProvider)
       AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController
       );
   }

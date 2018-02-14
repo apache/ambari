@@ -60,14 +60,12 @@ public class HostGroupConfigEntity implements BlueprintConfiguration {
   @Lob
   private String configAttributes;
 
-
   @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "hostgroup_name", referencedColumnName = "name", nullable = false),
       @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
   })
   private HostGroupEntity hostGroup;
-
 
   /**
    * Get the configuration type.

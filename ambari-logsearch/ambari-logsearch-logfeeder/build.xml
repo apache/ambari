@@ -19,10 +19,8 @@
   <property environment="env"/>
   <property name="debuglevel" value="source,lines,vars"/>
   <dirname property="builddir" file="build.xml"/>
-  <property name="target" value="1.7"/>
-  <property name="source" value="1.7"/>
-  <property file="local.properties"/>
-  <property file="build.properties"/>
+  <property name="target" value="1.8"/>
+  <property name="source" value="1.8"/>
   <target name="init">
   </target>
   <target name="build"/>
@@ -31,18 +29,20 @@
     <delete dir="target/package"/>
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset dir="target/libs"/>
+      <fileset file="target/ambari-logsearch-logfeeder*.jar"/>
     </copy>
-    <copy todir="target/package/classes" includeEmptyDirs="no">
-      <fileset dir="target/classes"/>
+    <copy todir="target/package/bin" includeEmptyDirs="no">
+      <fileset file="src/main/scripts/logfeeder.sh"/>
     </copy>
-    <copy todir="target/package" includeEmptyDirs="no">
-      <fileset file="config.json"/>
+    <copy todir="target/package/conf" includeEmptyDirs="no">
+      <fileset file="target/classes/grok-patterns"/>
+      <fileset file="target/classes/log4j.xml"/>
+      <fileset file="target/classes/logfeeder.properties"/>
+      <fileset file="target/classes/alias_config.json"/>
+      <fileset file="src/main/scripts/logfeeder-env.sh"/>
     </copy>
-    <copy todir="target/package" includeEmptyDirs="no">
-      <fileset file="grok-patterns"/>
-      <fileset file="src/main/scripts/run.sh"/>
-    </copy>
-    <chmod file="target/package/run.sh" perm="755"/>
+    <chmod file="target/package/bin/logfeeder.sh" perm="755"/>
+    <chmod file="target/package/conf/logfeeder-env.sh" perm="755"/>
     <tar compression="gzip" destfile="target/ambari-logsearch-logfeeder.tgz">
       <tarfileset mode="755" dir="target/package">
         <include name="*.sh"/>
@@ -52,6 +52,4 @@
       </tarfileset>
     </tar>
   </target>
-  <target description="Build all projects which reference this project. Useful to propagate changes."
-          name="build-refprojects"/>
 </project>

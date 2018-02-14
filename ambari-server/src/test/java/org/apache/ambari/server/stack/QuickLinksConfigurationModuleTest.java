@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.quicklinks.Check;
+import org.apache.ambari.server.state.quicklinks.Host;
 import org.apache.ambari.server.state.quicklinks.Link;
 import org.apache.ambari.server.state.quicklinks.Port;
 import org.apache.ambari.server.state.quicklinks.Protocol;
@@ -127,6 +128,8 @@ public class QuickLinksConfigurationModuleTest {
         hasLink = true;
         Port port = link.getPort();
         assertEquals("mapred-site", port.getSite());
+        Host host = link.getHost();
+        assertEquals("core-site", host.getSite());
       }
     }
     assertTrue(hasLink);

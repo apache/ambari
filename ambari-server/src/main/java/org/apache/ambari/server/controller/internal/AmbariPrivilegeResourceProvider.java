@@ -24,7 +24,6 @@ import static org.apache.ambari.server.controller.internal.ViewPrivilegeResource
 
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +44,9 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * Resource provider for Ambari privileges.
  */
@@ -60,28 +62,24 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
   /**
    * The property ids for an Ambari privilege resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(PRIVILEGE_ID_PROPERTY_ID);
-    propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
-    propertyIds.add(PERMISSION_LABEL_PROPERTY_ID);
-    propertyIds.add(PRINCIPAL_NAME_PROPERTY_ID);
-    propertyIds.add(PRINCIPAL_TYPE_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_VIEW_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_INSTANCE_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_TYPE_PROPERTY_ID);
-
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      PRIVILEGE_ID_PROPERTY_ID,
+      PERMISSION_NAME_PROPERTY_ID,
+      PERMISSION_LABEL_PROPERTY_ID,
+      PRINCIPAL_NAME_PROPERTY_ID,
+      PRINCIPAL_TYPE_PROPERTY_ID,
+      PRIVILEGE_VIEW_NAME_PROPERTY_ID,
+      PRIVILEGE_VIEW_VERSION_PROPERTY_ID,
+      PRIVILEGE_INSTANCE_NAME_PROPERTY_ID,
+      PRIVILEGE_CLUSTER_NAME_PROPERTY_ID,
+      PRIVILEGE_TYPE_PROPERTY_ID);
 
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.AmbariPrivilege, PRIVILEGE_ID_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.AmbariPrivilege, PRIVILEGE_ID_PROPERTY_ID)
+      .build();
 
 
   // ----- Constructors ------------------------------------------------------

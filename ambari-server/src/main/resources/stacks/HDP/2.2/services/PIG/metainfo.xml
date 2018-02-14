@@ -41,7 +41,10 @@
         </osSpecific>
       </osSpecifics>
       <requiredServices>
-        <service>TEZ</service>
+        <service>
+          <name>TEZ</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
     </service>
   </services>

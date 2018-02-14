@@ -43,9 +43,17 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     this._super();
     this.toggleWidgetState();
     this.initPopover();
+    this.disableSwitchToTextBox();
     this.addObserver('config.stackConfigProperty.valueAttributes.entries.[]', this, this.updateValuesList);
     this.addObserver('controller.forceUpdateBoundaries', this, this.updateValuesList);
     this.addObserver('config.value', this, this.isValueCompatibleWithWidget);
+  },
+
+  disableSwitchToTextBox: function () {
+    var valueAttributes = this.get('config.valueAttributes');
+    if (valueAttributes && valueAttributes.hasOwnProperty('entriesEditable') && !valueAttributes.entriesEditable) {
+      this.set('supportSwitchToTextBox', false);
+    }
   },
 
   /**

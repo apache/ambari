@@ -21,11 +21,17 @@ require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widgets/uptime_text_widget');
 
+var date = require('utils/date/date');
 var uptimeTextDashboardWidgetView;
 describe('App.UptimeTextDashboardWidgetView', function() {
 
   beforeEach(function () {
-    uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresholdMin:40, thresholdMax:70});
+    uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({
+      thresholdMin:40,
+      thresholdMax:70,
+      modelField: 'field',
+      model: Em.Object.create({})
+    });
   });
 
   describe('#timeConverter', function() {
@@ -55,38 +61,36 @@ describe('App.UptimeTextDashboardWidgetView', function() {
     });
   });
 
-  describe('#uptimeProcessing', function() {
-    var timestamps = [
-      {
-        diff: 10*1000,
-        e: {
-          timeUnit: 's'
-        }
-      },
-      {
-        diff: 3600*1000,
-        e: {
-          timeUnit: 'hr'
-        }
-      },
-      {
-        diff: 24*3600*1000,
-        e: {
-          timeUnit: 'd'
-        }
-      },
-      {
-        diff: 1800*1000,
-        e: {
-          timeUnit: 'min'
-        }
-      }
-    ];
-    timestamps.forEach(function(timestamp) {
-      it('timestamp {0}. timeUnit should be "{1}"'.format(timestamp.t, timestamp.e.timeUnit), function() {
-        uptimeTextDashboardWidgetView.uptimeProcessing(new Date().getTime() - timestamp.diff);
-        expect(uptimeTextDashboardWidgetView.get('timeUnit')).to.equal(timestamp.e.timeUnit);
-      });
+  describe('#calculate', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'dateTimeWithTimeZone', function(arg) {return arg ? arg : 100000});
+      sinon.stub(date, 'timingFormat', function(arg) {return String(arg);});
+      sinon.stub(uptimeTextDashboardWidgetView, 'timeConverter').returns([1, 2]);
+    });
+    afterEach(function() {
+      App.dateTimeWithTimeZone.restore();
+      date.timingFormat.restore();
+      uptimeTextDashboardWidgetView.timeConverter.restore();
+    });
+
+    it("should be 'n/a' when uptime is null", function() {
+      uptimeTextDashboardWidgetView.get('model').set('field', null);
+
+      uptimeTextDashboardWidgetView.calculate();
+
+      expect(uptimeTextDashboardWidgetView.get('data')).to.be.null;
+      expect(uptimeTextDashboardWidgetView.get('hiddenInfo')).to.be.eql([
+        null, Em.I18n.t('services.service.summary.notRunning')
+      ]);
+    });
+
+    it("should display formatted duration when uptime is number", function() {
+      uptimeTextDashboardWidgetView.get('model').set('field', 10000);
+
+      uptimeTextDashboardWidgetView.calculate();
+
+      expect(uptimeTextDashboardWidgetView.get('data')).to.be.equal('90000');
+      expect(uptimeTextDashboardWidgetView.get('hiddenInfo')).to.be.eql(['90000', 1, 2]);
     });
   });
 

@@ -133,9 +133,11 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     var kdcType = this.get('content.kerberosOption');
     var kerberosWizardController = this.get('controllers.kerberosWizardController');
     var manageIdentitiesConfig = configs.findProperty('name', 'manage_identities');
-
     configs.filterProperty('serviceName', 'KERBEROS').setEach('isVisible', true);
     this.setKDCTypeProperty(configs);
+    if (kdcType !== Em.I18n.t('admin.kerberos.wizard.step1.option.ad')) {
+        kerberosWizardController.overrideVisibility(configs, false, kerberosWizardController.get('exceptionsForNonAdOption'), true);
+    }
     if (kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.manual')) {
       if (kerberosWizardController.get('skipClientInstall')) {
         kerberosWizardController.overrideVisibility(configs, false, kerberosWizardController.get('exceptionsOnSkipClient'));

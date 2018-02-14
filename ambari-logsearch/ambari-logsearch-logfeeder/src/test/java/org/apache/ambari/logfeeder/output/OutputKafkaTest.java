@@ -23,9 +23,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.InputFileMarker;
 import org.apache.ambari.logfeeder.output.OutputKafka.KafkaCallBack;
+import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -69,7 +70,7 @@ public class OutputKafkaTest {
     config.put("topic", TEST_TOPIC);
 
     outputKafka.loadConfig(config);
-    outputKafka.init();
+    outputKafka.init(new LogFeederProps());
 
     @SuppressWarnings("unchecked")
     Future<RecordMetadata> mockFuture = EasyMock.mock(Future.class);
@@ -85,7 +86,7 @@ public class OutputKafkaTest {
     EasyMock.replay(mockKafkaProducer);
 
     for (int i = 0; i < 10; i++) {
-      InputMarker inputMarker = new InputMarker(EasyMock.mock(Input.class), null, 0);
+      InputFileMarker inputMarker = new InputFileMarker(EasyMock.mock(Input.class), null, 0);
       outputKafka.write("value" + i, inputMarker);
     }
 
@@ -103,7 +104,7 @@ public class OutputKafkaTest {
     config.put("topic", TEST_TOPIC);
 
     outputKafka.loadConfig(config);
-    outputKafka.init();
+    outputKafka.init(new LogFeederProps());
   }
 
   @Test
@@ -117,7 +118,7 @@ public class OutputKafkaTest {
     config.put("broker_list", "some broker list");
 
     outputKafka.loadConfig(config);
-    outputKafka.init();
+    outputKafka.init(new LogFeederProps());
   }
 
   @After

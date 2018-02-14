@@ -26,13 +26,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.utils.SecretReference;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,33 +40,31 @@ import com.google.inject.Inject;
 /**
  * Default blueprint validator.
  */
-@StaticallyInject
 public class BlueprintValidatorImpl implements BlueprintValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BlueprintValidatorImpl.class);
-  private final Blueprint blueprint;
-  private final Stack stack;
 
   public static final String LZO_CODEC_CLASS_PROPERTY_NAME = "io.compression.codec.lzo.class";
   public static final String CODEC_CLASSES_PROPERTY_NAME = "io.compression.codecs";
   public static final String LZO_CODEC_CLASS = "com.hadoop.compression.lzo.LzoCodec";
 
-  @Inject
-  private static org.apache.ambari.server.configuration.Configuration configuration;
+  private final Configuration configuration;
 
-  public BlueprintValidatorImpl(Blueprint blueprint) {
-    this.blueprint = blueprint;
-    this.stack = blueprint.getStack();
+  @Inject
+  public BlueprintValidatorImpl(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   @Override
-  public void validateTopology() throws InvalidTopologyException {
+  public void validateTopology(Blueprint blueprint) throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
+
+    StackDefinition stack = blueprint.getStack();
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
     Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
     for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
+      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(blueprint, stack, group);
       if (!missingGroupDependencies.isEmpty()) {
         missingDependencies.put(group.getName(), missingGroupDependencies);
       }
@@ -81,10 +78,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         Cardinality cardinality = stack.getCardinality(component);
         AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
         if (cardinality.isAll()) {
-          cardinalityFailures.addAll(verifyComponentInAllHostGroups(component, autoDeploy));
+          cardinalityFailures.addAll(verifyComponentInAllHostGroups(blueprint, new Component(component), autoDeploy));
         } else {
           cardinalityFailures.addAll(verifyComponentCardinalityCount(
-            component, cardinality, autoDeploy));
+            stack, blueprint, new Component(component), cardinality, autoDeploy));
         }
       }
     }
@@ -95,7 +92,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   }
 
   @Override
-  public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
+  public void validateRequiredProperties(Blueprint blueprint) throws InvalidTopologyException, GPLLicenseNotAcceptedException {
 
     // we don't want to include default stack properties so we can't just use hostGroup full properties
     Map<String, Map<String, String>> clusterConfigurations = blueprint.getConfiguration().getProperties();
@@ -153,50 +150,29 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           }
         }
         if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
-            Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
-            if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
-              ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<>(blueprint.getHostGroupsForComponent(component));
-              Set<String> givenHostGroups = new HashSet<>();
-              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
-              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
-              if(givenHostGroups.size() != hostGroupsForComponent.size()) {
-                 throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-              }
-              if(HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()){
-                for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
-                   Iterator<String> itr = givenHostGroups.iterator();
-                   while(itr.hasNext()){
-                      if(itr.next().contains(hostGroupForComponent.getName())){
-                         itr.remove();
-                      }
-                   }
+          Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
+          if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
+            ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<>(blueprint.getHostGroupsForComponent(component));
+            Set<String> givenHostGroups = new HashSet<>();
+            givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
+            givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
+            if(givenHostGroups.size() != hostGroupsForComponent.size()) {
+               throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
+            }
+            if(HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()){
+              for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
+                 Iterator<String> itr = givenHostGroups.iterator();
+                 while(itr.hasNext()){
+                    if(itr.next().contains(hostGroupForComponent.getName())){
+                       itr.remove();
+                    }
                  }
-                 if(!givenHostGroups.isEmpty()){
-                    throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-                 }
-                }
               }
-          }
+            }
 
-        if (component.equals("HIVE_METASTORE")) {
-          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
-          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
-            && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
-          }
-        }
-
-        if (component.equals("OOZIE_SERVER")) {
-          Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
-          if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
-            && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
+            if(!givenHostGroups.isEmpty()){
+              throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
+            }
           }
         }
       }
@@ -207,15 +183,16 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * Verify that a component is included in all host groups.
    * For components that are auto-install enabled, will add component to topology if needed.
    *
+   *
+   * @param blueprint   blueprint to validate
    * @param component   component to validate
    * @param autoDeploy  auto-deploy information for component
    *
    * @return collection of missing component information
    */
-  private Collection<String> verifyComponentInAllHostGroups(String component, AutoDeployInfo autoDeploy) {
-
+  private Collection<String> verifyComponentInAllHostGroups(Blueprint blueprint, Component component, AutoDeployInfo autoDeploy) {
     Collection<String> cardinalityFailures = new HashSet<>();
-    int actualCount = blueprint.getHostGroupsForComponent(component).size();
+    int actualCount = blueprint.getHostGroupsForComponent(component.getName()).size();
     Map<String, HostGroup> hostGroups = blueprint.getHostGroups();
     if (actualCount != hostGroups.size()) {
       if (autoDeploy != null && autoDeploy.isEnabled()) {
@@ -229,14 +206,14 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     return cardinalityFailures;
   }
 
-  private Map<String, Collection<DependencyInfo>> validateHostGroup(HostGroup group) {
+  private Map<String, Collection<DependencyInfo>> validateHostGroup(Blueprint blueprint, StackDefinition stack, HostGroup group) {
     LOGGER.info("Validating hostgroup: {}", group.getName());
     Map<String, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
 
-    for (String component : new HashSet<>(group.getComponentNames())) {
+    for (Component component : new HashSet<>(group.getComponents())) {
       LOGGER.debug("Processing component: {}", component);
 
-      for (DependencyInfo dependency : stack.getDependenciesForComponent(component)) {
+      for (DependencyInfo dependency : stack.getDependenciesForComponent(component.getName())) {
         LOGGER.debug("Processing dependency [{}] for component [{}]", dependency.getName(), component);
 
         String conditionalService = stack.getConditionalServiceForDependency(dependency);
@@ -274,21 +251,21 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         }
         if (dependencyScope.equals("cluster")) {
           Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
-              componentName, new Cardinality("1+"), autoDeployInfo);
+            stack, blueprint, new Component(componentName), new Cardinality("1+"), autoDeployInfo);
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
           if (group.getComponentNames().contains(componentName) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
             resolved = true;
-            group.addComponent(componentName);
+            group.addComponent(new Component(componentName));
           }
         }
 
         if (! resolved) {
-          Collection<DependencyInfo> missingCompDependencies = missingDependencies.get(component);
+          Collection<DependencyInfo> missingCompDependencies = missingDependencies.get(component.getName());
           if (missingCompDependencies == null) {
             missingCompDependencies = new HashSet<>();
-            missingDependencies.put(component, missingCompDependencies);
+            missingDependencies.put(component.getName(), missingCompDependencies);
           }
           missingCompDependencies.add(dependency);
         }
@@ -301,29 +278,35 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * Verify that a component meets cardinality requirements.  For components that are
    * auto-install enabled, will add component to topology if needed.
    *
+   *
+   * @param stack        stack definition
+   * @param blueprint    blueprint to validate
    * @param component    component to validate
    * @param cardinality  required cardinality
    * @param autoDeploy   auto-deploy information for component
    *
    * @return collection of missing component information
    */
-  public Collection<String> verifyComponentCardinalityCount(String component,
-                                                            Cardinality cardinality,
-                                                            AutoDeployInfo autoDeploy) {
-
+  private Collection<String> verifyComponentCardinalityCount(
+    StackDefinition stack,
+    Blueprint blueprint,
+    Component component,
+    Cardinality cardinality,
+    AutoDeployInfo autoDeploy
+  ) {
     Map<String, Map<String, String>> configProperties = blueprint.getConfiguration().getProperties();
     Collection<String> cardinalityFailures = new HashSet<>();
     //todo: don't hard code this HA logic here
     if (ClusterTopologyImpl.isNameNodeHAEnabled(configProperties) &&
-        (component.equals("SECONDARY_NAMENODE"))) {
+        (component.getName().equals("SECONDARY_NAMENODE"))) {
       // override the cardinality for this component in an HA deployment,
       // since the SECONDARY_NAMENODE should not be started in this scenario
       cardinality = new Cardinality("0");
     }
 
-    int actualCount = blueprint.getHostGroupsForComponent(component).size();
+    int actualCount = blueprint.getHostGroupsForComponent(component.getName()).size();
     if (! cardinality.isValidCount(actualCount)) {
-      boolean validated = ! isDependencyManaged(stack, component, configProperties);
+      boolean validated = ! isDependencyManaged(stack, component.getName(), configProperties);
       if (! validated && autoDeploy != null && autoDeploy.isEnabled() && cardinality.supportsAutoDeploy()) {
         String coLocateName = autoDeploy.getCoLocate();
         if (coLocateName != null && ! coLocateName.isEmpty()) {
@@ -348,13 +331,13 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * Determine if a component is managed, meaning that it is running inside of the cluster
    * topology.  Generally, non-managed dependencies will be database components.
    *
-   * @param stack          stack instance
+   * @param stack          stack definition
    * @param component      component to determine if it is managed
    * @param clusterConfig  cluster configuration
    *
    * @return true if the specified component managed by the cluster; false otherwise
    */
-  protected boolean isDependencyManaged(Stack stack, String component, Map<String, Map<String, String>> clusterConfig) {
+  protected boolean isDependencyManaged(StackDefinition stack, String component, Map<String, Map<String, String>> clusterConfig) {
     boolean isManaged = true;
     String externalComponentConfig = stack.getExternalComponentConfig(component);
     if (externalComponentConfig != null) {

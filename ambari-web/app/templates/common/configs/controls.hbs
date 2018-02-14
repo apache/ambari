@@ -17,40 +17,40 @@
 }}
 
 {{#if view.showSwitchToGroup}}
-  {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="this.group"}}
+  {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="view.serviceConfigProperty.group"}}
 {{else}}
   {{#if view.showIsFinal}}
     <a href="#" data-toggle="tooltip"
       {{bindAttr class=":btn-sm :btn-final view.serviceConfigProperty.isFinal:active view.serviceConfigProperty.hideFinalIcon:hidden" disabled="view.serviceConfigProperty.isNotEditable"}}
-      {{action "toggleFinalFlag" this target="view.parentView"}}
+      {{action "toggleFinalFlag" view.serviceConfigProperty target="view.parentView"}}
       {{translateAttr data-original-title="services.service.config.final"}}>
       <i class="glyphicon glyphicon-lock"></i>
     </a>
   {{/if}}
   {{#if view.showOverride}}
     <a href="#" data-toggle="tooltip" class="btn-sm"
-      {{action "createOverrideProperty" this target="view.parentView"}}
+      {{action "createOverrideProperty" view.serviceConfigProperty target="view.parentView"}}
       {{translateAttr data-original-title="common.override"}}>
       <i class="glyphicon glyphicon-plus-sign"></i>
     </a>
   {{/if}}
   {{#if view.showUndo}}
     <a href="#" data-toggle="tooltip" class="btn-sm"
-      {{action "doRestoreDefaultValue" this target="view.parentView"}}
+      {{action "doRestoreDefaultValue" view.serviceConfigProperty target="view.parentView"}}
       {{translateAttr data-original-title="common.undo"}}>
       <i class="icon-undo"></i>
     </a>
   {{/if}}
   {{#if view.showRemove}}
     <a href="#" data-toggle="tooltip" class="btn-sm remove-config-property-button"
-      {{action "removeProperty" this target="view.parentView"}}
+      {{action "removeProperty" view.serviceConfigProperty target="view.parentView"}}
       {{translateAttr data-original-title="common.remove"}}>
       <i class="glyphicon glyphicon-minus-sign"></i>
     </a>
   {{/if}}
   {{#if view.showSetRecommended}}
     <a href="#" data-toggle="tooltip" class="btn-sm"
-      {{action "setRecommendedValue" this target="view.parentView"}}
+      {{action "setRecommendedValue" view.serviceConfigProperty target="view.parentView"}}
       {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}>
       <i class="glyphicon glyphicon-repeat"></i>
     </a>

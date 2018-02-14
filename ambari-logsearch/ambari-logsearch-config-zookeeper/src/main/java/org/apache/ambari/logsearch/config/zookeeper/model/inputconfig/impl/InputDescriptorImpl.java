@@ -179,6 +179,8 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   @SerializedName("is_enabled")
   private Boolean isEnabled;
 
+  private Map<String, Object> allProperties;
+
   public String getType() {
     return type;
   }

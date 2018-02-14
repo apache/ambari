@@ -133,12 +133,30 @@
       </quickLinksConfigurations>
 
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>HDFS</service>
-        <service>YARN</service>
-        <service>TEZ</service>
-        <service>PIG</service>
-        <service>SLIDER</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>TEZ</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>PIG</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>SLIDER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
       <osSpecifics>
         <osSpecific>

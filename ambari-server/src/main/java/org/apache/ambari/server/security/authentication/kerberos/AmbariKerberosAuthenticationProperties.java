@@ -18,11 +18,10 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.ambari.server.security.authorization.UserType;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 
 /**
  * AmbariKerberosAuthenticationProperties is a container for Kerberos authentication-related
@@ -51,10 +50,10 @@ public class AmbariKerberosAuthenticationProperties {
   private String spnegoKeytabFilePath = null;
 
   /**
-   * A list of {@link UserType}s in order of preference for use when looking up user accounts in the
+   * A list of {@link UserAuthenticationType}s in order of preference for use when looking up user accounts in the
    * Ambari database
    */
-  private List<UserType> orderedUserTypes = Collections.emptyList();
+  private List<UserAuthenticationType> orderedUserTypes = Collections.emptyList();
 
   /**
    * Auth-to-local rules to use to feed to an auth-to-local rules processor used to translate
@@ -119,24 +118,11 @@ public class AmbariKerberosAuthenticationProperties {
   }
 
   /**
-   * Sets the list of {@link UserType}s (in preference order) to use to look up uer accounts in the Ambari database.
+   * Gets the list of {@link UserAuthenticationType}s (in preference order) to use to look up uer accounts in the Ambari database.
    *
-   * @param orderedUserTypes a list of {@link UserType}s
+   * @return a list of {@link UserAuthenticationType}s
    */
-  public void setOrderedUserTypes(List<UserType> orderedUserTypes) {
-    if (orderedUserTypes == null) {
-      this.orderedUserTypes = Collections.emptyList();
-    } else {
-      this.orderedUserTypes = Collections.unmodifiableList(new ArrayList<>(orderedUserTypes));
-    }
-  }
-
-  /**
-   * Gets the list of {@link UserType}s (in preference order) to use to look up uer accounts in the Ambari database.
-   *
-   * @return a list of {@link UserType}s
-   */
-  public List<UserType> getOrderedUserTypes() {
+  public List<UserAuthenticationType> getOrderedUserTypes() {
     return orderedUserTypes;
   }
 

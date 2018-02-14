@@ -18,11 +18,8 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.output.spool.LogSpooler;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.output.spool.LogSpoolerContext;
-import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,76 +64,6 @@ public class OutputS3FileTest {
   }
 
   @Test
-  public void shouldSpoolLogEventToNewSpooler() throws Exception {
-
-    Input input = mock(Input.class);
-    InputMarker inputMarker = new InputMarker(input, null, 0);
-    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
-    inputDescriptor.setType("hdfs-namenode");
-    
-    expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
-    expect(input.getInputDescriptor()).andReturn(inputDescriptor);
-    final LogSpooler spooler = mock(LogSpooler.class);
-    spooler.add("log event block");
-    final S3Uploader s3Uploader = mock(S3Uploader.class);
-    replay(input, spooler, s3Uploader);
-
-    OutputS3File outputS3File = new OutputS3File() {
-      @Override
-      protected LogSpooler createSpooler(String filePath) {
-        return spooler;
-      }
-
-      @Override
-      protected S3Uploader createUploader(String logType) {
-        return s3Uploader;
-      }
-    };
-    outputS3File.loadConfig(configMap);
-    outputS3File.init();
-    outputS3File.write("log event block", inputMarker);
-    verify(spooler);
-  }
-
-  @Test
-  public void shouldReuseSpoolerForSamePath() throws Exception {
-    Input input = mock(Input.class);
-    InputMarker inputMarker = new InputMarker(input, null, 0);
-    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
-    inputDescriptor.setType("hdfs-namenode");
-    
-    expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
-    expect(input.getInputDescriptor()).andReturn(inputDescriptor);
-    final LogSpooler spooler = mock(LogSpooler.class);
-    spooler.add("log event block1");
-    spooler.add("log event block2");
-    final S3Uploader s3Uploader = mock(S3Uploader.class);
-    replay(input, spooler, s3Uploader);
-
-    OutputS3File outputS3File = new OutputS3File() {
-      private boolean firstCallComplete;
-      @Override
-      protected LogSpooler createSpooler(String filePath) {
-        if (!firstCallComplete) {
-          firstCallComplete = true;
-          return spooler;
-        }
-        throw new IllegalStateException("Shouldn't call createSpooler for same path.");
-      }
-
-      @Override
-      protected S3Uploader createUploader(String logType) {
-        return s3Uploader;
-      }
-    };
-    outputS3File.loadConfig(configMap);
-    outputS3File.init();
-    outputS3File.write("log event block1", inputMarker);
-    outputS3File.write("log event block2", inputMarker);
-    verify(spooler);
-  }
-
-  @Test
   public void shouldRolloverWhenSufficientSizeIsReached() throws Exception {
 
     String thresholdSize = Long.toString(15 * 1024 * 1024L);
@@ -149,7 +76,7 @@ public class OutputS3FileTest {
     OutputS3File outputS3File = new OutputS3File();
     configMap.put(S3OutputConfiguration.ROLLOVER_SIZE_THRESHOLD_BYTES_KEY, thresholdSize);
     outputS3File.loadConfig(configMap);
-    outputS3File.init();
+    outputS3File.init(new LogFeederProps());
 
     assertTrue(outputS3File.shouldRollover(logSpoolerContext));
   }
@@ -166,39 +93,8 @@ public class OutputS3FileTest {
     OutputS3File outputS3File = new OutputS3File();
     configMap.put(S3OutputConfiguration.ROLLOVER_SIZE_THRESHOLD_BYTES_KEY, thresholdSize);
     outputS3File.loadConfig(configMap);
-    outputS3File.init();
+    outputS3File.init(new LogFeederProps());
 
     assertFalse(outputS3File.shouldRollover(logSpoolerContext));
-  }
-
-  @Test
-  public void shouldUploadFileOnRollover() throws Exception {
-    Input input = mock(Input.class);
-    InputMarker inputMarker = new InputMarker(input, null, 0);
-    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
-    inputDescriptor.setType("hdfs-namenode");
-    
-    expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
-    expect(input.getInputDescriptor()).andReturn(inputDescriptor);
-    final LogSpooler spooler = mock(LogSpooler.class);
-    spooler.add("log event block1");
-    final S3Uploader s3Uploader = mock(S3Uploader.class);
-    s3Uploader.addFileForUpload("/var/ambari-logsearch/logfeeder/hdfs-namenode.log.gz");
-    replay(input, spooler, s3Uploader);
-
-    OutputS3File outputS3File = new OutputS3File() {
-      @Override
-      protected LogSpooler createSpooler(String filePath) {
-        return spooler;
-      }
-      @Override
-      protected S3Uploader createUploader(String logType) {
-        return s3Uploader;
-      }
-    };
-    outputS3File.write("log event block1", inputMarker);
-    outputS3File.handleRollover(new File("/var/ambari-logsearch/logfeeder/hdfs-namenode.log.gz"));
-
-    verify(s3Uploader);
   }
 }

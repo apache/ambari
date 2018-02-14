@@ -1,0 +1,143 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.ldap;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.nio.charset.Charset;
+
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
+import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+public class AmbariLdapConfigurationTest {
+
+  private AmbariLdapConfiguration configuration;
+
+  @Before
+  public void setup() {
+    configuration = new AmbariLdapConfiguration();
+  }
+
+  @Test
+  public void testLdapUserSearchFilterDefault() throws Exception {
+    assertEquals("(&(uid={0})(objectClass=person))", configuration.getLdapServerProperties().getUserSearchFilter(false));
+  }
+
+  @Test
+  public void testLdapUserSearchFilter() throws Exception {
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "test_uid");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER, "{usernameAttribute}={0}");
+    assertEquals("test_uid={0}", configuration.getLdapServerProperties().getUserSearchFilter(false));
+  }
+
+  @Test
+  public void testAlternateLdapUserSearchFilterDefault() throws Exception {
+    assertEquals("(&(userPrincipalName={0})(objectClass=person))", configuration.getLdapServerProperties().getUserSearchFilter(true));
+  }
+
+  @Test
+  public void testAlternatLdapUserSearchFilter() throws Exception {
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "test_uid");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER, "{usernameAttribute}={5}");
+    assertEquals("test_uid={5}", configuration.getLdapServerProperties().getUserSearchFilter(true));
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledIsSetToFalseByDefault() throws Exception {
+    assertFalse(configuration.isLdapAlternateUserSearchEnabled());
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledTrue() throws Exception {
+    configuration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "true");
+    assertTrue(configuration.isLdapAlternateUserSearchEnabled());
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledFalse() throws Exception {
+    configuration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "false");
+    assertFalse(configuration.isLdapAlternateUserSearchEnabled());
+  }
+
+  @Test
+  public void testGetLdapServerProperties_WrongManagerPassword() throws Exception {
+    configuration.setValueFor(AmbariLdapConfigurationKeys.BIND_PASSWORD, "somePassword");
+    // if it's not a store alias and is not a file, the default manager PW should be returned (which is null)
+    assertNull(configuration.getLdapServerProperties().getManagerPassword());
+  }
+
+  @Test
+  public void testGetLdapServerProperties() throws Exception {
+    final String managerPw = "ambariTest";
+    final TemporaryFolder tempFolder = new TemporaryFolder();
+    tempFolder.create();
+    final File passwordFile = tempFolder.newFile();
+    passwordFile.deleteOnExit();
+    FileUtils.writeStringToFile(passwordFile, managerPw, Charset.defaultCharset());
+
+    configuration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "host");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, "1");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST, "secHost");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT, "2");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USE_SSL, "true");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.ANONYMOUS_BIND, "true");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.BIND_DN, "5");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.BIND_PASSWORD, passwordFile.getAbsolutePath());
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "7");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "8");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_BASE, "9");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS, "10");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_BASE, "11");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, "12");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE, "13");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, "14");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES, "15");
+    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER, "16");
+
+    final LdapServerProperties ldapProperties = configuration.getLdapServerProperties();
+
+    assertEquals("host:1", ldapProperties.getPrimaryUrl());
+    assertEquals("secHost:2", ldapProperties.getSecondaryUrl());
+    assertTrue(ldapProperties.isUseSsl());
+    assertTrue(ldapProperties.isAnonymousBind());
+    assertEquals("5", ldapProperties.getManagerDn());
+    assertEquals(managerPw, ldapProperties.getManagerPassword());
+    assertEquals("7", ldapProperties.getBaseDN());
+    assertEquals("8", ldapProperties.getUsernameAttribute());
+    assertEquals("9", ldapProperties.getUserBase());
+    assertEquals("10", ldapProperties.getUserObjectClass());
+    assertEquals("11", ldapProperties.getGroupBase());
+    assertEquals("12", ldapProperties.getGroupObjectClass());
+    assertEquals("13", ldapProperties.getGroupMembershipAttr());
+    assertEquals("14", ldapProperties.getGroupNamingAttr());
+    assertEquals("15", ldapProperties.getAdminGroupMappingRules());
+    assertEquals("16", ldapProperties.getGroupSearchFilter());
+    tempFolder.delete();
+  }
+
+}

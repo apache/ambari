@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RefreshCommand;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceCategory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
@@ -353,6 +354,14 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         mergeServiceWithExplicitParent(service, parent, allStacks, commonServices, extensions);
       }else {
         serviceInfo.setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.PYTHON);
+        if (serviceInfo.getCategory() == null) {
+          serviceInfo.setCategory(ServiceCategory.LEGACY);
+        }
+        for (ComponentInfo componentInfo : serviceInfo.getComponents()) {
+          if (componentInfo.getVersion() == null) {
+            componentInfo.setVersion(serviceInfo.getVersion());
+          }
+        }
       }
     }
   }
