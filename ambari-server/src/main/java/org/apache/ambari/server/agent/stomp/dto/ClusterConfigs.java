@@ -22,7 +22,7 @@ import java.util.SortedMap;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ClusterConfigs {
   private SortedMap<String, SortedMap<String, String>> configurations;
   private SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributes;

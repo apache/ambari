@@ -1948,10 +1948,6 @@ public class ConfigHelper {
       getAndMergeHostConfigs(configurations, configTags, cl);
       getAndMergeHostConfigAttributes(configurationAttributes, configTags, cl);
 
-      // remove empty entries
-      configurations.entrySet().removeIf(e -> e.getValue().isEmpty());
-      configurationAttributes.entrySet().removeIf(e -> e.getValue().isEmpty());
-
       SortedMap<String, SortedMap<String, String>> configurationsTreeMap = sortConfigutations(configurations);
       SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributesTreeMap =
           sortConfigurationAttributes(configurationAttributes);

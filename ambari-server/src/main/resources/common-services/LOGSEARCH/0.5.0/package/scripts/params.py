@@ -114,7 +114,7 @@ infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/inf
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
 
-_hostname_lowercase = config['hostname'].lower()
+_hostname_lowercase = config['agentLevelParams']['hostname'].lower()
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
@@ -225,10 +225,10 @@ logsearch_admin_password = default('/configurations/logsearch-admin-json/logsear
 logsearch_admin_content = config['configurations']['logsearch-admin-json']['content']
 
 # for now just pick first collector
-if 'ambari_server_host' in config['clusterHostInfo']:
-  ambari_server_host = config['clusterHostInfo']['ambari_server_host'][0]
-  ambari_server_port = config['clusterHostInfo']['ambari_server_port'][0]
-  ambari_server_use_ssl = config['clusterHostInfo']['ambari_server_use_ssl'][0] == 'true'
+if 'ambari_server_host' in config['ambariLevelParams']:
+  ambari_server_host = config['ambariLevelParams']['ambari_server_host']
+  ambari_server_port = config['ambariLevelParams']['ambari_server_port']
+  ambari_server_use_ssl = config['ambariLevelParams']['ambari_server_use_ssl'] == 'true'
   
   ambari_server_protocol = 'https' if ambari_server_use_ssl else 'http'
 

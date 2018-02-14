@@ -275,6 +275,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private static final String CLUSTER_PHASE_PROPERTY = "phase";
   private static final String CLUSTER_PHASE_INITIAL_INSTALL = "INITIAL_INSTALL";
   private static final String CLUSTER_PHASE_INITIAL_START = "INITIAL_START";
+  private static final String AMBARI_SERVER_HOST = "ambari_server_host";
+  private static final String AMBARI_SERVER_PORT = "ambari_server_port";
+  private static final String AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl";
 
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
@@ -5805,6 +5808,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
     clusterLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
     clusterLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
+
+    boolean serverUseSsl = configs.getApiSSLAuthentication();
+    int port = serverUseSsl ? configs.getClientSSLApiPort() : configs.getClientApiPort();
+    clusterLevelParams.put(AMBARI_SERVER_HOST, StageUtils.getHostName());
+    clusterLevelParams.put(AMBARI_SERVER_PORT, Integer.toString(port));
+    clusterLevelParams.put(AMBARI_SERVER_USE_SSL, Boolean.toString(serverUseSsl));
 
     for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
       clusterLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
