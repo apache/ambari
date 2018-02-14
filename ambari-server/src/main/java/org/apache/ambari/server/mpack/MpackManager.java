@@ -48,7 +48,6 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OsSpecific;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
