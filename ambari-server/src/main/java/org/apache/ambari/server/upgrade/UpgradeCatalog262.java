@@ -83,7 +83,7 @@ public class UpgradeCatalog262 extends AbstractUpgradeCatalog {
         for (final Cluster cluster : clusterMap.values()) {
           StackId desiredStack = cluster.getDesiredStackVersion();
           StackId currentStack = cluster.getCurrentStackVersion();
-          if (desiredStack.compareTo(currentStack) < 0) {
+          if (!desiredStack.equals(currentStack)) {
             cluster.setDesiredStackVersion(currentStack);
           }
         }
