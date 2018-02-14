@@ -61,6 +61,7 @@ public class ViewPermissionResourceProviderTest {
 
   @Before
   public void resetGlobalMocks() {
+    ViewRegistry.initInstance(viewRegistry);
     reset(dao, viewRegistry);
   }
 

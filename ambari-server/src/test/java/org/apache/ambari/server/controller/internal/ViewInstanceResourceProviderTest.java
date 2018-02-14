@@ -71,6 +71,7 @@ public class ViewInstanceResourceProviderTest {
 
   @Before
   public void before() {
+    ViewRegistry.initInstance(viewregistry);
     reset(viewregistry);
   }
 

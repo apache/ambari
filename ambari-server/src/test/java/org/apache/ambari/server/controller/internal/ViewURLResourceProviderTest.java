@@ -65,6 +65,7 @@ public class ViewURLResourceProviderTest {
 
   @Before
   public void before() throws Exception {
+    ViewRegistry.initInstance(viewregistry);
     reset(viewregistry);
   }
 
