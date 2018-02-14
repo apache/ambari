@@ -433,17 +433,8 @@ public class MpackManager {
    */
   private void createSymLinks(Mpack mpack) throws IOException {
 
-    String stackId = mpack.getStackId();
-    String stackName = "";
-    String stackVersion = "";
-    if (stackId == null) {
-      stackName = mpack.getName();
-      stackVersion = mpack.getVersion();
-    } else {
-      StackId id = new StackId(stackId);
-      stackName = id.getStackName();
-      stackVersion = id.getStackVersion();
-    }
+    String stackName = mpack.getName();
+    String stackVersion = mpack.getVersion();
     File stack = new File(stackRoot + "/" + stackName);
     Path stackPath = Paths.get(stackRoot + "/" + stackName + "/" + stackVersion);
     Path mpackPath = Paths.get(mpacksStaging + "/" + mpack.getName() + "/" + mpack.getVersion());
@@ -542,18 +533,8 @@ public class MpackManager {
    */
   protected void populateStackDB(Mpack mpack) throws IOException {
 
-    String stackId = mpack.getStackId();
-    String stackName = "";
-    String stackVersion = "";
-    if (stackId == null) {
-      stackName = mpack.getName();
-      stackVersion = mpack.getVersion();
-    } else {
-      StackId id = new StackId(stackId);
-      stackName = id.getStackName();
-      stackVersion = id.getStackVersion();
-    }
-
+    String stackName = mpack.getName();
+    String stackVersion = mpack.getVersion();
     StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
     if (stackEntity == null) {
       LOG.info("Adding stack {}-{} to the database", stackName, stackVersion);
@@ -564,10 +545,7 @@ public class MpackManager {
       stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.create(stackEntity);
     } else {
-      LOG.info("Updating stack {}-{} to the database", stackName, stackVersion);
-
-      stackEntity.setMpackId(mpack.getMpackId());
-      stackDAO.merge(stackEntity);
+      LOG.error("Stack {}-{} already exists in the database", stackName, stackVersion);
     }
   }
 
