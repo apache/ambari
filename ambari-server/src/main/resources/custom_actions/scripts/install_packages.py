@@ -193,8 +193,12 @@ class InstallPackages(Script):
       for directory_struct in directories:
         if "component" in directory_struct:
           component_name = directory_struct["component"]
+
       if component_name:
         stack_version = stack_select.get_stack_version_before_install(component_name)
+      else:
+        Logger.warning("Unable to fix {0} since stack using outdated stack_packages.json".format(package_name))
+        return
 
       if 0 == len(restricted_packages) or package_name in restricted_packages:
         if stack_version:
