@@ -1200,6 +1200,7 @@ def update_ambari_properties():
       new_properties.load(hfNew)
 
     for prop_key, prop_value in old_properties.getPropertyDict().items():
+      prop_value = prop_value.replace("/usr/lib/python2.6/site-packages", "/usr/lib/ambari-server/lib")
       if "agent.fqdn.service.url" == prop_key:
         # what is agent.fqdn property in ambari.props?
         new_properties.process_pair(GET_FQDN_SERVICE_URL, prop_value)
