@@ -24,7 +24,7 @@ from __future__ import with_statement
 
 import os
 import re
-from subprocess import Popen, PIPE, STDOUT
+from ambari_commons.subprocess32 import Popen, PIPE, STDOUT
 
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider

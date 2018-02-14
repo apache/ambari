@@ -22,7 +22,7 @@ Ambari Agent
 
 import os
 import re
-import subprocess
+from ambari_commons import subprocess32
 import socket
 import getpass
 import tempfile

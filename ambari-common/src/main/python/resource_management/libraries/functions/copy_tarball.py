@@ -395,7 +395,7 @@ def _get_single_version_from_stack_select():
   Call "<stack-selector> versions" and return the version string if only one version is available.
   :return: Returns a version string if successful, and None otherwise.
   """
-  # Ubuntu returns: "stdin: is not a tty", as subprocess output, so must use a temporary file to store the output.
+  # Ubuntu returns: "stdin: is not a tty", as subprocess32 output, so must use a temporary file to store the output.
   tmpfile = tempfile.NamedTemporaryFile()
   tmp_dir = Script.get_tmp_dir()
   tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")

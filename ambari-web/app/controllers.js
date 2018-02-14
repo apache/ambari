@@ -56,6 +56,11 @@ require('controllers/main/admin/highAvailability/resourceManager/step1_controlle
 require('controllers/main/admin/highAvailability/resourceManager/step2_controller');
 require('controllers/main/admin/highAvailability/resourceManager/step3_controller');
 require('controllers/main/admin/highAvailability/resourceManager/step4_controller');
+require('controllers/main/admin/federation/wizard_controller');
+require('controllers/main/admin/federation/step1_controller');
+require('controllers/main/admin/federation/step2_controller');
+require('controllers/main/admin/federation/step3_controller');
+require('controllers/main/admin/federation/step4_controller');
 require('controllers/main/admin/highAvailability/hawq/addStandby/wizard_controller');
 require('controllers/main/admin/highAvailability/hawq/addStandby/step1_controller');
 require('controllers/main/admin/highAvailability/hawq/addStandby/step2_controller');

@@ -22,7 +22,7 @@ Ambari Agent
 
 __all__ = ["File", "Directory", "Link", "Execute", "ExecuteScript", "Mount"]
 
-import subprocess
+from ambari_commons import subprocess32
 from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 
@@ -231,14 +231,14 @@ class Execute(Resource):
   """
   sudo = BooleanArgument(default=False)
   """
-  subprocess.PIPE - enable output gathering
+  subprocess32.PIPE - enable output gathering
   None - disable output to gathering, and output to Python out straightly (even if logoutput is False)
-  subprocess.STDOUT - redirect to stdout (not valid as value for stdout agument)
+  subprocess32.STDOUT - redirect to stdout (not valid as value for stdout agument)
   {int fd} - redirect to file with descriptor.
   {string filename} - redirects to a file with name.
   """
-  stdout = ResourceArgument(default=subprocess.PIPE)
-  stderr = ResourceArgument(default=subprocess.STDOUT)
+  stdout = ResourceArgument(default=subprocess32.PIPE)
+  stderr = ResourceArgument(default=subprocess32.STDOUT)
 
   """
   This argument takes TerminateStrategy constants. Import it as shown below:

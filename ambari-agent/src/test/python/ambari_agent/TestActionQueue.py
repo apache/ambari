@@ -1418,12 +1418,12 @@ def patch_output_file(pythonExecutor):
     with tmperr:
       tmperr.write('process_err')
     return proc
-  def open_subprocess_files_win(fout, ferr, f):
+  def open_subprocess32_files_win(fout, ferr, f):
     return MagicMock(), MagicMock()
   def read_result_from_files(out_path, err_path, structured_out_path):
     return 'process_out', 'process_err', '{"a": "b."}'
-  pythonExecutor.launch_python_subprocess = windows_py
-  pythonExecutor.open_subprocess_files = open_subprocess_files_win
+  pythonExecutor.launch_python_subprocess32 = windows_py
+  pythonExecutor.open_subprocess32_files = open_subprocess32_files_win
   pythonExecutor.read_result_from_files = read_result_from_files
 
 def wraped(func, before = None, after = None):

@@ -20,7 +20,7 @@
     "class": "org.apache.solr.security.KerberosPlugin"
   },
   "authorization": {
-    "class": "org.apache.ambari.infra.security.InfraRuleBasedAuthorizationPlugin",
+    "class": "org.apache.solr.security.InfraRuleBasedAuthorizationPlugin",
     "user-role": {
       "{{infra_solr_kerberos_service_user}}@{{kerberos_realm}}": "admin",
       "{{logsearch_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_logsearch}}", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_dev}}"],

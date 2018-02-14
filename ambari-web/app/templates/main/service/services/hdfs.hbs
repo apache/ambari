@@ -18,135 +18,147 @@
 
 <div class="row">
   {{! Component Section }}
-  <div class="col-md-12 component-summary">
-    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
-    <div class="col-md-10">
-      {{view view.dashboardMasterComponentView}}
-      {{! NameNode Uptime }}
-      <div class="row namenode-uptime col-md-3">
-        <div class="summary-value main-info">{{view.nodeUptime}}</div>
-        <div class="summary-label">{{t dashboard.services.hdfs.nodes.uptime}}</div>
+  <div class="component-summary">
+    {{view view.dashboardMasterComponentView}}
+    <div class="col-md-12">
+      <div class="col-md-10 col-md-offset-2">
+        {{! TODO add NameNode uptime and heap for each namespace}}
+        {{! NameNode Uptime }}
+        <div class="row namenode-uptime col-md-3">
+          <div class="summary-value main-info">{{view.nodeUptime}}</div>
+          <div class="summary-label">{{t dashboard.services.hdfs.nodes.uptime}}</div>
+        </div>
+        {{! NameNode Heap }}
+        <div class="row namenode-heap col-md-3">
+          <div class="summary-value">
+            <div class="main-info"> {{view.nodeHeapPercent}} </div>
+            <div class="info-desc"> {{view.nodeHeap}} </div>
+          </div>
+          <div class="summary-label">{{t dashboard.services.hdfs.nodes.heap}}</div>
+        </div>
       </div>
-      {{! NameNode Heap }}
-      <div class="row namenode-heap col-md-3">
-        <div class="summary-value">
-          <div class="main-info"> {{view.nodeHeapPercent}} </div>
-          <div class="info-desc"> {{view.nodeHeap}} </div>
-        </div>
-        <div class="summary-label">{{t dashboard.services.hdfs.nodes.heap}}</div>
+    </div>
+    <div class="col-md-12">
+      <div class="col-md-2">
+        {{#if view.hasMultipleMasterGroups}}
+          {{t dashboard.services.hdfs.summary.components}}
+        {{/if}}
       </div>
-      {{! Data Nodes }}
-      {{#if view.isDataNodeCreated}}
-        <div {{bindAttr class=":row :component :col-md-3 view.dataNodeComponent.componentName"}}>
-          <div class="summary-value main-info">
-            {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-              <span>
-                {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
-                  {{view.liveComponents}}/{{view.totalComponents}}
-                {{/view}}
-              </span>
-              {{t common.started}}
-            {{else}}
-              {{t common.loading.eclipses}}
-            {{/if}}
-          </div>
-          <div class="summary-label">
-            <a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a>
-          </div>
-        </div>
-      {{/if}}
-      {{! JournalNodes }}
-      {{#if view.isJournalNodeCreated}}
-        <div {{bindAttr class=":row :component :col-md-3 view.journalNodeComponent.componentName"}}>
-          <div class="summary-value main-info">
-            {{#if App.router.clusterController.isComponentsStateLoaded}}
-              <span>
-                {{#view App.ComponentLiveTextView liveComponentsBinding="view.journalNodesLive" totalComponentsBinding="view.journalNodesTotal"}}
-                  {{view.liveComponents}}/{{view.totalComponents}}
-                {{/view}}
-              </span>
-              <span> {{t common.live}} </span>
-            {{else}}
-              {{t common.loading.eclipses}}
-            {{/if}}
-          </div>
-          <div class="summary-label">
-            <a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>
-          </div>
-        </div>
-      {{/if}}
-      {{! NFS Gateway }}
-      {{#if view.isNfsInStack}}
-        <div {{bindAttr class=":row :component :col-md-3 view.nfsGatewayComponent.componentName"}}>
-          <div class="summary-value main-info">
-            {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-              <span>
-                {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
-                  {{view.liveComponents}}/{{view.totalComponents}}
-                {{/view}}
-              </span>
-              {{t common.started}}
-            {{else}}
-              {{t common.loading.eclipses}}
-            {{/if}}
-          </div>
-          <div class="summary-label">
-            <a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a>
-          </div>
-        </div>
-      {{/if}}
-      {{! indent next row}}
-      <div class="row"></div>
-      {{! Data Node Counts live }}
-      <div class="row datanode-count-live col-md-3">
-        <div class="summary-value">
-          {{#if view.service.metricsNotAvailable}}
-            <div class="main-info">
-              {{t services.service.summary.notAvailable}}
+      <div class="col-md-10">
+        {{! Data Nodes }}
+        {{#if view.isDataNodeCreated}}
+          <div {{bindAttr class=":row :component :col-md-3 view.dataNodeComponent.componentName"}}>
+            <div class="summary-value main-info">
+              {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+                <span>
+                  {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
+                    {{view.liveComponents}}/{{view.totalComponents}}
+                  {{/view}}
+                </span>
+                {{t common.started}}
+              {{else}}
+                {{t common.loading.eclipses}}
+              {{/if}}
             </div>
-          {{else}}
-            <span class="main-info" rel="tooltip"
-              {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }}>
-              {{view.service.liveDataNodes.length}}
-            </span>
-            <div class="info-desc">{{t dashboard.services.hdfs.nodes.live}}</div>
+            <div class="summary-label">
+              <a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a>
+            </div>
+          </div>
+        {{/if}}
+        {{! JournalNodes }}
+        {{#if view.isJournalNodeCreated}}
+          <div {{bindAttr class=":row :component :col-md-3 view.journalNodeComponent.componentName"}}>
+            <div class="summary-value main-info">
+              {{#if App.router.clusterController.isComponentsStateLoaded}}
+                <span>
+                  {{#view App.ComponentLiveTextView liveComponentsBinding="view.journalNodesLive" totalComponentsBinding="view.journalNodesTotal"}}
+                    {{view.liveComponents}}/{{view.totalComponents}}
+                  {{/view}}
+                </span>
+                <span> {{t common.live}} </span>
+              {{else}}
+                {{t common.loading.eclipses}}
+              {{/if}}
+            </div>
+            <div class="summary-label">
+              <a
+                href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>
+            </div>
+          </div>
+        {{/if}}
+        {{! NFS Gateway }}
+        {{#if view.isNfsInStack}}
+          <div {{bindAttr class=":row :component :col-md-3 view.nfsGatewayComponent.componentName"}}>
+            <div class="summary-value main-info">
+              {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+                <span>
+                  {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
+                    {{view.liveComponents}}/{{view.totalComponents}}
+                  {{/view}}
+                </span>
+                {{t common.started}}
+              {{else}}
+                {{t common.loading.eclipses}}
+              {{/if}}
+            </div>
+            <div class="summary-label">
+              <a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a>
+            </div>
+          </div>
+        {{/if}}
+        {{! indent next row}}
+        <div class="row"></div>
+        {{! Data Node Counts live }}
+        <div class="row datanode-count-live col-md-3">
+          <div class="summary-value">
+            {{#if view.service.metricsNotAvailable}}
+              <div class="main-info">
+                {{t services.service.summary.notAvailable}}
+              </div>
+            {{else}}
+              <span class="main-info" rel="tooltip"
+                {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }}>
+                {{view.service.liveDataNodes.length}}
+              </span>
+              <div class="info-desc">{{t dashboard.services.hdfs.nodes.live}}</div>
             {{/if}}
+          </div>
+          <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
         </div>
-        <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
-      </div>
-      {{! Data Node Counts dead }}
-      <div class="row datanode-count-dead col-md-3">
-        <div class="summary-value">
-          {{#if view.service.metricsNotAvailable}}
-            <div class="main-info">
-              {{t services.service.summary.notAvailable}}
-            </div>
-          {{else}}
-            <span class="main-info" rel="tooltip"
-              {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }}>
-              {{view.service.deadDataNodes.length}}
-            </span>
-            <div class="info-desc">{{t dashboard.services.hdfs.nodes.dead}}</div>
-          {{/if}}
+        {{! Data Node Counts dead }}
+        <div class="row datanode-count-dead col-md-3">
+          <div class="summary-value">
+            {{#if view.service.metricsNotAvailable}}
+              <div class="main-info">
+                {{t services.service.summary.notAvailable}}
+              </div>
+            {{else}}
+              <span class="main-info" rel="tooltip"
+                {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }}>
+                {{view.service.deadDataNodes.length}}
+              </span>
+              <div class="info-desc">{{t dashboard.services.hdfs.nodes.dead}}</div>
+            {{/if}}
+          </div>
+          <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
         </div>
-        <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
-      </div>
-      {{! Data Node Counts decommission }}
-      <div class="row datanode-count-decommission col-md-3">
-        <div class="summary-value">
-          {{#if view.service.metricsNotAvailable}}
-            <div class="main-info">
-              {{t services.service.summary.notAvailable}}
-            </div>
-          {{else}}
-            <span class="main-info" rel="tooltip"
-              {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.decommission" }}>
-              {{view.service.decommissionDataNodes.length}}
-            </span>
-            <div class="info-desc">{{t dashboard.services.hdfs.nodes.decom}}</div>
-          {{/if}}
+        {{! Data Node Counts decommission }}
+        <div class="row datanode-count-decommission col-md-3">
+          <div class="summary-value">
+            {{#if view.service.metricsNotAvailable}}
+              <div class="main-info">
+                {{t services.service.summary.notAvailable}}
+              </div>
+            {{else}}
+              <span class="main-info" rel="tooltip"
+                {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.decommission" }}>
+                {{view.service.decommissionDataNodes.length}}
+              </span>
+              <div class="info-desc">{{t dashboard.services.hdfs.nodes.decom}}</div>
+            {{/if}}
+          </div>
+          <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
         </div>
-        <div class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
       </div>
     </div>
   </div>

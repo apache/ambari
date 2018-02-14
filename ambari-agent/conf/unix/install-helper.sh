@@ -19,10 +19,12 @@
 ##################################################################
 
 INSTALL_HELPER_SERVER="/var/lib/ambari-server/install-helper.sh"
-COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/ambari_commons"
-RESOURCE_MANAGEMENT_DIR_AGENT="/usr/lib/ambari-agent/lib/resource_management"
-JINJA_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_jinja2"
-SIMPLEJSON_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
+COMMON_DIR="/usr/lib/ambari-agent/lib/ambari_commons"
+RESOURCE_MANAGEMENT_DIR="/usr/lib/ambari-agent/lib/resource_management"
+JINJA_DIR="/usr/lib/ambari-agent/lib/ambari_jinja2"
+SIMPLEJSON_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
+OLD_OLD_COMMON_DIR="/usr/lib/ambari-agent/lib/common_functions"
+AMBARI_AGENT="/usr/lib/ambari-agent/lib/ambari_agent"
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 AMBARI_AGENT_VAR="/var/lib/ambari-agent"
 AMBARI_AGENT_BINARY="/etc/init.d/ambari-agent"
@@ -34,15 +36,6 @@ OLD_RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_managemen
 OLD_JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
 OLD_SIMPLEJSON_DIR="/usr/lib/python2.6/site-packages/ambari_simplejson"
 OLD_AMBARI_AGENT_DIR="/usr/lib/python2.6/site-packages/ambari_agent"
-
-COMMON_DIR="/usr/lib/ambari-agent/lib/ambari_commons"
-RESOURCE_MANAGEMENT_DIR="/usr/lib/ambari-agent/lib/resource_management"
-JINJA_DIR="/usr/lib/ambari-agent/lib/ambari_jinja2"
-SIMPLEJSON_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
-STOMP_DIR="/usr/lib/ambari-agent/lib/ambari_stomp"
-WS4PY_DIR="/usr/lib/ambari-agent/lib/ambari_ws4py"
-OLD_COMMON_DIR="/usr/lib/ambari-agent/lib/common_functions"
-AMBARI_AGENT="/usr/lib/ambari-agent/lib/ambari_agent"
 
 clean_pyc_files(){
   # cleaning old *.pyc files
@@ -60,8 +53,12 @@ do_install(){
   fi
 
   # these symlinks (or directories) where created in ambari releases prior to ambari-2.6.2. Do clean up.   
-  rm -rf "$OLD_COMMON_DIR" "$OLD_RESOURCE_MANAGEMENT_DIR" "$OLD_JINJA_DIR" "$OLD_SIMPLEJSON_DIR" "$OLD_COMMON_DIR" "$OLD_AMBARI_AGENT_DIR"
-  
+  rm -rf "$OLD_COMMON_DIR" "$OLD_RESOURCE_MANAGEMENT_DIR" "$OLD_JINJA_DIR" "$OLD_SIMPLEJSON_DIR" "$OLD_OLD_COMMON_DIR" "$OLD_AMBARI_AGENT_DIR"
+
+  # setting up /usr/sbin/ambari-agent symlink
+  rm -f "$AMBARI_AGENT_BINARY_SYMLINK"
+  ln -s "$AMBARI_AGENT_BINARY" "$AMBARI_AGENT_BINARY_SYMLINK"
+
   # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.
   # which causes failures when hadoop users try to access tmp_dir
   chmod a+x $AMBARI_AGENT_VAR
@@ -142,7 +139,7 @@ do_remove(){
   fi
   
   if [ -d "$COMMON_DIR" ]; then
-    rm -f $COMMON_DIR
+    rm -rf $COMMON_DIR
   fi
   
   if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then
@@ -154,7 +151,7 @@ do_remove(){
   fi
 
   if [ -d "$SIMPLEJSON_DIR" ]; then
-    rm -f $SIMPLEJSON_DIR
+    rm -rf $SIMPLEJSON_DIR
   fi
 
   # if server package exists, restore their settings

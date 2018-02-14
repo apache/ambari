@@ -32,6 +32,7 @@ App.HostComponent = DS.Model.extend({
   publicHostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
+  haNameSpace: DS.attr('string'),
 
   serviceDisplayName: Em.computed.truncate('service.displayName', 14, 11),
 
@@ -495,6 +496,12 @@ App.HostComponentActionMap = {
         cssClass: 'glyphicon glyphicon-play-circle',
         isHidden: false,
         disabled: false
+      },
+      TOGGLE_NN_FEDERATION: {
+        action: 'openNameNodeFederationWizard',
+        label: Em.I18n.t('admin.nameNodeFederation.button.enable'),
+        cssClass: 'glyphicon glyphicon-arrow-up',
+        //todo: provide disabled flag
       }
     };
   }

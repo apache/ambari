@@ -165,6 +165,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     ha_status: 'HostRoles.ha_state',
     display_name_advanced: 'display_name_advanced',
     admin_state: 'HostRoles.desired_admin_state'
+    // TODO add mapping for namespace property
+    // ha_name_space:
   },
 
   /**

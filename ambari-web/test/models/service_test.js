@@ -137,7 +137,7 @@ describe('App.Service', function () {
       },
       {
         serviceName: 'HDFS',
-        result: ['HA_MODE']
+        result: ['HA_MODE', 'FEDERATION']
       },
       {
         serviceName: 'YARN',

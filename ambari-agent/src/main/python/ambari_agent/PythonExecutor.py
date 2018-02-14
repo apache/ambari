@@ -20,7 +20,7 @@ limitations under the License.
 import ambari_simplejson as json
 import logging
 import os
-import subprocess
+from ambari_commons import subprocess32
 import pprint
 import threading
 import platform
@@ -54,7 +54,7 @@ class PythonExecutor(object):
     pass
 
 
-  def open_subprocess_files(self, tmpoutfile, tmperrfile, override_output_files, backup_log_files = True):
+  def open_subprocess32_files(self, tmpoutfile, tmperrfile, override_output_files, backup_log_files = True):
     if override_output_files: # Recreate files, existing files are backed up if backup_log_files is True
       if backup_log_files:
         self.back_up_log_file_if_exists(tmpoutfile)
@@ -83,8 +83,8 @@ class PythonExecutor(object):
                override_output_files = True, backup_log_files = True, handle = None,
                log_info_on_failure = True):
     """
-    Executes the specified python file in a separate subprocess.
-    Method returns only when the subprocess is finished.
+    Executes the specified python file in a separate subprocess32.
+    Method returns only when the subprocess32 is finished.
     Params arg is a list of script parameters
     Timeout meaning: how many seconds should pass before script execution
     is forcibly terminated
@@ -97,9 +97,9 @@ class PythonExecutor(object):
       logger.debug("Running command %s", pprint.pformat(pythonCommand))
 
     if handle is None:
-      tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
+      tmpout, tmperr = self.open_subprocess32_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
 
-      process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
+      process = self.launch_python_subprocess32(pythonCommand, tmpout, tmperr)
       # map task_id to pid
       callback(task_id, process.pid)
       logger.debug("Launching watchdog thread")
@@ -162,9 +162,9 @@ class PythonExecutor(object):
   def preexec_fn(self):
     os.setpgid(0, 0)
 
-  def launch_python_subprocess(self, command, tmpout, tmperr):
+  def launch_python_subprocess32(self, command, tmpout, tmperr):
     """
-    Creates subprocess with given parameters. This functionality was moved to separate method
+    Creates subprocess32 with given parameters. This functionality was moved to separate method
     to make possible unit testing
     """
     close_fds = None if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else True
@@ -174,7 +174,7 @@ class PythonExecutor(object):
       for k, v in command_env.iteritems():
         command_env[k] = str(v)
 
-    return subprocess.Popen(command,
+    return subprocess32.Popen(command,
       stdout=tmpout,
       stderr=tmperr, close_fds=close_fds, env=command_env, preexec_fn=self.preexec_fn)
 
@@ -202,7 +202,7 @@ class PythonExecutor(object):
   def python_watchdog_func(self, python, timeout):
     self.event.wait(timeout)
     if python.returncode is None:
-      logger.error("Subprocess timed out and will be killed")
+      logger.error("subprocess32 timed out and will be killed")
       shell.kill_process_with_children(python.pid)
       self.python_process_has_been_killed = True
     pass
@@ -222,10 +222,10 @@ class BackgroundThread(threading.Thread):
     self.pythonExecutor = pythonExecutor
 
   def run(self):
-    process_out, process_err = self.pythonExecutor.open_subprocess_files(self.holder.out_file, self.holder.err_file, True)
+    process_out, process_err = self.pythonExecutor.open_subprocess32_files(self.holder.out_file, self.holder.err_file, True)
 
     logger.debug("Starting process command %s", self.holder.command)
-    process = self.pythonExecutor.launch_python_subprocess(self.holder.command, process_out, process_err)
+    process = self.pythonExecutor.launch_python_subprocess32(self.holder.command, process_out, process_err)
 
     logger.debug("Process has been started. Pid = %s", process.pid)
 

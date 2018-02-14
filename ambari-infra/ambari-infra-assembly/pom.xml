@@ -30,7 +30,7 @@
 
   <properties>
     <mapping.base.path>/usr/lib</mapping.base.path>
-    <!-- original apache repo location: http://archive.apache.org/dist/lucene/solr/${solr.version}/solr-${solr.version}.tgz -->
+    <!-- original url: <solr.tar>http://archive.apache.org/dist/lucene/solr/${solr.version}/solr-${solr.version}.tgz</solr.tar> -->
     <solr.tar>http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/${solr.version}/solr-${solr.version}.tgz</solr.tar>
     <solr.mapping.path>${mapping.base.path}/ambari-infra-solr</solr.mapping.path>
     <solr.package.name>ambari-infra-solr</solr.package.name>

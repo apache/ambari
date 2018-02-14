@@ -29,8 +29,7 @@ import org.apache.ambari.logsearch.handler.UpgradeSchemaHandler;
 import org.apache.ambari.logsearch.handler.UploadConfigurationHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.HttpClientUtil;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -52,6 +51,8 @@ public class SolrCollectionConfigurer implements Configurer {
   private static final int SETUP_RETRY_SECOND = 10;
   private static final int SESSION_TIMEOUT = 15000;
   private static final int CONNECTION_TIMEOUT = 30000;
+  private static final String JAVA_SECURITY_AUTH_LOGIN_CONFIG = "java.security.auth.login.config";
+  private static final String SOLR_HTTPCLIENT_BUILDER_FACTORY = "solr.httpclient.builder.factory";
 
   private final SolrDaoBase solrDaoBase;
   private final boolean hasEnumConfig; // enumConfig.xml for solr collection
@@ -137,8 +138,8 @@ public class SolrCollectionConfigurer implements Configurer {
     String jaasFile = solrDaoBase.getSolrKerberosConfig().getJaasFile();
     boolean securityEnabled = solrDaoBase.getSolrKerberosConfig().isEnabled();
     if (securityEnabled) {
-      System.setProperty("java.security.auth.login.config", jaasFile);
-      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+      System.setProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG, jaasFile);
+      System.setProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY, Krb5HttpClientBuilder.class.getCanonicalName());
       LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
     }
   }

@@ -23,7 +23,7 @@ Users with the <code>AMBARI.MANAGE_USERS</code> privilege (currently, Ambari Adm
 view and update all user resources.  Any other user can only view and (partially) update their own 
 user resource.
 
-###API Summary
+### API Summary
 
 - [List users](user-list.md)
 - [Get user](user-get.md)
@@ -31,7 +31,7 @@ user resource.
 - [Update user](user-update.md)
 - [Delete user](user-delete.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>
