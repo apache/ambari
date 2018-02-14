@@ -1168,8 +1168,16 @@
       <version>1.9.2</version>
     </dependency>
     <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-assistedinject</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-multibindings</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
@@ -1178,11 +1186,6 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject.extensions</groupId>
-      <artifactId>guice-multibindings</artifactId>
-      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
@@ -1465,11 +1468,6 @@
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
       <version>3.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>

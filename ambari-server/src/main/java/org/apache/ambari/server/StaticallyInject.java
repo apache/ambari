@@ -22,13 +22,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.google.inject.ScopeAnnotation;
-
 /**
- * Annotation indicating there are static members that should be injected 
+ * Annotation indicating there are static members that should be injected
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE })
-@ScopeAnnotation
 public @interface StaticallyInject {
 }
