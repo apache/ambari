@@ -378,7 +378,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       }, this);
     }, this);
 
-    this.setDBProperty('clientInfo', clients);
+    this.setDBProperty('clients', clients);
     this.set('content.clients', clients);
   },
 
@@ -386,7 +386,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * Load information about hosts with clients components
    */
   loadClients: function () {
-    var clients = this.getDBProperty('clientInfo');
+    var clients = this.getDBProperty('clients');
     if (clients) {
       this.set('content.clients', clients);
     } else {

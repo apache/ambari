@@ -36,7 +36,7 @@ App.ModalPopup = Ember.View.extend({
   disableSecondary: false,
   disableThird: false,
   primaryClass: 'btn-success',
-  secondaryClass: 'btn-default',
+  secondaryClass: 'btn-secondary',
   thirdClass: 'btn-default',
   modalDialogClassesStr: function () {
     var modalDialogClasses = this.get('modalDialogClasses');

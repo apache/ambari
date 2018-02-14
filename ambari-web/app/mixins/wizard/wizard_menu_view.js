@@ -34,7 +34,13 @@ App.WizardMenuMixin = Em.Mixin.create({
 
   isStepDisabled: function (stepName) {
     let index = this.get('controller').getStepIndex(stepName);
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
+    let step = this.get('controller.isStepDisabled').findProperty('step', index);
+
+    if (step) {
+      return step.get('value');
+    }
+
+    return false;
   },
 
   isStepCompleted(stepName) {
@@ -42,28 +48,40 @@ App.WizardMenuMixin = Em.Mixin.create({
     return this.get('controller.currentStep') > index;
   },
 
-  isStep0Disabled: isStepDisabled(0),
-  isStep1Disabled: isStepDisabled(1),
-  isStep2Disabled: isStepDisabled(2),
-  isStep3Disabled: isStepDisabled(3),
-  isStep4Disabled: isStepDisabled(4),
-  isStep5Disabled: isStepDisabled(5),
-  isStep6Disabled: isStepDisabled(6),
-  isStep7Disabled: isStepDisabled(7),
-  isStep8Disabled: isStepDisabled(8),
-  isStep9Disabled: isStepDisabled(9),
-  isStep10Disabled: isStepDisabled(10),
+  isStep0Disabled: isStepDisabled("step0"),
+  isStep1Disabled: isStepDisabled("step1"),
+  isStep2Disabled: isStepDisabled("step2"),
+  isStep3Disabled: isStepDisabled("step3"),
+  isConfigureDownloadDisabled: isStepDisabled("configureDownload"),
+  isSelectMpacksDisabled: isStepDisabled("selectMpacks"),
+  isCustomMpackReposDisabled: isStepDisabled("customMpackRepos"),
+  isDownloadMpacksDisabled: isStepDisabled("downloadMpacks"),
+  isCustomProductReposDisabled: isStepDisabled("customProductRepos"),
+  isVerifyProductsDisabled: isStepDisabled("verifyProducts"),
+  isStep4Disabled: isStepDisabled("step4"),
+  isStep5Disabled: isStepDisabled("step5"),
+  isStep6Disabled: isStepDisabled("step6"),
+  isStep7Disabled: isStepDisabled("step7"),
+  isStep8Disabled: isStepDisabled("step8"),
+  isStep9Disabled: isStepDisabled("step9"),
+  isStep10Disabled: isStepDisabled("step10"),
 
-  isStep0Completed: isStepCompleted(0),
-  isStep1Completed: isStepCompleted(1),
-  isStep2Completed: isStepCompleted(2),
-  isStep3Completed: isStepCompleted(3),
-  isStep4Completed: isStepCompleted(4),
-  isStep5Completed: isStepCompleted(5),
-  isStep6Completed: isStepCompleted(6),
-  isStep7Completed: isStepCompleted(7),
-  isStep8Completed: isStepCompleted(8),
-  isStep9Completed: isStepCompleted(9),
-  isStep10Completed: isStepCompleted(10)
+  isStep0Completed: isStepCompleted("step0"),
+  isStep1Completed: isStepCompleted("step1"),
+  isStep2Completed: isStepCompleted("step2"),
+  isStep3Completed: isStepCompleted("step3"),
+  isConfigureDownloadCompleted: isStepCompleted("configureDownload"),
+  isSelectMpacksCompleted: isStepCompleted("selectMpacks"),
+  isCustomMpackReposCompleted: isStepCompleted("customMpackRepos"),
+  isDownloadMpacksCompleted: isStepCompleted("downloadMpacks"),
+  isCustomProductReposCompleted: isStepCompleted("customProductRepos"),
+  isVerifyProductsCompleted: isStepCompleted("verifyProducts"),
+  isStep4Completed: isStepCompleted("step4"),
+  isStep5Completed: isStepCompleted("step5"),
+  isStep6Completed: isStepCompleted("step6"),
+  isStep7Completed: isStepCompleted("step7"),
+  isStep8Completed: isStepCompleted("step8"),
+  isStep9Completed: isStepCompleted("step9"),
+  isStep10Completed: isStepCompleted("step10")
 
 });

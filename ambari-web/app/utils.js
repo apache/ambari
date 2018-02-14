@@ -23,6 +23,7 @@ require('utils/errors/assertions');
 require('utils/base64');
 require('utils/db');
 require('utils/helper');
+require('utils/constants');
 require('utils/config');
 require('utils/configs/theme/theme');
 require('utils/configs/config_initializer');

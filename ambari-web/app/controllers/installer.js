@@ -41,8 +41,14 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step0",
     "step2",
     "step3",
-    "step1",
-    "step4",
+    "configureDownload",
+	  "selectMpacks",
+    "customMpackRepos",
+    "downloadMpacks",
+    "customProductRepos",
+    "verifyProducts",
+    //"step1",
+    //"step4",
     "step5",
     "step6",
     "step7",
@@ -50,6 +56,32 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step9",
     "step10"
   ],
+
+  errors: [],
+
+  hasErrors: function () {
+    return this.get('errors').length > 0;
+  }.property('errors'),
+
+  addError: function (newError) {
+    const errors = this.get('errors');
+    this.set('errors', errors.concat(newError));
+  },
+
+  clearErrors: function () {
+    this.set('errors', []);
+  },
+
+  getStepController: function (stepName) {
+    if (typeof (stepName) === "number") {
+      stepName = this.get('steps')[stepName];
+    }
+
+    stepName = stepName.charAt(0).toUpperCase() + stepName.slice(1);
+    const stepController = App.router.get('wizard' + stepName + 'Controller');
+
+    return stepController;
+  },
 
   content: Em.Object.create({
     cluster: null,
@@ -76,7 +108,16 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
      * (uses for host groups validation and to load recommended configs)
      */
     recommendationsHostGroups: null,
-    controllerName: 'installerController'
+    controllerName: 'installerController',
+    mpacks: [],
+    mpackVersions: [],
+    mpackServiceVersions: [],
+    mpackServices: [],
+    // Tracks which steps have been saved before.
+    // If you revisit a step, we will know if the step has been saved previously and we can warn about making changes.
+    // If a previously saved step is changed, setStepSaved() will "unsave" all subsequent steps so we don't warn on every screen.
+    // Furthermore, we only need to track this state for steps that have an affect on subsequent steps.
+    stepsSavedState: null
   }),
 
   /**
@@ -92,7 +133,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'installOptions',
     'allHostNamesPattern',
     'serviceComponents',
-    'clientInfo',
+    'clients',
     'selectedServiceNames',
     'serviceConfigGroups',
     'serviceConfigProperties',
@@ -107,7 +148,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'recommendationsConfigs',
     'componentsFromConfigs',
     'operatingSystems',
-    'repositories'
+    'repositories',
+    'selectedMpacks',
+    'selectedServices',
+    'selectedStack',
+    'downloadConfig',
+    'stepsSavedState'
   ],
 
   init: function () {
@@ -172,6 +218,87 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       dfd.resolve();
     }
     return dfd.promise();
+  },
+
+  /**
+   * Load data for stacks from selected mpacks. This just tells the server to populate the version_definitions endpoint for the mpack that was registered.
+   *
+   * @param  {string} stackName
+   * @param  {string} stackVersion
+   * @param  {string} serviceName
+   */
+  createMpackStackVersion: function (stackName, stackVersion) {
+    return App.ajax.send({
+      name: 'mpack.create_version_definition',
+      sender: this,
+      data: {
+        name: stackName,
+        version: stackVersion
+      }
+    })
+  },
+
+  /**
+   * Loads stack version data (including supported OSes and repos) from the version_definitions endpoint
+   */
+  getMpackStackVersions: function () {
+    return App.ajax.send({
+      name: 'mpack.get_version_definitions',
+      sender: this
+    })
+  },
+
+  loadMpackStackInfoSuccess: function (versionDefinition) {
+    App.stackMapper.map(versionDefinition);
+  },
+
+  loadMpackStackInfoError: function(request, status, error) {
+    const message = Em.I18n.t('installer.error.mpackStackInfo');
+
+    App.showAlertPopup(
+      Em.I18n.t('common.error'), //header
+      message //body
+    );
+
+    console.log(`${message} ${status} - ${error}`);
+  },
+
+  /**
+   * Load data for services selected from mpacks. Will be used at <code>Download Mpacks</code> step submit action.
+   *
+   * @param  {string} stackName
+   * @param  {string} stackVersion
+   * @param  {string} serviceName
+   */
+  loadMpackServiceInfo: function (stackName, stackVersion, serviceName) {
+    return App.ajax.send({
+      name: 'wizard.mpack_service_components',
+      sender: this,
+      data: {
+        stackName: stackName,
+        stackVersion: stackVersion,
+        serviceName: serviceName
+      }
+    });
+  },
+
+  loadMpackServiceInfoSuccess: function (serviceInfo) {
+    serviceInfo.StackServices.is_selected = true;
+    App.MpackServiceMapper.map(serviceInfo);
+  },
+
+  loadMpackServiceInfoError: function(request, status, error) {
+    const message = Em.I18n.t('installer.error.mpackServiceInfo');
+
+    this.addError(message);
+    // App.showAlertPopup(
+    //   Em.I18n.t('common.error'), //header
+    //   message //body
+    // );
+
+    return message;
+    
+    console.log(`${message} ${status} - ${error}`);
   },
 
   /**
@@ -509,11 +636,16 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    * Load master component hosts data for using in required step controllers
    * @param inMemory {Boolean}: Load master component hosts from memory
    */
-  loadMasterComponentHosts: function (inMemory) {
-    var props = this.getDBProperties(['masterComponentHosts', 'hosts']);
-    var masterComponentHosts = !!inMemory ? this.get("content.masterComponentHosts") : props.masterComponentHosts,
-      hosts = props.hosts || {},
-      hostNames = Em.keys(hosts);
+  loadMasterComponentHosts: function (lookInMemoryOnly) {
+    var props = this.getDBProperties(['masterComponentHosts', 'hosts']),
+        masterComponentHosts = this.get("content.masterComponentHosts"),
+        hosts = props.hosts || {},
+        hostNames = Em.keys(hosts);
+
+    if (!lookInMemoryOnly && !masterComponentHosts) {
+      masterComponentHosts = props.masterComponentHosts;
+    }
+
     if (Em.isNone(masterComponentHosts)) {
       masterComponentHosts = [];
     } else {
@@ -576,7 +708,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         });
       }, this);
     }, this);
-    this.setDBProperty('clientInfo', clients);
+    this.setDBProperty('clients', clients);
     this.set('content.clients', clients);
   },
 
@@ -823,30 +955,30 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   prepareRepoForSaving: function(repo) {
     var repoVersion = { "operating_systems": [] };
     var ambariManagedRepositories = !repo.get('useRedhatSatellite');
-    var k = 0;
-    repo.get('operatingSystems').forEach(function (os) {
-      if (os.get('isSelected')) {
-        repoVersion.operating_systems.push({
-          "OperatingSystems": {
-            "os_type": os.get("osType"),
-            "ambari_managed_repositories": ambariManagedRepositories
-          },
-          "repositories": []
+    repo.get('operatingSystems').forEach(function (os, k) {
+      repoVersion.operating_systems.push({
+        "OperatingSystems": {
+          "os_type": os.get("osType"),
+          "ambari_managed_repositories": ambariManagedRepositories
+        },
+        "repositories": []
+      });
+      os.get('repositories').forEach(function (repository) {
+        repoVersion.operating_systems[k].repositories.push({
+          "Repositories": {
+            "public_url": repository.get('baseUrlInit'),
+            "base_url": repository.get('baseUrl'),
+            "repo_id": repository.get('repoId'),
+            "repo_name": repository.get('repoName'),
+            "unique": repository.get('unique'),
+            //removed the following properties because they were not present on the server
+            //and are therefore undefined on the client, so there is no need to pass them back
+            // "components": repository.get('components'),
+            // "distribution": repository.get('distribution')
+            "tags": repository.get('tags'),
+          }
         });
-        os.get('repositories').forEach(function (repository) {
-          repoVersion.operating_systems[k].repositories.push({
-            "Repositories": {
-              "base_url": repository.get('baseUrl'),
-              "repo_id": repository.get('repoId'),
-              "repo_name": repository.get('repoName'),
-              "components": repository.get('components'),
-              "tags": repository.get('tags'),
-              "distribution": repository.get('distribution')
-            }
-          });
-        });
-        k++;
-      }
+      });
     });
     return repoVersion;
   },
@@ -953,39 +1085,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       {
         type: 'sync',
         callback: function () {
+          this.load('stepsSavedState');
           this.load('cluster');
-        }
-      }
-    ],
-    'step1': [
-      {
-        type: 'async',
-        callback: function () {
-          var dfd = $.Deferred();
-
-          this.loadStacks().done(function(stacksLoaded) {
-            App.router.get('clusterController').loadAmbariProperties().always(function() {
-              dfd.resolve(stacksLoaded);
-            });
-          });
-
-          return dfd.promise();
-        }
-      },
-      {
-        type: 'async',
-        callback: function (stacksLoaded) {
-          var dfd = $.Deferred();
-
-          if (!stacksLoaded) {
-            $.when.apply(this, this.loadStacksVersions()).done(function () {
-              dfd.resolve(true);
-            });
-          } else {
-            dfd.resolve(stacksLoaded);
-          }
-
-          return dfd.promise();
         }
       }
     ],
@@ -997,6 +1098,32 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
+    'configureDownload': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('downloadConfig');
+        }
+      },
+    ],
+    'selectMpacks': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('selectedServices');
+          this.load('selectedMpacks');
+          this.load('advancedMode');
+        }
+      }
+    ],
+    'customProductRepos': [
+      {
+        type: 'async',
+        callback: function () {
+          return this.finishRegisteringMpacks(this.getStepSavedState('customProductRepos'));
+        }
+      },
+    ],
     'step3': [
       {
         type: 'sync',
@@ -1005,19 +1132,11 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    'step4': [
-      {
-        type: 'async',
-        callback: function () {
-          return this.loadServices();
-        }
-      }
-    ],
     'step5': [
       {
         type: 'sync',
         callback: function () {
-          this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected'), 6);
+          this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected'), this.getStepIndex('step7'));
           this.loadMasterComponentHosts();
           this.loadConfirmedHosts();
           this.loadComponentsFromConfigs();
@@ -1051,6 +1170,14 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
             dfd.resolve();
           });
           return dfd.promise();
+        }
+      }
+    ],
+    'step8': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('selectedStack');
         }
       }
     ]
@@ -1115,6 +1242,30 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.gotoStep('step10');
   },
 
+  gotoConfigureDownload: function () {
+    this.gotoStep('configureDownload');
+  },
+  
+  gotoSelectMpacks: function () {
+    this.gotoStep('selectMpacks');
+  },
+
+  gotoCustomMpackRepos: function () {
+    this.gotoStep('customMpackRepos');
+  },
+
+  gotoDownloadMpacks: function () {
+    this.gotoStep('downloadMpacks');
+  },
+
+  gotoCustomProductRepos: function () {
+    this.gotoStep('customProductRepos');
+  },
+
+  gotoVerifyProducts: function () {
+    this.gotoStep('verifyProducts');
+  },
+
   isStep0: function () {
     return this.get('currentStep') == this.getStepIndex('step0');
   }.property('currentStep'),
@@ -1159,6 +1310,30 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return this.get('currentStep') == this.getStepIndex('step10');
   }.property('currentStep'),
 
+  isConfigureDownload: function () {
+    return this.get('currentStep') == this.getStepIndex('configureDownload');
+  }.property('currentStep'),
+
+  isSelectMpacks: function () {
+    return this.get('currentStep') == this.getStepIndex('selectMpacks');
+  }.property('currentStep'),
+
+  isCustomMpackRepos: function () {
+    return this.get('currentStep') == this.getStepIndex('customMpackRepos');
+  }.property('currentStep'),
+
+  isDownloadMpacks: function () {
+    return this.get('currentStep') == this.getStepIndex('downloadMpacks');
+  }.property('currentStep'),
+
+  isCustomProductRepos: function () {
+    return this.get('currentStep') == this.getStepIndex('customProductRepos');
+  }.property('currentStep'),
+
+  isVerifyProducts: function () {
+    return this.get('currentStep') == this.getStepIndex('verifyProducts');
+  }.property('currentStep'),
+
   clearConfigActionComponents: function() {
     var masterComponentHosts = this.get('content.masterComponentHosts');
     var componentsAddedFromConfigAction = this.get('content.componentsFromConfigs');
@@ -1199,11 +1374,19 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   setStepsEnable: function () {
     const steps = this.get('steps');
-    for (var i = 0, length = steps.length; i < length; i++) {
+    for (let i = 0, length = steps.length; i < length; i++) {
+      let stepDisabled = true;
+      
+      const stepController = this.getStepController(steps[i]);
+      if (stepController) {
+        stepController.set('wizardController', this);
+        stepDisabled = stepController.isStepDisabled();
+      }
+
       const stepIndex = this.getStepIndex(steps[i]);
-      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepIndex > this.get('currentStep'));
+      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepDisabled);
     }
-  }.observes('currentStep'),
+  },
 
   /**
    * Compare jdk versions used for ambari and selected stack.
@@ -1244,6 +1427,138 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       }
     }
     sCallback();
-  }
+  },
 
+  clearStackServices: function (deleteAll) {
+    var dfd = $.Deferred();
+
+    if (deleteAll) {
+      const stackServices = App.StackService.find();
+      let stackServicesCount = stackServices.content.length;
+
+      if (stackServicesCount > 0) {
+        stackServices.forEach(service => {
+          Em.run.once(this, () => {
+            App.MpackServiceMapper.deleteRecord(service);
+            stackServicesCount--;
+
+            if (stackServicesCount === 0) {
+              dfd.resolve();
+            }
+          });
+        });
+      } else {
+        dfd.resolve();
+      }  
+    } else {
+      dfd.resolve();
+    }  
+
+    return dfd.promise();
+  },
+
+  getStepSavedState: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const stepsSaved = this.get('content.stepsSavedState');
+
+    if (!!stepIndex && stepsSaved && stepsSaved[stepIndex]) {
+      return true;
+    }
+
+    return false;
+  },
+
+  setStepUnsaved: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const oldState = this.get('content.stepsSavedState') || {};
+    const newState = Em.Object.create(oldState);
+    newState[stepIndex] = false;
+
+    this.set('content.stepsSavedState', newState);
+    this.save('stepsSavedState');
+  },
+
+  /**
+   * Updates the stepsSaved array based on the stepName provided.
+   * If the passed step is already saved, then nothing is changed.
+   * Otherwise, the passed step is set to saved and all subsequent steps are set to unsaved.
+   *
+   * @param  {type} stepName Name of the step being saved.
+   */
+  setStepSaved: function (stepName) {
+    const stepIndex = this.getStepIndex(stepName);
+    const oldState = this.get('content.stepsSavedState') || {};
+    const newState = Em.Object.create(oldState);
+
+    if (!newState[stepIndex]) {
+      for (let i = stepIndex + 1, length = this.get('steps').length; i < length; i++) {
+        newState[i] = false;
+      };
+
+      newState[stepIndex] = true;
+
+      this.set('content.stepsSavedState', newState);
+      this.save('stepsSavedState');
+    }
+  },
+
+  /**
+   * This runs when the step after Download Mpacks loads and completes the mpack registration process that was begun in the Download Mpacks step.
+   * It populates the StackService model from the stack version definitions.
+   * Then, it persists info about the selected services and the selected stack.
+   *
+   * @param {Boolean} keepStackServices If true, previously loaded stack services are retained.
+   *                                    This is to support back/forward navigation in the wizard
+   *                                    and should correspond to the saved state of the step after Download Mpacks.
+   * @return {object} a promise
+   */
+  finishRegisteringMpacks: function (keepStackServices) {
+    var dfd = $.Deferred();
+
+    this.getMpackStackVersions()
+    .fail(errors => {
+      this.addErrors(errors);
+      dfd.reject();
+    })
+    .always(data => {
+      data.items.forEach(versionDefinition => App.stackMapper.map(versionDefinition));
+      return this.clearStackServices(!keepStackServices);
+    })
+    .then(() => {
+      //get info about services from specific stack versions and save to StackService model
+      const selectedServices = this.get('content.selectedServices');
+      const servicePromises = selectedServices.map(service =>
+        this.loadMpackServiceInfo(service.stackName, service.stackVersion, service.name)
+          .then(this.loadMpackServiceInfoSuccess, this.loadMpackServiceInfoError)
+      );
+
+      return $.when(...servicePromises);
+    })
+    .then(() => {
+      const services = App.StackService.find();
+      this.set('content.services', services);
+
+      const clients = [];
+      services.forEach(service => {
+        const client = service.get('serviceComponents').filterProperty('isClient', true);
+        client.forEach(clientComponent => {
+          clients.pushObject({
+            component_name: clientComponent.get('componentName'),
+            display_name: clientComponent.get('displayName'),
+            isInstalled: false
+          });
+        });
+      });
+      this.set('content.clients', clients);
+      this.save('clients');
+
+      //TODO: mpacks - hard coding this for now. We need to get rid of the concept of "selected stack".
+      this.set('content.selectedStack', { name: "HDP", version: "3.0.0" });
+      this.save('selectedStack');
+
+      dfd.resolve();
+    });
+    
+    return dfd;
+  }
 });

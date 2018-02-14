@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
 /**
  * By Step 7, we have the following information stored in App.db and set on this
@@ -42,9 +43,11 @@ var App = require('app');
  * @property {?object[]} slaveComponentHosts
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, App.AddSecurityConfigs, App.KDCCredentialsControllerMixin, {
+App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, App.AddSecurityConfigs, App.KDCCredentialsControllerMixin, {
 
   name: 'wizardStep7Controller',
+
+  stepName: 'step7',
 
   /**
    * Contains all field properties that are viewed in this step
@@ -143,11 +146,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    if (!this.get('stepConfigs.length')) return true;
-    if (this.get('submitButtonClicked')) return true;
-    if (App.get('router.btnClickInProgress')) return true;
+    if (!this.get('stepConfigs.length')
+      || this.get('submitButtonClicked')
+      || App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+    ) return true;
     return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible");
-  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'App.router.btnClickInProgress'),
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   /**
    * List of selected to install service names
@@ -477,9 +482,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (!this.get('isConfigsLoaded')) {
       return;
     }
+
     console.time('wizard loadStep: ');
     this.clearStep();
-
     var self = this;
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
 
@@ -845,11 +850,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var localDB = {
       hosts: this.get('wizardController.content.hosts'),
       masterComponentHosts: this.get('wizardController.content.masterComponentHosts'),
-      slaveComponentHosts: this.get('wizardController.content.slaveComponentHosts'),
-      selectedStack: {}
+      slaveComponentHosts: this.get('wizardController.content.slaveComponentHosts')
     };
+
     var selectedRepoVersion,
         repoVersion;
+
     if (this.get('wizardController.name') === 'addServiceController') {
       repoVersion = App.RepositoryVersion.find().filter(function(i) {
         return i.get('stackVersionType') === App.get('currentStackName') &&
@@ -861,9 +867,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     } else {
       selectedRepoVersion = Em.getWithDefault(App.Stack.find().findProperty('isSelected', true) || {}, 'repositoryVersion', false);
     }
-    if (selectedRepoVersion) {
-      localDB.selectedStack = selectedRepoVersion;
-    }
+
     var configsByService = {}, dependencies = this.get('configDependencies');
 
     configs.forEach(function (_config) {

@@ -19,10 +19,13 @@
 var App = require('app');
 var lazyloading = require('utils/lazy_loading');
 var numberUtils = require('utils/number_utils');
+require('./wizardStep_controller');
 
-App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.CheckHostMixin, {
+App.WizardStep3Controller = App.WizardStepController.extend(App.ReloadPopupMixin, App.CheckHostMixin, {
 
   name: 'wizardStep3Controller',
+
+  stepName: 'step3',
 
   hosts: [],
 
@@ -74,6 +77,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
   isBackDisabled: function () {
     return (this.get('isRegistrationInProgress') || !this.get('isWarningsLoaded')) && !this.get('isBootstrapFailed') || App.get('router.btnClickInProgress');
   }.property('isRegistrationInProgress', 'isWarningsLoaded', 'isBootstrapFailed'),
+
+  isSaved: function () {
+    const wizardController = this.get('wizardController');
+    if (wizardController) {
+      return wizardController.getStepSavedState('step3');
+    }
+    return false;
+  }.property('wizardController.content.stepsSavedState'),
 
   /**
    * Controller is using in Add Host Wizard
@@ -305,6 +316,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
       if (!self.hosts.length) {
         self.set('isSubmitDisabled', true);
       }
+      self.get('wizardController').setStepUnsaved('step3');
     }, Em.I18n.t('installer.step3.hosts.remove.popup.body'));
   },
 
@@ -316,16 +328,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
   removeHost: function (hostInfo) {
     if (!this.get('isBackDisabled'))
       this.removeHosts([hostInfo]);
-  },
-
-  /**
-   * Remove selected hosts (click-handler)
-   * @return App.ModalPopup
-   * @method removeSelectedHosts
-   */
-  removeSelectedHosts: function () {
-    var selectedHosts = this.get('hosts').filterProperty('isChecked', true);
-    return this.removeHosts(selectedHosts);
   },
 
   /**

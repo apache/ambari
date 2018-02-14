@@ -308,6 +308,15 @@
 .dropdown .btn.dropdown-toggle[disabled] {
   opacity: 0.6;
 }
+.dropdown-menu > li > div {
+  display: block;
+  padding: 3px 20px;
+  clear: both;
+  font-weight: normal;
+  line-height: 1.42857143;
+  color: #333;
+  white-space: nowrap;
+}
 input.form-control {
   font-size: 14px;
   border-radius: 2px;
@@ -400,6 +409,10 @@ h2.table-title {
   font-size: initial;
   top: 4px;
   margin-bottom: 0;
+}
+.table .dropdown input[type="checkbox"] + label {
+  font-size: inherit;
+  top: unset;
 }
 .table thead > tr > th {
   border-bottom-color: #EEE;
@@ -592,6 +605,18 @@ h2.table-title {
   margin-bottom: -99999px;
   padding-bottom: 99999px;
 }
+
+.wizard .wizard-body .wizard-nav ol.nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: items;
+}
+.wizard .wizard-body .wizard-nav ol.nav li .step-index:before {
+  counter-increment: items;
+  content: counter(items);
+}
+
 .wizard .wizard-body .wizard-nav .nav li {
   padding: 0px 15px;
 }
@@ -646,7 +671,8 @@ h2.table-title {
   padding-left: 2px;
 }
 .wizard .wizard-body .wizard-nav .nav li.completed .step-marker .step-index {
-  display: none;
+  visibility: hidden;
+  position: absolute;
 }
 .wizard .wizard-body .wizard-nav .nav li.completed .step-marker:after {
   font-family: "Glyphicons Halflings";

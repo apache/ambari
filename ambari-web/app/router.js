@@ -43,6 +43,18 @@ App.WizardRoute = Em.Route.extend({
 
   gotoStep10: Em.Router.transitionTo('step10'),
 
+  gotoConfigureDownload: Em.Router.transitionTo('configureDownload'),
+  
+  gotoSelectMpacks: Em.Router.transitionTo('selectMpacks'),
+  
+  gotoCustomMpackRepos: Em.Router.transitionTo('customMpackRepos'),
+
+  gotoDownloadMpacks: Em.Router.transitionTo('downloadMpacks'),
+  
+  gotoCustomProductRepos: Em.Router.transitionTo('customProductRepos'),
+  
+  gotoVerifyProducts: Em.Router.transitionTo('verifyProducts'),
+
   isRoutable: function() {
     return typeof this.get('route') === 'string' && App.router.get('loggedIn');
   }.property('App.router.loggedIn')
@@ -204,7 +216,7 @@ App.Router = Em.Router.extend({
     } else {
       newStep = step;
     }
-    
+
     var previousStep = parseInt(this.getInstallerCurrentStep(), 10);
     this.set('isFwdNavigation', newStep >= previousStep);
   },

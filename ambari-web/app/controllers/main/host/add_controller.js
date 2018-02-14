@@ -223,7 +223,7 @@ App.AddHostController = App.WizardController.extend({
     var serviceComponents = App.StackServiceComponent.find();
     var services = this.get('content.services').filterProperty('isInstallable').filterProperty('isSelected');
     var clients = this.getClientsToInstall(services, serviceComponents);
-    this.setDBProperty('clientInfo', clients);
+    this.setDBProperty('clients', clients);
     this.set('content.clients', clients);
   },
 

@@ -19,10 +19,13 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 var fileUtils = require('utils/file_utils');
+require('./wizardStep_controller');
 
-App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
+App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
 
   name: 'wizardStep8Controller',
+
+  stepName: 'step8',
 
   /**
    * @type {boolean}
@@ -137,19 +140,29 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   configGroups: [],
 
-  /**
-   * List of selected but not installed services
-   * @type {Object[]}
-   */
   selectedServices: function () {
-    return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
-  }.property('content.services.@each.isSelected','content.services.@each.isInstalled').cacheable(),
+    const services = App.StackService.find().map(service => service);
+    return services;
+  }.property(),
 
-  /**
-   * List of installed services
-   * @type {Object[]}
-   */
-  installedServices: Em.computed.filterBy('content.services', 'isInstalled', true),
+  selectedMpacks: function() {
+    return this.get('content.selectedMpacks') || this.get('wizardController').getDBProperty('selectedMpacks');
+  }.property(),
+
+  downloadConfig: function() {
+    return this.get('content.downloadConfig') || this.get('wizardController').getDBProperty('downloadConfig');
+  }.property(),
+
+  getSelectedStack: function() {
+    const selectedStack = this.get('content.selectedStack');
+    const stack = this.get('wizardController').getStack(selectedStack.name, selectedStack.version);
+    return stack;    
+  },
+
+  installedServices: function() {
+    const services = App.StackService.find().filter(service => service.get('isInstalled') === true);
+    return services;
+  }.property(),
 
   /**
    * Current cluster name
@@ -301,7 +314,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }
     } else {
       // from install wizard
-      var selectedStack = App.Stack.find().findProperty('isSelected', true);
+      var downloadConfig = this.get('downloadConfig');
+      var selectedStack = this.getSelectedStack();
       var allRepos = [];
       if (selectedStack && selectedStack.get('operatingSystems')) {
         selectedStack.get('operatingSystems').forEach(function (os) {
@@ -319,7 +333,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         }, this);
       }
       allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-      this.get('clusterInfo').set('useRedhatSatellite', selectedStack.get('useRedhatSatellite'));
+      this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
       this.get('clusterInfo').set('repoInfo', allRepos);
     }
   },
@@ -689,14 +703,16 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    this.getExistingClusterNames().complete(function () {
-      var clusterNames = self.get('clusterNames');
-      if (self.get('isInstaller') && !App.get('testMode') && clusterNames.length) {
-        self.deleteClusters(clusterNames);
-      } else {
-        self.getExistingVersions();
-      }
-    });
+    // this.getExistingClusterNames().complete(function () {
+    //   var clusterNames = self.get('clusterNames');
+    //   if (self.get('isInstaller') && !App.get('testMode') && clusterNames.length) {
+    //     self.deleteClusters(clusterNames);
+    //   } else {
+    //     self.getExistingVersions();
+    //   }
+    // });
+
+    this.startDeploy();
   },
 
   /**
@@ -901,41 +917,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * To Start deploy process
-   * @method startDeploy
-   */
-  startDeploy: function () {
-    if (!this.get('isInstaller')) {
-      this._startDeploy();
-    } else {
-      var installerController = App.router.get('installerController');
-      var versionData = installerController.getSelectedRepoVersionData();
-      if (versionData) {
-        var self = this;
-        installerController.postVersionDefinitionFileStep8(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
-          if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
-            var selectedStack = App.Stack.find().findProperty('isSelected', true);
-            if (selectedStack) {
-              selectedStack.set('versionInfoId', versionInfo.id);
-            }
-            installerController.updateRepoOSInfo(versionInfo, selectedStack).done(function() {
-              self._startDeploy();
-            });
-          }
-        });
-      } else {
-        this._startDeploy();
-      }
-    }
-  },
-
-  /**
    * Start deploy process
    * @method startDeploy
    */
-  _startDeploy: function () {
+  startDeploy: function () {
     this.createCluster();
-    this.createServiceGroup();
+    this.createServiceGroups();
     this.createSelectedServices();
     if (!this.get('isAddHost')) {
       if (this.get('isAddService')) {
@@ -979,11 +966,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   createCluster: function () {
     if (!this.get('isInstaller')) return;
-    var stackVersion = this.get('content.installOptions.localRepo') ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
+    const selectedStack = this.getSelectedStack()
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion}})
+        data: JSON.stringify({ "Clusters": {"version": selectedStack.get('stackNameVersion')}})
       },
       success: 'createClusterSuccess'
     });
@@ -994,18 +981,45 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * Creates the servcegroup
+   * Creates one service group per mpack.
+   * Skip if no mpacks were selected.
    * Queued request
    * @method createServiceGroup
    */
-  createServiceGroup: function () {
+  createServiceGroups: function () {
     if (!this.get('isInstaller')) return;
-    this.addRequestToAjaxQueue({
-      name: 'wizard.step8.create_service_group',
-      data: {
-        data: JSON.stringify({ "ServiceGroupInfo": { "cluster_name": App.get('clusterName') || App.clusterStatus.get('clusterName'), "service_group_name": App.get('defaultServiceGroupName') }})
-      }
-    });
+    
+    var data = this.createServiceGroupsData();
+    if (data) {
+      this.addRequestToAjaxQueue({
+        name: 'wizard.step8.create_service_group',
+        data: {
+          data: JSON.stringify(data)
+        }
+      });
+    } 
+  },
+
+  /**
+   * Format data for <code>createServiceGroups</code> request
+   * @returns {Object[]}
+   * @method createServiceGroupsData
+   */
+  createServiceGroupsData: function () {
+    const mpacks = this.get('selectedMpacks');
+    
+    if (mpacks) {
+      const serviceGroups = mpacks.map(mpack => ({
+          "ServiceGroupInfo": {
+            "service_group_name": `${mpack.name}-${mpack.version}`,
+          }
+        })
+      );
+
+      return serviceGroups;
+    }
+
+    return null;
   },
 
   /**
@@ -1031,13 +1045,19 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createSelectedServicesData
    */
   createSelectedServicesData: function () {
-    var selectedStack;
-    if (this.get('isInstaller')) {
-      selectedStack = App.Stack.find().findProperty('isSelected', true);
-    }
-    return this.get('selectedServices').map(service => selectedStack ?
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), }});
+    const services = this.get('selectedServices');
+    const data = services.map(service => ({
+        "ServiceInfo": {
+          "service_name": service.get('serviceName'),
+          "service_type": service.get('serviceName'),
+          //TODO: mpacks - needs to be revisited when we are no longer hard coding service groups to be named 
+          //               for mpacks and when the concept of a "selected stack" is no longer a thing
+          "service_group_name": `${service.get('stackName')}-${service.get('stackVersion')}`,
+          "desired_stack": `${service.get('stackName')}-${service.get('stackVersion')}`,
+        }
+      })
+    );
+    return data;
   },
 
   /**
@@ -2021,7 +2041,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }, this);
     }, this);
 
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
+    var selectedStack = this.getSelectedStack();
     blueprint = {
         'configurations': totalConf,
         'host_groups': host_groups.filter(function (item) { return item.cardinality > 0; }),

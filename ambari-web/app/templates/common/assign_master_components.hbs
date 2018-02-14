@@ -19,11 +19,15 @@
 {{#if view.showTitle}}
   <h4 class="step-title">{{view.title}}</h4>
 {{/if}}
-  <p class="step-description">
-    {{{view.alertMessage}}}
-  </p>
+  {{#if isSaved}}
+  <div class="alert alert-warning" role="alert"><strong>{{t common.warning}}:</strong> {{t installer.warning.changes}}</div>
+  {{/if}}
+
   <div class="panel panel-default">
     <div class="panel-body">
+      <p class="step-description">
+        {{{view.alertMessage}}}
+      </p>
       {{#each msg in controller.generalErrorMessages}}
         <div class="alert alert-danger">{{msg}}</div>
       {{/each}}
