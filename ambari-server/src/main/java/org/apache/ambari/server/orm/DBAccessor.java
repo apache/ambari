@@ -23,6 +23,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.sessions.DatabaseSession;
@@ -852,6 +854,33 @@ public interface DBAccessor {
 
     public void setDbType(FieldTypeDefinition dbType) {
       this.dbType = dbType;
+    }
+
+    @Override
+    public int hashCode() {
+      return new HashCodeBuilder(17, 37)
+          .append(name)
+          .append(type)
+          .append(length)
+          .append(isNullable)
+          .append(defaultValue)
+          .append(dbType)
+          .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      DBColumnInfo that = (DBColumnInfo) o;
+      return new EqualsBuilder()
+          .append(name, that.name)
+          .append(type, that.type)
+          .append(length, that.length)
+          .append(isNullable, that.isNullable)
+          .append(defaultValue, that.defaultValue)
+          .append(dbType, that.dbType)
+          .isEquals();
     }
   }
 

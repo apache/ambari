@@ -46,7 +46,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -237,8 +236,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -299,8 +296,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
     Predicate predicate = new PredicateBuilder()
@@ -379,8 +374,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
     Predicate clusterPredicate = new PredicateBuilder()
@@ -497,8 +490,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
     Predicate clusterPredicate = new PredicateBuilder()
@@ -620,8 +611,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
     Predicate predicate1 = new PredicateBuilder()
@@ -688,8 +677,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
 
@@ -729,8 +716,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
     provider.createResources(request);
@@ -767,8 +752,6 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ClusterKerberosDescriptor,
-        PropertyHelper.getPropertyIds(Resource.Type.ClusterKerberosDescriptor),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ClusterKerberosDescriptor),
         managementController);
 
     Predicate predicate1 = new PredicateBuilder()

@@ -57,8 +57,8 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.OsSpecific;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -128,15 +128,6 @@ public interface AmbariManagementController {
    */
   Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
                       String versionTag, Map<String, Map<String, String>> propertiesAttributes, Long serviceId);
-
-  /**
-   * Creates users.
-   *
-   * @param requests the request objects which define the user.
-   *
-   * @throws AmbariException when the user cannot be created.
-   */
-  void createUsers(Set<UserRequest> requests) throws AmbariException;
 
   /**
    * Creates groups.
@@ -223,18 +214,6 @@ public interface AmbariManagementController {
       throws AmbariException;
 
   /**
-   * Gets the users identified by the given request objects.
-   *
-   * @param requests the request objects
-   *
-   * @return a set of user responses
-   *
-   * @throws AmbariException if the users could not be read
-   */
-  Set<UserResponse> getUsers(Set<UserRequest> requests)
-      throws AmbariException, AuthorizationException;
-
-  /**
    * Gets the user groups identified by the given request objects.
    *
    * @param requests the request objects
@@ -280,15 +259,6 @@ public interface AmbariManagementController {
       throws AmbariException, AuthorizationException;
 
   /**
-   * Updates the users specified.
-   *
-   * @param requests the users to modify
-   *
-   * @throws AmbariException if the resources cannot be updated
-   */
-  void updateUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException;
-
-  /**
    * Updates the groups specified.
    *
    * @param requests the groups to modify
@@ -329,15 +299,6 @@ public interface AmbariManagementController {
    */
   DeleteStatusMetaData deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
-
-  /**
-   * Deletes the users specified.
-   *
-   * @param requests the users to delete
-   *
-   * @throws AmbariException if the resources cannot be deleted
-   */
-  void deleteUsers(Set<UserRequest> requests) throws AmbariException;
 
   /**
    * Deletes the user groups specified.
@@ -981,12 +942,12 @@ public interface AmbariManagementController {
   void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse);
 
   /**
-   * Fetch the packlet info for a given mpack.
+   * Fetch the module info for a given mpack.
    *
    * @param mpackId
-   * @return List of packlets
+   * @return List of modules
    */
-  List<Packlet> getPacklets(Long mpackId);
+  List<Module> getModules(Long mpackId);
 
   /**
    * Get the software registries identified by the given request objects.
@@ -1031,5 +992,18 @@ public interface AmbariManagementController {
    * @throws AuthorizationException
    */
   Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException;
+
+  /***
+   * Fetch all mpacks
+   * @return
+   */
+  Set<MpackResponse> getMpacks();
+
+  /***
+   * Fetch an mpack based on id
+   * @param mpackId
+   * @return
+   */
+  MpackResponse getMpack(Long mpackId);
 }
 

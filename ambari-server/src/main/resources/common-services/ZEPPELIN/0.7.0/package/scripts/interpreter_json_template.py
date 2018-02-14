@@ -128,6 +128,68 @@ template = '''
         "isUserImpersonate": false
       }
     },
+    "2C4U48MY3_spark2": {
+      "id": "2C4U48MY3_spark2",
+      "name": "spark2",
+      "group": "spark",
+      "properties": {
+        "spark.executor.memory": "",
+        "args": "",
+        "zeppelin.spark.printREPLOutput": "true",
+        "spark.cores.max": "",
+        "zeppelin.dep.additionalRemoteRepository": "spark-packages,http://dl.bintray.com/spark-packages/maven,false;",
+        "zeppelin.spark.importImplicit": "true",
+        "zeppelin.spark.sql.stacktrace": "false",
+        "zeppelin.spark.concurrentSQL": "false",
+        "zeppelin.spark.useHiveContext": "true",
+        "zeppelin.pyspark.python": "python",
+        "zeppelin.dep.localrepo": "local-repo",
+        "zeppelin.R.knitr": "true",
+        "zeppelin.spark.maxResult": "1000",
+        "master": "local[*]",
+        "spark.app.name": "Zeppelin",
+        "zeppelin.R.image.width": "100%",
+        "zeppelin.R.render.options": "out.format \u003d \u0027html\u0027, comment \u003d NA, echo \u003d FALSE, results \u003d \u0027asis\u0027, message \u003d F, warning \u003d F",
+        "zeppelin.R.cmd": "R"
+      },
+      "status": "READY",
+      "interpreterGroup": [
+        {
+          "name": "spark",
+          "class": "org.apache.zeppelin.spark.SparkInterpreter",
+          "defaultInterpreter": true
+        },
+        {
+          "name": "sql",
+          "class": "org.apache.zeppelin.spark.SparkSqlInterpreter",
+          "defaultInterpreter": false
+        },
+        {
+          "name": "dep",
+          "class": "org.apache.zeppelin.spark.DepInterpreter",
+          "defaultInterpreter": false
+        },
+        {
+          "name": "pyspark",
+          "class": "org.apache.zeppelin.spark.PySparkInterpreter",
+          "defaultInterpreter": false
+        },
+        {
+          "name": "r",
+          "class": "org.apache.zeppelin.spark.SparkRInterpreter",
+          "defaultInterpreter": false
+        }
+      ],
+      "dependencies": [],
+      "option": {
+        "remote": true,
+        "port": -1,
+        "perNoteSession": false,
+        "perNoteProcess": false,
+        "isExistingProcess": false,
+        "setPermission": false
+      }
+    },
     "2CK8A9MEG": {
       "id": "2CK8A9MEG",
       "name": "jdbc",
@@ -259,12 +321,102 @@ template = '''
         "isUserImpersonate": false
       }
     },
+    "2C8A4SZ9T_livy2": {
+      "id": "2C8A4SZ9T_livy2",
+      "status": "READY",
+      "group": "livy",
+      "name": "livy2",
+      "properties": {
+        "zeppelin.livy.keytab": "",
+        "zeppelin.livy.spark.sql.maxResult": "1000",
+        "livy.spark.executor.instances": "",
+        "livy.spark.executor.memory": "",
+        "livy.spark.dynamicAllocation.enabled": "",
+        "livy.spark.dynamicAllocation.cachedExecutorIdleTimeout": "",
+        "livy.spark.dynamicAllocation.initialExecutors": "",
+        "zeppelin.livy.session.create_timeout": "120",
+        "livy.spark.driver.memory": "",
+        "zeppelin.livy.displayAppInfo": "true",
+        "livy.spark.jars.packages": "",
+        "livy.spark.dynamicAllocation.maxExecutors": "",
+        "zeppelin.livy.concurrentSQL": "false",
+        "zeppelin.livy.principal": "",
+        "livy.spark.executor.cores": "",
+        "zeppelin.livy.url": "http://localhost:8998",
+        "zeppelin.livy.pull_status.interval.millis": "1000",
+        "livy.spark.driver.cores": "",
+        "livy.spark.dynamicAllocation.minExecutors": ""
+      },
+      "interpreterGroup": [
+        {
+          "class": "org.apache.zeppelin.livy.LivySparkInterpreter",
+          "editor": {
+            "editOnDblClick": false,
+            "language": "scala"
+          },
+          "name": "spark",
+          "defaultInterpreter": false
+        },
+        {
+          "class": "org.apache.zeppelin.livy.LivySparkSQLInterpreter",
+          "editor": {
+            "editOnDblClick": false,
+            "language": "sql"
+          },
+          "name": "sql",
+          "defaultInterpreter": false
+        },
+        {
+          "class": "org.apache.zeppelin.livy.LivyPySparkInterpreter",
+          "editor": {
+            "editOnDblClick": false,
+            "language": "python"
+          },
+          "name": "pyspark",
+          "defaultInterpreter": false
+        },
+        {
+          "class": "org.apache.zeppelin.livy.LivyPySpark3Interpreter",
+          "editor": {
+            "editOnDblClick": false,
+            "language": "python"
+          },
+          "name": "pyspark3",
+          "defaultInterpreter": false
+        },
+        {
+          "class": "org.apache.zeppelin.livy.LivySparkRInterpreter",
+          "editor": {
+            "editOnDblClick": false,
+            "language": "r"
+          },
+          "name": "sparkr",
+          "defaultInterpreter": false
+        },
+        {
+          "name": "shared",
+          "class": "org.apache.zeppelin.livy.LivySharedInterpreter",
+          "defaultInterpreter": false
+        }
+      ],
+      "dependencies": [],
+      "option": {
+        "setPermission": false,
+        "remote": true,
+        "users": [],
+        "isExistingProcess": false,
+        "perUser": "scoped",
+        "isUserImpersonate": false,
+        "perNote": "shared",
+        "port": -1
+      }
+    },
     "2CKAY1A8Y": {
       "id": "2CKAY1A8Y",
       "name": "md",
       "group": "md",
       "properties": {
-        "markdown.parser.type": "pegdown"
+        "markdown.parser.type": "markdown4j"
       },
       "status": "READY",
       "interpreterGroup": [

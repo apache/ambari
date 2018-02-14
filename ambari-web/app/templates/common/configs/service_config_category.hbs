@@ -31,86 +31,66 @@
   <div class="panel-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}} {{QAAttr "panel-body"}}>
   <div class="service-config-section">
     <form class="form-horizontal" autocomplete="off">
-      {{#each view.categoryConfigs}}
-        {{#unless widget}} {{! configs with widgets should be shown only on the EnhancedConfigs tabs }}
-          <div {{bindAttr class=":entry-row :form-group isHiddenByFilter:hide isOverridden:overridden-property hasCompareDiffs:overridden-property"}} {{QAAttr "property-row"}}>
-            {{#if showLabel}}
-              {{#unless rightSideLabel}}
-                <span {{bindAttr class="errorMessage:has-error: :form-group :control-label-span :col-md-3"}}>
+      {{#each configData in view.categoryConfigs}}
+        {{#unless configData.widget}} {{! configs with widgets should be shown only on the EnhancedConfigs tabs }}
+          {{#if configData.isComparison}}
+            {{template "templates/common/configs/configs_comparison_row"}}
+          {{else}}
+            {{#unless controller.isCompareMode}}
+              <div {{bindAttr class=":entry-row :form-group configData.isHiddenByFilter:hide configData.isOverridden:overridden-property configData.hasCompareDiffs:overridden-property"}} {{QAAttr "property-row"}}>
+                {{#if configData.showLabel}}
+                  {{#unless configData.rightSideLabel}}
+                    <span {{bindAttr class="configData.errorMessage:has-error: :form-group :control-label-span :col-md-3"}}>
                   <label class="control-label" {{QAAttr "control-label"}}>
-                    {{formatWordBreak displayName}}
-                    {{#if isSecureConfig}}
-                      <a href="javascript:void(null);"><i class="glyphicon glyphicon-lock" rel="tooltip" data-toggle="tooltip"
-                                                          title="security knob"></i></a>
+                    {{formatWordBreak configData.displayName}}
+                    {{#if configData.isSecureConfig}}
+                      <a href="javascript:void(null);">
+                        <i class="glyphicon glyphicon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i>
+                      </a>
                     {{/if}}
                   </label>
                 </span>
-              {{else}}
-                <span class="control-group control-label-span col-md-3"> </span>
-              {{/unless}}
-            {{/if}}
-            <div class="col-md-9">
-              {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-              {{#if this.isOriginalSCP}}
-                <div {{bindAttr class="errorMessage:has-error: warnMessage:has-warning: :form-group"}} {{QAAttr "property-form-group"}}>
-                  {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
-                  {{#if rightSideLabel}}
-                    <span {{bindAttr class="isEditable::muted"}}>{{formatWordBreak displayName}}</span>
+                  {{else}}
+                    <span class="control-group control-label-span col-md-3"> </span>
+                  {{/unless}}
+                {{/if}}
+                {{#if configData.isOriginalSCP}}
+                  {{#if configData.rightSideLabel}}
+                    <span {{bindAttr class="configData.isEditable::muted :col-md-3 :clear-left :form-group :control-label-span"}}>{{formatWordBreak configData.displayName}}</span>
                   {{/if}}
-                  {{#if hintMessage}}
-                    <a class="icon-question-sign glyphicon glyphicon-blue" href="#"
-                       data-toggle="tooltip" {{bindAttr data-original-title="hintMessage"}}></a>
-                  {{/if}}
-                  {{#if this.isComparison}}
-                    {{#if controller.selectedConfigGroup.isDefault}}
-                      <span
-                          class="label label-info config-controls">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-                      {{#if controller.isCurrentSelected}}
-                        <span class="label label-success config-controls">{{t common.current}}</span>
+                {{/if}}
+                <div class="col-md-9">
+                  {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
+                  {{#if configData.isOriginalSCP}}
+                    <div {{bindAttr class="configData.errorMessage:has-error: configData.warnMessage:has-warning: :form-group"}} {{QAAttr "property-form-group"}}>
+                      {{view configData.viewClass serviceConfigBinding="configData" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                      {{#if configData.hintMessage}}
+                        <a class="icon-question-sign glyphicon glyphicon-blue" href="#"
+                           data-toggle="tooltip" {{bindAttr data-original-title="configData.hintMessage"}}></a>
                       {{/if}}
-                    {{else}}
-                      <span class="label label-info config-controls">{{t common.default}}
-                        &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
-                    {{/if}}
-                  {{/if}}
-                  {{view App.ControlsView serviceConfigPropertyBinding="this"}}
-                  {{#if errorMessage}}
-                    <span class="help-block validation-block" {{QAAttr "validation-block"}}>{{errorMessage}}</span>
-                  {{/if}}
-                  {{#if warnMessage}}
-                    <span class="has-warning">
-                      <span class="help-block validation-block" {{QAAttr "validation-block"}}>{{warnMessage}}</span>
+                      {{view App.ControlsView serviceConfigPropertyBinding="configData"}}
+                      {{#if configData.errorMessage}}
+                        <span class="help-block validation-block" {{QAAttr "validation-block"}}>{{configData.errorMessage}}</span>
+                      {{/if}}
+                      {{#if configData.warnMessage}}
+                        <span class="has-warning">
+                      <span class="help-block validation-block" {{QAAttr "validation-block"}}>{{configData.warnMessage}}</span>
                     </span>
+                      {{/if}}
+                    </div>
+                  {{/if}}
+                  {{#if configData.isOverridden}}
+                    {{view App.ServiceConfigView.SCPOverriddenRowsView
+                           serviceConfigPropertyBinding="configData"
+                           isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
+                    }}
                   {{/if}}
                 </div>
+              </div>
+              {{#if configData.additionalView}}
+                {{view configData.additionalView}}
               {{/if}}
-              {{#if this.isComparison}}
-                {{#unless this.isOriginalSCP}}
-                  {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
-                  {{#if controller.selectedConfigGroup.isDefault}}
-                    <span
-                      class="label label-info config-controls">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-                    {{#if controller.isCurrentSelected}}
-                      <span class="label label-success config-controls">{{t common.current}}</span>
-                    {{/if}}
-                  {{else}}
-                    <span class="label label-info config-controls">{{t common.default}}
-                      &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
-                  {{/if}}
-                {{/unless}}
-                {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
-              {{else}}
-                {{#if this.isOverridden}}
-                  {{view App.ServiceConfigView.SCPOverriddenRowsView
-                  serviceConfigPropertyBinding="this"
-                  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-                  }}
-                {{/if}}
-              {{/if}}
-            </div>
-          </div>
-          {{#if this.additionalView}}
-            {{view additionalView}}
+            {{/unless}}
           {{/if}}
         {{/unless}}
       {{/each}}

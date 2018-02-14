@@ -1,0 +1,86 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<div>{{'logIndexFilter.caption' | translate}}</div>
+<h5>{{'logIndexFilter.selectCluster' | translate}}</h5>
+<dropdown-button [options]="clustersListItems | async" (selectItem)="setActiveCluster($event)"
+                 label="{{'logIndexFilter.select' | translate}}" buttonClass="btn-default"></dropdown-button>
+<table *ngIf="activeClusterName" class="table table-hover">
+  <thead>
+    <tr>
+      <th class="component-column">{{'filter.components' | translate}}</th>
+      <th *ngFor="let column of columns" class="checkbox-column">
+        <input type="checkbox" attr.id="{{column.name}}"
+               [attr.checked]="isAllComponentsCheckedForLevel(column.name) ? 'checked' : null"
+               (change)="processAllComponentsForLevel(column.name, $event.target.checked)">
+        <label attr.for="{{column.name}}">
+          <graph-legend-item label="{{column.label | translate}}" color="{{column.color}}"></graph-legend-item>
+        </label>
+      </th>
+      <th class="override-column">{{'logIndexFilter.override' | translate}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let component of activeClusterConfigs">
+      <tr>
+        <td class="component-column">
+          <input type="checkbox" attr.id="{{component.name}}"
+                 [attr.checked]="isAllLevelsCheckedForComponent(component.name) ? 'checked' : null"
+                 (change)="processAllLevelsForComponent(component.name, $event.target.checked)">
+          <label attr.for="{{component.name}}">{{component.label}}</label>
+        </td>
+        <td *ngFor="let levelName of levelNames" class="checkbox-column">
+          <input type="checkbox" attr.id="{{getCheckBoxId(component.name, levelName)}}"
+                 [(ngModel)]="component[levelName].defaults" (change)="updateValue()">
+          <label attr.for="{{getCheckBoxId(component.name, levelName)}}">&nbsp;</label>
+        </td>
+        <td class="override-column">
+          <span class="overrides-toggle">{{'logIndexFilter.addHosts' | translate}}</span>
+        </td>
+      </tr>
+      <tr> <!--overrides row -->
+        <td class="component-column">
+          <input type="checkbox" attr.id="{{component.name}}_overrides"
+                 [attr.checked]="isAllLevelsCheckedForComponent(component.name, true) ? 'checked' : null"
+                 (change)="processAllLevelsForComponent(component.name, $event.target.checked, true)">
+          <label attr.for="{{component.name}}_overrides">&nbsp;</label>
+        </td>
+        <td *ngFor="let levelName of levelNames" class="checkbox-column">
+          <input type="checkbox" attr.id="{{getCheckBoxId(component.name, levelName, true)}}"
+                 [(ngModel)]="component[levelName].overrides" (change)="updateValue()">
+          <label attr.for="{{getCheckBoxId(component.name, levelName, true)}}">&nbsp;</label>
+        </td>
+        <td class="override-column">
+          <div class="col-md-12 row">
+            <div class="col-md-6">
+              <div class="text-uppercase">{{'logIndexFilter.hostname' | translate}}</div>
+              <input type="text" class="form-control" [(ngModel)]="component.hosts" (change)="updateValue()">
+              <!-- TODO implement typeahead similar to search box
+                   (some functionality and appearance most likely will be shared) -->
+              <!-- <input type="text" class="form-control" [(ngModel)]="component.hosts" (change)="updateValue()"
+                     [typeahead]="hosts | async" typeaheadOptionField="name"> -->
+            </div>
+            <div class=" col-md-6">
+              <div class="text-uppercase">{{'logIndexFilter.expiryDate' | translate}}</div>
+              <date-picker [time]="component.expiryTime" (timeChange)="setExpiryTime($event, component)"></date-picker>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </ng-container>
+  </tbody>
+</table>

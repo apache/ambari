@@ -239,11 +239,13 @@ def get_nameservice(hdfs_site):
   """
   name_service = hdfs_site.get('dfs.internal.nameservices', None)
   if not name_service:
-    import re
     name_service = hdfs_site.get('dfs.nameservices', None)
-    if name_service:
-      for ns in name_service.split(","):
-        if 'dfs.namenode.shared.edits.dir' in hdfs_site and re.match(r'.*%s$' % ns, hdfs_site['dfs.namenode.shared.edits.dir']): # better would be core_site['fs.defaultFS'] but it's not available
-          return ns
-      return name_service.split(",")[0] # default to return the first nameservice
+
+  if name_service and ',' in name_service:
+    import re
+    for ns in name_service.split(","):
+      if 'dfs.namenode.shared.edits.dir' in hdfs_site and re.match(r'.*%s$' % ns, hdfs_site['dfs.namenode.shared.edits.dir']): # better would be core_site['fs.defaultFS'] but it's not available
+        return ns
+    return name_service.split(",")[0] # default to return the first nameservice
+
   return name_service

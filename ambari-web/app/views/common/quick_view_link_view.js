@@ -206,11 +206,8 @@ App.QuickLinksView = Em.View.extend({
       if (!Em.isEmpty(links)) {
         links.forEach(function (link) {
           if (!link.remove) {
-            var portConfig = Em.get(link, 'port');
-            var portConfigSiteProp = Em.get(portConfig, 'site');
-            if (!sites.contains(portConfigSiteProp)) {
-              sites.push(portConfigSiteProp);
-            }
+            this.addSite(link, 'host', sites);
+            this.addSite(link, 'port', sites);
           }
         }, this);
         this.set('requiredSiteNames', this.get('requiredSiteNames').pushObjects(sites).uniq());
@@ -220,6 +217,16 @@ App.QuickLinksView = Em.View.extend({
       this.set('showNoLinks', true);
 
     }
+  },
+
+  addSite: function(link, linkPropertyName, sites) {
+      var config = Em.get(link, linkPropertyName);
+      if (config) {
+        var siteName = Em.get(config, 'site');
+        if (!sites.contains(siteName)) {
+          sites.push(siteName);
+        }
+      }
   },
 
   /**
@@ -267,8 +274,8 @@ App.QuickLinksView = Em.View.extend({
     });
     // no need to set quicklinks if
     // 1)current service does not have quick links configured
-    // 2)No host component present for the configured quicklinks
-    if(hasQuickLinks && hasHosts) {
+    // 2)No host component present for the configured quicklinks and has no overridden hosts
+    if(hasQuickLinks && (hasHosts || this.hasOverriddenHost())) {
       this.set('showQuickLinks', true);
     } else {
       this.set('showNoLinks', true);
@@ -276,13 +283,18 @@ App.QuickLinksView = Em.View.extend({
 
     var isMultipleComponentsInLinks = componentNames.uniq().length > 1;
 
-    if (hosts.length === 0) {
+    if (hosts.length === 0 && !this.hasOverriddenHost()) {
       this.setEmptyLinks();
-    } else if (hosts.length === 1 || isMultipleComponentsInLinks) {
+    } else if (hosts.length === 1 || isMultipleComponentsInLinks || this.hasOverriddenHost()) {
       this.setSingleHostLinks(hosts, response);
     } else {
       this.setMultipleHostLinks(hosts);
     }
+  },
+
+  hasOverriddenHost: function() {
+    var links = Em.get(this.getQuickLinksConfiguration(), 'links');
+    return links && links.some(function (each) { return each.host; });
   },
 
   /**
@@ -424,10 +436,8 @@ App.QuickLinksView = Em.View.extend({
 
       var links = Em.get(quickLinksConfig, 'links');
       links.forEach(function (link) {
-        var componentName = link.component_name;
-        var hostNameForComponent = hosts.findProperty('componentName',componentName);
-        if (hostNameForComponent) {
-          var publicHostName = hostNameForComponent.publicHostName;
+        var publicHostName = this.publicHostName(link, hosts, protocol);
+        if (publicHostName) {
           if (link.protocol) {
             protocol = this.setProtocol(configProperties, link.protocol);
           }
@@ -443,6 +453,30 @@ App.QuickLinksView = Em.View.extend({
     else {
       this.set('quickLinks', []);
       this.set('isLoaded', false);
+    }
+  },
+
+  publicHostName: function(link, hosts, protocol) {
+    if (link.host) { // if quicklink overrides hostcomponent host name, get host from config
+      var configProperties = this.get('configProperties');
+      var hostProperty = Em.get(link.host, protocol + '_property');
+      var site = configProperties.findProperty('type', Em.get(link.host, 'site'));
+      return site && site.properties ? this.parseHostFromUri(site.properties[hostProperty]) : null;
+    } else {
+      var hostNameForComponent = hosts.findProperty('componentName', link.component_name);
+      return hostNameForComponent ? hostNameForComponent.publicHostName : null;
+    }
+  },
+
+  /**
+   * @param {string} uri
+   */
+  parseHostFromUri: function(uri) {
+    if (uri) {
+      var match = uri.match(/:\/\/([^/:]+)/i);
+      return match != null && match.length == 2 ? match[1] : uri;
+    } else {
+      return null;
     }
   },
 
@@ -786,7 +820,9 @@ App.QuickLinksView = Em.View.extend({
    * @method setPort
    */
   setPort: function (portConfigs, protocol, configProperties) {
-
+    if (!portConfigs) {
+      return '';
+    }
     var defaultPort = Em.get(portConfigs, protocol + '_default_port');
     var portProperty = Em.get(portConfigs, protocol + '_property');
     var site = configProperties.findProperty('type', Em.get(portConfigs, 'site'));

@@ -19,7 +19,9 @@
 package org.apache.ambari.server.orm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.containsString;
 
 import java.io.ByteArrayInputStream;
@@ -754,5 +756,33 @@ public class DBAccessorImplTest {
       targetTableName, targetColumn, "id", "initial");
 
     // should not result in exception due to unknown column in source table
+  }
+
+  @Test
+  public void testDbColumnInfoEqualsAndHash() {
+    DBColumnInfo column1 = new DBColumnInfo("col", String.class, null, null, false);
+    DBColumnInfo equalsColumn1 = new DBColumnInfo("col", String.class, null, null, false);
+    DBColumnInfo notEqualsColumn1Name = new DBColumnInfo("col1", String.class, null, null, false);
+    DBColumnInfo notEqualsColumn1Type = new DBColumnInfo("col", Integer.class, null, null, false);
+    DBColumnInfo notEqualsColumn1Length = new DBColumnInfo("col", String.class, 10, null, false);
+    DBColumnInfo notEqualsColumn1DefaultValue = new DBColumnInfo("col", String.class, null, "default", false);
+    DBColumnInfo notEqualsColumn1DefaultValueEmptyString = new DBColumnInfo("col", String.class, null, "", false);
+    DBColumnInfo notEqualsColumn1Nullable = new DBColumnInfo("col", String.class, null, null, true);
+
+    assertTrue(column1.hashCode() == equalsColumn1.hashCode());
+    assertFalse(column1.hashCode() == notEqualsColumn1Name.hashCode());
+    assertFalse(column1.hashCode() == notEqualsColumn1Type.hashCode());
+    assertFalse(column1.hashCode() == notEqualsColumn1Length.hashCode());
+    assertFalse(column1.hashCode() == notEqualsColumn1DefaultValue.hashCode());
+    assertTrue(column1.hashCode() == notEqualsColumn1DefaultValueEmptyString.hashCode()); // null and "" yield the same hashcode
+    assertFalse(column1.hashCode() == notEqualsColumn1Nullable.hashCode());
+
+    assertTrue(column1.equals(equalsColumn1));
+    assertFalse(column1.equals(notEqualsColumn1Name));
+    assertFalse(column1.equals(notEqualsColumn1Type));
+    assertFalse(column1.equals(notEqualsColumn1Length));
+    assertFalse(column1.equals(notEqualsColumn1DefaultValue));
+    assertFalse(column1.equals(notEqualsColumn1DefaultValueEmptyString));
+    assertFalse(column1.equals(notEqualsColumn1Nullable));
   }
 }

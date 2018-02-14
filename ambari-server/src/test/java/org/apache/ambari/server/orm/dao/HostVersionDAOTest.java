@@ -247,6 +247,18 @@ public class HostVersionDAOTest {
   }
 
   /**
+   * Test the {@link HostVersionDAO#findByCluster(String)} method.
+   */
+  @Test
+  public void testFindByCluster() {
+    Assert.assertEquals(3, hostVersionDAO.findByCluster("test_cluster1").size());
+
+    addMoreVersions();
+
+    Assert.assertEquals(9, hostVersionDAO.findByCluster("test_cluster1").size());
+  }
+
+  /**
    * Test the {@link HostVersionDAO#findByClusterHostAndState(String, String, org.apache.ambari.server.state.RepositoryVersionState)} method.
    */
   @Test
@@ -286,6 +298,7 @@ public class HostVersionDAOTest {
         helper.getOrCreateRepositoryVersion(HDP_22_STACK, repoVersion_2200), RepositoryVersionState.INSTALLED);
     hostVersionEntity3.setId(3L);
 
+    hostVersionEntity1.equals(hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, repoVersion_2200, "test_host1"));
     Assert.assertEquals(hostVersionEntity1, hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, repoVersion_2200, "test_host1"));
     Assert.assertEquals(hostVersionEntity2, hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, repoVersion_2200, "test_host2"));
     Assert.assertEquals(hostVersionEntity3, hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, repoVersion_2200, "test_host3"));

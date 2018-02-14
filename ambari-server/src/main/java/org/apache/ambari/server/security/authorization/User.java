@@ -25,8 +25,8 @@ import java.util.List;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.springframework.security.core.GrantedAuthority;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -37,32 +37,39 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @ApiModel
 public class User {
-  final int userId;
-  final String userName;
-  final boolean ldapUser;
-  final UserType userType;
-  final Date createTime;
-  final boolean active;
-  final Collection<String> groups = new ArrayList<>();
-  boolean admin = false;
-  final List<GrantedAuthority> authorities = new ArrayList<>();
+  final private int userId;
+  final private String userName;
+  final private Date createTime;
+  final private boolean active;
+  final private Collection<String> groups;
+  final private Collection<AuthenticationMethod> authenticationMethods;
+  final private boolean admin;
 
   public User(UserEntity userEntity) {
     userId = userEntity.getUserId();
     userName = userEntity.getUserName();
     createTime = userEntity.getCreateTime();
-    userType = userEntity.getUserType();
-    ldapUser = userEntity.getLdapUser();
     active = userEntity.getActive();
+
+    groups = new ArrayList<>();
     for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
       groups.add(memberEntity.getGroup().getGroupName());
     }
-    for (PrivilegeEntity privilegeEntity: userEntity.getPrincipal().getPrivileges()) {
+
+    authenticationMethods = new ArrayList<>();
+    List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+    for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+      authenticationMethods.add(new AuthenticationMethod(authenticationEntity.getAuthenticationType(), authenticationEntity.getAuthenticationKey()));
+    }
+
+    boolean admin = false;
+    for (PrivilegeEntity privilegeEntity : userEntity.getPrincipal().getPrivileges()) {
       if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
         admin = true;
         break;
       }
     }
+    this.admin = admin;
   }
 
   @ApiModelProperty(hidden = true)
@@ -73,16 +80,6 @@ public class User {
   @ApiModelProperty(name = "Users/user_name",required = true, access = "public", notes = "username containing only lowercase letters")
   public String getUserName() {
     return userName;
-  }
-
-  @ApiModelProperty(name = "Users/ldap_user")
-  public boolean isLdapUser() {
-    return ldapUser;
-  }
-
-  @ApiModelProperty(name = "Users/user_type")
-  public UserType getUserType() {
-    return userType;
   }
 
   @ApiModelProperty(hidden = true)
@@ -105,8 +102,24 @@ public class User {
     return groups;
   }
 
+  @ApiModelProperty(name = "Users/authentication_methods")
+  public Collection<AuthenticationMethod> getAuthenticationMethods() {
+    return authenticationMethods;
+  }
+
+  @ApiModelProperty(name = "Users/ldap_user")
+  public boolean isLdapUser() {
+    for (AuthenticationMethod authenticationMethod : authenticationMethods) {
+      if (authenticationMethod.getAuthenticationType() == UserAuthenticationType.LDAP) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public String toString() {
-    return "[" + getUserType() + "]" + userName;
+    return userName;
   }
+
 }

@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.infra.manager;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.ambari.infra.model.ExecutionContextResponse;
 import org.apache.ambari.infra.model.JobDetailsResponse;
@@ -36,9 +35,13 @@ import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.service.NoSuchStepExecutionException;
 import org.springframework.batch.admin.web.JobInfo;
 import org.springframework.batch.admin.web.StepExecutionProgress;
-import org.springframework.batch.core.*;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
-import org.springframework.batch.core.launch.JobInstanceAlreadyExistsException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
@@ -51,16 +54,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 
 @Named
-public class JobManager {
+public class JobManager implements Jobs {
 
   private static final Logger LOG = LoggerFactory.getLogger(JobManager.class);
 
@@ -69,6 +72,9 @@ public class JobManager {
 
   @Inject
   private JobOperator jobOperator;
+
+  @Inject
+  private JobExplorer jobExplorer;
 
   private TimeZone timeZone = TimeZone.getDefault();
 
@@ -80,18 +86,28 @@ public class JobManager {
    * Launch a new job instance (based on job name) and applies customized parameters to it.
    * Also add a new date parameter to make sure the job instance will be unique
    */
-  public JobExecutionInfoResponse launchJob(String jobName, String params)
-    throws JobParametersInvalidException, JobInstanceAlreadyExistsException, NoSuchJobException,
+  @Override
+  public JobExecutionInfoResponse launchJob(String jobName, JobParameters jobParameters)
+    throws JobParametersInvalidException, NoSuchJobException,
     JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
-    JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
-    if (params != null) {
-      LOG.info("Parsing parameters of job {} '{}'", jobName, params);
-      Splitter.on(',')
-              .trimResults()
-              .withKeyValueSeparator(Splitter.on('=').limit(2).trimResults())
-              .split(params).entrySet().forEach(entry -> jobParametersBuilder.addString(entry.getKey(), entry.getValue()));
-    }
-    return new JobExecutionInfoResponse(jobService.launch(jobName, jobParametersBuilder.toJobParameters()), timeZone);
+
+    Set<JobExecution> running = jobExplorer.findRunningJobExecutions(jobName);
+    if (!running.isEmpty())
+      throw new JobExecutionAlreadyRunningException("An instance of this job is already active: "+jobName);
+
+    return new JobExecutionInfoResponse(jobService.launch(jobName, jobParameters), timeZone);
+  }
+
+  @Override
+  public void restart(Long jobExecutionId)
+          throws JobInstanceAlreadyCompleteException, NoSuchJobException, JobExecutionAlreadyRunningException,
+          JobParametersInvalidException, JobRestartException, NoSuchJobExecutionException {
+    jobService.restart(jobExecutionId);
+  }
+
+  @Override
+  public Optional<JobExecution> lastRun(String jobName) throws NoSuchJobException {
+    return jobService.listJobExecutionsForJob(jobName, 0, 1).stream().findFirst();
   }
 
   /**
@@ -111,19 +127,14 @@ public class JobManager {
   /**
    * Gather job execution details by job execution id.
    */
-  public JobExecutionDetailsResponse getExectionInfo(Long jobExecutionId) throws NoSuchJobExecutionException {
+  public JobExecutionDetailsResponse getExecutionInfo(Long jobExecutionId) throws NoSuchJobExecutionException {
     JobExecution jobExecution = jobService.getJobExecution(jobExecutionId);
-    List<StepExecutionInfoResponse> stepExecutionInfos = new ArrayList<StepExecutionInfoResponse>();
+    List<StepExecutionInfoResponse> stepExecutionInfoList = new ArrayList<>();
     for (StepExecution stepExecution : jobExecution.getStepExecutions()) {
-      stepExecutionInfos.add(new StepExecutionInfoResponse(stepExecution, timeZone));
+      stepExecutionInfoList.add(new StepExecutionInfoResponse(stepExecution, timeZone));
     }
-    Collections.sort(stepExecutionInfos, new Comparator<StepExecutionInfoResponse>() {
-      @Override
-      public int compare(StepExecutionInfoResponse o1, StepExecutionInfoResponse o2) {
-        return o1.getId().compareTo(o2.getId());
-      }
-    });
-    return new JobExecutionDetailsResponse(new JobExecutionInfoResponse(jobExecution, timeZone), stepExecutionInfos);
+    stepExecutionInfoList.sort(Comparator.comparing(StepExecutionInfoResponse::getId));
+    return new JobExecutionDetailsResponse(new JobExecutionInfoResponse(jobExecution, timeZone), stepExecutionInfoList);
   }
 
   /**
@@ -139,6 +150,7 @@ public class JobManager {
     } else {
       throw new UnsupportedOperationException("Unsupported operaration");
     }
+    LOG.info("Job {} was marked {}", jobExecution.getJobInstance().getJobName(), operation.name());
     return new JobExecutionInfoResponse(jobExecution, timeZone);
   }
 

@@ -142,7 +142,6 @@ case "${1:-}" in
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   setup-ldap)
-        echo -e "Setting up LDAP properties..."
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   sync-ldap)

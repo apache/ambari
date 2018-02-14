@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -48,6 +49,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Tests for repository definitions.
@@ -503,6 +506,58 @@ public class VersionDefinitionTest {
     assertEquals(1, summary.getAvailableServiceNames().size());
   }
 
+  /**
+   * Tests that patch upgrade dependencies can be calculated recursively.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRecursiveDependencyDetection() throws Exception {
+    File f = new File("src/test/resources/version_definition_test_all_services.xml");
+    VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
+
+    Map<String, List<String>> dependencies = new HashMap<>();
+    dependencies.put("A", Lists.newArrayList("B", "X"));
+    dependencies.put("B", Lists.newArrayList("C", "D", "E"));
+    dependencies.put("E", Lists.newArrayList("A", "F"));
+    dependencies.put("F", Lists.newArrayList("B", "E"));
+
+    // services not installed
+    dependencies.put("X", Lists.newArrayList("Y", "Z", "A"));
+    dependencies.put("Z", Lists.newArrayList("B"));
+
+    Set<String> installedServices = Sets.newHashSet("A", "B", "C", "D", "E", "F", "G", "H");
+
+    Set<String> servicesInUpgrade = Sets.newHashSet("A");
+
+    Set<String> results = xml.getRecursiveDependencies(Sets.newHashSet("B"), dependencies,
+        servicesInUpgrade, installedServices);
+
+    assertEquals(5, results.size());
+    assertTrue(results.contains("B"));
+    assertTrue(results.contains("C"));
+    assertTrue(results.contains("D"));
+    assertTrue(results.contains("E"));
+    assertTrue(results.contains("F"));
+
+    servicesInUpgrade = Sets.newHashSet("A", "B", "C", "E", "F");
+    results = xml.getRecursiveDependencies(Sets.newHashSet("D"), dependencies, servicesInUpgrade,
+        installedServices);
+
+    assertEquals(1, results.size());
+    assertTrue(results.contains("D"));
+
+    servicesInUpgrade = Sets.newHashSet("A", "F");
+    results = xml.getRecursiveDependencies(Sets.newHashSet("B", "E"), dependencies,
+        servicesInUpgrade,
+        installedServices);
+
+    assertEquals(4, results.size());
+    assertTrue(results.contains("B"));
+    assertTrue(results.contains("C"));
+    assertTrue(results.contains("D"));
+    assertTrue(results.contains("E"));
+  }
 
   private static ServiceInfo makeService(final String name) {
     return new ServiceInfo() {

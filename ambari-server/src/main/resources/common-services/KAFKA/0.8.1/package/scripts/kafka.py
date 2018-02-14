@@ -53,11 +53,7 @@ def kafka(upgrade_type=None):
        Logger.info(format("Kafka listeners: {listeners}"))
        kafka_server_config['listeners'] = listeners       
 
-       if params.kerberos_security_enabled and params.kafka_kerberos_enabled:
-         Logger.info("Kafka kerberos security is enabled.")
-         kafka_server_config['advertised.listeners'] = listeners
-         Logger.info(format("Kafka advertised listeners: {listeners}"))
-       elif 'advertised.listeners' in kafka_server_config:
+       if 'advertised.listeners' in kafka_server_config:
          advertised_listeners = kafka_server_config['advertised.listeners'].replace("localhost", params.hostname)
          kafka_server_config['advertised.listeners'] = advertised_listeners
          Logger.info(format("Kafka advertised listeners: {advertised_listeners}"))

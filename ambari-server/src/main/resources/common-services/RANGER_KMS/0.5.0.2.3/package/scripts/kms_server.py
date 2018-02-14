@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ComponentIsNotRunning
@@ -107,8 +108,9 @@ class KmsServer(Script):
       raise Fail('Unable to determine the stack and stack version')
 
     stack_version = upgrade_stack[1]
-    Logger.info(format('Setting Ranger KMS database schema, using version {stack_version}'))
-    kms.setup_kms_db(stack_version=stack_version)
+    target_version = upgrade_summary.get_target_version("RANGER_KMS", default_version = stack_version)
+    Logger.info(format('Setting Ranger KMS database schema, using version {target_version}'))
+    kms.setup_kms_db(stack_version = target_version)
     
   def get_log_folder(self):
     import params

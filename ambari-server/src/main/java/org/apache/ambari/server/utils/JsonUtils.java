@@ -17,8 +17,14 @@
  */
 package org.apache.ambari.server.utils;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 import org.apache.commons.lang.StringUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
@@ -27,7 +33,13 @@ import com.google.gson.JsonSyntaxException;
  */
 public class JsonUtils {
 
+  /**
+   * Used to serialize to/from json.
+   */
   public static JsonParser jsonParser = new JsonParser();
+
+  private static final ObjectMapper JSON_SERIALIZER = new ObjectMapper();
+  private static final ObjectWriter JSON_WRITER = JSON_SERIALIZER.writer();
 
   /**
    * Checks if an input string is in valid JSON format
@@ -44,6 +56,25 @@ public class JsonUtils {
       return true;
     } catch (JsonSyntaxException jse) {
       return false;
+    }
+  }
+
+  public static <T> T fromJson(String json, TypeReference<? extends T> valueType) {
+    if (null == json) {
+      return  null;
+    }
+    try {
+      return JSON_SERIALIZER.reader(valueType).readValue(json);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  public static String toJson(Object object) {
+    try {
+      return JSON_WRITER.writeValueAsString(object);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
   }
 }

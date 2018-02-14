@@ -971,14 +971,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
             "repo_id": repository.get('repoId'),
             "repo_name": repository.get('repoName'),
             "unique": repository.get('unique'),
-            //removed the following properties because they were not present on the server
-            //and are therefore undefined on the client, so there is no need to pass them back
-            // "components": repository.get('components'),
-            // "distribution": repository.get('distribution')
             "tags": repository.get('tags'),
           }
-        });
-      });
+        })
+      })
     });
     return repoVersion;
   },
@@ -1422,7 +1418,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
         var versionsString = stringUtils.getFormattedStringFromArray(versionsList, t('or'));
         var popupBody = t('popup.jdkValidation.body').format(selectedStack.get('stackName') + ' ' + selectedStack.get('stackVersion'), versionsString, currentJDKVersion);
-        App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), true);
+        App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), 'danger');
         return;
       }
     }

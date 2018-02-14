@@ -20,7 +20,7 @@ import {
   Component, OnInit, OnChanges, OnDestroy, SimpleChanges, Input, Output, EventEmitter, ViewChild, ElementRef
 } from '@angular/core';
 import * as $ from 'jquery';
-import {Moment} from 'moment-timezone';
+import * as moment from 'moment';
 import '@vendor/js/bootstrap-datetimepicker.min';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 
@@ -31,16 +31,16 @@ import {AppSettingsService} from '@app/services/storage/app-settings.service';
 export class DatePickerComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(private appSettings: AppSettingsService) {
-    appSettings.getParameter('timeZone').subscribe((value: string): void => {
+  }
+
+  ngOnInit(): void {
+    this.appSettings.getParameter('timeZone').subscribe((value: string): void => {
       this.destroyDatePicker();
       this.timeZone = value;
       if (this.datePickerElement) {
         this.createDatePicker();
       }
     });
-  }
-
-  ngOnInit(): void {
     this.createDatePicker();
   }
 
@@ -56,10 +56,10 @@ export class DatePickerComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Value of time input field passed from parent component
-   * @type {Moment}
+   * @type {Moment|Date|string}
    */
   @Input()
-  time: Moment;
+  time: moment.Moment | Date | string;
 
   @Output()
   timeChange: EventEmitter<number> = new EventEmitter();
@@ -89,10 +89,11 @@ export class DatePickerComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Set value to time input field
-   * @param {Moment} time
+   * @param {Moment|Date|string} time
    */
-  private setTime(time: Moment): void {
-    this.datePickerElement.data('DateTimePicker').date(time);
+  private setTime(time: moment.Moment | Date | string): void {
+    const timeMoment = moment.isMoment(time) ? time : moment(time);
+    this.datePickerElement.data('DateTimePicker').date(timeMoment);
   }
 
 }

@@ -44,12 +44,14 @@
         <h5>{{selectedOption.displayName}}:</h5>
         <b>{{t admin.kerberos.wizard.step1.prerequisites.label}}</b> <br/> <br/>
         {{#each condition in selectedOption.preConditions}}
-          {{view App.CheckboxView
-            classNames="checkbox"
-            checkedBinding="condition.checked"
-            labelClassNames="kerberos-step1-prerequiste-checkboxes"
-            labelBinding="condition.displayText"
-          }}
+          {{#unless condition.hidden}}
+            {{view App.CheckboxView
+              classNames="checkbox"
+              checkedBinding="condition.checked"
+              labelClassNames="kerberos-step1-prerequiste-checkboxes"
+              labelBinding="condition.displayText"
+            }}
+          {{/unless}}
         {{/each}}
       </div>
     </div>

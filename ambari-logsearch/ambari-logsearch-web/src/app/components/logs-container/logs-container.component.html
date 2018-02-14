@@ -17,16 +17,16 @@
 
 <div class="tabs-container container-fluid">
   <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-12 tabs-menu-container">
       <tabs class="pull-left" [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
             (tabClosed)="onCloseTab($event[0], $event[1])"></tabs>
       <action-menu class="pull-right"></action-menu>
     </div>
   </div>
 </div>
-<div class="container-fluid">
-  <filters-panel class="row" [filtersForm]="filtersForm" [logsType]="logsType"></filters-panel>
-  <div class="row">
+<div #container [ngClass]="{'container-fluid': true, 'fixed-filterbar': isFilterPanelFixedPostioned}">
+  <filters-panel class="row" [filtersForm]="filtersForm" [logsType]="logsType" #filtersPanel></filters-panel>
+  <div class="row events-count">
     <div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
       <div class="auto-refresh-message pull-right">
         {{'filter.capture.triggeringRefresh' | translate: autoRefreshMessageParams}}
@@ -34,21 +34,31 @@
     </div>
 
     <!-- TODO use plugin for singular/plural -->
-    <div class="logs-header col-md-12">{{
+    <div *ngIf="logsType === 'serviceLogs'" class="logs-header col-md-12">{{
       (!totalEventsFoundMessageParams.totalCount ? 'logs.noEventFound' :
         (totalEventsFoundMessageParams.totalCount === 1 ? 'logs.oneEventFound' : 'logs.totalEventFound'))
             | translate: totalEventsFoundMessageParams
     }}</div>
   </div>
-  <collapsible-panel openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
-    <time-histogram [data]="histogramData" [customOptions]="histogramOptions" svgId="service-logs-histogram"
-                    (selectArea)="setCustomTimeRange($event[0], $event[1])"></time-histogram>
-  </collapsible-panel>
   <ng-container [ngSwitch]="logsType">
-    <service-logs-table *ngSwitchCase="'serviceLogs'" [totalCount]="totalCount" [logs]="serviceLogs | async"
-                        [columns]="serviceLogsColumns | async" [filtersForm]="filtersForm"></service-logs-table>
-    <audit-logs-table *ngSwitchCase="'auditLogs'" [totalCount]="totalCount" [logs]="auditLogs | async"
-                      [columns]="auditLogsColumns | async" [filtersForm]="filtersForm"></audit-logs-table>
+    <ng-container *ngSwitchCase="'serviceLogs'">
+      <collapsible-panel openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
+        <time-histogram (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="serviceLogsHistogramData"
+                        [colors]="serviceLogsHistogramColors" [allowFractionalYTicks]="false"
+                        svgId="service-logs-histogram"></time-histogram>
+      </collapsible-panel>
+      <service-logs-table [totalCount]="totalCount" [logs]="serviceLogs | async" [columns]="serviceLogsColumns | async"
+                          [filtersForm]="filtersForm"></service-logs-table>
+    </ng-container>
+    <ng-container *ngSwitchCase="'auditLogs'">
+      <collapsible-panel commonTitle="logs.duration">
+        <time-line-graph (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="auditLogsGraphData"
+                         [allowFractionalYTicks]="false" [skipZeroValuesInTooltip]="false"
+                         svgId="audit-logs-graph"></time-line-graph>
+      </collapsible-panel>
+      <audit-logs-entries [totalCount]="totalCount" [logs]="auditLogs | async" [columns]="auditLogsColumns | async"
+                          [filtersForm]="filtersForm"></audit-logs-entries>
+    </ng-container>
   </ng-container>
   <log-context *ngIf="isServiceLogContextView" [id]="activeLog.id" [hostName]="activeLog.host_name"
                [componentName]="activeLog.component_name"></log-context>

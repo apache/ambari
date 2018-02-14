@@ -176,6 +176,15 @@ describe('App.ServiceConfigsByCategoryView', function () {
         category: Em.Object.create({ customCanAddProperty: false }),
         m: 'Category contains mixed properties. Properties are visible. Panel should be shown',
         e: true
+      },
+      {
+        categoryConfigs: Em.A([
+          Em.Object.create({ widget: {someProp: 'a'} })
+        ]),
+        isCompareMode: true,
+        category: Em.Object.create({ customCanAddProperty: true }),
+        m: 'Should hide block in compare mode',
+        e: false
       }
     ];
 
@@ -195,10 +204,15 @@ describe('App.ServiceConfigsByCategoryView', function () {
       it(test.m, function() {
         this._view.reopen({
           category: test.category,
-          categoryConfigs: test.categoryConfigs
+          categoryConfigs: test.categoryConfigs,
+          mainView: Em.Object.create({
+            columns: []
+          }),
+          controller: Em.Object.create({
+            isCompareMode: test.isCompareMode
+          })
         });
         expect(this._view.get('isShowBlock')).to.be.eql(test.e);
-
       });
     });
   });

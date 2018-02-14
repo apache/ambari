@@ -31,10 +31,12 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
 import org.apache.ambari.server.topology.BlueprintImpl;
@@ -47,9 +49,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 public class StackAdvisorBlueprintProcessorTest {
+
+  private static final StackId STACK_ID = new StackId("HDP", "2.3");
   private StackAdvisorBlueprintProcessor underTest = new StackAdvisorBlueprintProcessor();
 
   private ClusterTopology clusterTopology = createMock(ClusterTopology.class);
@@ -75,17 +80,21 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
+    Set<String> services = ImmutableSet.of("HDFS", "YARN", "HIVE");
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ALWAYS_APPLY).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getVersion()).andReturn("2.3").anyTimes();
-    expect(stack.getName()).andReturn("HDP").anyTimes();
-    expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
-    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
+    expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
+    expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
+    expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -110,17 +119,21 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
+    Set<String> services = ImmutableSet.of("HDFS", "YARN", "HIVE");
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getVersion()).andReturn("2.3").anyTimes();
-    expect(stack.getName()).andReturn("HDP").anyTimes();
-    expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
-    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
+    expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
+    expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
+    expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -146,17 +159,21 @@ public class StackAdvisorBlueprintProcessorTest {
     Map<String, Map<String, String>> props = createProps();
     props.get("core-site").put("dummyKey3", "stackDefaultValue");
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
+    Set<String> services = ImmutableSet.of("HDFS", "YARN", "HIVE");
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getVersion()).andReturn("2.3").anyTimes();
-    expect(stack.getName()).andReturn("HDP").anyTimes();
-    expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
-    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
+    expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
+    expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
+    expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -180,17 +197,21 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
+    Set<String> services = ImmutableSet.of("HDFS", "YARN", "HIVE");
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getVersion()).andReturn("2.3").anyTimes();
-    expect(stack.getName()).andReturn("HDP").anyTimes();
-    expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
-    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
+    expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
+    expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
+    expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
@@ -213,17 +234,21 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
+    Set<String> services = ImmutableSet.of("HDFS", "YARN", "HIVE");
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getVersion()).andReturn("2.3").anyTimes();
-    expect(stack.getName()).andReturn("HDP").anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
+    expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
-    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andThrow(new StackAdvisorException("ex"));
     expect(configuration.getFullProperties()).andReturn(props);
 
@@ -242,15 +267,20 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
+    Set<String> services = ImmutableSet.of("HDFS", "YARN", "HIVE");
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getVersion()).andReturn("2.3").anyTimes();
-    expect(stack.getName()).andReturn("HDP").anyTimes();
-    expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
+    expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
+    expect(stack.getConfiguration(services)).andReturn(createStackDefaults()).anyTimes();
+    expect(stack.getServices(STACK_ID)).andReturn(services).anyTimes();
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(new RecommendationResponse());

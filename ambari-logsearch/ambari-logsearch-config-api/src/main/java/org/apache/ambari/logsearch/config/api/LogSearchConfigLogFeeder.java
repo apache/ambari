@@ -68,8 +68,7 @@ public interface LogSearchConfigLogFeeder extends LogSearchConfig {
 
   /**
    * Saves the properties of an Output Solr.
-   * 
-   * @param type The type of the Output Solr.
+   *
    * @param outputConfigMonitors The monitors which want to watch the output config changes.
    * @throws Exception
    */

@@ -19,14 +19,12 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import java.io.File;
-import java.util.Properties;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedTransferQueue;
-
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.InputFileMarker;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -36,7 +34,13 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class OutputKafka extends Output {
+import java.io.File;
+import java.util.Properties;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedTransferQueue;
+
+public class OutputKafka extends Output<LogFeederProps, InputFileMarker> {
   private static final Logger LOG = Logger.getLogger(OutputKafka.class);
 
   private static final int FAILED_RETRY_INTERVAL = 30;
@@ -55,19 +59,21 @@ public class OutputKafka extends Output {
   // Let's start with the assumption Kafka is down
   private boolean isKafkaBrokerUp = false;
 
+  private LogFeederProps logFeederProps;
+
   @Override
-  protected String getStatMetricName() {
+  public String getStatMetricName() {
     return "output.kafka.write_logs";
   }
 
   @Override
-  protected String getWriteBytesMetricName() {
+  public String getWriteBytesMetricName() {
     return "output.kafka.write_bytes";
   }
   
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    this.logFeederProps = logFeederProps;
     Properties props = initProperties();
 
     producer = creteKafkaProducer(props);
@@ -98,9 +104,9 @@ public class OutputKafka extends Output {
     props.put("batch.size", batchSize);
     props.put("linger.ms", lingerMS);
 
-    for (String key : configs.keySet()) {
+    for (String key : getConfigs().keySet()) {
       if (key.startsWith("kafka.")) {
-        Object value = configs.get(key);
+        Object value = getConfigs().get(key);
         if (value == null || value.toString().length() == 0) {
           continue;
         }
@@ -150,15 +156,15 @@ public class OutputKafka extends Output {
   }
 
   @Override
-  public synchronized void write(String block, InputMarker inputMarker) throws Exception {
-    while (!isDrain() && !inputMarker.input.isDrain()) {
+  public synchronized void write(String block, InputFileMarker inputMarker) throws Exception {
+    while (!isDrain() && !inputMarker.getInput().isDrain()) {
       try {
         if (failedMessages.size() == 0) {
           if (publishMessage(block, inputMarker)) {
             break;
           }
         }
-        if (isDrain() || inputMarker.input.isDrain()) {
+        if (isDrain() || inputMarker.getInput().isDrain()) {
           break;
         }
         if (!isKafkaBrokerUp) {
@@ -279,5 +285,20 @@ public class OutputKafka extends Output {
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
     throw new UnsupportedOperationException("copyFile method is not yet supported for output=kafka");
+  }
+
+  @Override
+  public String getOutputType() {
+    throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
+  }
+
+  @Override
+  public void outputConfigChanged(OutputProperties outputProperties) {
+    throw new IllegalStateException("This method should be overriden if the Output wants to monitor the configuration");
+  };
+
+  @Override
+  public Long getPendingCount() {
+    return 0L;
   }
 }

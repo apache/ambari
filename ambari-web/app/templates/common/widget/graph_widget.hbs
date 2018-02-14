@@ -19,7 +19,7 @@
 <div class="graph-widget img-thumbnail">
   {{#if view.isLoaded}}
     <div class="caption title col-md-11">{{view.content.widgetName}}</div>
-    <div {{bindAttr class="view.parentView.isMoving:hidden :corner-icon :widget-icons"}}>
+    <div {{bindAttr class="view.parentView.isMoving:hidden :corner-icon :widget-icons view.isPreview:hidden"}}>
       <button class="dropdown-toggle ellipsis-menu button-border" data-toggle="dropdown" href="#"></button>
       <ul class="dropdown-menu">
         <li>

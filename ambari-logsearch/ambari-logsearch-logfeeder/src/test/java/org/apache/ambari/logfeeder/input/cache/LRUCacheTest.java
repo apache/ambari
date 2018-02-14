@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logfeeder.input.cache;
 
+import org.apache.ambari.logfeeder.plugin.input.cache.LRUCache;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

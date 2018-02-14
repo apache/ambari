@@ -189,6 +189,7 @@
         "StackServices/stack_name",
         "StackServices/stack_version",
         "StackServices/service_name",
+        "StackServices/service_category",
         "StackServices/display_name",
         "StackServices/selection",
         "StackServices/user_name",
@@ -227,6 +228,7 @@
         "StackServiceComponents/stack_version",
         "StackServiceComponents/service_name",
         "StackServiceComponents/component_name",
+        "StackServiceComponents/component_version",
         "StackServiceComponents/display_name",
         "StackServiceComponents/component_category",
         "StackServiceComponents/is_client",
@@ -367,18 +369,6 @@
         "RootServiceHostComponents/component_version",
         "RootServiceHostComponents/properties"
      ],
-    "Blueprint":[
-        "Blueprints/blueprint_name",
-        "Blueprints/stack_name",
-        "Blueprints/stack_version",
-        "Blueprints/security",
-        "host_groups",
-        "host_groups/components",
-        "host_groups/cardinality",
-        "configurations",
-        "validate_topology",
-        "settings"
-    ],
     "Recommendation":[
         "Recommendation/id",
         "Versions/stack_name",

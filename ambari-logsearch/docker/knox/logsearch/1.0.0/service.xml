@@ -1,0 +1,12 @@
+<service role="LOGSEARCH" name="logsearch" version="2.2.0"> <!-- TODO -->
+  <policies>
+    <policy role="webappsec"/>
+    <policy role="authentication" name="Anonymous"/>
+    <policy role="rewrite"/>
+    <policy role="authorization"/>
+  </policies>
+  <routes>
+    <route path="/logsearch/api/v1/**"/>
+  </routes>
+  <!-- <dispatch classname="org.apache.knox.gateway.dispatch.PassAllHeadersDispatch"/> -->
+</service>

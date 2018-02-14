@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, forwardRef} from '@angular/core';
+import {Component, OnInit, OnDestroy, HostListener, Input, ViewChild, ElementRef, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
 import {SearchBoxParameter, SearchBoxParameterProcessed, SearchBoxParameterTriggered} from '@app/classes/filtering';
-import {CommonEntry} from '@app/classes/models/common-entry';
+import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {UtilsService} from '@app/services/utils.service';
 
 @Component({
@@ -37,53 +38,65 @@ import {UtilsService} from '@app/services/utils.service';
 })
 export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccessor {
 
-  constructor(private element: ElementRef, private utils: UtilsService) {
-    this.rootElement = element.nativeElement;
-    this.rootElement.addEventListener('click', this.onRootClick);
-    this.rootElement.addEventListener('keydown', this.onRootKeyDown);
+  constructor(private utils: UtilsService) {
   }
 
   ngOnInit(): void {
     this.parameterInput = this.parameterInputRef.nativeElement;
     this.valueInput = this.valueInputRef.nativeElement;
-    this.parameterInput.addEventListener('focus', this.onParameterInputFocus);
-    this.parameterInput.addEventListener('blur', this.onParameterInputBlur);
-    this.valueInput.addEventListener('blur', this.onValueInputBlur);
     this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
     this.parameterAddSubject.subscribe(this.onParameterAdd);
     this.updateValueSubject.subscribe(this.updateValue);
   }
 
   ngOnDestroy(): void {
-    this.rootElement.removeEventListener('click', this.onRootClick);
-    this.rootElement.removeEventListener('keydown', this.onRootKeyDown);
-    this.parameterInput.removeEventListener('focus', this.onParameterInputFocus);
-    this.parameterInput.removeEventListener('blur', this.onParameterInputBlur);
-    this.valueInput.removeEventListener('blur', this.onValueInputBlur);
     this.parameterNameChangeSubject.unsubscribe();
     this.parameterAddSubject.unsubscribe();
     this.updateValueSubject.unsubscribe();
   }
 
-  private readonly messageParameterName: string = 'log_message';
-
   private currentId: number = 0;
 
   private isExclude: boolean = false;
 
+  /**
+   * Indicates whether search box is currently active
+   * @type {boolean}
+   */
   isActive: boolean = false;
 
-  isParameterInput: boolean = false;
-
+  /**
+   * Indicates whether search query parameter value is currently typed
+   * @type {boolean}
+   */
   isValueInput: boolean = false;
 
   currentValue: string;
 
-  @Input()
-  items: CommonEntry[] = [];
+  /**
+   * Indicates whether there's no autocomplete matches in preset options for search query parameter name
+   * @type {boolean}
+   */
+  private noMatchingParameterName: boolean = true;
+
+  /**
+   * Indicates whether there's no autocomplete matches in preset options for search query parameter value
+   * @type {boolean}
+   */
+  private noMatchingParameterValue: boolean = true;
 
   @Input()
-  itemsOptions: {[key: string]: CommonEntry[]};
+  items: ListItem[] = [];
+
+  @Input()
+  itemsOptions: HomogeneousObject<ListItem[]> = {};
+
+  /**
+   * Name of parameter to be used if there are no matching values
+   * @type {string}
+   */
+  @Input()
+  defaultParameterName?: string;
 
   @Input()
   parameterNameChangeSubject: Subject<SearchBoxParameterTriggered> = new Subject();
@@ -95,7 +108,8 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   updateValueSubject: Subject<void> = new Subject();
 
   /**
-   * Indicates whether form should receive updated value immediately after user adds new search parameter
+   * Indicates whether form should receive updated value immediately after user adds new search parameter, without
+   * explicit actions like pressing Submit button or Enter key
    * @type {boolean}
    */
   @Input()
@@ -107,65 +121,65 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   @ViewChild('valueInput')
   valueInputRef: ElementRef;
 
-  private rootElement: HTMLElement;
-
   private parameterInput: HTMLInputElement;
 
   private valueInput: HTMLInputElement;
 
-  activeItem: CommonEntry | null = null;
+  /**
+   * Currently active search query parameter
+   * @type {ListItem | null}
+   */
+  activeItem: ListItem | null = null;
 
+  /**
+   * Search query parameters that are already specified by user
+   * @type {SearchBoxParameterProcessed[]}
+   */
   parameters: SearchBoxParameterProcessed[] = [];
 
-  get activeItemValueOptions(): CommonEntry[] {
+  /**
+   * Available options for value of currently active search query parameter
+   * @returns {ListItem[]}
+   */
+  get activeItemValueOptions(): ListItem[] {
     return this.itemsOptions && this.activeItem && this.itemsOptions[this.activeItem.value] ?
       this.itemsOptions[this.activeItem.value] : [];
   }
 
   private onChange: (fn: any) => void;
 
-  private onRootClick = (): void => {
+  @HostListener('click')
+  private onRootClick(): void {
     if (!this.isActive) {
       this.parameterInput.focus();
     }
-  };
+  }
 
-  private onRootKeyDown = (event: KeyboardEvent): void => {
+  @HostListener('keydown', ['$event'])
+  private onRootKeyDown(event: KeyboardEvent): void {
     if (this.utils.isEnterPressed(event)) {
       event.preventDefault();
     }
   };
 
-  private onParameterInputFocus = (): void => {
+  @HostListener('blur')
+  private onRootBlur(): void {
+    this.clear();
+  };
+
+  onParameterInputFocus(): void {
     this.isActive = true;
-    this.isValueInput = false;
-    this.isParameterInput = true;
-  };
-
-  private onParameterInputBlur = (): void => {
-    if (!this.isValueInput) {
-      this.clear();
-    }
-  };
-
-  private onValueInputBlur = (): void => {
-    if (!this.isParameterInput) {
-      this.clear();
-    }
-  };
+  }
 
   private switchToParameterInput = (): void => {
-    this.activeItem = null;
+    this.clear();
+    this.isActive = true;
     this.isValueInput = false;
     setTimeout(() => this.parameterInput.focus(), 0);
   };
 
-  private getItemByValue(name: string): CommonEntry {
-    return this.items.find((field: CommonEntry): boolean => field.value === name);
-  }
-
-  private getItemByName(name: string): CommonEntry {
-    return this.items.find((field: CommonEntry): boolean => field.name === name);
+  private getItemByValue(name: string): ListItem {
+    return this.items.find((field: ListItem): boolean => field.value === name);
   }
 
   clear(): void {
@@ -176,28 +190,17 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.valueInput.value = '';
   }
 
-  itemsListFormatter(item: CommonEntry): string {
-    return item.name;
-  }
-
-  itemsValueFormatter(item: CommonEntry): string {
-    return item.value;
-  }
-
   changeParameterName(options: SearchBoxParameterTriggered): void {
     this.parameterNameChangeSubject.next(options);
   }
 
   onParameterNameChange = (options: SearchBoxParameterTriggered): void => {
-    if (options.value) {
-      this.activeItem = this.getItemByValue(options.value);
-      this.isExclude = options.isExclude;
-      this.isActive = true;
-      this.isParameterInput = false;
-      this.isValueInput = true;
-      this.currentValue = '';
-      setTimeout(() => this.valueInput.focus(), 0);
-    }
+    this.activeItem = options.item.label ? options.item : this.getItemByValue(options.item.value);
+    this.isExclude = options.isExclude;
+    this.isActive = true;
+    this.isValueInput = true;
+    this.currentValue = '';
+    this.valueInput.focus();
   };
 
   onParameterValueKeyDown(event: KeyboardEvent): void {
@@ -207,59 +210,63 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   }
 
   onParameterValueKeyUp(event: KeyboardEvent): void {
-    if (this.utils.isEnterPressed(event) && this.currentValue) {
+    if (this.utils.isEnterPressed(event) && this.currentValue && this.noMatchingParameterValue) {
       this.onParameterValueChange(this.currentValue);
     }
   }
 
   onParameterValueChange(value: string): void {
-    if (value) {
-      this.parameters.push({
-        id: this.currentId++,
-        name: this.activeItem.value,
-        label: this.activeItem.name,
-        value: value,
-        isExclude: this.isExclude
-      });
-      if (this.updateValueImmediately) {
-        this.updateValueSubject.next();
-      }
-    }
-    this.switchToParameterInput();
-  }
-
-  onParameterAdd = (options: SearchBoxParameter): void => {
-    const item = this.getItemByValue(options.name);
     this.parameters.push({
       id: this.currentId++,
-      name: options.name,
-      label: item.name,
-      value: options.value,
-      isExclude: options.isExclude
+      name: this.activeItem.value,
+      label: this.activeItem.label,
+      value: value,
+      isExclude: this.isExclude
     });
     if (this.updateValueImmediately) {
       this.updateValueSubject.next();
     }
+    this.switchToParameterInput();
+  }
+
+  /**
+   * Adding the new parameter to search query
+   * @param parameter {SearchBoxParameter}
+   */
+  onParameterAdd = (parameter: SearchBoxParameter): void => {
+    const item = this.getItemByValue(parameter.name);
+    this.parameters.push({
+      id: this.currentId++,
+      name: parameter.name,
+      label: item.label,
+      value: parameter.value,
+      isExclude: parameter.isExclude
+    });
+    if (this.updateValueImmediately) {
+      this.updateValueSubject.next();
+    }
+    this.switchToParameterInput();
   };
 
-  onParameterKeyUp = (event: KeyboardEvent): void => {
-    if (this.utils.isEnterPressed(event) && this.currentValue) {
-      const existingItem = this.getItemByName(this.currentValue);
-      if (existingItem) {
-        this.changeParameterName({
-          value: this.currentValue,
-          isExclude: false
-        });
-      } else {
+  onParameterKeyUp(event: KeyboardEvent): void {
+    if (this.utils.isEnterPressed(event)) {
+      if (!this.currentValue && !this.updateValueImmediately) {
+        this.updateValueSubject.next();
+      } else if (this.currentValue && this.noMatchingParameterName && this.defaultParameterName) {
         this.parameterAddSubject.next({
-          name: this.messageParameterName,
+          name: this.defaultParameterName,
           value: this.currentValue,
           isExclude: false
         });
       }
     }
-  };
+  }
 
+  /**
+   * Removing parameter from search query
+   * @param event {MouseEvent} - event that triggered this action
+   * @param id {number} - id of parameter
+   */
   removeParameter(event: MouseEvent, id: number): void {
     this.parameters = this.parameters.filter((parameter: SearchBoxParameterProcessed): boolean => parameter.id !== id);
     if (this.updateValueImmediately) {
@@ -271,12 +278,28 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   updateValue = (): void => {
     this.currentValue = '';
     if (this.onChange) {
-      this.onChange(this.parameters);
+      this.onChange(this.parameters.slice());
     }
   };
 
+  /**
+   * Update flag that indicates presence of autocomplete matches in preset options for search query parameter name
+   * @param hasNoMatches {boolean}
+   */
+  setParameterNameMatchFlag(hasNoMatches: boolean): void {
+    this.noMatchingParameterName = hasNoMatches;
+  }
+
+  /**
+   * Update flag that indicates presence of autocomplete matches in preset options for search query parameter value
+   * @param hasNoMatches {boolean}
+   */
+  setParameterValueMatchFlag(hasNoMatches: boolean): void {
+    this.noMatchingParameterValue = hasNoMatches;
+  }
+
   writeValue(parameters: SearchBoxParameterProcessed[] = []): void {
-    this.parameters = parameters;
+    this.parameters = parameters.slice();
     this.updateValueSubject.next();
   }
 

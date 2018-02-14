@@ -30,7 +30,7 @@ import com.google.inject.persist.jpa.AmbariJpaPersistService;
 public class AmbariLocalSessionInterceptor implements MethodInterceptor {
 
   @Inject
-  private final AmbariJpaPersistService emProvider = null;
+  private AmbariJpaPersistService emProvider;
 
   private final ThreadLocal<Boolean> didWeStartWork = new ThreadLocal<>();
 

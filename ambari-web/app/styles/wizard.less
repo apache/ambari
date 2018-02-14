@@ -18,6 +18,8 @@
 
 @import 'common.less';
 
+@wizard-side-nav-width: 250px;
+
 #enable_security {
   .step3 {
     overflow: auto;
@@ -216,6 +218,10 @@
     .compact-panel-heading {
       padding: 10px;
     }
+    .hosts-panel {
+      padding-left: 0;
+      padding-right: 0;
+    }
     .page-bar {
       border: none;
     }
@@ -249,6 +255,21 @@
       max-height: 440px;
     }
     #confirm-hosts-table {
+      th:first-of-type {
+        width: 25px;
+      }
+      th:nth-of-type(2) {
+        width: 42%;
+      }
+      th:nth-of-type(3) {
+        width: 17%;
+      }
+      th:nth-of-type(4) {
+        width: 17%;
+      }
+      th:nth-of-type(5) {
+        width: 17%;
+      }
       td.host {
         max-width: 290px;
       }
@@ -276,6 +297,11 @@
           color: #999;
         }
       }
+      .step3-table-checkbox {
+        label {
+          top: 1px;
+        }
+      }
     }
     #warningsSection {
       margin: 0px 10px;
@@ -293,6 +319,12 @@
     }
     .glyphicon-asterisks {
       color: #00688B;
+    }
+    .checkbox-cell {
+      padding-top: 4px;
+    }
+    .checkbox-row {
+      width: 47px;
     }
   }
   #step6 {
@@ -315,6 +347,7 @@
           margin: 0;
         }
         .host-component-checkbox {
+          line-height: 17px;
           font-size: 12px;
           top: 0px;
         }
@@ -328,8 +361,25 @@
       opacity: 0.2;
     }
   }
+  #confirm-configuration{
+    .pre-scrollable{
+      margin-top: 10px;
+    }
+  }
+  #kerberos-wizard-step6, #kerberos-wizard-step8{
+    #common-progress-page{
+      .item{
+        i{
+          position:relative;
+          top: 5px;
+          &.glyphicon-ok{
+            top: 3px;
+          }
+        }
+      }
+    }
+  }
   #deploy {
-
     .page-bar {
       border: none;
     }
@@ -513,9 +563,14 @@
       height: 100px;
       color: #ccc;
     }
+    .hosts-dropdown {
+      padding-left: 10px;
+    }
     .dropdown {
       button {
         width: 100%;
+        text-align: left;
+        padding: 10px;
         .selected-item {
           width: 95%;
           margin-right: 5px;
@@ -524,6 +579,18 @@
           text-overflow: ellipsis;
         }
       }
+    }
+    .assign-masters-controls {
+      padding-left: 30px;
+      div {
+        display: inline-block;
+        width: 22px;
+        div {
+          display: inline-block;
+          width: 100%;
+        }
+      }
+
     }
   }
 
@@ -966,6 +1033,17 @@
   }
 }
 
+.modal {
+  .wizard {
+    .wizard-nav {
+      width: @wizard-side-nav-width;
+    }
+    .wizard-content.col-md-9 {
+      width: calc(~"100% - 250px");
+    }
+  }
+}
+
 .install-wizard-content {
   #top-nav .navbar.navbar-static-top {
     margin-bottom: 0;
@@ -978,6 +1056,12 @@
     padding: 0;
     .wizard {
       border: none;
+      .wizard-nav {
+        width: @wizard-side-nav-width;
+      }
+      .wizard-content.col-md-9 {
+        width: calc(~"100% - 250px");
+      }
     }
   }
 }

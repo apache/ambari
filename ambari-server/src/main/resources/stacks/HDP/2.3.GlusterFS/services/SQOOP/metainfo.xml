@@ -41,7 +41,10 @@
       </osSpecifics>
 
       <requiredServices>
-        <service>GLUSTERFS</service>
+        <service>
+          <name>GLUSTERFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>      
       
     </service>

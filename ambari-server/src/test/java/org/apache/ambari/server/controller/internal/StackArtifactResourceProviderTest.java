@@ -82,8 +82,6 @@ public class StackArtifactResourceProviderTest {
 
     return (StackArtifactResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
   }
 

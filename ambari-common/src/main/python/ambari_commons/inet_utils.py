@@ -23,6 +23,7 @@ import time
 import sys
 import urllib2
 import socket
+import re
 from ambari_commons import OSCheck
 from functools import wraps
 
@@ -266,3 +267,48 @@ def ensure_ssl_using_protocol(protocol="PROTOCOL_TLSv1", ca_certs=None):
         return context
       _create_default_https_context_patched._ambari_patched = True
       ssl._create_default_https_context = _create_default_https_context_patched
+
+"""
+See RFC3986, Appendix B
+Tested on the following cases:
+  "192.168.54.1"
+  "192.168.54.2:7661
+  "hdfs://192.168.54.3/foo/bar"
+  "ftp://192.168.54.4:7842/foo/bar"
+
+  Returns None if only a port is passed in
+"""
+def get_host_from_url(uri):
+  if uri is None:
+    return None
+
+  # if not a string, return None
+  if not isinstance(uri, basestring):
+    return None
+
+    # RFC3986, Appendix B
+  parts = re.findall('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?', uri)
+
+  # index of parts
+  # scheme    = 1
+  # authority = 3
+  # path      = 4
+  # query     = 6
+  # fragment  = 8
+
+  host_and_port = uri
+  if 0 == len(parts[0][1]):
+    host_and_port = parts[0][4]
+  elif 0 == len(parts[0][2]):
+    host_and_port = parts[0][1]
+  elif parts[0][2].startswith("//"):
+    host_and_port = parts[0][3]
+
+  if -1 == host_and_port.find(':'):
+    if host_and_port.isdigit():
+      return None
+
+    return host_and_port
+  else:
+    return host_and_port.split(':')[0]
+

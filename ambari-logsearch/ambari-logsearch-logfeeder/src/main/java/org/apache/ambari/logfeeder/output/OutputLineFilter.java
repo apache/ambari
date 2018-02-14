@@ -19,8 +19,8 @@
 package org.apache.ambari.logfeeder.output;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.cache.LRUCache;
+import org.apache.ambari.logfeeder.plugin.input.cache.LRUCache;
+import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
