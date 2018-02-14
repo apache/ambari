@@ -36,7 +36,7 @@
     <swagger.version>1.5.10</swagger.version>
     <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
     <slf4j.version>1.7.20</slf4j.version>
-    <guice.version>3.0</guice.version>
+    <guice.version>4.1.0</guice.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>

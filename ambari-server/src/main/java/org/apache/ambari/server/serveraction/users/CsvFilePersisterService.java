@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -42,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
-@Singleton
 public class CsvFilePersisterService implements CollectionPersisterService<String, List<String>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CsvFilePersisterService.class);
