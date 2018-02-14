@@ -82,8 +82,8 @@ def check_stack_feature(stack_feature, stack_version):
           if compare_versions(stack_version, max_version, format = True) >= 0:
             return False
         return True
-  #else:
-    #raise Fail("Stack features not defined by stack")
+  else:
+    Logger.warning("Stack features not defined by stack")
         
   return False
 
