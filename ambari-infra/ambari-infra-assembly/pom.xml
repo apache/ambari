@@ -185,7 +185,6 @@
                     <move todir="${project.build.directory}/solr">
                       <fileset dir="${project.build.directory}/solr-${solr.version}"/>
                     </move>
-                    <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
                     <copy file="${infra.solr.plugin.dir}/target/ambari-infra-solr-plugin-${project.version}.jar"
                           toDir="${project.build.directory}/solr/server/solr-webapp/webapp/WEB-INF/lib/"/>
                     <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>
@@ -371,7 +370,6 @@
                     <move todir="${project.build.directory}/solr">
                       <fileset dir="${project.build.directory}/solr-${solr.version}"/>
                     </move>
-                    <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
                     <copy file="${infra.solr.plugin.dir}/target/ambari-infra-solr-plugin-${project.version}.jar"
                           toDir="${project.build.directory}/solr/server/solr-webapp/webapp/WEB-INF/lib/"/>
                     <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>

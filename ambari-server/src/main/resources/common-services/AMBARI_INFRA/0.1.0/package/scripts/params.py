@@ -128,7 +128,7 @@ if security_enabled:
   infra_solr_kerberos_principal = config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
   infra_solr_web_kerberos_keytab = config['configurations']['infra-solr-env']['infra_solr_web_kerberos_keytab']
   infra_solr_web_kerberos_principal = config['configurations']['infra-solr-env']['infra_solr_web_kerberos_principal'].replace('_HOST',_hostname_lowercase)
-  infra_solr_kerberos_name_rules = config['configurations']['infra-solr-env']['infra_solr_kerberos_name_rules'].replace('$', '\$')
+  infra_solr_kerberos_name_rules = config['configurations']['infra-solr-env']['infra_solr_kerberos_name_rules']
   infra_solr_sasl_user = get_name_from_principal(infra_solr_kerberos_principal)
   kerberos_realm = config['configurations']['kerberos-env']['realm']
 
