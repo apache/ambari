@@ -44,18 +44,14 @@ class InfraSolr(Script):
     import params
     env.set_params(params)
     self.configure(env)
-    if params.security_enabled:
-      Execute(
-        format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' >> {infra_solr_log} 2>&1'),
-        environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
-        user=params.infra_solr_user
-      )
-    else:
-      Execute(
-        format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} >> {infra_solr_log} 2>&1'),
-        environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
-        user=params.infra_solr_user
-      )
+
+    start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' >> {infra_solr_log} 2>&1') \
+            if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} >> {infra_solr_log} 2>&1')
+    Execute(
+      start_cmd,
+      environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
+      user=params.infra_solr_user
+    )
 
   def stop(self, env, upgrade_type=None):
     import params
