@@ -264,7 +264,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         String stackName = (String) propertyMap.get(STACK_NAME_PROPERTY_ID);
         String stackVersion = (String) propertyMap.get(STACK_VERSION_PROPERTY_ID);
         StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
-        mpackId = stackEntity.getCurrentMpackId();
+        mpackId = stackEntity.getMpackId();
         if (mpackId != null) {
           MpackResponse response = getManagementController().getMpack(mpackId);
           Resource resource = new ResourceImpl(Resource.Type.Mpack);
