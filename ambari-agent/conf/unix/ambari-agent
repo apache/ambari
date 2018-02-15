@@ -62,7 +62,7 @@ export PATH=/usr/sbin:/sbin:/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=$HOME_DIR/etc/ambari-server/conf:$PATH
 
 # Because Ambari rpm unpacks modules here on all systems
-export PYTHONPATH=/usr/lib/ambari-agent/lib:${PYTHONPATH:-}
+export PYTHONPATH=/usr/lib/ambari-agent/lib:/usr/lib/mpack-instance-manager:${PYTHONPATH:-}
 
 export AMBARI_PID_DIR=`get_agent_property piddir`
 export AMBARI_PID_DIR=`valid_path "${AMBARI_PID_DIR:?}"`

@@ -117,7 +117,7 @@ do_install(){
   fi
 
   if [ -f "$AMBARI_ENV_RPMSAVE" ] ; then
-    PYTHON_PATH_LINE='export PYTHONPATH=/usr/lib/ambari-agent/lib:$PYTHONPATH'
+    PYTHON_PATH_LINE='export PYTHONPATH=/usr/lib/ambari-agent/lib:/usr/lib/mpack-instance-manager:$PYTHONPATH'
     grep "^$PYTHON_PATH_LINE\$" "$AMBARI_ENV_RPMSAVE" > /dev/null
     if [ $? -ne 0 ] ; then
       echo -e "\n$PYTHON_PATH_LINE" >> $AMBARI_ENV_RPMSAVE
