@@ -53,6 +53,9 @@ export default Ember.Component.extend({
       tableData.set("fileInfo", this.get("fileInfo"));
       tableData.set("tableMeta", this.get("tableMeta"));
       this.sendAction("createAndUpload", tableData);
+    },
+    cancel: function() {
+      this.sendAction("cancel");
     }
   }
 });
