@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.SERVER_SIDE_TIMESIFT_ADJUSTMENT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_EVENT_METRIC_PATTERNS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
@@ -31,8 +32,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,7 +68,8 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   private final boolean interpolationEnabled;
   private TimelineMetricMetadataManager metadataManagerInstance;
   private String skipAggrPatternStrings;
-
+  private String skipInterpolationMetricPatternStrings;
+  private Set<Pattern> skipInterpolationMetricPatterns = new HashSet<>();
 
   public TimelineMetricClusterAggregatorSecond(AggregationTaskRunner.AGGREGATOR_NAME aggregatorName,
                                                TimelineMetricMetadataManager metadataManager,
@@ -88,6 +94,15 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     this.serverTimeShiftAdjustment = Long.parseLong(metricsConf.get(SERVER_SIDE_TIMESIFT_ADJUSTMENT, "90000"));
     this.interpolationEnabled = Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, "true"));
     this.skipAggrPatternStrings = metricsConf.get(TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
+    this.skipInterpolationMetricPatternStrings = metricsConf.get(TIMELINE_METRICS_EVENT_METRIC_PATTERNS, "");
+
+    if (StringUtils.isNotEmpty(skipInterpolationMetricPatternStrings)) {
+      for (String patternString : skipInterpolationMetricPatternStrings.split(",")) {
+        String javaPatternString = hBaseAccessor.getJavaRegexFromSqlRegex(patternString);
+        LOG.info("SQL pattern " + patternString + " converted to Java pattern : " + javaPatternString);
+        skipInterpolationMetricPatterns.add(Pattern.compile(javaPatternString));
+      }
+    }
   }
 
   @Override
@@ -325,6 +340,17 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
                                          List<Long[]> timeSlices,
                                          Map<Long, Double> timeSliceValueMap) {
 
+
+    if (timelineMetric.getMetricName().startsWith("mem_")) {
+      LOG.info("Memory metric in interpolation : " + timelineMetric.getMetricName());
+    }
+    for (Pattern pattern : skipInterpolationMetricPatterns) {
+      Matcher m = pattern.matcher(timelineMetric.getMetricName());
+      if (m.matches()) {
+        LOG.info("Skipping interpolation for " + timelineMetric.getMetricName());
+        return;
+      }
+    }
 
     if (StringUtils.isNotEmpty(timelineMetric.getType()) && "COUNTER".equalsIgnoreCase(timelineMetric.getType())) {
       //For Counter Based metrics, ok to do interpolation and extrapolation

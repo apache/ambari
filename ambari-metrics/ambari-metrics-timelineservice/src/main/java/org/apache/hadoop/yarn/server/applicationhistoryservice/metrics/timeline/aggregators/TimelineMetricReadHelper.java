@@ -72,7 +72,7 @@ public class TimelineMetricReadHelper {
         value = rs.getDouble("METRIC_MAX");
         break;
       case SUM:
-        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        value = rs.getDouble("METRIC_SUM");
         break;
       default:
         value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");

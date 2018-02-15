@@ -296,6 +296,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS =
     "timeline.metrics.support.multiple.clusters";
 
+  public static final String TIMELINE_METRICS_EVENT_METRIC_PATTERNS =
+    "timeline.metrics.downsampler.event.metric.patterns";
+
   public static final String HOST_APP_ID = "HOST";
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";
