@@ -33,8 +33,8 @@ class SparkServiceCheck(Script):
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
       if (params.has_livyserver):
-        livy_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
-        Execute(livy_kinit_cmd, user=params.livy_user)
+        smokeruser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
+        Execute(smokeruser_kinit_cmd, user=params.smoke_user)
 
     Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{spark_history_server_host}:{spark_history_ui_port} | grep 200"),
       tries=5,
