@@ -233,7 +233,8 @@ public class ClusterConfigurationRequest {
    */
   private Map<String, Set<String>> createServiceComponentMap() {
     return clusterTopology.getComponents()
-      .collect(groupingBy(ResolvedComponent::getServiceName, mapping(ResolvedComponent::getComponentName, toSet())));
+      .collect(groupingBy(ResolvedComponent::effectiveServiceName,
+        mapping(ResolvedComponent::componentName, toSet())));
   }
 
   /**
@@ -269,7 +270,7 @@ public class ClusterConfigurationRequest {
   private Map<String, String> createComponentHostMap() {
     Map<String, String> componentHostsMap = new HashMap<>();
     for (ResolvedComponent component : clusterTopology.getComponents().collect(toSet())) {
-      String componentName = component.getComponentName();
+      String componentName = component.componentName();
       Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(componentName);
       // retrieve corresponding clusterInfoKey for component using StageUtils
       String clusterInfoKey = StageUtils.getComponentToClusterInfoKeyMap().get(componentName);

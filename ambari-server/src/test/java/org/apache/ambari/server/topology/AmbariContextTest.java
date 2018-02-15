@@ -245,13 +245,15 @@ public class AmbariContextTest {
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
     expect(topology.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
+    expect(topology.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
     expect(topology.getServices()).andReturn(blueprintServices).anyTimes();
-    expect(topology.getComponents()).andReturn(Stream.of(
-      // FIXME add ResolvedComponents for both services
+    expect(topology.getComponents()).andAnswer(() -> Stream.of(
+      ResolvedComponent.builder(new Component("s1Component1")).stackId(STACK_ID).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("s1Component2")).stackId(STACK_ID).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("s2Component1")).stackId(STACK_ID).serviceType("service2").buildPartial()
     )).anyTimes();
-    expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
-    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+    expect(topology.getConfiguration()).andReturn(bpConfiguration).anyTimes();
+    expect(topology.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
@@ -338,7 +340,7 @@ public class AmbariContextTest {
     assertEquals(String.format("%s-%s", STACK_NAME, STACK_VERSION), clusterRequest.getStackVersion());
 
     Set<ServiceGroupRequest> serviceGroupRequests = serviceGroupRequestCapture.getValue();
-    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), AmbariContext.DEFAULT_SERVICE_GROUP_NAME));
+    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), STACK_NAME));
     assertEquals(expectedServiceGroupRequests, serviceGroupRequests);
 
     Collection<ServiceRequest> serviceRequests = serviceRequestCapture.getValue();

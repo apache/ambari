@@ -136,7 +136,7 @@ public class DependencyAndCardinalityValidatorTest {
     dependenciesConditionInfos1.add(dependencyConditionInfo1);
     dependenciesConditionInfos1.add(dependencyConditionInfo2);
 
-    expect(blueprint.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
   }
 
   @After

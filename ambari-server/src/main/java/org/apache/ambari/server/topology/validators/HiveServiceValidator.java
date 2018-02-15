@@ -52,7 +52,7 @@ public class HiveServiceValidator implements TopologyValidator {
 
     boolean hiveWantsMysql = HIVE_DB_DEFAULT.equals(clusterConfiguration.getPropertyValue(HIVE_ENV, HIVE_DB_PROPERTY));
     boolean topologyContainsMysql = topology.getComponents()
-      .anyMatch(c -> MYSQL_SERVER_COMPONENT.equals(c.getComponentName()) && HIVE_SERVICE.equals(c.getServiceName()));
+      .anyMatch(c -> MYSQL_SERVER_COMPONENT.equals(c.componentName()) && HIVE_SERVICE.equals(c.effectiveServiceName()));
 
     if (topologyContainsMysql && !hiveWantsMysql) {
       String errorMessage = String.format(

@@ -158,6 +158,9 @@ public class TopologyManager {
   @Inject
   private TopologyValidatorService topologyValidatorService;
 
+  @Inject
+  private ComponentResolver resolver;
+
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
    * locking on the synchronized keyword.
@@ -278,7 +281,7 @@ public class TopologyManager {
     ensureInitialized();
 
     BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
-    Map<String, Set<ResolvedComponent>> resolved = new ComponentResolver(provisionRequest).resolve();
+    Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
 
     final ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
     final String clusterName = request.getClusterName();

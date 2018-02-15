@@ -116,8 +116,9 @@ public class LogicalRequestTest extends EasyMockSupport {
     expect(clusterTopology.getClusterId()).andReturn(clusterId).anyTimes();
     expect(clusterTopology.getProvisionAction()).andReturn(ProvisionAction.INSTALL_ONLY).anyTimes();
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprintName()).andReturn("blueprintDef").anyTimes();
+    expect(clusterTopology.getSetting()).andReturn(setting).anyTimes();
     expect(blueprint.getName()).andReturn("blueprintDef").anyTimes();
-    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.shouldSkipFailure()).andReturn(true).anyTimes();
 
     PowerMock.reset(AmbariServer.class);

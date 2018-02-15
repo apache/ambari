@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
@@ -164,7 +166,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Collection<String> getHostGroupsForComponent(String component) {
     return resolvedComponents.entrySet().stream()
-      .filter(e -> e.getValue().stream().anyMatch(c -> component.equals(c.getComponentName())))
+      .filter(e -> e.getValue().stream().anyMatch(c -> component.equals(c.componentName())))
       .map(Map.Entry::getKey)
       .collect(toSet());
   }
@@ -229,7 +231,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Collection<String> getServices() {
     return getComponents()
-      .map(ResolvedComponent::getServiceName)
+      .map(ResolvedComponent::effectiveServiceName)
       .collect(toSet());
   }
 
@@ -239,7 +241,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
       .flatMap(Collection::stream);
   }
 
-  @Override
+  @Override @Nonnull
   public Stream<ResolvedComponent> getComponentsInHostGroup(String hostGroup) {
     return resolvedComponents.computeIfAbsent(hostGroup, __ -> ImmutableSet.of()).stream();
   }
@@ -247,7 +249,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public boolean containsMasterComponent(String hostGroup) {
     return resolvedComponents.getOrDefault(hostGroup, ImmutableSet.of()).stream()
-      .anyMatch(ResolvedComponent::isMasterComponent);
+      .anyMatch(ResolvedComponent::masterComponent);
   }
 
   @Override

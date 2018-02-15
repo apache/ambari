@@ -350,20 +350,20 @@ public class AmbariContext {
 
   private void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName, Map<StackId, Long> repoVersionByStack) {
     Set<ServiceGroupRequest> serviceGroupRequests = topology.getComponents()
-      .map(c -> new ServiceGroupRequest(clusterName, c.getServiceGroupName()))
+      .map(c -> new ServiceGroupRequest(clusterName, c.effectiveServiceGroupName()))
       .collect(toSet());
 
     Set<ServiceRequest> serviceRequests = topology.getComponents()
       .map(c -> new ServiceRequest(
-          clusterName, c.getServiceGroupName(), c.getServiceName(), c.getServiceType(), repoVersionByStack.get(c.getStackId()), null,
-          topology.getSetting().getCredentialStoreEnabled(c.getServiceName()), // FIXME settings by service type or name?
-          c.getStackId()
+          clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.serviceType(), repoVersionByStack.get(c.stackId()), null,
+          topology.getSetting().getCredentialStoreEnabled(c.effectiveServiceName()), // FIXME settings by service type or name?
+          c.stackId()
         ))
       .collect(toSet());
 
     Set<ServiceComponentRequest> componentRequests = topology.getComponents()
-      .map(c -> new ServiceComponentRequest(clusterName, c.getServiceGroupName(), c.getServiceName(), c.getComponentName(), null,
-        topology.getSetting().getRecoveryEnabled(c.getServiceName(), c.getComponentName()))) // FIXME settings by service type or name?
+      .map(c -> new ServiceComponentRequest(clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.componentName(), null,
+        topology.getSetting().getRecoveryEnabled(c.effectiveServiceName(), c.componentName()))) // FIXME settings by service type or name?
       .collect(toSet());
 
     try {

@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.stream.Stream;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -83,6 +82,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 @RunWith(PowerMockRunner.class)
@@ -108,9 +108,6 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
 
   @Mock(type = MockType.NICE)
   private Blueprint blueprint;
-
-  @Mock(type = MockType.NICE)
-  private ClusterTopology topology;
 
   @Mock(type = MockType.NICE)
   private Stack stack;
@@ -173,6 +170,9 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
 
   @Mock
   private TopologyValidatorService topologyValidatorServiceMock;
+
+  @Mock
+  private ComponentResolver componentResolver;
 
   private final Configuration stackConfig = new Configuration(new HashMap<>(),
     new HashMap<>());
@@ -258,10 +258,6 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(blueprint.getSetting()).andReturn(SETTING).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
-    expect(topology.getComponents()).andReturn(Stream.of(
-      // FIXME add ResolvedComponents for both services
-    )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.singleton(group1)).anyTimes();
@@ -269,16 +265,18 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Arrays.asList(group1, group2)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component4")).andReturn(Collections.singleton(group2)).anyTimes();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
-    expect(topology.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
-    expect(topology.getStack()).andReturn(stack).anyTimes();
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
-    expect(topology.isValidConfigType(anyString())).andReturn(true).anyTimes();
     expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
+    expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     // don't expect toEntity()
 
-    expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
-    expect(stack.getAllConfigurationTypes("service2")).andReturn(Arrays.asList("service2-site", "service2-env")).anyTimes();
+    List<String> configTypes1 = Arrays.asList("service1-site", "service1-env");
+    List<String> configTypes2 = Arrays.asList("service2-site", "service2-env");
+    expect(stack.getConfigurationTypes("service1")).andReturn(configTypes1).anyTimes();
+    expect(stack.getConfigurationTypes("service2")).andReturn(configTypes2).anyTimes();
+    expect(stack.getAllConfigurationTypes("service1")).andReturn(configTypes1).anyTimes();
+    expect(stack.getAllConfigurationTypes("service2")).andReturn(configTypes2).anyTimes();
     expect(stack.getAutoDeployInfo("component1")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component2")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component3")).andReturn(null).anyTimes();
@@ -322,9 +320,21 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(request.getProvisionAction()).andReturn(INSTALL_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
     expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
+    expect(request.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
+
+    expect(componentResolver.resolveComponents(anyObject())).andReturn(ImmutableMap.of(
+      "group1", ImmutableSet.of(
+        ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
+        ResolvedComponent.builder(new Component("component2")).serviceType("service2").buildPartial()
+      ),
+      "group2", ImmutableSet.of(
+        ResolvedComponent.builder(new Component("component3")).serviceType("service2").buildPartial(),
+        ResolvedComponent.builder(new Component("component4")).serviceType("service2").buildPartial()
+      )
+    )).anyTimes();
 
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(topology.containsMasterComponent("group1")).andReturn(true).anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
     expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
     expect(group1.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.emptyList()).anyTimes();
@@ -333,7 +343,6 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(group1.getName()).andReturn("group1").anyTimes();
 
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(topology.containsMasterComponent("group2")).andReturn(false).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2ComponentNames).anyTimes();
     expect(group2.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.emptyList()).anyTimes();

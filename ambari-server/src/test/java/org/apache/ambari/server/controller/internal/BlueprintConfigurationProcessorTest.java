@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.ALWAYS_APPLY;
 import static org.apache.ambari.server.topology.ConfigRecommendationStrategy.NEVER_APPLY;
@@ -8230,13 +8231,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       //todo: HG configs
       groupInfo.setConfiguration(hostGroup.configuration);
 
-      List<Component> componentList = new ArrayList<>();
-      for (String componentName : hostGroup.components) {
-        componentList.add(new Component(componentName, null, stack.getServiceForComponent(componentName), null));
-      }
-      Set<ResolvedComponent> components = componentList.stream()
-        .map(comp -> new ResolvedComponent(STACK_ID, comp.getServiceInstance(), comp.getServiceInstance(), comp))
+      Set<ResolvedComponent> components = hostGroup.components.stream()
+        .map(name -> ResolvedComponent.builder(new Component(name)).stackId(STACK_ID).serviceType(stack.getServiceForComponent(name)).buildPartial())
         .collect(toSet());
+
+      List<Component> componentList = components.stream()
+        .map(ResolvedComponent::component)
+        .collect(toList());
 
       //create host group which is set on topology
       allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, componentList, EMPTY_CONFIG, "1"));

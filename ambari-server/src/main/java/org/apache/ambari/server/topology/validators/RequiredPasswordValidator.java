@@ -75,8 +75,8 @@ public class RequiredPasswordValidator implements TopologyValidator {
           groupEntry.getValue().getConfiguration().getFullProperties(3);
 
       Map<String, Set<String>> missingPropertiesInHostGroup = topology.getComponentsInHostGroup(hostGroupName)
-        .filter(component -> !RootComponent.AMBARI_SERVER.name().equals(component.getComponentName()))
-        .map(ResolvedComponent::getServiceType)
+        .filter(component -> !RootComponent.AMBARI_SERVER.name().equals(component.componentName()))
+        .map(ResolvedComponent::serviceType)
         .distinct()
         .flatMap(serviceType -> stack.getRequiredConfigurationProperties(serviceType, PropertyInfo.PropertyType.PASSWORD).stream())
         .filter(property -> !propertyExists(groupProperties, property.getType(), property.getName()))

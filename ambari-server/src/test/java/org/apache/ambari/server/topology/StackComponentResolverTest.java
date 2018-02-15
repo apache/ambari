@@ -33,7 +33,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 
-public class ComponentResolverTest {
+public class StackComponentResolverTest {
 
   private final TopologyValidator validator = new RejectUnknownComponents();
   private final ClusterTopology topology = createNiceMock(ClusterTopology.class);
@@ -73,7 +73,9 @@ public class ComponentResolverTest {
   }
 
   private void componentsInTopologyAre(String... components) {
-    expect(topology.getComponents()).andReturn(Stream.empty()).anyTimes(); // FIXME
+    expect(topology.getComponents()).andReturn(Stream.of(components)
+      .map(name -> ResolvedComponent.builder(new Component(name)).buildPartial())
+    ).anyTimes();
     replay(topology);
   }
 

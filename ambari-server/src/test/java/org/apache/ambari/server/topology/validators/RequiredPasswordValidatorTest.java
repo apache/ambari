@@ -26,15 +26,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.ResolvedComponent;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -78,8 +81,6 @@ public class RequiredPasswordValidatorTest extends EasyMockSupport {
   private static final Map<String, HostGroup> hostGroups = new HashMap<>();
   private static final Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
 
-  private static final Collection<String> group1Components = new HashSet<>();
-  private static final Collection<String> group2Components = new HashSet<>();
   private static final Collection<String> service1Components = new HashSet<>();
   private static final Collection<String> service2Components = new HashSet<>();
   private static final Collection<String> service3Components = new HashSet<>();
@@ -123,13 +124,6 @@ public class RequiredPasswordValidatorTest extends EasyMockSupport {
     hostGroups.put("group1", group1);
     hostGroups.put("group2", group2);
 
-    group1Components.add("component1");
-    group1Components.add("component2");
-    group1Components.add("component3");
-
-    group2Components.add("component1");
-    group2Components.add("component4");
-
     service1Components.add("component1");
     service1Components.add("component2");
     service2Components.add("component3");
@@ -151,13 +145,15 @@ public class RequiredPasswordValidatorTest extends EasyMockSupport {
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(topology.getStack()).andReturn(stack).anyTimes();
 
-    expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
-    expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
-
-    expect(stack.getServiceForComponent("component1")).andReturn("service1").anyTimes();
-    expect(stack.getServiceForComponent("component2")).andReturn("service1").anyTimes();
-    expect(stack.getServiceForComponent("component3")).andReturn("service2").anyTimes();
-    expect(stack.getServiceForComponent("component4")).andReturn("service3").anyTimes();
+    expect(topology.getComponentsInHostGroup("group1")).andReturn(Stream.of(
+      ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("component2")).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("component3")).serviceType("service2").buildPartial()
+    )).anyTimes();
+    expect(topology.getComponentsInHostGroup("group2")).andReturn(Stream.of(
+      ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("component4")).serviceType("service3").buildPartial()
+    )).anyTimes();
 
     expect(stack.getRequiredConfigurationProperties("service1", PropertyInfo.PropertyType.PASSWORD)).andReturn(service1RequiredPwdConfigs).anyTimes();
     expect(stack.getRequiredConfigurationProperties("service2", PropertyInfo.PropertyType.PASSWORD)).andReturn(service2RequiredPwdConfigs).anyTimes();

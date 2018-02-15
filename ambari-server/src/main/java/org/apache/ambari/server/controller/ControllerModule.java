@@ -169,10 +169,12 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.ComponentResolver;
 import org.apache.ambari.server.topology.DefaultStackFactory;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.StackComponentResolver;
 import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.topology.validators.BasicBlueprintValidator;
@@ -416,6 +418,7 @@ public class ControllerModule extends AbstractModule {
     bind(SecurityConfigurationFactory.class).in(Scopes.SINGLETON);
 
     bind(PersistedState.class).to(PersistedStateImpl.class);
+    bind(ComponentResolver.class).to(StackComponentResolver.class);
 
     // factory to create LoggingRequestHelper instances for LogSearch integration
     bind(LoggingRequestHelperFactory.class).to(LoggingRequestHelperFactoryImpl.class);

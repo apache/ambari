@@ -18,11 +18,12 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.ResolvedComponent;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -133,7 +134,9 @@ public class HiveServiceValidatorTest extends EasyMockSupport {
     if (hasMysql) {
       components.add("MYSQL_SERVER");
     }
-    expect(topology.getComponents()).andReturn(Stream.empty()).anyTimes(); // FIXME
+    expect(topology.getComponents()).andReturn(components.build().stream()
+      .map(name -> ResolvedComponent.builder(new Component(name)).serviceType("HIVE").buildPartial())
+    ).anyTimes();
     expect(topology.getServices()).andReturn(ImmutableSet.of("HDFS", "YARN", "HIVE")).anyTimes();
     replay(topology);
   }

@@ -17,47 +17,59 @@
  */
 package org.apache.ambari.server.topology;
 
+import java.util.Optional;
+
 import org.apache.ambari.server.state.StackId;
+import org.inferred.freebuilder.FreeBuilder;
 
-public class ResolvedComponent {
+/**
+ * I provide additional information for a component specified in the blueprint,
+ * based on values resolved from the stack and sensible defaults.
+ */
+@FreeBuilder
+public interface ResolvedComponent {
 
-  private final StackId stackId;
-  private final String serviceName;
-  private final String serviceType;
-  private final Component component;
+  StackId stackId();
+  Optional<String> serviceGroupName();
+  String serviceType();
+  Optional<String> serviceName();
+  String componentName();
+  boolean masterComponent();
 
-  public ResolvedComponent(StackId stackId, String serviceName, String serviceType, Component component) {
-    this.stackId = stackId;
-    this.serviceName = serviceName;
-    this.serviceType = serviceType;
-    this.component = component;
+  /**
+   * @return the component as specified in the blueprint
+   */
+  Component component();
+
+  /**
+   * @return service group name if it set, otherwise defaults to the stack name
+   */
+  default String effectiveServiceGroupName() {
+    return serviceGroupName().orElse(stackId().getStackName());
   }
 
-  public StackId getStackId() {
-    return stackId;
+  /**
+   * @return service name if it set, otherwise defaults to the service type (eg. ZOOKEEPER)
+   */
+  default String effectiveServiceName() {
+    return serviceName().orElse(serviceType());
   }
 
-  public String getServiceName() {
-    return serviceName;
+  /**
+   * Starts building a {@code ResolvedComponent} for the given component.
+   */
+  static Builder builder(Component component) {
+    return new Builder()
+      .component(component)
+      .componentName(component.getName())
+      .serviceName(Optional.ofNullable(component.getServiceInstance()))
+      .serviceGroupName(Optional.ofNullable(component.getMpackInstance()));
   }
 
-  public String getServiceType() {
-    return serviceType;
+  class Builder extends ResolvedComponent_Builder {
+    protected Builder() {
+      masterComponent(false);
+    }
   }
 
-  public String getComponentName() {
-    return component.getName();
-  }
-
-  public Component getComponent() {
-    return component;
-  }
-
-  public String getServiceGroupName() {
-    return stackId.toString(); // FIXME
-  }
-
-  public boolean isMasterComponent() {
-    return false; // FIXME
-  }
 }

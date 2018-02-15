@@ -92,6 +92,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -178,6 +179,9 @@ public class TopologyManagerTest {
   @Mock
   private TopologyValidatorService topologyValidatorService;
 
+  @Mock
+  private ComponentResolver componentResolver;
+
   private final Configuration stackConfig = new Configuration(new HashMap<>(),
     new HashMap<>());
   private final Configuration bpConfiguration = new Configuration(new HashMap<>(),
@@ -263,7 +267,10 @@ public class TopologyManagerTest {
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(clusterTopologyMock.getComponents()).andReturn(Stream.of(
-      // FIXME add ResolvedComponents for both services
+      ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("component2")).serviceType("service2").buildPartial(),
+      ResolvedComponent.builder(new Component("component3")).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("component4")).serviceType("service2").buildPartial()
     )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
@@ -274,9 +281,9 @@ public class TopologyManagerTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(clusterTopologyMock.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(clusterTopologyMock.getStack()).andReturn(stack).anyTimes();
-    expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
+    expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -313,7 +320,10 @@ public class TopologyManagerTest {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
 
+    expect(componentResolver.resolveComponents(anyObject())).andReturn(ImmutableMap.of()).anyTimes();
 
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(clusterTopologyMock.containsMasterComponent("group1")).andReturn(true).anyTimes();
@@ -337,6 +347,7 @@ public class TopologyManagerTest {
     expect(logicalRequest.getReservedHosts()).andReturn(Collections.singleton("host1")).anyTimes();
     expect(logicalRequest.getRequestStatus()).andReturn(requestStatusResponse).anyTimes();
 
+    expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
     ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE), isNull(), anyLong());
@@ -389,12 +400,12 @@ public class TopologyManagerTest {
   @After
   public void tearDown() {
     PowerMock.verify(System.class);
-    verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
+    verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
         requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
 
     PowerMock.reset(System.class);
-    reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
+    reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
         requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
   }
@@ -550,7 +561,7 @@ public class TopologyManagerTest {
   }
 
   private void replayAll() {
-    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
+    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
             clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO,

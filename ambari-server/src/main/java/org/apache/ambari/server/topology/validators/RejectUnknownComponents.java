@@ -33,7 +33,7 @@ public class RejectUnknownComponents implements TopologyValidator {
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
     String unknownComponents = topology.getComponents()
-      .map(ResolvedComponent::getComponentName)
+      .map(ResolvedComponent::componentName)
       .filter(c -> !RootComponent.AMBARI_SERVER.name().equals(c))
       .filter(c -> !topology.getStack().getComponents().contains(c))
       .collect(joining(", "));
