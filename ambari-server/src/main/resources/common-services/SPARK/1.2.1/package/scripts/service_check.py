@@ -50,7 +50,7 @@ class SparkServiceCheck(Script):
               tries=3,
               try_sleep=1,
               logoutput=True,
-              user=params.livy_user
+              user=params.smoke_user
               )
           live_livyserver_host = livyserver_host
           break
