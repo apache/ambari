@@ -129,6 +129,9 @@ def is_package_supported(package, supported_packages = None):
   """
   if supported_packages is None:
     supported_packages = get_supported_packages()
+    if supported_packages is None:
+       Logger.warning('No stack tool available, all packages are assumed to be supported by this stack')
+       return True
 
   if package in supported_packages:
     return True
@@ -142,6 +145,9 @@ def get_supported_packages():
   :return: and array of packages support by <stack-select>
   """
   stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
+  if not os.path.exists(stack_selector_path):
+    Logger.warning('This stack does not have a stack select tool')
+    return
   command = (STACK_SELECT_PREFIX, stack_selector_path, "packages")
   code, stdout = shell.call(command, sudo = True,  quiet = True)
 
