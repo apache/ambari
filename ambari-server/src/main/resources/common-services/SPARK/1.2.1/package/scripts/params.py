@@ -115,6 +115,7 @@ spark_submit_cmd = format("{spark_home}/bin/spark-submit")
 spark_smoke_example = "org.apache.spark.examples.SparkPi"
 spark_service_check_cmd = format(
   "{spark_submit_cmd} --class {spark_smoke_example}  --master yarn-cluster  --num-executors 1 --driver-memory 256m  --executor-memory 256m   --executor-cores 1  {spark_home}/lib/spark-examples*.jar 1")
+smoke_user = config['configurations']['cluster-env']['smokeuser']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 
