@@ -701,9 +701,10 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   public void testDowngradeToBase() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
+    assertEquals(cluster.getDesiredStackVersion().getStackId(), "HDP-2.1.1");
     Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2111.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
@@ -717,6 +718,8 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity upgrade = upgrades.get(0);
+
+    assertEquals("HDP-2.2.0", cluster.getDesiredStackVersion().getStackId());
 
     // now abort the upgrade so another can be created
     abortUpgrade(upgrade.getRequestId());
@@ -749,12 +752,14 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Resource r = status.getAssociatedResources().iterator().next();
     String id = r.getPropertyValue("Upgrade/request_id").toString();
 
+    assertEquals("HDP-2.1.1", cluster.getDesiredStackVersion().getStackId());
+
     UpgradeEntity entity = upgradeDao.findUpgrade(Long.parseLong(id));
     assertNotNull(entity);
     assertEquals(Direction.DOWNGRADE, entity.getDirection());
 
     // associated version is the FROM on DOWNGRADE
-    assertEquals(repoVersionEntity2111.getVersion(), entity.getRepositoryVersion().getVersion());
+    assertEquals(repoVersionEntity2200.getVersion(), entity.getRepositoryVersion().getVersion());
 
     // target is by service
     assertEquals(repoVersionEntity2110.getVersion(),
@@ -762,6 +767,8 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     StageDAO dao = injector.getInstance(StageDAO.class);
     List<StageEntity> stages = dao.findByRequestId(entity.getRequestId());
+
+    assertEquals("HDP-2.1.1", cluster.getDesiredStackVersion().getStackId());
 
     Gson gson = new Gson();
     for (StageEntity se : stages) {
@@ -1113,6 +1120,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   public void testCreateCrossStackUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
     StackId oldStack = repoVersionEntity2110.getStackId();
+    assertEquals(cluster.getDesiredStackVersion(), oldStack);
 
     for (Service s : cluster.getServices().values()) {
       assertEquals(oldStack, s.getDesiredStackId());
@@ -1155,6 +1163,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(2, group.getItems().size());
 
     assertTrue(cluster.getDesiredConfigs().containsKey("zoo.cfg"));
+    assertTrue(cluster.getDesiredStackVersion().getStackId().equals("HDP-2.2.0"));
 
     for (Service s : cluster.getServices().values()) {
       assertEquals(repoVersionEntity2200, s.getDesiredRepositoryVersion());
