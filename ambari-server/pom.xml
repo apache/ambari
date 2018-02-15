@@ -357,23 +357,16 @@
             <exclude>src/main/windows/ambari-server.cmd</exclude>
             <exclude>src/main/windows/ambari-server.ps1</exclude>
             <exclude>src/main/package/choco/ambari-server.nuspec</exclude>
-            <exclude>src/main/resources/common-services/AMBARI_METRICS/0.1.0/package/templates/smoketest_metrics.json.j2</exclude>
-            <exclude>src/main/resources/common-services/AMBARI_METRICS/0.1.0/package/files/service-metrics/*.txt</exclude>
-            <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer-err.log</exclude>
-            <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer.log</exclude>
-            <exclude>src/main/resources/common-services/HDFS/3.0.0.3.0/package/scripts/balancer-emulator/balancer-err.log</exclude>
-            <exclude>src/main/resources/common-services/HDFS/3.0.0.3.0/package/scripts/balancer-emulator/balancer.log</exclude>
-            <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
-            <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
-            <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
-            <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
+            <exclude>**/smoketest_metrics.json.j2</exclude>
+            <exclude>**/service-metrics/*.txt</exclude>
+            <exclude>**/balancer.log</exclude>
+            <exclude>**/balancer-err.log</exclude>
             <exclude>${swagger.spec.dir}/**</exclude>
             <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>conf/windows/ca.config</exclude>
             <exclude>conf/windows/krb5JAASLogin.conf</exclude>
-            <exclude>**/*.iml</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
             <exclude>**/repo_suse_rhel.j2</exclude>
@@ -604,16 +597,6 @@
               <sources>
                 <source>
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/var/lib/ambari-server</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/usr/lib/python2.6/site-packages</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/lib/python2.6/site-packages</location>
                 </source>
               </sources>
             </mapping>
@@ -1185,8 +1168,16 @@
       <version>1.9.2</version>
     </dependency>
     <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-assistedinject</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-multibindings</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
@@ -1195,11 +1186,6 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject.extensions</groupId>
-      <artifactId>guice-multibindings</artifactId>
-      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
@@ -1221,6 +1207,10 @@
     <dependency>
       <groupId>org.springframework.security.kerberos</groupId>
       <artifactId>spring-security-kerberos-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -1262,6 +1252,11 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
@@ -1473,11 +1468,6 @@
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
       <version>3.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>

@@ -73,6 +73,9 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
         case UNKNOWN:
           if (maintenanceState == MaintenanceState.OFF) {
             prerequisiteCheck.getFailedOn().add(host.getHostName());
+
+            prerequisiteCheck.getFailedDetail().add(
+                new HostDetail(host.getHostId(), host.getHostName()));
           }
           break;
         default:

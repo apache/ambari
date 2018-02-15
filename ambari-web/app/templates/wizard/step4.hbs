@@ -24,6 +24,7 @@
       <table class="table table-hover">
         <thead>
         <tr>
+          <th class="checkbox-row"></th>
           <th {{QAAttr "service-name-header"}} class="col-md-3">{{t common.service}}</th>
           <th {{QAAttr "service-version-header"}} id="service-version">{{t common.version}}</th>
           <th {{QAAttr "service-description-header"}} id="service-description">{{t common.description}}</th>
@@ -33,17 +34,17 @@
         {{#each service in controller.fileSystems}}
           {{#unless service.isHiddenOnSelectServicePage}}
             <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}} >
-              <td {{QAAttr "service-name"}}>{{service.displayNameOnSelectServicePage}}</td>
-              <td {{QAAttr "service-version"}}>{{service.serviceVersionDisplay}}</td>
-              <td {{QAAttr "service-description"}}>{{{service.comments}}}</td>
-              <td>
+              <td class="checkbox-cell">
                 <div class="checkbox">
                   {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
-                         disabledBinding="service.isDisabled"
-                         checkedBinding="service.isSelected"
+                  disabledBinding="service.isDisabled"
+                  checkedBinding="service.isSelected"
                   }}
                 </div>
               </td>
+              <td {{QAAttr "service-name"}}>{{service.displayNameOnSelectServicePage}}</td>
+              <td {{QAAttr "service-version"}}>{{service.serviceVersionDisplay}}</td>
+              <td {{QAAttr "service-description"}}>{{{service.comments}}}</td>
             </tr>
           {{/unless}}
         {{/each}}
@@ -60,12 +61,12 @@
       <table class="table table-hover">
         <thead>
         <tr>
-          <th {{QAAttr "service-name-header"}} class="col-md-3">{{t common.service}}</th>
-          <th {{QAAttr "service-version-header"}} id="service-version">{{t common.version}}</th>
-          <th {{QAAttr "service-description-header"}} id="service-description">{{t common.description}}</th>
           <th>
             {{view App.CheckboxView data-qa="toggle-all" disabledBinding="isInstalled" checkedBinding="isAllChecked"}}
           </th>
+          <th {{QAAttr "service-name-header"}} class="col-md-3">{{t common.service}}</th>
+          <th {{QAAttr "service-version-header"}} id="service-version">{{t common.version}}</th>
+          <th {{QAAttr "service-description-header"}} id="service-description">{{t common.description}}</th>
         </tr>
         </thead>
         <tbody>
@@ -73,16 +74,16 @@
           {{#unless service.isHiddenOnSelectServicePage}}
             {{#unless service.isDFS}}
               <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}}>
+                <td class="checkbox-cell">
+                  <div class="checkbox">
+                    {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
+                    disabledBinding="service.isDisabled"
+                    checkedBinding="service.isSelected" }}
+                  </div>
+                </td>
                 <td {{QAAttr "service-name"}}>{{service.displayNameOnSelectServicePage}}</td>
                 <td {{QAAttr "service-version"}}>{{service.serviceVersionDisplay}}</td>
                 <td {{QAAttr "service-description"}}>{{{service.comments}}}</td>
-                <td>
-                  <div class="checkbox">
-                    {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
-                        disabledBinding="service.isDisabled"
-                        checkedBinding="service.isSelected" }}
-                  </div>
-                </td>
               </tr>
             {{/unless}}
           {{/unless}}

@@ -120,12 +120,14 @@ public class HostsHeartbeatCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertFalse(check.getFailedDetail().isEmpty());
 
     // put the unhealthy host into MM which will allow this check to pass
     check = new PrerequisiteCheck(null, null);
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
     hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // make the host healthy and take it out of MM to produce a PASS result
     Mockito.when(status3.getHealthStatus()).thenReturn(HealthStatus.HEALTHY);
@@ -133,5 +135,6 @@ public class HostsHeartbeatCheckTest {
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
   }
 }

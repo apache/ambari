@@ -46,7 +46,6 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -356,7 +355,7 @@ public class AmbariAuthorizationFilterTest {
    * @throws Exception if an exception occurs
    */
   private void performGeneralDoFilterTest(Authentication authentication, Table<String, String, Boolean> urlTests, boolean expectRedirect) throws Exception {
-    final SecurityContext securityContext = createNiceMock(SecurityContext.class);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
     final FilterConfig filterConfig = createNiceMock(FilterConfig.class);
 
     final Configuration configuration = EasyMock.createMock(Configuration.class);
@@ -379,12 +378,11 @@ public class AmbariAuthorizationFilterTest {
 
     expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter").anyTimes();
 
-    expect(filter.getSecurityContext()).andReturn(securityContext).anyTimes();
+    expect(filter.getSecurityContext()).andReturn(SecurityContextHolder.getContext()).anyTimes();
     expect(filter.getViewRegistry()).andReturn(viewRegistry).anyTimes();
-    expect(securityContext.getAuthentication()).andReturn(authentication).anyTimes();
     expect(viewRegistry.checkPermission(EasyMock.eq("DeniedView"), EasyMock.anyObject(), EasyMock.anyObject(), EasyMock.anyBoolean())).andReturn(false).anyTimes();
 
-    replay(filterConfig, filter, securityContext, viewRegistry, configuration, auditLogger);
+    replay(filterConfig, filter, viewRegistry, configuration, auditLogger);
 
     for (final Cell<String, String, Boolean> urlTest: urlTests.cellSet()) {
       final FilterChain chain = EasyMock.createStrictMock(FilterChain.class);

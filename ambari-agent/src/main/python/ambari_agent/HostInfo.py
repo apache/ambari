@@ -25,7 +25,7 @@ import pwd
 import re
 import shlex
 import socket
-import subprocess
+from ambari_commons import subprocess32
 import time
 
 from ambari_commons import OSCheck, OSConst
@@ -369,7 +369,7 @@ class HostInfoLinux(HostInfo):
     service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
     service_check_live[1] = service_name
     try:
-      code, out, err = shell.call(service_check_live, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
+      code, out, err = shell.call(service_check_live, stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = 5, quiet = True)
       return out, err, code
     except Exception as ex:
       logger.warn("Checking service {0} status failed".format(service_name))
@@ -390,7 +390,7 @@ class HostInfoWindows(HostInfo):
   def checkUsers(self, user_mask, results):
     get_users_cmd = ["powershell", '-noProfile', '-NonInteractive', '-nologo', "-Command", self.GET_USERS_CMD.format(user_mask)]
     try:
-      osStat = subprocess.Popen(get_users_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      osStat = subprocess32.Popen(get_users_cmd, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
       out, err = osStat.communicate()
     except:
       raise Exception("Failed to get users.")

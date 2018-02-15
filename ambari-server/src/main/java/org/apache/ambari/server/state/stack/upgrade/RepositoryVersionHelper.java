@@ -39,8 +39,8 @@ import org.apache.ambari.server.controller.internal.OperatingSystemResourceProvi
 import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -95,6 +95,9 @@ public class RepositoryVersionHelper {
 
   @Inject Provider<Clusters> clusters;
 
+  public static final String GPL_MINIMAL_VERSION = "2.6.4.0";
+  private static final String ZERO_VERSION = "0.0.0.0";
+  private static final String VERSION_SPLITTER = "\\.";
 
   /**
    * Checks repo URLs against the current version for the cluster and make
@@ -160,27 +163,27 @@ public class RepositoryVersionHelper {
    * @return list of operating system entities
    * @throws Exception if any kind of json parsing error happened
    */
-  public List<OperatingSystemEntity> parseOperatingSystems(String repositoriesJson) throws Exception {
-    final List<OperatingSystemEntity> operatingSystems = new ArrayList<>();
+  public List<RepoOsEntity> parseOperatingSystems(String repositoriesJson) throws Exception {
+    final List<RepoOsEntity> operatingSystems = new ArrayList<>();
     final JsonArray rootJson = new JsonParser().parse(repositoriesJson).getAsJsonArray();
     for (JsonElement operatingSystemJson: rootJson) {
       JsonObject osObj = operatingSystemJson.getAsJsonObject();
 
-      final OperatingSystemEntity operatingSystemEntity = new OperatingSystemEntity();
+      final RepoOsEntity operatingSystemEntity = new RepoOsEntity();
 
-      operatingSystemEntity.setOsType(osObj.get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
+      operatingSystemEntity.setFamily(osObj.get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
 
       if (osObj.has(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS)) {
-        operatingSystemEntity.setAmbariManagedRepos(osObj.get(
+        operatingSystemEntity.setAmbariManaged(osObj.get(
             OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS).getAsBoolean());
       }
 
       for (JsonElement repositoryElement: osObj.get(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
-        final RepositoryEntity repositoryEntity = new RepositoryEntity();
+        final RepoDefinitionEntity repositoryEntity = new RepoDefinitionEntity();
         final JsonObject repositoryJson = repositoryElement.getAsJsonObject();
         repositoryEntity.setBaseUrl(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
-        repositoryEntity.setName(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
-        repositoryEntity.setRepositoryId(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
+        repositoryEntity.setRepoName(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
+        repositoryEntity.setRepoID(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
         if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID) != null) {
           repositoryEntity.setDistribution(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID).getAsString());
         }
@@ -188,7 +191,7 @@ public class RepositoryVersionHelper {
           repositoryEntity.setComponents(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID).getAsString());
         }
         if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID) != null) {
-          repositoryEntity.setMirrorsList(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID).getAsString());
+          repositoryEntity.setMirrors(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID).getAsString());
         }
         if (repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID) != null) {
           repositoryEntity.setUnique(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID).getAsBoolean());
@@ -204,88 +207,43 @@ public class RepositoryVersionHelper {
           repositoryEntity.setTags(tags);
         }
 
-        operatingSystemEntity.getRepositories().add(repositoryEntity);
+        operatingSystemEntity.addRepoDefinition(repositoryEntity);
       }
       operatingSystems.add(operatingSystemEntity);
     }
     return operatingSystems;
   }
 
-  /**
-   * Serializes repository info to json for storing to DB.
-   * Produces json like:
-   * <pre>
-   * [
-   *    {
-   *       "repositories":[
-   *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
-   *             "Repositories/repo_name":"HDP-UTILS",
-   *             "Repositories/repo_id":"HDP-UTILS-1.1.0.20"
-   *          },
-   *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
-   *             "Repositories/repo_name":"HDP",
-   *             "Repositories/repo_id":"HDP-2.2"
-   *          }
-   *       ],
-   *       "OperatingSystems/os_type":"redhat6"
-   *    }
-   * ]
-   * </pre>
-   *
-   * @param repositories list of repository infos
-   * @return serialized list of operating systems
-   */
-  public String serializeOperatingSystems(List<RepositoryInfo> repositories) {
-    final JsonArray rootJson = new JsonArray();
+  public List<RepoOsEntity> createRepoOsEntities(List<RepositoryInfo> repositories) {
+
+    List<RepoOsEntity> repoOsEntities = new ArrayList<>();
     final Multimap<String, RepositoryInfo> operatingSystems = ArrayListMultimap.create();
-    for (RepositoryInfo repository: repositories) {
+    for (RepositoryInfo repository : repositories) {
       operatingSystems.put(repository.getOsType(), repository);
     }
     for (Entry<String, Collection<RepositoryInfo>> operatingSystem : operatingSystems.asMap().entrySet()) {
-      final JsonObject operatingSystemJson = new JsonObject();
-      final JsonArray repositoriesJson = new JsonArray();
+      RepoOsEntity operatingSystemEntity = new RepoOsEntity();
+      List<RepoDefinitionEntity> repositoriesList = new ArrayList<>();
       for (RepositoryInfo repository : operatingSystem.getValue()) {
-        final JsonObject repositoryJson = new JsonObject();
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, repository.getBaseUrl());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, repository.getRepoName());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, repository.getRepoId());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID, repository.getDistribution());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, repository.getComponents());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
+        RepoDefinitionEntity repositoryDefinition = new RepoDefinitionEntity();
+        repositoryDefinition.setBaseUrl(repository.getBaseUrl());
+        repositoryDefinition.setRepoName(repository.getRepoName());
+        repositoryDefinition.setRepoID(repository.getRepoId());
+        repositoryDefinition.setDistribution(repository.getDistribution());
+        repositoryDefinition.setComponents(repository.getComponents());
+        repositoryDefinition.setMirrors(repository.getMirrorsList());
+        repositoryDefinition.setUnique(repository.isUnique());
 
-        // add the tags even if there are none
-        JsonArray tags = gson.toJsonTree(repository.getTags()).getAsJsonArray();
-        repositoryJson.add(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID, tags);
+        repositoryDefinition.setTags(repository.getTags());
 
-        repositoriesJson.add(repositoryJson);
-        operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, repository.isAmbariManagedRepositories());
+        repositoriesList.add(repositoryDefinition);
+        operatingSystemEntity.setAmbariManaged(repository.isAmbariManagedRepositories());
       }
-      operatingSystemJson.add(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID, repositoriesJson);
-      operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, operatingSystem.getKey());
-      rootJson.add(operatingSystemJson);
+      operatingSystemEntity.addRepoDefinitionEntities(repositoriesList);
+      operatingSystemEntity.setFamily(operatingSystem.getKey());
+      repoOsEntities.add(operatingSystemEntity);
     }
-    return gson.toJson(rootJson);
-  }
-
-  public String serializeOperatingSystemEntities(List<OperatingSystemEntity> operatingSystems) {
-    List<RepositoryInfo> repositoryInfos = new ArrayList<>();
-    for (OperatingSystemEntity os: operatingSystems) {
-      for (RepositoryEntity repositoryEntity: os.getRepositories()) {
-        RepositoryInfo repositoryInfo = new RepositoryInfo();
-        repositoryInfo.setRepoId(repositoryEntity.getRepositoryId());
-        repositoryInfo.setRepoName(repositoryEntity.getName());
-        repositoryInfo.setDistribution(repositoryEntity.getDistribution());
-        repositoryInfo.setComponents(repositoryEntity.getComponents());
-        repositoryInfo.setBaseUrl(repositoryEntity.getBaseUrl());
-        repositoryInfo.setOsType(os.getOsType());
-        repositoryInfo.setAmbariManagedRepositories(os.isAmbariManagedRepos());
-        repositoryInfos.add(repositoryInfo);
-      }
-    }
-    return serializeOperatingSystems(repositoryInfos);
+    return repoOsEntities;
   }
 
   /**
@@ -385,14 +343,14 @@ public class RepositoryVersionHelper {
    * @param host target {@link Host} for providing repositories list
    * @param repoVersion {@link RepositoryVersionEntity} version definition with all available repositories
    *
-   * @return {@link OperatingSystemEntity} with available repositories for host
+   * @return {@link RepoOsEntity} with available repositories for host
    * @throws SystemException if no repository available for target {@link Host}
    */
-  public OperatingSystemEntity getOSEntityForHost(Host host, RepositoryVersionEntity repoVersion) throws SystemException {
+  public RepoOsEntity getOSEntityForHost(Host host, RepositoryVersionEntity repoVersion) throws SystemException {
     String osFamily = host.getOsFamily();
-    OperatingSystemEntity osEntity = null;
-    for (OperatingSystemEntity operatingSystem : repoVersion.getOperatingSystems()) {
-      if (osFamily.equals(operatingSystem.getOsType())) {
+    RepoOsEntity osEntity = null;
+    for (RepoOsEntity operatingSystem : repoVersion.getRepoOsEntities()) {
+      if (osFamily.equals(operatingSystem.getFamily())) {
         osEntity = operatingSystem;
         break;
       }
@@ -411,7 +369,7 @@ public class RepositoryVersionHelper {
    * @param osEntity      the OS family
    */
   public CommandRepository getCommandRepository(final RepositoryVersionEntity repoVersion,
-                                                final OperatingSystemEntity osEntity) throws SystemException {
+                                                final RepoOsEntity osEntity) throws SystemException {
 
     final CommandRepository commandRepo = new CommandRepository();
     final boolean sysPreppedHost = configuration.get().areHostsSysPrepped().equalsIgnoreCase("true");
@@ -420,7 +378,7 @@ public class RepositoryVersionHelper {
       throw new SystemException("Repository version entity is not provided");
     }
 
-    commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
+    commandRepo.setRepositories(osEntity.getFamily(), osEntity.getRepoDefinitionEntities());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
     commandRepo.setResolved(repoVersion.isResolved());
@@ -428,7 +386,7 @@ public class RepositoryVersionHelper {
     commandRepo.getFeature().setPreInstalled(configuration.get().areHostsSysPrepped());
     commandRepo.getFeature().setIsScoped(!sysPreppedHost);
 
-    if (!osEntity.isAmbariManagedRepos()) {
+    if (!osEntity.isAmbariManaged()) {
       commandRepo.setNonManaged();
     } else {
       if (repoVersion.isLegacy()){
@@ -464,7 +422,7 @@ public class RepositoryVersionHelper {
     throws SystemException {
 
     RepositoryVersionEntity repoVersion = getRepositoryVersionEntity(cluster, component);
-    OperatingSystemEntity osEntity = getOSEntityForHost(host, repoVersion);
+    RepoOsEntity osEntity = getOSEntityForHost(host, repoVersion);
 
     return getCommandRepository(repoVersion, osEntity);
   }
@@ -505,15 +463,13 @@ public class RepositoryVersionHelper {
     JsonArray repositories = new JsonArray();
 
     String hostOsFamily = cluster.getHost(hostName).getOsFamily();
-    for (OperatingSystemEntity operatingSystemEntity : repositoryVersion.getOperatingSystems()) {
-      // ostype in OperatingSystemEntity it's os family. That should be fixed
-      // in OperatingSystemEntity.
-      if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
-        for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+    for (RepoOsEntity operatingSystemEntity : repositoryVersion.getRepoOsEntities()) {
+      if (operatingSystemEntity.getFamily().equals(hostOsFamily)) {
+        for (RepoDefinitionEntity repositoryEntity : operatingSystemEntity.getRepoDefinitionEntities()) {
           JsonObject repositoryInfo = new JsonObject();
           repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
-          repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
-          repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
+          repositoryInfo.addProperty("repo_name", repositoryEntity.getRepoName());
+          repositoryInfo.addProperty("repo_id", repositoryEntity.getRepoID());
 
           repositories.add(repositoryInfo);
         }
@@ -558,10 +514,10 @@ public class RepositoryVersionHelper {
         continue;
       }
 
-      for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
-        if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
-          for (RepositoryEntity re : ose.getRepositories()) {
-            if (re.getName().equals(repoName) &&
+      for (RepoOsEntity ose : rve.getRepoOsEntities()) {
+        if (ose.getFamily().equals(osType) && ose.isAmbariManaged()) {
+          for (RepoDefinitionEntity re : ose.getRepoDefinitionEntities()) {
+            if (re.getRepoName().equals(repoName) &&
               !re.getBaseUrl().equals(baseUrl)) {
               obj.addProperty("baseUrl", re.getBaseUrl());
             }
@@ -630,7 +586,7 @@ public class RepositoryVersionHelper {
    * @param osEntity      the OS family
    */
   public void addCommandRepositoryToContext(ActionExecutionContext context,
-                                            OperatingSystemEntity osEntity) throws SystemException {
+                                            RepoOsEntity osEntity) throws SystemException {
 
     final RepositoryVersionEntity repoVersion = context.getRepositoryVersion();
     final CommandRepository commandRepo = getCommandRepository(repoVersion, osEntity);
@@ -668,5 +624,36 @@ public class RepositoryVersionHelper {
     });
   }
 
+  /**
+   * Checks repository version is HDP and should contain repo with GPL tag.
+   * @param stackId stack id
+   * @param version repository version as x.x.x.x, x.x.x.x-x, x.x-x, x.x
+   * @return true if stack is HDP and version is younger than {@value #GPL_MINIMAL_VERSION}
+   */
+  public static boolean shouldContainGPLRepo(StackId stackId, String version) {
+    if (!stackId.getStackName().equals("HDP")) {
+      return false;
+    }
+    if (version.contains("-")) {
+      version = version.split("-")[0];
+    }
+    String[] versionItems = ZERO_VERSION.split(VERSION_SPLITTER);
+    int versionIndex = 0;
+    for (String versionItem : version.split(VERSION_SPLITTER)) {
+      versionItems[versionIndex++] = versionItem;
+    }
+    String[] gplMinimalItems = GPL_MINIMAL_VERSION.split(VERSION_SPLITTER);
+
+    for (versionIndex = 0; versionIndex < versionItems.length; versionIndex++) {
+      Integer versionItem = Integer.parseInt(versionItems[versionIndex]);
+      Integer gplMinimalItem = Integer.parseInt(gplMinimalItems[versionIndex]);
+      if (versionItem < gplMinimalItem) {
+        return false;
+      } else if (versionItem > gplMinimalItem) {
+        return true;
+      }
+    }
+    return true;
+  }
 
 }

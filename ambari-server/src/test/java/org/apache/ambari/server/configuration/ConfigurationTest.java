@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.configuration;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
@@ -514,19 +515,6 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void testExperimentalConcurrentStageProcessing() throws Exception {
-    final Properties ambariProperties = new Properties();
-    final Configuration configuration = new Configuration(ambariProperties);
-
-    Assert.assertFalse(configuration.isExperimentalConcurrentStageProcessingEnabled());
-
-    ambariProperties.setProperty(Configuration.EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED.getKey(),
-        Boolean.TRUE.toString());
-
-    Assert.assertTrue(configuration.isExperimentalConcurrentStageProcessingEnabled());
-  }
-
-  @Test
   public void testServerLocksProfilingEnabled() throws Exception {
     final Properties ambariProperties = new Properties();
     final Configuration configuration = new Configuration(ambariProperties);
@@ -955,4 +943,27 @@ public class ConfigurationTest {
     }
   }
 
+  @Test
+  public void testMaxAuthenticationFailureConfiguration() {
+    Configuration configuration;
+
+    // Test default value is 0
+    configuration = new Configuration();
+    assertEquals(0, configuration.getMaxAuthenticationFailures());
+
+    // Test configured value
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.MAX_LOCAL_AUTHENTICATION_FAILURES.getKey(), "10");
+    configuration = new Configuration(properties);
+    assertEquals(10, configuration.getMaxAuthenticationFailures());
+
+    properties.setProperty(Configuration.MAX_LOCAL_AUTHENTICATION_FAILURES.getKey(), "not a number");
+    configuration = new Configuration(properties);
+    try {
+      configuration.getMaxAuthenticationFailures();
+      Assert.fail("Expected NumberFormatException");
+    } catch (NumberFormatException e) {
+      // This is expected
+    }
+  }
 }

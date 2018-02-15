@@ -22,7 +22,7 @@ Ambari Agent
 import sys
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import re
-import subprocess
+from ambari_commons import subprocess32
 from ambari_commons import os_utils
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl

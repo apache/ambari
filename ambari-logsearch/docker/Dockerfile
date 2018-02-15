@@ -54,9 +54,28 @@ RUN echo 'X11DisplayOffset 10\n' /etc/ssh/sshd_config
 RUN git config --global url."https://".insteadOf git://
 
 # Install Solr
-ENV SOLR_VERSION 6.6.2
+ENV SOLR_VERSION 7.2.1
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
+
+# Install Knox
+WORKDIR /
+RUN adduser knox
+ENV KNOX_VERSION 0.14.0
+RUN wget -q -O /knox-${KNOX_VERSION}.zip http://download.nextag.com/apache/knox/${KNOX_VERSION}/knox-${KNOX_VERSION}.zip && unzip /knox-${KNOX_VERSION}.zip && rm knox-${KNOX_VERSION}.zip && ln -nsf knox-${KNOX_VERSION} knox && chmod +x /knox/bin/*.sh && chown -R knox /knox/
+
+ADD knox/keystores /knox-secrets
+RUN cd /knox-secrets && unzip test-secrets.zip
+RUN mkdir -p /knox/data/security/keystores
+RUN mv /knox-secrets/master /knox/data/security/master
+RUN cd /knox-secrets && cp -r * /knox/data/security/keystores/
+RUN chown -R knox /knox/data/security
+
+ADD knox/ldap.sh /ldap.sh
+ADD knox/gateway.sh /gateway.sh
+RUN touch /gateway.out && chown -R knox /gateway.out
+RUN touch /ldap.out && chown -R knox /ldap.out
+
 ADD bin/start.sh /root/start.sh
 ADD test-config /root/test-config
 ADD test-logs /root/test-logs

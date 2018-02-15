@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-import {NO_ERRORS_SCHEMA, Injector} from '@angular/core';
-import {async, ComponentFixture, TestBed, inject} from '@angular/core/testing';
+import {NO_ERRORS_SCHEMA} from '@angular/core';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
-import {ServiceInjector} from '@app/classes/service-injector';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
@@ -37,7 +36,6 @@ import {
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {UtilsService} from '@app/services/utils.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {AuthService} from '@app/services/auth.service';
@@ -92,7 +90,6 @@ describe('DropdownButtonComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         UtilsService,
-        ComponentActionsService,
         {
           provide: HttpClientService,
           useValue: httpClient
@@ -105,12 +102,11 @@ describe('DropdownButtonComponent', () => {
     .compileComponents();
   }));
 
-  beforeEach(inject([Injector], (injector: Injector) => {
-    ServiceInjector.injector = injector;
+  beforeEach(() => {
     fixture = TestBed.createComponent(DropdownButtonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  }));
+  });
 
   it('should create component', () => {
     expect(component).toBeTruthy();

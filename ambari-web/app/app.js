@@ -239,6 +239,10 @@ module.exports = Em.Application.create({
     return App.Service.find('HDFS').get('isLoaded') && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
   }.property('router.clusterController.dataLoadList.services', 'router.clusterController.isServiceContentFullyLoaded'),
 
+  hasNameNodeFederation: function () {
+    return App.HostComponent.find().filterProperty('componentName', 'NAMENODE').length > 2;
+  }.property('router.clusterController.dataLoadList.services', 'router.clusterController.isServiceContentFullyLoaded'),
+
   /**
    * If ResourceManager High Availability is enabled
    * Based on number of ResourceManager host components installed

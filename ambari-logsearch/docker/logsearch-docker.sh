@@ -84,6 +84,7 @@ LOGSEARCH_HTTPS_ENABLED=false
 LOGSEARCH_SOLR_SSL_ENABLED=false
 GENERATE_KEYSTORE_AT_START=false
 SOLR_HOST=solr
+KNOX=false
 EOF
     echo "'Profile' file has been created. Check it out before starting Log Search. ($sdir/Profile)"
     exit
@@ -108,7 +109,7 @@ AMBARI_LOCATION=$AMBARI_LOCATION
 ZOOKEEPER_VERSION=3.4.10
 ZOOKEEPER_CONNECTION_STRING=zookeeper:2181
 
-SOLR_VERSION=6.6.2
+SOLR_VERSION=7.2.1
 EOF
     echo ".env file has been created. Check it out before starting Log Search. ($sdir/.env)"
     exit

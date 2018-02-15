@@ -22,7 +22,7 @@ Ambari Agent
 
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-import subprocess
+from ambari_commons import subprocess32
 
 class JcePolicyInfo:
   def __init__(self, java_home):
@@ -33,8 +33,8 @@ class JcePolicyInfo:
     Logger.info("Testing the JVM's JCE policy to see it if supports an unlimited key length.")
     return shell.call(
       self._command('-tu'),
-      stdout = subprocess.PIPE,
-      stderr = subprocess.PIPE,
+      stdout = subprocess32.PIPE,
+      stderr = subprocess32.PIPE,
       timeout = 5,
       quiet = True)[0] == 0
 

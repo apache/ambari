@@ -219,8 +219,6 @@ public class UpgradeHelper {
    *          {@code Direction} of the upgrade
    * @param upgradeType
    *          The {@code UpgradeType}
-   * @param targetStackName
-   *          The destination target stack name.
    * @param preferredUpgradePackName
    *          For unit test, need to prefer an upgrade pack since multiple
    *          matches can be found.
@@ -440,49 +438,26 @@ public class UpgradeHelper {
             //   Non-NameNode HA: Upgrade first the SECONDARY, then the primary NAMENODE
             switch (upgradePack.getType()) {
               case ROLLING:
-                if (!hostsType.hosts.isEmpty() && hostsType.master != null && hostsType.secondary != null) {
+                if (!hostsType.getHosts().isEmpty() && hostsType.hasMastersAndSecondaries()) {
                   // The order is important, first do the standby, then the active namenode.
-                  LinkedHashSet<String> order = new LinkedHashSet<>();
-
-                  order.add(hostsType.secondary);
-                  order.add(hostsType.master);
-
-                  // Override the hosts with the ordered collection
-                  hostsType.hosts = order;
-
+                  hostsType.arrangeHostSecondariesFirst();
                   builder.add(context, hostsType, service.serviceName,
                       svc.isClientOnlyService(), pc, null);
                 } else {
                   LOG.warn("Could not orchestrate NameNode.  Hosts could not be resolved: hosts={}, active={}, standby={}",
-                      StringUtils.join(hostsType.hosts, ','), hostsType.master, hostsType.secondary);
+                      StringUtils.join(hostsType.getHosts(), ','), hostsType.getMasters(), hostsType.getSecondaries());
                 }
                 break;
               case NON_ROLLING:
                 boolean isNameNodeHA = mhr.isNameNodeHA();
-                if (isNameNodeHA && hostsType.master != null && hostsType.secondary != null) {
+                if (isNameNodeHA && hostsType.hasMastersAndSecondaries()) {
                   // This could be any order, but the NameNodes have to know what role they are going to take.
                   // So need to make 2 stages, and add different parameters to each one.
+                  builder.add(context, HostsType.normal(hostsType.getMasters()), service.serviceName,
+                      svc.isClientOnlyService(), pc, nameNodeRole("active"));
 
-                  HostsType ht1 = new HostsType();
-                  LinkedHashSet<String> h1Hosts = new LinkedHashSet<>();
-                  h1Hosts.add(hostsType.master);
-                  ht1.hosts = h1Hosts;
-                  Map<String, String> h1Params = new HashMap<>();
-                  h1Params.put("desired_namenode_role", "active");
-
-                  HostsType ht2 = new HostsType();
-                  LinkedHashSet<String> h2Hosts = new LinkedHashSet<>();
-                  h2Hosts.add(hostsType.secondary);
-                  ht2.hosts = h2Hosts;
-                  Map<String, String> h2Params = new HashMap<>();
-                  h2Params.put("desired_namenode_role", "standby");
-
-
-                  builder.add(context, ht1, service.serviceName,
-                      svc.isClientOnlyService(), pc, h1Params);
-
-                  builder.add(context, ht2, service.serviceName,
-                      svc.isClientOnlyService(), pc, h2Params);
+                  builder.add(context, HostsType.normal(hostsType.getSecondaries()), service.serviceName,
+                      svc.isClientOnlyService(), pc, nameNodeRole("standby"));
                 } else {
                   // If no NameNode HA, then don't need to change hostsType.hosts since there should be exactly one.
                   builder.add(context, hostsType, service.serviceName,
@@ -550,6 +525,12 @@ public class UpgradeHelper {
     }
 
     return groups;
+  }
+
+  private static Map<String, String> nameNodeRole(String value) {
+    Map<String, String> params = new HashMap<>();
+    params.put("desired_namenode_role", value);
+    return params;
   }
 
   /**
@@ -665,7 +646,7 @@ public class UpgradeHelper {
             HostsType hostsType = mhr.getMasterAndHosts(service, component);
 
             if (null != hostsType) {
-              value = StringUtils.join(hostsType.hosts, ", ");
+              value = StringUtils.join(hostsType.getHosts(), ", ");
             }
           }
           break;
@@ -675,7 +656,7 @@ public class UpgradeHelper {
             HostsType hostsType = mhr.getMasterAndHosts(service, component);
 
             if (null != hostsType) {
-              value = hostsType.master;
+              value = StringUtils.join(hostsType.getMasters(), ", ");
             }
           }
           break;

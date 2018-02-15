@@ -16,12 +16,15 @@
 * limitations under the License.
 }}
 
-<div class="row">
-  <div class="col-md-12 component-summary">
-    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
+<div class="row component-summary">
+  {{view view.dashboardMasterComponentView}}
+  <div class="col-md-12">
+    <div class="col-md-2">
+      {{#if view.hasMultipleMasterGroups}}
+        {{t dashboard.services.hdfs.summary.components}}
+      {{/if}}
+    </div>
     <div class="col-md-10">
-      {{view view.dashboardMasterComponentView}}
-
       {{! Ranger Tagsyncs }}
       {{#if view.isRangerTagsyncCreated}}
         <div {{bindAttr class=":row :component :col-md-3 view.rangerTagsyncComponent.componentName"}}>

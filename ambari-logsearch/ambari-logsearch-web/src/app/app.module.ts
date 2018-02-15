@@ -35,10 +35,10 @@ import {ServiceInjector} from '@app/classes/service-injector';
 
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -50,13 +50,13 @@ import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-tr
 import {GraphsService} from '@app/services/storage/graphs.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 import {UserConfigsService} from '@app/services/storage/user-configs.service';
-import {FiltersService} from '@app/services/storage/filters.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuthService} from '@app/services/auth.service';
+import {HistoryManagerService} from '@app/services/history-manager.service';
 import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
@@ -96,6 +96,8 @@ import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip
 import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
 import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
 import {ContextMenuComponent} from '@app/components/context-menu/context-menu.component';
+import {HistoryItemControlsComponent} from '@app/components/history-item-controls/history-item-controls.component';
+import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-index-filter.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -159,6 +161,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     GraphLegendItemComponent,
     TimeLineGraphComponent,
     ContextMenuComponent,
+    HistoryItemControlsComponent,
+    LogIndexFilterComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -183,10 +187,10 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
   ],
   providers: [
     HttpClientService,
-    ComponentActionsService,
     UtilsService,
     LogsContainerService,
     ComponentGeneratorService,
+    UserSettingsService,
     AppSettingsService,
     AppStateService,
     AuditLogsService,
@@ -197,7 +201,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     GraphsService,
     HostsService,
     UserConfigsService,
-    FiltersService,
     ClustersService,
     ComponentsService,
     ServiceLogsFieldsService,
@@ -208,10 +211,14 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       useFactory: getXHRBackend,
       deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
     },
-    AuthService
+    AuthService,
+    HistoryManagerService
   ],
   bootstrap: [AppComponent],
-  entryComponents: [NodeBarComponent],
+  entryComponents: [
+    NodeBarComponent,
+    HistoryItemControlsComponent
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {

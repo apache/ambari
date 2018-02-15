@@ -7066,7 +7066,7 @@ public class AmbariManagementControllerTest {
     StackEntity stackEntity = stackDAO.find(STACK_NAME, STACK_VERSION);
     assertNotNull(stackEntity);
 
-    RepositoryVersionEntity versionEntity = dao.create(stackEntity, "0.2.2", "HDP-0.2", ClusterStackVersionResourceProviderTest.OS_JSON);
+    RepositoryVersionEntity versionEntity = dao.create(stackEntity, "0.2.2", "HDP-0.2", ClusterStackVersionResourceProviderTest.REPO_OS_ENTITIES);
 
     OperatingSystemRequest request = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, null);
     Set<OperatingSystemResponse> responses = controller.getOperatingSystems(Collections.singleton(request));

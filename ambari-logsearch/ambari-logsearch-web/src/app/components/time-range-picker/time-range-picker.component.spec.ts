@@ -37,6 +37,7 @@ import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/s
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {TimeRangePickerComponent} from './time-range-picker.component';
 
@@ -79,6 +80,7 @@ describe('TimeRangePickerComponent', () => {
           useValue: httpClient
         },
         LogsContainerService,
+        UtilsService,
         AppSettingsService,
         AppStateService,
         ClustersService,

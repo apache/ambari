@@ -58,14 +58,12 @@ import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
@@ -78,7 +76,6 @@ import org.apache.ambari.server.upgrade.AbstractUpgradeCatalog;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.ambari.server.utils.HostUtils;
-import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
@@ -375,7 +372,7 @@ public class Configuration {
    */
   @Markdown(description = "The location and name of the Python script used to bootstrap new Ambari Agent hosts.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SCRIPT = new ConfigurationProperty<>(
-      "bootstrap.script", AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py"));
+      "bootstrap.script", AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_server/bootstrap.py"));
 
   /**
    * The location and name of the Python script executed on the Ambari Agent
@@ -384,7 +381,7 @@ public class Configuration {
   @Markdown(description = "The location and name of the Python script executed on the Ambari Agent host during the bootstrap process.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SETUP_AGENT_SCRIPT = new ConfigurationProperty<>(
       "bootstrap.setup_agent.script",
-      AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py"));
+      AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_server/setupAgent.py"));
 
   /**
    * The password to set on the {@code AMBARI_PASSPHRASE} environment variable
@@ -2034,16 +2031,6 @@ public class Configuration {
       "server.timeline.metrics.https.enabled", Boolean.FALSE);
 
   /**
-   * Governs the use of {@link Parallel} to process {@link StageEntity}
-   * instances into {@link Stage}.
-   */
-  @Markdown(
-      internal = true,
-      description = "Determines whether to allow stages retrieved from the database to be processed by multiple threads.")
-  public static final ConfigurationProperty<Boolean> EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED = new ConfigurationProperty<>(
-      "experimental.concurrency.stage_processing.enabled", Boolean.FALSE);
-
-  /**
    * The full path to the XML file that describes the different alert templates.
    */
   @Markdown(description="The full path to the XML file that describes the different alert templates.")
@@ -2472,6 +2459,13 @@ public class Configuration {
     "logsearch.portal.read.timeout", 5000);
 
   /**
+   * External logsearch portal address, can be used with internal logfeeder, as the same logsearch portal can store logs for different clusters
+   */
+  @Markdown(description = "Address of an external LogSearch Portal service. (managed outside of Ambari) Using Ambari Credential store is required for this feature (credential: 'logsearch.admin.credential')")
+  public static final ConfigurationProperty<String> LOGSEARCH_PORTAL_EXTERNAL_ADDRESS = new ConfigurationProperty<>(
+    "logsearch.portal.external.address", "");
+
+  /**
    * Global disable flag for AmbariServer Metrics.
    */
   @Markdown(description = "Global disable flag for AmbariServer Metrics.")
@@ -2514,14 +2508,14 @@ public class Configuration {
           "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
 
   @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
-  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<Boolean>("security.passwords.encryption.enabled", false);
+  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.passwords.encryption.enabled", false);
 
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
    */
   @Markdown(description = "The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures.")
   public static final ConfigurationProperty<Integer> MAX_LOCAL_AUTHENTICATION_FAILURES = new ConfigurationProperty<>(
-    "authentication.local.max.failures", 10);
+    "authentication.local.max.failures", 0);
 
   /**
    * A flag to determine whether locked out messages are to be shown to users, if relevant, when authenticating into Ambari
@@ -5052,19 +5046,6 @@ public class Configuration {
   }
 
   /**
-   * Gets whether to use experiemental concurrent processing to convert
-   * {@link StageEntity} instances into {@link Stage} instances. The default is
-   * {@code false}.
-   *
-   * @return {code true} if the experimental feature is enabled, {@code false}
-   *         otherwise.
-   */
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
-  public boolean isExperimentalConcurrentStageProcessingEnabled() {
-    return Boolean.parseBoolean(getProperty(EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED));
-  }
-
-  /**
    * If {@code true}, then alerts processed by the {@link AlertReceivedListener}
    * will not write alert data to the database on every event. Instead, data
    * like timestamps and text will be kept in a cache and flushed out
@@ -5341,6 +5322,14 @@ public class Configuration {
    */
   public int getLogSearchPortalReadTimeout() {
     return NumberUtils.toInt(getProperty(LOGSEARCH_PORTAL_READ_TIMEOUT));
+  }
+
+  /**
+   * External address of logsearch portal (managed outside of ambari)
+   * @return Address string for logsearch portal (e.g.: https://c6401.ambari.apache.org:61888)
+   */
+  public String getLogSearchPortalExternalAddress() {
+    return getProperty(LOGSEARCH_PORTAL_EXTERNAL_ADDRESS);
   }
 
 

@@ -124,8 +124,8 @@ import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
@@ -189,7 +189,6 @@ import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
@@ -4222,12 +4221,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          if (operatingSystem.getOsType().equals(osType)) {
-            for (RepositoryEntity repository: operatingSystem.getRepositories()) {
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          if (operatingSystem.getFamily().equals(osType)) {
+            for (RepoDefinitionEntity repository : operatingSystem.getRepoDefinitionEntities()) {
 
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
-                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "",
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepoID(),
+                  repository.getRepoName(), repository.getDistribution(), repository.getComponents(), "", "",
                       repository.getTags());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
@@ -4258,7 +4257,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl(), Collections.<RepoTag>emptySet());
+              repo.getBaseUrl(), repo.getTags());
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());
@@ -4667,8 +4666,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (repositoryVersionId != null) {
       final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
       if (repositoryVersion != null) {
-        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
-          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getOsType());
+        for (RepoOsEntity operatingSystem : repositoryVersion.getRepoOsEntities()) {
+          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getFamily());
           if (null != versionDefinitionId) {
             response.setVersionDefinitionId(repositoryVersionId.toString());
           } else {
@@ -4676,7 +4675,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
           response.setStackName(repositoryVersion.getStackName());
           response.setStackVersion(repositoryVersion.getStackVersion());
-          response.setAmbariManagedRepos(operatingSystem.isAmbariManagedRepos());
+          response.setAmbariManagedRepos(operatingSystem.isAmbariManaged());
           responses.add(response);
         }
       }

@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import sys
-sys.path.append("/usr/lib/python2.6/site-packages/") # this file can be run with python2.7 that why we need this
+sys.path.append("/usr/lib/ambari-server/lib/") # this file can be run with python2.7 that why we need this
 
 # On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
 # Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
@@ -29,7 +29,7 @@ import time
 import logging
 import pprint
 import os
-import subprocess
+from ambari_commons import subprocess32
 import threading
 import traceback
 import re
@@ -104,8 +104,8 @@ class SCP:
       self.host_log.write("Running scp command " + ' '.join(scpcommand))
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    scpstat = subprocess32.Popen(scpcommand, stdout=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE)
     log = scpstat.communicate()
     errorMsg = log[1]
     log = log[0] + "\n" + log[1]
@@ -142,8 +142,8 @@ class SSH:
       self.host_log.write("Running ssh command " + ' '.join(sshcommand))
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    sshstat = subprocess32.Popen(sshcommand, stdout=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE)
     log = sshstat.communicate()
     errorMsg = log[1]
     if self.errorMessage and sshstat.returncode != 0:
@@ -403,7 +403,7 @@ class BootstrapWindows(Bootstrap):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class BootstrapDefault(Bootstrap):
-  ambari_commons="/usr/lib/python2.6/site-packages/ambari_commons"
+  ambari_commons="/usr/lib/ambari-server/lib/ambari_commons"
   TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
   OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
   PASSWORD_FILENAME = "host_pass"
@@ -891,10 +891,10 @@ def main(argv=None):
 
   if not OSCheck.is_windows_family():
     # ssh doesn't like open files
-    subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
+    subprocess32.Popen(["chmod", "600", sshkey_file], stdout=subprocess32.PIPE)
 
     if passwordFile is not None and passwordFile != 'null':
-      subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
+      subprocess32.Popen(["chmod", "600", passwordFile], stdout=subprocess32.PIPE)
 
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                " using " + scriptDir + " cluster primary OS: " + cluster_os_type +

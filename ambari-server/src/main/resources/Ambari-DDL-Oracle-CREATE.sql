@@ -159,7 +159,6 @@ CREATE TABLE repo_version (
   stack_id NUMBER(19) NOT NULL,
   version VARCHAR2(255) NOT NULL,
   display_name VARCHAR2(128) NOT NULL,
-  repositories CLOB NOT NULL,
   repo_type VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
   hidden NUMBER(1) DEFAULT 0 NOT NULL,
   resolved NUMBER(1) DEFAULT 0 NOT NULL,
@@ -173,6 +172,31 @@ CREATE TABLE repo_version (
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
   CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
 
+CREATE TABLE repo_os (
+  id NUMBER(19) NOT NULL,
+  repo_version_id NUMBER(19) NOT NULL,
+  family VARCHAR(255) DEFAULT '' NOT NULL,
+  ambari_managed NUMBER(1) DEFAULT 1,
+  CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
+
+CREATE TABLE repo_definition (
+  id NUMBER(19) NOT NULL,
+  repo_os_id NUMBER(19),
+  repo_name VARCHAR(255) NOT NULL,
+  repo_id VARCHAR(255) NOT NULL,
+  base_url CLOB NOT NULL,
+  distribution CLOB,
+  components CLOB,
+  unique_repo NUMBER(1) DEFAULT 1,
+  mirrors CLOB,
+  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
+  CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
+
+CREATE TABLE repo_tags (
+  repo_definition_id NUMBER(19) NOT NULL,
+  tag VARCHAR(255) NOT NULL,
+  CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
 
 CREATE TABLE servicecomponentdesiredstate (
   id NUMBER(19) NOT NULL,
@@ -1113,6 +1137,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_histo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_notice_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_current_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_version_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_os_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_definition_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
@@ -1176,7 +1202,7 @@ insert into adminprincipal (principal_id, principal_type_id)
   select 13, 8 from dual;
 
 -- Insert the default administrator user.
-insert into users(user_id, principal_id, user_name, display_name, local_username, create_timestamp)
+insert into users(user_id, principal_id, user_name, display_name, local_username, create_time)
   SELECT 1, 1, 'admin', 'Administrator', 'admin', CURRENT_TIMESTAMP from dual;
 
 -- Insert the LOCAL authentication data for the default administrator user.

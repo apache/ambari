@@ -137,7 +137,7 @@ public class AuthPropsConfig {
     sources = {LOGSEARCH_PROPERTIES_FILE}
   )
   private String cookieName;
-  @Value("${logsearch.auth.jwt.query.param.original_url:originalUrl=}")
+  @Value("${logsearch.auth.jwt.query.param.original_url:originalUrl}")
   @LogSearchPropertyDescription(
     name = "logsearch.auth.jwt.query.param.original_url",
     description = "Name of the original request URL which is used to redirect to Log Search Portal.",
@@ -156,6 +156,16 @@ public class AuthPropsConfig {
     sources = {LOGSEARCH_PROPERTIES_FILE}
   )
   private List<String> audiences;
+
+  @Value("#{'${logsearch.auth.jwt.user.agents:Mozilla,Opera,Chrome}'.split(',')}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.jwt.user.agents",
+    description = "Comma separated web user agent list. (Used as prefixes)",
+    examples = {"Mozilla,Chrome"},
+    defaultValue = "Mozilla,Opera,Chrome",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private List<String> userAgentList;
 
   @Value("#{'${logsearch.roles.allowed:AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR}'.split(',')}")
   @LogSearchPropertyDescription(
@@ -295,5 +305,13 @@ public class AuthPropsConfig {
 
   public void setRedirectForward(boolean redirectForward) {
     this.redirectForward = redirectForward;
+  }
+
+  public List<String> getUserAgentList() {
+    return this.userAgentList;
+  }
+
+  public void setUserAgentList(List<String> userAgentList) {
+    this.userAgentList = userAgentList;
   }
 }

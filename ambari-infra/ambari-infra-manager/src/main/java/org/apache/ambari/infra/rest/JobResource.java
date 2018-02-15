@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.infra.rest;
 
+import com.google.common.base.Splitter;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.infra.manager.JobManager;
@@ -35,11 +36,13 @@ import org.apache.ambari.infra.model.StepExecutionContextResponse;
 import org.apache.ambari.infra.model.StepExecutionInfoResponse;
 import org.apache.ambari.infra.model.StepExecutionProgressResponse;
 import org.apache.ambari.infra.model.StepExecutionRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.admin.service.NoSuchStepExecutionException;
 import org.springframework.batch.admin.web.JobInfo;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
-import org.springframework.batch.core.launch.JobInstanceAlreadyExistsException;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.batch.core.launch.NoSuchJobInstanceException;
@@ -67,6 +70,7 @@ import java.util.Set;
 @Named
 @Scope("request")
 public class JobResource {
+  private static final Logger LOG = LoggerFactory.getLogger(JobResource.class);
 
   @Inject
   private JobManager jobManager;
@@ -83,9 +87,21 @@ public class JobResource {
   @Path("{jobName}")
   @ApiOperation("Start a new job instance by job name.")
   public JobExecutionInfoResponse startJob(@BeanParam @Valid JobInstanceStartRequest request)
-    throws JobParametersInvalidException, JobInstanceAlreadyExistsException, NoSuchJobException, JobExecutionAlreadyRunningException,
+    throws JobParametersInvalidException, NoSuchJobException, JobExecutionAlreadyRunningException,
     JobRestartException, JobInstanceAlreadyCompleteException {
-    return jobManager.launchJob(request.getJobName(), request.getParams());
+
+    String jobName = request.getJobName();
+    String params = request.getParams();
+    JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+    if (params != null) {
+      LOG.info("Parsing parameters of job {} '{}'", jobName, params);
+      Splitter.on(',')
+              .trimResults()
+              .withKeyValueSeparator(Splitter.on('=').limit(2).trimResults())
+              .split(params).forEach(jobParametersBuilder::addString);
+    }
+
+    return jobManager.launchJob(jobName, jobParametersBuilder.toJobParameters());
   }
 
   @GET
@@ -117,7 +133,7 @@ public class JobResource {
   @Path("/executions/{jobExecutionId}")
   @ApiOperation("Get job and step details for job execution instance.")
   public JobExecutionDetailsResponse getExectionInfo(@PathParam("jobExecutionId") @Valid Long jobExecutionId) throws NoSuchJobExecutionException {
-    return jobManager.getExectionInfo(jobExecutionId);
+    return jobManager.getExecutionInfo(jobExecutionId);
   }
 
   @GET
@@ -150,8 +166,8 @@ public class JobResource {
   @Produces({"application/json"})
   @Path("/{jobName}/{jobInstanceId}/executions")
   @ApiOperation("Get execution for job instance.")
-  public List<JobExecutionInfoResponse> getExecutionsForInstance(@BeanParam @Valid JobExecutionRequest request) throws JobInstanceAlreadyCompleteException,
-    NoSuchJobExecutionException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException, NoSuchJobException, NoSuchJobInstanceException {
+  public List<JobExecutionInfoResponse> getExecutionsForInstance(@BeanParam @Valid JobExecutionRequest request) throws
+          NoSuchJobException, NoSuchJobInstanceException {
     return jobManager.getExecutionsForJobInstance(request.getJobName(), request.getJobInstanceId());
   }
 

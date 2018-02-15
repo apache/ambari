@@ -27,11 +27,20 @@
 
   <target name="package">
     <delete dir="target/package"/>
+    <delete dir="target/migrate"/>
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset dir="target/libs"/>
     </copy>
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset file="target/*.jar"/>
+    </copy>
+    <mkdir dir="target/migrate"/>
+    <get src="${lucene6-core.url}" dest="target/migrate/${lucene6-core-jar.name}" usetimestamp="true"/>
+    <get src="${lucene6-backward-codecs.url}" dest="target/migrate/${lucene6-backward-codecs-jar.name}" usetimestamp="true"/>
+    <copy todir="target/package/migrate" includeEmptyDirs="no">
+      <fileset file="target/migrate/*.jar"/>
+      <fileset file="target/package/libs/lucene-core-${solr.version}.jar"/>
+      <fileset file="target/package/libs/lucene-backward-codecs-${solr.version}.jar"/>
     </copy>
     <copy todir="target/package" includeEmptyDirs="no">
       <fileset file="src/main/resources/solrCloudCli.sh"/>

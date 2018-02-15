@@ -37,5 +37,8 @@
       <AppenderRef ref="File" />
       <AppenderRef ref="Console" />
     </Root>
+    <!--<Logger name="org.springframework.jdbc.core.JdbcTemplate" level="debug">-->
+      <!--<AppenderRef ref="Console"/>-->
+    <!--</Logger>-->
   </Loggers>
 </Configuration>

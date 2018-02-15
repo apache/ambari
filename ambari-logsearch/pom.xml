@@ -14,13 +14,8 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <parent>
-    <groupId>org.apache.ambari</groupId>
-    <artifactId>ambari-project</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
-    <relativePath>../ambari-project</relativePath>
-  </parent>
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-logsearch</artifactId>
@@ -46,11 +41,68 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
-    <solr.version>6.6.2</solr.version>
+    <solr.version>7.2.1</solr.version>
     <hadoop.version>2.7.2</hadoop.version>
     <common.io.version>2.5</common.io.version>
+    <forkCount>4</forkCount>
+    <reuseForks>false</reuseForks>
+    <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
+    <skipSurefireTests>false</skipSurefireTests>
   </properties>
+  <repositories>
+    <repository>
+      <id>oss.sonatype.org</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging</url>
+    </repository>
+    <repository>
+      <id>spring-milestones</id>
+      <name>Spring Milestones</name>
+      <url>http://repo.spring.io/milestone</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>ASF Staging</id>
+      <url>https://repository.apache.org/content/groups/staging/</url>
+    </repository>
+    <repository>
+      <id>ASF Snapshots</id>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>1.4.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>properties-maven-plugin</artifactId>
+          <version>1.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>2.20</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <inherited>false</inherited>
@@ -73,11 +125,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.20</version>
         <configuration>
           <skip>${skipSurefireTests}</skip>
-
-          <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
-          <groups>${testcase.groups}</groups>
         </configuration>
       </plugin>
       <plugin>
@@ -91,6 +141,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
+        <version>2.5</version>
         <configuration>
           <filesets>
             <fileset>
@@ -161,6 +212,7 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
+        <version>0.12</version>
         <configuration>
           <excludes>
             <exclude>**/README.md</exclude>
@@ -173,6 +225,7 @@
             <exclude>**/yarn.lock</exclude>
             <exclude>**/docker/Profile</exclude>
             <exclude>**/docker/.env</exclude>
+            <exclude>**/docker/knox/**</exclude>
             <exclude>**/node_modules/**</exclude>
             <exclude>**/dist/**</exclude>
           </excludes>
@@ -188,15 +241,14 @@
       </plugin>
     </plugins>
   </build>
-
-  <dependencies>
-    <!-- Dependency in order to annotate unit tests with a category. -->
-    <dependency>
-      <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-utility</artifactId>
-      <version>1.0.0.0-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 </project>

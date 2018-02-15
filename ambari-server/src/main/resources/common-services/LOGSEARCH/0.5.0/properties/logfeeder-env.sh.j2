@@ -40,3 +40,7 @@ export LOGFEEDER_KEYSTORE_TYPE={{logfeeder_keystore_type}}
 export LOGFEEDER_TRUSTSTORE_LOCATION={{logfeeder_truststore_location}}
 export LOGFEEDER_TRUSTSTORE_TYPE={{logfeeder_truststore_type}}
 {% endif %}
+
+{% if security_enabled -%}
+export LOGFEEDER_JAVA_OPTS="{{zk_security_opts}}"
+{% endif %}

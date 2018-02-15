@@ -183,6 +183,13 @@ App.MainServiceItemView = Em.View.extend({
             break;
         }
       }
+      if (service.get('serviceTypes').contains('FEDERATION') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+        switch (service.get('serviceName')) {
+          case 'HDFS':
+            options.push(actionMap.TOGGLE_NN_FEDERATION);
+            break;
+        }
+      }
       if (serviceCheckSupported) {
         options.push(actionMap.RUN_SMOKE_TEST);
       }

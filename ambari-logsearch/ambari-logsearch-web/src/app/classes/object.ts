@@ -16,4 +16,12 @@
  * limitations under the License.
  */
 
+import {LogLevel} from '@app/classes/string';
+
 export type HomogeneousObject<T> = {[key: string]: T};
+
+export interface LogLevelObject {
+  name: LogLevel;
+  label: string;
+  color: string;
+}

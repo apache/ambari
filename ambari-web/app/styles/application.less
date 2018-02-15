@@ -317,6 +317,10 @@ footer {
   display: inline-block;
 }
 
+.display-inline {
+  display: inline;
+}
+
 ::-webkit-scrollbar {
   -webkit-appearance: none;
 }
@@ -372,16 +376,12 @@ table.diff {
 }
 
 .row.row-no-pad {
+  padding-left: 15px;
+  padding-right: 15px;
   .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
   .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
     padding-left: 1px;
     padding-right: 1px;
-    &:first-child {
-      padding-left: 15px;
-    }
-    &:last-child {
-      padding-right: 15px;
-    }
   }
 }
 
@@ -1282,16 +1282,43 @@ table.graphs {
    margin-left: 20px
  }
 
-.admin-auto-start {
-  .nav i {
-    margin-top: 0;
-    color: @green;
+#admin-auto-start {
+  background-color: #fff;
+  padding: 30px;
+  .description {
+    color: @gray-text;
   }
-  .services-heading {
-    padding: 8px;
-    color: #999;
-    font-size: 13px;
-    font-weight: bold;
+  .table {
+    th {
+      font-weight: normal;
+    }
+    th:first-child {
+      color: #666;
+    }
+    th:first-child,
+    td:first-child,
+    th:first-child + th,
+    td:first-child + td {
+      line-height: 24px;
+      min-width: 200px;
+      width: 20%;
+    }
+    th:first-child + th + th,
+    td:first-child + td + td {
+      width: 15%;
+      text-align: center;
+    }
+    .skip-border {
+      border: none;
+    }
+    .all-checkbox {
+      display: inline-block;
+      top: 2px;
+    }
+  }
+  .general-auto-start {
+    display: inline-block;
+    margin-left: 15px;
   }
 }
 
@@ -1330,8 +1357,9 @@ ul.filter {
   padding: 10px;
 }
 
-.button-caret-margin {
-  margin-top: 8px;
+.pull-caret-right {
+  float: right;
+  margin-top: 5px;
 }
 
 /*start charts rack*/
@@ -1850,20 +1878,15 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 
 #config-group-select-create-dialog {
   .select-create-config-group-div {
+    margin: 0 0 20px 20px;
     .dropdown-menu {
       max-height: 160px;
       max-width: 300px;
       overflow-y: auto;
     }
   }
-  .message{
-    color: #777;
-  }
-}
-
-#config-group-confirm-save {
-  .message{
-    color: #777;
+  .radio, .checkbox {
+    margin-bottom: 5px;
   }
 }
 

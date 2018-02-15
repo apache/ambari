@@ -987,7 +987,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       App.router.get('mainHostDetailsController').addComponentWithCheck(
         {
           context: component,
-          selectedHost: null
+          fromServiceSummary: true
         }
       );
     });
@@ -1105,6 +1105,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       componentName: (event && event.name) || component.get('componentName'),
       resourceType: this.resourceTypeEnum.SERVICE_COMPONENT
     });
+  },
+
+  openNameNodeFederationWizard: function () {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableNameNodeFederation();
   },
 
   /**

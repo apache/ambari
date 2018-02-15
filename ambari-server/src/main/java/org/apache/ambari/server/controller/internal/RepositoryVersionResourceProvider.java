@@ -48,8 +48,8 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -337,11 +338,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
             final String operatingSystemsJson = gson.toJson(operatingSystems);
             try {
-              repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+              entity.addRepoOsEntities(repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson));
             } catch (Exception ex) {
               throw new AmbariException("Json structure for operating systems is incorrect", ex);
             }
-            entity.setOperatingSystems(operatingSystemsJson);
           }
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID)))) {
@@ -456,8 +456,8 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     Set<String> existingRepoUrls = new HashSet<>();
     List<RepositoryVersionEntity> existingRepoVersions = dao.findByStack(requiredStack);
     for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
-      for (OperatingSystemEntity operatingSystemEntity : existingRepoVersion.getOperatingSystems()) {
-        for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+      for (RepoOsEntity operatingSystemEntity : existingRepoVersion.getRepoOsEntities()) {
+        for (RepoDefinitionEntity repositoryEntity : operatingSystemEntity.getRepoDefinitionEntities()) {
           if (repositoryEntity.isUnique() && !existingRepoVersion.getId().equals(repositoryVersion.getId())) { // Allow modifying already defined repo version
             existingRepoUrls.add(repositoryEntity.getBaseUrl());
           }
@@ -473,12 +473,12 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
 
     final Set<String> osRepositoryVersion = new HashSet<>();
 
-    for (OperatingSystemEntity os: repositoryVersion.getOperatingSystems()) {
-      osRepositoryVersion.add(os.getOsType());
+    for (RepoOsEntity os : repositoryVersion.getRepoOsEntities()) {
+      osRepositoryVersion.add(os.getFamily());
 
-      for (RepositoryEntity repositoryEntity : os.getRepositories()) {
+      for (RepoDefinitionEntity repositoryEntity : os.getRepoDefinitionEntities()) {
         String baseUrl = repositoryEntity.getBaseUrl();
-        if (!skipUrlCheck && os.isAmbariManagedRepos() && existingRepoUrls.contains(baseUrl)) {
+        if (!skipUrlCheck && os.isAmbariManaged() && existingRepoUrls.contains(baseUrl)) {
           throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
                   "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
@@ -495,9 +495,38 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       }
     }
 
+    if (RepositoryVersionHelper.shouldContainGPLRepo(repositoryVersion.getStackId(), repositoryVersion.getVersion())) {
+      validateGPLRepoPresence(repositoryVersion);
+    }
+
     if (!RepositoryVersionEntity.isVersionInStack(repositoryVersion.getStackId(), repositoryVersion.getVersion())) {
       throw new AmbariException(MessageFormat.format("Version {0} needs to belong to stack {1}",
           repositoryVersion.getVersion(), repositoryVersion.getStackName() + "-" + repositoryVersion.getStackVersion()));
+    }
+  }
+
+  /**
+   * Checks HDP repository version contains GPL repo for each os.
+   * @param repositoryVersion repository version to check.
+   * @throws AmbariException in case repository version id HDP and should contain GPL repo, bug shouldn't.
+   */
+  private static void validateGPLRepoPresence(RepositoryVersionEntity repositoryVersion) throws AmbariException {
+    if (!repositoryVersion.getStackName().equals("HDP")) {
+      return;
+    }
+    for (RepoOsEntity os : repositoryVersion.getRepoOsEntities()) {
+      boolean hasGPLRepo = false;
+      for (RepoDefinitionEntity repositoryEntity : os.getRepoDefinitionEntities()) {
+        if (repositoryEntity.getTags().contains(RepoTag.GPL)) {
+          hasGPLRepo = true;
+        }
+      }
+      if (!hasGPLRepo) {
+        throw new AmbariException("Operating system type " + os.getFamily()
+            + " for repository with id " + repositoryVersion.getId()
+            + " should contain GPL repo for HDP repository version greater than "
+            + RepositoryVersionHelper.GPL_MINIMAL_VERSION);
+      }
     }
   }
 
@@ -523,12 +552,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     final Object operatingSystems = properties.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
     final String operatingSystemsJson = gson.toJson(operatingSystems);
     try {
-      repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+      entity.addRepoOsEntities(repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson));
     } catch (Exception ex) {
       throw new AmbariException("Json structure for operating systems is incorrect", ex);
     }
-    entity.setOperatingSystems(operatingSystemsJson);
-
     return entity;
   }
 

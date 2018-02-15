@@ -17,61 +17,83 @@ limitations under the License.
 
 """
 
+from ambari_commons.os_check import OSCheck
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.resources.repository import Repository
+from resource_management.libraries.functions.is_empty import is_empty
 import ambari_simplejson as json
 
 
-__all__ = ["create_repo_files", "CommandRepository"]
+__all__ = ["RepositoryUtil", "CommandRepository"]
 
 # components_lits = repoName + postfix
 UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
+class RepositoryUtil:
+  def __init__(self, config, tags_to_skip):
+    self.tags_to_skip = tags_to_skip
+
+    # repo templates
+    repo_file = config['repositoryFile']
+    repo_rhel_suse =  config['configurations']['cluster-env']['repo_suse_rhel_template']
+    repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
+
+    if is_empty(repo_file):
+      return
+
+    self.template = repo_rhel_suse if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else repo_ubuntu
+    self.command_repository = CommandRepository(repo_file)
+
+  def create_repo_files(self):
+    """
+    Creates repositories in a consistent manner for all types
+    :return: a dictionary with repo ID => repo file name mapping
+    """
+    if self.command_repository.version_id is None:
+      raise Fail("The command repository was not parsed correctly")
+
+    if 0 == len(self.command_repository.items):
+      Logger.warning(
+        "Repository for {0}/{1} has no repositories.  Ambari may not be managing this version.".format(
+          self.command_repository.stack_name, self.command_repository.version_string))
+      return {}
+
+    append_to_file = False  # initialize to False to create the file anew.
+    repo_files = {}
+    for repository in self.command_repository.items:
+      if repository.repo_id is None:
+        raise Fail("Repository with url {0} has no id".format(repository.base_url))
+
+      if self.tags_to_skip & repository.tags:
+        Logger.info("Repository with url {0} is not created due to its tags: {1}".format(repository.base_url, repository.tags))
+        continue
+
+      if not repository.ambari_managed:
+        Logger.warning(
+          "Repository for {0}/{1}/{2} is not managed by Ambari".format(
+            self.command_repository.stack_name, self.command_repository.version_string, repository.repo_id))
+      else:
+        Repository(repository.repo_id,
+                   action="create",
+                   base_url=repository.base_url,
+                   mirror_list=repository.mirrors_list,
+                   repo_file_name=self.command_repository.repo_filename,
+                   repo_template=self.template,
+                   components=repository.ubuntu_components,
+                   append_to_file=append_to_file)
+        append_to_file = True
+        repo_files[repository.repo_id] = self.command_repository.repo_filename
+
+    return repo_files
 
 def create_repo_files(template, command_repository):
   """
-  Creates repositories in a consistent manner for all types
-  :param command_repository: a CommandRepository instance
-  :type command_repository CommandRepository
-  :return: a dictionary with repo ID => repo file name mapping
+  DEPRECATED. Is present for usage by old mpacks.
+  Please use Script.repository_util.create_repo_files() instead.
   """
-
-  if command_repository.version_id is None:
-    raise Fail("The command repository was not parsed correctly")
-
-  if 0 == len(command_repository.items):
-    Logger.warning(
-      "Repository for {0}/{1} has no repositories.  Ambari may not be managing this version.".format(
-        command_repository.stack_name, command_repository.version_string))
-    return {}
-
-  append_to_file = False  # initialize to False to create the file anew.
-  repo_files = {}
-
-  for repository in command_repository.items:
-
-    if repository.repo_id is None:
-      raise Fail("Repository with url {0} has no id".format(repository.base_url))
-
-    if not repository.ambari_managed:
-      Logger.warning(
-        "Repository for {0}/{1}/{2} is not managed by Ambari".format(
-          command_repository.stack_name, command_repository.version_string, repository.repo_id))
-    else:
-      Repository(repository.repo_id,
-                 action="create",
-                 base_url=repository.base_url,
-                 mirror_list=repository.mirrors_list,
-                 repo_file_name=command_repository.repo_filename,
-                 repo_template=template,
-                 components=repository.ubuntu_components,
-                 append_to_file=append_to_file)
-      append_to_file = True
-      repo_files[repository.repo_id] = command_repository.repo_filename
-
-  return repo_files
-
+  from resource_management.libraries.script import Script
+  return RepositoryUtil(Script.get_config(), set()).create_repo_files()
 
 def _find_value(dictionary, key, default=None):
   """
@@ -146,6 +168,7 @@ class CommandRepositoryItem(object):
     self.components = _find_value(json_dict, 'components')
     self.base_url = _find_value(json_dict, 'baseUrl')
     self.mirrors_list = _find_value(json_dict, 'mirrorsList')
+    self.tags = set(_find_value(json_dict, 'tags', default=[]))
     self.ambari_managed = _find_value(json_dict, 'ambariManaged', default=True)
 
     self.ubuntu_components = [self.distribution if self.distribution else self.repo_name] + \

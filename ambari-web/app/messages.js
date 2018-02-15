@@ -117,6 +117,8 @@ Em.I18n.translations = {
   'common.description':'Description',
   'common.default':'Default',
   'common.client':'Client',
+  'common.master':'Master',
+  'common.slave':'Slave',
   'common.zookeeper':'ZooKeeper',
   'common.hbase':'HBase',
   'common.regionServer':'RegionServer',
@@ -1646,6 +1648,13 @@ Em.I18n.translations = {
   'admin.ra_highAvailability.closePopup':'Enable Ranger Admin HA Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. ' +
   'If you choose to quit, you must follow manual instructions to complete or revert enabling Ranger Admin HA as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
+  'admin.nameNodeFederation.button.enable':'Add New HDFS Namespace',
+  'admin.nameNodeFederation.wizard.header': 'Add New HDFS Namespace',
+  'admin.nameNodeFederation.wizard.step1.header': 'Get Started',
+  'admin.nameNodeFederation.wizard.step2.header': 'Select Hosts',
+  'admin.nameNodeFederation.wizard.step3.header': 'Review',
+  'admin.nameNodeFederation.wizard.step4.header': 'Configure Components',
+
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
   'admin.security.disabled': 'Kerberos security is disabled',
@@ -1730,10 +1739,10 @@ Em.I18n.translations = {
   'admin.misc.nothingToShow': 'No user accounts to display',
 
   'admin.serviceAutoStart.title': "Service Auto Start",
-  'admin.serviceAutoStart.header': "Service Auto Start Configuration",
   'admin.serviceAutoStart.header.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
-  'admin.serviceAutoStart.body.text': "Auto-Start Services",
+  'admin.serviceAutoStart.general.switcher': "Auto Start Settings",
   'admin.serviceAutoStart.tooltip.text': "{0} components enabled",
+  'admin.serviceAutoStart.column.autoStart': "Auto Start",
 
   'admin.stackVersions.filter.notInstalled': "Not Installed ({0})",
   'admin.stackVersions.filter.all': "All ({0})",
@@ -2722,6 +2731,7 @@ Em.I18n.translations = {
   'hosts.host.summary.addComponent':'Add Component',
   'hosts.host.summary.currentVersion':'Current Version',
 
+  'hosts.host.details.upgradeFailed':'Component upgrade failed',
   'hosts.host.details.hostActions':'Host Actions',
   'hosts.host.details.needToRestart':'Host needs {0} {1} restarted',
   'hosts.host.details.needToRestart.button':'Restart',
@@ -2749,7 +2759,7 @@ Em.I18n.translations = {
   'hosts.host.installComponent.popup.confirm':'Confirm Install',
   'hosts.host.installComponent.msg':'Are you sure you want to install {0}?',
   'hosts.host.addComponent.msg':'Are you sure you want to add {0}?',
-  'hosts.host.addComponent.deleteHostWithZooKeeper':'Deleting host with ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li></ul>',
+  'hosts.host.delete.componentsRequireReconfigure':'Deleting host with {0} may reconfigure such properties:',
   'host.host.addComponent.popup.dependedComponents.body': '{0} requires {1} to be installed along with it on the same host. Please add them first and then try adding {0}',
   'host.host.addComponent.popup.dependedComponents.header': 'Component dependencies',
   'host.host.addComponent.popup.clients.dependedComponents.body': '{0} require {1} to be installed along with them on the same host. Please add them first',
@@ -2859,6 +2869,7 @@ Em.I18n.translations = {
   'charts.heatmap.unknown': 'Unknown',
   'charts.heatmap.label.notApplicable' :'Not Applicable',
   'charts.heatmap.label.invalidData' :'Invalid data',
+  'charts.heatmap.label.notAvailable': 'Data Not Available',
   'metric.notFound':'no items found',
   'metric.default':'combined',
   'metric.cpu':'cpu',

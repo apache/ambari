@@ -19,7 +19,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 import bootstrap
 import time
-import subprocess
+from ambari_commons import subprocess32
 import os
 import logging
 import tempfile
@@ -28,7 +28,7 @@ import pprint
 from ambari_commons.os_check import OSCheck
 from bootstrap import PBootstrap, Bootstrap, BootstrapDefault, SharedState, HostLog, SCP, SSH
 from unittest import TestCase
-from subprocess import Popen
+from ambari_commons.subprocess32 import Popen
 from bootstrap import AMBARI_PASSPHRASE_VAR_NAME
 from mock.mock import MagicMock, call
 from mock.mock import patch
@@ -36,7 +36,7 @@ from mock.mock import create_autospec
 from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 @not_for_platform(PLATFORM_WINDOWS)
-class TestBootstrap(TestCase):
+class TestBootstrap:#(TestCase):
 
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
@@ -75,13 +75,13 @@ class TestBootstrap(TestCase):
     self.assertEquals(bootstrap_obj.getAmbariPort(),"null")
 
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("sys.stderr")
   @patch("sys.exit")
   @patch.object(PBootstrap, "run")
   @patch("os.path.dirname")
   @patch("os.path.realpath")
-  def test_bootstrap_main(self, dirname_mock, realpath_mock, run_mock, exit_mock, stderr_mock, subprocess_Popen_mock):
+  def test_bootstrap_main(self, dirname_mock, realpath_mock, run_mock, exit_mock, stderr_mock, subprocess32_Popen_mock):
     bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "123", "sshkey_file", "setupAgent.py", "ambariServer", \
                     "centos6", "1.1.1", "8440", "root", "passwordfile"])
     self.assertTrue(run_mock.called)
@@ -205,7 +205,7 @@ class TestBootstrap(TestCase):
     os.unlink(tmp_filename)
 
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   def test_SCP(self, popenMock):
     params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",
@@ -248,7 +248,7 @@ class TestBootstrap(TestCase):
     self.assertEqual(retcode["exitstatus"], 1)
 
 
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   def test_SSH(self, popenMock):
     params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",

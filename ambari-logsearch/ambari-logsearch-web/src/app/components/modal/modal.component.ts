@@ -21,7 +21,8 @@ import * as $ from 'jquery';
 
 @Component({
   selector: 'modal',
-  templateUrl: './modal.component.html'
+  templateUrl: './modal.component.html',
+  styleUrls: ['./modal.component.less']
 })
 export class ModalComponent implements OnInit, AfterViewInit {
 
@@ -80,6 +81,12 @@ export class ModalComponent implements OnInit, AfterViewInit {
 
   @Input()
   isLargeModal: boolean = false;
+
+  @Input()
+  isExtraLargeModal: boolean = false;
+
+  @Input()
+  isSubmitDisabled: boolean = false;
 
   @ContentChild(TemplateRef)
   bodyTemplate;

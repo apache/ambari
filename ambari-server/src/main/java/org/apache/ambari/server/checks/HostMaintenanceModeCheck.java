@@ -70,6 +70,9 @@ public class HostMaintenanceModeCheck extends AbstractCheckDescriptor {
       MaintenanceState maintenanceState = host.getMaintenanceState(cluster.getClusterId());
       if (maintenanceState != MaintenanceState.OFF) {
         prerequisiteCheck.getFailedOn().add(host.getHostName());
+
+        prerequisiteCheck.getFailedDetail().add(
+            new HostDetail(host.getHostId(), host.getHostName()));
       }
     }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -137,7 +137,7 @@
         <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
-          <version>0.11</version>
+          <version>0.12</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -263,17 +263,11 @@
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
-            <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/unix/metric_groups.conf</exclude>
-            <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/windows/metric_groups.conf</exclude>
-            <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/unix/metric_groups.conf</exclude>
-            <exclude>stack-advisor/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst</exclude>
-            <exclude>stack-advisor/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>contrib/fast-hdfs-resource/dependency-reduced-pom.xml</exclude>
             <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
             <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
-            <exclude>**/target/surefire-reports/</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>
             <exclude>**/.classpath/</exclude>
@@ -281,14 +275,12 @@
             <exclude>**/.settings/</exclude>
             <exclude>.git/</exclude>
             <exclude>.pydevproject</exclude>
-            <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
             <exclude>**/.gitkeep</exclude>
             <exclude>**/.jshintrc</exclude>
             <exclude>**/.editorconfig</exclude>
             <!--gitignore content-->
             <exclude>.DS_Store</exclude>
-            <exclude>**/*.iml</exclude>
             <exclude>*.pyc</exclude>
             <exclude>*.py~</exclude>
             <exclude>.hg</exclude>
@@ -305,6 +297,9 @@
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
             <!--Simplejson library (MIT license)-->
             <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
+            <!--Subprocess32 library (PSF license)-->
+            <exclude>ambari-common/src/main/python/ambari_commons/subprocess32.py</exclude>
+            <exclude>ambari-common/src/main/python/ambari_commons/_posixsubprocess.so</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 
@@ -315,8 +310,6 @@
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
             <exclude>contrib/ambari-scom/*/rat.txt</exclude>
-            <exclude>contrib/ambari-scom/metrics-sink/target/**</exclude>
-            <exclude>contrib/views/*/target/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/.bowerrc</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/bower_components/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/node/**</exclude>
@@ -382,29 +375,14 @@
             <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/app/assets/javascripts/**</exclude>
 
             <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
-            <exclude>contrib/ambari-scom/ambari-scom-server/target/**</exclude>
             <exclude>contrib/ambari-scom/*/rat.txt</exclude>
-            <exclude>contrib/ambari-scom/metrics-sink/target/**</exclude>
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
 
-            <!-- Metrics module -->
-            <!-- grafana -->
-            <exclude>ambari-metrics/ambari-metrics-grafana/conf/unix/ams-grafana.ini</exclude>
-            <!-- psutil : external lib, Apache 2.0 license included as a source file -->
-            <exclude>ambari-metrics/target/**</exclude>
-            <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>
-            <exclude>ambari-metrics/target/rpm/ambari-metrics/SPECS/ambari-metrics.spec</exclude>
-            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/4.2.0/phoenix-core-tests-4.2.0.pom</exclude>
-            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/maven-metadata-local.xml</exclude>
-            <exclude>ambari-metrics/*/target/**</exclude>
-            <!-- ignore .settings and .project  -->
-            <exclude>ambari-metrics/**/.*/**</exclude>
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
-            <exclude>ambari-utility/target/**</exclude>
           </excludes>
         </configuration>
         <executions>

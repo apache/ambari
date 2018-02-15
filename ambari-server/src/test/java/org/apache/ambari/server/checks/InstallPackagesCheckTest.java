@@ -27,6 +27,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
@@ -128,7 +129,12 @@ public class InstallPackagesCheckTest {
     StackEntity stack = new StackEntity();
     stack.setStackName(stackId.getStackName());
     stack.setStackVersion(stackId.getStackVersion());
-    RepositoryVersionEntity rve = new RepositoryVersionEntity(stack, repositoryVersion, repositoryVersion, "rhel6");
+    List<RepoOsEntity> osEntities = new ArrayList<>();
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
+    repoOsEntity.setFamily("rhel6");
+    repoOsEntity.setAmbariManaged(true);
+    osEntities.add(repoOsEntity);
+    RepositoryVersionEntity rve = new RepositoryVersionEntity(stack, repositoryVersion, repositoryVersion, osEntities);
     Mockito.when(repositoryVersionDAO.findByStackNameAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(rve);
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterName()).thenReturn(clusterName);
@@ -164,6 +170,7 @@ public class InstallPackagesCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     installPackagesCheck.perform(check, checkRequest);
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // Case 2: Install Packages failed on host1
     Mockito.when(hostVersionEntities.get(0).getState()).thenReturn(RepositoryVersionState.INSTALL_FAILED);
@@ -172,5 +179,6 @@ public class InstallPackagesCheckTest {
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertNotNull(check.getFailedOn());
     Assert.assertTrue(check.getFailedOn().contains("host1"));
+    Assert.assertFalse(check.getFailedDetail().isEmpty());
   }
 }

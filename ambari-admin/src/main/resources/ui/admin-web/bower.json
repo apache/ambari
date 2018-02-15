@@ -3,21 +3,24 @@
   "private": true,
   "dependencies": {
     "bootstrap": "3.3.7",
-    "angular": "1.2.26",
-    "angular-route": "1.2.26",
+    "angular": "1.5.11",
+    "angular-route": "1.5.11",
     "angular-bootstrap": "0.11.0",
     "underscore": "1.7.0",
     "restangular": "1.4.0",
     "angular-bootstrap-toggle-switch": "0.5.1",
-    "angular-animate": "1.2.26",
+    "angular-animate": "1.5.11",
     "angular-translate": "2.2.0",
     "font-awesome": "4.2.0"
   },
   "devDependencies": {
-    "angular-mocks": "1.2.26",
+    "angular-mocks": "1.5.11",
     "commonjs": "0.2.0",
     "chai": "1.8.0",
     "mocha": "1.14.0",
     "sinon": "1.10.3"
+  },
+  "resolutions": {
+    "angular": "1.5.11"
   }
 }

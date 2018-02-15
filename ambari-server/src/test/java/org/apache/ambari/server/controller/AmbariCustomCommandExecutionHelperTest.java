@@ -52,6 +52,8 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
@@ -66,7 +68,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -630,12 +631,16 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertEquals(2, commandRepo.getRepositories().size());
 
 
-    RepositoryInfo ri = new RepositoryInfo();
-    ri.setBaseUrl("http://foo");
-    ri.setRepoName("HDP");
-    ri.setRepoId("new-id");
-    ri.setOsType("redhat6");
-    String operatingSystems = repoVersionHelper.serializeOperatingSystems(Collections.singletonList(ri));
+    List<RepoOsEntity> operatingSystems = new ArrayList<>();
+    RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+    repoDefinitionEntity1.setRepoID("new-id");
+    repoDefinitionEntity1.setBaseUrl("http://foo");
+    repoDefinitionEntity1.setRepoName("HDP");
+    RepoOsEntity repoOsEntity = new RepoOsEntity();
+    repoOsEntity.setFamily("redhat6");
+    repoOsEntity.setAmbariManaged(true);
+    repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+    operatingSystems.add(repoOsEntity);
 
     StackEntity stackEntity = stackDAO.find(cluster.getDesiredStackVersion().getStackName(),
         cluster.getDesiredStackVersion().getStackVersion());

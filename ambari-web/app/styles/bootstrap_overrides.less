@@ -132,6 +132,14 @@ select.form-control {
   }
 }
 
+//vertical alignment for extra high icons
+.glyphicon-repeat,
+.glyphicon-time,
+.glyphicon-refresh,
+.glyphicon-remove {
+  top: 2px;
+}
+
 
 .tooltip {
   z-index: 10000;
@@ -269,7 +277,7 @@ select.form-control {
 
 .dropdown-submenu.pull-left > .dropdown-menu {
   left: -100%;
-  margin-left: -12px;
+  width: 100%;
 }
 
 .dropdown-submenu > a.disabled:after {
@@ -441,4 +449,20 @@ select.form-control {
 
 .table.table-hover .action {
   padding-right: 10px;
+}
+
+.btn-group.open .dropdown-menu input[type="checkbox"] + label,
+.dropdown.open .dropdown-menu input[type="checkbox"] + label {
+  line-height: 1.3em;
+}
+
+input[type="checkbox"]:checked + label:after {
+  line-height: 2em;
+}
+
+.form-horizontal .radio,
+.form-horizontal .checkbox,
+.form-horizontal .radio-inline,
+.form-horizontal .checkbox-inline {
+  padding-top: 0;
 }

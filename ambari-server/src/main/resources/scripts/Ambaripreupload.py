@@ -23,7 +23,7 @@ import tarfile
 from contextlib import closing
 from optparse import OptionParser
 os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
-sys.path.append("/usr/lib/python2.6/site-packages")
+sys.path.append("/usr/lib/ambari-server/lib")
 
 import glob
 from logging import thread
@@ -62,7 +62,7 @@ Please note that "-${build_number}" is optional.
 with Environment() as env:
   def get_stack_version():
     if not options.hdp_version:
-      # Ubuntu returns: "stdin: is not a tty", as subprocess output.
+      # Ubuntu returns: "stdin: is not a tty", as subprocess32 output.
       tmpfile = tempfile.NamedTemporaryFile()
       out = None
       with open(tmpfile.name, 'r+') as file:
