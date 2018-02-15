@@ -341,13 +341,10 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
                                          Map<Long, Double> timeSliceValueMap) {
 
 
-    if (timelineMetric.getMetricName().startsWith("mem_")) {
-      LOG.info("Memory metric in interpolation : " + timelineMetric.getMetricName());
-    }
     for (Pattern pattern : skipInterpolationMetricPatterns) {
       Matcher m = pattern.matcher(timelineMetric.getMetricName());
       if (m.matches()) {
-        LOG.info("Skipping interpolation for " + timelineMetric.getMetricName());
+        LOG.debug("Skipping interpolation for " + timelineMetric.getMetricName());
         return;
       }
     }
