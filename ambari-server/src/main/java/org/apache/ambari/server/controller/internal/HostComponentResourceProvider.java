@@ -120,8 +120,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID
       = "HostRoles/maintenance_state";
   public static final String HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID = "HostRoles/upgrade_state";
-  public static final String HOST_COMPONENT_CLUSTER_ID
-          = PropertyHelper.getPropertyId("HostRoles", "cluster_id");
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
@@ -158,7 +156,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
       HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID,
       HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID,
-      HOST_COMPONENT_CLUSTER_ID,
       QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
 
   /**
@@ -295,12 +292,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       if (null != response.getMaintenanceState()) {
         setResourceProperty(resource, HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID,
                 response.getMaintenanceState(), requestedIds);
-      }
-
-      if ("NAMENODE".equals(response.getComponentName()) && requestedIds.contains(HOST_COMPONENT_CLUSTER_ID)){
-        String clusterId = new NameNodeClusterIdHelper().getNameNodeClusterId(getManagementController(),
-                response.getClusterName(), response.getActualConfigs());
-        setResourceProperty(resource, HOST_COMPONENT_CLUSTER_ID, clusterId, requestedIds);
       }
 
       resources.add(resource);
