@@ -95,6 +95,16 @@ App.NameNodeFederationWizardController = App.WizardController.extend({
     });
   },
 
+  saveNameServiceId: function (nameServiceId) {
+    this.setDBProperty('nameServiceId', nameServiceId);
+    this.set('content.nameServiceId', nameServiceId);
+  },
+
+  loadNameServiceId: function () {
+    var nameServiceId = this.getDBProperty('nameServiceId');
+    this.set('content.nameServiceId', nameServiceId);
+  },
+
   /**
    * Save hosts for users selected hosts to local db and <code>controller.content</code>
    * @param selectedHosts
