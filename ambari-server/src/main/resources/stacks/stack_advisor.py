@@ -935,8 +935,8 @@ class DefaultStackAdvisor(StackAdvisor):
           if scope == "host":
             for host, hostComponents in hostsComponentsMap.iteritems():
               isRequiredIncluded = False
-              for component in hostComponents:
-                currentComponentName = None if "name" not in component else component["name"]
+              for hostComponent in hostComponents:
+                currentComponentName = None if "name" not in hostComponent else hostComponent["name"]
                 if requiredComponentName == currentComponentName:
                   isRequiredIncluded = True
               if not isRequiredIncluded:
