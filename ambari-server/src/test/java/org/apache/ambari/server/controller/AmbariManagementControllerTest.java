@@ -6709,56 +6709,6 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetStackVersions() throws Exception {
-
-
-    StackVersionRequest request = new StackVersionRequest(STACK_NAME, null);
-    Set<StackVersionResponse> responses = controller.getStackVersions(Collections.singleton(request));
-    Assert.assertEquals(STACK_VERSIONS_CNT, responses.size());
-
-    StackVersionRequest requestWithParams = new StackVersionRequest(STACK_NAME, STACK_VERSION);
-    Set<StackVersionResponse> responsesWithParams = controller.getStackVersions(Collections.singleton(requestWithParams));
-    Assert.assertEquals(1, responsesWithParams.size());
-    for (StackVersionResponse responseWithParams: responsesWithParams) {
-      Assert.assertEquals(responseWithParams.getStackVersion(), STACK_VERSION);
-    }
-
-    StackVersionRequest invalidRequest = new StackVersionRequest(STACK_NAME, NON_EXT_VALUE);
-    try {
-      controller.getStackVersions(Collections.singleton(invalidRequest));
-    } catch (StackAccessException e) {
-      // do nothing
-    }
-
-    // test that a stack response has upgrade packs
-    requestWithParams = new StackVersionRequest(STACK_NAME, "2.1.1");
-    responsesWithParams = controller.getStackVersions(Collections.singleton(requestWithParams));
-
-    Assert.assertEquals(1, responsesWithParams.size());
-    StackVersionResponse resp = responsesWithParams.iterator().next();
-    assertNotNull(resp.getUpgradePacks());
-    assertTrue(resp.getUpgradePacks().size() > 0);
-    assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
-  }
-
-  @Test
-  public void testGetStackVersionActiveAttr() throws Exception {
-
-    for (StackInfo stackInfo: ambariMetaInfo.getStacks(STACK_NAME)) {
-      if (stackInfo.getVersion().equalsIgnoreCase(STACK_VERSION)) {
-        stackInfo.setActive(true);
-      }
-    }
-
-    StackVersionRequest requestWithParams = new StackVersionRequest(STACK_NAME, STACK_VERSION);
-    Set<StackVersionResponse> responsesWithParams = controller.getStackVersions(Collections.singleton(requestWithParams));
-    Assert.assertEquals(1, responsesWithParams.size());
-    for (StackVersionResponse responseWithParams: responsesWithParams) {
-      Assert.assertTrue(responseWithParams.isActive());
-    }
-  }
-
-  @Test
   public void testGetRepositories() throws Exception {
 
     RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null, REPO_NAME);
