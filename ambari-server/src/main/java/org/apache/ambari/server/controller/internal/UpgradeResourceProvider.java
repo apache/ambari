@@ -69,6 +69,7 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
@@ -763,7 +764,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     at the appropriate moment during the orchestration.
     */
     if (pack.getType() == UpgradeType.ROLLING || pack.getType() == UpgradeType.HOST_ORDERED) {
+      if (direction == Direction.UPGRADE) {
+        StackEntity targetStack = upgradeContext.getRepositoryVersion().getStack();
+        cluster.setDesiredStackVersion(
+            new StackId(targetStack.getStackName(), targetStack.getStackVersion()));
+      }
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
+      if (direction == Direction.DOWNGRADE) {
+        StackId targetStack = upgradeContext.getCluster().getCurrentStackVersion();
+        cluster.setDesiredStackVersion(targetStack);
+      }
     }
 
     // resolve or build a proper config upgrade pack - always start out with the config pack

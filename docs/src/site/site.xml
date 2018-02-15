@@ -180,6 +180,16 @@
       <item name="0.9" href="http://archive.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
     </menu>
 
+    <menu name="ASF" title="Apache Software Foundation">
+        <item name="Home"            href="https://www.apache.org" />
+        <item name="Events"          href="https://www.apache.org/events/current-event" />
+        <item name="License"         href="https://www.apache.org/licenses/" />
+        <item name="Sponsorship"     href="https://www.apache.org/foundation/sponsorship" />
+        <item name="Security"        href="https://www.apache.org/security" />
+        <item name="Thanks"          href="https://www.apache.org/foundation/thanks" />
+        <item name="Code of Conduct" href="https://www.apache.org/foundation/policies/conduct" />
+    </menu>
+
     <footer>
       <div class="row span12">
         Apache Ambari, Apache, the Apache feather logo, and the Apache Ambari project logos are trademarks

@@ -446,7 +446,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
                     title,
                     isActive: title === this.get('activeMasterComponentGroup'),
                     components: [],
-                    hosts: [hostName]
+                    hosts: []
                   };
               if (!existingGroup) {
                 groups.push(currentGroup);
