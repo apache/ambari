@@ -19,5 +19,23 @@
 var App = require('app');
 
 App.MainAdminServiceGroupsView = App.DashRow.extend({
-  templateName: require('templates/main/admin/serviceGroups')
+  templateName: require('templates/main/admin/serviceGroups'),
+
+  handleCreateUpgradePlan: function () {
+    App.ModalPopup.show({
+      modalWrapperClasses: [ "wide-modal" ],
+      showHeader: false,
+      showFooter: false,
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/main/admin/serviceGroups/startUpgradePlan'),
+        close: function () {
+          this.get('parentView').hide();
+        },
+        createUpgradePlan: function () {
+          this.get('parentView').hide();
+          App.router.transitionTo();
+        }
+      })
+    });
+  }
 });
