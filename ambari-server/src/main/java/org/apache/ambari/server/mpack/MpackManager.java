@@ -207,13 +207,13 @@ public class MpackManager {
     if (mpackId != null) {
       mpackMap.put(mpackId, mpack);
       mpack.setMpackId(mpackId);
-      populateStackDB(mpack);
-      return new MpackResponse(mpack);
-    } else {
-      String message = "Mpack :" + mpackRequest.getMpackName() + " version: " + mpackRequest.getMpackVersion()
-        + " already exists in server";
-      throw new ResourceAlreadyExistsException(message);
+      if (populateStackDB(mpack))
+        return new MpackResponse(mpack);
     }
+    String message = "Mpack :" + mpackRequest.getMpackName() + " version: " + mpackRequest.getMpackVersion()
+      + " already exists in server";
+    throw new ResourceAlreadyExistsException(message);
+
   }
 
   /***
@@ -507,8 +507,8 @@ public class MpackManager {
     String mpackName = mpack.getName();
     String mpackVersion = mpack.getVersion();
     List resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
-
-    if (resultSet.size() == 0) {
+    StackEntity stackEntity = stackDAO.find(mpackName, mpackVersion);
+    if (resultSet.size() == 0 && stackEntity == null) {
       LOG.info("Adding mpack {}-{} to the database", mpackName, mpackVersion);
 
       MpackEntity mpackEntity = new MpackEntity();
@@ -530,7 +530,7 @@ public class MpackManager {
    * @param mpack
    * @throws IOException
    */
-  protected void populateStackDB(Mpack mpack) throws IOException {
+  protected boolean populateStackDB(Mpack mpack) throws IOException {
 
     String stackName = mpack.getName();
     String stackVersion = mpack.getVersion();
@@ -543,8 +543,10 @@ public class MpackManager {
       stackEntity.setStackVersion(stackVersion);
       stackEntity.setMpackId(mpack.getMpackId());
       stackDAO.create(stackEntity);
+      return true;
     } else {
       LOG.error("Stack {}-{} already exists in the database", stackName, stackVersion);
+      return false;
     }
   }
 
