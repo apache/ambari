@@ -17,8 +17,19 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.NameNodeFederationWizardStep1Controller = Em.Controller.extend({
-  name: "nameNodeFederationWizardStep1Controller"
+  name: "nameNodeFederationWizardStep1Controller",
+
+  isNameServiceIdValid: function () {
+    return validator.isValidNameServiceId(this.get('content.nameServiceId'));
+  }.property('content.nameServiceId'),
+
+  next: function () {
+    if (this.get('isNameServiceIdValid')) {
+      App.router.send('next');
+    }
+  }
 });
 

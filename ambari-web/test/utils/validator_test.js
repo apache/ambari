@@ -544,4 +544,28 @@ describe('validator', function () {
 
   });
 
+  describe('#isValidAlertName', function () {
+
+    [
+      {v: '', e: false},
+      {v: 'test', e: true},
+      {v: 'Test', e: true},
+      {v: 'TEST', e: true},
+      {v: 'te-st', e: true},
+      {v: '-test', e: false},
+      {v: 'test-', e: false},
+      {v: '1', e: true},
+      {v: 'test1', e: true},
+      {v: '1-test', e: true}
+    ].forEach(function (test) {
+
+      it(test.m || test.v, function () {
+        expect(validator.isValidNameServiceId(test.v)).to.be.equal(test.e);
+      })
+
+    });
+
+
+  });
+
 });
