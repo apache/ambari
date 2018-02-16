@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 require('controllers/main/admin/serviceAccounts_controller');
 
@@ -26,7 +27,7 @@ App.HighAvailabilityWizardStep1Controller = Em.Controller.extend({
   isHawqInstalled: false,
 
   isNameServiceIdValid: function () {
-    return /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])$/.test(this.get('content.nameServiceId'));
+    return validator.isValidNameServiceId(this.get('content.nameServiceId'));
   }.property('content.nameServiceId'),
 
   setHawqInstalled: function() {

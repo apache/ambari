@@ -91,6 +91,8 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('nameNodeFederationWizardController');
+      controller.saveNameServiceId(router.get('nameNodeFederationWizardStep1Controller.content.nameServiceId'));
       router.transitionTo('step2');
     }
   }),
