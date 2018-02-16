@@ -162,7 +162,6 @@ function upgrade_index() {
   if [[ "$BACKUP_ENABLED" == "true" ]]; then
     for SNAPSHOT_DIR in $(find $INDEX_DIR -maxdepth 1 -mindepth 1); do
       if $(test -d ${SNAPSHOT_DIR}); then
-        name=$(echo $SNAPSHOT_DIR | sed -e 's/.*\///g')
         abspath=$(cd "$(dirname "$SNAPSHOT_DIR")"; pwd)/$(basename "$SNAPSHOT_DIR")
         echo "--------------------------------"
         echo "Checking snapshot: $abspath"
@@ -179,9 +178,9 @@ function upgrade_index() {
             name=$(echo $c | sed -e 's/.*\///g')
             abspath=$(cd "$(dirname "$c")"; pwd)/$(basename "$c")
             find $c/data -maxdepth 1 -type d -name 'index*' | while read indexDir; do
-            echo "--------------------------------"
-            echo "Checking core $name - $abspath"
-            upgrade_core "$indexDir" "$FORCE_UPDATE" "$SOLR_CORE_FILTERS" "$LUCENE_VERSION" "$BACKUP_ENABLED" "$DEBUG_ENABLED"
+              echo "--------------------------------"
+              echo "Checking core $name - $abspath"
+              upgrade_core "$indexDir" "$FORCE_UPDATE" "$SOLR_CORE_FILTERS" "$LUCENE_VERSION" "$BACKUP_ENABLED" "$DEBUG_ENABLED"
             done
           else
             echo "No index folder found for $name"
