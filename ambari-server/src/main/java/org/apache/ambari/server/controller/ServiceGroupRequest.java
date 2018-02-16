@@ -23,12 +23,12 @@ public class ServiceGroupRequest {
 
   private String clusterName; // REF
   private String serviceGroupName; // GET/CREATE/UPDATE/DELETE
-  private String stackId; // Associated stack version info
+  private String version; // Associated stack version info
 
-  public ServiceGroupRequest(String clusterName, String serviceGroupName, String stackId) {
+  public ServiceGroupRequest(String clusterName, String serviceGroupName, String version) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.stackId = stackId;
+    this.version = version;
   }
 
   /**
@@ -60,23 +60,23 @@ public class ServiceGroupRequest {
   }
 
   /**
-   * @return the stackId
+   * @return the servicegroup version
    */
-  public String getStackId() {
-    return stackId;
+  public String getVersion() {
+    return version;
   }
 
   /**
-   * @param stackId the stackId to set
+   * @param version the servicegroup version to set
    */
-  public void setStackId(String stackId) {
-    this.stackId = stackId;
+  public void setVersion(String version) {
+    this.version = version;
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("clusterName=").append(clusterName).append(", serviceGroupName=").append(serviceGroupName).append(", stackId=").append(stackId);
+    sb.append("clusterName=").append(clusterName).append(", serviceGroupName=").append(serviceGroupName).append(", version=").append(version);
     return sb.toString();
   }
 
@@ -91,11 +91,11 @@ public class ServiceGroupRequest {
 
     ServiceGroupRequest other = (ServiceGroupRequest) obj;
 
-    return Objects.equals(clusterName, other.clusterName) && Objects.equals(serviceGroupName, other.serviceGroupName) && Objects.equals(stackId, other.stackId);
+    return Objects.equals(clusterName, other.clusterName) && Objects.equals(serviceGroupName, other.serviceGroupName) && Objects.equals(version, other.version);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(clusterName, serviceGroupName, stackId);
+    return Objects.hash(clusterName, serviceGroupName, version);
   }
 }

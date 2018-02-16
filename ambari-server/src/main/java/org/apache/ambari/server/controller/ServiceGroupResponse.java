@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Objects;
+
 import io.swagger.annotations.ApiModelProperty;
 
 public class ServiceGroupResponse {
@@ -26,14 +28,14 @@ public class ServiceGroupResponse {
   private Long serviceGroupId;
   private String clusterName;
   private String serviceGroupName;
-  private String stackId;
+  private String version;
 
-  public ServiceGroupResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName, String stackId) {
+  public ServiceGroupResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName, String version) {
     this.clusterId = clusterId;
     this.serviceGroupId = serviceGroupId;
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.stackId = stackId;
+    this.version = version;
 
   }
 
@@ -94,17 +96,17 @@ public class ServiceGroupResponse {
   }
 
   /**
-   * @return the stack ID (stack name - stack Id)
+   * @return the servicegroup version (stackName-stackVersion)
    */
-  public String getStackId() {
-    return stackId;
+  public String getVersion() {
+    return version;
   }
 
   /**
-   * @param stackId the stack Id
+   * @param version the servicegroup version (stackName-stackVersion)
    */
-  public void setStackId(String stackId) {
-    this.stackId = stackId;
+  public void setVersion(String version) {
+    this.version = version;
   }
 
   @Override
@@ -112,27 +114,9 @@ public class ServiceGroupResponse {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    ServiceGroupResponse that = (ServiceGroupResponse) o;
+    ServiceGroupResponse other = (ServiceGroupResponse) o;
 
-    if (clusterId != null ?
-      !clusterId.equals(that.clusterId) : that.clusterId != null) {
-      return false;
-    }
-    if (clusterName != null ?
-      !clusterName.equals(that.clusterName) : that.clusterName != null) {
-      return false;
-    }
-    if (serviceGroupName != null ?
-      !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null) {
-      return false;
-    }
-
-    if (stackId != null ?
-        !stackId.equals(that.stackId) : that.stackId != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(clusterId, other.clusterId) && Objects.equals(clusterName, other.clusterName) && Objects.equals(serviceGroupName, other.serviceGroupName) && Objects.equals(version, other.version);
   }
 
   /**

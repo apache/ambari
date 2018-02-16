@@ -1302,7 +1302,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion));
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "YARN", "YARN", repositoryVersion));
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion));
@@ -1512,7 +1512,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion));
 
     Service s = c.getService("HDFS");
@@ -1584,7 +1584,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion2110));
 
     Service s = c.getService("ZOOKEEPER");
@@ -1653,7 +1653,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // Add services
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion211));
 
     Service s = c.getService("HDFS");
@@ -1724,7 +1724,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // Add services
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion211));
 
     Service s = c.getService("HDFS");
@@ -1846,7 +1846,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add storm
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "STORM", "STORM", repoVersion211));
 
     Service s = c.getService("STORM");
@@ -1953,7 +1953,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion));
 
     Service s = c.getService("ZOOKEEPER");
@@ -2138,7 +2138,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     // add ZK Server to both hosts, and then Nimbus to only 1 - this will test
     // how the HOU breaks out dependencies into stages
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", stackId.getStackId(), new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", "HDP-2.1.1", new HashSet<ServiceGroupKey>());
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repoVersion211));
     c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HBASE", "HBASE", repoVersion211));
     Service zookeeper = c.getService("ZOOKEEPER");

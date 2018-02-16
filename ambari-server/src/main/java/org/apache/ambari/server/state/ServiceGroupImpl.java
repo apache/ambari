@@ -60,13 +60,12 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   private Long serviceGroupId;
   private String serviceGroupName;
-  private String stackId;
   private Set<ServiceGroupKey> serviceGroupDependencies;
 
   @AssistedInject
   public ServiceGroupImpl(@Assisted Cluster cluster,
                           @Assisted("serviceGroupName") String serviceGroupName,
-                          @Assisted("stackId") String stackId,
+                          @Assisted("version") String version,
                           @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies,
                           ClusterDAO clusterDAO,
                           StackDAO stackDAO,
@@ -82,8 +81,10 @@ public class ServiceGroupImpl implements ServiceGroup {
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupName = serviceGroupName;
-    this.stackId = stackId;
-    StackEntity stackEntity = stackDAO.find(new StackId(stackId));
+    // version is actually stackName-stackVersion
+    int idx = version.indexOf('-');
+    StackId stackId = new StackId(version.substring(0, idx), version.substring(idx+1));
+    StackEntity stackEntity = stackDAO.find(stackId);
 
     ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
     serviceGroupEntity.setClusterId(cluster.getClusterId());
@@ -119,8 +120,6 @@ public class ServiceGroupImpl implements ServiceGroup {
 
     this.serviceGroupId = serviceGroupEntity.getServiceGroupId();
     this.serviceGroupName = serviceGroupEntity.getServiceGroupName();
-    StackEntity stackEntity = stackDAO.findById(serviceGroupEntity.getStackId());
-    this.stackId = stackEntity.getStackName()+"-"+stackEntity.getStackVersion();
     this.serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
     this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
@@ -150,20 +149,15 @@ public class ServiceGroupImpl implements ServiceGroup {
   }
 
   @Override
-  public String getStackId() {
+  public StackEntity getStackEntity() {
     ServiceGroupEntity entity = getServiceGroupEntity();
-    StackEntity stackEntity = stackDAO.findById(entity.getStackId());
-    return stackEntity.getStackName().concat("-").concat(stackEntity.getStackVersion());
+    return stackDAO.findById(entity.getStackId());
   }
 
   @Override
-  public void setStackId(String stackId) {
-    ServiceGroupEntity entity = getServiceGroupEntity();
-    String[] stackInfo = stackId.split("-");
-    StackEntity stackEntity = stackDAO.find(stackInfo[0], stackInfo[1]);
-    entity.setStackId(stackEntity.getStackId());
-    serviceGroupDAO.merge(entity);
-    this.stackId = stackId;
+  public String getVersion() {
+    StackEntity entity = getStackEntity();
+    return entity.getStackName()+"-"+entity.getStackVersion();
   }
 
   @Override
@@ -178,8 +172,10 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Override
   public ServiceGroupResponse convertToResponse() {
+    StackEntity entity = getStackEntity();
+    String version = entity.getStackName()+"-"+entity.getStackVersion();
     ServiceGroupResponse r = new ServiceGroupResponse(cluster.getClusterId(),
-      cluster.getClusterName(), getServiceGroupId(), getServiceGroupName(), getStackId());
+      cluster.getClusterName(), getServiceGroupId(), getServiceGroupName(), version);
     return r;
   }
 
@@ -247,7 +243,7 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    sb.append("ServiceGroup={ serviceGroupName=").append(getServiceGroupName()).append(", clusterName=").append(cluster.getClusterName()).append(", clusterId=").append(cluster.getClusterId()).append(", stackVersion=").append(getStackId());
+    sb.append("ServiceGroup={ serviceGroupName=").append(getServiceGroupName()).append(", clusterName=").append(cluster.getClusterName()).append(", clusterId=").append(cluster.getClusterId()).append(", stackVersion=").append(getVersion());
     sb.append("}");
   }
 

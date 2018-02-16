@@ -54,6 +54,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -78,7 +79,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   public static final String SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
   public static final String SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
   public static final String SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
-  public static final String SERVICE_GROUP_STACK_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_id";
+  public static final String SERVICE_GROUP_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "version";
 
 
   private static Set<String> pkPropertyIds =
@@ -104,12 +105,12 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     PROPERTY_IDS.add(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_GROUP_STACK_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_GROUP_VERSION_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Stack, SERVICE_GROUP_STACK_ID_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Stack, SERVICE_GROUP_VERSION_PROPERTY_ID);
   }
 
   private Clusters clusters;
@@ -163,7 +164,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
         resource.setProperty(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
         resource.setProperty(SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId());
         resource.setProperty(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
-        resource.setProperty(SERVICE_GROUP_STACK_ID_PROPERTY_ID, response.getStackId());
+        resource.setProperty(SERVICE_GROUP_VERSION_PROPERTY_ID, response.getVersion());
 
         associatedResources.add(resource);
       }
@@ -203,8 +204,8 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
         response.getServiceGroupId(), requestedIds);
       setResourceProperty(resource, SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID,
         response.getServiceGroupName(), requestedIds);
-      setResourceProperty(resource, SERVICE_GROUP_STACK_ID_PROPERTY_ID,
-          response.getStackId(), requestedIds);
+      setResourceProperty(resource, SERVICE_GROUP_VERSION_PROPERTY_ID,
+          response.getVersion(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -274,8 +275,8 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   private ServiceGroupRequest getRequest(Map<String, Object> properties) {
     String clusterName = (String) properties.get(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     String serviceGroupName = (String) properties.get(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
-    String stackId = (String) properties.get(SERVICE_GROUP_STACK_ID_PROPERTY_ID);
-    ServiceGroupRequest svcRequest = new ServiceGroupRequest(clusterName, serviceGroupName, stackId);
+    String version = (String) properties.get(SERVICE_GROUP_VERSION_PROPERTY_ID);
+    ServiceGroupRequest svcRequest = new ServiceGroupRequest(clusterName, serviceGroupName, version);
     return svcRequest;
   }
 
@@ -298,7 +299,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
       // Already checked that service group does not exist
-      ServiceGroup sg = cluster.addServiceGroup(request.getServiceGroupName(), request.getStackId());
+      ServiceGroup sg = cluster.addServiceGroup(request.getServiceGroupName(), request.getVersion());
       createdSvcGrps.add(sg.convertToResponse());
     }
     return createdSvcGrps;
@@ -404,21 +405,26 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     for (ServiceGroupRequest request : requests) {
       final String clusterName = request.getClusterName();
       final String serviceGroupName = request.getServiceGroupName();
-      String stackVersion = request.getStackId();
-      //TODO: ******* For test ********* this piece of code should be removed after web UI adds default stack id
-      if (StringUtils.isBlank(stackVersion)) {
-        stackVersion = "HDP-2.0.6";
-        request.setStackId(stackVersion);
-        LOG.info("***** Add fake stack id in order to create cluster from web UI, this code will be removed after web UI adds default stack id");
+      String version = request.getVersion();
+      //TODO: This should not happen, after UI changes the code, this check should be removed
+      if (StringUtils.isBlank(version)) {
+        try {
+          Cluster cluster = clusters.getCluster(clusterName);
+          StackId stackId = cluster.getCurrentStackVersion();
+          version = stackId.getStackName()+"-"+stackId.getStackVersion();
+          request.setVersion(version);
+        } catch (ClusterNotFoundException e) {
+          throw new ParentObjectNotFoundException("Cluster " + clusterName + " does not exist: ", e);
+        }
       }
 
       Validate.notNull(clusterName, "Cluster name should be provided when creating a service group");
       Validate.notEmpty(serviceGroupName, "Service group name should be provided when creating a service group");
-      Validate.notEmpty(stackVersion, "Stack version should be provided when creating a service group");
+      Validate.notEmpty(version, "Stack version should be provided when creating a service group");
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a createServiceGroup request" +
-          ", clusterName=" + clusterName + ", serviceGroupName=" + serviceGroupName + ", stackVersion=" + stackVersion + ", request=" + request);
+          ", clusterName=" + clusterName + ", serviceGroupName=" + serviceGroupName + ", version=" + version + ", request=" + request);
       }
 
       if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER,
@@ -438,13 +444,13 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
       serviceGroupNames.get(clusterName).add(serviceGroupName);
 
       // TODO: Validate  stack version
-
       Cluster cluster;
       try {
         cluster = clusters.getCluster(clusterName);
       } catch (ClusterNotFoundException e) {
         throw new ParentObjectNotFoundException("Attempted to add a service group to a cluster which doesn't exist", e);
       }
+
       try {
         ServiceGroup sg = cluster.getServiceGroup(serviceGroupName);
         if (sg != null) {

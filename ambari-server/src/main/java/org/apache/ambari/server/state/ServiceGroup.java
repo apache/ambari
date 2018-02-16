@@ -25,6 +25,7 @@ import org.apache.ambari.server.api.services.ServiceGroupKey;
 import org.apache.ambari.server.controller.ServiceGroupDependencyResponse;
 import org.apache.ambari.server.controller.ServiceGroupResponse;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 
 public interface ServiceGroup {
 
@@ -46,9 +47,9 @@ public interface ServiceGroup {
 
   Set<ServiceGroupDependencyResponse> getServiceGroupDependencyResponses();
 
-  String getStackId();
+  StackEntity getStackEntity();
 
-  void setStackId(String stackId);
+  String getVersion();
 
   void debugDump(StringBuilder sb);
 
