@@ -156,7 +156,7 @@ class TestDatanode(RMFTestCase):
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
-    secured_json['hostLevelParams']['stack_version']= '2.2'
+    secured_json['clusterLevelParams']['stack_version']= '2.2'
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
@@ -196,7 +196,7 @@ class TestDatanode(RMFTestCase):
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
-    secured_json['hostLevelParams']['stack_version']= '2.2'
+    secured_json['clusterLevelParams']['stack_version']= '2.2'
     secured_json['configurations']['hdfs-site']['dfs.http.policy']= 'HTTPS_ONLY'
     secured_json['configurations']['hdfs-site']['dfs.datanode.address']= '0.0.0.0:10000'
     secured_json['configurations']['hdfs-site']['dfs.datanode.https.address']= '0.0.0.0:50000'
@@ -271,7 +271,7 @@ class TestDatanode(RMFTestCase):
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
-    secured_json['hostLevelParams']['stack_version']= '2.2'
+    secured_json['clusterLevelParams']['stack_version']= '2.2'
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
@@ -301,7 +301,7 @@ class TestDatanode(RMFTestCase):
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
-    secured_json['hostLevelParams']['stack_version']= '2.2'
+    secured_json['clusterLevelParams']['stack_version']= '2.2'
     secured_json['configurations']['hdfs-site']['dfs.http.policy']= 'HTTPS_ONLY'
     secured_json['configurations']['hdfs-site']['dfs.datanode.address']= '0.0.0.0:10000'
     secured_json['configurations']['hdfs-site']['dfs.datanode.https.address']= '0.0.0.0:50000'
@@ -350,14 +350,14 @@ class TestDatanode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               mode = 0644
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hadoop-client/conf/slaves',
@@ -435,7 +435,7 @@ class TestDatanode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = conf_dir,
                               configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
                               )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
@@ -443,7 +443,7 @@ class TestDatanode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = conf_dir,
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               mode = 0644
     )
     self.assertResourceCalled('File', conf_dir + '/slaves',

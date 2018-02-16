@@ -51,7 +51,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AmbariAuthorizationFilter implements Filter {
   private static final String REALM_PARAM = "realm";
   private static final String DEFAULT_REALM = "AuthFilter";

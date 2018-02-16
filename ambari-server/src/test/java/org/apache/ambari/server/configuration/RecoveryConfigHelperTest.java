@@ -36,6 +36,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.agent.HeartbeatTestHelper;
 import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -81,6 +82,8 @@ public class RecoveryConfigHelperTest {
   private final String STACK_VERSION = "0.1";
   private final String REPO_VERSION = "0.1-1234";
   private final StackId stackId = new StackId("HDP", STACK_VERSION);
+  private final String dummyClusterName = "cluster1";
+  private final Long dummyClusterId = 1L;
 
   @Before
   public void setup() throws Exception {
@@ -160,12 +163,6 @@ public class RecoveryConfigHelperTest {
     hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
-    // Verify that the config is stale now
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
-
     // Verify the new config
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
     assertEquals(recoveryConfig.getEnabledComponents(), "DATANODE,NAMENODE");
@@ -194,13 +191,7 @@ public class RecoveryConfigHelperTest {
     assertEquals(recoveryConfig.getEnabledComponents(), "DATANODE,NAMENODE");
 
     // Uninstall HDFS::DATANODE from host1
-    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).delete();
-
-    // Verify that the config is stale
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
+    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).delete(new DeleteHostComponentStatusMetaData());
 
     // Verify the new config
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
@@ -235,12 +226,6 @@ public class RecoveryConfigHelperTest {
     }});
     config.save();
 
-    // Recovery config should be stale because of the above change.
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
-
     // Get the recovery configuration again and verify that there are no components to be auto started
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
     assertNull(recoveryConfig.getEnabledComponents());
@@ -271,12 +256,6 @@ public class RecoveryConfigHelperTest {
 
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setMaintenanceState(MaintenanceState.ON);
 
-    // We need a new config
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
-
     // Only NAMENODE is left
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
     assertEquals(recoveryConfig.getEnabledComponents(), "NAMENODE");
@@ -303,12 +282,6 @@ public class RecoveryConfigHelperTest {
 
     // Turn off auto start for HDFS::DATANODE
     hdfs.getServiceComponent(DATANODE).setRecoveryEnabled(false);
-
-    // Config should be stale now
-    boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
-            recoveryConfig.getRecoveryTimestamp());
-
-    assertTrue(isConfigStale);
 
     // Get the latest config. DATANODE should not be present.
     recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
@@ -369,7 +342,7 @@ public class RecoveryConfigHelperTest {
       put(RecoveryConfigHelper.RECOVERY_RETRY_GAP_KEY, "2");
     }};
 
-    Cluster cluster = heartbeatTestHelper.getDummyCluster("cluster1", stackId, REPO_VERSION,
+    Cluster cluster = heartbeatTestHelper.getDummyCluster(dummyClusterName, dummyClusterId, stackId, REPO_VERSION,
         configProperties, hostNames);
 
     return cluster;

@@ -656,17 +656,8 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       data: {
         id: this.get('content.id'),
         data: this.getPropertiesToUpdate(true)
-      },
-      success: 'saveConfigsSuccessCallback'
+      }
     });
-  },
-
-  /**
-   * Success-callback for saveConfigs-request
-   * @method saveConfigsSuccessCallback
-   */
-  saveConfigsSuccessCallback: function () {
-    App.router.get('updateController').updateAlertDefinitions(Em.K);
   },
 
   /**

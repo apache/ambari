@@ -46,7 +46,9 @@ import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
@@ -57,6 +59,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -85,6 +88,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
   protected static final String COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
   protected static final String COMPONENT_STATE_TABLE = "hostcomponentstate";
+  protected static final String COMPONENT_LAST_STATE_COLUMN = "last_live_state";
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
   protected static final String SECURITY_STATE_COLUMN = "security_state";
 
@@ -204,6 +208,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     addOpsDisplayNameColumnToHostRoleCommand();
     removeSecurityState();
     addAmbariConfigurationTable();
+    addHostComponentLastStateTable();
     upgradeUserTables();
     upgradeKerberosTables();
   }
@@ -580,6 +585,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
   }
 
+  protected void addHostComponentLastStateTable() throws SQLException {
+    dbAccessor.addColumn(COMPONENT_STATE_TABLE,
+        new DBAccessor.DBColumnInfo(COMPONENT_LAST_STATE_COLUMN, String.class, 255, State.UNKNOWN, true));
+  }
+
   /**
    * Creates new tables for changed kerberos data.
    *
@@ -642,6 +652,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
+    updateHostComponentLastStateTable();
     upgradeLdapConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
@@ -1006,6 +1017,24 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         put(AmbariLdapConfigurationKeys.REFERRAL_HANDLING, "authentication.ldap.referral");
         put(AmbariLdapConfigurationKeys.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
         put(AmbariLdapConfigurationKeys.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
+      }
+    });
+  }
+
+  protected void updateHostComponentLastStateTable() throws SQLException {
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+          List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
+          for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
+            hostComponentStateEntity.setLastLiveState(hostComponentStateEntity.getCurrentState());
+            hostComponentStateDAO.merge(hostComponentStateEntity);
+          }
+        } catch (Exception e) {
+          LOG.warn("Setting status for stages and Requests threw exception. ", e);
+        }
       }
     });
   }

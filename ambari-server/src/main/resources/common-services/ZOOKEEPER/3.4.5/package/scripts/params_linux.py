@@ -59,7 +59,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
 
 
 zk_user = config['configurations']['zookeeper-env']['zk_user']
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 user_group = config['configurations']['cluster-env']['user_group']
 zk_env_sh_template = config['configurations']['zookeeper-env']['content']
 
@@ -84,10 +84,10 @@ zoo_cfg_properties_map_length = len(zoo_cfg_properties_map)
 zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper@EXAMPLE.COM")
 zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
-java64_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
+java64_home = config['ambariLevelParams']['java_home']
+java_version = expect("/ambariLevelParams/java_version", int)
 
-zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts = config['clusterHostInfo']['zookeeper_server_hosts']
 zookeeper_hosts.sort()
 
 zk_keytab_path = config['configurations']['zookeeper-env']['zookeeper_keytab_path']

@@ -18,12 +18,16 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -33,6 +37,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -50,12 +55,15 @@ import junit.framework.Assert;
 public class HiveEnvClasspathActionTest {
   private Injector m_injector;
   private Clusters m_clusters;
+  private AgentConfigsHolder agentConfigsHolder;
   private Field m_clusterField;
+  private Field agentConfigsHolderField;
 
   @Before
   public void setup() throws Exception {
     m_injector = EasyMock.createMock(Injector.class);
     m_clusters = EasyMock.createMock(Clusters.class);
+    agentConfigsHolder = createMock(AgentConfigsHolder.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
 
     Map<String, String> mockProperties = new HashMap<String, String>() {{
@@ -115,12 +123,19 @@ public class HiveEnvClasspathActionTest {
     expect(cluster.getDesiredConfigByType("hive-env")).andReturn(hiveEnv).atLeastOnce();
 
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
+    expect(cluster.getHosts()).andReturn(Collections.emptyList()).atLeastOnce();
+    agentConfigsHolder.updateData(eq(1L), eq(Collections.emptyList()));
+    expectLastCall().atLeastOnce();
+
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
 
-    replay(m_injector, m_clusters, cluster, hiveEnv);
+    replay(m_injector, m_clusters, cluster, hiveEnv, agentConfigsHolder);
 
     m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
+    agentConfigsHolderField = AbstractUpgradeServerAction.class.getDeclaredField("agentConfigsHolder");
+    agentConfigsHolderField.setAccessible(true);
   }
 
 
@@ -143,6 +158,7 @@ public class HiveEnvClasspathActionTest {
     HiveEnvClasspathAction action = new HiveEnvClasspathAction();
 
     m_clusterField.set(action, m_clusters);
+    agentConfigsHolderField.set(action, agentConfigsHolder);
 
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);

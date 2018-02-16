@@ -257,6 +257,7 @@ class TestHiveServerInteractive(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.5/configs/hsi_default_for_restart.json",
                        stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, "OK.", ""), (0, "OK."), (0, "OK."), (0, "OK."), (0, "OK.")],
                        checked_call_mocks=[(0, "OK.", ""),
                                            #(0, "OK.", ""),
                                            (0, "UNWANTED_STRING \n "
@@ -288,7 +289,12 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/hive/hive-interactive.pid',
                               action=['delete'],
                               )
-
+    self.assertResourceCalled('Execute', ('slider', 'destroy', u'llap0', '--force'),
+        ignore_failures = True,
+        user = 'hive',
+        timeout = 30,
+    )
+    
     self.assert_configure_default(with_cs_enabled=True)
 
     self.assertResourceCalled('Execute',
@@ -412,7 +418,6 @@ class TestHiveServerInteractive(RMFTestCase):
 
 
   def assert_configure_default(self, no_tmp=False, default_fs_default=u'hdfs://c6401.ambari.apache.org:8020', with_cs_enabled=False):
-
     self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,

@@ -678,12 +678,18 @@ public class OrmTestHelper {
         repoDefinitionEntity2.setRepoID("HDP-UTILS");
         repoDefinitionEntity2.setBaseUrl("");
         repoDefinitionEntity2.setRepoName("HDP-UTILS");
-        RepoOsEntity repoOsEntity = new RepoOsEntity();
-        repoOsEntity.setFamily("redhat6");
-        repoOsEntity.setAmbariManaged(true);
-        repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
-        repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
-        operatingSystems.add(repoOsEntity);
+        RepoOsEntity repoOsEntityRedHat6 = new RepoOsEntity();
+        repoOsEntityRedHat6.setFamily("redhat6");
+        repoOsEntityRedHat6.setAmbariManaged(true);
+        repoOsEntityRedHat6.addRepoDefinition(repoDefinitionEntity1);
+        repoOsEntityRedHat6.addRepoDefinition(repoDefinitionEntity2);
+        RepoOsEntity repoOsEntityRedHat5 = new RepoOsEntity();
+        repoOsEntityRedHat5.setFamily("redhat5");
+        repoOsEntityRedHat5.setAmbariManaged(true);
+        repoOsEntityRedHat5.addRepoDefinition(repoDefinitionEntity1);
+        repoOsEntityRedHat5.addRepoDefinition(repoDefinitionEntity2);
+        operatingSystems.add(repoOsEntityRedHat6);
+        operatingSystems.add(repoOsEntityRedHat5);
 
 
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,

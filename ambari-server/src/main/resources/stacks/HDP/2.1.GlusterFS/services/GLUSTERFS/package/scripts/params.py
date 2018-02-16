@@ -25,5 +25,5 @@ config = Script.get_config()
 #glusterfs_home = '/usr/lib/glusterfs'
 glusterfs_conf_dir = '/etc/glusterfs'
 log_dir = '/var/log/glusterfs'
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 hadoop_home = "/usr"

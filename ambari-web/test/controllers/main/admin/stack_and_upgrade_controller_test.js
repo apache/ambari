@@ -113,9 +113,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#load()", function() {
     beforeEach(function(){
-      sinon.stub(controller, 'loadUpgradeData').returns({
-        done: Em.clb
-      });
       sinon.stub(controller, 'loadStackVersionsToModel').returns({
         done: Em.clb
       });
@@ -137,14 +134,10 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.load();
     });
     afterEach(function(){
-      controller.loadUpgradeData.restore();
       controller.loadStackVersionsToModel.restore();
       controller.loadRepoVersionsToModel.restore();
       controller.loadCompatibleVersions.restore();
       App.StackVersion.find.restore();
-    });
-    it("loadUpgradeData called with valid arguments", function() {
-      expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
     });
     it('loadStackVersionsToModel called with valid arguments', function () {
       expect(controller.loadStackVersionsToModel.calledWith(true)).to.be.true;
@@ -1771,6 +1764,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         upgrade_type: 'ROLLING',
         downgrade_allowed: true,
         skip_failures: true,
+        suspended: false,
         skip_service_check_failures: true,
         to_version: '1'
       }
@@ -1811,11 +1805,12 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         upgradeType: "ROLLING",
         isWizardRestricted: false,
         downgradeAllowed: true,
+        isSuspended: false,
         upgradeTypeDisplayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
-        failuresTolerance: Em.Object.create({
+        failuresTolerance: {
           skipComponentFailures: true,
           skipSCFailures: true
-        })
+        }
       });
     });
     it('models are saved', function () {
@@ -1823,9 +1818,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('initDBProperties is called', function () {
       expect(controller.initDBProperties.calledOnce).to.be.true;
-    });
-    it('loadUpgradeData called with valid arguments', function () {
-      expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
     });
   });
 

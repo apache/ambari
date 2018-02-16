@@ -29,6 +29,10 @@ import pprint
 import traceback
 import hostname
 import platform
+import ambari_stomp
+import threading
+from ambari_stomp.adapter.websocket import WsConnection
+from socket import error as socket_error
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +102,49 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
     return sock
 
+def establish_connection(connection_url):
+  """
+  Create a stomp connection
+  """
+  logging.info("Connecting to {0}".format(connection_url))
+
+  conn = AmbariStompConnection(connection_url)
+  try:
+    conn.start()
+    conn.connect(wait=True)
+  except Exception as ex:
+    try:
+      conn.disconnect()
+    except:
+      logger.exception("Exception during conn.disconnect()")
+
+    if isinstance(ex, socket_error):
+      logger.warn("Could not connect to {0}".format(connection_url))
+
+    raise
+
+  return conn
+
+class AmbariStompConnection(WsConnection):
+  def __init__(self, url):
+    self.lock = threading.RLock()
+    self.correlation_id = -1
+    WsConnection.__init__(self, url)
+
+  def send(self, destination, message, content_type=None, headers=None, **keyword_headers):
+    with self.lock:
+      self.correlation_id += 1
+      correlation_id = self.correlation_id
+
+    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, correlation_id, message))
+
+    body = json.dumps(message)
+    WsConnection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=correlation_id, **keyword_headers)
+
+    return correlation_id
+
+  def add_listener(self, listener):
+    self.set_listener(listener.__class__.__name__, listener)
 
 class CachedHTTPSConnection:
   """ Caches a ssl socket and uses a single https connection to the server. """
@@ -254,7 +301,7 @@ class CertificateManager():
     generate_script = GEN_AGENT_KEY % {
       'hostname': hostname.hostname(self.config),
       'keysdir': keysdir}
-    
+
     logger.info(generate_script)
     if platform.system() == 'Windows':
       p = subprocess32.Popen(generate_script, stdout=subprocess32.PIPE)

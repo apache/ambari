@@ -31,7 +31,7 @@ public class ComponentStatus {
   private String sendExecCmdDet = "False";
 
   private String serviceName;
-  private String clusterName;
+  private Long clusterId;
   private String stackVersion;
   private Map<String, Map<String, String>> configurationTags;
   private Map<String, Object> extra;
@@ -92,12 +92,12 @@ public class ComponentStatus {
     this.serviceName = serviceName;
   }
 
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   /**
@@ -133,7 +133,7 @@ public class ComponentStatus {
   public String toString() {
     return "ComponentStatus [componentName=" + componentName + ", msg=" + msg
         + ", status=" + status
-        + ", serviceName=" + serviceName + ", clusterName=" + clusterName
+        + ", serviceName=" + serviceName + ", clusterId=" + clusterId
         + ", stackVersion=" + stackVersion + ", configurationTags="
         + configurationTags + ", extra=" + extra + "]";
   }

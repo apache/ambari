@@ -40,13 +40,13 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import get_
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 retryAble = default("/commandParams/command_retry_enabled", False)
 
 # Version being upgraded/downgraded to
 version = default("/commandParams/version", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
@@ -57,7 +57,7 @@ stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBERO
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT, version_for_stack_feature_checks)
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 
 # default kafka parameters
 kafka_home = '/usr/lib/kafka'
@@ -85,14 +85,14 @@ kafka_pid_file = kafka_pid_dir+"/kafka.pid"
 kafka_managed_pid_dir = "/var/run/kafka"
 kafka_managed_log_dir = "/var/log/kafka"
 user_group = config['configurations']['cluster-env']['user_group']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 kafka_env_sh_template = config['configurations']['kafka-env']['content']
 kafka_jaas_conf_template = default("/configurations/kafka_jaas_conf/content", None)
 kafka_client_jaas_conf_template = default("/configurations/kafka_client_jaas_conf/content", None)
 kafka_hosts = config['clusterHostInfo']['kafka_broker_hosts']
 kafka_hosts.sort()
 
-zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts = config['clusterHostInfo']['zookeeper_server_hosts']
 zookeeper_hosts.sort()
 secure_acls = default("/configurations/kafka-broker/zookeeper.set.acl", False)
 kafka_security_migrator = os.path.join(kafka_home, "bin", "zookeeper-security-migration.sh")
@@ -111,10 +111,10 @@ if (('kafka-log4j' in config['configurations']) and ('content' in config['config
 else:
     log4j_props = None
 
-if 'ganglia_server_host' in config['clusterHostInfo'] and \
-    len(config['clusterHostInfo']['ganglia_server_host'])>0:
+if 'ganglia_server_hosts' in config['clusterHostInfo'] and \
+    len(config['clusterHostInfo']['ganglia_server_hosts'])>0:
   ganglia_installed = True
-  ganglia_server = config['clusterHostInfo']['ganglia_server_host'][0]
+  ganglia_server = config['clusterHostInfo']['ganglia_server_hosts'][0]
   ganglia_report_interval = 60
 else:
   ganglia_installed = False
@@ -173,7 +173,7 @@ kafka_other_sasl_enabled = not kerberos_security_enabled and check_stack_feature
 
 if kerberos_security_enabled and stack_version_formatted != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] \
   and check_stack_feature(StackFeature.KAFKA_KERBEROS, stack_version_formatted):
-    _hostname_lowercase = config['hostname'].lower()
+    _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
     _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
     kafka_jaas_principal = _kafka_principal_name.replace('_HOST',_hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
@@ -187,7 +187,7 @@ else:
     kafka_keytab_path = None
 
 # for curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 # ranger kafka plugin section start
 
@@ -247,11 +247,11 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
 
   ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
   ranger_kafka_audit = config['configurations']['ranger-kafka-audit']
-  ranger_kafka_audit_attrs = config['configuration_attributes']['ranger-kafka-audit']
+  ranger_kafka_audit_attrs = config['configurationAttributes']['ranger-kafka-audit']
   ranger_kafka_security = config['configurations']['ranger-kafka-security']
-  ranger_kafka_security_attrs = config['configuration_attributes']['ranger-kafka-security']
+  ranger_kafka_security_attrs = config['configurationAttributes']['ranger-kafka-security']
   ranger_kafka_policymgr_ssl = config['configurations']['ranger-kafka-policymgr-ssl']
-  ranger_kafka_policymgr_ssl_attrs = config['configuration_attributes']['ranger-kafka-policymgr-ssl']
+  ranger_kafka_policymgr_ssl_attrs = config['configurationAttributes']['ranger-kafka-policymgr-ssl']
 
   policy_user = config['configurations']['ranger-kafka-plugin-properties']['policy_user']
 
@@ -318,7 +318,7 @@ cluster_name = config['clusterName']
 
 # ranger kafka plugin section end
 
-namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_hosts) == 0
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None

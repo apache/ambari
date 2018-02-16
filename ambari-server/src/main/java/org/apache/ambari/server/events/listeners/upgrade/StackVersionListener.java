@@ -19,6 +19,7 @@ package org.apache.ambari.server.events.listeners.upgrade;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
@@ -62,8 +63,9 @@ public class StackVersionListener {
    * Used for looking up a component's advertising version status given a stack
    * and name.
    */
-  @Inject
   private Provider<AmbariMetaInfo> ambariMetaInfoProvider;
+
+  private final Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
 
   /**
    * Constructor.
@@ -71,12 +73,16 @@ public class StackVersionListener {
    * @param eventPublisher  the publisher
    */
   @Inject
-  public StackVersionListener(VersionEventPublisher eventPublisher) {
+  public StackVersionListener(VersionEventPublisher eventPublisher,
+                              Provider<AmbariMetaInfo> ambariMetaInfoProvider,
+                              Provider<HostLevelParamsHolder> m_hostLevelParamsHolder) {
+    this.ambariMetaInfoProvider = ambariMetaInfoProvider;
+    this.m_hostLevelParamsHolder = m_hostLevelParamsHolder;
     eventPublisher.register(this);
   }
 
   @Subscribe
-  public void onAmbariEvent(HostComponentVersionAdvertisedEvent event) {
+  public void onAmbariEvent(HostComponentVersionAdvertisedEvent event) throws AmbariException {
     LOG.debug("Received event {}", event);
 
     Cluster cluster = event.getCluster();
@@ -96,18 +102,24 @@ public class StackVersionListener {
       // exact version is not known in advance.
       RepositoryVersionEntity rve = repositoryVersionDAO.findByPK(event.getRepositoryVersionId());
       if (null != rve) {
+        boolean updated = false;
         String currentRepoVersion = rve.getVersion();
         if (!StringUtils.equals(currentRepoVersion, newVersion)) {
           rve.setVersion(newVersion);
           rve.setResolved(true);
           repositoryVersionDAO.merge(rve);
+          updated = true;
         } else {
           // the reported versions are the same - we should ensure that the repo
           // is resolved
           if (!rve.isResolved()) {
             rve.setResolved(true);
             repositoryVersionDAO.merge(rve);
+            updated = true;
           }
+        }
+        if (updated) {
+          m_hostLevelParamsHolder.get().updateData(m_hostLevelParamsHolder.get().getCurrentData(sch.getHost().getHostId()));
         }
       }
     }

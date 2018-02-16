@@ -169,7 +169,7 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
     return App.router.get('mainServiceController.content').filter(function (item) {
       return !this.get('disabledServices').contains(item.get('id'));
     }, this);
-  }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
+  }.property('App.router.mainServiceController.content.length').volatile(),
 
   didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');

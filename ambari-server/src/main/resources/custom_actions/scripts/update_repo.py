@@ -37,13 +37,12 @@ class UpdateRepo(Script):
 
 
     try:
-      repo_info_json = config['hostLevelParams']['repo_info']
-      repo_info_dict = json.loads(repo_info_json)
+      repo_info = config['repositoryFile']
 
-      for item in repo_info_dict["repositories"]:
-        base_url = item["base_url"]
-        repo_name = item["repo_name"]
-        repo_id = item["repo_id"]
+      for item in repo_info["repositories"]:
+        base_url = item["baseUrl"]
+        repo_name = item["repoName"]
+        repo_id = item["repoId"]
         distribution = item["distribution"] if "distribution" in item else None
         components = item["components"] if "components" in item else None
 

@@ -50,7 +50,7 @@ kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-en
 pig_env_sh_template = config['configurations']['pig-env']['content']
 
 # not supporting 32 bit jdk.
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 
 pig_properties = config['configurations']['pig-properties']['content']
 

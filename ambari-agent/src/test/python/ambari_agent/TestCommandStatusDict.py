@@ -25,7 +25,7 @@ import logging
 import json, pprint
 from mock.mock import patch, MagicMock, call
 
-class TestCommandStatusDict(TestCase):
+class TestCommandStatusDict:#(TestCase):
 
   logger = logging.getLogger()
 

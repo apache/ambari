@@ -1351,7 +1351,7 @@ var urls = {
     }
   },
   'cluster.load_cluster_name': {
-    'real': '/clusters?fields=Clusters/security_type,Clusters/version',
+    'real': '/clusters?fields=Clusters/security_type,Clusters/version,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
@@ -2345,7 +2345,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version',
+    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {
@@ -2613,6 +2613,11 @@ var urls = {
   },
   'components.get_category': {
     'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true',
+    'mock': ''
+  },
+  'components.get.staleConfigs': {
+    'real': '/clusters/{clusterName}/components?host_components/HostRoles/stale_configs=true' +
+    '&fields=host_components/HostRoles/host_name&minimal_response=true',
     'mock': ''
   },
   'components.update': {

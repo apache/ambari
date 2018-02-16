@@ -51,6 +51,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -81,6 +82,7 @@ import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -147,6 +149,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   private Clusters clusters;
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
+  private AgentConfigsHolder agentConfigsHolder = createNiceMock(AgentConfigsHolder.class);
   private StackDAO stackDAO;
   private TopologyManager topologyManager;
   private ConfigFactory configFactory;
@@ -181,6 +184,10 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
             EasyMock.anyString())).andReturn(
       new HashMap<>()).anyTimes();
 
+    expect(
+        configHelper.getChangedConfigTypes(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(ServiceConfigEntity.class),
+            EasyMock.anyLong(), EasyMock.anyLong(), EasyMock.anyString())).andReturn(
+        Collections.emptyMap()).anyTimes();
     replay(configHelper);
 
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
@@ -1024,7 +1031,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
-    repoVersionEntity.addRepoOsEntities(new ArrayList<>());
+    repoVersionEntity.addRepoOsEntities(createTestOperatingSystems());
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setVersion("2.2.2.3");
     repoVersionDao.create(repoVersionEntity);
@@ -2083,6 +2090,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     @Override
     public void configure(Binder binder) {
       binder.bind(ConfigHelper.class).toInstance(configHelper);
+      binder.bind(AgentConfigsHolder.class).toInstance(agentConfigsHolder);
     }
   }
 }

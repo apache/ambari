@@ -86,7 +86,7 @@ def should_install_hive_atlas():
 
 def should_install_falcon_atlas_hook():
   config = Script.get_config()
-  stack_version_unformatted = config['hostLevelParams']['stack_version']
+  stack_version_unformatted = config['clusterLevelParams']['stack_version']
   stack_version_formatted = format_stack_version(stack_version_unformatted)
   if check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, stack_version_formatted) \
       or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted):

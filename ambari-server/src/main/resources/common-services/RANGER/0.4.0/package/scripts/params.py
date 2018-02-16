@@ -45,10 +45,10 @@ config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
@@ -123,8 +123,8 @@ if stack_supports_ranger_tagsync:
 
 usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 
-java_home = config['hostLevelParams']['java_home']
-ambari_java_home = default("/commandParams/ambari_java_home", java_home)
+java_home = config['ambariLevelParams']['java_home']
+ambari_java_home = default("/ambariLevelParams/ambari_java_home", java_home)
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
 ranger_pid_dir = default("/configurations/ranger-env/ranger_pid_dir", "/var/run/ranger")
@@ -167,18 +167,18 @@ ranger_db_password = unicode(config['configurations']['admin-properties']['db_pa
 oracle_home = default("/configurations/ranger-env/oracle_home", "-")
 
 #For curl command in ranger to get db connector
-jdk_location = config['hostLevelParams']['jdk_location'] 
+jdk_location = config['ambariLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 jdbc_jar_name = None
 previous_jdbc_jar_name = None
 if db_flavor.lower() == 'mysql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
   audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor.lower() == 'oracle':
-  jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
@@ -186,18 +186,18 @@ elif db_flavor.lower() == 'oracle':
   else:
     audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}') if stack_supports_ranger_audit_db else None
 elif db_flavor.lower() == 'postgres':
-  jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
   audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor.lower() == 'mssql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor.lower() == 'sqla':
-  jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
 else: raise Fail(format("'{db_flavor}' db flavor not supported."))
@@ -254,7 +254,7 @@ ranger_ug_ldap_user_searchfilter = config["configurations"]["ranger-ugsync-site"
 ranger_ug_ldap_group_searchbase = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchbase"]
 ranger_ug_ldap_group_searchfilter = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchfilter"]
 ug_sync_source = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.source.impl.class"]
-current_host = config['hostname']
+current_host = config['agentLevelParams']['hostname']
 if current_host in ranger_admin_hosts:
   ranger_host = current_host
 
@@ -269,7 +269,7 @@ tagsync_application_properties = dict(config["configurations"]["tagsync-applicat
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
 tagsync_cred_lib = os.path.join(ranger_tagsync_home, "lib", "*")
 
-ranger_usersync_log_maxfilesize = default('/configurations/usersync-log4j/ranger_usersync_log_maxfilesize',256) 
+ranger_usersync_log_maxfilesize = default('/configurations/usersync-log4j/ranger_usersync_log_maxfilesize',256)
 ranger_usersync_log_maxbackupindex = default('/configurations/usersync-log4j/ranger_usersync_log_maxbackupindex',20)
 ranger_tagsync_log_maxfilesize = default('/configurations/tagsync-log4j/ranger_tagsync_log_maxfilesize',256)
 ranger_tagsync_log_number_of_backup_files = default('/configurations/tagsync-log4j/ranger_tagsync_log_number_of_backup_files',20)
@@ -283,7 +283,7 @@ tagsync_log4j = config['configurations']['tagsync-log4j']['content']
 
 # ranger kerberos
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = len(namenode_hosts) > 0
 
 ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.alias"]
@@ -291,7 +291,7 @@ ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"]["rang
 
 # get comma separated list of zookeeper hosts
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
+zookeeper_hosts = default("/clusterHostInfo/zookeeper_server_hosts", [])
 index = 0
 zookeeper_quorum = ""
 for host in zookeeper_hosts:

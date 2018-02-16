@@ -136,4 +136,24 @@ describe('App.QuickDataMapper', function () {
 
   });
 
+  describe('#updatePropertiesByConfig', function() {
+
+    it('should update properties of record', function() {
+      const record = Em.Object.create({
+        isLoaded: true,
+        prop1: 'v1',
+        prop2: 'v2'
+      });
+      const config = {
+        prop1: 'ext1',
+        prop2: 'ext2',
+        prop3: 'ext3'
+      };
+      mapper.updatePropertiesByConfig(record, {ext1: 'v11', ext3: 'v31'}, config);
+      expect(record.get('prop1')).to.be.equal('v11');
+      expect(record.get('prop2')).to.be.equal('v2');
+      expect(record.get('prop3')).to.be.equal('v31');
+    });
+  });
+
 });

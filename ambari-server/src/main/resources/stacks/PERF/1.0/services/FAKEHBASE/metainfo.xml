@@ -187,7 +187,7 @@
       </commandScript>
 
       <requiredServices>
-        <service>FAKEZOOKEEPER</service>
+        <service>ZOOKEEPER</service>
         <service>FAKEHDFS</service>
       </requiredServices>
 

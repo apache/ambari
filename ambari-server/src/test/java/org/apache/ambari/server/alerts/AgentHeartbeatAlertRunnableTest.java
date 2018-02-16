@@ -19,7 +19,6 @@
 package org.apache.ambari.server.alerts;
 
 import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -30,13 +29,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.MockEventListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Alert;
@@ -45,7 +41,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -125,7 +121,6 @@ public class AgentHeartbeatAlertRunnableTest {
 
     // mock the cluster
     expect(m_cluster.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
-    expect(m_cluster.getClusterName()).andReturn(CLUSTER_NAME).atLeastOnce();
     expect(m_cluster.getHosts()).andReturn(Collections.singleton(m_host)).atLeastOnce();
 
     // mock clusters
@@ -257,14 +252,8 @@ public class AgentHeartbeatAlertRunnableTest {
      */
     @Override
     public void configure(Binder binder) {
-      Cluster cluster = EasyMock.createNiceMock(Cluster.class);
-
-      binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-      binder.bind(Cluster.class).toInstance(cluster);
-      binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
-      binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+      PartialNiceMockBinder.newBuilder().addConfigsBindings()
+          .addAlertDefinitionBinding().build().configure(binder);
     }
   }
 }

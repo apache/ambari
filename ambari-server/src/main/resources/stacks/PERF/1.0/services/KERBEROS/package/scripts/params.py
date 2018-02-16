@@ -64,9 +64,9 @@ manage_identities = 'true'
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
-jdk_name = default("/hostLevelParams/jdk_name", None)
-java_home = config['hostLevelParams']['java_home']
+jce_location = config['ambariLevelParams']['jdk_location']
+jdk_name = default("/ambariLevelParams/jdk_name", None)
+java_home = config['ambariLevelParams']['java_home']
 java_version = expect("/hostLevelParams/java_version", int)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']

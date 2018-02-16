@@ -44,7 +44,7 @@ import ambari_commons
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-class TestController(unittest.TestCase):
+class TestController:#(unittest.TestCase):
 
   logger = logging.getLogger()
 

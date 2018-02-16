@@ -185,7 +185,7 @@ public abstract class AlertRunnable implements Runnable {
     alert.setLabel(myDefinition.getLabel());
     alert.setText(message);
     alert.setTimestamp(System.currentTimeMillis());
-    alert.setCluster(cluster.getClusterName());
+    alert.setClusterId(cluster.getClusterId());
 
     return alert;
   }

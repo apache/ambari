@@ -62,7 +62,7 @@ do_install(){
   # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.
   # which causes failures when hadoop users try to access tmp_dir
   chmod a+x $AMBARI_AGENT_VAR
-  
+
   chmod 1777 $AMBARI_AGENT_VAR/tmp
   chmod 700 $AMBARI_AGENT_VAR/keys
   chmod 700 $AMBARI_AGENT_VAR/data
@@ -133,19 +133,19 @@ do_remove(){
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
   fi
   mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save
-    
+
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"
   fi
-  
+
   if [ -d "$COMMON_DIR" ]; then
     rm -rf $COMMON_DIR
   fi
-  
+
   if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then
     rm -rf $RESOURCE_MANAGEMENT_DIR
   fi
-  
+
   if [ -d "$JINJA_DIR" ]; then
     rm -rf $JINJA_DIR
   fi

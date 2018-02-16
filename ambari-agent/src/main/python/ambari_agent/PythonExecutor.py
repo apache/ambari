@@ -128,8 +128,9 @@ class PythonExecutor(object):
     """
     Log some useful information after task failure.
     """
-    logger.info("Command %s failed with exitcode=%s", pprint.pformat(pythonCommand), result['exitcode'])
-    log_process_information(logger)
+    pass
+    #logger.info("Command %s failed with exitcode=%s", pprint.pformat(pythonCommand), result['exitcode'])
+    #log_process_information(logger)
 
   def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)

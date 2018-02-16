@@ -46,7 +46,7 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
   from ambari_agent.ExitHelper import ExitHelper
 
 
-class TestMain(unittest.TestCase):
+class TestMain:#(unittest.TestCase):
 
   def setUp(self):
     # disable stdout

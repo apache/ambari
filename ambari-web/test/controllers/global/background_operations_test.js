@@ -43,7 +43,7 @@ describe('App.BackgroundOperationsController', function () {
     var tests = Em.A([
       {
         levelInfo: Em.Object.create({
-          name: 'OPS_LIST',
+          name: 'REQUESTS_LIST',
           requestId: null,
           taskId: null,
           sync: false
@@ -112,32 +112,15 @@ describe('App.BackgroundOperationsController', function () {
     tests.forEach(function (test) {
       it(test.m, function () {
         controller.set('levelInfo', test.levelInfo);
+        controller.set('services', [Em.Object.create({
+          id: 1,
+          previousTaskStatusMap: {}
+        })]);
         var r = controller.getQueryParams();
         expect(r.name).to.equal(test.e.name);
         expect(r.successCallback).to.equal(test.e.successCallback);
         expect(r.data).to.eql(test.e.data);
       });
-    });
-  });
-
-  describe('#startPolling()', function () {
-
-    beforeEach(function () {
-      sinon.spy(controller, 'requestMostRecent');
-    });
-    afterEach(function () {
-      controller.requestMostRecent.restore();
-    });
-
-    it('isWorking = false', function () {
-      controller.set('isWorking', false);
-      expect(App.updater.run.calledOnce).to.equal(false);
-      expect(controller.requestMostRecent.calledOnce).to.equal(false);
-    });
-    it('isWorking = true', function () {
-      controller.set('isWorking', true);
-      expect(App.updater.run.calledOnce).to.equal(true);
-      expect(controller.requestMostRecent.calledOnce).to.equal(true);
     });
   });
 
@@ -166,20 +149,12 @@ describe('App.BackgroundOperationsController', function () {
 
   describe('#callBackForMostRecent()', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.router.get('clusterController'), 'restoreUpgradeState', Em.K);
-    });
-
-    afterEach(function () {
-      App.router.get('clusterController').restoreUpgradeState.restore();
-    });
-
     it('No requests exists', function () {
       var data = {
         items: []
       };
       controller.callBackForMostRecent(data);
-      expect(controller.get("allOperationsCount")).to.equal(0);
+      expect(controller.get("runningOperationsCount")).to.equal(0);
       expect(controller.get("services.length")).to.equal(0);
     });
     it('One non-running request', function () {
@@ -200,7 +175,7 @@ describe('App.BackgroundOperationsController', function () {
         ]
       };
       controller.callBackForMostRecent(data);
-      expect(controller.get("allOperationsCount")).to.equal(0);
+      expect(controller.get("runningOperationsCount")).to.equal(0);
       expect(controller.get("services").mapProperty('id')).to.eql([1]);
     });
 
@@ -216,7 +191,7 @@ describe('App.BackgroundOperationsController', function () {
         ]
       };
       controller.callBackForMostRecent(data);
-      expect(controller.get("allOperationsCount")).to.equal(0);
+      expect(controller.get("runningOperationsCount")).to.equal(0);
       expect(controller.get("services").mapProperty('id')).to.eql([]);
     });
 
@@ -233,7 +208,7 @@ describe('App.BackgroundOperationsController', function () {
         ]
       };
       controller.callBackForMostRecent(data);
-      expect(controller.get("allOperationsCount")).to.equal(1);
+      expect(controller.get("runningOperationsCount")).to.equal(1);
       expect(controller.get("services").mapProperty('id')).to.eql([1]);
     });
     it('Two requests in order', function () {
@@ -254,7 +229,7 @@ describe('App.BackgroundOperationsController', function () {
         ]
       };
       controller.callBackForMostRecent(data);
-      expect(controller.get("allOperationsCount")).to.equal(0);
+      expect(controller.get("runningOperationsCount")).to.equal(0);
       expect(controller.get("services").mapProperty('id')).to.eql([2, 1]);
     });
   });
@@ -326,7 +301,7 @@ describe('App.BackgroundOperationsController', function () {
       it(test.title, function () {
         controller.set('services', test.content.services);
         controller.removeOldRequests(test.content.currentRequestIds);
-        expect(controller.get('services')).to.eql(test.result);
+        expect(JSON.stringify(controller.get('services'))).to.equal(JSON.stringify(test.result));
       });
     });
   });
@@ -497,7 +472,6 @@ describe('App.BackgroundOperationsController', function () {
       controller.callBackFilteredByRequest(data);
       expect(request.get('previousTaskStatusMap')).to.eql({"1": "COMPLETED"});
       expect(request.get('hostsMap.host1.logTasks.length')).to.equal(1);
-      expect(request.get('isRunning')).to.equal(false);
     });
 
     it('request has one completed task and one running task', function () {
@@ -539,7 +513,7 @@ describe('App.BackgroundOperationsController', function () {
 
     it("should return false when not on HOSTS_LIST level", function() {
       controller.set('levelInfo', Em.Object.create({
-        name: 'OPS_LIST'
+        name: 'SERVICES_LIST'
       }));
       expect(controller.isInitLoading()).to.be.false;
     });
@@ -560,9 +534,7 @@ describe('App.BackgroundOperationsController', function () {
       }));
       controller.set('services', [Em.Object.create({
         id: 1,
-        hostsMap: {
-          'host1': {}
-        }
+        hostsLevelLoaded: true
       })]);
       expect(controller.isInitLoading()).to.be.false;
     });
@@ -760,6 +732,281 @@ describe('App.BackgroundOperationsController', function () {
     it("operationsCount should be 10", function() {
       controller.clear();
       expect(controller.get('operationsCount')).to.be.equal(10);
+    });
+  });
+
+  describe('#handleRequestsUpdates', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'requestMostRecent', Em.clb);
+      sinon.stub(App.StompClient, 'subscribe');
+      sinon.stub(App.StompClient, 'unsubscribe');
+    });
+    afterEach(function() {
+      controller.requestMostRecent.restore();
+      App.StompClient.subscribe.restore();
+      App.StompClient.unsubscribe.restore();
+    });
+
+    it('App.StompClient.subscribe should be called', function() {
+      controller.set('isWorking', true);
+      expect(App.StompClient.subscribe.calledWith('/events/requests')).to.be.true;
+    });
+
+    it('App.StompClient.unsubscribe should be called', function() {
+      controller.set('isWorking', false);
+      expect(App.StompClient.unsubscribe.calledWith('/events/requests')).to.be.true;
+    });
+  });
+
+  describe('#updateRequests', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'parseRequestContext').returns({
+        requestContext: 'r1'
+      });
+      sinon.stub(controller, 'generateTasksMapOfRequest').returns({
+        currentTaskStatusMap: {},
+        hostsMap: {}
+      });
+      sinon.stub(controller, 'propertyDidChange');
+    });
+    afterEach(function() {
+      controller.parseRequestContext.restore();
+      controller.generateTasksMapOfRequest.restore();
+      controller.propertyDidChange.restore();
+    });
+
+    it('should exit when request is upgrade', function() {
+      controller.updateRequests({
+        requestContext: 'upgrading'
+      });
+      expect(controller.parseRequestContext.called).to.be.false;
+    });
+
+    it('should add request to list', function() {
+      controller.set('services', []);
+      controller.updateRequests({
+        progressPercent: 0,
+        requestStatus: 'PENDING',
+        startTime: 1,
+        endTime: -1,
+        requestId: 1,
+        requestContext: '',
+        Tasks: []
+      });
+      expect(controller.get('services').objectAt(0)).to.be.eql(Em.Object.create({
+        id: 1,
+        name: 'r1',
+        displayName: 'r1',
+        tasks: [],
+        progress: 0,
+        status: 'PENDING',
+        isRunning: true,
+        startTime: 1,
+        endTime: -1,
+        previousTaskStatusMap: {},
+        hostsMap: {}
+      }));
+      expect(controller.propertyDidChange.calledWith('services')).to.be.true;
+    });
+
+    it('should update request status', function() {
+      controller.set('services', [Em.Object.create({
+        id: 1,
+        name: 'r1',
+        displayName: 'r1',
+        tasks: [],
+        progress: 0,
+        status: 'PENDING',
+        isRunning: true,
+        startTime: 1,
+        endTime: -1,
+        previousTaskStatusMap: {},
+        hostsMap: {}
+      })]);
+      controller.updateRequests({
+        progressPercent: 100,
+        requestStatus: 'COMPLETED',
+        startTime: 1,
+        endTime: 1,
+        requestId: 1,
+        requestContext: '',
+        Tasks: []
+      });
+      expect(controller.get('services').objectAt(0)).to.be.eql(Em.Object.create({
+        id: 1,
+        name: 'r1',
+        displayName: 'r1',
+        tasks: [],
+        progress: 100,
+        status: 'COMPLETED',
+        isRunning: false,
+        startTime: 1,
+        endTime: 1,
+        previousTaskStatusMap: {},
+        hostsMap: {}
+      }))
+    });
+  });
+
+  describe('#generateTasksMapOfRequest', function() {
+
+    it('should return tasks map', function() {
+      var event = {
+        Tasks: [
+          {
+            hostName: 'host1',
+            id: 1,
+            status: 'PENDING',
+            requestId: 1
+          },
+          {
+            hostName: 'host1',
+            id: 2,
+            status: 'PENDING',
+            requestId: 1
+          },
+          {
+            hostName: 'host2',
+            id: 3,
+            status: 'COMPLETED',
+            requestId: 1
+          }
+        ]
+      };
+      expect(JSON.stringify(controller.generateTasksMapOfRequest(event, null).hostsMap)).to.be.equal(JSON.stringify({
+        "host1": {
+          "name": "host1",
+          "publicName": "host1",
+          "logTasks": [
+            {
+              "Tasks": {
+                "status": "PENDING",
+                "host_name": "host1",
+                "id": 1,
+                "request_id": 1
+              }
+            },
+            {
+              "Tasks": {
+                "status": "PENDING",
+                "host_name": "host1",
+                "id": 2,
+                "request_id": 1
+              }
+            }
+          ],
+          "isModified": true
+        },
+        "host2": {
+          "name": "host2",
+          "publicName": "host2",
+          "logTasks": [{"Tasks": {"status": "COMPLETED", "host_name": "host2", "id": 3, "request_id": 1}}],
+          "isModified": true
+        }
+      }));
+      expect(controller.generateTasksMapOfRequest(event, null).currentTaskStatusMap).to.be.eql({
+        "1": "PENDING",
+        "2": "PENDING",
+        "3": "COMPLETED"
+      });
+    });
+  });
+
+  describe('#convertTaskFromEventToApi', function() {
+
+    it('should return converted task object', function() {
+      expect(controller.convertTaskFromEventToApi({
+        status: 'PENDING',
+        hostName: 'host1',
+        id: 1,
+        requestId: 1
+      })).to.be.eql({
+          Tasks: {
+            status: 'PENDING',
+            host_name: 'host1',
+            id: 1,
+            request_id: 1
+          }
+        });
+    });
+  });
+
+  describe('#handleTaskUpdates', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'updateTask');
+      sinon.stub(App.StompClient, 'subscribe', function(arg1, clb) {
+        clb({status: 'COMPLETED', id: 1});
+      });
+      sinon.stub(App.StompClient, 'unsubscribe');
+    });
+    afterEach(function() {
+      controller.updateTask.restore();
+      App.StompClient.subscribe.restore();
+      App.StompClient.unsubscribe.restore();
+    });
+
+    it('should subscribe and when task is finished unsubscribe', function() {
+      controller.set('services', [Em.Object.create({
+        id: 1,
+        previousTaskStatusMap: {
+          1: 'PENDING'
+        }
+      })]);
+      controller.set('levelInfo', Em.Object.create({
+        name: 'TASK_DETAILS',
+        requestId: 1,
+        taskId: 1
+      }));
+      expect(App.StompClient.subscribe.calledWith('/events/tasks/1')).to.be.true;
+      expect(controller.updateTask.calledOnce).to.be.true;
+      expect(App.StompClient.unsubscribe.calledWith('/events/tasks/1')).to.be.true;
+    });
+  });
+
+  describe('#updateTask', function() {
+
+    it('should update task properties', function() {
+      var event = {
+        requestId: 1,
+        id: 1,
+        hostName: 'host1',
+        status: 'COMPLETED',
+        stdout: 'stdout',
+        stderr: 'stderr',
+        structured_out: 'structured_out',
+        outLog: 'outLog',
+        errorLog: 'errorLog'
+      };
+      controller.set('services', [Em.Object.create({
+        id: 1,
+        hostsMap: {
+          host1: {
+            logTasks: [
+              {
+                Tasks: {
+                  id: 1,
+                  requestId: 1,
+                  hostName: 'host1'
+                }
+              }
+            ]
+          }
+        }
+      })]);
+      controller.updateTask(event);
+      expect(controller.get('services').objectAt(0).get('hostsMap')['host1'].logTasks[0]).to.be.eql({
+        Tasks: {
+          requestId: 1,
+          id: 1,
+          hostName: 'host1',
+          status: 'COMPLETED',
+          stdout: 'stdout',
+          stderr: 'stderr',
+          structured_out: 'structured_out',
+          output_log: 'outLog',
+          error_log: 'errorLog'
+        }
+      });
     });
   });
 });

@@ -62,6 +62,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.events.UpdateEventType;
+import org.apache.ambari.server.events.UpgradeUpdateEvent;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -254,6 +257,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static UpgradeContextFactory s_upgradeContextFactory;
 
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
+
+  @Inject
+  private HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private RequestDAO requestDAO;
+
   static {
     // properties
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
@@ -443,7 +455,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    *
    * @return the percent complete, counting ABORTED as zero percent.
    */
-  private double calculateAbortedProgress(Map<Long, HostRoleCommandStatusSummaryDTO> summary) {
+  public static double calculateAbortedProgress(Map<Long, HostRoleCommandStatusSummaryDTO> summary) {
     // !!! use the raw states to determine percent completes
     Map<HostRoleStatus, Integer> countTotals = new HashMap<>();
     int totalTasks = 0;
@@ -885,6 +897,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgradeEntity.setRequestEntity(requestEntity);
     s_upgradeDAO.create(upgradeEntity);
 
+    stateUpdateEventPublisher.publish(UpgradeUpdateEvent
+        .formFullEvent(s_hostRoleCommandDAO, s_requestDAO, upgradeEntity, UpdateEventType.CREATE));
     cluster.setUpgradeEntity(upgradeEntity);
 
     return upgradeEntity;
@@ -1516,7 +1530,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       if (suspended) {
         // set the upgrade to suspended
         upgradeEntity.setSuspended(suspended);
-        s_upgradeDAO.merge(upgradeEntity);
+        upgradeEntity = s_upgradeDAO.merge(upgradeEntity);
+        stateUpdateEventPublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO,requestDAO, upgradeEntity));
       } else {
         // otherwise remove the association with the cluster since it's being
         // full aborted
@@ -1536,7 +1551,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
       lastUpgradeItemForCluster.setSuspended(false);
-      s_upgradeDAO.merge(lastUpgradeItemForCluster);
+      lastUpgradeItemForCluster = s_upgradeDAO.merge(lastUpgradeItemForCluster);
+      stateUpdateEventPublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO, requestDAO, lastUpgradeItemForCluster));
     }
   }
 

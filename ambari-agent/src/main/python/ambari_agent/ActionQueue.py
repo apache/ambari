@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import Queue
-import multiprocessing
 
 import logging
 import traceback
@@ -32,8 +31,6 @@ import signal
 from AgentException import AgentException
 from LiveStatus import LiveStatus
 from ActualConfigHandler import ActualConfigHandler
-from CommandStatusDict import CommandStatusDict
-from CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_commons.str_utils import split_on_chunks
 from resource_management.libraries.script import Script
@@ -74,48 +71,40 @@ class ActionQueue(threading.Thread):
   COMPLETED_STATUS = 'COMPLETED'
   FAILED_STATUS = 'FAILED'
 
-  def __init__(self, config, controller):
+  def __init__(self, initializer_module):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
-    self.statusCommandResultQueue = multiprocessing.Queue() # this queue is filled by StatuCommandsExecutor.
     self.backgroundCommandQueue = Queue.Queue()
-    self.commandStatuses = CommandStatusDict(callback_action =
-      self.status_update_callback)
-    self.config = config
-    self.controller = controller
+    self.commandStatuses = initializer_module.commandStatuses
+    self.config = initializer_module.config
+    self.recovery_manager = initializer_module.recovery_manager
     self.configTags = {}
-    self._stop = threading.Event()
-    self.tmpdir = config.get('agent', 'prefix')
-    self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller)
-    self.parallel_execution = config.get_parallel_exec_option()
+    self.stop_event = initializer_module.stop_event
+    self.tmpdir = self.config.get('agent', 'prefix')
+    self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
+    self.parallel_execution = self.config.get_parallel_exec_option()
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
     self.lock = threading.Lock()
-
-  def stop(self):
-    self._stop.set()
-
-  def stopped(self):
-    return self._stop.isSet()
-
-  def put_status(self, commands):
-    self.controller.statusCommandsExecutor.put_commands(commands)
 
   def put(self, commands):
     for command in commands:
       if not command.has_key('serviceName'):
         command['serviceName'] = "null"
-      if not command.has_key('clusterName'):
-        command['clusterName'] = 'null'
+      if not command.has_key('clusterId'):
+        command['clusterId'] = "null"
 
       logger.info("Adding " + command['commandType'] + " for role " + \
                   command['role'] + " for service " + \
-                  command['serviceName'] + " of cluster " + \
-                  command['clusterName'] + " to the queue.")
+                  command['serviceName'] + " of cluster_id " + \
+                  command['clusterId'] + " to the queue.")
       if command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND :
         self.backgroundCommandQueue.put(self.createCommandHandle(command))
       else:
         self.commandQueue.put(command)
+
+  def interrupt(self):
+    self.commandQueue.put(None)
 
   def cancel(self, commands):
     for command in commands:
@@ -145,19 +134,26 @@ class ActionQueue(threading.Thread):
       self.customServiceOrchestrator.cancel_command(task_id, reason)
 
   def run(self):
-    while not self.stopped():
+    while not self.stop_event.is_set():
       try:
         self.processBackgroundQueueSafeEmpty()
-        self.controller.get_status_commands_executor().process_results() # process status commands
+        self.fillRecoveryCommands()
         try:
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+
+            if command == None:
+              break
+
             self.process_command(command)
           else:
             # If parallel execution is enabled, just kick off all available
             # commands using separate threads
-            while (True):
+            while not self.stop_event.is_set():
               command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+
+              if command == None:
+                break
               # If command is not retry_enabled then do not start them in parallel
               # checking just one command is enough as all commands for a stage is sent
               # at the same time and retry is only enabled for initial start/install
@@ -179,8 +175,11 @@ class ActionQueue(threading.Thread):
           pass
       except:
         logger.exception("ActionQueue thread failed with exception. Re-running it")
-    
     logger.info("ActionQueue thread has successfully finished")
+
+  def fillRecoveryCommands(self):
+    if not self.tasks_in_progress_or_pending():
+      self.put(self.recovery_manager.get_recovery_commands())
 
   def processBackgroundQueueSafeEmpty(self):
     while not self.backgroundCommandQueue.empty():
@@ -204,38 +203,34 @@ class ActionQueue(threading.Thread):
     try:
       if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND, self.AUTO_EXECUTION_COMMAND]:
         try:
-          if self.controller.recovery_manager.enabled():
-            self.controller.recovery_manager.start_execution_command()
+          if self.recovery_manager.enabled():
+            self.recovery_manager.on_execution_command_start()
+            self.recovery_manager.process_execution_command(command)
+
           self.execute_command(command)
         finally:
-          if self.controller.recovery_manager.enabled():
-            self.controller.recovery_manager.stop_execution_command()
+          if self.recovery_manager.enabled():
+            self.recovery_manager.on_execution_command_finish()
       else:
         logger.error("Unrecognized command %s", pprint.pformat(command))
     except Exception:
       logger.exception("Exception while processing {0} command".format(commandType))
 
   def tasks_in_progress_or_pending(self):
-    return_val = False
-    if not self.commandQueue.empty():
-      return_val = True
-    if self.controller.recovery_manager.has_active_command():
-      return_val = True
-    return return_val
-    pass
+    return not self.commandQueue.empty() or self.recovery_manager.has_active_command()
 
   def execute_command(self, command):
     '''
     Executes commands of type EXECUTION_COMMAND
     '''
-    clusterName = command['clusterName']
+    clusterId = command['clusterId']
     commandId = command['commandId']
     isCommandBackground = command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND
     isAutoExecuteCommand = command['commandType'] == self.AUTO_EXECUTION_COMMAND
     message = "Executing command with id = {commandId}, taskId = {taskId} for role = {role} of " \
-              "cluster {cluster}.".format(
+              "cluster_id {cluster}.".format(
               commandId = str(commandId), taskId = str(command['taskId']),
-              role=command['role'], cluster=clusterName)
+              role=command['role'], cluster=clusterId)
     logger.info(message)
 
     taskId = command['taskId']
@@ -317,7 +312,10 @@ class ActionQueue(threading.Thread):
         retryDuration -= delay  # allow one last attempt
         commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
         logger.info("Retrying command with taskId = {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
-        command['commandBeingRetried'] = "true"
+        if 'agentLevelParams' not in command:
+          command['agentLevelParams'] = {}
+
+        command['agentLevelParams']['commandBeingRetried'] = "true"
         time.sleep(delay)
         continue
       else:
@@ -371,8 +369,9 @@ class ActionQueue(threading.Thread):
       roleResult['stderr'] = 'None'
 
     # let ambari know name of custom command
-    if command['hostLevelParams'].has_key('custom_command'):
-      roleResult['customCommand'] = command['hostLevelParams']['custom_command']
+
+    if 'commandParams' in command and command['commandParams'].has_key('custom_command'):
+      roleResult['customCommand'] = command['commandParams']['custom_command']
 
     if 'structuredOut' in commandresult:
       roleResult['structuredOut'] = str(json.dumps(commandresult['structuredOut']))
@@ -381,31 +380,9 @@ class ActionQueue(threading.Thread):
 
     # let recovery manager know the current state
     if status == self.COMPLETED_STATUS:
-      if self.controller.recovery_manager.enabled() and command.has_key('roleCommand') \
-          and self.controller.recovery_manager.configured_for_recovery(command['role']):
-        if command['roleCommand'] == self.ROLE_COMMAND_START:
-          self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
-          self.controller.recovery_manager.update_config_staleness(command['role'], False)
-          logger.info("After EXECUTION_COMMAND (START), with taskId=" + str(command['taskId']) +
-                      ", current state of " + command['role'] + " to " +
-                       self.controller.recovery_manager.get_current_status(command['role']) )
-        elif command['roleCommand'] == self.ROLE_COMMAND_STOP or command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
-          self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.DEAD_STATUS)
-          logger.info("After EXECUTION_COMMAND (STOP/INSTALL), with taskId=" + str(command['taskId']) +
-                      ", current state of " + command['role'] + " to " +
-                       self.controller.recovery_manager.get_current_status(command['role']) )
-        elif command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND:
-          if command['hostLevelParams'].has_key('custom_command') and \
-                  command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART:
-            self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
-            self.controller.recovery_manager.update_config_staleness(command['role'], False)
-            logger.info("After EXECUTION_COMMAND (RESTART), current state of " + command['role'] + " to " +
-                         self.controller.recovery_manager.get_current_status(command['role']) )
-      pass
-
       # let ambari know that configuration tags were applied
       configHandler = ActualConfigHandler(self.config, self.configTags)
-
+      """
       #update
       if 'commandParams' in command:
         command_params = command['commandParams']
@@ -439,15 +416,9 @@ class ActionQueue(threading.Thread):
                                                 command['hostLevelParams']['clientsToUpdateConfigs'])
         roleResult['configurationTags'] = configHandler.read_actual_component(
             command['role'])
-    elif status == self.FAILED_STATUS:
-      if self.controller.recovery_manager.enabled() and command.has_key('roleCommand') \
-              and self.controller.recovery_manager.configured_for_recovery(command['role']):
-        if command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
-          self.controller.recovery_manager.update_current_status(command['role'], self.controller.recovery_manager.INSTALL_FAILED)
-          logger.info("After EXECUTION_COMMAND (INSTALL), with taskId=" + str(command['taskId']) +
-                      ", current state of " + command['role'] + " to " +
-                      self.controller.recovery_manager.get_current_status(command['role']))
+    """
 
+    self.recovery_manager.process_execution_command_result(command, status)
     self.commandStatuses.put_command_status(command, roleResult)
 
   def log_command_output(self, text, taskId):
@@ -498,85 +469,6 @@ class ActionQueue(threading.Thread):
     })
 
     self.commandStatuses.put_command_status(handle.command, roleResult)
-
-  def execute_status_command_and_security_status(self, command):
-    component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
-    return command, component_status_result
-
-  def process_status_command_result(self, result):
-    '''
-    Executes commands of type STATUS_COMMAND
-    '''
-    try:
-      command, component_status_result = result
-      cluster = command['clusterName']
-      service = command['serviceName']
-      component = command['componentName']
-      configurations = command['configurations']
-      if configurations.has_key('global'):
-        globalConfig = configurations['global']
-      else:
-        globalConfig = {}
-
-      if not Script.config :
-        logger.debug('Setting Script.config to last status command configuration')
-        Script.config = command
-
-      livestatus = LiveStatus(cluster, service, component,
-                              globalConfig, self.config, self.configTags)
-
-      component_extra = None
-
-      if component_status_result['exitcode'] == 0:
-        component_status = LiveStatus.LIVE_STATUS
-        if self.controller.recovery_manager.enabled() \
-          and self.controller.recovery_manager.configured_for_recovery(component):
-          self.controller.recovery_manager.update_current_status(component, component_status)
-      else:
-        component_status = LiveStatus.DEAD_STATUS
-        if self.controller.recovery_manager.enabled() \
-          and self.controller.recovery_manager.configured_for_recovery(component):
-          if (self.controller.recovery_manager.get_current_status(component) != self.controller.recovery_manager.INSTALL_FAILED):
-            self.controller.recovery_manager.update_current_status(component, component_status)
-
-      request_execution_cmd = self.controller.recovery_manager.requires_recovery(component) and \
-                                not self.controller.recovery_manager.command_exists(component, ActionQueue.EXECUTION_COMMAND)
-
-      if 'structuredOut' in component_status_result:
-        component_extra = component_status_result['structuredOut']
-
-      result = livestatus.build(component_status=component_status)
-      if self.controller.recovery_manager.enabled():
-        result['sendExecCmdDet'] = str(request_execution_cmd)
-
-      if component_extra is not None and len(component_extra) != 0:
-        if component_extra.has_key('alerts'):
-          result['alerts'] = component_extra['alerts']
-          del component_extra['alerts']
-
-        result['extra'] = component_extra
-
-      if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Got live status for component %s of service %s of cluster %s", component, service, cluster)
-        logger.debug(pprint.pformat(result))
-      if result is not None:
-        self.commandStatuses.put_command_status(command, result)
-    except Exception, err:
-      traceback.print_exc()
-      logger.warn(err)
-    pass
-
-
-  # Store action result to agent response queue
-  def result(self):
-    return self.commandStatuses.generate_report()
-
-
-  def status_update_callback(self):
-    """
-    Actions that are executed every time when command status changes
-    """
-    self.controller.trigger_heartbeat()
 
   # Removes all commands from the queue
   def reset(self):

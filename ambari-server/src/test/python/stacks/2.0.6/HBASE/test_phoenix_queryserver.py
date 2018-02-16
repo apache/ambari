@@ -181,14 +181,14 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'hbase-site'])
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'core-site']
     )
     self.assertResourceCalled('File',
@@ -247,7 +247,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'hbase-site']
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
@@ -255,7 +255,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
@@ -263,7 +263,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
@@ -271,7 +271,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hbase-policy'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'hbase-policy']
     )
     self.assertResourceCalled('File',
@@ -348,7 +348,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'hbase-site']
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
@@ -356,7 +356,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
@@ -364,7 +364,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
@@ -372,7 +372,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hbase-policy'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
+      configuration_attributes = self.getConfig()['configurationAttributes'][
         'hbase-policy']
     )
     self.assertResourceCalled('File',

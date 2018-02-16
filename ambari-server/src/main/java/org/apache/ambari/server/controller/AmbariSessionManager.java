@@ -22,7 +22,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -36,7 +36,7 @@ public class AmbariSessionManager {
    * Session manager.
    */
   @Inject
-  SessionManager sessionManager;
+  SessionHandler sessionHandler;
 
 
   // ----- AmbariSessionManager ----------------------------------------------
@@ -59,7 +59,7 @@ public class AmbariSessionManager {
    * @return the session cookie
    */
   public String getSessionCookie() {
-    return sessionManager.getSessionCookieConfig().getName();
+    return sessionHandler.getSessionCookieConfig().getName();
   }
 
   /**

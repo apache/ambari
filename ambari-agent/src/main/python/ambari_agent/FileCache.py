@@ -25,7 +25,6 @@ import shutil
 import zipfile
 import urllib2
 import urllib
-from AmbariConfig import AmbariConfig
 
 logger = logging.getLogger()
 
@@ -39,7 +38,7 @@ class FileCache():
   downloads relevant files from the server.
   """
 
-  CLUSTER_CONFIGURATION_CACHE_DIRECTORY="cluster_configuration"
+  CLUSTER_CACHE_DIRECTORY="cluster_cache"
   ALERTS_CACHE_DIRECTORY="alerts"
   RECOVERY_CACHE_DIRECTORY="recovery"
   STACKS_CACHE_DIRECTORY="stacks"
@@ -73,7 +72,7 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    service_subpath = command['commandParams']['service_package_folder']
+    service_subpath = command['serviceLevelParams']['service_package_folder']
     return self.provide_directory(self.cache_dir, service_subpath,
                                   server_url_prefix)
 
@@ -83,7 +82,7 @@ class FileCache():
     Returns a base directory for hooks
     """
     try:
-      hooks_path = command['commandParams']['hooks_folder']
+      hooks_path = command['clusterLevelParams']['hooks_folder']
     except KeyError:
       return None
     return self.provide_directory(self.cache_dir, hooks_path,
@@ -124,6 +123,7 @@ class FileCache():
 
 
   def auto_cache_update_enabled(self):
+    from AmbariConfig import AmbariConfig
     if self.config and \
         self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY) and \
             self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY).lower() == "false":

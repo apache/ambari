@@ -32,7 +32,7 @@ class MsiProvider(Provider):
     msi_file_path = name
     dict_args = self.resource.dict_args
     list_args = self.resource.list_args
-    working_dir = os.path.abspath(Script.get_config()["hostLevelParams"]["agentCacheDir"])
+    working_dir = os.path.abspath(Script.get_config()["agentLevelParams"]["agentCacheDir"])
     http_source = self.resource.http_source
 
     # name can be a path to file in local file system

@@ -25,7 +25,7 @@ from alerts.base_alert import BaseAlert
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address, get_host_from_url
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # default timeouts
 DEFAULT_WARNING_TIMEOUT = 1.5
@@ -87,9 +87,10 @@ class PortAlert(BaseAlert):
 
 
   def _collect(self):
+    configurations = self.configuration_builder.get_configuration(self.cluster_id, None, None)
     # can be parameterized or static
     # if not parameterized, this will return the static value
-    uri_value = self._get_configuration_value(self.uri)
+    uri_value = self._get_configuration_value(configurations, self.uri)
 
     host_not_specified = False
     if uri_value is None:

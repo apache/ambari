@@ -292,6 +292,8 @@
 
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>
+            <!--Coilmq Mock library (Apache license)-->
+            <exclude>ambari-common/src/test/python/coilmq/**</exclude>
             <!--Jinja2 library (BSD license)-->
             <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
@@ -300,6 +302,10 @@
             <!--Subprocess32 library (PSF license)-->
             <exclude>ambari-common/src/main/python/ambari_commons/subprocess32.py</exclude>
             <exclude>ambari-common/src/main/python/ambari_commons/_posixsubprocess.so</exclude>
+            <!--Stomp library (Apache license)-->
+            <exclude>ambari-common/src/main/python/ambari_stomp/**</exclude>
+            <!--ws4py library (BSD 3-Clause)-->
+            <exclude>ambari-common/src/main/python/ambari_ws4py/**</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 

@@ -280,12 +280,6 @@ public class AlertDefinitionDAOTest {
   }
 
   @Test
-  public void testFindBySourceType() throws Exception {
-    assertEquals(15, dao.findBySourceType(clusterId, SourceType.SCRIPT).size());
-    assertEquals(0, dao.findBySourceType(clusterId, SourceType.METRIC).size());
-  }
-
-  @Test
   public void testRefresh() {
   }
 

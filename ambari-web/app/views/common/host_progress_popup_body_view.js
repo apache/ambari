@@ -342,7 +342,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
         logComponentFileNameHeight = $(modal).find('#host-info tfoot').outerHeight(true),
         levelName = this.get('currentLevel'),
         boLevelHeightMap = {
-          'OPS_LIST': {
+          'REQUESTS_LIST': {
             height: window.innerHeight - 2*modalTopOffset - headerHeight - taskTopWrapHeight - modalFooterHeight - contentPaddingBottom,
             target: '#service-info'
           },

@@ -326,7 +326,7 @@ def add_solr_roles(config, roles = [], new_service_principals = [], tries = 30, 
     and solr_hosts is not None \
     and len(solr_hosts) > 0:
     solr_protocol = "https" if solr_ssl_enabled else "http"
-    hostname = config['hostname'].lower()
+    hostname = config['agentLevelParams']['hostname'].lower()
     solr_host = __get_random_solr_host(hostname, solr_hosts)
     solr_url = format("{solr_protocol}://{solr_host}:{solr_port}/solr/admin/authorization")
     solr_user = config['configurations']['infra-solr-env']['infra_solr_user']

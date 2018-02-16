@@ -25,6 +25,7 @@ require('utils/bootstrap_reopen');
 require('utils/ember_reopen');
 require('utils/ember_computed');
 var stringUtils = require('utils/string_utils');
+var stompClientClass = require('utils/stomp_client');
 
 module.exports = Em.Application.create({
   name: 'Ambari Web',
@@ -38,6 +39,7 @@ module.exports = Em.Application.create({
     typeMaps: {},
     recordCache: []
   }),
+  StompClient: stompClientClass.create(),
   isAdmin: false,
   isOperator: false,
   isClusterUser: false,
@@ -189,6 +191,7 @@ module.exports = Em.Application.create({
     return false;
   }.property('router.clusterController.isLoaded'),
 
+  clusterId: null,
   clusterName: null,
   clockDistance: null, // server clock - client clock
   currentStackVersion: '',

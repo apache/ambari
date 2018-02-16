@@ -42,8 +42,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.hooks.HookContextFactory;
-import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -56,6 +54,7 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -64,7 +63,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -182,16 +180,16 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        PartialNiceMockBinder.newBuilder(UserAuthenticationSourceResourceProviderTest.this)
+            .addAmbariMetaInfoBinding().build().configure(binder());
+
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
         bind(Users.class).toInstance(createMock(Users.class));
-        bind(HookService.class).toInstance(createMock(HookService.class));
-        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
       }
     });
   }

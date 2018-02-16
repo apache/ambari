@@ -21,10 +21,13 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -33,6 +36,7 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
@@ -76,6 +80,7 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
   private AmbariMetaInfo ambariMetaInfo;
+  private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -223,6 +228,15 @@ public class ServiceImpl implements Service {
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
     return new HashMap<>(components);
+  }
+
+  @Override
+  public Set<String> getServiceHosts() {
+    Set<String> hostNames = new HashSet<>();
+    for (ServiceComponent serviceComponent  : getServiceComponents().values()) {
+      hostNames.addAll(serviceComponent.getServiceComponentsHosts());
+    }
+    return hostNames;
   }
 
   @Override
@@ -523,7 +537,7 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  public void deleteAllComponents() throws AmbariException {
+  public void deleteAllComponents(DeleteHostComponentStatusMetaData deleteMetaData) {
     lock.lock();
     try {
       LOG.info("Deleting all components for service" + ", clusterName=" + cluster.getClusterName()
@@ -531,14 +545,18 @@ public class ServiceImpl implements Service {
       // FIXME check dependencies from meta layer
       for (ServiceComponent component : components.values()) {
         if (!component.canBeRemoved()) {
-          throw new AmbariException("Found non removable component when trying to"
+          deleteMetaData.setAmbariException(new AmbariException("Found non removable component when trying to"
               + " delete all components from service" + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName() + ", componentName=" + component.getName());
+              + ", serviceName=" + getName() + ", componentName=" + component.getName()));
+          return;
         }
       }
 
       for (ServiceComponent serviceComponent : components.values()) {
-        serviceComponent.delete();
+        serviceComponent.delete(deleteMetaData);
+        if (deleteMetaData.getAmbariException() != null) {
+          return;
+        }
       }
 
       components.clear();
@@ -548,7 +566,7 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public void deleteServiceComponent(String componentName)
+  public void deleteServiceComponent(String componentName, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException {
     lock.lock();
     try {
@@ -563,7 +581,7 @@ public class ServiceImpl implements Service {
             + ", componentName=" + componentName);
       }
 
-      component.delete();
+      component.delete(deleteMetaData);
       components.remove(componentName);
     } finally {
       lock.unlock();
@@ -577,14 +595,22 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  public void delete() throws AmbariException {
+  public void delete(DeleteHostComponentStatusMetaData deleteMetaData) {
     List<Component> components = getComponents(); // XXX temporal coupling, need to call this BEFORE deletingAllComponents
-    deleteAllComponents();
-    deleteAllServiceConfigs();
+    deleteAllComponents(deleteMetaData);
+    if (deleteMetaData.getAmbariException() != null) {
+      return;
+    }
 
     StackId stackId = getDesiredStackId();
+    try {
+      deleteAllServiceConfigs();
 
-    removeEntities();
+      removeEntities();
+    } catch (AmbariException e) {
+      deleteMetaData.setAmbariException(e);
+      return;
+    }
 
     // publish the service removed event
     if (null == stackId) {
@@ -617,7 +643,7 @@ public class ServiceImpl implements Service {
   public void setMaintenanceState(MaintenanceState state) {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     serviceDesiredStateEntity.setMaintenanceState(state);
-    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+    maintenanceState.set(serviceDesiredStateDAO.merge(serviceDesiredStateEntity).getMaintenanceState());
 
     // broadcast the maintenance mode change
     MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
@@ -626,7 +652,10 @@ public class ServiceImpl implements Service {
 
   @Override
   public MaintenanceState getMaintenanceState() {
-    return getServiceDesiredStateEntity().getMaintenanceState();
+    if (maintenanceState.get() == null) {
+      maintenanceState.set(getServiceDesiredStateEntity().getMaintenanceState());
+    }
+    return maintenanceState.get();
   }
 
   private ClusterServiceEntityPK getServiceEntityPK(ClusterServiceEntity serviceEntity) {

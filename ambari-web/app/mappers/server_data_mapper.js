@@ -179,9 +179,11 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
    * @param item
    */
   deleteRecord: function (item) {
-    item.deleteRecord();
-    App.store.fastCommit();
-    item.get('stateManager').transitionTo('loading');
+    if (item.get('isLoaded')) {
+      item.deleteRecord();
+      App.store.fastCommit();
+      item.get('stateManager').transitionTo('loading');
+    }
   },
   /**
    * check mutable fields whether they have been changed and if positive
@@ -243,6 +245,22 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     }
 
     return ~maxIndex;
+  },
+
+  /**
+   * @param {Em.Object} record
+   * @param {object} event
+   * @param {object} config
+   */
+  updatePropertiesByConfig: function(record, event, config) {
+    if (record.get('isLoaded')) {
+      for (var internalProp in config) {
+        let externalProp = config[internalProp];
+        if (!Em.isNone(event[externalProp])) {
+          record.set(internalProp, event[externalProp]);
+        }
+      }
+    }
   }
 
 });

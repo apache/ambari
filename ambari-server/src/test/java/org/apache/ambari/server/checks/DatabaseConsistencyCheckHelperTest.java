@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -214,17 +215,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
-        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
-        bind(EntityManager.class).toInstance(mockEntityManager);
-        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(OsFamily.class).toInstance(mockOSFamily);
-      }
-    });
+    final Injector mockInjector = createInjectorWithAmbariMetaInfo(mockAmbariMetainfo, mockDBDbAccessor);
 
     Map<String, ServiceInfo> services = new HashMap<>();
     services.put("HDFS", mockHDFSServiceInfo);
@@ -411,17 +402,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
-        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
-        bind(EntityManager.class).toInstance(mockEntityManager);
-        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(OsFamily.class).toInstance(mockOSFamily);
-      }
-    });
+    final Injector mockInjector = createInjectorWithAmbariMetaInfo(mockAmbariMetainfo, mockDBDbAccessor);
 
     Map<String, ServiceInfo> services = new HashMap<>();
     services.put("HDFS", mockHDFSServiceInfo);
@@ -502,17 +483,7 @@ public class DatabaseConsistencyCheckHelperTest {
     final ResultSet requestResultSet = easyMockSupport.createNiceMock(ResultSet.class);
     final ResultSet alertHistoryResultSet = easyMockSupport.createNiceMock(ResultSet.class);
 
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
-        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
-        bind(EntityManager.class).toInstance(mockEntityManager);
-        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(OsFamily.class).toInstance(mockOSFamily);
-      }
-    });
+    final Injector mockInjector = createInjectorWithAmbariMetaInfo(mockAmbariMetainfo, mockDBDbAccessor);
 
     expect(hostRoleCommandResultSet.next()).andReturn(true).once();
     expect(executionCommandResultSet.next()).andReturn(true).once();
@@ -624,5 +595,19 @@ public class DatabaseConsistencyCheckHelperTest {
     DatabaseConsistencyCheckHelper.fixConfigsSelectedMoreThanOnce();
 
     easyMockSupport.verifyAll();
+  }
+
+  private Injector createInjectorWithAmbariMetaInfo(AmbariMetaInfo mockAmbariMetainfo,
+                                                    DBAccessor mockDBDbAccessor) {
+    return Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding()
+            .addDBAccessorBinding(mockDBDbAccessor).build()
+            .configure(binder());
+
+        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+      }
+    });
   }
 }

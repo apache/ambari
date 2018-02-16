@@ -74,7 +74,7 @@ logfeeder_pid_file = status_params.logfeeder_pid_file
 user_group = config['configurations']['cluster-env']['user_group']
 
 # shared configs
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 ambari_java_home = default("/commandParams/ambari_java_home", None)
 java64_home = ambari_java_home if ambari_java_home is not None else java_home
 cluster_name = str(config['clusterName'])
@@ -114,7 +114,7 @@ infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/inf
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
 
-_hostname_lowercase = config['hostname'].lower()
+_hostname_lowercase = config['agentLevelParams']['hostname'].lower()
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
@@ -163,8 +163,8 @@ else:
 
   logsearch_solr_zk_quorum = ""
   zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-  if 'zookeeper_hosts' in config['clusterHostInfo']:
-    for host in config['clusterHostInfo']['zookeeper_hosts']:
+  if 'zookeeper_server_hosts' in config['clusterHostInfo']:
+    for host in config['clusterHostInfo']['zookeeper_server_hosts']:
       if logsearch_solr_zk_quorum:
         logsearch_solr_zk_quorum += ','
       logsearch_solr_zk_quorum += host + ":" + str(zookeeper_port)
@@ -225,10 +225,10 @@ logsearch_admin_password = default('/configurations/logsearch-admin-json/logsear
 logsearch_admin_content = config['configurations']['logsearch-admin-json']['content']
 
 # for now just pick first collector
-if 'ambari_server_host' in config['clusterHostInfo']:
-  ambari_server_host = config['clusterHostInfo']['ambari_server_host'][0]
-  ambari_server_port = config['clusterHostInfo']['ambari_server_port'][0]
-  ambari_server_use_ssl = config['clusterHostInfo']['ambari_server_use_ssl'][0] == 'true'
+if 'ambari_server_host' in config['ambariLevelParams']:
+  ambari_server_host = config['ambariLevelParams']['ambari_server_host']
+  ambari_server_port = config['ambariLevelParams']['ambari_server_port']
+  ambari_server_use_ssl = config['ambariLevelParams']['ambari_server_use_ssl'] == 'true'
   
   ambari_server_protocol = 'https' if ambari_server_use_ssl else 'http'
 

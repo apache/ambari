@@ -86,7 +86,7 @@ artifact_dir = "/tmp/HDP-artifacts/"
 
 target = format("{hive_lib}/{jdbc_jar_name}")
 
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 
 start_hiveserver2_path = "/tmp/start_hiveserver2_script"
@@ -94,7 +94,7 @@ start_metastore_path = "/tmp/start_metastore_script"
 
 hive_aux_jars_path = config['configurations']['global']['hive_aux_jars_path']
 hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 
 ##### MYSQL
 

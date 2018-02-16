@@ -23,7 +23,7 @@ import re
 import time
 from collections import namedtuple
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # create a named tuple to return both the concrete URI and SSL flag
 AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
@@ -45,10 +45,11 @@ class BaseAlert(object):
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
     self.cluster_name = ''
+    self.cluster_id = None
     self.host_name = ''
     self.public_host_name = ''
     self.config = config
-    
+
   def interval(self):
     """ gets the defined interval this check should run """
     if not self.alert_meta.has_key('interval'):
@@ -63,7 +64,7 @@ class BaseAlert(object):
     gets whether the definition is enabled
     """
     return self.alert_meta['enabled']
-  
+
 
   def get_name(self):
     """
@@ -79,17 +80,19 @@ class BaseAlert(object):
     return self.alert_meta['uuid']
 
 
-  def set_helpers(self, collector, cluster_configuration):
+  def set_helpers(self, collector, cluster_configuration_cache, configuration_builder):
     """
     sets helper objects for alerts without having to use them in a constructor
     """
     self.collector = collector
-    self.cluster_configuration = cluster_configuration
+    self.cluster_configuration_cache = cluster_configuration_cache
+    self.configuration_builder = configuration_builder
 
 
-  def set_cluster(self, cluster_name, host_name, public_host_name = None):
+  def set_cluster(self, cluster_name, cluster_id, host_name, public_host_name = None):
     """ sets cluster information for the alert """
     self.cluster_name = cluster_name
+    self.cluster_id = cluster_id
     self.host_name = host_name
     self.public_host_name = host_name
     if public_host_name:
@@ -108,10 +111,10 @@ class BaseAlert(object):
 
   def collect(self):
     """ method used for collection.  defers to _collect() """
-    
+
     res = (BaseAlert.RESULT_UNKNOWN, [])
     res_base_text = None
-    
+
     try:
       res = self._collect()
       result_state = res[0]
@@ -130,29 +133,24 @@ class BaseAlert(object):
     except Exception as exception:
       message = "[Alert][{0}] Unable to execute alert. {1}".format(
         self.get_name(), str(exception))
-      
+
       # print the exception if in DEBUG, otherwise just log the warning
-      if logger.isEnabledFor(logging.DEBUG):
-        logger.exception(message)
-      else:
-        logger.warning(message)
+      #if logger.isEnabledFor(logging.DEBUG):
+      logger.exception(message)
+      #else:
+      #  logger.warning(message)
 
       res = (BaseAlert.RESULT_UNKNOWN, [str(exception)])
       res_base_text = "{0}"
-    
-    
+
+
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("[Alert][{0}] result = {1}".format(self.get_name(), str(res)))
 
     data = {}
     data['name'] = self._get_alert_meta_value_safely('name')
-    data['label'] = self._get_alert_meta_value_safely('label')
-    data['uuid'] = self._get_alert_meta_value_safely('uuid')
-    data['cluster'] = self.cluster_name
-    data['service'] = self._get_alert_meta_value_safely('serviceName')
-    data['component'] = self._get_alert_meta_value_safely('componentName')
+    data['clusterId'] = self.cluster_id
     data['timestamp'] = long(time.time() * 1000)
-    data['enabled'] = self._get_alert_meta_value_safely('enabled')
 
     try:
       data['state'] = res[0]
@@ -184,7 +182,7 @@ class BaseAlert(object):
       self.collector.put(self.cluster_name, data)
 
 
-  def _get_configuration_value(self, key):
+  def _get_configuration_value(self, configurations, key):
     """
     Gets the value of the specified configuration key from the cache. The key
     should be of the form {{foo-bar/baz}}. If the key given is not a lookup key
@@ -219,8 +217,7 @@ class BaseAlert(object):
     # for every match, get its configuration value and replace it in the key
     resolved_key = key
     for placeholder_key in placeholder_keys:
-      value = self.cluster_configuration.get_configuration_value(
-        self.cluster_name, placeholder_key)
+      value = self.get_configuration_value(configurations, placeholder_key)
 
       # if any of the placeholder keys is missing from the configuration, then
       # return None as per the contract of this function
@@ -238,21 +235,44 @@ class BaseAlert(object):
 
     return resolved_key
 
-    
+  def get_configuration_value(self, configurations, key):
+    """
+    Gets a value from the cluster configuration map for the given cluster and
+    key. The key is expected to be of the form 'foo-bar/baz' or
+    'foo-bar/bar-baz/foobarbaz' where every / denotes a new mapping
+    :param key:  a lookup key, like 'foo-bar/baz'
+    :return: the value, or None if not found
+    """
+    if not key.startswith("/"):
+      key = "/configurations/" + key
+
+    try:
+      curr_dict = configurations
+      subdicts = filter(None, key.split('/'))
+
+      for layer_key in subdicts:
+        curr_dict = curr_dict[layer_key]
+
+      return curr_dict
+    except KeyError:
+      logger.debug("Cache miss for configuration property {0}".format(key))
+      return None
+
+
   def _lookup_uri_property_keys(self, uri_structure):
     """
     Loads the configuration lookup keys that the URI structure needs. This
     will return a named tuple that contains the keys needed to lookup
     parameterized URI values from the cached configuration.
     The URI structure looks something like:
-    
-    "uri":{ 
+
+    "uri":{
       "http": foo,
       "https": bar,
       ...
     }
     """
-    
+
     if uri_structure is None:
       return None
 
@@ -274,13 +294,13 @@ class BaseAlert(object):
 
     if 'http' in uri_structure:
       http_key = uri_structure['http']
-    
+
     if 'https' in uri_structure:
       https_key = uri_structure['https']
-      
+
     if 'https_property' in uri_structure:
       https_property_key = uri_structure['https_property']
-      
+
     if 'https_property_value' in uri_structure:
       https_property_value_key = uri_structure['https_property_value']
 
@@ -309,11 +329,11 @@ class BaseAlert(object):
         ha_https_pattern = ha['https_pattern']
 
 
-    AlertUriLookupKeys = namedtuple('AlertUriLookupKeys', 
+    AlertUriLookupKeys = namedtuple('AlertUriLookupKeys',
       'acceptable_codes http https https_property https_property_value default_port '
       'kerberos_keytab kerberos_principal '
       'ha_nameservice ha_alias_key ha_http_pattern ha_https_pattern')
-    
+
     alert_uri_lookup_keys = AlertUriLookupKeys(
       acceptable_codes=acceptable_codes_key,
       http=http_key,
@@ -324,44 +344,46 @@ class BaseAlert(object):
       ha_nameservice=ha_nameservice, ha_alias_key=ha_alias_key,
       ha_http_pattern=ha_http_pattern, ha_https_pattern=ha_https_pattern
     )
-    
+
     return alert_uri_lookup_keys
 
-    
+
   def _get_uri_from_structure(self, alert_uri_lookup_keys):
     """
     Gets the URI to use by examining the URI structure from the definition.
     This will return a named tuple that has the uri and the SSL flag. The
     URI structure looks something like:
-    
-    "uri":{ 
+
+    "uri":{
       "http": foo,
       "https": bar,
       ...
     }
     """
-    
+
     if alert_uri_lookup_keys is None:
       return None
-    
+
     http_uri = None
     https_uri = None
+
+    configurations = self.configuration_builder.get_configuration(self.cluster_id, None, None)
 
     # first thing is first; if there are HA keys then try to dynamically build
     # the property which is used to get the actual value of the uri
     # (ie dfs.namenode.http-address.c1ha.nn2)
     if alert_uri_lookup_keys.ha_nameservice is not None or alert_uri_lookup_keys.ha_alias_key is not None:
-      alert_uri = self._get_uri_from_ha_structure(alert_uri_lookup_keys)
+      alert_uri = self._get_uri_from_ha_structure(alert_uri_lookup_keys, configurations)
       if alert_uri is not None:
         return alert_uri
 
     # attempt to parse and parameterize the various URIs; properties that
     # do not exist int he lookup map are returned as None
     if alert_uri_lookup_keys.http is not None:
-      http_uri = self._get_configuration_value(alert_uri_lookup_keys.http)
-    
+      http_uri = self._get_configuration_value(configurations, alert_uri_lookup_keys.http)
+
     if alert_uri_lookup_keys.https is not None:
-      https_uri = self._get_configuration_value(alert_uri_lookup_keys.https)
+      https_uri = self._get_configuration_value(configurations, alert_uri_lookup_keys.https)
 
     # without a URI, there's no way to create the structure we need - return
     # the default port if specified, otherwise throw an exception
@@ -375,21 +397,21 @@ class BaseAlert(object):
     # start out assuming plaintext
     uri = http_uri
     is_ssl_enabled = False
-    
+
     if https_uri is not None:
       # https without http implies SSL, otherwise look it up based on the properties
       if http_uri is None:
         is_ssl_enabled = True
         uri = https_uri
-      elif self._check_uri_ssl_property(alert_uri_lookup_keys):
+      elif self._check_uri_ssl_property(alert_uri_lookup_keys, configurations):
         is_ssl_enabled = True
         uri = https_uri
-    
+
     alert_uri = AlertUri(uri=uri, is_ssl_enabled=is_ssl_enabled)
     return alert_uri
 
 
-  def _get_uri_from_ha_structure(self, alert_uri_lookup_keys):
+  def _get_uri_from_ha_structure(self, alert_uri_lookup_keys, configurations):
     """
     Attempts to parse the HA URI structure in order to build a dynamic key
     that represents the correct host URI to check.
@@ -401,7 +423,7 @@ class BaseAlert(object):
 
     logger.debug("[Alert][{0}] HA URI structure detected in definition, attempting to lookup dynamic HA properties".format(self.get_name()))
 
-    ha_nameservice = self._get_configuration_value(alert_uri_lookup_keys.ha_nameservice)
+    ha_nameservice = self._get_configuration_value(configurations, alert_uri_lookup_keys.ha_nameservice)
     ha_alias_key = alert_uri_lookup_keys.ha_alias_key
     ha_http_pattern = alert_uri_lookup_keys.ha_http_pattern
     ha_https_pattern = alert_uri_lookup_keys.ha_https_pattern
@@ -414,25 +436,25 @@ class BaseAlert(object):
       # if there is a HA nameservice defined, but it can not be evaluated then it's not HA environment
       if ha_nameservice is None:
         return None
-      
+
       # convert dfs.ha.namenodes.{{ha-nameservice}} into dfs.ha.namenodes.c1ha
       ha_alias_key = ha_alias_key.replace(self.HA_NAMESERVICE_PARAM, ha_nameservice)
-      ha_nameservice_alias = self._get_configuration_value(ha_alias_key)
-      
+      ha_nameservice_alias = self._get_configuration_value(configurations, ha_alias_key)
+
       if ha_nameservice_alias is None:
         logger.warning("[Alert][{0}] HA nameservice value is present but there are no aliases for {1}".format(
           self.get_name(), ha_alias_key))
         return None
     else:
-      ha_nameservice_alias = self._get_configuration_value(ha_alias_key)
-      
+      ha_nameservice_alias = self._get_configuration_value(configurations, ha_alias_key)
+
       # if HA nameservice is not defined then the fact that the HA alias_key could not be evaluated shows that it's not HA environment
       if ha_nameservice_alias is None:
         return None
 
     # determine which pattern to use (http or https)
     ha_pattern = ha_http_pattern
-    is_ssl_enabled = self._check_uri_ssl_property(alert_uri_lookup_keys)
+    is_ssl_enabled = self._check_uri_ssl_property(alert_uri_lookup_keys, configurations)
     if is_ssl_enabled:
       ha_pattern = ha_https_pattern
 
@@ -462,14 +484,14 @@ class BaseAlert(object):
 
       # get the host for dfs.namenode.http-address.c1ha.nn1 and see if it's
       # this host
-      value = self._get_configuration_value(key)
+      value = self._get_configuration_value(configurations, key)
       if value is not None and (self.host_name.lower() in value.lower() or self.public_host_name.lower() in value.lower()):
         return AlertUri(uri=value, is_ssl_enabled=is_ssl_enabled)
 
     return None
 
 
-  def _check_uri_ssl_property(self, alert_uri_lookup_keys):
+  def _check_uri_ssl_property(self, alert_uri_lookup_keys, configurations):
     """
     Gets whether the SSL property and value on the URI indicate an SSL
     connection.
@@ -481,10 +503,10 @@ class BaseAlert(object):
     https_property_value = None
 
     if alert_uri_lookup_keys.https_property is not None:
-      https_property = self._get_configuration_value(alert_uri_lookup_keys.https_property)
+      https_property = self._get_configuration_value(configurations, alert_uri_lookup_keys.https_property)
 
     if alert_uri_lookup_keys.https_property_value is not None:
-      https_property_value = self._get_configuration_value(alert_uri_lookup_keys.https_property_value)
+      https_property_value = self._get_configuration_value(configurations, alert_uri_lookup_keys.https_property_value)
 
     if https_property is None:
       return False

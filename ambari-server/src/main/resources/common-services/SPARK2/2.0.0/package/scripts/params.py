@@ -53,7 +53,7 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
@@ -75,7 +75,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
 
 spark_daemon_memory = config['configurations']['spark2-env']['spark_daemon_memory']
 spark_thrift_server_conf_file = spark_conf + "/spark-thrift-sparkconf.conf"
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -127,7 +127,7 @@ spark_env_sh = config['configurations']['spark2-env']['content']
 spark_log4j_properties = config['configurations']['spark2-log4j-properties']['content']
 spark_metrics_properties = config['configurations']['spark2-metrics-properties']['content']
 
-hive_server_host = default("/clusterHostInfo/hive_server_host", [])
+hive_server_host = default("/clusterHostInfo/hive_server_hosts", [])
 is_hive_installed = not len(hive_server_host) == 0
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -245,7 +245,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, sta
   if len(livy2_livyserver_hosts) > 0:
     has_livyserver = True
     if security_enabled:
-      livy2_principal = livy_kerberos_principal.replace('_HOST', config['hostname'].lower())
+      livy2_principal = livy_kerberos_principal.replace('_HOST', config['agentLevelParams']['hostname'].lower())
 
   livy2_livyserver_port = default('configurations/livy2-conf/livy.server.port',8999)
 

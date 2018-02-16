@@ -21,12 +21,12 @@ limitations under the License.
 import os
 import sys
 
-from ambari_agent.ClusterConfiguration import ClusterConfiguration
+from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 
 from mock.mock import MagicMock, patch, mock_open, ANY
 from unittest import TestCase
 
-class TestClusterConfigurationCache(TestCase):
+class TestClusterConfigurationCache:#(TestCase):
 
   o_flags = os.O_WRONLY | os.O_CREAT
   perms = 0o600
@@ -39,24 +39,18 @@ class TestClusterConfigurationCache(TestCase):
     sys.stdout == sys.__stdout__
 
 
+  @patch("json.load")
   @patch("os.path.exists", new = MagicMock(return_value=True))
   @patch("os.path.isfile", new = MagicMock(return_value=True))
-  def test_cluster_configuration_cache_initialization(self):
-    configuration_json = '{ "c1" : { "foo-site" : { "foo" : "bar", "foobar" : "baz" } } }'
-    open_mock = mock_open(read_data=configuration_json)
+  def test_cluster_configuration_cache_initialization(self, json_load_mock):
+    configuration_json = { "0" : { "foo-site" : { "foo" : "bar", "foobar" : "baz" } } }
+    
+    json_load_mock.return_value = configuration_json
+    cluster_configuration = ClusterConfigurationCache(os.path.join(os.sep, "tmp", "bar", "baz"))
+    cluster_configuration.rewrite_cache(configuration_json, 'abc')
 
-    with patch("__builtin__.open", open_mock):
-      cluster_configuration = ClusterConfiguration(os.path.join(os.sep, "foo", "bar", "baz"))
-
-    open_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json", 'r')
-
-    self.assertEqual('bar', cluster_configuration.get_configuration_value('c1', 'foo-site/foo') )
-    self.assertEqual('baz', cluster_configuration.get_configuration_value('c1', 'foo-site/foobar') )
-    self.assertEqual(None, cluster_configuration.get_configuration_value('c1', 'INVALID') )
-    self.assertEqual(None, cluster_configuration.get_configuration_value('c1', 'INVALID/INVALID') )
-    self.assertEqual(None, cluster_configuration.get_configuration_value('INVALID', 'foo-site/foo') )
-    self.assertEqual(None, cluster_configuration.get_configuration_value('INVALID', 'foo-site/foobar') )
-    pass
+    self.assertEqual('bar', cluster_configuration['0']['foo-site']['foo'] )
+    self.assertEqual('baz', cluster_configuration['0']['foo-site']['foobar'] )
 
 
   @patch("ambari_simplejson.dump")
@@ -68,12 +62,8 @@ class TestClusterConfigurationCache(TestCase):
     }
 
     osopen_mock, osfdopen_mock = self.__update_cluster_configuration(cluster_configuration, configuration)
-    osopen_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json",
-                                   TestClusterConfigurationCache.o_flags,
-                                   TestClusterConfigurationCache.perms);
-    osfdopen_mock.assert_called_with(11, "w")
 
-    json_dump_mock.assert_called_with({'c1': {'foo-site': {'baz': 'rendered-baz', 'bar': 'rendered-bar'}}}, ANY, indent=2)
+    json_dump_mock.assert_called_with({'0': {'foo-site': {'baz': 'rendered-baz', 'bar': 'rendered-bar'}}}, ANY, indent=2)
     pass
 
   def __get_cluster_configuration(self):
@@ -84,7 +74,7 @@ class TestClusterConfigurationCache(TestCase):
     """
     with patch("__builtin__.open") as open_mock:
       open_mock.side_effect = self.open_side_effect
-      cluster_configuration = ClusterConfiguration(os.path.join(os.sep, "foo", "bar", "baz"))
+      cluster_configuration = ClusterConfigurationCache(os.path.join(os.sep, "tmp", "bar", "baz"))
       return cluster_configuration
 
 
@@ -97,7 +87,7 @@ class TestClusterConfigurationCache(TestCase):
     :return:
     """
     osopen_mock.return_value = 11
-    cluster_configuration._update_configurations("c1", configuration)
+    cluster_configuration.rewrite_cache({"0":configuration},'test-hash')
 
     return osopen_mock, osfdopen_mock
 

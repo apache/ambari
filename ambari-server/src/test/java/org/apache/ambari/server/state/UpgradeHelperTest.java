@@ -20,6 +20,9 @@ package org.apache.ambari.server.state;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -49,11 +52,14 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -147,6 +153,10 @@ public class UpgradeHelperTest extends EasyMockSupport {
         EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn("placeholder-rendered-properly").anyTimes();
     expect(m_configHelper.getEffectiveDesiredTags(
         EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<>()).anyTimes();
+    expect(m_configHelper.getHostActualConfigs(
+        EasyMock.anyLong())).andReturn(new AgentConfigsUpdateEvent(Collections.emptySortedMap())).anyTimes();
+    expect(m_configHelper.getChangedConfigTypes(anyObject(Cluster.class), anyObject(ServiceConfigEntity.class),
+        anyLong(), anyLong(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
   }
 
   @Before
@@ -2390,12 +2400,11 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
 
-    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
+    expect(configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(AmbariManagementController.class),
         EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
-        EasyMock.anyObject(String.class));
+        EasyMock.anyObject(String.class))).andReturn(true);
 
-    expectLastCall().once();
     EasyMock.replay(configHelperProvider, configHelper);
 
     // mock the service config DAO and replay it
@@ -2501,15 +2510,14 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_configHelper.getDefaultProperties(newStack, "HIVE")).andReturn(stackMap).atLeastOnce();
     expect(m_configHelper.getDefaultProperties(oldStack, "ZOOKEEPER")).andReturn(stackMap).atLeastOnce();
     expect(m_configHelper.getDefaultProperties(newStack, "ZOOKEEPER")).andReturn(stackMap).atLeastOnce();
-    m_configHelper.createConfigTypes(
+    expect(m_configHelper.createConfigTypes(
         EasyMock.capture(captureCluster),
         EasyMock.capture(captureStackId),
         EasyMock.capture(captureAmc),
         EasyMock.capture(cap),
 
         EasyMock.capture(captureUsername),
-        EasyMock.capture(captureNote));
-    expectLastCall().atLeastOnce();
+        EasyMock.capture(captureNote))).andReturn(true);
 
     replay(m_configHelper);
 
@@ -2543,8 +2551,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertNotNull(upgrade);
 
     Cluster cluster = makeCluster();
-    cluster.deleteService("HDFS");
-    cluster.deleteService("YARN");
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
+    cluster.deleteService("YARN", new DeleteHostComponentStatusMetaData());
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE,
         UpgradeType.ROLLING, repositoryVersion2110);
@@ -2580,8 +2588,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     Cluster cluster = makeCluster();
-    cluster.deleteService("HDFS");
-    cluster.deleteService("YARN");
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
+    cluster.deleteService("YARN", new DeleteHostComponentStatusMetaData());
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING, repositoryVersion2110,
         RepositoryType.STANDARD, cluster.getServices().keySet(), m_masterHostResolver, false);
@@ -2617,9 +2625,9 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertNotNull(upgrade);
 
     Cluster cluster = makeCluster();
-    cluster.deleteService("HDFS");
-    cluster.deleteService("YARN");
-    cluster.deleteService("ZOOKEEPER");
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
+    cluster.deleteService("YARN", new DeleteHostComponentStatusMetaData());
+    cluster.deleteService("ZOOKEEPER", new DeleteHostComponentStatusMetaData());
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE,
         UpgradeType.ROLLING, repositoryVersion2110);
@@ -2870,6 +2878,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     public void configure(Binder binder) {
       binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
       binder.bind(ConfigHelper.class).toInstance(m_configHelper);
+      binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
     }
   }
 
