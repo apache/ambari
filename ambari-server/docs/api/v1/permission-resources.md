@@ -18,7 +18,7 @@ limitations under the License.
 # Permission Resources
 Permission resources help to determine access control for a user upon a resource (Ambari, a cluster, a view, etc...).
 
-###API Summary
+### API Summary
 
 - [List permissions](permission-list.md)
 - [Get permission](permission-get.md)
@@ -26,7 +26,7 @@ Permission resources help to determine access control for a user upon a resource
 - [Update permission](permission-update.md)
 - [Delete permission](permission-delete.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>

@@ -117,6 +117,15 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
   },
 
   /**
+   * enable NameNode Federation
+   * @return {Boolean}
+   */
+  enableNameNodeFederation: function () {
+    App.router.transitionTo('main.services.enableNameNodeFederation');
+    return true;
+  },
+
+  /**
    * open Manage JournalNode Wizard if there are two started NameNodes with defined active/standby state
    * @returns {boolean}
    */

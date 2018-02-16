@@ -79,6 +79,8 @@ App.QuickLinksView = Em.View.extend({
    */
   servicesSupportsHttps: ["HDFS", "HBASE"],
 
+  masterGroups: [],
+
   /**
    * @type {object}
    */
@@ -287,6 +289,8 @@ App.QuickLinksView = Em.View.extend({
       this.setEmptyLinks();
     } else if (hosts.length === 1 || isMultipleComponentsInLinks || this.hasOverriddenHost()) {
       this.setSingleHostLinks(hosts, response);
+    } else if (this.get('masterGroups.length') > 1) {
+      this.setMultipleGroupLinks(hosts);
     } else {
       this.setMultipleHostLinks(hosts);
     }
@@ -480,17 +484,9 @@ App.QuickLinksView = Em.View.extend({
     }
   },
 
-  /**
-   * set links that contain multiple hosts
-   *
-   * @param {hostForQuickLink[]} hosts
-   * @method setMultipleHostLinks
-   */
-  setMultipleHostLinks: function (hosts) {
+  getMultipleHostLinks: function (hosts) {
     var quickLinksConfig = this.getQuickLinksConfiguration();
     if (Em.isNone(quickLinksConfig)) {
-      this.set('quickLinksArray', []);
-      this.set('isLoaded', false);
       return;
     }
 
@@ -544,8 +540,50 @@ App.QuickLinksView = Em.View.extend({
       }
       quickLinksArray.push(quickLinks);
     }, this);
-    this.set('quickLinksArray', quickLinksArray);
-    this.set('isLoaded', true);
+    return quickLinksArray;
+  },
+
+  /**
+   * set links that contain multiple hosts
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @method setMultipleHostLinks
+   */
+  setMultipleHostLinks: function (hosts) {
+    const quickLinks = this.getMultipleHostLinks(hosts);
+    this.setProperties({
+      quickLinksArray: [
+        {
+          links: quickLinks || []
+        }
+      ],
+      isLoaded: !!quickLinks
+    });
+  },
+
+  /**
+   * set links that contain for multiple grouped hosts
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @method setMultipleGroupLinks
+   */
+  setMultipleGroupLinks: function (hosts) {
+    let isLoaded = true;
+    const quickLinksArray = this.get('masterGroups').map(group => {
+      const groupHosts = hosts.filter(host => group.hosts.contains(host.hostName)),
+        links = this.getMultipleHostLinks(groupHosts);
+      if (!links) {
+        isLoaded = false;
+      }
+      return {
+        title: group.title,
+        links: links || []
+      };
+    });
+    this.setProperties({
+      quickLinksArray,
+      isLoaded
+    });
   },
 
   /**

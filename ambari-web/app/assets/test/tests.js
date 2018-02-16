@@ -301,7 +301,6 @@ var files = [
   'test/views/main/admin/stack_upgrade/services_view_test',
   'test/views/main/admin/stack_upgrade/menu_view_test',
   'test/views/main/admin/stack_upgrade/failed_hosts_modal_view_test',
-  'test/views/main/admin/service_auto_start/component_auto_start_test',
   'test/views/main/admin/service_auto_start_test',
   'test/views/main/dashboard/config_history_view_test',
   'test/views/main/dashboard/config_history_search_box_test',

@@ -22,7 +22,7 @@ Ambari Agent
 import os
 import tempfile
 import re
-import subprocess
+from ambari_commons import subprocess32
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.shell import process_executor
@@ -324,7 +324,7 @@ class AptProvider(PackageProvider):
     return dict(configuration)
 
   def get_installed_package_version(self, package_name):
-    code, out, err = self.checked_call("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name), stderr=subprocess.PIPE)
+    code, out, err = self.checked_call("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name), stderr=subprocess32.PIPE)
     return out
 
   def verify_dependencies(self):

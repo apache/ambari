@@ -41,7 +41,7 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
-    <solr.version>6.6.2</solr.version>
+    <solr.version>7.2.1</solr.version>
     <hadoop.version>2.7.2</hadoop.version>
     <common.io.version>2.5</common.io.version>
     <forkCount>4</forkCount>
@@ -212,7 +212,7 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>0.11</version>
+        <version>0.12</version>
         <configuration>
           <excludes>
             <exclude>**/README.md</exclude>

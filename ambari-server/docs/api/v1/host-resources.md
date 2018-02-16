@@ -18,13 +18,13 @@ limitations under the License.
 # Host Resources
  
  
-###API Summary 
+### API Summary
 
 - [List hosts](hosts.md)
 - [View host information](hosts-host.md)
 - [Create host](create-host.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>
@@ -97,7 +97,7 @@ limitations under the License.
   </tr>
 </table>
 
-###States
+### States
 
 The current state of a host resource can be determined by looking at the Hosts/host_state property.
 

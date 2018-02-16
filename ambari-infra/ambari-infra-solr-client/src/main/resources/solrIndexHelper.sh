@@ -41,7 +41,13 @@ function print_help() {
      -d, --index-data-dir <DIRECTORY>        Location of the solr cores (e.g.: /opt/ambari_infra_solr/data)
      -c, --core-filter <FILTER1,FILTER2>     Comma separated name filters of core directoies (default: hadoop_logs,audit_logs,history)
      -f, --force                             Force to start index upgrade, even is the version is at least 6.
+     -v, --version                           Lucene version to upgrade (default: 6.6.0, available: 6.6.0, 7.2.1)
 
+   run-check-index-tool arguments:
+     -v, --version                           Lucene version to upgrade (default: 6.6.0, available: 6.6.0, 7.2.1)
+
+   run-upgrade-index-tool arguments:
+     -v, --version                           Lucene version to upgrade (default: 6.6.0, available: 6.6.0, 7.2.1)
 EOF
 }
 
@@ -49,23 +55,25 @@ function upgrade_core() {
   local INDEX_DIR=${1:?"usage: <index_base_dir> e.g.: /opt/ambari_infra_solr/data"}
   local FORCE_UPDATE=${2:?"usage <force_update_flag> e.g.: true"}
   local SOLR_CORE_FILTERS=${3:?"usage: <comma separated core filters> e.g.: hadoop_logs,audit_logs,history"}
-
+  local LUCENE_VERSION=${4:?"usage <lucene_index_version> e.g.: 7.2.1"}
   SOLR_CORE_FILTER_ARR=$(echo $SOLR_CORE_FILTERS | sed "s/,/ /g")
+
+  local version_prefix="$(echo $LUCENE_VERSION | head -c 1)"
 
   for coll in $SOLR_CORE_FILTER_ARR; do
     if [[ "$1" == *"$coll"* ]]; then
       echo "Core '$1' dir name contains $coll (core filter)'";
-      version=$(PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.CheckIndex -fast $1|grep "   version="|sed -e 's/.*=//g'|head -1)
+      version=$(PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$LUCENE_VERSION.jar:$DIR/migrate/lucene-backward-codecs-$LUCENE_VERSION.jar" org.apache.lucene.index.CheckIndex -fast $1|grep "   version="|sed -e 's/.*=//g'|head -1)
       if [ -z $version ] ; then
         echo "Core '$1' - Empty index?"
         return
       fi
       majorVersion=$(echo $version|cut -c 1)
-      if [ $majorVersion -ge 6 ] && [ $FORCE_UPDATE == "false" ] ; then
+      if [ $majorVersion -ge $version_prefix ] && [ $FORCE_UPDATE == "false" ] ; then
         echo "Core '$1' - Already on version $version, not upgrading. Use -f or --force option to run upgrade anyway."
       else
         echo "Core '$1' - Index version is $version, upgrading ..."
-        PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.IndexUpgrader -delete-prior-commits $1
+        PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$LUCENE_VERSION.jar:$DIR/migrate/lucene-backward-codecs-$LUCENE_VERSION.jar" org.apache.lucene.index.IndexUpgrader -delete-prior-commits $1
         echo "Upgrading core '$1' has finished"
       fi
     fi
@@ -89,6 +97,10 @@ function upgrade_index() {
           local INDEX_DIR="$2"
           shift 2
         ;;
+        -v|--version)
+          local LUCENE_VERSION="$2"
+          shift 2
+        ;;
         *)
           echo "Unknown option: $1"
           exit 1
@@ -102,6 +114,10 @@ function upgrade_index() {
 
   if [[ -z "$SOLR_CORE_FILTERS" ]] ; then
     SOLR_CORE_FILTERS="hadoop_logs,audit_logs,history"
+  fi
+
+  if [[ -z "$LUCENE_VERSION" ]] ; then
+    LUCENE_VERSION="6.6.0"
   fi
 
   if [[ -z "$FORCE_UPDATE" ]] ; then
@@ -120,7 +136,7 @@ function upgrade_index() {
           abspath=$(cd "$(dirname "$c")"; pwd)/$(basename "$c")
           find $c/data -maxdepth 1 -type d -name 'index*' | while read indexDir; do
           echo "Checking core $name - $abspath"
-          upgrade_core "$indexDir" "$FORCE_UPDATE" "$SOLR_CORE_FILTERS"
+          upgrade_core "$indexDir" "$FORCE_UPDATE" "$SOLR_CORE_FILTERS" "$LUCENE_VERSION"
           done
         else
           echo "No index folder found for $name"
@@ -132,11 +148,41 @@ function upgrade_index() {
 
 function upgrade_index_tool() {
   # see: https://cwiki.apache.org/confluence/display/solr/IndexUpgrader+Tool
-  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.IndexUpgrader ${@}
+  luc_version = "6.6.0"
+  while [[ $# -gt 0 ]]
+    do
+     key="$1"
+     case $key in
+        -v|--version)
+          luc_version="$2"
+          shift 2
+        ;;
+        *)
+          echo "Unknown option: $1"
+          exit 1
+        ;;
+     esac
+  done
+  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$luc_version.jar:$DIR/migrate/lucene-backward-codecs-$luc_version.jar" org.apache.lucene.index.IndexUpgrader ${@}
 }
 
 function check_index_tool() {
-  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.CheckIndex ${@}
+  luc_version = "6.6.0"
+  while [[ $# -gt 0 ]]
+    do
+     key="$1"
+     case $key in
+        -v|--version)
+          luc_version="$2"
+          shift 2
+        ;;
+        *)
+          echo "Unknown option: $1"
+          exit 1
+        ;;
+     esac
+  done
+  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$luc_version.jar:$DIR/migrate/lucene-backward-codecs-$luc_version.jar" org.apache.lucene.index.CheckIndex ${@}
 }
 
 function main() {

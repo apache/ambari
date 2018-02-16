@@ -35,7 +35,7 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
   that you fully re-index after changing this setting as it can
   affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>5.0.0</luceneMatchVersion>
+  <luceneMatchVersion>7.2.1</luceneMatchVersion>
 
   <!-- <lib/> directives can be used to instruct Solr to load any Jars
   identified and use them to resolve any "plugins" specified in
@@ -237,7 +237,10 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
     <mergeFactor>10</mergeFactor>
     -->
     <!-- LogSearch customization. Set to 5 to trigger purging of deleted documents more often -->
-    <mergeFactor>{{logsearch_service_logs_merge_factor}}</mergeFactor>
+    <mergePolicyFactory class="org.apache.solr.index.TieredMergePolicyFactory">
+      <int name="maxMergeAtOnce">{{logsearch_service_logs_merge_factor}}</int>
+      <int name="segmentsPerTier">{{logsearch_service_logs_merge_factor}}</int>
+    </mergePolicyFactory>
 
     <!-- Expert: Merge Scheduler
     The Merge Scheduler in Lucene controls how merges are

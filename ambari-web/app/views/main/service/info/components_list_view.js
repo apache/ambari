@@ -21,15 +21,25 @@ var App = require('app');
 App.SummaryMasterComponentsView = Em.View.extend({
   templateName: require('templates/main/service/info/summary/master_components'),
 
-  mastersComp: [],
+  mastersComp: [
+    {
+      components: []
+    }
+  ],
+
+  activeMastersComp: function () {
+    const mastersComp = this.get('mastersComp'),
+      activeGroup = mastersComp.findProperty('isActive');
+    return activeGroup ? [activeGroup] : mastersComp;
+  }.property('mastersComp.length', 'mastersComp.@each.isActive', 'mastersComp.@each.components.length'),
 
   mastersCompWillChange: function() {
     Em.run.next(() => this.removeTooltips());
-  }.observesBefore('mastersComp.length'),
+  }.observesBefore('mastersComp.length', 'mastersComp.@each.components.length'),
 
   mastersCompDidChange: function() {
     Em.run.next(() => this.attachTooltip());
-  }.observes('mastersComp.length'),
+  }.observes('mastersComp.length', 'mastersComp.@each.components.length'),
 
   removeTooltips: function() {
     $('.tooltip').remove();

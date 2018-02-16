@@ -17,10 +17,7 @@
  */
 package com.google.inject.persist.jpa;
 
-
 import java.util.Map;
-
-import javax.annotation.Nullable;
 
 import com.google.inject.Inject;
 
@@ -30,7 +27,7 @@ import com.google.inject.Inject;
 public class AmbariJpaPersistService extends JpaPersistService {
 
   @Inject
-  public AmbariJpaPersistService(@Jpa String persistenceUnitName, @Nullable @Jpa Map<?,?> persistenceProperties) {
+  public AmbariJpaPersistService(@Jpa String persistenceUnitName, @Jpa Map<?, ?> persistenceProperties) {
     super(persistenceUnitName, persistenceProperties);
   }
 

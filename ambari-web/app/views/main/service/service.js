@@ -157,6 +157,8 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
     };
   }.property('service'),
 
+  hasMultipleMasterGroups: Em.computed.gt('parentView.mastersObj.length', 1),
+
   /**
    * Check if service component is created
    * @param componentName

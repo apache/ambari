@@ -25,7 +25,7 @@ from mock.mock import patch, MagicMock, Mock
 import unittest
 import platform
 import socket
-import subprocess
+from ambari_commons import subprocess32
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
@@ -154,34 +154,34 @@ class TestHardware(TestCase):
     get_os_version_mock.return_value = "11"
     Hardware(cache_info=False).osdisks()
     timeout = 10
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     config = AmbariConfig()
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     config.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "true")
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "false")
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "0")
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     timeout = 1
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, str(timeout))
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
     timeout = 2
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, str(timeout))
     Hardware(config=config, cache_info=False).osdisks()
-    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = timeout, quiet = True)
 
   def test_parse_df_line(self):
     df_line_sample = "device type size used available percent mountpoint"
