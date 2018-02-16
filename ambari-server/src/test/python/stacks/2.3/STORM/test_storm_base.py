@@ -108,6 +108,7 @@ class TestStormBase(RMFTestCase):
                               )
     self.assertResourceCalled('TemplateConfig', confDir + '/storm_jaas.conf',
       owner = 'storm',
+      mode = 0644,
     )
     return storm_yarn_content
 
