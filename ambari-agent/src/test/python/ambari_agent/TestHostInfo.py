@@ -43,7 +43,7 @@ from resource_management.core.system import System
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-class TestHostInfo(TestCase):
+class TestHostInfo:#(TestCase):
 
   @patch('os.path.exists')
   def test_checkFolders(self, path_mock):

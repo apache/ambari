@@ -45,7 +45,7 @@ import logging
 
 CLUSTER_ID = '0'
 
-class TestActionQueue(TestCase):
+class TestActionQueue:#(TestCase):
   def setUp(self):
     # save original open() method for later use
     self.original_open = open
