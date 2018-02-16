@@ -182,6 +182,7 @@ import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -1037,7 +1038,7 @@ public class UpgradeCatalog270Test {
 
   @Test
   public void testupdateKerberosDescriptorArtifact() throws Exception {
-    String kerberosDescriptorJson = FileUtils.readFileToString(new File("src/test/resources/org/apache/ambari/server/upgrade/kerberos_descriptor.json"), "UTF-8");
+    String kerberosDescriptorJson = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("org/apache/ambari/server/upgrade/kerberos_descriptor.json"), "UTF-8");
 
     ArtifactEntity artifactEntity = new ArtifactEntity();
     artifactEntity.setArtifactName("kerberos_descriptor");
