@@ -46,6 +46,16 @@
   {{/isAuthorized}}
 {{/if}}
 
+{{#if view.hasMultipleMasterGroups}}
+  <ul class="nav nav-tabs">
+    {{#each group in view.mastersObj}}
+      <li {{bindAttr class="group.isActive:active"}}>
+        <a href="#" {{action setActiveComponentGroup group.title target="view"}}>{{group.title}}</a>
+      </li>
+    {{/each}}
+  </ul>
+{{/if}}
+
 <div class="service-block">
   <div class="summary-links-block">
     <div class="panel panel-default summary-block">
@@ -78,7 +88,7 @@
     </div>
 
     <div class="panel panel-default quick-links-block">
-      {{#view App.QuickLinksView contentBinding="view.svc"}}
+      {{#view App.QuickLinksView contentBinding="view.svc" masterGroupsBinding="view.mastersObj"}}
         <div class="panel-heading">
           <div class="row col-md-8 col-lg-12">
             <h4 class="panel-title">{{t common.quickLinks}}</h4>
@@ -89,10 +99,15 @@
             {{#if view.isLoaded}}
               {{#if view.quickLinksArray}}
                 <!--there are multiple masters eg, HBase multiple masters or HDFS HA enabled-->
-                {{#each quickLinks in view.quickLinksArray}}
-                  <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
-                  {{#each quickLinks}}
-                    <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                {{#each group in view.quickLinksArray}}
+                  {{#if group.title}}
+                    <h5>{{group.title}}</h5>
+                  {{/if}}
+                  {{#each quickLinks in group.links}}
+                    <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
+                    {{#each quickLinks}}
+                      <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                    {{/each}}
                   {{/each}}
                 {{/each}}
               {{else}}

@@ -1107,6 +1107,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
 
+  openNameNodeFederationWizard: function () {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.enableNameNodeFederation();
+  },
+
   /**
    * This method is called when user event to download configs for "All Clients"
    * is made from service action menu

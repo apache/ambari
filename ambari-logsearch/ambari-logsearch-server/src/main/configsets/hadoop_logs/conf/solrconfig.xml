@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>5.0.0</luceneMatchVersion>
+  <luceneMatchVersion>7.2.1</luceneMatchVersion>
 
   <!-- <lib/> directives can be used to instruct Solr to load any Jars
        identified and use them to resolve any "plugins" specified in
@@ -233,11 +233,11 @@
          will be allowed before they are merged into one.
          Default is 10 for both merge policies.
       -->
-    <!-- 
-    <mergeFactor>10</mergeFactor>
-      -->
     <!-- LogSearch customization. Set to 5 to trigger purging of deleted documents more often -->
-    <mergeFactor>5</mergeFactor>
+    <mergePolicyFactory class="org.apache.solr.index.TieredMergePolicyFactory">
+      <int name="maxMergeAtOnce">5</int>
+      <int name="segmentsPerTier">5</int>
+    </mergePolicyFactory>
 
     <!-- Expert: Merge Scheduler
          The Merge Scheduler in Lucene controls how merges are

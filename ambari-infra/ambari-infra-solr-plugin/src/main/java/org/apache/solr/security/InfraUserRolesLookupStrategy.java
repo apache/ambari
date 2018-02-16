@@ -16,10 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.security;
+package org.apache.solr.security;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.security.authentication.server.AuthenticationToken;
 import org.apache.hadoop.security.authentication.util.KerberosName;
 
@@ -27,28 +26,24 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Validate that the user has the right access based on the hostname in the kerberos principal
- */
-public class InfraKerberosHostValidator {
 
-  public boolean validate(Principal principal, Map<String, Set<String>> userVsHosts, Map<String, String> userVsHostRegex) {
+/**
+ * Strategy class to get roles with the principal name (in a specific format e.g.: 'name@DOMAIN')
+ * in case of KerberosPlugin is used for authentication
+ */
+public class InfraUserRolesLookupStrategy {
+
+  public Set<String> getUserRolesFromPrincipal(Map<String, Set<String>> usersVsRoles, Principal principal) {
     if (principal instanceof AuthenticationToken) {
       AuthenticationToken authenticationToken = (AuthenticationToken) principal;
       KerberosName kerberosName = new KerberosName(authenticationToken.getName());
-      String hostname = kerberosName.getHostName();
-      String serviceUserName = kerberosName.getServiceName();
-      if (MapUtils.isNotEmpty(userVsHostRegex)) {
-        String regex = userVsHostRegex.get(serviceUserName);
-        return hostname.matches(regex);
+      Set<String> rolesResult = usersVsRoles.get(String.format("%s@%s", kerberosName.getServiceName(), kerberosName.getRealm()));
+      if (CollectionUtils.isEmpty(rolesResult)) {
+        rolesResult = usersVsRoles.get(principal.getName());
       }
-      if (MapUtils.isNotEmpty(userVsHosts)) {
-        Set<String> hosts = userVsHosts.get(serviceUserName);
-        if (CollectionUtils.isNotEmpty(hosts)) {
-          return hosts.contains(hostname);
-        }
-      }
+      return rolesResult;
+    } else {
+      return usersVsRoles.get(principal.getName());
     }
-    return true;
   }
 }

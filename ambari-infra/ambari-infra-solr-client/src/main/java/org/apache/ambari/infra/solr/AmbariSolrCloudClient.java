@@ -64,7 +64,7 @@ public class AmbariSolrCloudClient {
   private final int maxShardsPerNode;
   private final String routerName;
   private final String routerField;
-  private final boolean splitting;
+  private final boolean implicitRouting;
   private final String jaasFile;
   private final String znode;
   private final String saslUsers;
@@ -88,7 +88,7 @@ public class AmbariSolrCloudClient {
     this.maxShardsPerNode = builder.maxShardsPerNode;
     this.routerName = builder.routerName;
     this.routerField = builder.routerField;
-    this.splitting = builder.splitting;
+    this.implicitRouting = builder.implicitRouting;
     this.znode = builder.znode;
     this.saslUsers = builder.saslUsers;
     this.propName = builder.propName;
@@ -114,7 +114,7 @@ public class AmbariSolrCloudClient {
       LOG.info("Collection '{}' creation request sent.", collection);
     } else {
       LOG.info("Collection '{}' already exits.", getCollection());
-      if (this.isSplitting()) {
+      if (this.isImplicitRouting()) {
         createShard(null);
       }
     }
@@ -317,8 +317,8 @@ public class AmbariSolrCloudClient {
     return routerField;
   }
 
-  public boolean isSplitting() {
-    return splitting;
+  public boolean isImplicitRouting() {
+    return implicitRouting;
   }
 
   public String getJaasFile() {

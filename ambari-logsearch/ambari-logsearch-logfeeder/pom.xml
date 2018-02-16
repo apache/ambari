@@ -95,11 +95,6 @@
       <version>1.9.13</version>
     </dependency>
     <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.1.1</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>18.0</version>
@@ -207,6 +202,19 @@
       <artifactId>spring-boot-configuration-processor</artifactId>
       <version>${spring-boot.version}</version>
     </dependency>
+    <!-- Exclude jars globally-->
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.7.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <pluginManagement>
@@ -257,7 +265,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeScope>compile</includeScope>
+              <includeScope>runtime</includeScope>
             </configuration>
           </execution>
         </executions>
