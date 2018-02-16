@@ -27,7 +27,7 @@ def fix_encoding_reimport_bug():
 
 def fix_subprocess_racecondition():
   """
-  Subprocess in Python has race condition with enabling/disabling gc. Which may lead to turning off python garbage collector.
+  subprocess in Python has race condition with enabling/disabling gc. Which may lead to turning off python garbage collector.
   This leads to a memory leak.
   This function monkey patches subprocess to fix the issue.
 
@@ -43,6 +43,8 @@ def fix_subprocess_racecondition():
   import gc
 
 
+"""
+# this might cause some unexcepted problems
 def fix_subprocess_popen():
   '''
   Workaround for race condition in starting subprocesses concurrently from
@@ -54,7 +56,7 @@ def fix_subprocess_popen():
 
   if os.name == 'posix' and sys.version_info[0] < 3:
     from multiprocessing import forking
-    import subprocess
+    from ambari_commons import subprocess
     import threading
 
     sp_original_init = subprocess.Popen.__init__
@@ -71,9 +73,9 @@ def fix_subprocess_popen():
 
     subprocess.Popen.__init__ = sp_locked_init
     forking.Popen.__init__ = mp_locked_init
+"""
 
-
-fix_subprocess_popen()
+#fix_subprocess_popen()
 fix_subprocess_racecondition()
 fix_encoding_reimport_bug()
 

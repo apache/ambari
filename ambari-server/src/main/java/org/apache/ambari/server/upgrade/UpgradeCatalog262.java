@@ -18,9 +18,14 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -61,6 +66,29 @@ public class UpgradeCatalog262 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
+    fixDesiredStack();
+  }
+
+  /**
+   * if desired stack < current stack, set current stack as desired
+   *
+   * @throws AmbariException
+   */
+  private void fixDesiredStack() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          StackId desiredStack = cluster.getDesiredStackVersion();
+          StackId currentStack = cluster.getCurrentStackVersion();
+          if (!desiredStack.equals(currentStack)) {
+            cluster.setDesiredStackVersion(currentStack);
+          }
+        }
+      }
+    }
   }
 
   @Override

@@ -19,8 +19,8 @@ limitations under the License.
 '''
 
 import time
-from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
+from ambari_agent import hostname
 from ambari_agent.HostInfo import HostInfo
 from ambari_agent.Utils import Utils
 

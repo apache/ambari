@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.security;
+package org.apache.solr.security;
 
 import java.security.Principal;
 import java.util.Enumeration;
@@ -28,9 +28,9 @@ import org.apache.hadoop.security.authentication.server.AuthenticationToken;
 import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.Utils;
-import org.apache.solr.security.AuthorizationContext;
+import org.apache.solr.handler.UpdateRequestHandler;
+import org.apache.solr.handler.admin.CollectionsHandler;
 import org.apache.solr.security.AuthorizationContext.RequestType;
-import org.apache.solr.security.AuthorizationResponse;
 import org.junit.Test;
 
 import static java.util.Collections.singletonList;
@@ -82,52 +82,53 @@ public class InfraRuleBasedAuthorizationPluginTest {
     int FORBIDDEN = 403;
     int PROMPT_FOR_CREDENTIALS = 401;
 
-    checkRules(makeMap("resource", "/#",
-      "httpMethod", "POST",
-      "userPrincipal", "unknownuser",
-      "collectionRequests", "freeforall" )
-      , STATUS_OK);
-
     checkRules(makeMap("resource", "/update/json/docs",
       "httpMethod", "POST",
       "userPrincipal", "tim",
-      "collectionRequests", "mycoll")
+      "collectionRequests", "mycoll",
+      "handler", new UpdateRequestHandler())
       , FORBIDDEN);
 
     checkRules(makeMap("resource", "/update/json/docs",
       "httpMethod", "POST",
       "userPrincipal", "logsearch",
-      "collectionRequests", "mycoll")
+      "collectionRequests", "mycoll",
+      "handler", new UpdateRequestHandler())
       , STATUS_OK);
 
     checkRules(makeMap("resource", "/update/json/docs",
       "httpMethod", "GET",
       "userPrincipal", "rangeradmin",
-      "collectionRequests", "mycoll")
+      "collectionRequests", "mycoll",
+      "handler", new UpdateRequestHandler())
       , FORBIDDEN);
 
     checkRules(makeMap("resource", "/update/json/docs",
       "httpMethod", "GET",
       "userPrincipal", "rangeradmin",
-      "collectionRequests", "mycoll2")
+      "collectionRequests", "mycoll2",
+      "handler", new UpdateRequestHandler())
       , STATUS_OK);
 
     checkRules(makeMap("resource", "/update/json/docs",
       "httpMethod", "GET",
       "userPrincipal", "logsearch",
-      "collectionRequests", "mycoll2")
+      "collectionRequests", "mycoll2",
+      "handler", new UpdateRequestHandler())
       , FORBIDDEN);
 
     checkRules(makeMap("resource", "/update/json/docs",
       "httpMethod", "POST",
       "userPrincipal", "kms",
-      "collectionRequests", "mycoll2")
+      "collectionRequests", "mycoll2",
+      "handler", new UpdateRequestHandler())
       , STATUS_OK);
 
     checkRules(makeMap("resource", "/admin/collections",
       "userPrincipal", "tim",
       "requestType", RequestType.ADMIN,
       "collectionRequests", null,
+      "handler" , new CollectionsHandler(),
       "params", new MapSolrParams(singletonMap("action", "CREATE")))
       , FORBIDDEN);
 
@@ -135,6 +136,7 @@ public class InfraRuleBasedAuthorizationPluginTest {
       "userPrincipal", null,
       "requestType", RequestType.ADMIN,
       "collectionRequests", null,
+      "handler" , new CollectionsHandler(),
       "params", new MapSolrParams(singletonMap("action", "CREATE")))
       , PROMPT_FOR_CREDENTIALS);
 
@@ -142,6 +144,7 @@ public class InfraRuleBasedAuthorizationPluginTest {
       "userPrincipal", "rangeradmin",
       "requestType", RequestType.ADMIN,
       "collectionRequests", null,
+      "handler" , new CollectionsHandler(),
       "params", new MapSolrParams(singletonMap("action", "CREATE")))
       , STATUS_OK);
 
@@ -149,6 +152,7 @@ public class InfraRuleBasedAuthorizationPluginTest {
       "userPrincipal", "kms",
       "requestType", RequestType.ADMIN,
       "collectionRequests", null,
+      "handler" , new CollectionsHandler(),
       "params", new MapSolrParams(singletonMap("action", "CREATE")))
       , FORBIDDEN);
 
@@ -156,6 +160,7 @@ public class InfraRuleBasedAuthorizationPluginTest {
       "userPrincipal", "kms",
       "requestType", RequestType.ADMIN,
       "collectionRequests", null,
+      "handler" , new CollectionsHandler(),
       "params", new MapSolrParams(singletonMap("action", "LIST")))
       , STATUS_OK);
 
@@ -163,6 +168,7 @@ public class InfraRuleBasedAuthorizationPluginTest {
       "userPrincipal", "rangeradmin",
       "requestType", RequestType.ADMIN,
       "collectionRequests", null,
+      "handler" , new CollectionsHandler(),
       "params", new MapSolrParams(singletonMap("action", "LIST")))
       , STATUS_OK);
   }
@@ -245,7 +251,8 @@ public class InfraRuleBasedAuthorizationPluginTest {
 
     @Override
     public Object getHandler() {
-      return null;
+      Object handler = values.get("handler");
+      return handler instanceof String ? (PermissionNameProvider) request -> PermissionNameProvider.Name.get((String) handler) : handler;
     }
   }
 

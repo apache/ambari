@@ -1282,16 +1282,43 @@ table.graphs {
    margin-left: 20px
  }
 
-.admin-auto-start {
-  .nav i {
-    margin-top: 0;
-    color: @green;
+#admin-auto-start {
+  background-color: #fff;
+  padding: 30px;
+  .description {
+    color: @gray-text;
   }
-  .services-heading {
-    padding: 8px;
-    color: #999;
-    font-size: 13px;
-    font-weight: bold;
+  .table {
+    th {
+      font-weight: normal;
+    }
+    th:first-child {
+      color: #666;
+    }
+    th:first-child,
+    td:first-child,
+    th:first-child + th,
+    td:first-child + td {
+      line-height: 24px;
+      min-width: 200px;
+      width: 20%;
+    }
+    th:first-child + th + th,
+    td:first-child + td + td {
+      width: 15%;
+      text-align: center;
+    }
+    .skip-border {
+      border: none;
+    }
+    .all-checkbox {
+      display: inline-block;
+      top: 2px;
+    }
+  }
+  .general-auto-start {
+    display: inline-block;
+    margin-left: 15px;
   }
 }
 

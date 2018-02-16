@@ -18,7 +18,7 @@ limitations under the License.
 # Component Resources
 Component resources are the individual components of a service (e.g. HDFS/NameNode and MapReduce/JobTracker).  Components are sub-resources of services.
 
-###API Summary 
+### API Summary
 
 - [List service components](components.md)
 - [View component information](components-component.md)
@@ -26,7 +26,7 @@ Component resources are the individual components of a service (e.g. HDFS/NameNo
 
 
 
-###Properties
+### Properties
 
 <table>
   <tr>

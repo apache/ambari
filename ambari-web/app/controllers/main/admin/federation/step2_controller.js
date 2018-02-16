@@ -18,17 +18,8 @@
 
 var App = require('app');
 
-App.MainAdminServiceAutoStartIndicatorView = Em.View.extend({
-  templateName: require('templates/main/admin/service_auto_start/service_auto_start_indicator'),
-  tagName: 'span',
+App.NameNodeFederationWizardStep2Controller = Em.Controller.extend(App.AssignMasterComponents, {
 
-  tab: null,
-
-  didInsertElement: function () {
-    App.tooltip(this.$("[rel='tooltip']"));
-  },
-
-  willDestroyElement: function () {
-    this.$("[rel='tooltip']").tooltip('destroy');
-  }
+  name: "nameNodeFederationWizardStep2Controller"
 });
+

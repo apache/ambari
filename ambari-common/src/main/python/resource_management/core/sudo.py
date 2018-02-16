@@ -28,7 +28,7 @@ import errno
 import random
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
-import subprocess
+from ambari_commons import subprocess32
 
 from resource_management.core.utils import attr_to_bitmask
 
@@ -278,7 +278,7 @@ else:
     class Stat:
       def __init__(self, path):
         cmd = ["stat", "-c", "%u %g %a", path]
-        code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess.PIPE)
+        code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess32.PIPE)
         values = out.split(' ')
         if len(values) != 3:
           raise Fail("Execution of '{0}' returned unexpected output. {2}\n{3}".format(cmd, code, err, out))
@@ -303,7 +303,7 @@ else:
     if not path_isdir(path):
       raise Fail("{0} is not a directory. Cannot list files of it.".format(path))
     
-    code, out, err = shell.checked_call(["ls", path], sudo=True, stderr=subprocess.PIPE)
+    code, out, err = shell.checked_call(["ls", path], sudo=True, stderr=subprocess32.PIPE)
     files = out.splitlines()
     return files
 
