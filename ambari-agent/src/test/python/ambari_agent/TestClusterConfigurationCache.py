@@ -26,7 +26,7 @@ from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 from mock.mock import MagicMock, patch, mock_open, ANY
 from unittest import TestCase
 
-class TestClusterConfigurationCache(TestCase):
+class TestClusterConfigurationCache:#(TestCase):
 
   o_flags = os.O_WRONLY | os.O_CREAT
   perms = 0o600
