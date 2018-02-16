@@ -271,6 +271,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
     }
+
     List<Object> summary = hostInfoSummary.getHostInfoSummary(clusterName);
     setResourceProperty(resource, HOST_SUMMARY_PROPERTY_ID, summary, requestPropertyIds);
     resources.add(resource);
