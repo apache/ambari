@@ -58,8 +58,8 @@ stack_name = status_params.stack_name
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
 
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
 storm_component_home_dir = status_params.storm_component_home_dir
 conf_dir = status_params.conf_dir
@@ -94,7 +94,7 @@ log_dir = config['configurations']['storm-env']['storm_log_dir']
 pid_dir = status_params.pid_dir
 local_dir = config['configurations']['storm-site']['storm.local.dir']
 user_group = config['configurations']['cluster-env']['user_group']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 jps_binary = format("{java64_home}/bin/jps")
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 storm_zookeeper_root_dir = default('/configurations/storm-site/storm.zookeeper.root', None)
@@ -146,7 +146,7 @@ storm_user_nofile_limit = default('/configurations/storm-env/storm_user_nofile_l
 storm_user_nproc_limit = default('/configurations/storm-env/storm_user_noproc_limit', 65536)
 
 if security_enabled:
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   _ambari_principal_name = default('/configurations/cluster-env/ambari_principal_name', None)
@@ -255,7 +255,7 @@ storm_worker_log4j_content = config['configurations']['storm-worker-log4j']['con
 storm_jaas_file = format("{conf_dir}/storm_jaas.conf")
 
 # for curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 # ranger storm plugin start section
 
@@ -391,7 +391,7 @@ if enable_ranger_storm:
 
 # ranger storm plugin end section
 
-namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_hosts) == 0
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None

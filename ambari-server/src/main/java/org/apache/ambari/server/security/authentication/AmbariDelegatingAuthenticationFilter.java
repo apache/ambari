@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * The AmbariDelegatingAuthenticationFilter is an authentication filter that holds zero or more
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
  * claims it is to be used for the operation, interation stops ensuring at most only one of the contained
  * filters is invoked.
  */
+@Component
 public class AmbariDelegatingAuthenticationFilter implements Filter {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariDelegatingAuthenticationFilter.class);
 

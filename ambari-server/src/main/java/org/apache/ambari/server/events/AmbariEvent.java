@@ -143,15 +143,34 @@ public abstract class AmbariEvent {
     USER_CREATED,
 
     /**
+     * Host status has been changed.
+     */
+    HOST_STATUS_CHANGE,
+
+    /**
+     * Host state has been changed.
+     */
+    HOST_STATE_CHANGE,
+
+    /**
+     * Received new heartbeat with host info.
+     */
+    HOST_HEARTBEAT_UPDATED,
+
+    /**
      * Ambari configuration changed event;
      */
     AMBARI_CONFIGURATION_CHANGED,
-    
+
     /**
      * JPA initialized
      */
-    JPA_INITIALIZED;
+    JPA_INITIALIZED,
 
+    /**
+     * Host component's stale config status has been changed.
+     */
+    STALE_CONFIGS_UPDATE;
   }
 
   /**

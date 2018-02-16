@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -38,21 +39,27 @@ import com.google.gson.annotations.SerializedName;
 public class CommandRepository {
 
   @SerializedName("repositories")
+  @JsonProperty("repositories")
   private List<Repository> m_repositories = new ArrayList<>();
 
   @SerializedName("repoVersion")
+  @JsonProperty("repoVersion")
   private String m_repoVersion;
 
   @SerializedName("repoVersionId")
+  @JsonProperty("repoVersionId")
   private long m_repoVersionId;
 
   @SerializedName("stackName")
+  @JsonProperty("stackName")
   private String m_stackName;
 
   @SerializedName("repoFileName")
+  @JsonProperty("repoFileName")
   private String m_repoFileName;
 
   @SerializedName("feature")
+  @JsonProperty("feature")
   private final CommandRepositoryFeature feature = new CommandRepositoryFeature();
 
   /**
@@ -69,6 +76,7 @@ public class CommandRepository {
    * version after distribution.
    */
   @SerializedName("resolved")
+  @JsonProperty("resolved")
   private boolean m_resolved;
 
   /**
@@ -144,15 +152,8 @@ public class CommandRepository {
     }
   }
 
-  /**
-   * Gets whether this repository has been marked as having its version
-   * resolved.
-   *
-   * @return {@code true} if this repository has been confirmed to have the
-   *         right version.
-   */
-  public boolean isResolved() {
-    return m_resolved;
+  public long getRepoVersionId() {
+    return m_repoVersionId;
   }
 
   /**
@@ -209,6 +210,7 @@ public class CommandRepository {
      * Repository is pre-installed on the host
      */
     @SerializedName("preInstalled")
+    @JsonProperty("preInstalled")
     private Boolean m_isPreInstalled = false;
 
     /**
@@ -217,6 +219,7 @@ public class CommandRepository {
      * Currently affecting: getting available packages from the repository
      */
     @SerializedName("scoped")
+    @JsonProperty("scoped")
     private boolean m_isScoped = true;
 
     public void setIsScoped(boolean isScoped){
@@ -226,7 +229,6 @@ public class CommandRepository {
     public void setPreInstalled(String isPreInstalled) {
       this.m_isPreInstalled = isPreInstalled.equalsIgnoreCase("true");
     }
-
   }
 
   /**
@@ -236,25 +238,31 @@ public class CommandRepository {
   public static class Repository {
 
     @SerializedName("baseUrl")
+    @JsonProperty("baseUrl")
     private String m_baseUrl;
 
     @SerializedName("repoId")
+    @JsonProperty("repoId")
     private String m_repoId;
 
     @SerializedName("ambariManaged")
+    @JsonProperty("ambariManaged")
     private boolean m_ambariManaged = true;
 
-
     @SerializedName("repoName")
+    @JsonProperty("repoName")
     private final String m_repoName;
 
     @SerializedName("distribution")
+    @JsonProperty("distribution")
     private final String m_distribution;
 
     @SerializedName("components")
+    @JsonProperty("components")
     private final String m_components;
 
     @SerializedName("mirrorsList")
+    @JsonProperty("mirrorsList")
     private String m_mirrorsList;
 
     @SerializedName("tags")
@@ -293,24 +301,8 @@ public class CommandRepository {
       m_baseUrl = url;
     }
 
-    public String getOsType() {
-      return m_osType;
-    }
-
-    public String getRepoId() {
-      return m_repoId;
-    }
-
     public String getRepoName() {
       return m_repoName;
-    }
-
-    public String getDistribution() {
-      return m_distribution;
-    }
-
-    public String getComponents() {
-      return m_components;
     }
 
     public String getBaseUrl() {
@@ -336,5 +328,20 @@ public class CommandRepository {
           .toString();
     }
 
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    CommandRepository that = (CommandRepository) o;
+
+    return m_repoVersionId == that.m_repoVersionId;
+  }
+
+  @Override
+  public int hashCode() {
+    return (int) (m_repoVersionId ^ (m_repoVersionId >>> 32));
   }
 }

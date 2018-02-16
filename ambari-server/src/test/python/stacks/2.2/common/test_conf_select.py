@@ -35,9 +35,9 @@ class TestConfSelect(RMFTestCase):
     self.env.__enter__()
 
     Script.config = dict()
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "hostLevelParams": {} } )
+    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
-    Script.config["hostLevelParams"] = { "stack_name" : "HDP" }
+    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
 
 
   def tearDown(self):

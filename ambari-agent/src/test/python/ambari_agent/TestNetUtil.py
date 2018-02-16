@@ -25,7 +25,7 @@ import threading
 from ambari_commons import OSCheck
 from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
-class TestNetUtil(unittest.TestCase):
+class TestNetUtil:#(unittest.TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("urlparse.urlparse")

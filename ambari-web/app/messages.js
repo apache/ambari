@@ -360,6 +360,7 @@ Em.I18n.translations = {
   'common.repositoryType': 'Repository Type',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
+  'common.minute.ago': 'less than a minute ago',
   'common.views': 'Views',
   'common.critical.error': 'Critical',
   'common.with': 'with',

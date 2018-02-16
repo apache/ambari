@@ -800,7 +800,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
     }
 
-
     Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
 
     // get summaries from TopologyManager for logical requests

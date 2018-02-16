@@ -44,17 +44,17 @@ else:
   zk_pid_file = format("{zk_pid_dir}/zookeeper_server.pid")
 
   # Security related/required params
-  hostname = config['hostname']
+  hostname = config['agentLevelParams']['hostname']
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
   zk_user =  config['configurations']['zookeeper-env']['zk_user']
   
-  stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+  stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
   stack_version_formatted = format_stack_version(stack_version_unformatted)
   stack_root = Script.get_stack_root()
 
   config_dir = "/etc/zookeeper/conf"
   if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
     config_dir = format("{stack_root}/current/{component_directory}/conf")
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

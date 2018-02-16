@@ -78,6 +78,18 @@
     <fileSet>
       <directoryMode>755</directoryMode>
       <fileMode>755</fileMode>
+      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_stomp</directory>
+      <outputDirectory>${stomp.install.dir}</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
+      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_ws4py</directory>
+      <outputDirectory>${ws4py.install.dir}</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>src/examples</directory>
       <outputDirectory>${lib.dir}/examples</outputDirectory>
     </fileSet>

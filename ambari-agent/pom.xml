@@ -41,6 +41,8 @@
     <resource_management.install.dir>/usr/lib/ambari-agent/lib/resource_management</resource_management.install.dir>
     <jinja.install.dir>/usr/lib/ambari-agent/lib/ambari_jinja2</jinja.install.dir>
     <simplejson.install.dir>/usr/lib/ambari-agent/lib/ambari_simplejson</simplejson.install.dir>
+    <stomp.install.dir>/usr/lib/ambari-agent/lib/ambari_stomp</stomp.install.dir>
+    <ws4py.install.dir>/usr/lib/ambari-agent/lib/ambari_ws4py</ws4py.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <deb.architecture>amd64</deb.architecture>
     <ambari.server.module>../ambari-server</ambari.server.module>

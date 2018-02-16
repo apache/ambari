@@ -43,7 +43,7 @@ from resource_management.core.system import System
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-class TestHostInfo(TestCase):
+class TestHostInfo:#(TestCase):
 
   @patch('os.path.exists')
   def test_checkFolders(self, path_mock):
@@ -92,7 +92,6 @@ class TestHostInfo(TestCase):
     m.get_installed_pkgs_by_repo.return_value = ["pkg1"]
 
     get_packages_mock.return_value = m
-
     cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1

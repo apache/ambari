@@ -341,7 +341,7 @@ class PXFServiceCheck(Script):
 
     # Get the parameters required to create jdbc url for beeline
     hive_server_port = default("/configurations/hive-site/hive.server2.thrift.port", None)
-    hive_server_host = default("/clusterHostInfo/hive_server_host", None)
+    hive_server_host = default("/clusterHostInfo/hive_server_hosts", None)
     if hive_server_host is None or hive_server_port is None:
       raise Fail("Input parameters are invalid for beeline connection string, both hive_server_host and " \
             "hive.server2.thrift.port should be not None. Current values are:\nhive_server_host={0}\n" \

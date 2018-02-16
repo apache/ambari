@@ -1853,6 +1853,70 @@ public class Configuration {
       "agent.threadpool.size.max", 25);
 
   /**
+   * The thread pool size for spring messaging.
+   */
+  @Markdown(description = "Thread pool size for spring messaging")
+  public static final ConfigurationProperty<Integer> MESSAGING_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "messaging.threadpool.size", 1);
+
+  /**
+   * The thread pool size for agents registration.
+   */
+  @Markdown(description = "Thread pool size for agents registration")
+  public static final ConfigurationProperty<Integer> REGISTRATION_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "registration.threadpool.size", 10);
+
+  /**
+   * Maximal cache size for spring subscription registry.
+   */
+  @Markdown(description = "Maximal cache size for spring subscription registry.")
+  public static final ConfigurationProperty<Integer> SUBSCRIPTION_REGISTRY_CACHE_MAX_SIZE = new ConfigurationProperty<>(
+      "subscription.registry.cache.size", 1500);
+
+  /**
+   * Queue size for agents in registration.
+   */
+  @Markdown(description = "Queue size for agents in registration.")
+  public static final ConfigurationProperty<Integer> AGENTS_REGISTRATION_QUEUE_SIZE = new ConfigurationProperty<>(
+      "agents.registration.queue.size", 200);
+
+
+  /**
+   * Period in seconds with agents reports will be processed.
+   */
+  @Markdown(description = "Period in seconds with agents reports will be processed.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_PROCESSING_PERIOD = new ConfigurationProperty<>(
+      "agents.reports.processing.period", 1);
+
+  /**
+   * Timeout in seconds before start processing of agents' reports.
+   */
+  @Markdown(description = "Timeout in seconds before start processing of agents' reports.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_PROCESSING_START_TIMEOUT = new ConfigurationProperty<>(
+      "agents.reports.processing.start.timeout", 5);
+
+  /**
+   * Thread pool size for agents reports processing.
+   */
+  @Markdown(description = "Thread pool size for agents reports processing.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "agents.reports.thread.pool.size", 10);
+
+  /**
+   * Server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  @Markdown(description = "Server to API STOMP endpoint heartbeat interval in milliseconds.")
+  public static final ConfigurationProperty<Integer> API_HEARTBEAT_INTERVAL = new ConfigurationProperty<>(
+      "api.heartbeat.interval", 10000);
+
+  /**
+   * The maximum size of a stomp text message. Default is 2 MB.
+   */
+  @Markdown(description = "The maximum size of a stomp text message. Default is 2 MB.")
+  public static final ConfigurationProperty<Integer> STOMP_MAX_MESSAGE_SIZE = new ConfigurationProperty<>(
+      "stomp.max.message.size", 2*1024*1024);
+
+  /**
    * The maximum number of threads used to extract Ambari Views when Ambari
    * Server is starting up.
    */
@@ -4487,6 +4551,70 @@ public class Configuration {
    */
   public int getClientThreadPoolSize() {
     return Integer.parseInt(getProperty(CLIENT_THREADPOOL_SIZE));
+  }
+
+  /**
+   * @return max thread pool size for clients, default 25
+   */
+  public int getSpringMessagingThreadPoolSize() {
+    return Integer.parseInt(getProperty(MESSAGING_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return max thread pool size for agents registration, default 10
+   */
+  public int getRegistrationThreadPoolSize() {
+    return Integer.parseInt(getProperty(REGISTRATION_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return max cache size for spring subscription registry.
+   */
+  public int getSubscriptionRegistryCacheSize() {
+    return Integer.parseInt(getProperty(SUBSCRIPTION_REGISTRY_CACHE_MAX_SIZE));
+  }
+
+  /**
+   * @return queue size for agents in registration.
+   */
+  public int getAgentsRegistrationQueueSize() {
+    return Integer.parseInt(getProperty(AGENTS_REGISTRATION_QUEUE_SIZE));
+  }
+
+
+  /**
+   * @return period in seconds with agents reports will be processed.
+   */
+  public int getAgentsReportProcessingPeriod() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_PROCESSING_PERIOD));
+  }
+
+  /**
+   * @return timeout in seconds before start processing of agents' reports.
+   */
+  public int getAgentsReportProcessingStartTimeout() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_PROCESSING_START_TIMEOUT));
+  }
+
+  /**
+   * @return thread pool size for agents reports processing.
+   */
+  public int getAgentsReportThreadPoolSize() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  public int getAPIHeartbeatInterval() {
+    return Integer.parseInt(getProperty(API_HEARTBEAT_INTERVAL));
+  }
+
+  /**
+   * @return the maximum size of a stomp text message. Default is 2 MB.
+   */
+  public int getStompMaxMessageSize() {
+    return Integer.parseInt(getProperty(STOMP_MAX_MESSAGE_SIZE));
   }
 
   /**

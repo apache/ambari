@@ -417,7 +417,7 @@ class TestHiveMetastore(RMFTestCase):
     version = "2.3.0.0-1234"
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = "HDP"
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
     json_content['role'] = "HIVE_SERVER"
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionPassword'] = "aaa"
 

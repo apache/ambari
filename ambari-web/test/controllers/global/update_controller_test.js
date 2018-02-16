@@ -59,12 +59,35 @@ describe('App.UpdateController', function () {
 
     it('isWorking = false', function () {
       controller.set('isWorking', false);
+      controller.updateAll();
       expect(App.updater.run.called).to.equal(false);
     });
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(13);
+      expect(App.updater.run.callCount).to.equal(6);
+    });
+  });
+
+  describe('#startSubscriptions()', function () {
+    beforeEach(function() {
+      sinon.stub(App.StompClient, 'subscribe');
+    });
+    afterEach(function() {
+      App.StompClient.subscribe.restore();
+    });
+
+    it('should subscribe to all topics', function () {
+      controller.startSubscriptions();
+      expect(App.StompClient.subscribe.calledWith('/events/hostcomponents')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/alerts')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/ui_topologies')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/configs')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/services')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/hosts')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/alert_definitions')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/alert_group')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/upgrade')).to.be.true;
     });
   });
 
@@ -271,7 +294,7 @@ describe('App.UpdateController', function () {
     });
     it("AMBARI_METRICS is not started", function () {
       this.mock.returns(Em.Object.create({isStarted: false}));
-      expect(controller.loadHostsMetric([])).to.be.null;
+      expect(controller.loadHostsMetric([])).to.be.object;
       var args = testHelpers.findAjaxRequest('name', 'hosts.metrics.lazy_load');
       expect(args).to.not.exists;
     });
@@ -294,156 +317,6 @@ describe('App.UpdateController', function () {
       controller.loadHostsMetricSuccessCallback({});
       expect(App.hostsMapper.setMetrics.calledWith({})).to.be.true;
     });
-  });
-
-  describe('#updateUpgradeState()', function () {
-
-    var cases = [
-        {
-          currentStateName: 'versions',
-          parentStateName: 'stackAndUpgrade',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: true,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'stack versions page'
-        },
-        {
-          currentStateName: 'stackUpgrade',
-          parentStateName: 'admin',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: true,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'upgrade popup open'
-        },
-        {
-          currentStateName: 'versions',
-          parentStateName: 'admin',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: false,
-          loadUpgradeDataCallCount: 1,
-          callbackCallCount: 0,
-          title: 'another page with \'versions\' name'
-        },
-        {
-          currentStateName: 'versions',
-          parentStateName: 'admin',
-          wizardIsNotFinished: false,
-          isLoadUpgradeDataPending: false,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'another page with \'versions\' name, upgrade finished'
-        },
-        {
-          currentStateName: 'versions',
-          parentStateName: 'admin',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: true,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'another page with \'versions\' name, another update upgrade request not completed'
-        },
-        {
-          currentStateName: 'services',
-          parentStateName: 'stackAndUpgrade',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: false,
-          loadUpgradeDataCallCount: 1,
-          callbackCallCount: 0,
-          title: 'another page from \'Stack and Versions\' section'
-        },
-        {
-          currentStateName: 'services',
-          parentStateName: 'stackAndUpgrade',
-          wizardIsNotFinished: false,
-          isLoadUpgradeDataPending: false,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'another page from \'Stack and Versions\' section, upgrade finished'
-        },
-        {
-          currentStateName: 'services',
-          parentStateName: 'stackAndUpgrade',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: true,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'another page from \'Stack and Versions\' section, another update upgrade request not completed'
-        },
-        {
-          currentStateName: 'widgets',
-          parentStateName: 'dashboard',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: false,
-          loadUpgradeDataCallCount: 1,
-          callbackCallCount: 0,
-          title: 'not \'Stack and Versions\' section'
-        },
-        {
-          currentStateName: 'widgets',
-          parentStateName: 'dashboard',
-          wizardIsNotFinished: false,
-          isLoadUpgradeDataPending: false,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'not \'Stack and Versions\' section, upgrade finished'
-        },
-        {
-          currentStateName: 'widgets',
-          parentStateName: 'dashboard',
-          wizardIsNotFinished: true,
-          isLoadUpgradeDataPending: true,
-          loadUpgradeDataCallCount: 0,
-          callbackCallCount: 1,
-          title: 'not \'Stack and Versions\' section, another update upgrade request not completed'
-        }
-      ],
-      mock = {
-        callback: Em.K,
-        loadUpgradeData: function () {
-          return {
-            done: Em.K
-          };
-        }
-      },
-      appGetMock;
-
-    beforeEach(function () {
-      sinon.spy(mock, 'callback');
-      sinon.spy(mock, 'loadUpgradeData');
-      appGetMock = sinon.stub(App, 'get');
-    });
-
-    afterEach(function () {
-      mock.callback.restore();
-      mock.loadUpgradeData.restore();
-      App.get.restore();
-      appGetMock.restore();
-    });
-
-    cases.forEach(function (item) {
-      describe(item.title, function () {
-
-        beforeEach(function () {
-          appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
-            loadUpgradeData: mock.loadUpgradeData,
-            isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
-          })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished)
-            .withArgs('router.currentState.name').returns(item.currentStateName)
-            .withArgs('router.currentState.parentState.name').returns(item.parentStateName);
-          controller.updateUpgradeState(mock.callback);
-        });
-        it('loadUpgradeData is called ' + item.loadUpgradeDataCallCount + ' times', function () {
-          expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
-        });
-        it('callback is called ' + item.callbackCallCount + ' times', function () {
-          expect(mock.callback.callCount).to.equal(item.callbackCallCount);
-        });
-
-      });
-    });
-
   });
 
   describe('#computeParameters', function () {
@@ -604,13 +477,6 @@ describe('App.UpdateController', function () {
     });
   });
 
-  describe('#updateComponentConfig()', function() {
-    it('App.HttpClient.get should be called', function() {
-      c.updateComponentConfig();
-      expect(App.HttpClient.get.calledOnce).to.be.true;
-    });
-  });
-
   describe('#updateComponentsState()', function() {
     it('App.HttpClient.get should be called', function() {
       c.updateComponentsState();
@@ -659,6 +525,20 @@ describe('App.UpdateController', function () {
       c.loadClusterConfig();
       var args = testHelpers.findAjaxRequest('name', 'config.tags.site');
       expect(args).to.exists;
+    });
+  });
+
+  describe('#makeCallForClusterEnv', function() {
+    beforeEach(function() {
+      sinon.stub(c, 'updateClusterEnv');
+    });
+    afterEach(function() {
+      c.updateClusterEnv.restore();
+    });
+
+    it('updateClusterEnv should be called', function() {
+      c.makeCallForClusterEnv({configs: [{type: 'cluster-env'}]});
+      expect(c.updateClusterEnv.calledOnce).to.be.true;
     });
   });
 });

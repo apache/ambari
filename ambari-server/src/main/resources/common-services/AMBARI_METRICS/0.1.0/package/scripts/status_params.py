@@ -41,5 +41,5 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 ams_hbase_conf_dir = format("{hbase_conf_dir}")
 
 kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 tmp_dir = Script.get_tmp_dir()

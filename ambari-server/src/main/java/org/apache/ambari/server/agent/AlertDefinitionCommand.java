@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -53,9 +54,11 @@ public class AlertDefinitionCommand extends AgentCommand {
   private final String m_hash;
 
   @SerializedName("alertDefinitions")
+  @JsonProperty("alertDefinitions")
   private final List<AlertDefinition> m_definitions;
 
   @SerializedName("configurations")
+  @JsonProperty("configurations")
   private Map<String, Map<String, String>> m_configurations;
 
   /**
@@ -112,6 +115,7 @@ public class AlertDefinitionCommand extends AgentCommand {
    *
    * @return the cluster name (not {@code null}).
    */
+  @JsonProperty("clusterName")
   public String getClusterName() {
     return m_clusterName;
   }
@@ -121,6 +125,7 @@ public class AlertDefinitionCommand extends AgentCommand {
    *
    * @return the host name (not {@code null}).
    */
+  @JsonProperty("hostName")
   public String getHostName() {
     return m_hostName;
   }

@@ -625,7 +625,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   _doDeleteHostComponentSuccessCallback: function (response, request, data) {
     this.set('_deletedHostComponentError', null);
-    this.removeHostComponentModel(data.componentName, data.hostName);
   },
 
   /**
@@ -638,19 +637,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   _doDeleteHostComponentErrorCallback: function (xhr, textStatus, errorThrown, data) {
     this.set('_deletedHostComponentError', {xhr: xhr, url: data.url, method: 'DELETE'});
-  },
-
-  /**
-   * Remove host component data from App.HostComponent model.
-   *
-   * @param {String} componentName
-   * @param {String} hostName
-   */
-  removeHostComponentModel: function (componentName, hostName) {
-    var component = App.HostComponent.find().filterProperty('componentName', componentName).findProperty('hostName', hostName);
-    var serviceInCache = App.cache['services'].findProperty('ServiceInfo.service_name', component.get('service.serviceName'));
-    serviceInCache.host_components = serviceInCache.host_components.without(component.get('id'));
-    App.serviceMapper.deleteRecord(component);
   },
 
   /**

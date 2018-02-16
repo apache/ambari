@@ -172,7 +172,7 @@ class Master(Script):
       XmlConfig("hbase-site.xml",
               conf_dir=params.external_dependency_conf,
               configurations=params.config['configurations']['hbase-site'],
-              configuration_attributes=params.config['configuration_attributes']['hbase-site'],
+              configuration_attributes=params.config['configurationAttributes']['hbase-site'],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
               mode=0644)
@@ -180,7 +180,7 @@ class Master(Script):
       XmlConfig("hdfs-site.xml",
                 conf_dir=params.external_dependency_conf,
                 configurations=params.config['configurations']['hdfs-site'],
-                configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+                configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
                 owner=params.zeppelin_user,
                 group=params.zeppelin_group,
                 mode=0644)
@@ -188,7 +188,7 @@ class Master(Script):
       XmlConfig("core-site.xml",
                 conf_dir=params.external_dependency_conf,
                 configurations=params.config['configurations']['core-site'],
-                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.zeppelin_user,
                 group=params.zeppelin_group,
                 mode=0644)

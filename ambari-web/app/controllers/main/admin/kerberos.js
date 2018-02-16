@@ -215,13 +215,13 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * @return {$.ajax}
    */
   restartAllServices: function () {
-    if (!App.router.get('backgroundOperationsController.allOperationsCount')) {
+    if (!App.router.get('backgroundOperationsController.runningOperationsCount')) {
       if (this.get('needsRestartAfterRegenerate')) {
         this.set('needsRestartAfterRegenerate', false);
         App.router.get('mainServiceController').restartAllServices();
       }
     }
-  }.observes('controllers.backgroundOperationsController.allOperationsCount'),
+  }.observes('controllers.backgroundOperationsController.runningOperationsCount'),
 
   /**
    * performs cluster check before kerbefos security

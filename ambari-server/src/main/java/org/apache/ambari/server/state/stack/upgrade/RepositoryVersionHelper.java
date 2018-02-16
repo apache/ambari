@@ -656,4 +656,23 @@ public class RepositoryVersionHelper {
     return true;
   }
 
+  /**
+   * Get repository info given a cluster and host.
+   *
+   * @param cluster  the cluster
+   * @param host     the host
+   *
+   * @return the repo info
+   *
+   * @throws AmbariException if the repository information can not be obtained
+  public String getRepoInfoString(Cluster cluster, Host host) throws AmbariException {
+
+  return getRepoInfoString(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
+  }*/
+
+  public String getRepoInfoString(Cluster cluster, ServiceComponent component, Host host) throws AmbariException, SystemException {
+    return gson.toJson(getCommandRepository(cluster, component, host));
+  }
+
+
 }

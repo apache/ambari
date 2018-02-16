@@ -88,7 +88,6 @@ under the License.
         <name>HiveRC</name>
         <description>This profile is suitable only for Hive tables stored in RC files
             and serialized with either the ColumnarSerDe or the LazyBinaryColumnarSerDe.
-            It is much faster than the general purpose Hive profile.
             DELIMITER parameter is mandatory.
             Supports both GPDBWritable and TEXT output formats, as specified in FORMAT header parameter.
             Primary optimized for TEXT output format.
@@ -104,7 +103,6 @@ under the License.
     <profile>
         <name>HiveText</name>
         <description>This profile is suitable only for Hive tables stored as Text files.
-            It is much faster than the general purpose Hive profile.
             DELIMITER parameter is mandatory.
             Supports both GPDBWritable and TEXT output formats, as specified in FORMAT header parameter.
             Primary optimized for TEXT output format.
@@ -121,7 +119,6 @@ under the License.
         <name>HiveORC</name>
         <description>This profile is suitable only for Hive tables stored in ORC files
             and serialized with either the ColumnarSerDe or the LazyBinaryColumnarSerDe.
-            It is much faster than the general purpose Hive profile.
             Supports GPDBWritable output format, as specified in FORMAT header parameter.
         </description>
         <plugins>

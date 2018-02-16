@@ -835,7 +835,7 @@ class TestNamenode(RMFTestCase):
     active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
     standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
     unknown_namenodes = []
-
+    
     get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
 
     call_mocks = MagicMock(return_value=(0,""))
@@ -1132,14 +1132,14 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               mode = 0644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
@@ -1200,14 +1200,14 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               mode = 0644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
@@ -1385,7 +1385,6 @@ class TestNamenode(RMFTestCase):
                        mocks_dict=mocks_dict)
 
     self.assertTrue(setup_ranger_plugin_mock.called)
-
     self.assertResourceCalledByIndex(7, 'Execute',
       ('mv', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh.bak'),
       only_if='test -f /usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh',
@@ -1597,7 +1596,7 @@ class TestNamenode(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.0'
+    json_content['clusterLevelParams']['stack_version'] = '2.0'
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
@@ -1623,7 +1622,7 @@ class TestNamenode(RMFTestCase):
     version = '2.2.0.0-1234'
     del json_content['commandParams']['version']
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.2'
+    json_content['clusterLevelParams']['stack_version'] = '2.2'
     json_content['commandParams']['version'] = version
 
     mocks_dict = {}
@@ -1652,7 +1651,7 @@ class TestNamenode(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['commandParams']['upgrade_direction'] = 'upgrade'
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.3'
+    json_content['clusterLevelParams']['stack_version'] = '2.3'
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",

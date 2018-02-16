@@ -45,7 +45,7 @@ stack_supports_hadoop_custom_extensions = check_stack_feature(StackFeature.HADOO
 sudo = AMBARI_SUDO_BINARY
 
 # Global flag enabling or disabling the sysprep feature
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
 # Whether to skip copying fast-hdfs-resource.jar to /var/lib/ambari-agent/lib/
 # This is required if tarballs are going to be copied to HDFS, so set to False
@@ -54,7 +54,7 @@ sysprep_skip_copy_fast_jar_hdfs = host_sys_prepped and default("/configurations/
 # Whether to skip setting up the unlimited key JCE policy
 sysprep_skip_setup_jce = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_setup_jce", False)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
@@ -81,15 +81,15 @@ current_service = config['serviceName']
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-ambari_server_resources_url = default("/hostLevelParams/jdk_location", None)
+ambari_server_resources_url = default("/ambariLevelParams/jdk_location", None)
 if ambari_server_resources_url is not None and ambari_server_resources_url.endswith('/'):
   ambari_server_resources_url = ambari_server_resources_url[:-1]
 
 # Unlimited key JCE policy params
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-unlimited_key_jce_required = default("/hostLevelParams/unlimited_key_jce_required", False)
-jdk_name = default("/hostLevelParams/jdk_name", None)
-java_home = default("/hostLevelParams/java_home", None)
+jce_policy_zip = default("/ambariLevelParams/jce_name", None) # None when jdk is already installed by user
+unlimited_key_jce_required = default("/componentLevelParams/unlimited_key_jce_required", False)
+jdk_name = default("/ambariLevelParams/jdk_name", None)
+java_home = default("/ambariLevelParams/java_home", None)
 java_exec = "{0}/bin/java".format(java_home) if java_home is not None else "/bin/java"
 
 #users and groups
@@ -101,19 +101,19 @@ yarn_user = config['configurations']['yarn-env']['yarn_user']
 user_group = config['configurations']['cluster-env']['user_group']
 
 #hosts
-hostname = config["hostname"]
+hostname = config['agentLevelParams']['hostname']
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
-rm_host = default("/clusterHostInfo/rm_host", [])
-slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
+slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
-hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
-hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
+hcat_server_hosts = default("/clusterHostInfo/webhcat_server_hosts", [])
+hive_server_host =  default("/clusterHostInfo/hive_server_hosts", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
-hs_host = default("/clusterHostInfo/hs_host", [])
-jtnode_host = default("/clusterHostInfo/jtnode_host", [])
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+hs_host = default("/clusterHostInfo/historyserver_hosts", [])
+jtnode_host = default("/clusterHostInfo/jtnode_hosts", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
+ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
 cluster_name = config["clusterName"]
 set_instanceId = "false"
 if 'cluster-env' in config['configurations'] and \
@@ -177,7 +177,7 @@ if has_zk_host:
     zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
   else:
     zookeeper_clientPort = '2181'
-  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
+  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_server_hosts'])
   # last port config
   zookeeper_quorum += ':' + zookeeper_clientPort
 
@@ -192,17 +192,8 @@ hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_p
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hbase_tmp_dir = "/tmp/hbase-hbase"
 #db params
-server_db_name = config['hostLevelParams']['db_name']
-db_driver_filename = config['hostLevelParams']['db_driver_filename']
-oracle_driver_url = config['hostLevelParams']['oracle_jdbc_url']
-mysql_driver_url = config['hostLevelParams']['mysql_jdbc_url']
 oracle_driver_symlink_url = format("{ambari_server_resources_url}/oracle-jdbc-driver.jar")
 mysql_driver_symlink_url = format("{ambari_server_resources_url}/mysql-jdbc-driver.jar")
-
-ambari_db_rca_url = config['hostLevelParams']['ambari_db_rca_url'][0]
-ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver'][0]
-ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username'][0]
-ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password'][0]
 
 if has_namenode and 'rca_enabled' in config['configurations']['hadoop-env']:
   rca_enabled =  config['configurations']['hadoop-env']['rca_enabled']
@@ -275,7 +266,7 @@ default_fs = config['configurations']['core-site']['fs.defaultFS']
 all_hosts = default("/clusterHostInfo/all_hosts", [])
 all_racks = default("/clusterHostInfo/all_racks", [])
 all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
-slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 
 #topology files
 net_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
@@ -287,7 +278,7 @@ net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_
 has_core_site = 'core-site' in config['configurations']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path()
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)

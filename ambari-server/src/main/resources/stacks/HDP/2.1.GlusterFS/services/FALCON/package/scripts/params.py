@@ -30,7 +30,7 @@ smoke_user =  config['configurations']['cluster-env']['smokeuser']
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 falcon_home = '/usr/lib/falcon'
 falcon_conf_dir = '/etc/falcon/conf'
 falcon_local_dir = config['configurations']['falcon-env']['falcon_local_dir']

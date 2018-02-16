@@ -20,11 +20,13 @@ package org.apache.ambari.server.events.listeners.tasks;
 
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
@@ -32,6 +34,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.events.publishers.TaskEventPublisher;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -61,11 +64,13 @@ public class TaskStatusListenerTest extends EasyMockSupport {
 
 
   @Test
-  public void testOnTaskUpdateEvent() {
+  public void testOnTaskUpdateEvent() throws ClusterNotFoundException {
     List<HostRoleCommand> hostRoleCommands = new ArrayList<>();
     ServiceComponentHostEvent serviceComponentHostEvent = createNiceMock(ServiceComponentHostEvent.class);
     HostDAO hostDAO = createNiceMock(HostDAO.class);
-    replayAll();
+
+    EasyMock.replay(hostDAO);
+    EasyMock.replay(serviceComponentHostEvent);
 
     int hostRoleCommandSize = 3;
     int hrcCounter = 1;
@@ -87,6 +92,7 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     RequestDAO requestDAO = createNiceMock(RequestDAO.class);
     StageEntity stageEntity = createNiceMock(StageEntity.class);
     RequestEntity requestEntity = createNiceMock(RequestEntity.class);
+    StateUpdateEventPublisher statePublisher = createNiceMock(StateUpdateEventPublisher.class);
     EasyMock.expect(stageEntity.getStatus()).andReturn(hostRoleStatus).anyTimes();;
     EasyMock.expect(stageEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();
     EasyMock.expect(stageEntity.isSkippable()).andReturn(Boolean.FALSE).anyTimes();;
@@ -96,18 +102,17 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     EasyMock.expect(requestEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();
     EasyMock.expect(requestDAO.findByPK(anyLong())).andReturn(requestEntity).anyTimes();
 
-    requestDAO.updateStatus(1L,HostRoleStatus.COMPLETED,HostRoleStatus.SKIPPED_FAILED);
-    EasyMock.expectLastCall().times(1);
-
-
+    EasyMock.expect(requestDAO.updateStatus(eq(1L), eq(HostRoleStatus.COMPLETED),
+        eq(HostRoleStatus.SKIPPED_FAILED))).andReturn(new RequestEntity()).times(1);
 
     EasyMock.replay(stageEntity);
     EasyMock.replay(requestEntity);
     EasyMock.replay(stageDAO);
     EasyMock.replay(requestDAO);
+    EasyMock.replay(statePublisher);
 
     TaskCreateEvent event = new TaskCreateEvent(hostRoleCommands);
-    TaskStatusListener listener = new TaskStatusListener(publisher,stageDAO,requestDAO);
+    TaskStatusListener listener = new TaskStatusListener(publisher,stageDAO,requestDAO,statePublisher);
 
     Assert.assertTrue(listener.getActiveTasksMap().isEmpty());
     Assert.assertTrue(listener.getActiveStageMap().isEmpty());

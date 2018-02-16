@@ -29,23 +29,49 @@ public final class AlertStateSummary {
    * The {@link AlertState#OK} state information.
    */
   @JsonProperty(value = "OK")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "OK")
   public final AlertStateValues Ok = new AlertStateValues();
 
   /**
    * The {@link AlertState#WARNING} state information.
    */
   @JsonProperty(value = "WARNING")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "WARNING")
   public final AlertStateValues Warning = new AlertStateValues();
 
   /**
    * The {@link AlertState#CRITICAL} state information.
    */
   @JsonProperty(value = "CRITICAL")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "CRITICAL")
   public final AlertStateValues Critical = new AlertStateValues();
 
   /**
    * The {@link AlertState#UNKNOWN} state information.
    */
   @JsonProperty(value = "UNKNOWN")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "UNKNOWN")
   public final AlertStateValues Unknown = new AlertStateValues();
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    AlertStateSummary that = (AlertStateSummary) o;
+
+    if (Ok != null ? !Ok.equals(that.Ok) : that.Ok != null) return false;
+    if (Warning != null ? !Warning.equals(that.Warning) : that.Warning != null) return false;
+    if (Critical != null ? !Critical.equals(that.Critical) : that.Critical != null) return false;
+    return Unknown != null ? Unknown.equals(that.Unknown) : that.Unknown == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Ok != null ? Ok.hashCode() : 0;
+    result = 31 * result + (Warning != null ? Warning.hashCode() : 0);
+    result = 31 * result + (Critical != null ? Critical.hashCode() : 0);
+    result = 31 * result + (Unknown != null ? Unknown.hashCode() : 0);
+    return result;
+  }
 }

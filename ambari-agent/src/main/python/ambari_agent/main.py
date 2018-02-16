@@ -81,11 +81,8 @@ fix_encoding_reimport_bug()
 
 import logging.handlers
 import logging.config
-import signal
 from optparse import OptionParser
 import sys
-import traceback
-import getpass
 import os
 import time
 import locale
@@ -93,7 +90,6 @@ import platform
 import ConfigParser
 import resource
 from logging.handlers import SysLogHandler
-from Controller import Controller
 import AmbariConfig
 from NetUtil import NetUtil
 from PingPortListener import PingPortListener
@@ -103,15 +99,25 @@ from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
-from ambari_commons.network import reconfigure_urllib2_opener
-from ambari_commons import shell
-import HeartbeatHandlers
+#from ambari_commons.network import reconfigure_urllib2_opener
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
 
+from ambari_agent import HeartbeatThread
+from ambari_agent.InitializerModule import InitializerModule
+from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
+from ambari_agent.CommandStatusReporter import CommandStatusReporter
+from ambari_agent.HostStatusReporter import HostStatusReporter
+from ambari_agent.AlertStatusReporter import AlertStatusReporter
+
+#logging.getLogger('ambari_agent').propagate = False
+
 logger = logging.getLogger()
-alerts_logger = logging.getLogger('ambari_alerts')
+alerts_logger = logging.getLogger('alerts')
+alerts_logger_global = logging.getLogger('ambari_agent.alerts')
+apscheduler_logger = logging.getLogger('apscheduler')
+apscheduler_logger_global = logging.getLogger('ambari_agent.apscheduler')
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
@@ -134,7 +140,10 @@ SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
 _file_logging_handlers ={}
 
+EXIT_CODE_ON_STOP = 0
+
 def setup_logging(logger, filename, logging_level):
+  logger.propagate = False
   formatter = logging.Formatter(formatstr)
 
   if filename in _file_logging_handlers:
@@ -143,29 +152,30 @@ def setup_logging(logger, filename, logging_level):
     rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
     rotateLog.setFormatter(formatter)
     _file_logging_handlers[filename] = rotateLog
+  logger.handlers = []
   logger.addHandler(rotateLog)
-      
+
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
   logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
 
-GRACEFUL_STOP_TRIES = 10
-GRACEFUL_STOP_TRIES_SLEEP = 3
+GRACEFUL_STOP_TRIES = 300
+GRACEFUL_STOP_TRIES_SLEEP = 0.1
 
 
 def add_syslog_handler(logger):
-    
+
   syslog_enabled = config.has_option("logging","syslog_enabled") and (int(config.get("logging","syslog_enabled")) == 1)
-      
+
   #add syslog handler if we are on linux and syslog is enabled in ambari config
   if syslog_enabled and IS_LINUX:
     logger.info("Adding syslog handler to ambari agent logger")
     syslog_handler = SysLogHandler(address="/dev/log",
                                    facility=SysLogHandler.LOG_LOCAL1)
-        
+
     syslog_handler.setFormatter(SYSLOG_FORMATTER)
     logger.addHandler(syslog_handler)
-    
+
 def update_log_level(config):
   # Setting loglevel based on config file
   global logger
@@ -176,7 +186,7 @@ def update_log_level(config):
     # create logger
     logger = logging.getLogger(__name__)
     logger.info("Logging configured by " + log_cfg_file)
-  else:  
+  else:
     try:
       loglevel = config.get('agent', 'loglevel')
       if loglevel is not None:
@@ -214,19 +224,19 @@ def check_sudo():
   # don't need to check sudo for root.
   if os.geteuid() == 0:
     return
-  
+
   runner = shellRunner()
   test_command = [AMBARI_SUDO_BINARY, '/usr/bin/test', '/']
   test_command_str = ' '.join(test_command)
-  
+
   start_time = time.time()
   res = runner.run(test_command)
   end_time = time.time()
   run_time = end_time - start_time
-  
+
   if res['exitCode'] != 0:
     raise Exception("Please check your sudo configurations.\n" + test_command_str + " failed with " + res['error'] + res['output']) # bad sudo configurations
-  
+
   if run_time > 2:
     logger.warn(("Sudo commands on this host are running slowly ('{0}' took {1} seconds).\n" +
                 "This will create a significant slow down for ambari-agent service tasks.").format(test_command_str, run_time))
@@ -279,7 +289,7 @@ def perform_prestart_checks(expected_hostname):
     logger.error(msg)
     print(msg)
     sys.exit(1)
-    
+
   check_sudo()
 
 
@@ -295,7 +305,7 @@ def stop_agent():
     with open(agent_pidfile, 'r') as f:
       pid = f.read()
     pid = int(pid)
-    
+
     runner.run([AMBARI_SUDO_BINARY, 'kill', '-15', str(pid)])
     for i in range(GRACEFUL_STOP_TRIES):
       result = runner.run([AMBARI_SUDO_BINARY, 'kill', '-0', str(pid)])
@@ -348,23 +358,41 @@ def reset_agent(options):
 
 MAX_RETRIES = 10
 
-def run_threads(server_hostname, heartbeat_stop_callback):
-  # Launch Controller communication
-  controller = Controller(config, server_hostname, heartbeat_stop_callback)
-  controller.start()
-  time.sleep(2) # in order to get controller.statusCommandsExecutor initialized
-  while controller.is_alive():
+def run_threads(initializer_module):
+  initializer_module.alert_scheduler_handler.start()
+
+  heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
+  heartbeat_thread.start()
+
+  component_status_executor = ComponentStatusExecutor(initializer_module)
+  component_status_executor.start()
+
+  command_status_reporter = CommandStatusReporter(initializer_module)
+  command_status_reporter.start()
+
+  host_status_reporter = HostStatusReporter(initializer_module)
+  host_status_reporter.start()
+
+  alert_status_reporter = AlertStatusReporter(initializer_module)
+  alert_status_reporter.start()
+
+  initializer_module.action_queue.start()
+
+  while not initializer_module.stop_event.is_set():
     time.sleep(0.1)
 
-    need_relaunch, reason = controller.get_status_commands_executor().need_relaunch
-    if need_relaunch:
-      controller.get_status_commands_executor().relaunch(reason)
+  initializer_module.action_queue.interrupt()
 
-  controller.get_status_commands_executor().kill("AGENT_STOPPED", can_relaunch=False)
+  command_status_reporter.join()
+  component_status_executor.join()
+  host_status_reporter.join()
+  alert_status_reporter.join()
+  heartbeat_thread.join()
+  initializer_module.action_queue.join()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
-def main(heartbeat_stop_callback=None):
+def main(initializer_module, heartbeat_stop_callback=None):
   global config
   global home_dir
 
@@ -384,7 +412,13 @@ def main(heartbeat_stop_callback=None):
   global is_logger_setup
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(alerts_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
+
+  # init data, once loggers are setup to see exceptions/errors of initialization.
+  initializer_module.init()
 
   if home_dir != "":
     # When running multiple Ambari Agents on this host for simulation, each one will use a unique home directory.
@@ -407,7 +441,7 @@ def main(heartbeat_stop_callback=None):
 
   # Check for ambari configuration file.
   resolve_ambari_config()
-  
+
   # Add syslog hanlder based on ambari config file
   add_syslog_handler(logger)
 
@@ -437,7 +471,7 @@ def main(heartbeat_stop_callback=None):
 
   if not config.use_system_proxy_setting():
     logger.info('Agent is configured to ignore system proxy settings')
-    reconfigure_urllib2_opener(ignore_system_proxy=True)
+    #reconfigure_urllib2_opener(ignore_system_proxy=True)
 
   if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     daemonize()
@@ -463,7 +497,7 @@ def main(heartbeat_stop_callback=None):
         logger.warn("Unable to determine the IP address of the Ambari server '%s'", server_hostname)
 
       # Wait until MAX_RETRIES to see if server is reachable
-      netutil = NetUtil(config, heartbeat_stop_callback)
+      netutil = NetUtil(config, initializer_module.stop_event)
       (retries, connected, stopped) = netutil.try_to_connect(server_url, MAX_RETRIES, logger)
 
       # if connected, launch controller
@@ -472,7 +506,7 @@ def main(heartbeat_stop_callback=None):
         # Set the active server
         active_server = server_hostname
         # Launch Controller communication
-        run_threads(server_hostname, heartbeat_stop_callback)
+        run_threads(initializer_module)
 
       #
       # If Ambari Agent connected to the server or
@@ -480,7 +514,7 @@ def main(heartbeat_stop_callback=None):
       # Clean up if not Windows OS
       #
       if connected or stopped:
-        ExitHelper().exit(0)
+        ExitHelper().exit(EXIT_CODE_ON_STOP)
         logger.info("finished")
         break
     pass # for server_hostname in server_hostnames
@@ -491,9 +525,10 @@ def main(heartbeat_stop_callback=None):
 if __name__ == "__main__":
   is_logger_setup = False
   try:
-    heartbeat_stop_callback = bind_signal_handlers(agentPid)
-  
-    main(heartbeat_stop_callback)
+    initializer_module = InitializerModule()
+    heartbeat_stop_callback = bind_signal_handlers(agentPid, initializer_module.stop_event)
+
+    main(initializer_module, heartbeat_stop_callback)
   except SystemExit:
     raise
   except BaseException:

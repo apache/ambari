@@ -25,7 +25,7 @@ import hostname
 import ambari_simplejson as json
 import os
 
-from ambari_commons import OSConst
+from ambari_agent.FileCache import FileCache
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 logger = logging.getLogger(__name__)
@@ -47,9 +47,10 @@ data_cleanup_interval=86400
 data_cleanup_max_age=2592000
 data_cleanup_max_size_MB = 100
 ping_port=8670
-cache_dir={ps}var{ps}lib{ps}ambari-agent{ps}cache
+cache_dir={ps}tmp
 parallel_execution=0
 system_resource_overrides={ps}etc{ps}resource_overrides
+tolerate_download_failures=false
 
 [services]
 
@@ -66,7 +67,7 @@ server_crt=ca.crt
 passphrase_env_var_name=AMBARI_PASSPHRASE
 
 [heartbeat]
-state_interval = 6
+state_interval = 1
 dirs={ps}etc{ps}hadoop,{ps}etc{ps}hadoop{ps}conf,{ps}var{ps}run{ps}hadoop,{ps}var{ps}log{ps}hadoop
 log_lines_count=300
 iddle_interval_min=1
@@ -150,6 +151,60 @@ class AmbariConfig:
       # home_dir may be an empty string
       return os.path.join(os.sep, home_dir, "etc", "ambari-agent", "conf", "ambari-agent.ini")
 
+  @property
+  def server_hostname(self):
+    return self.get('server', 'hostname')
+
+  @property
+  def secured_url_port(self):
+    return self.get('server', 'secured_url_port')
+
+  @property
+  def command_reports_interval(self):
+    return int(self.get('agent', 'command_reports_interval', default='5'))
+
+  @property
+  def alert_reports_interval(self):
+    return int(self.get('agent', 'alert_reports_interval', default='5'))
+
+  @property
+  def status_commands_run_interval(self):
+    return int(self.get('agent', 'status_commands_run_interval', default='20'))
+
+  @property
+  def command_update_output(self):
+    return bool(int(self.get('agent', 'command_update_output', default='1')))
+
+  @property
+  def host_status_report_interval(self):
+    return int(self.get('heartbeat', 'state_interval_seconds', '60'))
+
+  @property
+  def cache_dir(self):
+    return self.get('agent', 'cache_dir', default='/var/lib/ambari-agent/cache')
+
+  @property
+  def cluster_cache_dir(self):
+    return os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
+  @property
+  def recovery_cache_dir(self):
+    return os.path.join(self.cache_dir, FileCache.RECOVERY_CACHE_DIRECTORY)
+  @property
+  def alerts_cachedir(self):
+    return os.path.join(self.cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
+  @property
+  def stacks_dir(self):
+    return os.path.join(self.cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+  @property
+  def common_services_dir(self):
+    return os.path.join(self.cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+  @property
+  def extensions_dir(self):
+    return os.path.join(self.cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
+  @property
+  def host_scripts_dir(self):
+    return os.path.join(self.cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
+
   # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
   def getLogFile(home_dir=""):
@@ -172,7 +227,7 @@ class AmbariConfig:
     :return: Alerts log file path.
     """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
-      return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
+      return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-alerts.log")
     else:
       return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-alerts.log")
 

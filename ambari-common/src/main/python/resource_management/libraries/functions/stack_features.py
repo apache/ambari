@@ -44,7 +44,7 @@ def check_stack_feature(stack_feature, stack_version):
   from resource_management.libraries.functions.default import default
   from resource_management.libraries.functions.version import compare_versions
 
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
@@ -97,11 +97,11 @@ def get_stack_feature_version(config):
   """
   from resource_management.libraries.functions.default import default
 
-  if "hostLevelParams" not in config or "commandParams" not in config:
-    raise Fail("Unable to determine the correct version since hostLevelParams and commandParams were not present in the configuration dictionary")
+  if "clusterLevelParams" not in config or "commandParams" not in config:
+    raise Fail("Unable to determine the correct version since clusterLevelParams and commandParams were not present in the configuration dictionary")
 
   # should always be there
-  stack_version = config['hostLevelParams']['stack_version']
+  stack_version = config['clusterLevelParams']['stack_version']
 
   # something like 2.4.0.0-1234; represents the version for the command
   # (or None if this is a cluster install and it hasn't been calculated yet)
@@ -166,7 +166,7 @@ def _is_stop_command(config):
   if role_command == _ROLE_COMMAND_STOP:
     return True
 
-  custom_command = default("/hostLevelParams/custom_command", None)
+  custom_command = default("/commandParams/custom_command", None)
   if role_command == _ROLE_COMMAND_CUSTOM and custom_command == _ROLE_COMMAND_STOP:
     return True
 

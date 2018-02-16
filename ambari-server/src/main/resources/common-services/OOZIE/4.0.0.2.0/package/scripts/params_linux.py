@@ -60,15 +60,15 @@ cluster_name = config['clusterName']
 serviceName = config['serviceName']
 role = config['role']
 
-hostname = config["hostname"]
+hostname = config['agentLevelParams']['hostname']
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 stack_name = status_params.stack_name
 stack_name_uppercase = stack_name.upper()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
 stack_root = status_params.stack_root
 
@@ -151,7 +151,7 @@ service_check_queue_name = default('/configurations/yarn-env/service_check.queue
 oozie_admin_users = format(config['configurations']['oozie-env']['oozie_admin_users'])
 
 user_group = config['configurations']['cluster-env']['user_group']
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 oozie_tmp_dir = default("configurations/oozie-env/oozie_tmp_dir", "/var/tmp/oozie")
@@ -160,7 +160,7 @@ oozie_pid_dir = status_params.oozie_pid_dir
 pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
 java_share_dir = "/usr/share/java"
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
 ext_js_file = "ext-2.2.zip"
 ext_js_path = format("/usr/share/{stack_name_uppercase}-oozie/{ext_js_file}")
@@ -223,7 +223,7 @@ oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.servic
 if credential_store_enabled:
   if 'hadoop.security.credential.provider.path' in config['configurations']['oozie-site']:
     cs_lib_path = config['configurations']['oozie-site']['credentialStoreClassPath']
-    java_home = config['hostLevelParams']['java_home']
+    java_home = config['ambariLevelParams']['java_home']
     alias = 'oozie.service.JPAService.jdbc.password'
     provider_path = config['configurations']['oozie-site']['hadoop.security.credential.provider.path']
     oozie_metastore_user_passwd = PasswordString(get_password_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location))
@@ -288,27 +288,27 @@ jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.
 sqla_db_used = False
 previous_jdbc_jar_name = None
 if jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
 elif jdbc_driver_name == "com.mysql.jdbc.Driver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
 elif jdbc_driver_name == "org.postgresql.Driver":
   jdbc_driver_jar = format("{oozie_home}/libserver/postgresql-9.0-801.jdbc4.jar")  #oozie using it's own postgres jdbc
   previous_jdbc_jar_name = None
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
 elif jdbc_driver_name == "sap.jdbc4.sqlanywhere.IDriver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
 else:
   jdbc_driver_jar = ""
   jdbc_symlink_name = ""
   previous_jdbc_jar_name = None
 
-default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
 driver_curl_source = format("{jdk_location}/{jdbc_driver_jar}")
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 if jdbc_driver_name == "org.postgresql.Driver":

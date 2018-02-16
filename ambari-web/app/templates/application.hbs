@@ -136,16 +136,15 @@
           <div class="navbar-nav navbar-right cluster-notifications">
             {{#if enableLinks}}
             {{! bg label }}
-              <a href="#" class="bg-label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
-                {{#with App.router.backgroundOperationsController}}
-                  <span class="glyphicon glyphicon-cog"></span>
-                  <span id="span-bg-operation-count" {{bindAttr
-                    class="allOperationsCount:operations-count :numberCircle"}}>
-                    {{allOperationsCount}}
-                  </span>
-                {{/with}}
-              </a>
-              {{! bg label end }}
+            <a href="#" class="bg-label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+              {{#with App.router.backgroundOperationsController}}
+                <span class="glyphicon glyphicon-cog"></span>
+                <span id="span-bg-operation-count" {{bindAttr class="runningOperationsCount:operations-count :numberCircle"}}>
+                  {{runningOperationsCount}}
+                </span>
+              {{/with}}
+            </a>
+            {{! bg label end }}
 
               {{! new alerts label }}
               {{#if App.router.clusterController.isAlertsLoaded}}

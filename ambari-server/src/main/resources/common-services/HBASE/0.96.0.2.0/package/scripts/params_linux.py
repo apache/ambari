@@ -53,8 +53,8 @@ exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = status_params.stack_name
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 version = default("/commandParams/version", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
@@ -117,8 +117,8 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
-java64_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
+java64_home = config['ambariLevelParams']['java_home']
+java_version = expect("/ambariLevelParams/java_version", int)
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
 java_io_tmpdir = default("/configurations/hbase-env/hbase_java_io_tmpdir", "/tmp")
@@ -154,7 +154,7 @@ master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
 regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
 queryserver_jaas_config_file = format("{hbase_conf_dir}/hbase_queryserver_jaas.conf")
 
-ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
+ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_hosts', []) # is not passed when ganglia is not present
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
@@ -196,9 +196,9 @@ host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.met
 
 # if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
-  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/slave_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+  rs_hosts = default('/clusterHostInfo/hbase_regionserver_hosts', '/clusterHostInfo/datanode_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 else:
-  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
+  rs_hosts = default('/clusterHostInfo/hbase_regionserver_hosts', '/clusterHostInfo/all_hosts')
 
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
@@ -207,7 +207,7 @@ service_check_data = get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 
 if security_enabled:
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   master_jaas_princ = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
   master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
   regionserver_jaas_princ = config['configurations']['hbase-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
@@ -247,7 +247,7 @@ hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']
 hbase_hdfs_root_dir_protocol = urlparse(hbase_hdfs_root_dir).scheme
 hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
-hostname = config["hostname"]
+hostname = config['agentLevelParams']['hostname']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -285,7 +285,7 @@ hadoop_security_authentication = config['configurations']['core-site']['hadoop.s
 # ranger hbase plugin section start
 
 # to get db connector jar
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])

@@ -50,7 +50,7 @@ def tez(config_dir):
   XmlConfig( "tez-site.xml",
              conf_dir = config_dir,
              configurations = params.config['configurations']['tez-site'],
-             configuration_attributes=params.config['configuration_attributes']['tez-site'],
+             configuration_attributes=params.config['configurationAttributes']['tez-site'],
              owner = params.tez_user,
              group = params.user_group,
              mode = 0664)
@@ -74,6 +74,6 @@ def tez(config_dir):
              configurations=params.config['configurations']['tez-site'],
              owner=params.tez_user,
              mode="f",
-             configuration_attributes=params.config['configuration_attributes']['tez-site']
+             configuration_attributes=params.config['configurationAttributes']['tez-site']
   )
 

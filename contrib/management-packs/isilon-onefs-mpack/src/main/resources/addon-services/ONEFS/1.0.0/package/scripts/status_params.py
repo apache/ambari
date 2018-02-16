@@ -45,7 +45,7 @@ else:
   nfsgateway_pid_file = format("{hadoop_pid_dir_prefix}/root/hadoop_privileged_nfs3.pid")
 
   # Security related/required params
-  hostname = config['hostname']
+  hostname = config['agentLevelParams']['hostname']
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   hdfs_user_principal = config['configurations']['hadoop-env']['hdfs_principal_name']
   hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
@@ -55,4 +55,4 @@ else:
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

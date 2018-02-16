@@ -86,13 +86,13 @@ class CheckHost(Script):
     "^slider.*$", "^sqoop.*$", "^storm.*$", "^flume.*$","^hcatalog.*$", "^phoenix.*$", "^ranger.*$", "^accumulo.*$", "^hive_.*$",
     "^pig[_\-.].*$" # there's a default 'pigz' package which we should avoid
   ]
-  
+
 
   # ignore packages from repos whose names start with these strings
   IGNORE_PACKAGES_FROM_REPOS = [
     "installed"
   ]
-  
+
 
   # ignore required packages
   IGNORE_PACKAGES = [
@@ -100,21 +100,21 @@ class CheckHost(Script):
     # ganglia related:
     "ganglia", "libganglia", "libconfuse", "perl", "rrdtool", "python-rrdtool", "gmetad", "librrd", "rrdcached"
   ]
-  
+
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
     "ambari-log4j"
   ]
-  
+
   # ignore repos from the list of repos to be cleaned
   IGNORE_REPOS = [
     "HDP-UTILS", "AMBARI", "BASE", "EXTRAS"
   ]
-  
+
   def __init__(self):
     self.reportFileHandler = HostCheckReportFileHandler()
     self.pkg_provider = get_provider("Package")
-  
+
   def actionexecute(self, env):
     Logger.info("Host checks started.")
     config = Script.get_config()
@@ -162,7 +162,7 @@ class CheckHost(Script):
       except Exception, exception :
         Logger.exception("There was an unknown error while checking last host environment details: " + str(exception))
         structured_output[CHECK_LAST_AGENT_ENV] = {"exit_code" : 1, "message": str(exception)}
-        
+
     # CHECK_INSTALLED_PACKAGES and CHECK_EXISTING_REPOS required to run together for
     # reasons of not doing the same common work twice for them as it takes some time, especially on Ubuntu.
     if CHECK_INSTALLED_PACKAGES in check_execute_list and CHECK_EXISTING_REPOS in check_execute_list:
@@ -186,7 +186,7 @@ class CheckHost(Script):
 
     # this is necessary for HostCleanup to know later what were the results.
     self.reportFileHandler.writeHostChecksCustomActionsFile(structured_output)
-    
+
     self.put_structured_out(structured_output)
 
     error_message = ""
@@ -255,7 +255,7 @@ class CheckHost(Script):
     java_bin = "java"
     if OSCheck.is_windows_family():
       java_bin = "java.exe"
-  
+
     if not os.path.isfile(os.path.join(java_home, "bin", java_bin)):
       Logger.warning("Java home doesn't exist!")
       java_home_check_structured_output = {"exit_code" : 1, "message": "Java home doesn't exist!"}
@@ -269,9 +269,9 @@ class CheckHost(Script):
 
   def execute_db_connection_check(self, config, tmp_dir):
     Logger.info("DB connection check started.")
-  
+
     # initialize needed data
-  
+
     ambari_server_hostname = config['commandParams']['ambari_server_host']
     check_db_connection_jar_name = "DBConnectionVerification.jar"
     jdk_location = config['commandParams']['jdk_location']
@@ -280,7 +280,7 @@ class CheckHost(Script):
     no_jdbc_error_message = None
 
     if db_name == DB_MYSQL:
-      jdbc_driver_mysql_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      jdbc_driver_mysql_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
       if not jdbc_driver_mysql_name:
         no_jdbc_error_message = "The MySQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mysql --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -288,7 +288,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
         jdbc_name = jdbc_driver_mysql_name
     elif db_name == DB_ORACLE:
-      jdbc_driver_oracle_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      jdbc_driver_oracle_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
       if not jdbc_driver_oracle_name:
         no_jdbc_error_message = "The Oracle JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=oracle --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -296,7 +296,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
         jdbc_name = jdbc_driver_oracle_name
     elif db_name == DB_POSTGRESQL:
-      jdbc_driver_postgres_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      jdbc_driver_postgres_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
       if not jdbc_driver_postgres_name:
         no_jdbc_error_message = "The Postgres JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=postgres --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -304,7 +304,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
         jdbc_name = jdbc_driver_postgres_name
     elif db_name == DB_MSSQL:
-      jdbc_driver_mssql_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      jdbc_driver_mssql_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
       if not jdbc_driver_mssql_name:
         no_jdbc_error_message = "The MSSQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mssql --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -312,7 +312,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
         jdbc_name = jdbc_driver_mssql_name
     elif db_name == DB_SQLA:
-      jdbc_driver_sqla_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      jdbc_driver_sqla_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
       if not jdbc_driver_sqla_name:
         no_jdbc_error_message = "The SQLAnywhere JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=sqlanywhere --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -329,7 +329,7 @@ class CheckHost(Script):
     db_connection_url = config['commandParams']['db_connection_url']
     user_name = config['commandParams']['user_name']
     user_passwd = config['commandParams']['user_passwd']
-    agent_cache_dir = os.path.abspath(config["hostLevelParams"]["agentCacheDir"])
+    agent_cache_dir = os.path.abspath(config["agentLevelParams"]["agentCacheDir"])
     check_db_connection_url = jdk_location + check_db_connection_jar_name
     jdbc_path = os.path.join(agent_cache_dir, jdbc_name)
     class_path_delimiter = ":"
@@ -420,7 +420,7 @@ class CheckHost(Script):
       Logger.exception(message)
       db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
-  
+
     # download jdbc driver from ambari-server resources
     try:
       download_file(jdbc_url, jdbc_path)
@@ -467,24 +467,24 @@ class CheckHost(Script):
   # check whether each host in the command can be resolved to an IP address
   def execute_host_resolution_check(self, config):
     Logger.info("IP address forward resolution check started.")
-    
+
     FORWARD_LOOKUP_REASON = "FORWARD_LOOKUP"
-    
+
     failedCount = 0
     failures = []
     hosts_with_failures = []
-   
+
     if config['commandParams']['hosts'] is not None :
       hosts = config['commandParams']['hosts'].split(",")
       successCount = len(hosts)
     else :
       successCount = 0
       hosts = ""
-          
-    socket.setdefaulttimeout(3)          
+
+    socket.setdefaulttimeout(3)
     for host in hosts:
       try:
-        host = host.strip()        
+        host = host.strip()
         socket.gethostbyname(host)
       except socket.error,exception:
         successCount -= 1
@@ -492,22 +492,22 @@ class CheckHost(Script):
 
         hosts_with_failures.append(host)
 
-        failure = { "host": host, "type": FORWARD_LOOKUP_REASON, 
+        failure = { "host": host, "type": FORWARD_LOOKUP_REASON,
           "cause": exception.args }
-        
+
         failures.append(failure)
-  
+
     if failedCount > 0 :
       message = "There were " + str(failedCount) + " host(s) that could not resolve to an IP address."
     else :
       message = "All hosts resolved to an IP address."
 
     Logger.info(message)
-        
+
     host_resolution_check_structured_output = {
       "exit_code" : 0,
-      "message" : message,                                          
-      "failed_count" : failedCount, 
+      "message" : message,
+      "failed_count" : failedCount,
       "success_count" : successCount,
       "failures" : failures,
       "hosts_with_failures" : hosts_with_failures
@@ -521,7 +521,7 @@ class CheckHost(Script):
     Logger.info("Last Agent Env check started.")
     hostInfo = HostInfo()
     last_agent_env_check_structured_output = { }
-    hostInfo.register(last_agent_env_check_structured_output, False, False)
+    hostInfo.register(last_agent_env_check_structured_output, runExpensiveChecks=False, checkJavaProcs=True)
     Logger.info("Last Agent Env check completed successfully.")
 
     return last_agent_env_check_structured_output

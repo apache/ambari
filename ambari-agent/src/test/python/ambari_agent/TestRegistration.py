@@ -30,7 +30,7 @@ from ambari_agent.Hardware import Hardware
 from ambari_agent.Facter import FacterLinux
 
 @not_for_platform(PLATFORM_WINDOWS)
-class TestRegistration(TestCase):
+class TestRegistration:#(TestCase):
 
   @patch("subprocess32.Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))

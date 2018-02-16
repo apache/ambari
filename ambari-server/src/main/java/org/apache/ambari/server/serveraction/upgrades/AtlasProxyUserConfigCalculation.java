@@ -20,12 +20,14 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 
 public class AtlasProxyUserConfigCalculation extends AbstractUpgradeServerAction {
 
@@ -55,6 +57,7 @@ public class AtlasProxyUserConfigCalculation extends AbstractUpgradeServerAction
     currentAtlasApplicationProperties.put("atlas.proxyusers", atlasProxyUsers);
     atlasApplicationProperties.setProperties(currentAtlasApplicationProperties);
     atlasApplicationProperties.save();
+    agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
     outputMessage = outputMessage + MessageFormat.format("Successfully updated {0} config type.\n", ATLAS_APPLICATION_PROPERTIES_CONFIG_TYPE);
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputMessage, "");

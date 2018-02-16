@@ -127,6 +127,9 @@ public class AmbariMetaInfo {
   @Inject
   private OsFamily osFamily;
 
+  @Inject
+  private Gson gson;
+
   /**
    * ALL_SUPPORTED_OS is dynamically generated list from loaded families from os_family.json
    * Instead of append values here, please, add new families in json for tests and production

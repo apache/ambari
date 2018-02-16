@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -95,6 +96,10 @@ public interface ServiceComponentHost {
 
   void setState(State state);
 
+  State getLastValidState();
+
+  void setLastValidState(State state);
+
   /**
    * Gets the version of the component.
    *
@@ -107,7 +112,7 @@ public interface ServiceComponentHost {
    *
    * @param version component version (e.g. 2.2.0.0-2041)
    */
-  void setVersion(String version);
+  void setVersion(String version) throws AmbariException;
 
   /**
    * @param upgradeState the upgrade state
@@ -141,18 +146,14 @@ public interface ServiceComponentHost {
    * @return
    */
   ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs);
+  ServiceComponentHostResponse convertToResponseStatusOnly(Map<String, DesiredConfig> desiredConfigs,
+                                                           boolean collectStaleConfigsStatus);
 
   void debugDump(StringBuilder sb);
 
   boolean canBeRemoved();
 
-  void delete() throws AmbariException;
-
-  /**
-   * Updates the tags that have been recognized by a START action.
-   * @param configTags
-   */
-  void updateActualConfigs(Map<String, Map<String, String>> configTags);
+  void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 
   /**
    * Gets the actual config tags, if known.
@@ -194,6 +195,13 @@ public interface ServiceComponentHost {
    * @param restartRequired the restartRequired flag
    */
   void setRestartRequired(boolean restartRequired);
+
+  /**
+   * Set restartRequired flag for appropriate HostComponentDesiredStateEntity
+   * @param restartRequired the restartRequired flag.
+   * @return true when restartRequired flag was changed.
+   */
+  boolean setRestartRequiredWithoutEventPublishing(boolean restartRequired);
 
 
   HostComponentDesiredStateEntity getDesiredStateEntity();

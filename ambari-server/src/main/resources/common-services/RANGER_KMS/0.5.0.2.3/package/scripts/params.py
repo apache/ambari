@@ -38,11 +38,11 @@ config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
@@ -64,7 +64,7 @@ if stack_supports_config_versioning:
   kms_conf_dir = format('{stack_root}/current/ranger-kms/conf')
 
 kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/kms")
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")
 
@@ -73,7 +73,7 @@ ranger_kms_audit_log_maxbackupindex = default('/configurations/kms-log4j/ranger_
 ranger_kms_log_maxfilesize = default('/configurations/kms-log4j/ranger_kms_log_maxfilesize',256)
 ranger_kms_log_maxbackupindex = default('/configurations/kms-log4j/ranger_kms_log_maxbackupindex',20)
 
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
 
 # ranger host
@@ -131,14 +131,14 @@ java_share_dir = '/usr/share/java'
 jdbc_jar_name = None
 previous_jdbc_jar_name = None
 if db_flavor == 'mysql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
   db_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{db_name}')
   db_jdbc_driver = "com.mysql.jdbc.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor == 'oracle':
-  jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
     db_jdbc_url = format('jdbc:oracle:thin:@{db_host}')
@@ -147,20 +147,20 @@ elif db_flavor == 'oracle':
   db_jdbc_driver = "oracle.jdbc.OracleDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
 elif db_flavor == 'postgres':
-  jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
   db_jdbc_url = format('jdbc:postgresql://{db_host}/{db_name}')
   db_jdbc_driver = "org.postgresql.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor == 'mssql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
   db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={db_name}')
   db_jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor == 'sqla':
-  jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   db_jdbc_url = format('jdbc:sqlanywhere:database={db_name};host={db_host}')
   db_jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
@@ -184,13 +184,13 @@ if has_ranger_admin:
   xa_previous_jdbc_jar_name = None
   if stack_supports_ranger_audit_db:
     if xa_audit_db_flavor == 'mysql':
-      jdbc_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "com.mysql.jdbc.Driver"
     elif xa_audit_db_flavor == 'oracle':
-      jdbc_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
       colon_count = xa_db_host.count(':')
       if colon_count == 2 or colon_count == 0:
         audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
@@ -198,18 +198,18 @@ if has_ranger_admin:
         audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
       jdbc_driver = "oracle.jdbc.OracleDriver"
     elif xa_audit_db_flavor == 'postgres':
-      jdbc_jar = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
       audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "org.postgresql.Driver"
     elif xa_audit_db_flavor == 'mssql':
-      jdbc_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
       jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
     elif xa_audit_db_flavor == 'sqla':
-      jdbc_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
     else: raise Fail(format("'{xa_audit_db_flavor}' db flavor not supported."))
@@ -238,7 +238,7 @@ ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr
 if xa_audit_db_flavor == 'sqla':
   xa_audit_db_is_enabled = False
 
-current_host = config['hostname']
+current_host = config['agentLevelParams']['hostname']
 ranger_kms_hosts = config['clusterHostInfo']['ranger_kms_server_hosts']
 if current_host in ranger_kms_hosts:
   kms_host = current_host
@@ -248,7 +248,7 @@ check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar
 ranger_kms_jdbc_connection_url = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.url']
 ranger_kms_jdbc_driver = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.driver']
 
-jce_name = default("/hostLevelParams/jce_name", None)
+jce_name = default("/ambariLevelParams/jce_name", None)
 jce_source_dir = format('{tmp_dir}/jce_dir')
 
 #kms hsm support
@@ -300,7 +300,7 @@ ranger_kms_ssl_passwd = config['configurations']['ranger-kms-site']['ranger.serv
 ranger_kms_ssl_enabled = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.ssl.enabled']
 
 xa_audit_hdfs_is_enabled = default("/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False)
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 
 # need this to capture cluster name from where ranger kms plugin is enabled
 cluster_name = config['clusterName']

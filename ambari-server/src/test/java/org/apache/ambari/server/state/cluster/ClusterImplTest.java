@@ -38,6 +38,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.controller.AmbariSessionManager;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -253,7 +254,7 @@ public class ClusterImplTest {
     ServiceComponentHost tezClientHost2 = tezClient.addServiceComponentHost(hostName2);
 
     // When
-    cluster.deleteService(serviceToDelete);
+    cluster.deleteService(serviceToDelete, new DeleteHostComponentStatusMetaData());
 
     // Then
     assertFalse("Deleted service should be removed from the service collection !", cluster.getServices().containsKey(serviceToDelete));

@@ -334,7 +334,7 @@ class TestHiveServer(RMFTestCase):
     if self._testMethodName == "test_socket_timeout":
       # This test will not call any more resources.
       return
-    
+
     self.assertResourceCalled('Directory', '/etc/hive',
                               mode=0755,
     )
@@ -454,7 +454,7 @@ class TestHiveServer(RMFTestCase):
       conf_dir = '/usr/hdp/current/hive-server2/conf/conf.server',
       mode = 0600,
       owner = 'hive',
-      configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['hiveserver2-site'],
       configurations = self.getConfig()['configurations']['hiveserver2-site'],
     )
     # Verify creating of Hcat and Hive directories
@@ -668,7 +668,7 @@ class TestHiveServer(RMFTestCase):
       conf_dir = '/usr/hdp/current/hive-server2/conf/conf.server',
       mode = 0600,
       owner = 'hive',
-      configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['hiveserver2-site'],
       configurations = self.getConfig()['configurations']['hiveserver2-site'],
     )
     self.assertResourceCalled('HdfsResource', '/apps/webhcat',
@@ -871,7 +871,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
       json_content = json.load(f)
     version = '2.2.1.0-3242'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = '2.2'
+    json_content['clusterLevelParams']['stack_version'] = '2.2'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "pre_upgrade_restart",
@@ -907,7 +907,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = '2.3'
+    json_content['clusterLevelParams']['stack_version'] = '2.3'
 
     copy_to_hdfs_mock.return_value = True
     mocks_dict = {}

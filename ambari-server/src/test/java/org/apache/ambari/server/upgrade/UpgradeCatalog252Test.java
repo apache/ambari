@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -41,24 +42,51 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.easymock.Capture;
 import org.easymock.EasyMockRunner;
 import org.easymock.Mock;
@@ -68,6 +96,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -76,6 +106,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.persist.UnitOfWork;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog252} unit tests.
@@ -127,6 +158,9 @@ public class UpgradeCatalog252Test {
   private Cluster cluster;
 
   @Mock(type = MockType.NICE)
+  private MetadataHolder metadataHolder;
+
+  @Mock(type = MockType.NICE)
   private Injector injector;
 
   @Before
@@ -158,17 +192,7 @@ public class UpgradeCatalog252Test {
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-      }
-    };
-
-    Injector injector = Guice.createInjector(module);
+    Injector injector = getInjector(createMock(Clusters.class), createNiceMock(AmbariManagementControllerImpl.class));
     UpgradeCatalog252 upgradeCatalog252 = injector.getInstance(UpgradeCatalog252.class);
     upgradeCatalog252.executeDDLUpdates();
 
@@ -198,21 +222,10 @@ public class UpgradeCatalog252Test {
     Capture<? extends Map<String, String>> captureLivyConfProperties = newCapture();
     Capture<? extends Map<String, String>> captureLivy2ConfProperties = newCapture();
 
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-        binder.bind(Clusters.class).toInstance(clusters);
-        binder.bind(AmbariManagementController.class).toInstance(controller);
-      }
-    };
-
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
 
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster.getDesiredConfigByType("zeppelin-env")).andReturn(zeppelinEnv).atLeastOnce();
     expect(cluster.getServiceByConfigType("livy-conf")).andReturn("SPARK").atLeastOnce();
@@ -238,10 +251,13 @@ public class UpgradeCatalog252Test {
     expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy2-conf"), capture(captureLivy2ConfProperties), anyString(), anyObject(Map.class)))
         .andReturn(livy2ConfNew)
         .once();
+    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
+        .andReturn(createNiceMock(MetadataUpdateEvent.class))
+        .times(2);
 
-    replay(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller);
+    replay(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, metadataHolder);
 
-    Injector injector = Guice.createInjector(module);
+    Injector injector = getInjector(clusters, controller);
     UpgradeCatalog252 upgradeCatalog252 = injector.getInstance(UpgradeCatalog252.class);
     upgradeCatalog252.fixLivySuperusers();
 
@@ -362,16 +378,6 @@ public class UpgradeCatalog252Test {
     }.getType();
     Map<String,Object> map = new Gson().fromJson(initialJson, type);
 
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-      }
-    };
-
     Capture<? extends Map<String, Object>> captureMap = newCapture();
     ArtifactEntity artifactEntity = createMock(ArtifactEntity.class);
 
@@ -384,7 +390,7 @@ public class UpgradeCatalog252Test {
 
     replay(artifactDAO, artifactEntity);
 
-    Injector injector = Guice.createInjector(module);
+    Injector injector = getInjector(createMock(Clusters.class), createNiceMock(AmbariManagementControllerImpl.class));
     UpgradeCatalog252 upgradeCatalog252 = injector.getInstance(UpgradeCatalog252.class);
     upgradeCatalog252.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
 
@@ -422,5 +428,39 @@ public class UpgradeCatalog252Test {
     Assert.assertNull(knoxGateway.getConfiguration("webhcat-site"));
     Assert.assertNull(knoxGateway.getConfiguration("falcon-runtime.properties"));
     Assert.assertNotNull(knoxGateway.getConfiguration("some-env"));
+  }
+
+  private Injector getInjector(Clusters clusters, AmbariManagementController ambariManagementController) {
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder);
+
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(osFamily);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(Clusters.class).toInstance(clusters);
+        binder.bind(AmbariManagementController.class).toInstance(ambariManagementController);
+        binder.bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessorImpl.class));
+        binder.bind(PersistedState.class).toInstance(createMock(PersistedStateImpl.class));
+        binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        binder.bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
+        binder.bind(StageFactory.class).to(StageFactoryImpl.class);
+        binder.bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
+        binder.bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+        binder.bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+        binder.bind(HookService.class).to(UserHookService.class);
+        binder.bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        binder.bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
+        binder.bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
+        binder.bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
+        binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
+        binder.bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        binder.bind(MetadataHolder.class).toInstance(metadataHolder);
+        binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
+        binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+      }
+    };
+    return Guice.createInjector(module);
   }
 }

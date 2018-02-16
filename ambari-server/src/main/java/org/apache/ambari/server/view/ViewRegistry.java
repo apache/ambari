@@ -964,10 +964,10 @@ public class ViewRegistry {
     try {
       org.apache.ambari.server.state.Cluster cluster = clusters.getClusterById(clusterId);
       String clusterName = cluster.getClusterName();
-      
+
       Set<StackId> stackIds = new HashSet<>();
       Set<String> serviceNames = cluster.getServices().keySet();
-      
+
       for (String serviceName : serviceNames) {
         Service service = cluster.getService(serviceName);
         stackIds.add(service.getDesiredStackId());

@@ -291,7 +291,7 @@ SERVICE_TO_CONFIG_MAP = {
 
 def get_sysprep_skip_copy_tarballs_hdfs():
   import params
-  host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+  host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
   # By default, copy the tarballs to HDFS. If the cluster is sysprepped, then set based on the config.
   sysprep_skip_copy_tarballs_hdfs = False

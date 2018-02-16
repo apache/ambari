@@ -232,6 +232,7 @@ public class MetricsRetrievalService extends AbstractService {
       LOG.info("Metrics Retrieval Service request TTL cache is enabled and set to {} seconds",
           ttlSeconds);
     }
+    notifyStarted();
   }
 
   /**
@@ -257,6 +258,7 @@ public class MetricsRetrievalService extends AbstractService {
 
     m_queuedUrls.clear();
     m_threadPoolExecutor.shutdownNow();
+    notifyStopped();
   }
 
   /**

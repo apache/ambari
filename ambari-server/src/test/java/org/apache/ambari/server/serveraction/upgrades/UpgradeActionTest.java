@@ -267,6 +267,8 @@ public class UpgradeActionTest {
 
     clusters.mapHostToCluster(hostName, clusterName);
 
+    clusters.updateHostMappings(host);
+
     // Create the starting repo version
     sourceRepositoryVersion = m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
   }

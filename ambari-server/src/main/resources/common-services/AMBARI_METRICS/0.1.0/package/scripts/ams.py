@@ -50,7 +50,7 @@ def ams(name=None):
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
               configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
     )
 
@@ -62,7 +62,7 @@ def ams(name=None):
     XmlConfig( "hbase-site.xml",
                conf_dir = params.ams_collector_conf_dir,
                configurations = merged_ams_hbase_site,
-               configuration_attributes=params.config['configuration_attributes']['ams-hbase-site'],
+               configuration_attributes=params.config['configurationAttributes']['ams-hbase-site'],
                owner = params.ams_user,
     )
 
@@ -87,7 +87,7 @@ def ams(name=None):
       XmlConfig("hdfs-site.xml",
             conf_dir=params.ams_collector_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
             mode=0644
@@ -96,7 +96,7 @@ def ams(name=None):
       XmlConfig("hdfs-site.xml",
             conf_dir=params.hbase_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
             mode=0644
@@ -105,7 +105,7 @@ def ams(name=None):
       XmlConfig("core-site.xml",
                 conf_dir=params.ams_collector_conf_dir,
                 configurations=params.config['configurations']['core-site'],
-                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
                 mode=0644
@@ -114,7 +114,7 @@ def ams(name=None):
       XmlConfig("core-site.xml",
                 conf_dir=params.hbase_conf_dir,
                 configurations=params.config['configurations']['core-site'],
-                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
                 mode=0644
@@ -172,7 +172,7 @@ def ams(name=None):
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
               )
@@ -218,7 +218,7 @@ def ams(name=None, action=None):
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
               configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
     )
@@ -226,7 +226,7 @@ def ams(name=None, action=None):
     XmlConfig("ssl-server.xml",
               conf_dir=params.ams_collector_conf_dir,
               configurations=params.config['configurations']['ams-ssl-server'],
-              configuration_attributes=params.config['configuration_attributes']['ams-ssl-server'],
+              configuration_attributes=params.config['configurationAttributes']['ams-ssl-server'],
               owner=params.ams_user,
               group=params.user_group
     )
@@ -243,7 +243,7 @@ def ams(name=None, action=None):
     XmlConfig( "hbase-site.xml",
                conf_dir = params.ams_collector_conf_dir,
                configurations = merged_ams_hbase_site,
-               configuration_attributes=params.config['configuration_attributes']['ams-hbase-site'],
+               configuration_attributes=params.config['configurationAttributes']['ams-hbase-site'],
                owner = params.ams_user,
                group = params.user_group
     )
@@ -319,7 +319,7 @@ def ams(name=None, action=None):
       XmlConfig("hdfs-site.xml",
             conf_dir=params.ams_collector_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
             mode=0644
@@ -328,7 +328,7 @@ def ams(name=None, action=None):
       XmlConfig("hdfs-site.xml",
             conf_dir=params.hbase_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.ams_user,
             group=params.user_group,
             mode=0644
@@ -344,7 +344,7 @@ def ams(name=None, action=None):
       XmlConfig("core-site.xml",
                 conf_dir=params.ams_collector_conf_dir,
                 configurations=truncated_core_site,
-                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
                 mode=0644
@@ -353,7 +353,7 @@ def ams(name=None, action=None):
       XmlConfig("core-site.xml",
                 conf_dir=params.hbase_conf_dir,
                 configurations=truncated_core_site,
-                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                configuration_attributes=params.config['configurationAttributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
                 mode=0644
@@ -396,7 +396,7 @@ def ams(name=None, action=None):
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
               )

@@ -20,10 +20,13 @@ package org.apache.ambari.server.state.alert;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.ambari.server.alerts.Threshold;
 import org.apache.ambari.server.state.AlertState;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -33,6 +36,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Reporting {
 
   /**
@@ -66,6 +70,7 @@ public class Reporting {
   /**
    * @return the WARNING structure or {@code null} if none.
    */
+  @JsonProperty("warning")
   public ReportTemplate getWarning() {
     return m_warning;
   }
@@ -81,6 +86,7 @@ public class Reporting {
   /**
    * @return the CRITICAL structure or {@code null} if none.
    */
+  @JsonProperty("critical")
   public ReportTemplate getCritical() {
     return m_critical;
   }
@@ -96,6 +102,7 @@ public class Reporting {
   /**
    * @return the OK structure or {@code null} if none.
    */
+  @JsonProperty("ok")
   public ReportTemplate getOk() {
     return m_ok;
   }
@@ -114,6 +121,7 @@ public class Reporting {
    *
    * @return the units, or {@code null} for none.
    */
+  @JsonProperty("units")
   public String getUnits() {
     return m_units;
   }
@@ -129,6 +137,7 @@ public class Reporting {
     m_units = units;
   }
 
+  @JsonProperty("type")
   public ReportingType getType() {
     return m_type;
   }
@@ -137,73 +146,26 @@ public class Reporting {
     this.m_type = m_type;
   }
 
-  /**
-   *
-   */
   @Override
   public int hashCode() {
-    final int prime = 31;
-
-    int result = 1;
-    result = prime * result
-        + ((m_critical == null) ? 0 : m_critical.hashCode());
-    result = prime * result + ((m_ok == null) ? 0 : m_ok.hashCode());
-    result = prime * result + ((m_warning == null) ? 0 : m_warning.hashCode());
-    result = prime * result + ((m_type == null) ? 0 : m_type.hashCode());
-    return result;
+    return Objects.hash(m_critical, m_ok, m_warning, m_type);
   }
 
-  /**
-   *
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
     }
 
-    if (obj == null) {
-      return false;
-    }
-
-    if (getClass() != obj.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
     Reporting other = (Reporting) obj;
-    if (m_critical == null) {
-      if (other.m_critical != null) {
-        return false;
-      }
-    } else if (!m_critical.equals(other.m_critical)) {
-      return false;
-    }
-
-    if (m_ok == null) {
-      if (other.m_ok != null) {
-        return false;
-      }
-    } else if (!m_ok.equals(other.m_ok)) {
-      return false;
-    }
-
-    if (m_warning == null) {
-      if (other.m_warning != null) {
-        return false;
-      }
-    } else if (!m_warning.equals(other.m_warning)) {
-      return false;
-    }
-
-    if (m_type == null) {
-      if (other.m_type != null) {
-        return false;
-      }
-    } else if (!m_type.equals(other.m_type)) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(m_critical, other.m_critical) &&
+      Objects.equals(m_ok, other.m_ok) &&
+      Objects.equals(m_warning, other.m_warning) &&
+      Objects.equals(m_type, other.m_type);
   }
 
   public AlertState state(double value) {
@@ -244,6 +206,7 @@ public class Reporting {
    * Equality checking for instances of this class should be executed on every
    * member to ensure that reconciling stack differences is correct.
    */
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   public static final class ReportTemplate {
     @SerializedName("text")
     private String m_text;
@@ -254,6 +217,7 @@ public class Reporting {
     /**
      * @return the parameterized text of this template or {@code null} if none.
      */
+    @JsonProperty("text")
     public String getText() {
       return m_text;
     }
@@ -269,6 +233,7 @@ public class Reporting {
     /**
      * @return the threshold value for this template or {@code null} if none.
      */
+    @JsonProperty("value")
     public Double getValue() {
       return m_value;
     }
@@ -281,53 +246,24 @@ public class Reporting {
       m_value = value;
     }
 
-    /**
-     *
-     */
     @Override
     public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + ((m_text == null) ? 0 : m_text.hashCode());
-      result = prime * result + ((m_value == null) ? 0 : m_value.hashCode());
-      return result;
+      return Objects.hash(m_text, m_value);
     }
 
-    /**
-     *
-     */
     @Override
     public boolean equals(Object obj) {
       if (this == obj) {
         return true;
       }
 
-      if (obj == null) {
-        return false;
-      }
-
-      if (getClass() != obj.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
       ReportTemplate other = (ReportTemplate) obj;
-
-      if (m_text == null) {
-        if (other.m_text != null) {
-          return false;
-        }
-      } else if (!m_text.equals(other.m_text)) {
-        return false;
-      }
-
-      if (m_value == null) {
-        if (other.m_value != null) {
-          return false;
-        }
-      } else if (!m_value.equals(other.m_value)) {
-        return false;
-      }
-      return true;
+      return Objects.equals(m_text, other.m_text) &&
+        Objects.equals(m_value, other.m_value);
     }
   }
 

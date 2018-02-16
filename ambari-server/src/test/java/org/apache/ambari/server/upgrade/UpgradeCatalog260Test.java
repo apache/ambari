@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -50,27 +51,75 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.hooks.AmbariEventFactory;
+import org.apache.ambari.server.hooks.HookContext;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.hooks.users.PostUserCreationHookContext;
+import org.apache.ambari.server.hooks.users.UserCreatedEvent;
+import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceComponentImpl;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.cluster.ClusterFactory;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
+import org.apache.ambari.server.state.host.HostFactory;
+import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
@@ -79,7 +128,14 @@ import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.scheduler.RequestExecution;
+import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -94,6 +150,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
@@ -103,6 +161,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.name.Names;
+import com.google.inject.persist.UnitOfWork;
 
 /**
  * {@link UpgradeCatalog260} unit tests.
@@ -206,7 +267,7 @@ public class UpgradeCatalog260Test {
 
     expectAddViewUrlPKConstraint();
     expectRemoveStaleConstraints();
-    
+
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Injector injector = getInjector();
@@ -314,7 +375,7 @@ public class UpgradeCatalog260Test {
   }
 
   public void verifyUpdateUpgradeTable(Capture<DBColumnInfo> rvid,
-      Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed) {
+                                       Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed) {
     DBColumnInfo rvidValue = rvid.getValue();
     Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_ID_COLUMN, rvidValue.getName());
     Assert.assertEquals(Long.class, rvidValue.getType());
@@ -561,14 +622,14 @@ public class UpgradeCatalog260Test {
    * @throws SQLException
    */
   public void expectUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture,
-      Capture<DBColumnInfo> repoVersionResolvedColumnCapture) throws SQLException {
+                                                      Capture<DBColumnInfo> repoVersionResolvedColumnCapture) throws SQLException {
     dbAccessor.addColumn(eq(UpgradeCatalog260.REPO_VERSION_TABLE), capture(hiddenColumnCapture));
     dbAccessor.addColumn(eq(UpgradeCatalog260.REPO_VERSION_TABLE), capture(repoVersionResolvedColumnCapture));
     expectLastCall().once();
   }
 
   public void verifyUpdateRepositoryVersionTableTable(Capture<DBColumnInfo> hiddenColumnCapture,
-      Capture<DBColumnInfo> resolvedColumnCapture) {
+                                                      Capture<DBColumnInfo> resolvedColumnCapture) {
     DBColumnInfo hiddenColumn = hiddenColumnCapture.getValue();
     Assert.assertEquals(0, hiddenColumn.getDefaultValue());
     Assert.assertEquals(UpgradeCatalog260.REPO_VERSION_HIDDEN_COLUMN, hiddenColumn.getName());
@@ -597,6 +658,7 @@ public class UpgradeCatalog260Test {
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
 
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.6")).atLeastOnce();
     expect(cluster.getDesiredConfigByType("zeppelin-env")).andReturn(zeppelinEnvConf).atLeastOnce();
     expect(cluster.getDesiredConfigByType("core-site")).andReturn(coreSiteConf).atLeastOnce();
@@ -612,6 +674,9 @@ public class UpgradeCatalog260Test {
 
     expect(controller.createConfig(eq(cluster), anyObject(StackId.class), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class)))
         .andReturn(coreSiteConfNew)
+        .once();
+    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
+        .andReturn(createNiceMock(MetadataUpdateEvent.class))
         .once();
 
     replay(clusters, cluster, zeppelinEnvConf, coreSiteConf, coreSiteConfNew, controller);
@@ -703,6 +768,7 @@ public class UpgradeCatalog260Test {
     expect(cluster.getConfigsByType("ranger-kms-audit")).andReturn(Collections.singletonMap("version1", config)).anyTimes();
     expect(cluster.getServiceByConfigType("ranger-kms-audit")).andReturn("RANGER").anyTimes();
     expect(cluster.getClusterName()).andReturn("cl1").anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
     expect(cluster.getConfig(eq("ranger-kms-audit"), anyString())).andReturn(newConfig).once();
     expect(cluster.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated ranger-kms-audit during Ambari Upgrade from 2.5.2 to 2.6.0.")).andReturn(response).once();
 
@@ -712,7 +778,7 @@ public class UpgradeCatalog260Test {
     expect(cluster.getConfigsByType("hive-interactive-site")).andReturn(Collections.singletonMap("version1", hsiConfig)).anyTimes();
     expect(cluster.getServiceByConfigType("hive-interactive-site")).andReturn("HIVE").anyTimes();
     expect(cluster.getConfig(eq("hive-interactive-site"), anyString())).andReturn(newHsiConfig).anyTimes();
-  
+
 
     final Clusters clusters = injector.getInstance(Clusters.class);
     expect(clusters.getCluster(2L)).andReturn(cluster).anyTimes();
@@ -729,6 +795,9 @@ public class UpgradeCatalog260Test {
     expect(controller.createConfig(eq(cluster), eq(stackId), eq("hive-interactive-site"), capture(captureHsiProperties), anyString(), anyObject(Map.class)))
             .andReturn(null)
             .anyTimes();
+    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
+        .andReturn(createNiceMock(MetadataUpdateEvent.class))
+        .once();
 
     replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller, stackId);
 
@@ -827,11 +896,11 @@ public class UpgradeCatalog260Test {
     replay(injector, clusters, mockAmsSslClient, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration")
-      .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
-      .createNiceMock();
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] { })
+        .addMockedMethod("createConfig")
+        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
     Capture<Map> propertiesCapture = EasyMock.newCapture();
@@ -839,7 +908,7 @@ public class UpgradeCatalog260Test {
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog260(injector2).updateAmsConfigs();
@@ -916,89 +985,153 @@ public class UpgradeCatalog260Test {
   }
 
   @Test
-   public void testHDFSWidgetUpdate() throws Exception {
-         final Clusters clusters = createNiceMock(Clusters.class);
-         final Cluster cluster = createNiceMock(Cluster.class);
-         final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-         final Gson gson = new Gson();
-         final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
-         final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-         WidgetEntity widgetEntity = createNiceMock(WidgetEntity.class);
-         StackId stackId = new StackId("HDP", "2.0.0");
-         StackInfo stackInfo = createNiceMock(StackInfo.class);
-         ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-         Service service  = createNiceMock(Service.class);
+  public void testHDFSWidgetUpdate() throws Exception {
+    final Clusters clusters = createNiceMock(Clusters.class);
+    final Cluster cluster = createNiceMock(Cluster.class);
+    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final Gson gson = new Gson();
+    final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
+    final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+    WidgetEntity widgetEntity = createNiceMock(WidgetEntity.class);
+    StackId stackId = new StackId("HDP", "2.0.0");
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+    Service service  = createNiceMock(Service.class);
 
-           String widgetStr = "{\n" +
-             "  \"layouts\": [\n" +
-             "      {\n" +
-             "      \"layout_name\": \"default_hdfs_heatmap\",\n" +
-             "      \"display_name\": \"Standard HDFS HeatMaps\",\n" +
-             "      \"section_name\": \"HDFS_HEATMAPS\",\n" +
-             "      \"widgetLayoutInfo\": [\n" +
-             "        {\n" +
-             "          \"widget_name\": \"HDFS Bytes Read\",\n" +
-             "          \"metrics\": [],\n" +
-             "          \"values\": []\n" +
-             "        }\n" +
-             "      ]\n" +
-             "    }\n" +
-             "  ]\n" +
-             "}";
+    String widgetStr = "{\n" +
+        "  \"layouts\": [\n" +
+        "      {\n" +
+        "      \"layout_name\": \"default_hdfs_heatmap\",\n" +
+        "      \"display_name\": \"Standard HDFS HeatMaps\",\n" +
+        "      \"section_name\": \"HDFS_HEATMAPS\",\n" +
+        "      \"widgetLayoutInfo\": [\n" +
+        "        {\n" +
+        "          \"widget_name\": \"HDFS Bytes Read\",\n" +
+        "          \"metrics\": [],\n" +
+        "          \"values\": []\n" +
+        "        }\n" +
+        "      ]\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
 
-           File dataDirectory = temporaryFolder.newFolder();
-         File file = new File(dataDirectory, "hdfs_widget.json");
-         FileUtils.writeStringToFile(file, widgetStr);
+    File dataDirectory = temporaryFolder.newFolder();
+    File file = new File(dataDirectory, "hdfs_widget.json");
+    FileUtils.writeStringToFile(file, widgetStr);
 
-           final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-       @Override
-       protected void configure() {
-                 bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
-                 bind(AmbariManagementController.class).toInstance(controller);
-                 bind(Clusters.class).toInstance(clusters);
-                 bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-                 bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-                 bind(Gson.class).toInstance(gson);
-                 bind(WidgetDAO.class).toInstance(widgetDAO);
-                 bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-                 bind(AmbariMetaInfo.class).toInstance(metaInfo);
-               }
-     });
-         expect(controller.getClusters()).andReturn(clusters).anyTimes();
-         expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-             put("normal", cluster);
-           }}).anyTimes();
-         expect(cluster.getServices()).andReturn(Collections.singletonMap("HDFS", service)).anyTimes();
-         expect(cluster.getClusterId()).andReturn(1L).anyTimes();
-         expect(service.getDesiredStackId()).andReturn(stackId).anyTimes();
-         expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
-         expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
-         expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo).anyTimes();
-         expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file).anyTimes();
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
 
-           expect(widgetDAO.findByName(1L, "HDFS Bytes Read", "ambari", "HDFS_HEATMAPS"))
-             .andReturn(Collections.singletonList(widgetEntity));
-         expect(widgetDAO.merge(widgetEntity)).andReturn(null);
-         expect(widgetEntity.getWidgetName()).andReturn("HDFS Bytes Read").anyTimes();
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(AmbariManagementController.class).toInstance(controller);
+        bind(Clusters.class).toInstance(clusters);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Gson.class).toInstance(gson);
+        bind(WidgetDAO.class).toInstance(widgetDAO);
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(AmbariMetaInfo.class).toInstance(metaInfo);
+        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessorImpl.class));
+        bind(PersistedState.class).toInstance(mock(PersistedStateImpl.class));
+        bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
+        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(StageFactory.class).to(StageFactoryImpl.class);
+        bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
+        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+        bind(HookService.class).to(UserHookService.class);
+        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
+        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
+        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
+        bind(StateUpdateEventPublisher.class).toInstance(createNiceMock(StateUpdateEventPublisher.class));
+        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+      }
+    });
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+    expect(cluster.getServices()).andReturn(Collections.singletonMap("HDFS", service)).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(service.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo).anyTimes();
+    expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file).anyTimes();
 
-           replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo, service);
+    expect(widgetDAO.findByName(1L, "HDFS Bytes Read", "ambari", "HDFS_HEATMAPS"))
+        .andReturn(Collections.singletonList(widgetEntity));
+    expect(widgetDAO.merge(widgetEntity)).andReturn(null);
+    expect(widgetEntity.getWidgetName()).andReturn("HDFS Bytes Read").anyTimes();
 
-           mockInjector.getInstance(UpgradeCatalog260.class).updateHDFSWidgetDefinition();
+    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo, service);
 
-           verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
-       }
+    mockInjector.getInstance(UpgradeCatalog260.class).updateHDFSWidgetDefinition();
+
+    verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
+  }
 
   private Injector getInjector() {
 
     return Guice.createInjector(new Module() {
       @Override
       public void configure(Binder binder) {
+        binder.bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+        binder.bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(1L);
+        binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_ENABLED)).to(true);
+        binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_SIZE)).to(10000L);
+        binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES)).to(30L);
+
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
         binder.bind(OsFamily.class).toInstance(osFamily);
         binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
         binder.bind(Clusters.class).toInstance(createMock(Clusters.class));
-        binder.bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
+        binder.bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementControllerImpl.class));
+        binder.bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessorImpl.class));
+        binder.bind(PersistedState.class).toInstance(createMock(PersistedStateImpl.class));
+        binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        binder.bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
+        binder.bind(StageFactory.class).to(StageFactoryImpl.class);
+        binder.bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
+        binder.bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+        binder.bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+        binder.bind(HookService.class).to(UserHookService.class);
+        binder.bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        binder.bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
+        binder.bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
+        binder.bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
+        binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
+        binder.bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        binder.bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
+        binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
+
+        binder.install(new FactoryModuleBuilder().build(RequestFactory.class));
+        binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(
+            Config.class, ConfigImpl.class).build(ConfigFactory.class));
+        binder.install(new FactoryModuleBuilder().build(StackManagerFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class)
+            .build(HookContextFactory.class));
+        binder.install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(RequestExecution.class,
+            RequestExecutionImpl.class).build(RequestExecutionFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(
+            ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(AmbariEvent.class, Names.named("userCreated"), UserCreatedEvent.class)
+            .build(AmbariEventFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(
+            ServiceComponent.class, ServiceComponentImpl.class).build(
+            ServiceComponentFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(
+            Host.class, HostImpl.class).build(HostFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(
+            Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
+        binder.install(new FactoryModuleBuilder().implement(
+            Service.class, ServiceImpl.class).build(ServiceFactory.class));
+        binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
       }
     });
   }

@@ -25,6 +25,7 @@ import java.util.UUID;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -195,7 +196,7 @@ public class EventsTest {
     AlertDefinitionEntity definition = hdfsDefinitions.get(0);
 
     // delete HDFS
-    m_cluster.getService("HDFS").delete();
+    m_cluster.getService("HDFS").delete(new DeleteHostComponentStatusMetaData());
 
     // verify the event was received
     Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
@@ -245,7 +246,7 @@ public class EventsTest {
     Assert.assertEquals(0, hdfsDefinitions.size());
 
     // delete HDFS
-    m_cluster.getService("HDFS").delete();
+    m_cluster.getService("HDFS").delete(new DeleteHostComponentStatusMetaData());
 
     // verify the event was received
     Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
@@ -294,7 +295,7 @@ public class EventsTest {
     Assert.assertNull(group);
 
     // delete HDFS
-    m_cluster.getService("HDFS").delete();
+    m_cluster.getService("HDFS").delete(new DeleteHostComponentStatusMetaData());
 
     // verify the event was received
     Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
@@ -316,7 +317,7 @@ public class EventsTest {
     installHdfsService();
 
     Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
-    m_cluster.getServiceComponentHosts(HOSTNAME).get(0).delete();
+    m_cluster.getServiceComponentHosts(HOSTNAME).get(0).delete(new DeleteHostComponentStatusMetaData());
 
     Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
   }

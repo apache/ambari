@@ -114,7 +114,7 @@ class Pxf(Script):
     XmlConfig("pxf-site.xml",
               conf_dir=params.pxf_conf_dir,
               configurations=params.config['configurations']['pxf-site'],
-              configuration_attributes=params.config['configuration_attributes']['pxf-site'])
+              configuration_attributes=params.config['configurationAttributes']['pxf-site'])
 
 
   def __grant_permissions(self):

@@ -72,7 +72,7 @@ rm_https_port = "8090"
 # TODO UPGRADE default, update site during upgrade
 rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
 
 yarn_heapsize = config['configurations']['yarn-env']['yarn_heapsize']

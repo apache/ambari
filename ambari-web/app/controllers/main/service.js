@@ -93,7 +93,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
   /**
    * @type {bool}
    */
-  isStartStopAllClicked: Em.computed.notEqual('App.router.backgroundOperationsController.allOperationsCount', 0),
+  isStartStopAllClicked: Em.computed.notEqual('App.router.backgroundOperationsController.runningOperationsCount', 0),
 
   /**
    * Callback for <code>start all service</code> button
@@ -245,7 +245,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
    */
   silentStartAllServices: function () {
     if (
-      !App.router.get('backgroundOperationsController').get('allOperationsCount')
+      !App.router.get('backgroundOperationsController').get('runningOperationsCount')
       && this.get('shouldStart')
       && !this.isStopAllServicesFailed()
     ) {
@@ -263,7 +263,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
         showLoadingPopup: true
       });
     }
-  }.observes('shouldStart', 'controllers.backgroundOperationsController.allOperationsCount'),
+  }.observes('shouldStart', 'controllers.backgroundOperationsController.runningOperationsCount'),
 
   /**
    * Success callback for silent start

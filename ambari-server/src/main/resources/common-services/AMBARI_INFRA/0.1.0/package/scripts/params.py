@@ -49,7 +49,7 @@ stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
-hostname = config['hostname'].lower()
+hostname = config['agentLevelParams']['hostname'].lower()
 
 infra_solr_conf = "/etc/ambari-infra-solr/conf"
 
@@ -62,11 +62,11 @@ user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 # shared configs
-java_home = config['hostLevelParams']['java_home']
-ambari_java_home = default("/commandParams/ambari_java_home", None)
+java_home = config['ambariLevelParams']['java_home']
+ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
 java64_home = ambari_java_home if ambari_java_home is not None else java_home
 java_exec = format("{java64_home}/bin/java")
-zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_server_hosts']
 zookeeper_hosts_list.sort()
 # get comma separated list of zookeeper hosts from clusterHostInfo
 zookeeper_hosts = ",".join(zookeeper_hosts_list)
@@ -122,7 +122,7 @@ default_ranger_audit_users = 'nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi'
 
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   infra_solr_jaas_file = infra_solr_conf + '/infra_solr_jaas.conf'
   infra_solr_kerberos_keytab = config['configurations']['infra-solr-env']['infra_solr_kerberos_keytab']
   infra_solr_kerberos_principal = config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)

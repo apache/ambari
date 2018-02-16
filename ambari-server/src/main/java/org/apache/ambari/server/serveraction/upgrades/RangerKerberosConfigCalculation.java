@@ -20,12 +20,14 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.commons.lang.StringUtils;
 
@@ -253,6 +255,8 @@ public class RangerKerberosConfigCalculation extends AbstractUpgradeServerAction
     if(!errMsg.equalsIgnoreCase("")) {
       outputMsg = outputMsg + MessageFormat.format("\n {0}", errMsg, RANGER_ADMIN_SITE_CONFIG_TYPE);
     }
+    //TODO only when configs were changed
+    agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputMsg, "");
   }

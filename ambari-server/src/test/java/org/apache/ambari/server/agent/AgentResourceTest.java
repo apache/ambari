@@ -32,18 +32,33 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.hooks.AmbariEventFactory;
+import org.apache.ambari.server.hooks.HookContext;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.hooks.users.PostUserCreationHookContext;
+import org.apache.ambari.server.hooks.users.UserCreatedEvent;
+import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -78,10 +93,12 @@ import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.easymock.EasyMock;
-import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -89,6 +106,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.name.Names;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -107,7 +125,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
   protected Client client;
   HeartBeatHandler handler;
   ActionManager actionManager;
-  SessionManager sessionManager;
+  SessionHandler sessionHandler;
   Injector injector;
   AmbariMetaInfo ambariMetaInfo;
   OsFamily os_family;
@@ -309,12 +327,17 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       actionManager = mock(ActionManager.class);
       ambariMetaInfo = mock(AmbariMetaInfo.class);
       actionDBAccessor = mock(ActionDBAccessor.class);
-      sessionManager = mock(SessionManager.class);
+      sessionHandler = mock(SessionHandler.class);
       bind(OsFamily.class).toInstance(os_family);
       bind(ActionDBAccessor.class).toInstance(actionDBAccessor);
       bind(ActionManager.class).toInstance(actionManager);
-      bind(SessionManager.class).toInstance(sessionManager);
+      bind(SessionHandler.class).toInstance(sessionHandler);
       bind(AgentCommand.class).to(ExecutionCommand.class);
+      bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
+      bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
+      bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+      bind(HookService.class).to(UserHookService.class);
+      bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
       bind(HeartBeatHandler.class).toInstance(handler);
       bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       bind(DBAccessor.class).toInstance(mock(DBAccessor.class));
@@ -351,6 +374,12 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       install(new FactoryModuleBuilder().build(StageFactory.class));
       install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
       install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
+
+      install(new FactoryModuleBuilder().build(RequestFactory.class));
+      install(new FactoryModuleBuilder().implement(AmbariEvent.class, Names.named("userCreated"), UserCreatedEvent.class)
+          .build(AmbariEventFactory.class));
+      install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class)
+          .build(HookContextFactory.class));
 
 
       bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
