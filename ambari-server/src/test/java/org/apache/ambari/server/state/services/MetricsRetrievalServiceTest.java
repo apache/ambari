@@ -196,6 +196,42 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
   }
 
   /**
+   * Tests handling NaN in JSON.
+   */
+  @Test
+  public void testJsonNaN() throws Exception {
+
+    InputStream jmxInputStream = IOUtils.toInputStream("{ \"beans\": [ " +
+            " {\n" +
+            "    \"name\" : \"Hadoop:service=HBase,name=RegionServer,sub=Server\",\n" +
+            "    \"modelerType\" : \"RegionServer,sub=Server\",  \"l1CacheMissCount\" : 0,\n" +
+            "    \"l1CacheHitRatio\" : NaN,\n" +
+            "    \"l1CacheMissRatio\" : NaN,\n" +
+            "    \"l2CacheHitCount\" : 0" +
+            " }] " +
+            "}");
+
+    StreamProvider streamProvider = createNiceMock(StreamProvider.class);
+
+    EasyMock.expect(streamProvider.readFrom(JMX_URL)).andReturn(jmxInputStream).once();
+
+    replayAll();
+
+    m_service.startAsync();
+    m_service.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
+
+    // make the service synchronous
+    m_service.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
+
+    JMXMetricHolder jmxMetricHolder = m_service.getCachedJMXMetric(JMX_URL);
+    Assert.assertNull(jmxMetricHolder);
+
+    m_service.submitRequest(MetricSourceType.JMX, streamProvider, JMX_URL);
+    jmxMetricHolder = m_service.getCachedJMXMetric(JMX_URL);
+    Assert.assertNotNull(jmxMetricHolder);
+  }
+
+  /**
    * Tests that many requests to the same URL do not invoke the stream provider
    * more than once.
    */
