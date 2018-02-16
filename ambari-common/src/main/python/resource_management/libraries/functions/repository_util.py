@@ -37,7 +37,7 @@ class RepositoryUtil:
 
     # repo templates
     repo_file = config['repositoryFile']
-    repo_rhel_suse =  get_cluster_setting_value('repo_rhel_suse_template')
+    repo_rhel_suse =  get_cluster_setting_value('repo_suse_rhel_template')
     repo_ubuntu =  get_cluster_setting_value('repo_ubuntu_template')
 
     if is_empty(repo_file):
