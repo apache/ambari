@@ -32,6 +32,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -71,8 +72,12 @@ public class ServiceGroupEntity {
   @Column(name = "service_group_name", nullable = false, insertable = true, updatable = true)
   private String serviceGroupName;
 
-  @Column(name = "stack_id", nullable = false, insertable = true, updatable = true)
-  private Long stackId;
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private StackEntity stack;
 
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
@@ -108,12 +113,12 @@ public class ServiceGroupEntity {
     this.serviceGroupName = serviceGroupName;
   }
 
-  public Long getStackId() {
-    return stackId;
+  public StackEntity getStack() {
+    return stack;
   }
 
-  public void setStackId(Long stackId) {
-    this.stackId = stackId;
+  public void setStack(StackEntity stack) {
+    this.stack = stack;
   }
 
   public List<ServiceGroupDependencyEntity> getDependencies() {
@@ -142,7 +147,7 @@ public class ServiceGroupEntity {
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (serviceGroupName != null ? !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null)
       return false;
-    if (Long.valueOf(stackId) != Long.valueOf(((ServiceGroupEntity) o).stackId))
+    if (Long.valueOf(stack.getStackId()) != Long.valueOf(((ServiceGroupEntity) o).getStack().getStackId()))
       return false;
 
     return true;
@@ -150,7 +155,7 @@ public class ServiceGroupEntity {
 
   @Override
   public int hashCode() {
-    return Objects.hash(serviceGroupId, clusterId, serviceGroupName, stackId);
+    return Objects.hash(serviceGroupId, clusterId, serviceGroupName, stack);
   }
 
   public ClusterEntity getClusterEntity() {

@@ -411,8 +411,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
         try {
           Cluster cluster = clusters.getCluster(clusterName);
           StackId stackId = cluster.getCurrentStackVersion();
-          version = stackId.getStackName()+"-"+stackId.getStackVersion();
-          request.setVersion(version);
+          request.setVersion(stackId.getStackId());
         } catch (ClusterNotFoundException e) {
           throw new ParentObjectNotFoundException("Cluster " + clusterName + " does not exist: ", e);
         }
@@ -420,7 +419,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
 
       Validate.notNull(clusterName, "Cluster name should be provided when creating a service group");
       Validate.notEmpty(serviceGroupName, "Service group name should be provided when creating a service group");
-      Validate.notEmpty(version, "Stack version should be provided when creating a service group");
+      Validate.notEmpty(request.getVersion(), "Stack version should be provided when creating a service group");
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a createServiceGroup request" +

@@ -29,7 +29,7 @@ public interface ServiceGroupFactory {
 
   ServiceGroup createNew(Cluster cluster,
                          @Assisted("serviceGroupName") String serviceGroupName,
-                         @Assisted("version") String version,
+                         @Assisted("stackId") StackId stackId,
                          @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies);
 
   ServiceGroup createExisting(Cluster cluster, ServiceGroupEntity serviceGroupEntity);
