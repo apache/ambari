@@ -42,7 +42,6 @@ import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;

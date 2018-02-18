@@ -31,51 +31,69 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.lang.StringUtils;
 
-public class HostRenderer extends DefaultRenderer {
+/**
+ * HostSummaryRenderere
+ *
+ * This renderer is to summarize the properties of all hosts within a cluster and returns
+ * a list of proerpties summary information: i.e
+ *
+ * summary:[
+ *  {
+ *    "operating_systems" : {
+ *      "centos6" : 5,
+ *      "centos7" : 10
+ *    }
+ *  }
+ * ]
+ *
+ */
+public class HostSummaryRenderer extends DefaultRenderer {
 
   // A list of host properties to be summarized
-  private final String OPERATING_SYSTEMS = "operating systems";
-  // Renderer name: Host or Summary
-  private String name = "Host";
+  enum HostSummaryProperties {
+    OPERATINGSYSTEMS("operating_systems");
 
-  public HostRenderer() {
-    super();
-  }
-
-  public HostRenderer(String name) {
-    this.name = StringUtils.isBlank(name) ? this.name : name;
+    private final String property;
+    HostSummaryProperties(String property) {
+      this.property = property;
+    }
+    public String getProperty() {
+      return property;
+    }
   }
 
   @Override
   public Result finalizeResult(Result queryResult) {
-    // Host still uses defaultRenderer
-    if (name.equals("Host")) {
-      return super.finalizeResult(queryResult);
-    }
-    // Summary needs aggregation
-    TreeNode<Resource> resultTree = queryResult.getResultTree();
-    // iterate over all returned flattened hosts and build the summary info
+    TreeNode<Resource> queryResultTree = queryResult.getResultTree();
+    // Iterate over all returned flattened hosts and build the summary info
     List<Object> summary = new ArrayList<>();
+    // Build all summary info
+    buildFinalizedSummary(queryResultTree, summary);
+    // Create finalized result
+    return buildFinalizedResult(summary);
+  }
+
+  private void buildFinalizedSummary(TreeNode<Resource> queryResultTree, List<Object> summary) {
+    // Build osSummary info at this time
     Map<String, Map<String, Integer>> osSummary = new HashMap<>();
-    osSummary.put(OPERATING_SYSTEMS, new HashMap<String, Integer>());
-    for (TreeNode<Resource> node : resultTree.getChildren()) {
+    summary.add(osSummary);
+    Map<String, Integer> osTypeCount = new HashMap<>();
+    osSummary.put(HostSummaryProperties.OPERATINGSYSTEMS.getProperty(), osTypeCount);
+    for (TreeNode<Resource> node : queryResultTree.getChildren()) {
       Resource resource = node.getObject();
       String osType = (String) resource.getPropertyValue(HostResourceProvider.HOST_OS_TYPE_PROPERTY_ID);
       if (StringUtils.isNotBlank(osType)) {
-        Map<String, Integer> os = osSummary.get(OPERATING_SYSTEMS);
-        os.put(osType, os.getOrDefault(osType, 0) + 1);
+        osTypeCount.put(osType, osTypeCount.getOrDefault(osTypeCount, 0) + 1);
       }
     }
-    if (!osSummary.isEmpty()) {
-      summary.add(osSummary);
-    }
+  }
 
+  private Result buildFinalizedResult(List<Object> summary) {
     Result result = new ResultImpl(true);
-    TreeNode<Resource> summaryResultTree = result.getResultTree();
     Resource resource = new ResourceImpl(Resource.Type.Host);
     TreeNode<Resource> summaryTree = result.getResultTree();
-    summaryTree.addChild(resource, "summary");
-    resource.setProperty("summary", summary);
+    summaryTree.addChild(resource, HostResourceProvider.SUMMARY_PROPERTY_ID);
+    resource.setProperty(HostResourceProvider.SUMMARY_PROPERTY_ID, summary);
     return result;
   }
 }
