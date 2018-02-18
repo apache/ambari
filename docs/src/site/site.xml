@@ -83,7 +83,7 @@
 
     <links>
       <item name="JIRA" href="https://issues.apache.org/jira/browse/AMBARI" />
-      <item name="Git" href="https://git-wip-us.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary" />
+      <item name="Git" href="https://gitbox.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary" />
       <item name="Wiki" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari" />
     </links>
 

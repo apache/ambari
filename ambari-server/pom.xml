@@ -804,7 +804,7 @@
         <artifactId>buildnumber-maven-plugin</artifactId>
         <version>${buildnumber-maven-plugin-version}</version>
         <configuration>
-          <urlScm>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-ambari.git</urlScm>
+          <urlScm>scm:git:https://gitbox.apache.org/repos/asf/ambari.git</urlScm>
         </configuration>
         <executions>
           <execution>
