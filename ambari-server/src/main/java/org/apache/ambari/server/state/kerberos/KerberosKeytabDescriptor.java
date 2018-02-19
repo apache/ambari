@@ -463,7 +463,7 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
       group.put(KEY_ACL_ACCESS, data);
     }
 
-    if (!owner.isEmpty()) {
+    if (!group.isEmpty()) {
       map.put(KEY_GROUP, group);
     }
     // Build file owner map (end)
