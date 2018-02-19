@@ -32,7 +32,7 @@
   <div class="service-config-section">
     <form class="form-horizontal" autocomplete="off">
       {{#each configData in view.categoryConfigs}}
-        {{#unless configData.widget}} {{! configs with widgets should be shown only on the EnhancedConfigs tabs }}
+        {{#unless configData.isInDefaultTheme}} {{! configs related to default themes should not be shown on the Advanced tab }}
           {{#if configData.isComparison}}
             {{template "templates/common/configs/configs_comparison_row"}}
           {{else}}

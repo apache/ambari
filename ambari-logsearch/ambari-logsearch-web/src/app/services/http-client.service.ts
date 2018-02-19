@@ -73,6 +73,9 @@ export class HttpClientService extends Http {
     components: {
       url: 'service/logs/components/levels/counts'
     },
+    serviceComponentsName: {
+      url: 'service/logs/components'
+    },
     clusters: {
       url: 'service/logs/clusters'
     },

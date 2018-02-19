@@ -35,6 +35,7 @@
   </property>
   <property>
     <name>tez.lib.uris</name>
+    <display-name>TEZ Lib URIs</display-name>
     <value>file:///C:/hdp/tez-0.7.0.{{hdp_stack_version}}/tez-0.7.0.{{hdp_stack_version}}.tar.gz</value>
     <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
       Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).

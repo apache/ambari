@@ -95,6 +95,9 @@ public class RepositoryVersionHelper {
 
   @Inject Provider<Clusters> clusters;
 
+  public static final String GPL_MINIMAL_VERSION = "2.6.4.0";
+  private static final String ZERO_VERSION = "0.0.0.0";
+  private static final String VERSION_SPLITTER = "\\.";
 
   /**
    * Checks repo URLs against the current version for the cluster and make
@@ -622,7 +625,38 @@ public class RepositoryVersionHelper {
   }
 
   /**
-   * Get repository info given a cluster and host.
+   * Checks repository version is HDP and should contain repo with GPL tag.
+   * @param stackId stack id
+   * @param version repository version as x.x.x.x, x.x.x.x-x, x.x-x, x.x
+   * @return true if stack is HDP and version is younger than {@value #GPL_MINIMAL_VERSION}
+   */
+  public static boolean shouldContainGPLRepo(StackId stackId, String version) {
+    if (!stackId.getStackName().equals("HDP")) {
+      return false;
+    }
+    if (version.contains("-")) {
+      version = version.split("-")[0];
+    }
+    String[] versionItems = ZERO_VERSION.split(VERSION_SPLITTER);
+    int versionIndex = 0;
+    for (String versionItem : version.split(VERSION_SPLITTER)) {
+      versionItems[versionIndex++] = versionItem;
+    }
+    String[] gplMinimalItems = GPL_MINIMAL_VERSION.split(VERSION_SPLITTER);
+
+    for (versionIndex = 0; versionIndex < versionItems.length; versionIndex++) {
+      Integer versionItem = Integer.parseInt(versionItems[versionIndex]);
+      Integer gplMinimalItem = Integer.parseInt(gplMinimalItems[versionIndex]);
+      if (versionItem < gplMinimalItem) {
+        return false;
+      } else if (versionItem > gplMinimalItem) {
+        return true;
+      }
+    }
+    return true;
+  }
+  
+  /** Get repository info given a cluster and host.
    *
    * @param cluster  the cluster
    * @param host     the host
@@ -630,14 +664,9 @@ public class RepositoryVersionHelper {
    * @return the repo info
    *
    * @throws AmbariException if the repository information can not be obtained
-  public String getRepoInfoString(Cluster cluster, Host host) throws AmbariException {
-
-  return getRepoInfoString(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
-  }*/
-
+   */
   public String getRepoInfoString(Cluster cluster, ServiceComponent component, Host host) throws AmbariException, SystemException {
     return gson.toJson(getCommandRepository(cluster, component, host));
   }
-
 
 }

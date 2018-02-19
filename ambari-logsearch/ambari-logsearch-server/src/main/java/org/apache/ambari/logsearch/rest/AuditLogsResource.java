@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logsearch.rest;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.BeanParam;
@@ -26,25 +27,27 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import freemarker.template.TemplateException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.StatusMessage;
+import org.apache.ambari.logsearch.model.metadata.AuditFieldMetadataResponse;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
 import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.UserExportRequest;
 import org.apache.ambari.logsearch.model.response.AuditLogResponse;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
-import org.apache.ambari.logsearch.model.response.GroupListResponse;
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
 import org.apache.ambari.logsearch.manager.AuditLogsManager;
 import org.springframework.context.annotation.Scope;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.AuditOperationDescriptions.*;
 
@@ -61,8 +64,8 @@ public class AuditLogsResource {
   @Path("/schema/fields")
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_SCHEMA_FIELD_LIST_OD)
-  public String getSolrFieldList() {
-    return auditLogsManager.getAuditLogsSchemaFieldsName();
+  public AuditFieldMetadataResponse getSolrFieldList() {
+    return auditLogsManager.getAuditLogSchemaMetadata();
   }
 
   @GET
@@ -83,8 +86,8 @@ public class AuditLogsResource {
   @Path("/components")
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_COMPONENTS_OD)
-  public GroupListResponse getAuditComponents(@BeanParam AuditComponentRequest request) {
-    return auditLogsManager.getAuditComponents(request);
+  public Map<String, String> getAuditComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+    return auditLogsManager.getAuditComponents(clusters);
   }
 
   @GET

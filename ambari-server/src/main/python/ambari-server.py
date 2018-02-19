@@ -494,6 +494,9 @@ def init_setup_parser_options(parser):
                                                                "Name sid|sname", dest="sid_or_sname")
   other_group.add_option('--enable-lzo-under-gpl-license', action="store_true", default=False, help="Automatically accepts GPL license", dest="accept_gpl")
 
+  # the --master-key option is needed in the event passwords in the ambari.properties file are encrypted
+  other_group.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
+
   parser.add_option_group(other_group)
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)

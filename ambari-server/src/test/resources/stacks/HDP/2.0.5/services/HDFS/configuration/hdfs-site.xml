@@ -409,6 +409,7 @@ don't exist, they will be created with this permission.</description>
   </property>
   <property>
     <name>dfs.journalnode.edits.dir</name>
+    <display-name>JournalNode Edits directory</display-name>
     <value>/grid/0/hdfs/journal</value>
     <description>The path where the JournalNode daemon will store its local state. </description>
     <on-ambari-upgrade add="true"/>

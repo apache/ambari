@@ -367,7 +367,6 @@
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>conf/windows/ca.config</exclude>
             <exclude>conf/windows/krb5JAASLogin.conf</exclude>
-            <exclude>**/*.iml</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
             <exclude>**/repo_suse_rhel.j2</exclude>
@@ -805,7 +804,7 @@
         <artifactId>buildnumber-maven-plugin</artifactId>
         <version>${buildnumber-maven-plugin-version}</version>
         <configuration>
-          <urlScm>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-ambari.git</urlScm>
+          <urlScm>scm:git:https://gitbox.apache.org/repos/asf/ambari.git</urlScm>
         </configuration>
         <executions>
           <execution>
@@ -1169,8 +1168,16 @@
       <version>1.9.2</version>
     </dependency>
     <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-assistedinject</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-multibindings</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
@@ -1179,15 +1186,6 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject.extensions</groupId>
-      <artifactId>guice-multibindings</artifactId>
-      <version>4.1.0</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
@@ -1422,10 +1420,6 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jdbc</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

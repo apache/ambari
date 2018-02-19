@@ -149,6 +149,9 @@ public class OutputManagerImpl extends OutputManager {
     if (jsonObj.get("event_count") == null) {
       jsonObj.put("event_count", new Integer(1));
     }
+    if (StringUtils.isNotBlank(input.getInputDescriptor().getGroup())) {
+      jsonObj.put("group", input.getInputDescriptor().getGroup());
+    }
     if (inputMarker.getAllProperties().containsKey("line_number") &&
       (Integer) inputMarker.getAllProperties().get("line_number") > 0) {
       jsonObj.put("logfile_line_number", inputMarker.getAllProperties().get("line_number"));

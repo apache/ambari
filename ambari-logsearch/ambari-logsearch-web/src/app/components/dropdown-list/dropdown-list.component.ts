@@ -18,7 +18,7 @@
 
 import {
   Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
-  QueryList
+  QueryList, ChangeDetectorRef
 } from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
@@ -30,7 +30,7 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 })
 export class DropdownListComponent implements OnChanges, AfterViewChecked {
 
-  constructor(private componentGenerator: ComponentGeneratorService) {
+  constructor(private componentGenerator: ComponentGeneratorService, private changeDetector: ChangeDetectorRef) {
   }
 
   private shouldRenderAdditionalComponents: boolean = false;
@@ -71,6 +71,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     if (this.shouldRenderAdditionalComponents && setter && containers) {
       containers.forEach((container, index) => this.componentGenerator[setter](this.items[index].value, container));
       this.shouldRenderAdditionalComponents = false;
+      this.changeDetector.detectChanges();
     }
   }
 

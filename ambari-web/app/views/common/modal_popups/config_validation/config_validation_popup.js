@@ -44,9 +44,12 @@ App.showConfigValidationPopup = function (configErrors, primary, secondary) {
       secondary();
     },
     disablePrimary: !!configErrors.get('criticalIssues.length'),
-    bodyClass: Em.View.extend({
-      templateName: require('templates/common/modal_popups/config_recommendation_popup'),
+    bodyClass: App.ValidationsView.extend({
       configErrors: configErrors
     })
   });
 };
+
+App.ValidationsView = Em.View.extend({
+  templateName: require('templates/common/modal_popups/config_recommendation_popup')
+});

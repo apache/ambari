@@ -96,7 +96,7 @@ App.ServiceConfig = Ember.Object.extend({
     this.get('configCategories').setEach('errorCount', 0);
     this.get('configsWithErrors').forEach(function(c) {
       //configurations with widget shouldn't affect advanced category error counter
-      if (this.get('configCategoriesMap')[c.get('category')] && !c.get('widget')) {
+      if (this.get('configCategoriesMap')[c.get('category')] && !c.get('isInDefaultTheme')) {
         this.get('configCategoriesMap')[c.get('category')].incrementProperty('errorCount');
       }
     }, this);

@@ -3,7 +3,8 @@
     {
       "type": "secure_log",
       "rowtype": "service",
-      "path": "/root/test-logs/secure_log/secure-log.txt"
+      "path": "/root/test-logs/secure_log/secure-log.txt",
+      "group": "System"
     }
   ],
   "filter": [

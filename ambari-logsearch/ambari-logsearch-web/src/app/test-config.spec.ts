@@ -16,9 +16,13 @@
  * limitations under the License.
  */
 
-import {HttpModule, Http} from '@angular/http';
+import {HttpModule, Http, BrowserXhr, XSRFStrategy, ResponseOptions, XHRBackend} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {Injector} from "@angular/core";
+import {InMemoryBackendService} from "angular-in-memory-web-api";
+import {mockApiDataService} from "@app/services/mock-api-data.service";
+import {HttpClientService} from "@app/services/http-client.service";
 
 function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -34,3 +38,23 @@ export const TranslationModules = [
     }
   })
 ];
+
+export const MockHttpRequestModules = [
+  HttpClientService,
+  {
+    provide: XHRBackend,
+    useFactory: getTestXHRBackend,
+    deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
+  }
+];
+
+export function getTestXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions) {
+  return new InMemoryBackendService(
+    injector,
+    new mockApiDataService(),
+    {
+      passThruUnknownUrl: true,
+      rootPath: ''
+    }
+  )
+}

@@ -15,48 +15,100 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-{{#if controller.isRecommendedLoaded}}
+{{#if controller.isInstallWizard}}
+  <span class="service-name">{{t common.service}}&nbsp;</span>
+  <span class="btn-group">
+    <button class="btn btn-default dropdown-toggle first select-service-dropdown" data-toggle="dropdown">
+      {{controller.selectedService.displayName}}
+      {{#if selectedService.configsWithErrors.length}}
+        <span class="badge badge-important">{{selectedService.configsWithErrors.length}}</span>
+      {{/if}}
+    </button>
+    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+      {{#each service in controller.stepConfigs}}
+        <li>
+          <a href="#" {{action selectService service target="controller"}}>
+            {{service.displayName}}
+            {{#if service.configsWithErrors.length}}
+              <span class="badge badge-important">{{service.configsWithErrors.length}}</span>
+            {{/if}}
+          </a>
+        </li>
+      {{/each}}
+    </ul>
+  </span>
+{{else}}
+  {{#if controller.isRecommendedLoaded}}
     <ul class="nav nav-tabs" {{QAAttr "config-tabs"}}>
       {{#each service in controller.stepConfigs}}
         {{#if service.showConfig}}
           {{#view App.ServiceConfigTab}}
-              <a href="#{{unbound service.serviceName}}" {{bindAttr class=":active service.selected:new"}}
-                 data-toggle="tab" {{action selectService service target="view"}}>
-                {{service.displayName}}{{#if service.errorCount}}<span
-                      class="badge badge-important" {{QAAttr "error-badge"}}>{{service.errorCount}}</span>{{/if}}</a>
+            <a href="#{{unbound service.serviceName}}" {{bindAttr class=":active service.selected:new"}}
+               data-toggle="tab" {{action selectService service target="controller"}}>
+              {{service.displayName}}{{#if service.errorCount}}<span
+                class="badge badge-important" {{QAAttr "error-badge"}}>{{service.errorCount}}</span>{{/if}}</a>
           {{/view}}
         {{/if}}
       {{/each}}
     </ul>
-{{else}}
+  {{else}}
     {{view App.SpinnerView}}
+  {{/if}}
+{{/if}}
+{{#if controller.isInstallWizard}}
+  {{#if issuesCounter}}
+    <span class="notifications-group pull-right">
+      <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span id="issues-bell" {{bindAttr class=":glyphicon :glyphicon-bell controller.hasErrors:important:warning"}}></span>
+        <span id="issues-counter" {{bindAttr class=":badge controller.hasErrors:badge-important:badge-warning"}}>
+          {{issuesCounter}}
+        </span>
+      </span>
+      <div id="notifications-dropdown" class="dropdown-menu row">
+        <div class="popover-content">
+          <div class="popup-arrow-up"></div>
+          {{view App.DependentConfigsListView recommendationsBinding="controller.recommendations" requiredChangesBinding="controller.requiredChanges"}}
+        </div>
+      </div>
+    </span>
+  {{/if}}
 {{/if}}
 {{#if hasChangedDependencies}}
-  <div class="alert alert-warning">
-    <span>{{dependenciesMessage}}</span> <a href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
-  </div>
+  {{#unless controller.isInstallWizard}}
+    <div class="alert alert-warning">
+      <span>{{dependenciesMessage}}</span> <a
+        href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
+    </div>
+  {{/unless}}
 {{/if}}
 {{#if showSelectGroupsPopup}}
   <div class="alert alert-warning">
-    <span>{{dependenciesGroupMessage}}</span> <a href="#" {{action "changedDependentGroup" target="controller"}}>{{t common.showDetails}}</a>
+    <span>{{dependenciesGroupMessage}}</span> <a
+      href="#" {{action "changedDependentGroup" target="controller"}}>{{t common.showDetails}}</a>
   </div>
 {{/if}}
 {{view App.ServiceConfigContainerView}}
 {{#if controller.isRecommendedLoaded}}
-    <p class="loading align-center"></p>
+  <p class="loading align-center"></p>
+  {{#unless controller.isInstallWizard}}
     {{#unless controller.transitionInProgress}}
       {{#if controller.hasStepConfigIssues}}
         <div class="alert alert-warning" {{QAAttr "warning-alert"}}>
-          <span class="glyphicon glyphicon-warning-sign"></span> {{t installer.step7.attentionNeeded}}<br />
-          {{issuesFilterText}} <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
+          <span class="glyphicon glyphicon-warning-sign"></span> {{t installer.step7.attentionNeeded}}<br/>
+          {{issuesFilterText}} <a
+            href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
         </div>
       {{else}}
         <div class="alert alert-success">
-          <span class="glyphicon glyphicon-check"></span> {{t installer.step7.noIssues}}<br />
+          <span class="glyphicon glyphicon-check"></span> {{t installer.step7.noIssues}}<br/>
           {{#if controller.issuesFilterSelected}}
             <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
           {{/if}}
         </div>
       {{/if}}
     {{/unless}}
+  {{/unless}}
 {{/if}}

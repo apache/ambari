@@ -38,12 +38,10 @@ public class CreateCollectionCommand extends AbstractSolrRetryCommand<Collection
   public CollectionAdminRequest.Create createRequest(AmbariSolrCloudClient client) {
     CollectionAdminRequest.Create request =
       CollectionAdminRequest.createCollection(client.getCollection(), client.getConfigSet(), client.getShards(), client.getReplication());
-    request.setMaxShardsPerNode(client.getMaxShardsPerNode());;
-    if (client.getRouterField() != null && client.getRouterName()!= null) {
+    request.setMaxShardsPerNode(client.getMaxShardsPerNode());
+    if (client.isImplicitRouting()) {
       request.setRouterName(client.getRouterName());
       request.setRouterField(client.getRouterField());
-    }
-    if (client.isSplitting()) {
       request.setShards(ShardUtils.generateShardListStr(client.getMaxShardsPerNode()));
     }
     return request;

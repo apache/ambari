@@ -59,6 +59,10 @@
     margin-top: 0;
   }
 
+  ul.with-overrides {
+    margin-top: 20px;
+  }
+
   #get-started {
     .cluster-name-input {
       padding: 4px 0px;
@@ -737,6 +741,26 @@
   }
 }
 
+.config-groups-dropdown {
+  margin-right: 10px;
+  button.first {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.select-service-dropdown {
+  width: 170px;
+  text-align: left;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  padding-left: 8px;
+}
+
+.config-actions {
+  height: 34px;
+}
+
 .install-wizard-content {
   #top-nav .navbar.navbar-static-top {
     margin-bottom: 0;
@@ -777,3 +801,390 @@
   }
 }
 
+#serviceConfig {
+  ul.config-categories-tabs {
+    li {
+      &:not(:first-of-type) {
+        margin-left: 36px;
+        &:before {
+          width: 32px;
+          height: 2px;
+          background-color: #c6c6c7;
+          content: "";
+          position: absolute;
+          top: 18px;
+          left: -35px;
+        }
+      }
+      a {
+        background-color: transparent;
+      }
+    }
+  }
+  .credentials-table, .accounts-table {
+    td {
+      line-height: 34px;
+    }
+    .row {
+      padding: 0;
+    }
+  }
+  .accounts-table {
+    input {
+      width: 75% !important;
+    }
+  }
+  .red {
+    color: @health-status-red;
+  }
+  .configure-db-mode {
+    display: inline-block;
+  }
+  .accounts-table {
+    td {
+      line-height: 34px;
+    }
+  }
+
+  .notifications-group {
+    #notifications-dropdown {
+      padding: 10px;
+      right: -20px;
+      width: 900px;
+      max-width: none;
+      min-width: initial;
+      top: 160%;
+      .popover-content {
+        max-height: 600px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .popup-arrow-up {
+        right: 18px;
+      }
+      .recommendations-header {
+        color: @health-status-orange;
+      }
+      .recommendations-message {
+        font-size: 12px;
+        color: #999999;
+      }
+      .required-table {
+        button {
+          padding: 5px 15px;
+          color: #1F749E;
+          border-color: #1F749E;
+          background-color: white;
+          text-transform: uppercase;
+          border-style: solid;
+        }
+      }
+      #config-dependencies {
+        table {
+          font-size: 12px;
+          td {
+            &.config-dependency-filename {
+              min-width: 107px;
+            }
+            &.config-dependency-group {
+              min-width: 106px;
+            }
+            &.config-dependency-name {
+              min-width: 170px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .alerts-label {
+    font-size: 17px;
+    cursor: pointer;
+    .glyphicon {
+      top: 6px;
+    }
+    .badge {
+      margin-left: 0;
+    }
+  }
+
+  .numberCircle {
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    color: #ffffff;
+    background-color: @health-status-orange;
+    text-align: center;
+    font-size: 12px;
+    display: inline-block;
+    position: relative;
+    top: -5px;
+  }
+}
+
+#directories {
+  .left-arrow, .right-arrow {
+    float: left;
+    text-align: center;
+    width: 3%;
+    a {
+      font-size: 25px;
+      text-decoration: none;
+      line-height: 65px;
+    }
+  }
+  .tabs-container {
+    width: 94%;
+    float: left;
+    ul {
+      white-space: nowrap;
+      display: inline-flex;
+    }
+    overflow: hidden;
+  }
+  .config-actions {
+    margin-right: 10px;
+  }
+  .widget-config-controls {
+    a, .show {
+      display: inline !important;
+    }
+    a {
+      margin: 5px;
+    }
+  }
+}
+
+#databases, #all-configurations {
+  .config-section {
+    border: none;
+  }
+}
+
+#databases {
+  .config-section-table {
+    border-spacing: 20px 0;
+    .config-section {
+      padding-top: 0;
+      .combo-widget {
+        input {
+          width: 183px;
+        }
+      }
+    }
+  }
+}
+
+#all-configurations {
+  min-height: 650px;
+  .config-section {
+    background-color: #F2F2F2;
+  }
+  @-webkit-keyframes ring {
+    0% {
+      -webkit-transform: rotate(-15deg);
+      transform: rotate(-15deg);
+    }
+
+    10% {
+      -webkit-transform: rotate(15deg);
+      transform: rotate(15deg);
+    }
+
+    20% {
+      -webkit-transform: rotate(-18deg);
+      transform: rotate(-18deg);
+    }
+
+    30% {
+      -webkit-transform: rotate(18deg);
+      transform: rotate(18deg);
+    }
+
+    40% {
+      -webkit-transform: rotate(-22deg);
+      transform: rotate(-22deg);
+    }
+
+    50% {
+      -webkit-transform: rotate(22deg);
+      transform: rotate(22deg);
+    }
+
+    60% {
+      -webkit-transform: rotate(-18deg);
+      transform: rotate(-18deg);
+    }
+
+    70% {
+      -webkit-transform: rotate(18deg);
+      transform: rotate(18deg);
+    }
+
+    80% {
+      -webkit-transform: rotate(-12deg);
+      transform: rotate(-12deg);
+    }
+
+    90% {
+      -webkit-transform: rotate(12deg);
+      transform: rotate(12deg);
+    }
+
+    100% {
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes ring {
+    0% {
+      -webkit-transform: rotate(-15deg);
+      -ms-transform: rotate(-15deg);
+      transform: rotate(-15deg);
+    }
+
+    10% {
+      -webkit-transform: rotate(15deg);
+      -ms-transform: rotate(15deg);
+      transform: rotate(15deg);
+    }
+
+    20% {
+      -webkit-transform: rotate(-18deg);
+      -ms-transform: rotate(-18deg);
+      transform: rotate(-18deg);
+    }
+
+    30% {
+      -webkit-transform: rotate(18deg);
+      -ms-transform: rotate(18deg);
+      transform: rotate(18deg);
+    }
+
+    40% {
+      -webkit-transform: rotate(-22deg);
+      -ms-transform: rotate(-22deg);
+      transform: rotate(-22deg);
+    }
+
+    50% {
+      -webkit-transform: rotate(22deg);
+      -ms-transform: rotate(22deg);
+      transform: rotate(22deg);
+    }
+
+    60% {
+      -webkit-transform: rotate(-18deg);
+      -ms-transform: rotate(-18deg);
+      transform: rotate(-18deg);
+    }
+
+    70% {
+      -webkit-transform: rotate(18deg);
+      -ms-transform: rotate(18deg);
+      transform: rotate(18deg);
+    }
+
+    80% {
+      -webkit-transform: rotate(-12deg);
+      -ms-transform: rotate(-12deg);
+      transform: rotate(-12deg);
+    }
+
+    90% {
+      -webkit-transform: rotate(12deg);
+      -ms-transform: rotate(12deg);
+      transform: rotate(12deg);
+    }
+
+    100% {
+      -webkit-transform: rotate(0deg);
+      -ms-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+  }
+
+  @-webkit-keyframes zoom-in {
+    0% {
+      font-size: 16px;
+    }
+    100% {
+      font-size: 12px;
+    }
+  }
+
+  @keyframes zoom-in {
+    0% {
+      font-size: 16px;
+    }
+    100% {
+      font-size: 12px;
+    }
+  }
+
+  #issues-bell {
+    &.important {
+      color: #B94A48;
+    }
+    &.warning {
+      color: #e98a41;
+    }
+    &.animated {
+      -webkit-animation: ring 2s ease;
+      animation: ring 2s ease;
+      transform-origin-x: 50%;
+      transform-origin-y: 0px;
+      transform-origin-z: initial;
+    }
+  }
+
+  #issues-counter.animated {
+    -webkit-animation: zoom-in 0.3s ease;
+    animation: zoom-in 0.3s ease;
+  }
+
+  .service-name {
+    position: relative;
+    top: 2px;
+  }
+}
+
+#accounts {
+  td {
+    border: none;
+  }
+  thead {
+    td {
+      font-weight: bold;
+      color: black;
+      &.username-col {
+        width: 200px;
+      }
+    }
+  }
+  .use-ambari-chekboxes {
+    margin-top: 20px;
+    padding-left: 10px;
+  }
+}
+
+.account-title {
+  text-transform: capitalize;
+}
+
+.validations-popup {
+  .modal-content {
+    .modal-header {
+      color: #e98a41;
+    }
+    .validations-body {
+      color: #999999;
+    }
+  }
+  input[type="checkbox"] + label:before {
+    border-color: #999999;
+  }
+}

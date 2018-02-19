@@ -25,7 +25,7 @@
   </div>
 </div>
 <div #container [ngClass]="{'container-fluid': true, 'fixed-filterbar': isFilterPanelFixedPostioned}">
-  <filters-panel class="row" [filtersForm]="filtersForm" [logsType]="logsType" #filtersPanel></filters-panel>
+  <filters-panel class="row" [filtersForm]="filtersForm" #filtersPanel></filters-panel>
   <div class="row events-count">
     <div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
       <div class="auto-refresh-message pull-right">

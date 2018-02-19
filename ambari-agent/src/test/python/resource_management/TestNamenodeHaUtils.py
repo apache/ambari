@@ -19,7 +19,7 @@ limitations under the License.
 '''
 from unittest import TestCase
 from resource_management.libraries.functions.namenode_ha_utils import \
-  get_nameservice
+  get_nameservices
 
 
 class TestNamenodeHaUtils(TestCase):
@@ -39,7 +39,7 @@ class TestNamenodeHaUtils(TestCase):
       "dfs.namenode.rpc-address.HAB.nn2": "hostb2:8020",
     }
 
-    self.assertEqual("HAA", get_nameservice(hdfs_site))
+    self.assertEqual(["HAA"], get_nameservices(hdfs_site))
 
     # dfs.internal.nameservices not in hdfs-site
     hdfs_site = {
@@ -52,9 +52,17 @@ class TestNamenodeHaUtils(TestCase):
       "dfs.namenode.rpc-address.HAB.nn2": "hostb2:8020",
     }
 
-    self.assertEqual("HAA", get_nameservice(hdfs_site))
+    self.assertEqual(["HAA"], get_nameservices(hdfs_site))
 
     # Non HA
     hdfs_site = {}
 
-    self.assertEqual(None, get_nameservice(hdfs_site))
+    self.assertEqual([], get_nameservices(hdfs_site))
+
+    # federated config dfs.internal.nameservices in hdfs-site
+    hdfs_site = {
+      "dfs.internal.nameservices": "ns1,ns2",
+      "dfs.nameservices": "ns1,ns2,exns1,exns2"
+    }
+
+    self.assertEqual(["ns1","ns2"], get_nameservices(hdfs_site))

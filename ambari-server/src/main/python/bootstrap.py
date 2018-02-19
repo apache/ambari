@@ -29,7 +29,7 @@ import time
 import logging
 import pprint
 import os
-import subprocess
+from ambari_commons import subprocess32
 import threading
 import traceback
 import re
@@ -104,8 +104,8 @@ class SCP:
       self.host_log.write("Running scp command " + ' '.join(scpcommand))
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    scpstat = subprocess32.Popen(scpcommand, stdout=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE)
     log = scpstat.communicate()
     errorMsg = log[1]
     log = log[0] + "\n" + log[1]
@@ -142,8 +142,8 @@ class SSH:
       self.host_log.write("Running ssh command " + ' '.join(sshcommand))
     self.host_log.write("==========================")
     self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    sshstat = subprocess32.Popen(sshcommand, stdout=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE)
     log = sshstat.communicate()
     errorMsg = log[1]
     if self.errorMessage and sshstat.returncode != 0:
@@ -891,10 +891,10 @@ def main(argv=None):
 
   if not OSCheck.is_windows_family():
     # ssh doesn't like open files
-    subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
+    subprocess32.Popen(["chmod", "600", sshkey_file], stdout=subprocess32.PIPE)
 
     if passwordFile is not None and passwordFile != 'null':
-      subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
+      subprocess32.Popen(["chmod", "600", passwordFile], stdout=subprocess32.PIPE)
 
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                " using " + scriptDir + " cluster primary OS: " + cluster_os_type +

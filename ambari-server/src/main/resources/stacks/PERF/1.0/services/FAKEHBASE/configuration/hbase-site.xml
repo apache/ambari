@@ -22,6 +22,7 @@
   <!-- These properties exist in common services. -->
   <property>
     <name>hbase.rootdir</name>
+    <display-name>HBase root directory</display-name>
     <value>hdfs://localhost:8020/apps/hbase/data</value>
     <description>The directory shared by region servers and into
       which HBase persists.  The URL should be 'fully-qualified'
@@ -60,6 +61,7 @@
   </property>
   <property>
     <name>hbase.local.dir</name>
+    <display-name>HBase Local directory</display-name>
     <value>${hbase.tmp.dir}/local</value>
     <description>Directory on the local filesystem to be used as a local storage
     </description>
@@ -433,6 +435,7 @@
   </property>
   <property>
     <name>zookeeper.znode.parent</name>
+    <display-name>ZooKeeper Znode Parent</display-name>
     <value>/hbase-unsecure</value>
     <description>Root ZNode for HBase in FAKEZooKeeper. All of HBase's FAKEZooKeeper
       files that are configured with a relative path will go under this node.

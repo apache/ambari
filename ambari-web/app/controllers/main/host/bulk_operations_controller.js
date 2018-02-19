@@ -1082,6 +1082,7 @@ App.BulkOperationsController = Em.Controller.extend({
     var self = this;
     var operationData = param.operationData;
     var hosts = this._convertHostsObjects(App.hostsMapper.map(json, true));
+    var repoVersion = null;
     // no hosts - no actions
     if (!hosts.length) {
       return;
@@ -1097,7 +1098,15 @@ App.BulkOperationsController = Em.Controller.extend({
        hostNamesSkipped = this._getSkippedForDecommissionHosts(json, hosts, operationData);
      }
      if ('PASSIVE_STATE' === operationData.action) {
-       hostNamesSkipped = this._getSkippedForPassiveStateHosts(hosts);
+       repoVersion = App.StackVersion.find().findProperty('isCurrent');
+       if (!repoVersion && App.StackVersion.find().toArray().length === 1) {
+        repoVersion = App.StackVersion.find().findProperty('isOutOfSync');
+       }
+       if (!repoVersion) {
+        console.error("CLUSTER STACK VERSIONS ERROR: multiple clusters in OUT_OF_SYNC state OR none in CURRENT or OUT_OF_SYNC state");
+        return;
+       }
+       hostNamesSkipped = this._getSkippedForPassiveStateHosts(hosts, repoVersion);
      }
 
     var message = "";
@@ -1139,7 +1148,7 @@ App.BulkOperationsController = Em.Controller.extend({
               return Em.I18n.t('hosts.bulkOperation.warningInfo.body');
             case "PASSIVE_STATE":
               return operationData.state === 'OFF' ? Em.I18n.t('hosts.passiveMode.popup.version.mismatch.multiple')
-                .format(App.StackVersion.find().findProperty('isCurrent').get('repositoryVersion.repositoryVersion')) : "";
+                .format(repoVersion.get('repositoryVersion.repositoryVersion')) : "";
             default:
               return ""
           }
@@ -1206,10 +1215,10 @@ App.BulkOperationsController = Em.Controller.extend({
    * @private
    * @method _getSkippedForPassiveStateHosts
    */
-  _getSkippedForPassiveStateHosts: function (hosts) {
+  _getSkippedForPassiveStateHosts: function (hosts, repoVersion) {
     var hostNames = hosts.mapProperty('hostName');
     var hostNamesSkipped = [];
-    var outOfSyncHosts = App.StackVersion.find().findProperty('isCurrent').get('outOfSyncHosts');
+    var outOfSyncHosts = repoVersion.get('outOfSyncHosts') || [];
     for (var i = 0; i < outOfSyncHosts.length; i++) {
       if (hostNames.contains(outOfSyncHosts[i])) {
         hostNamesSkipped.push(outOfSyncHosts[i]);

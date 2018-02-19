@@ -83,6 +83,7 @@ class TestStormJaasConfiguration(TestStormBase):
     storm_yarn_content = super(TestStormJaasConfiguration, self).assert_configure_secured(confDir="/usr/hdp/current/storm-nimbus/conf")
     self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/storm-nimbus/conf/client_jaas.conf',
       owner = 'storm',
+      mode = 0644
     )
     self.assertResourceCalled('File', '/usr/hdp/current/storm-nimbus/conf/worker-launcher.cfg',
       owner = 'root',

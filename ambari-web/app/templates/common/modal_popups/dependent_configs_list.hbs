@@ -16,11 +16,56 @@
 * limitations under the License.
 }}
 
+{{#if controller.isInstallWizard}}
+  {{#if view.allConfigsWithErrors.length}}
+    <h5>
+      {{t installer.step7.requirements.popover.header}} <span class="badge badge-important">{{view.allConfigsWithErrors.length}}</span>
+    </h5>
+    <div class="recommendations-message">
+      {{t installer.step7.requirements.popover.message}}
+    </div>
+
+    <table class="table table-hover required-table">
+      <thead>
+      <tr>
+        <th>{{t common.service}}</th>
+        <th>{{t common.property}}</th>
+        <th>{{t common.property}}</th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each config in view.allConfigsWithErrors}}
+        <tr>
+          <td>{{formatRole config.serviceName}}</td>
+          <td>
+            <a href="#" {{action "showConfigProperty" config target="controller"}}>
+              {{config.displayName}}
+            </a>
+          </td>
+          <td>
+            <button {{action "showConfigProperty" config target="controller"}}>{{t common.edit}}</button>
+          </td>
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+
+  {{/if}}
+  {{view App.ValidationsView configErrorsBinding="controller.configErrorList"}}
+  {{#if controller.hasChangedDependencies}}
+    <h5>
+      {{t installer.step7.recommendations.popover.header}} <span class="badge badge-warning">{{view.recommendations.length}}</span>
+    </h5>
+    <div class="recommendations-message">
+      {{t installer.step7.recommendations.popover.message}}
+    </div>
+  {{/if}}
+{{/if}}
 <span id="config-dependencies" class="limited-height-2">
   {{#if view.recommendations.length}}
-    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations"}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations" checkboxesFirstBinding="controller.isInstallWizard" isClickable=true}}
   {{/if}}
   {{#if view.requiredChanges.length}}
-    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false checkboxesFirstBinding="controller.isInstallWizard" isClickable=true}}
   {{/if}}
 </span>

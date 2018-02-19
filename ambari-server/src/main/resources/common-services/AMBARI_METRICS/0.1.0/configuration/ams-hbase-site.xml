@@ -59,6 +59,7 @@
   </property>
   <property>
     <name>hbase.local.dir</name>
+    <display-name>HBase Local directory</display-name>
     <value>${hbase.tmp.dir}/local</value>
     <description>Directory on the local filesystem to be used as a local storage
     </description>
@@ -179,6 +180,7 @@
   </property>
   <property>
     <name>hbase.zookeeper.property.dataDir</name>
+    <display-name>HBase ZooKeeper Property DataDir</display-name>
     <value>${hbase.tmp.dir}/zookeeper</value>
     <description>
       Property from ZooKeeper's config zoo.cfg.
@@ -523,6 +525,7 @@
   </property>
   <property>
     <name>phoenix.spool.directory</name>
+    <display-name>Phoenix Spool directory</display-name>
     <value>${hbase.tmp.dir}/phoenix-spool</value>
     <description>
       Set directory for Phoenix spill files. If possible set this to a
@@ -607,6 +610,7 @@
   </property>
   <property>
     <name>zookeeper.znode.parent</name>
+    <display-name>ZooKeeper Znode Parent</display-name>
     <value>/ams-hbase-unsecure</value>
     <value-attributes>
       <type>directory</type>

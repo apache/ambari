@@ -508,6 +508,7 @@
   </property>
   <property>
     <name>phoenix.spool.directory</name>
+    <display-name>Phoenix Spool directory</display-name>
     <value>/tmp</value>
     <description>
       Set directory for Phoenix spill files. If possible set this to a

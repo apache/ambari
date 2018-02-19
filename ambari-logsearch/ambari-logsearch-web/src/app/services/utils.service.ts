@@ -19,7 +19,7 @@
 import {Injectable} from '@angular/core';
 import * as moment from 'moment-timezone';
 import {ListItem} from '@app/classes/list-item';
-import {HomogeneousObject} from '@app/classes/object';
+import {HomogeneousObject, LogField} from '@app/classes/object';
 import {NodeItem} from '@app/classes/models/node-item';
 
 @Injectable()
@@ -122,13 +122,25 @@ export class UtilsService {
   /**
    * Get instance for dropdown list from NodeItem object
    * @param node {NodeItem}
+   * @param addGroup {boolean}
    * @returns {ListItem}
    */
-  getListItemFromNode(node: NodeItem): ListItem {
+  getListItemFromNode(node: NodeItem, addGroup: boolean = false): ListItem {
+    const group: string = addGroup && node.group ? `${node.group.label || node.group.name}: ` : '';
     return {
-      label: `${node.name} (${node.value})`,
+      label: `${group}${node.label || node.name} (${node.value})`,
       value: node.name
     };
+  }
+
+  logFieldToListItemMapper<FieldT extends LogField>(fields: FieldT[]): ListItem[] {
+    return fields ? fields.map((field: FieldT): ListItem => {
+      return {
+        value: field.name,
+        label: field.label || field.name,
+        isChecked: field.visible
+      };
+    }) : [];
   }
 
   /**

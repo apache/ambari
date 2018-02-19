@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -40,13 +41,16 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 
-import org.apache.ambari.logsearch.common.HadoopServiceConfigHelper;
+import org.apache.ambari.logsearch.common.LabelFallbackHandler;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.StatusMessage;
+import org.apache.ambari.logsearch.conf.UIMappingConfig;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
+import org.apache.ambari.logsearch.model.metadata.FieldMetadata;
+import org.apache.ambari.logsearch.model.metadata.ServiceComponentMetadataWrapper;
 import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
@@ -124,6 +128,10 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
   private Configuration freemarkerConfiguration;
   @Inject
   private SolrSchemaFieldDao solrSchemaFieldDao;
+  @Inject
+  private UIMappingConfig uiMappingConfig;
+  @Inject
+  private LabelFallbackHandler labelFallbackHandler;
 
   public ServiceLogResponse searchLogs(ServiceLogRequest request) {
     String event = "/service/logs";
@@ -159,10 +167,6 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
   public GroupListResponse getHosts(String clusters) {
     return getFields(HOST, clusters, SolrHostLogData.class);
-  }
-
-  public GroupListResponse getComponents(String clusters) {
-    return getFields(COMPONENT, clusters, SolrComponentTypeLogData.class);
   }
 
   public GraphDataListResponse getAggregatedInfo(ServiceLogAggregatedInfoRequest request) {
@@ -439,8 +443,22 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
     return responseDataGenerator.generateOneLevelServiceNodeTree(response, String.format("%s,%s", COMPONENT, LEVEL));
   }
 
-  public String getServiceLogsSchemaFieldsName() {
-    return convertObjToString(solrSchemaFieldDao.getSchemaFieldNameMap(LogType.SERVICE));
+  public List<FieldMetadata> getServiceLogsSchemaFieldsName() {
+    Map<String, String> schemaFieldsMap = solrSchemaFieldDao.getSchemaFieldNameMap(LogType.SERVICE);
+    return schemaFieldsMap
+      .entrySet()
+      .stream()
+      .filter(e -> !uiMappingConfig.getServiceFieldExcludeList().contains(e.getKey()))
+      .map(e ->
+        new FieldMetadata(
+          e.getKey(),
+          labelFallbackHandler.fallbackIfRequired(
+            e.getKey(), uiMappingConfig.getServiceFieldLabels().get(e.getKey()),
+            true, false, true,
+            uiMappingConfig.getServiceFieldFallbackPrefixes()),
+          !uiMappingConfig.getServiceFieldFilterableExcludesList().contains(e.getKey()),
+          uiMappingConfig.getServiceFieldVisibleList().contains(e.getKey())))
+      .collect(Collectors.toList());
   }
 
   public BarGraphDataListResponse getAnyGraphCountData(ServiceAnyGraphRequest request) {
@@ -596,15 +614,6 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
     
     return (T)result;
   }
-  
-
-  public String getHadoopServiceConfigJSON() {
-    String hadoopServiceConfigJSON = HadoopServiceConfigHelper.getHadoopServiceConfigJSON();
-    if (hadoopServiceConfigJSON == null) {
-      throw RESTErrorUtil.createRESTException("Could not load HadoopServiceConfig.json", MessageEnums.ERROR_SYSTEM);
-    }
-    return hadoopServiceConfigJSON;
-  }
 
   public HostLogFilesResponse getHostLogFileData(HostLogFilesRequest request) {
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
@@ -620,5 +629,19 @@ public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogRe
 
   public List<String> getClusters() {
     return getClusters(serviceLogsSolrDao, CLUSTER, "/service/logs/clusters");
+  }
+
+
+  public ServiceComponentMetadataWrapper getComponentMetadata(String clusters) {
+    String pivotFields = COMPONENT + ",group";
+    SolrQuery solrQuery = new SolrQuery();
+    solrQuery.setQuery("*:*");
+    solrQuery.setRows(0);
+    solrQuery.set("facet", true);
+    solrQuery.set("facet.pivot", pivotFields);
+    SolrUtil.addListFilterToSolrQuery(solrQuery, CLUSTER, clusters);
+    QueryResponse queryResponse = serviceLogsSolrDao.process(solrQuery, "/serivce/logs/components");
+    return responseDataGenerator.generateGroupedComponentMetadataResponse(
+      queryResponse, pivotFields, uiMappingConfig.getServiceGroupLabels(), uiMappingConfig.getServiceComponentLabels());
   }
 }

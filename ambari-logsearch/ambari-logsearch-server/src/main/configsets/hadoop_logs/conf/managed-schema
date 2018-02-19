@@ -110,6 +110,7 @@
   <field name="text" type="text_std_token_lower_case" multiValued="true" indexed="true" stored="false"/>
   <field name="thread_name" type="key_lower_case" multiValued="false" omitNorms="false"/>
   <field name="type" type="key_lower_case" multiValued="false"/>
+  <field name="group" type="string" multiValued="false" docValues="true" stored="true"/>
   
   <dynamicField name='ngram_*' type="n_gram" multiValued="false" stored="false"/>
   <dynamicField name='std_*' type="text_std_token_lower_case" multiValued="false" stored="false"/>

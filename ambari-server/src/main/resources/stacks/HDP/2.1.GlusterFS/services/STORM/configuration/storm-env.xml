@@ -29,12 +29,14 @@
   </property>
   <property>
     <name>storm_log_dir</name>
+    <display-name>Storm Log directory</display-name>
     <value>/var/log/storm</value>
     <description/>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm_pid_dir</name>
+    <display-name>Storm PID directory</display-name>
     <value>/var/run/storm</value>
     <description/>
     <on-ambari-upgrade add="true"/>

@@ -21,7 +21,7 @@ limitations under the License.
 import logging
 import os
 import signal
-import subprocess
+from ambari_commons import subprocess32
 import threading
 from contextlib import contextmanager
 
@@ -78,7 +78,7 @@ def launch_subprocess(command):
   :return Popen object
   """
   is_shell = not isinstance(command, (list, tuple))
-  return subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=is_shell, close_fds=True)
+  return subprocess32.Popen(command, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, shell=is_shell, close_fds=True)
 
 
 def watchdog_func(event, cmd, exec_timeout):
@@ -207,8 +207,8 @@ class shellRunnerWindows(shellRunner):
       cmd = " ".join(script)
     else:
       cmd = script
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=False)
+    p = subprocess32.Popen(cmd, stdout=subprocess32.PIPE,
+                         stderr=subprocess32.PIPE, shell=False)
     out, err = p.communicate()
     code = p.wait()
     logger.debug("Exitcode for %s is %d" % (cmd, code))
@@ -222,8 +222,8 @@ class shellRunnerWindows(shellRunner):
       cmd = ['powershell', '-WindowStyle', 'Hidden', '-File', file] + args
     elif script_block:
       cmd = ['powershell', '-WindowStyle', 'Hidden', '-Command', script_block] + args
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=False)
+    p = subprocess32.Popen(cmd, stdout=subprocess32.PIPE,
+                         stderr=subprocess32.PIPE, shell=False)
     out, err = p.communicate()
     code = p.wait()
     logger.debug("Exitcode for %s is %d" % (cmd, code))
@@ -424,8 +424,8 @@ class shellRunnerLinux(shellRunner):
       cmd = " ".join(script)
 
     cmd_list = ["/bin/bash","--login","--noprofile","-c", cmd]
-    p = subprocess.Popen(cmd_list, preexec_fn=_changeUid, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=False, close_fds=True)
+    p = subprocess32.Popen(cmd_list, preexec_fn=_changeUid, stdout=subprocess32.PIPE,
+                         stderr=subprocess32.PIPE, shell=False, close_fds=True)
     out, err = p.communicate()
     code = p.wait()
     logger.debug("Exitcode for %s is %d" % (cmd, code))

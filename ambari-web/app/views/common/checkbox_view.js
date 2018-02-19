@@ -97,6 +97,12 @@ App.CheckboxView = Em.View.extend({
   name: '',
 
   /**
+   * Default class for label element
+   * @type {String[]}
+   */
+  labelClassNames: ['checkbox-label'],
+
+  /**
    * Label's text to display. <code>label</code> property value will be used if no
    * <code>labelTranslate</code> passed
    * @return {String}

@@ -20,7 +20,7 @@ import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {FormsModule} from '@angular/forms';
 import {StoreModule} from '@ngrx/store';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -38,7 +38,6 @@ import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/s
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {AuthService} from '@app/services/auth.service';
 import {UtilsService} from '@app/services/utils.service';
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
@@ -84,12 +83,9 @@ describe('ContextMenuComponent', () => {
         FormsModule
       ],
       providers: [
+        ...MockHttpRequestModules,
         ComponentGeneratorService,
         LogsContainerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         HostsService,
         AuditLogsService,
         ServiceLogsService,
