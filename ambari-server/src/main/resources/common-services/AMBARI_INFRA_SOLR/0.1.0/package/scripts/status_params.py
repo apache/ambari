@@ -19,11 +19,11 @@ limitations under the License.
 
 """
 
+from os import listdir, path
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
-from os import listdir, path
 
 config = Script.get_config()
 

@@ -1,7 +1,7 @@
 {
   "services": [
     {
-      "name": "AMBARI_INFRA",
+      "name": "AMBARI_INFRA_SOLR",
       "identities": [
         {
           "name": "ambari_infra_smokeuser",

@@ -18,11 +18,12 @@ limitations under the License.
 """
 
 from resource_management.core.exceptions import Fail
-from resource_management.core.source import InlineTemplate, Template
 from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import solr_cloud_util
+
 
 def setup_infra_solr(name = None):
   import params

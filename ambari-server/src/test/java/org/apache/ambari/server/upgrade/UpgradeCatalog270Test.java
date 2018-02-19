@@ -26,6 +26,8 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGUR
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_NEW_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_OLD_NAME;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_STATE_TABLE;
@@ -95,6 +97,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -149,6 +153,8 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -175,6 +181,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.commons.io.IOUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -205,6 +212,7 @@ import com.google.inject.persist.UnitOfWork;
 
 @RunWith(EasyMockRunner.class)
 public class UpgradeCatalog270Test {
+  public static final Gson GSON = new Gson();
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
@@ -238,6 +246,12 @@ public class UpgradeCatalog270Test {
   @Mock(type = MockType.NICE)
   AmbariConfigurationDAO ambariConfigurationDao;
 
+  @Mock(type = MockType.NICE)
+  ArtifactDAO artifactDAO;
+
+  @Mock(type = MockType.NICE)
+  private AmbariManagementController ambariManagementController;
+
   @Before
   public void init() {
     reset(entityManagerProvider, injector);
@@ -265,7 +279,8 @@ public class UpgradeCatalog270Test {
     Method upgradeLdapConfiguration = UpgradeCatalog270.class.getDeclaredMethod("upgradeLdapConfiguration");
     Method createRoleAuthorizations = UpgradeCatalog270.class.getDeclaredMethod("createRoleAuthorizations");
     Method addUserAuthenticationSequence = UpgradeCatalog270.class.getDeclaredMethod("addUserAuthenticationSequence");
-
+    Method renameAmbariInfra = UpgradeCatalog270.class.getDeclaredMethod("renameAmbariInfra");
+    Method updateKerberosDescriptorArtifacts = UpgradeCatalog270.class.getSuperclass().getDeclaredMethod("updateKerberosDescriptorArtifacts");
     UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
         .addMockedMethod(showHcatDeletedUserMessage)
         .addMockedMethod(addNewConfigurationsFromXml)
@@ -276,6 +291,8 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(upgradeLdapConfiguration)
         .addMockedMethod(createRoleAuthorizations)
         .addMockedMethod(addUserAuthenticationSequence)
+        .addMockedMethod(renameAmbariInfra)
+        .addMockedMethod(updateKerberosDescriptorArtifacts)
         .createMock();
 
 
@@ -302,6 +319,12 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.addUserAuthenticationSequence();
+    expectLastCall().once();
+
+    upgradeCatalog270.renameAmbariInfra();
+    expectLastCall().once();
+
+    upgradeCatalog270.updateKerberosDescriptorArtifacts();
     expectLastCall().once();
 
     replay(upgradeCatalog270);
@@ -503,6 +526,8 @@ public class UpgradeCatalog270Test {
         install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
         install(new FactoryModuleBuilder().implement(
             Service.class, ServiceImpl.class).build(ServiceFactory.class));
+//        binder.bind(Configuration.class).toInstance(configuration);
+//        binder.bind(AmbariManagementController.class).toInstance(ambariManagementController);
       }
     };
     return module;
@@ -1008,5 +1033,38 @@ public class UpgradeCatalog270Test {
     expectedException.expect(AssertionError.class);
     expectedException.expectMessage("Expectation failure on verify");
     verify(entityManager, ambariConfigurationDao);
+  }
+
+  @Test
+  public void testupdateKerberosDescriptorArtifact() throws Exception {
+    String kerberosDescriptorJson = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("org/apache/ambari/server/upgrade/kerberos_descriptor.json"), "UTF-8");
+
+    ArtifactEntity artifactEntity = new ArtifactEntity();
+    artifactEntity.setArtifactName("kerberos_descriptor");
+    artifactEntity.setArtifactData(GSON.<Map<String, Object>>fromJson(kerberosDescriptorJson, Map.class));
+
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
+            .createMock();
+
+    expect(artifactDAO.merge(artifactEntity)).andReturn(artifactEntity);
+
+    replay(upgradeCatalog270);
+
+    upgradeCatalog270.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
+
+    int oldCount = substringCount(kerberosDescriptorJson, AMBARI_INFRA_OLD_NAME);
+    int newCount = substringCount(GSON.toJson(artifactEntity.getArtifactData()), AMBARI_INFRA_NEW_NAME);
+    assertThat(newCount, is(oldCount));
+
+    verify(upgradeCatalog270);
+  }
+
+  private int substringCount(String source, String substring) {
+    int count = 0;
+    int i = -1;
+    while ((i = source.indexOf(substring, i + 1)) != -1) {
+      ++count;
+    }
+    return count;
   }
 }

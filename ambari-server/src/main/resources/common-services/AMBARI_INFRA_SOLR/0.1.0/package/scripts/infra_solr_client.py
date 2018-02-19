@@ -19,7 +19,9 @@ limitations under the License.
 
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.script.script import Script
+
 from setup_infra_solr import setup_infra_solr
+
 
 class InfraSolrClient(Script):
 

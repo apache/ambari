@@ -17,16 +17,18 @@ limitations under the License.
 
 """
 
+import sys
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.resources.zkmigrator import ZkMigrator
-from resource_management.core.logger import Logger
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.script.script import Script
+
 from setup_infra_solr import setup_infra_solr
-import sys
+
 
 class InfraSolr(Script):
   def install(self, env):
@@ -78,7 +80,6 @@ class InfraSolr(Script):
     check_process_status(status_params.infra_solr_pidfile)
 
   def kill_process(self, pid_file, user, log_dir):
-    import params
     """
     Kill the process by pid file, then check the process is running or not. If the process is still running after the kill
     command, it will try to kill with -9 option (hard kill)
