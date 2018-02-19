@@ -33,10 +33,9 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {ModalComponent} from '@app/components/modal/modal.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {LogContextComponent} from './log-context.component';
@@ -46,14 +45,6 @@ describe('LogContextComponent', () => {
   let fixture: ComponentFixture<LogContextComponent>;
 
   beforeEach(async(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       declarations: [
         LogContextComponent,
@@ -78,6 +69,7 @@ describe('LogContextComponent', () => {
         ...TranslationModules
       ],
       providers: [
+        ...MockHttpRequestModules,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
@@ -92,10 +84,6 @@ describe('LogContextComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         LogsContainerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         UtilsService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]

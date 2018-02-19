@@ -49,4 +49,6 @@ public interface InputDescriptor {
   Long getCacheDedupInterval();
 
   Boolean isEnabled();
+
+  String getGroup();
 }

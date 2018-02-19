@@ -17,11 +17,14 @@
  */
 
 import {CommonEntry} from '@app/classes/models/common-entry';
+import {NodeGroup} from "@app/classes/models/node-group";
 
 export interface NodeItem {
   name: string;
   type?: string;
   value: string;
+  label?: string;
+  group?: NodeGroup;
   isParent: boolean;
   isRoot: boolean;
   childs?: NodeItem[];

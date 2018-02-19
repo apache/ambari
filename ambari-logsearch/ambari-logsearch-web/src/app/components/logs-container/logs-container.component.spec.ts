@@ -19,7 +19,7 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {StoreModule} from '@ngrx/store';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -35,7 +35,6 @@ import {
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {TabsComponent} from '@app/components/tabs/tabs.component';
@@ -43,14 +42,6 @@ import {TabsComponent} from '@app/components/tabs/tabs.component';
 import {LogsContainerComponent} from './logs-container.component';
 
 describe('LogsContainerComponent', () => {
-  const httpClient = {
-    get: () => {
-      return {
-        subscribe: () => {
-        }
-      };
-    }
-  };
   let component: LogsContainerComponent;
   let fixture: ComponentFixture<LogsContainerComponent>;
 
@@ -79,10 +70,7 @@ describe('LogsContainerComponent', () => {
         ...TranslationModules
       ],
       providers: [
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
+        ...MockHttpRequestModules,
         AppSettingsService,
         AppStateService,
         ClustersService,
@@ -107,7 +95,6 @@ describe('LogsContainerComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(LogsContainerComponent);
     component = fixture.componentInstance;
-    component['logsType'] = 'serviceLogs';
     fixture.detectChanges();
   });
 
