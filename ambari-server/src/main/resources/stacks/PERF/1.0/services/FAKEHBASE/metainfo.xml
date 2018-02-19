@@ -30,7 +30,7 @@
           <displayName>FAKEHBase Master</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <timelineAppid>FAKEHBASE</timelineAppid>
           <dependencies>
             <dependency>
@@ -77,7 +77,7 @@
           <displayName>FAKEPhoenix Query Server</displayName>
           <category>SLAVE</category>
           <cardinality>0+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/phoenix_queryserver.py</script>
             <scriptType>PYTHON</scriptType>
@@ -95,7 +95,7 @@
           <displayName>FAKERegionServer</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <decommissionAllowed>true</decommissionAllowed>
           <timelineAppid>FAKEHBASE</timelineAppid>
           <commandScript>
@@ -120,7 +120,7 @@
           <displayName>FAKEHBase Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/hbase_client.py</script>
             <scriptType>PYTHON</scriptType>
