@@ -23,16 +23,12 @@ limitations under the License.
     <int name="zkClientTimeout">${zkClientTimeout:15000}</int>
     <bool name="genericCoreNodeNames">${genericCoreNodeNames:true}</bool>
   </solrcloud>
-{% if metrics_enabled -%}
   <metrics>
     <reporter name="ambariInfra" group="jvm" class="org.apache.ambari.infra.solr.metrics.reporters.SimpleAMSReporter">
-      <int name="period">60</int>
-      <str name="amsCollectorHosts">{{ams_collector_hosts}}</str>
-      <int name="amsCollectorPort">{{ams_collector_port}}</int>
-      <str name="amsCollectorProtocol">{{ams_collector_protocol}}</str>
-      <str name="trustStoreLocation">{{infra_solr_truststore_location}}</str>
-      <str name="trustStoreType">{{infra_solr_truststore_type}}</str>
-      <str name="trustStorePassword">{{infra_solr_truststore_password}}</str>
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
       <str name="filter">threads.count</str>
       <str name="filter">threads.deadlock.count</str>
       <str name="filter">memory.heap.used</str>
@@ -65,14 +61,11 @@ limitations under the License.
     </reporter>
   </metrics>
   <metrics>
-    <reporter name="ambariInfraCore" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.SimpleAMSReporter">
-      <int name="period">60</int>
-      <str name="amsCollectorHosts">{{ams_collector_hosts}}</str>
-      <int name="amsCollectorPort">{{ams_collector_port}}</int>
-      <str name="amsCollectorProtocol">{{ams_collector_protocol}}</str>
-      <str name="trustStoreLocation">{{infra_solr_truststore_location}}</str>
-      <str name="trustStoreType">{{infra_solr_truststore_type}}</str>
-      <str name="trustStorePassword">{{infra_solr_truststore_password}}</str>
+    <reporter name="ambariInfra" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.SimpleAMSReporter">
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
       <str name="filter">UPDATE.updateHandler.adds</str>
       <str name="filter">UPDATE.updateHandler.deletesById</str>
       <str name="filter">UPDATE.updateHandler.errors</str>
@@ -92,13 +85,10 @@ limitations under the License.
   </metrics>
   <metrics>
     <reporter name="ambariInfraCache" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.AMSCacheReporter">
-      <int name="period">60</int>
-      <str name="amsCollectorHosts">{{ams_collector_hosts}}</str>
-      <int name="amsCollectorPort">{{ams_collector_port}}</int>
-      <str name="amsCollectorProtocol">{{ams_collector_protocol}}</str>
-      <str name="trustStoreLocation">{{infra_solr_truststore_location}}</str>
-      <str name="trustStoreType">{{infra_solr_truststore_type}}</str>
-      <str name="trustStorePassword">{{infra_solr_truststore_password}}</str>
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
       <str name="filter">CACHE.searcher.filterCache</str>
       <str name="filter">CACHE.searcher.queryResultCache</str>
       <str name="filter">CACHE.searcher.documentCache</str>
@@ -107,16 +97,12 @@ limitations under the License.
   </metrics>
   <metrics>
     <reporter name="ambariInfraFieldCache" group="core" class="org.apache.ambari.infra.solr.metrics.reporters.AMSCacheReporter">
-      <int name="period">60</int>
-      <str name="amsCollectorHosts">{{ams_collector_hosts}}</str>
-      <int name="amsCollectorPort">{{ams_collector_port}}</int>
-      <str name="amsCollectorProtocol">{{ams_collector_protocol}}</str>
-      <str name="trustStoreLocation">{{infra_solr_truststore_location}}</str>
-      <str name="trustStoreType">{{infra_solr_truststore_type}}</str>
-      <str name="trustStorePassword">{{infra_solr_truststore_password}}</str>
+      <int name="period">5</int>
+      <str name="amsCollectorHosts">metrics_collector</str>
+      <int name="amsCollectorPort">6188</int>
+      <str name="amsCollectorProtocol">http</str>
       <str name="filter">CACHE.core.fieldCache</str>
       <str name="fields">entries_count</str>
     </reporter>
   </metrics>
-{% endif %}
 </solr>

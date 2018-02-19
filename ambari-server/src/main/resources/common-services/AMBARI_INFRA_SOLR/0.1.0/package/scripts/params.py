@@ -199,3 +199,14 @@ infra_solr_role_logsearch = default('configurations/infra-solr-security-json/inf
 infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/infra_solr_role_logfeeder', 'logfeeder_user')
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+metrics_enabled = ams_collector_hosts != ''
+if metrics_enabled:
+  metrics_http_policy = config['configurations']['ams-site']['timeline.metrics.service.http.policy']
+  ams_collector_protocol = 'http'
+  if metrics_http_policy == 'HTTPS_ONLY':
+    ams_collector_protocol = 'https'
+  ams_collector_port = str(get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
+else:
+  ams_collector_port = ''
+  ams_collector_protocol = ''
