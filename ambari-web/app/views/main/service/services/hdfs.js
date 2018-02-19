@@ -109,15 +109,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   dfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'service.capacityUsed'),
   dfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'service.capacityTotal', 'service.capacityUsed'),
 
-  nonDfsUsed: function () {
-    var total = this.get('service.capacityTotal');
-    var remaining = this.get('service.capacityRemaining');
-    var dfsUsed = this.get('service.capacityUsed');
-    return (Em.isNone(total) || Em.isNone(remaining) || Em.isNone(dfsUsed)) ? null : total - remaining - dfsUsed;
-  }.property('service.capacityTotal', 'service.capacityRemaining', 'service.capacityUsed'),
 
-  nonDfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'nonDfsUsed'),
-  nonDfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'service.capacityTotal', 'nonDfsUsed'),
+  nonDfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'service.capacityNonDfsUsed'),
+  nonDfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'service.capacityTotal', 'service.capacityNonDfsUsed'),
 
   remainingDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'service.capacityRemaining'),
   remainingDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'service.capacityTotal', 'service.capacityRemaining'),
