@@ -43,7 +43,7 @@ function print_help() {
      -b, --backup-enabled                    Use indexer tool with backup snapshots. (core filter won't be used)
      -g, --debug                             Enable debug mode, IndexUpgrader output will be verbose.
      -f, --force                             Force to start index upgrade, even is the version is at least 6.
-     -v, --version                           Lucene version to upgrade (default: 6.6.0, available: 6.6.0, 7.2.1)
+     -v, --version                           Lucene version to upgrade (default: 6.6.2, available: 6.6.2, 7.2.1)
 EOF
 }
 
@@ -144,7 +144,7 @@ function upgrade_index() {
   fi
 
   if [[ -z "$LUCENE_VERSION" ]] ; then
-    LUCENE_VERSION="6.6.0"
+    LUCENE_VERSION="6.6.2"
   fi
 
   if [[ -z "$FORCE_UPDATE" ]] ; then
@@ -193,12 +193,12 @@ function upgrade_index() {
 
 function upgrade_index_tool() {
   # see: https://cwiki.apache.org/confluence/display/solr/IndexUpgrader+Tool
-  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.0 or 7.2.1)"}
+  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.2 or 7.2.1)"}
   PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$INDEX_VERSION.jar:$DIR/migrate/lucene-backward-codecs-$INDEX_VERSION.jar" org.apache.lucene.index.IndexUpgrader ${@}
 }
 
 function check_index_tool() {
-  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.0 or 7.2.1)"}
+  : ${INDEX_VERSION:?"Please set the INDEX_VERSION variable! (6.6.2 or 7.2.1)"}
   PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/migrate/lucene-core-$INDEX_VERSION.jar:$DIR/migrate/lucene-backward-codecs-$INDEX_VERSION.jar" org.apache.lucene.index.CheckIndex ${@}
 }
 
