@@ -44,7 +44,7 @@ public class AmbariLdapConfiguration {
     if (configurationMap.containsKey(ambariLdapConfigurationKeys.key())) {
       value = configurationMap.get(ambariLdapConfigurationKeys.key());
     } else {
-      LOGGER.warn("Ldap configuration property [{}] hasn't been set; using default value", ambariLdapConfigurationKeys.key());
+      LOGGER.debug("Ldap configuration property [{}] hasn't been set; using default value", ambariLdapConfigurationKeys.key());
       value = ambariLdapConfigurationKeys.getDefaultValue();
     }
     return value;
