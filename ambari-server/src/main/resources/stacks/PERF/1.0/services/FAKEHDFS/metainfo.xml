@@ -30,7 +30,7 @@
           <displayName>FAKEHNameNode</displayName>
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/namenode.py</script>
@@ -95,7 +95,7 @@
           <name>SECONDARY_FAKENAMENODE</name>
           <displayName>SFAKEHNameNode</displayName>
           <cardinality>1</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
           <category>MASTER</category>
           <commandScript>
@@ -116,7 +116,7 @@
           <displayName>FAKEHDFS Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/hdfs_client.py</script>
             <scriptType>PYTHON</scriptType>
@@ -151,7 +151,7 @@
           <displayName>FAKEJournalNode</displayName>
           <category>SLAVE</category>
           <cardinality>0+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/journalnode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -197,7 +197,7 @@
           <name>FAKENFS_GATEWAY</name>
           <displayName>FAKENFSGateway</displayName>
           <cardinality>0+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <category>SLAVE</category>
           <commandScript>
             <script>scripts/nfsgateway.py</script>
