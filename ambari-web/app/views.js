@@ -20,6 +20,8 @@
 // load all views here
 
 require('views/application');
+require('views/common/dashrow_view');
+require('views/common/timeline_view');
 require('views/common/breadcrumbs_view');
 require('views/common/clock_view');
 require('views/common/checkbox_view');
@@ -98,6 +100,7 @@ require('views/common/configs/widgets/label_config_widget_view');
 require('views/common/configs/widgets/test_db_connection_widget_view');
 require('views/common/configs/widgets/overrides/config_widget_override_view');
 require('views/common/configs/service_config_layout_tab_view');
+require('views/common/dashrow_view');
 require('views/common/configs/service_config_layout_tab_compare_view');
 require('views/common/filter_combobox');
 require('views/common/filter_combo_cleanable');
@@ -112,6 +115,7 @@ require('views/common/widget/gauge_widget_view');
 require('views/common/widget/number_widget_view');
 require('views/common/widget/heatmap_widget_view');
 require('views/common/assign_master_components_view');
+require('views/common/helpers/format_date_view');
 require('views/common/helpers/format_word_break_view');
 require('views/common/helpers/format_null_view');
 require('views/common/helpers/format_role_view');
@@ -221,6 +225,8 @@ require('views/main/admin/highAvailability/rangerAdmin/step2_view');
 require('views/main/admin/highAvailability/rangerAdmin/step3_view');
 require('views/main/admin/highAvailability/rangerAdmin/step4_view');
 require('views/main/admin/serviceAccounts_view');
+require('views/main/admin/serviceGroups_view');
+require('views/main/admin/serviceGroups/serviceGroup_view');
 require('views/main/admin/stack_upgrade/upgrade_wizard_view');
 require('views/main/admin/stack_upgrade/upgrade_version_box_view');
 require('views/main/admin/stack_upgrade/upgrade_version_column_view');

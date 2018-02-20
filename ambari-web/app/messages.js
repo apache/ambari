@@ -144,6 +144,7 @@ Em.I18n.translations = {
   'common.disk':'Disk',
   'common.diskUsage':'Disk Usage',
   'common.dismiss': "Dismiss",
+  'common.documentation': "Documentation",
   'common.done':'Done',
   'common.downgrade':'Downgrade',
   'common.download': 'Download',  
@@ -182,7 +183,8 @@ Em.I18n.translations = {
   'common.group':'Group',
   'common.groups':'Groups',
   'common.hbase':'HBase',
-  'common.hide':'Hide',
+  'common.hide': 'Hide',
+  'common.history': 'History',
   'common.host':'Host',
   'common.hostLog.popup.errorLog.value': 'errors-{0}.txt',
   'common.hostLog.popup.logDir.path':'/var/lib/ambari-agent/data/',   // TODO, this hardcoded path needs to be removed.
@@ -246,7 +248,8 @@ Em.I18n.translations = {
   'common.optional': 'Optional',
   'common.options': 'Options',
   'common.os': 'OS',
-  'common.oss':'OSs',
+  'common.oss': 'OSs',
+  'common.others': 'Others',
   'common.override':'Override',
   'common.overrides': 'Overrides',
   'common.package': 'Package',
@@ -305,7 +308,8 @@ Em.I18n.translations = {
   'common.servers':'Servers',
   'common.service': 'Service',
   'common.serviceAccounts': 'Service Accounts',
-  'common.services':'Services',
+  'common.serviceGroups': 'Service Groups',
+  'common.services': 'Services',
   'common.severity': "Severity",
   'common.show':'Show',
   'common.showDetails':'Show Details',
@@ -1966,6 +1970,12 @@ Em.I18n.translations = {
   "<li>DO NOT enable / disable HA</li>" +
   "<li>DO NOT make any drastic changes to service configurations</li></ul>" +
   "You <strong>MUST</strong> continue the {0} and finalize <strong>BEFORE</strong> performing <strong>ANY</strong> significant changes to the cluster.",
+  
+  'admin.serviceGroups.title': "Management Packs",
+  'admin.serviceGroups.createUpgradePlan': "Create Upgrade Plan",
+  'admin.serviceGroups.addServiceGroup': "Add Management Pack",
+  'admin.serviceGroups.removeOldVersions': "Remove Old Versions",
+
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to <b>{0}</b>?",
   'admin.stackUpgrade.downgrade.retry.body': "Are you sure you wish to retry downgrade to <b>{0}</b>?",

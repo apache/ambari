@@ -1,0 +1,98 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import 'common.less';
+
+.dashrow {
+  margin-bottom: 20px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px 2px rgba(0,0,0,0.1);
+
+  .panel {
+    border-radius: inherit;
+
+    .panel-heading {
+      height: 90px;
+      margin: 0;
+      padding: 15px 30px;
+      border-radius: inherit;
+      display: flex;
+      align-items: center;
+      font-size: 20px;
+
+      .panel-title {
+        color: #333;
+        margin-right: 15px;
+        font-size: inherit;
+      }
+
+      .dropdown {
+        margin-left: auto;
+        margin-right: 15px;
+
+        .menu-button {
+          border: none;
+          outline: none;
+
+          &:after {
+            content: '\e235';
+            font-family: 'Glyphicons Halflings';
+            vertical-align: text-bottom;
+            font-size: inherit;
+          }
+        }
+
+        & ~ .collapse-button {
+          margin-left: initial;
+        }
+      }
+
+      .collapse-button {
+        width: 20px;
+        padding: 0;
+        border: none;
+        outline: none;
+        margin-left: auto;
+
+        &:after {
+          content: '\f078';
+          font-family: 'FontAwesome';
+          vertical-align: text-bottom;
+          font-size: inherit;
+        }
+
+        &.collapsed:after {
+          content: '\f054';
+        }
+      }
+    }
+
+    .panel-collapse {
+      border-bottom-left-radius: inherit;
+      border-bottom-right-radius: inherit;
+      background: #fafafa;
+
+      .panel-body {
+        padding: 15px 30px;
+      }
+    }
+  }
+}
+
+.open .dropdown-menu {
+  display: block;
+}

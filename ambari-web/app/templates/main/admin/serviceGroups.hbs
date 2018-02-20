@@ -1,0 +1,79 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="admin-service-groups">
+  <div class="row">
+    <!-- Nav tabs -->
+    <div class="col-xs-12">
+      <ul class="nav nav-tabs pull-left" role="tablist">
+        <li role="presentation" class="active">
+          <a href="#mpacks" aria-controls="mpacks" role="tab" data-toggle="tab">Management Packs</a>
+        </li>
+        <li role="presentation">
+          <a href="#history" aria-controls="history" role="tab" data-toggle="tab">Upgrade History</a>
+        </li>
+      </ul>
+      <!-- Actions Menu -->
+      <div class="dropdown pull-right">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="actions-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Actions&nbsp;<span class="caret"></span></button>
+        <ul class="dropdown-menu" aria-labelledby="actions-menu">
+          <li><a href="#"><i class="icon-arrow-up"></i>&nbsp;{{t admin.serviceGroups.createUpgradePlan}}</a></li>
+          <li><a href="#"><i class="icon-plus"></i>&nbsp;{{t admin.serviceGroups.addServiceGroup}}</a></li>
+          <li><a href="#"><i class="icon-trash"></i>&nbsp;{{t admin.serviceGroups.removeOldVersions}}</a></li>
+          <li><a href="#"><i class="icon-book"></i>&nbsp;{{t common.documentation}}</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <!-- Tab panes -->
+    <div class="col-xs-12">
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="mpacks">
+          {{#each serviceGroup in controller.serviceGroups}}
+          {{view App.ServiceGroupView serviceGroupBinding="serviceGroup"}}
+          {{/each}}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="history">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Management Pack</th>
+                    <th>Status</th>
+                    <th>Date Added</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

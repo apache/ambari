@@ -2565,13 +2565,19 @@ a.abort-icon:hover {
 .capsule {
   height: 22px;
   width: auto;
-  border-radius: 12px;
-  background: #eee;
-  font-size: 10px;
-  align-items: center;
-  border: none;
   padding-left: 10px;
   padding-right: 10px;
+  margin-bottom: 5px;
+  background-color: #ddd;
+  font-size: 10px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  
+  &:hover {
+    background-color: #ccc;
+  }
+  
   .icon {
     color: #999;
     font-style: normal;
@@ -2730,6 +2736,120 @@ td .no-data {
 .container-wrap-table {
   padding: 0 10px;
   background-color: @diff-background-equal;
+}
+
+#admin-service-groups {
+  div.timeline {
+    height: 190px;
+    width: 100%;
+    overflow: auto;
+
+    ol {
+      display: flex;
+      height: 170px;
+
+      li.timeline-event {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        position: relative;
+        flex-shrink: 0;
+        width: 120px;
+        height: 60px;
+        padding: 5px;
+        color: #999;
+        background-color: #eee;
+        border-radius: 4px;
+
+        &:not(:last-of-type):before {
+          height: 2px;
+          width: 100%;
+          position: absolute;
+          left: 50%;
+          content: " ";
+          background-color: #ccc;
+        }
+
+        &:nth-of-type(odd):before {
+          bottom: ~"calc(-50% + 4px)";
+        }
+
+        &:nth-of-type(even):before {
+          top: ~"calc(-50% + 4px)";
+        }
+
+        &:after {
+          height: 14px;
+          width: 14px;
+          border-radius: 50%;
+          content: " ";
+          position: absolute;
+          background-color: #666;
+          left: 50%;
+          transform: translateX(-50%);
+          border: white 1px solid;
+        }
+
+        &:nth-of-type(odd) {
+          align-self: flex-start;
+
+          &:after {
+            bottom: ~"calc(-50% - 2px)";
+          }
+        }
+
+        &:nth-of-type(even) {
+          align-self: flex-end;
+
+          &:after {
+            top: ~"calc(-50% - 2px)";
+          }
+        }
+
+        &:last-of-type {
+          color: #ccc;
+          background-color: #1eb475;
+
+          .event-heading {
+            color: #fafafa;
+          }
+
+          &:after {
+            width: 13px;
+            height: 13px;
+            background-color: inherit;
+            border: none;
+            box-shadow: 0 0 0 8px #1eb47599;
+          }
+        }
+
+        .event-heading {
+          color: #666;
+          font-size: 16px;
+
+          .icon {
+            font-family: 'FontAwesome';
+            
+            &.release {
+              display: none;
+            }
+            
+            &.patch:before {
+              color: #e98a40;
+              content: '\f0fa';
+            }
+            
+            &.hotfix:before {
+              color: #ef6162;
+              content: '\f188';
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 .bulk-host-display {
