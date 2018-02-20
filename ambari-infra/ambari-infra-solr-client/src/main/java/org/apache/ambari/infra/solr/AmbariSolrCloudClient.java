@@ -18,22 +18,7 @@
  */
 package org.apache.ambari.infra.solr;
 
-import org.apache.ambari.infra.solr.commands.CheckConfigZkCommand;
-import org.apache.ambari.infra.solr.commands.CreateCollectionCommand;
-import org.apache.ambari.infra.solr.commands.CreateShardCommand;
-import org.apache.ambari.infra.solr.commands.CreateSolrZnodeZkCommand;
-import org.apache.ambari.infra.solr.commands.DownloadConfigZkCommand;
-import org.apache.ambari.infra.solr.commands.EnableKerberosPluginSolrZkCommand;
-import org.apache.ambari.infra.solr.commands.GetShardsCommand;
-import org.apache.ambari.infra.solr.commands.GetSolrHostsCommand;
-import org.apache.ambari.infra.solr.commands.ListCollectionCommand;
-import org.apache.ambari.infra.solr.commands.RemoveAdminHandlersCommand;
-import org.apache.ambari.infra.solr.commands.SecureSolrZNodeZkCommand;
-import org.apache.ambari.infra.solr.commands.SecureZNodeZkCommand;
-import org.apache.ambari.infra.solr.commands.SetClusterPropertyZkCommand;
-import org.apache.ambari.infra.solr.commands.UnsecureZNodeZkCommand;
-import org.apache.ambari.infra.solr.commands.UploadConfigZkCommand;
-import org.apache.ambari.infra.solr.commands.CheckZnodeZkCommand;
+import org.apache.ambari.infra.solr.commands.*;
 import org.apache.ambari.infra.solr.util.ShardUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.common.cloud.Slice;
@@ -72,6 +57,9 @@ public class AmbariSolrCloudClient {
   private final String propValue;
   private final String securityJsonLocation;
   private final boolean secure;
+  private final String transferMode;
+  private final String copySrc;
+  private final String copyDest;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
     this.zkConnectString = builder.zkConnectString;
@@ -95,6 +83,9 @@ public class AmbariSolrCloudClient {
     this.propValue = builder.propValue;
     this.securityJsonLocation = builder.securityJsonLocation;
     this.secure = builder.secure;
+    this.transferMode = builder.transferMode;
+    this.copySrc = builder.copySrc;
+    this.copyDest = builder.copyDest;
   }
 
   /**
@@ -265,6 +256,13 @@ public class AmbariSolrCloudClient {
     return new RemoveAdminHandlersCommand(getRetryTimes(), getInterval()).run(this);
   }
 
+  /**
+   * Transfer znode data (cannot be both scr and dest local)
+   */
+  public boolean transferZnode() throws Exception {
+    return new TransferZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
+  }
+
   public String getZkConnectString() {
     return zkConnectString;
   }
@@ -347,5 +345,17 @@ public class AmbariSolrCloudClient {
 
   public String getSecurityJsonLocation() {
     return securityJsonLocation;
+  }
+
+  public String getTransferMode() {
+    return transferMode;
+  }
+
+  public String getCopySrc() {
+    return copySrc;
+  }
+
+  public String getCopyDest() {
+    return copyDest;
   }
 }
