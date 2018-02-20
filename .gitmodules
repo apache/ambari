@@ -1,0 +1,3 @@
+[submodule "ambari-server/src/main/resources/stacks/HDP/2.6/services/ALLUXIO"]
+	path = ambari-server/src/main/resources/stacks/HDP/2.6/services/ALLUXIO
+	url = git@github.com:bazaarvoice/alluxio-ambari-service.git
