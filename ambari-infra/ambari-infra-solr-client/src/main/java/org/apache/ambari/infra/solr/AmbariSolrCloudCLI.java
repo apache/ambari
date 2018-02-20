@@ -448,7 +448,7 @@ public class AmbariSolrCloudCLI {
       } else if (cli.hasOption("rah")) {
         command = REMOVE_ADMIN_HANDLERS;
         validateRequiredOptions(cli, command, zkConnectStringOption, collectionOption);
-      } else if (cli.hasOption("tf")) {
+      } else if (cli.hasOption("tz")) {
         command = TRANSFER_ZNODE_COMMAND;
         validateRequiredOptions(cli, command, zkConnectStringOption, copyScrOption, copyDestOption);
       }else {
