@@ -100,7 +100,15 @@ App.MainSideMenuView = Em.CollectionView.extend({
       // create dropdown categories for each menu item
       let {router} = App;
       if (itemName === 'admin') {
-        if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || upg) {
+        if (App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS') || upg) {
+          categories.push({
+            name: 'adminServiceGroups',
+            url: 'serviceGroups',
+            label: Em.I18n.t('admin.serviceGroups.title'),
+            href: router.urlFor('main.admin.serviceGroups')
+          });
+        }
+        if (App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || upg) {
           categories.push({
             name: 'stackAndUpgrade',
             url: 'stack',

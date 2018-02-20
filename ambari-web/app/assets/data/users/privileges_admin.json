@@ -3,11 +3,65 @@
   "items" : [
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/privileges/1",
-      "PrivilegeInfo" : {
+      "AuthorizationInfo" : {
         "permission_name" : "AMBARI.ADMINISTRATOR",
         "principal_name" : "admin",
         "principal_type" : "USER",
-        "privilege_id" : 1
+        "authorization_id" : "AMBARI.ADMINISTRATOR"
+      }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/privileges/2",
+      "AuthorizationInfo" : {
+        "permission_name" : "CLUSTER.TOGGLE_KERBEROS",
+        "principal_name" : "admin",
+        "principal_type" : "USER",
+        "authorization_id" : "CLUSTER.TOGGLE_KERBEROS"
+      }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/privileges/3",
+      "AuthorizationInfo" : {
+        "permission_name" : "CLUSTER.MODIFY_CONFIGS",
+        "principal_name" : "admin",
+        "principal_type" : "USER",
+        "authorization_id" : "CLUSTER.MODIFY_CONFIGS"
+      }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/privileges/4",
+      "AuthorizationInfo" : {
+        "permission_name" : "SERVICE.START_STOP",
+        "principal_name" : "admin",
+        "principal_type" : "USER",
+        "authorization_id" : "SERVICE.START_STOP"
+      }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/privileges/5",
+      "AuthorizationInfo" : {
+        "permission_name" : "SERVICE.SET_SERVICE_USERS_GROUPS",
+        "principal_name" : "admin",
+        "principal_type" : "USER",
+        "authorization_id" : "SERVICE.SET_SERVICE_USERS_GROUPS"
+      }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/privileges/6",
+      "AuthorizationInfo" : {
+        "permission_name" : "CLUSTER.UPGRADE_DOWNGRADE_STACK",
+        "principal_name" : "admin",
+        "principal_type" : "USER",
+        "authorization_id" : "CLUSTER.UPGRADE_DOWNGRADE_STACK"
+      }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/privileges/7",
+      "AuthorizationInfo" : {
+        "permission_name" : "CLUSTER.VIEW_STACK_DETAILS",
+        "principal_name" : "admin",
+        "principal_type" : "USER",
+        "authorization_id" : "CLUSTER.VIEW_STACK_DETAILS"
       }
     }
   ]

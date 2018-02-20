@@ -1,0 +1,61 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="dashrow">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      {{#if view.headerClass}}
+        {{view view.headerClass}}
+      {{else}}
+        {{#if view.encodeHeader}}
+          {{view.header}}
+        {{else}}
+          {{{view.header}}}
+        {{/if}}
+      {{/if}}
+      {{#if view.hasMenu}}
+        <div class="dropdown">
+          <button class="dropdown-toggle icon-button menu-button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+          {{#if view.menuClass}}
+            {{view view.menuClass}}
+          {{else}}
+            {{#if view.encodeMenu}}
+              {{view.menu}}
+            {{else}}
+              {{{view.menu}}}
+            {{/if}}
+          {{/if}}
+        </div>
+      {{/if}}
+      <button class="collapse-button" type="button" data-toggle="collapse" {{bindAttr data-target="view.collapseTarget" aria-controls="view.collapseId"}} aria-expanded="false"></button>
+    </div>
+    <div {{bindAttr id="view.collapseId"}} class="panel-collapse collapse">
+      <div class="panel-body">
+        {{#if view.bodyClass}}
+          {{view view.bodyClass}}
+        {{else}}
+          {{#if view.encodeBody}}
+            {{view.body}}
+          {{else}}
+            {{{view.body}}}
+          {{/if}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>

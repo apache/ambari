@@ -31,6 +31,31 @@ describe('date', function () {
     {m: 'empty function', t: function(){}}
   ]);
 
+  describe('#dateFormat', function () {
+    it('Should format dates passed as timestamp integers', function () {
+      var input = 0;//.toUTCString();
+      var expected = "Wed, Dec 31, 1969 19:00";
+      var actual = date.dateFormat(input);
+
+      expect(actual).to.equal(expected);
+    });
+
+    it('Should format dates passed as Date objects', function () {
+      var input = new Date(1970, 0, 1);
+      var expected = "Thu, Jan 01, 1970 00:00";
+      var actual = date.dateFormat(input);
+
+      expect(actual).to.equal(expected);
+    });
+
+    it('Should pass through any other type of data', function () {
+      var expected = "Hello World";
+      var actual = date.dateFormat(expected);
+
+      expect(actual).to.equal(expected);
+    });
+  }),
+
   describe('#dateFormatZeroFirst()', function() {
     var tests = [
       {
