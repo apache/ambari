@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -398,7 +397,7 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariHostResources(long  clusterId, String hostName, Collection<Component> components)  {
+  public void createAmbariHostResources(long  clusterId, String hostName, Stream<ResolvedComponent> components)  {
     Host host;
     try {
       host = getController().getClusters().getHost(hostName);
@@ -408,7 +407,7 @@ public class AmbariContext {
           "Unable to obtain host instance '%s' when persisting host resources", hostName));
     }
 
-    Cluster cluster = null;
+    final Cluster cluster;
     try {
       cluster = getController().getClusters().getClusterById(clusterId);
     } catch (AmbariException e) {
@@ -430,26 +429,15 @@ public class AmbariContext {
           hostName, e.toString()), e);
     }
 
-    final Set<ServiceComponentHostRequest> requests = new HashSet<>();
+    final Set<ServiceComponentHostRequest> requests = components
+      .filter(component -> !component.componentName().equals(RootComponent.AMBARI_SERVER.name()))
+      .map(component -> new ServiceComponentHostRequest(clusterName, component.effectiveServiceGroupName(), component.effectiveServiceName(), component.componentName(), hostName, null))
+      .collect(toSet());
 
-    for (Component component : components) {
-      String componentName = component.getName();
-      String serviceName = component.getServiceInstance();
-      try {
-        if (cluster.getService(serviceName) != null && !componentName.equals(RootComponent.AMBARI_SERVER.name())) {
-          requests.add(new ServiceComponentHostRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, serviceName, componentName, hostName, null));
-        }
-      } catch (AmbariException e) {
-        LOG.warn("Service already deleted from cluster: {}", serviceName);
-      }
-    }
     try {
-      RetryHelper.executeWithRetry(new Callable<Object>() {
-        @Override
-        public Object call() throws Exception {
-          getController().createHostComponents(requests);
-          return null;
-        }
+      RetryHelper.executeWithRetry(() -> {
+        getController().createHostComponents(requests);
+        return null;
       });
     } catch (AmbariException e) {
       LOG.error("Unable to create host component resource for host {}", hostName, e);

@@ -35,7 +35,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -402,8 +401,6 @@ public class AmbariContextTest {
 
     hostResourceProvider.createHosts(anyObject(Request.class));
     expectLastCall().once();
-    expect(cluster.getService("service1")).andReturn(mockService1).times(2);
-    expect(cluster.getService("service2")).andReturn(mockService1).once();
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
     expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
@@ -411,39 +408,14 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    Collection<Component> components = new ArrayList<>();
-    components.add(new Component("component1", "mpack", "service1", null));
-    components.add(new Component("component2", "mpack", "service1", null));
-    components.add(new Component("component3", "mpack", "service2", null));
-
+    Stream<ResolvedComponent> components = Stream.of(
+      ResolvedComponent.builder(new Component("component1", "mpack", "service1", null)).buildPartial(),
+      ResolvedComponent.builder(new Component("component2", "mpack", "service1", null)).buildPartial(),
+      ResolvedComponent.builder(new Component("component3", "mpack", "service2", null)).buildPartial()
+    );
     context.createAmbariHostResources(CLUSTER_ID, "host1", components);
 
     assertEquals(requestsCapture.getValue().size(), 3);
-  }
-
-  @Test
-  public void testCreateAmbariHostResourcesWithMissingService() throws Exception {
-    // expectations
-    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
-
-    hostResourceProvider.createHosts(anyObject(Request.class));
-    expectLastCall().once();
-    expect(cluster.getService("service1")).andReturn(mockService1).times(2);
-    Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
-
-    expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
-
-    replayAll();
-
-    // test
-    Collection<Component> components = new ArrayList<>();
-    components.add(new Component("component1", "mpack", "service1", null));
-    components.add(new Component("component2", "mpack", "service1", null));
-    components.add(new Component("component3", "mpack", "service2", null));
-
-    context.createAmbariHostResources(CLUSTER_ID, "host1", components);
-
-    assertEquals(requestsCapture.getValue().size(), 2);
   }
 
   @Test

@@ -45,14 +45,14 @@ public interface ResolvedComponent {
    * @return service group name if it set, otherwise defaults to the stack name
    */
   default String effectiveServiceGroupName() {
-    return serviceGroupName().orElse(stackId().getStackName());
+    return serviceGroupName().orElseGet(() -> stackId().getStackName());
   }
 
   /**
    * @return service name if it set, otherwise defaults to the service type (eg. ZOOKEEPER)
    */
   default String effectiveServiceName() {
-    return serviceName().orElse(serviceType());
+    return serviceName().orElseGet(this::serviceType);
   }
 
   /**

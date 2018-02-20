@@ -44,7 +44,7 @@ public class PersistHostResourcesTask extends TopologyHostTask  {
     String hostName = hostRequest.getHostName();
     LOG.info("HostRequest: Executing RESOURCE_CREATION task for host: {}", hostName);
     long clusterId = hostRequest.getClusterId();
-    clusterTopology.getAmbariContext().createAmbariHostResources(clusterId, hostName, hostRequest.getHostGroup().getComponents());
+    clusterTopology.getAmbariContext().createAmbariHostResources(clusterId, hostName, clusterTopology.getComponentsInHostGroup(hostRequest.getHostgroupName()));
     LOG.info("HostRequest: Exiting RESOURCE_CREATION task for host: {}", hostName);
   }
 }
