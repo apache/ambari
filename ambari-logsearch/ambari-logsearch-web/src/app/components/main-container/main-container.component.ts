@@ -16,20 +16,29 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import {TakeUntilDestroy} from "angular2-take-until-destroy";
 
 @Component({
   selector: 'main-container',
   templateUrl: './main-container.component.html',
   styleUrls: ['./main-container.component.less']
 })
-export class MainContainerComponent {
+@TakeUntilDestroy
+export class MainContainerComponent implements OnInit, OnDestroy{
 
-  constructor(private appState: AppStateService) {
-    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
-    appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value);
+  componentDestroy;
+  constructor(private appState: AppStateService) {}
+
+  ngOnInit() {
+    this.appState.getParameter('isAuthorized').takeUntil(this.componentDestroy())
+      .subscribe((value: boolean) => this.isAuthorized = value);
+    this.appState.getParameter('isInitialLoading').takeUntil(this.componentDestroy())
+      .subscribe((value: boolean) => this.isInitialLoading = value);
   }
+
+  ngOnDestroy() {}
 
   isAuthorized: boolean = false;
 

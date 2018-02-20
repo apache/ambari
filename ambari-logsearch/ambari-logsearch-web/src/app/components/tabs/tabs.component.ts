@@ -34,7 +34,8 @@ export class TabsComponent {
   @Output()
   tabClosed: EventEmitter<Tab[]> = new EventEmitter();
 
-  switchTab(tab: Tab): void {
+  switchTab(tab: Tab, event?: MouseEvent): void {
+    event && event.preventDefault();
     this.items.forEach((item: Tab) => item.isActive = item.id === tab.id);
     this.tabSwitched.emit(tab);
   }

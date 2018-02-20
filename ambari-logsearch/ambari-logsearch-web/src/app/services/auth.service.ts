@@ -23,6 +23,12 @@ import {Observable} from 'rxjs/Observable';
 
 import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import {Router} from "@angular/router";
+import {isBoolean} from "util";
+import {Subscription} from "rxjs/Subscription";
+
+const IS_AUTHORIZED_APP_STATE_KEY: string = 'isAuthorized';
+const IS_LOGIN_IN_PROGRESS_APP_STATE_KEY: string = 'isLoginInProgress';
 
 /**
  * This service meant to be a single place where the authorization should happen.
@@ -30,8 +36,27 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 @Injectable()
 export class AuthService {
 
-  constructor(private httpClient: HttpClientService, private appState: AppStateService) {}
+  constructor(private httpClient: HttpClientService, private appState: AppStateService, private router: Router) {
+    this.appStateIsAuthorizedSubscription = this.appState.getParameter(IS_AUTHORIZED_APP_STATE_KEY).subscribe(
+      this.onAppStateIsAuthorizedChanged
+    );
+  }
 
+  private appStateIsAuthorizedSubscription: Subscription;
+
+  /**
+   * A string set by any service or component (mainly from AuthGuard service) to redirect the application after the
+   * authorization done.
+   * @type string
+   */
+  redirectUrl: string;
+
+  onAppStateIsAuthorizedChanged = (isAuthorized):void => {
+    if (isAuthorized && this.redirectUrl) {
+      this.router.navigate([this.redirectUrl]);
+      this.redirectUrl = '';
+    }
+  };
   /**
    * The single entry point to request a login action.
    * @param {string} username
@@ -70,7 +95,7 @@ export class AuthService {
    * @param {boolean} state the new value of the isLoginInProgress app state.
    */
   private setLoginInProgressAppState(state: boolean) {
-    this.appState.setParameter('isLoginInProgress', state);
+    this.appState.setParameter(IS_LOGIN_IN_PROGRESS_APP_STATE_KEY, state);
   }
 
   /**
@@ -79,7 +104,7 @@ export class AuthService {
    * @param {boolean} state The new value of the isAuthorized app state.
    */
   private setAuthorizedAppState(state: boolean) {
-    this.appState.setParameter('isAuthorized', state);
+    this.appState.setParameter(IS_AUTHORIZED_APP_STATE_KEY, state);
   }
 
   /**
@@ -87,6 +112,7 @@ export class AuthService {
    * @param resp
    */
   private onLoginResponse(resp: Response): void {
+    debugger;
     if (resp && resp.ok) {
       this.setLoginInProgressAppState(false);
       this.setAuthorizedAppState(resp.ok);
@@ -119,5 +145,12 @@ export class AuthService {
    * @param {Response} resp
    */
   private onLogoutError(resp: Response): void {}
+
+  /**
+   * Simply return with the boolean value of the isAuthorized application state key.
+   */
+  public isLoggedIn(): Observable<boolean> {
+    return this.appState.getParameter(IS_AUTHORIZED_APP_STATE_KEY);
+  }
 
 }

@@ -14,12 +14,4 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
-<ul class="nav nav-tabs">
-  <li *ngFor="let tab of items" [ngClass]="{'active': tab.isActive}">
-    <a href="#" (click)="switchTab(tab, $event)">
-      {{tab.label | translate}}
-      <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
-    </a>
-  </li>
-</ul>
+Here we are.

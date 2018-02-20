@@ -15,8 +15,4 @@
   limitations under the License.
 -->
 
-<div *ngIf="isInitialLoading" class="text-center">
-  <span class="fa fa-spinner fa-spin"></span>
-</div>
-<login-form *ngIf="!isInitialLoading && !isAuthorized"></login-form>
-<logs-container *ngIf="isAuthorized"></logs-container>
+<router-outlet></router-outlet>

@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
   selector: 'app-root',
@@ -27,17 +28,23 @@ import {HttpClientService} from '@app/services/http-client.service';
   styleUrls: ['./app.component.less']
 })
 
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
 
-  constructor(private httpClient: HttpClientService, private translate: TranslateService, private appState: AppStateService) {
-    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
-    appState.setParameter('isInitialLoading', true);
-    httpClient.get('status').subscribe(() => appState.setParameters({
-      isAuthorized: true,
-      isInitialLoading: false
-    }), () => appState.setParameter('isInitialLoading', false));
-    translate.setDefaultLang('en');
-    translate.use('en');
+  constructor(private httpClient: HttpClientService, private translate: TranslateService,
+              private appState: AppStateService) {}
+
+  private appStateIsAuthorizedSubscription: Subscription;
+
+  ngOnInit() {
+    this.appStateIsAuthorizedSubscription = this.appState.getParameter('isAuthorized')
+      .subscribe((value: boolean) => this.isAuthorized = value);
+    this.appState.setParameter('isInitialLoading', true);
+    this.translate.setDefaultLang('en');
+    this.translate.use('en');
+  }
+
+  ngOnDestroy() {
+    this.appStateIsAuthorizedSubscription.unsubscribe();
   }
 
   isAuthorized: boolean = false;

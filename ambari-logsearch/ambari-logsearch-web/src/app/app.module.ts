@@ -102,6 +102,10 @@ import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-inde
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
 import {ComponentLabelPipe} from "@app/pipes/component-label";
+import {ShipperConfigurationModule} from "@app/modules/shipper-configuration/shipper-configuration.module";
+import {AppRoutingModule} from "@app/app-routing.module";
+import {AuthGuardService} from "@app/services/auth-guard.service";
+import {AppLoadModule} from "@app/modules/app-load/app-load.module";
 
 export function HttpLoaderFactory(http: Http): TranslateHttpLoader {
   // adding 'static' parameter to step over mock data request
@@ -170,6 +174,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
   ],
   imports: [
     BrowserModule,
+    AppLoadModule,
     FormsModule,
     ReactiveFormsModule,
     HttpModule,
@@ -185,7 +190,9 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     StoreModule.provideStore(reducer),
     MomentModule,
     MomentTimezoneModule,
-    NgStringPipesModule
+    NgStringPipesModule,
+    ShipperConfigurationModule,
+    AppRoutingModule
   ],
   providers: [
     HttpClientService,
@@ -214,6 +221,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
     },
     AuthService,
+    AuthGuardService,
     HistoryManagerService
   ],
   bootstrap: [AppComponent],

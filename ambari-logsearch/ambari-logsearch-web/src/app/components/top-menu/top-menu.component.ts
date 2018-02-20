@@ -23,6 +23,7 @@ import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {AuthService} from '@app/services/auth.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'top-menu',
@@ -31,7 +32,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 })
 export class TopMenuComponent {
 
-  constructor(private authService: AuthService, private logsContainer: LogsContainerService) {
+  constructor(private authService: AuthService, private logsContainer: LogsContainerService, private router: Router) {
   }
 
   get filtersForm(): FormGroup {
@@ -51,6 +52,10 @@ export class TopMenuComponent {
     this.authService.logout();
   };
 
+  navigateToShipperConfig = ():void => {
+    this.router.navigate(['shipper']);
+  };
+
   readonly items = [
     {
       iconClass: 'fa fa-user grey',
@@ -61,6 +66,12 @@ export class TopMenuComponent {
           label: 'common.settings',
           onSelect: this.openSettings,
           iconClass: 'fa fa-cog'
+        },
+
+        {
+          label: 'common.settings',
+          onSelect: this.navigateToShipperConfig,
+          iconClass: 'fa fa-file-code'
         },
         {
           isDivider: true

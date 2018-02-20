@@ -42,24 +42,24 @@ import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel
 export class LogsContainerComponent implements OnInit {
 
   constructor(
-    private appState: AppStateService, private tabsStorage: TabsService, private logsContainer: LogsContainerService,
+    private appState: AppStateService, private tabsStorage: TabsService, private logsContainerService: LogsContainerService,
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
     private auditLogsGraphStorage: AuditLogsGraphDataService
   ) {
   }
 
   ngOnInit() {
-    this.logsContainer.loadColumnsNames();
+    this.logsContainerService.loadColumnsNames();
     this.appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
     this.serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
-      this.serviceLogsHistogramData = this.logsContainer.getGraphData(data, this.logsContainer.logLevels.map((
+      this.serviceLogsHistogramData = this.logsContainerService.getGraphData(data, this.logsContainerService.logLevels.map((
         level: LogLevelObject
       ): LogLevel => {
         return level.name;
       }));
     });
     this.auditLogsGraphStorage.getAll().subscribe((data: BarGraph[]): void => {
-      this.auditLogsGraphData = this.logsContainer.getGraphData(data);
+      this.auditLogsGraphData = this.logsContainerService.getGraphData(data);
     });
     this.appState.getParameter('isServiceLogContextView').subscribe((value: boolean): void => {
       this.isServiceLogContextView = value;
@@ -79,20 +79,20 @@ export class LogsContainerComponent implements OnInit {
   tabs: Observable<Tab[]> = this.tabsStorage.getAll();
 
   get filtersForm(): FormGroup {
-    return this.logsContainer.filtersForm;
+    return this.logsContainerService.filtersForm;
   };
 
   private logsType: LogsType;
 
   get totalCount(): number {
-    return this.logsContainer.totalCount;
+    return this.logsContainerService.totalCount;
   }
 
   serviceLogsHistogramData: HomogeneousObject<HomogeneousObject<number>>;
 
   auditLogsGraphData: HomogeneousObject<HomogeneousObject<number>>;
 
-  serviceLogsHistogramColors: HomogeneousObject<string> = this.logsContainer.logLevels.reduce((
+  serviceLogsHistogramColors: HomogeneousObject<string> = this.logsContainerService.logLevels.reduce((
     currentObject: HomogeneousObject<string>, level: LogLevelObject
   ): HomogeneousObject<string> => {
     return Object.assign({}, currentObject, {
@@ -101,7 +101,7 @@ export class LogsContainerComponent implements OnInit {
   }, {});
 
   get autoRefreshRemainingSeconds(): number {
-    return this.logsContainer.autoRefreshRemainingSeconds;
+    return this.logsContainerService.autoRefreshRemainingSeconds;
   }
 
   get autoRefreshMessageParams(): object {
@@ -123,27 +123,27 @@ export class LogsContainerComponent implements OnInit {
   isServiceLogContextView: boolean = false;
 
   get isServiceLogsFileView(): boolean {
-    return this.logsContainer.isServiceLogsFileView;
+    return this.logsContainerService.isServiceLogsFileView;
   }
 
   get activeLog(): ActiveServiceLogEntry | null {
-    return this.logsContainer.activeLog;
+    return this.logsContainerService.activeLog;
   }
 
   get auditLogs(): Observable<AuditLog[]> {
-    return this.logsContainer.auditLogs;
+    return this.logsContainerService.auditLogs;
   }
 
   get auditLogsColumns(): Observable<ListItem[]> {
-    return this.logsContainer.auditLogsColumns;
+    return this.logsContainerService.auditLogsColumns;
   }
 
   get serviceLogs(): Observable<ServiceLog[]> {
-    return this.logsContainer.serviceLogs;
+    return this.logsContainerService.serviceLogs;
   }
 
   get serviceLogsColumns(): Observable<ListItem[]> {
-    return this.logsContainer.serviceLogsColumns;
+    return this.logsContainerService.serviceLogsColumns;
   }
 
   /**
@@ -169,11 +169,11 @@ export class LogsContainerComponent implements OnInit {
   }
 
   setCustomTimeRange(startTime: number, endTime: number): void {
-    this.logsContainer.setCustomTimeRange(startTime, endTime);
+    this.logsContainerService.setCustomTimeRange(startTime, endTime);
   }
 
   onSwitchTab(activeTab: Tab): void {
-    this.logsContainer.switchTab(activeTab);
+    this.logsContainerService.switchTab(activeTab);
   }
 
   onCloseTab(activeTab: Tab, newActiveTab: Tab): void {
