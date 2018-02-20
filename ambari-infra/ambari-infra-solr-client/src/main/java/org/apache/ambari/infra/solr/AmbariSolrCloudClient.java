@@ -18,7 +18,23 @@
  */
 package org.apache.ambari.infra.solr;
 
-import org.apache.ambari.infra.solr.commands.*;
+import org.apache.ambari.infra.solr.commands.CheckConfigZkCommand;
+import org.apache.ambari.infra.solr.commands.CreateCollectionCommand;
+import org.apache.ambari.infra.solr.commands.CreateShardCommand;
+import org.apache.ambari.infra.solr.commands.CreateSolrZnodeZkCommand;
+import org.apache.ambari.infra.solr.commands.DownloadConfigZkCommand;
+import org.apache.ambari.infra.solr.commands.EnableKerberosPluginSolrZkCommand;
+import org.apache.ambari.infra.solr.commands.GetShardsCommand;
+import org.apache.ambari.infra.solr.commands.GetSolrHostsCommand;
+import org.apache.ambari.infra.solr.commands.ListCollectionCommand;
+import org.apache.ambari.infra.solr.commands.RemoveAdminHandlersCommand;
+import org.apache.ambari.infra.solr.commands.SecureSolrZNodeZkCommand;
+import org.apache.ambari.infra.solr.commands.SecureZNodeZkCommand;
+import org.apache.ambari.infra.solr.commands.SetClusterPropertyZkCommand;
+import org.apache.ambari.infra.solr.commands.TransferZnodeZkCommand;
+import org.apache.ambari.infra.solr.commands.UnsecureZNodeZkCommand;
+import org.apache.ambari.infra.solr.commands.UploadConfigZkCommand;
+import org.apache.ambari.infra.solr.commands.CheckZnodeZkCommand;
 import org.apache.ambari.infra.solr.util.ShardUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.common.cloud.Slice;
