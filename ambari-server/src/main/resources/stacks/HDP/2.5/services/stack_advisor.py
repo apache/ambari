@@ -215,7 +215,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             not application_properties['atlas.graph.index.search.solr.zookeeper-url']:
       validationItems.append({"config-name": "atlas.graph.index.search.solr.zookeeper-url",
                               "item": self.getErrorItem(
-                                  "If AMBARI_INFRA is not installed then the SOLR zookeeper url configuration must be specified.")})
+                                  "If AMBARI_INFRA_SOLR is not installed then the SOLR zookeeper url configuration must be specified.")})
 
     if not application_properties['atlas.kafka.bootstrap.servers']:
       validationItems.append({"config-name": "atlas.kafka.bootstrap.servers",
@@ -609,7 +609,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if atlas_rest_address is not None:
       putAtlasApplicationProperty("atlas.rest.address", atlas_rest_address)
 
-    if "AMBARI_INFRA" in servicesList and 'infra-solr-env' in services['configurations']:
+    if "AMBARI_INFRA_SOLR" in servicesList and 'infra-solr-env' in services['configurations']:
       if 'infra_solr_znode' in services['configurations']['infra-solr-env']['properties']:
         infra_solr_znode = services['configurations']['infra-solr-env']['properties']['infra_solr_znode']
       else:
@@ -2042,7 +2042,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
 
     ranger_audit_zk_port = ''
 
-    if 'AMBARI_INFRA' in servicesList and zookeeper_host_port and is_solr_cloud_enabled and not is_external_solr_cloud_enabled:
+    if 'AMBARI_INFRA_SOLR' in servicesList and zookeeper_host_port and is_solr_cloud_enabled and not is_external_solr_cloud_enabled:
       zookeeper_host_port = zookeeper_host_port.split(',')
       zookeeper_host_port.sort()
       zookeeper_host_port = ",".join(zookeeper_host_port)

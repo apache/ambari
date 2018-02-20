@@ -137,7 +137,7 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
         self.putPropertyAttribute(configurations, "logsearch-admin-json")(key, 'visible', 'false')
     # if there is a Log Search server on the cluster
     else:
-      infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
+      infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA_SOLR", "INFRA_SOLR")
       # if there is AMBARI_INFRA, calculate the min/max shards and recommendations based on the number of infra solr hosts
       if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
         replicationReccomendFloat = math.log(len(infraSolrHosts), 5)

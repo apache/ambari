@@ -31,7 +31,7 @@ var includeSiteProperties = function() {
 module.exports = {
   configProperties: includeSiteProperties(
     'accumulo',
-    'ambari_infra',
+    'ambari_infra_solr',
     'ambari_metrics',
     'falcon',
     'flume',

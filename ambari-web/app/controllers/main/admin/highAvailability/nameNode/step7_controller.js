@@ -28,7 +28,7 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
     this._super();
     var tasksToRemove = [];
 
-    if (!App.Service.find().someProperty('serviceName', 'AMBARI_INFRA')) {
+    if (!App.Service.find().someProperty('serviceName', 'AMBARI_INFRA_SOLR')) {
       tasksToRemove.push('startAmbariInfra');
     }
 
@@ -39,7 +39,7 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
   },
 
   startAmbariInfra: function () {
-    this.startServices(false, ['AMBARI_INFRA'], true);
+    this.startServices(false, ['AMBARI_INFRA_SOLR'], true);
   },
 
   startRanger: function () {
@@ -59,4 +59,3 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
     this.updateComponent('NAMENODE', hostName, "HDFS", "Start");
   }
 });
-

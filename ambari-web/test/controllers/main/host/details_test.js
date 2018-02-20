@@ -1046,7 +1046,7 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=accumulo-site&tag=1)']);
     });
 
-    it('ATLAS is installed, AMBARI_INFRA isn\'t installed', function () {
+    it('ATLAS is installed, AMBARI_INFRA_SOLR isn\'t installed', function () {
       loadService('ATLAS');
       expect(controller.constructZookeeperConfigUrlParams(data)).to.eql(['(type=application-properties&tag=1)']);
     });
