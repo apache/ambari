@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -44,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
@@ -107,6 +109,7 @@ public class AmbariContextTest {
 
   private static final AmbariContext context = new AmbariContext();
   private static final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+  private static final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
   private static final ClusterController clusterController = createStrictMock(ClusterController.class);
   private static final HostResourceProvider hostResourceProvider = createStrictMock(HostResourceProvider.class);
   private static final ServiceGroupResourceProvider serviceGroupResourceProvider = createStrictMock(ServiceGroupResourceProvider.class);
@@ -140,7 +143,7 @@ public class AmbariContextTest {
 
   @Before
   public void setUp() throws Exception {
-    reset(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
+    reset(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
       hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
       cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
 
@@ -264,6 +267,8 @@ public class AmbariContextTest {
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.getConfigHelper()).andReturn(configHelper).anyTimes();
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(emptySet()).anyTimes();
 
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(clusters.getClusterById(CLUSTER_ID)).andReturn(cluster).anyTimes();
@@ -289,13 +294,13 @@ public class AmbariContextTest {
 
   @After
   public void tearDown() throws Exception {
-    verify(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
+    verify(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
         cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   private void replayAll() {
-    replay(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
+    replay(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
       hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
       cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }

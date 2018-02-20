@@ -337,6 +337,8 @@ public class AmbariContext {
         getController().createCluster(clusterRequest);
         return null;
       });
+
+      addDefaultClusterSettings(clusterName);
     } catch (AmbariException e) {
       LOG.error("Failed to create Cluster resource: ", e);
       if (e.getCause() instanceof DuplicateResourceException) {
@@ -344,6 +346,18 @@ public class AmbariContext {
       } else {
         throw new RuntimeException("Failed to create Cluster resource: " + e, e);
       }
+    }
+  }
+
+  // FIXME temporarily add default cluster settings -- should be provided by ClusterImpl itself
+  private void addDefaultClusterSettings(String clusterName) throws AmbariException {
+    Cluster cluster = getController().getClusters().getCluster(clusterName);
+    Set<Pair<String, String>> properties = getController().getAmbariMetaInfo().getClusterProperties().stream()
+      .map(p -> Pair.of(p.getName(), p.getValue()))
+      .collect(toSet());
+
+    for (Pair<String, String> p : properties) {
+      cluster.addClusterSetting(p.getKey(), p.getValue());
     }
   }
 
