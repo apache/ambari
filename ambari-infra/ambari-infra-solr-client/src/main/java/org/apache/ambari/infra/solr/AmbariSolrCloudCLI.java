@@ -322,23 +322,24 @@ public class AmbariSolrCloudCLI {
       .build();
 
     final Option copyScrOption = Option.builder("cps")
-      .longOpt("copy-scr")
-      .desc("")
-      .argName("/myznode")
+      .longOpt("copy-src")
+      .desc("ZNode or local source (used for ZNode transfer)")
+      .numberOfArgs(1)
+      .argName("/myznode | /my/path")
       .build();
 
     final Option copyDestOption = Option.builder("cpd")
       .longOpt("copy-dist")
-      .desc("")
+      .desc("ZNode or local destination (used for ZNode transfer)")
       .numberOfArgs(1)
-      .argName("/myznode")
+      .argName("/myznode | /my/path")
       .build();
 
     final Option transferModeOption = Option.builder("tm")
       .longOpt("transfer-mode")
       .desc("Transfer mode, if not used copy znode to znode.")
       .numberOfArgs(1)
-      .argName("copyFromLocal|copyToLocal")
+      .argName("copyFromLocal | copyToLocal")
       .build();
 
     final Option securityJsonLocationOption = Option.builder("sjl")
