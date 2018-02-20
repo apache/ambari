@@ -338,7 +338,7 @@ public class AmbariSolrCloudCLI {
       .longOpt("transfer-mode")
       .desc("Transfer mode, if not used copy znode to znode.")
       .numberOfArgs(1)
-      .argName("copyToLocal|copyToLocal")
+      .argName("copyFromLocal|copyToLocal")
       .build();
 
     final Option securityJsonLocationOption = Option.builder("sjl")
