@@ -50,10 +50,6 @@ public class ViewPermissionResourceProviderTest {
   private final static PermissionDAO dao = createStrictMock(PermissionDAO.class);
   private static final ViewRegistry viewRegistry = createMock(ViewRegistry.class);
 
-  static {
-    ViewRegistry.initInstance(viewRegistry);
-  }
-
   @BeforeClass
   public static void initClass() {
     ViewPermissionResourceProvider.init(dao);
@@ -61,6 +57,7 @@ public class ViewPermissionResourceProviderTest {
 
   @Before
   public void resetGlobalMocks() {
+    ViewRegistry.initInstance(viewRegistry);
     reset(dao, viewRegistry);
   }
 
