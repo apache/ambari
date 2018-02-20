@@ -51,26 +51,35 @@ class TestSettings(TestCase):
     Script.config = TestSettings._get_simple_command()
 
     # For stackSettings
-    self.assertEquals(Script.config['stackSettings'], settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE, None))
-    self.assertEquals(Script.config['stackSettings'], settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE))
+    stackSettings = dict((k, settings.convert_value(v)) for k, v in Script.config['stackSettings'].items())
+    self.assertEquals(stackSettings, settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE, None))
+    self.assertEquals(stackSettings, settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE))
 
     # For clusterSettings
-    self.assertEquals(Script.config['clusterSettings'], settings.get_setting_type_entries(settings.CLUSTER_SETTINGS_TYPE, None))
-    self.assertEquals(Script.config['clusterSettings'], settings.get_setting_type_entries(settings.CLUSTER_SETTINGS_TYPE))
+    clusterSettings = dict((k, settings.convert_value(v)) for k, v in Script.config['clusterSettings'].items())
+    self.assertEquals(clusterSettings, settings.get_setting_type_entries(settings.CLUSTER_SETTINGS_TYPE, None))
+    self.assertEquals(clusterSettings, settings.get_setting_type_entries(settings.CLUSTER_SETTINGS_TYPE))
+
+
+  def test_boolean_values_are_converted(self):
+    Script.config = TestSettings._get_simple_command()
+
+    self.assertEquals(settings.get_setting_value(settings.CLUSTER_SETTINGS_TYPE, 'manage_dirs_on_root'), True)
+    self.assertEquals(settings.get_setting_value(settings.CLUSTER_SETTINGS_TYPE, 'recovery_enabled'), False)
 
 
   def test_full_subset_of_entries_for_supported_type(self):
     Script.config = TestSettings._get_simple_command()
 
     # For stackSettings
-    stackSettings = Script.config['stackSettings']
+    stackSettings = dict((k, settings.convert_value(v)) for k, v in Script.config['stackSettings'].items())
     self.assertEquals(stackSettings, settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE, set(stackSettings.keys())))
     self.assertEquals(stackSettings, settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE, frozenset(stackSettings.keys())))
     self.assertEquals(stackSettings, settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE, tuple(stackSettings.keys())))
     self.assertEquals(stackSettings, settings.get_setting_type_entries(settings.STACK_SETTINGS_TYPE, list(stackSettings.keys())))
 
     # For clusterSettings
-    clusterSettings = Script.config['clusterSettings']
+    clusterSettings = dict((k, settings.convert_value(v)) for k, v in Script.config['clusterSettings'].items())
     self.assertEquals(clusterSettings, settings.get_setting_type_entries(settings.CLUSTER_SETTINGS_TYPE, set(clusterSettings.keys())))
     self.assertEquals(clusterSettings, settings.get_setting_type_entries(settings.CLUSTER_SETTINGS_TYPE, frozenset(clusterSettings.keys())))
     self.assertEquals(clusterSettings, settings.get_setting_type_entries(settings.CLUSTER_SETTINGS_TYPE, tuple(clusterSettings.keys())))
@@ -155,7 +164,7 @@ class TestSettings(TestCase):
     # For clusterSettings
     self.assertTrue(settings.get_setting_value(settings.CLUSTER_SETTINGS_TYPE, 'non_existing_key') is None)
 
-  def test_value_of_supported_setting_type_empy_string_name(self):
+  def test_value_of_supported_setting_type_empty_string_name(self):
     Script.config = TestSettings._get_simple_command()
 
     # For stackSettings
@@ -179,12 +188,12 @@ class TestSettings(TestCase):
     # For stackSettings
     stack_settings = Script.config['stackSettings']
     for k in stack_settings.keys():
-      self.assertEquals(stack_settings[k], settings.get_setting_value(settings.STACK_SETTINGS_TYPE, k))
+      self.assertEquals(settings.convert_value(stack_settings[k]), settings.get_setting_value(settings.STACK_SETTINGS_TYPE, k))
 
     # For clusterSettings
     cluster_settings = Script.config['clusterSettings']
     for k in cluster_settings.keys():
-      self.assertEquals(cluster_settings[k], settings.get_setting_value(settings.CLUSTER_SETTINGS_TYPE, k))
+      self.assertEquals(settings.convert_value(cluster_settings[k]), settings.get_setting_value(settings.CLUSTER_SETTINGS_TYPE, k))
 
 
   @staticmethod
@@ -199,6 +208,7 @@ class TestSettings(TestCase):
       },
       "clusterSettings": {
         "recovery_enabled": "false",
+        "manage_dirs_on_root": "true",
         "smokeuser": "ambari-qa",
         "recovery_type": "AUTO_START",
         "user_group": "hadoop",
