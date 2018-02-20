@@ -293,7 +293,18 @@
             <!-- ZEPPELIN -->
 
             <!--HDFS-->
+            <execute-stage service="HDFS" component="DATANODE"
+                           title="Enables SASL for authentication of data transfer protocol">
+                <condition xsi:type="config" type="hdfs-site" property="dfs.http.policy" value="HTTPS_ONLY"
+                           comparison="equals"/>
+                <task xsi:type="configure" id="hdfs_set_data_transfer_protection"/>
+            </execute-stage>
 
+            <execute-stage service="HDFS" component="DATANODE"
+                           title="Encrypting the data transfered between hadoop services and clients">
+                <condition xsi:type="security" type="kerberos"/>
+                <task xsi:type="configure" id="hdfs_set_hadoop_rpc_protection_on_kerberized_cluster"/>
+            </execute-stage>
 
             <!--YARN-->
             <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT"
