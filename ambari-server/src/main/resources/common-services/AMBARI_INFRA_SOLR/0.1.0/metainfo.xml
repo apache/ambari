@@ -44,7 +44,7 @@
           </logs>
           <dependencies>
             <dependency>
-              <name>AMBARI_INFRA/INFRA_SOLR_CLIENT</name>
+              <name>AMBARI_INFRA_SOLR/INFRA_SOLR_CLIENT</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
