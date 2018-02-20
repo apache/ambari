@@ -63,7 +63,7 @@ public class AmbariSolrCloudCLI {
       + "\n./solrCloudCli.sh --remove-admin-handlers -z host1:2181,host2:2181/ambari-solr -c collection"
       + "\n./solrCloudCli.sh --create-znode -z host1:2181,host2:2181 -zn /ambari-solr"
       + "\n./solrCloudCli.sh --check-znode -z host1:2181,host2:2181 -zn /ambari-solr"
-      + "\n./solrCloudCli.sh --transfer-znode -z host1:2181,host2:2181 -tz -cps /ambari-solr -cpd /ambari-solr-backup"
+      + "\n./solrCloudCli.sh --transfer-znode -z host1:2181,host2:2181 -cps /ambari-solr -cpd /ambari-solr-backup"
       + "\n./solrCloudCli.sh --cluster-prop -z host1:2181,host2:2181/ambari-solr -cpn urlScheme -cpn http"
       + "\n./solrCloudCli.sh --secure-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
       + "\n./solrCloudCli.sh --unsecure-znode -z host1:2181,host2:2181 -zn /ambari-solr --jaas-file /etc/myconf/jaas_file"
