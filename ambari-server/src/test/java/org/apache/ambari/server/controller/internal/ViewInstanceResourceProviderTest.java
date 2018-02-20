@@ -65,10 +65,6 @@ public class ViewInstanceResourceProviderTest {
 
   private static final ViewRegistry viewregistry = createMock(ViewRegistry.class);
 
-  static {
-    ViewRegistry.initInstance(viewregistry);
-  }
-
   @Before
   public void before() {
     ViewRegistry.initInstance(viewregistry);
