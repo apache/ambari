@@ -20,7 +20,26 @@
 {{navbar-widget}}
 
 <div id="content">
-  {{outlet}}
+  <div id="index-content">
+    <div class="main-content">
+      {{outlet}}
 
-  {{outlet "modal"}}
+      {{outlet "modal"}}
+    </div>
+
+    {{#if isQueryMenuShown}}
+      <div class="query-menu">
+        {{#popover-widget classNames="fa fa-info-circle queries-icon"
+                          titleTranslation="popover.queryEditorHelp.title" }}
+          <ul>
+            <li>{{t 'popover.queryEditorHelp.content.line1'}}</li>
+            <li>{{t 'popover.queryEditorHelp.content.line2'}}</li>
+            <li>{{t 'popover.queryEditorHelp.content.line3'}}</li>
+          </ul>
+        {{/popover-widget}}
+
+        {{render 'query-tabs'}}
+      </div>
+    {{/if}}
+  </div>
 </div>

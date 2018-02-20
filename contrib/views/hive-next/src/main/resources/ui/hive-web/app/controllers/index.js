@@ -32,7 +32,6 @@ export default Ember.Controller.extend({
   logs          : Ember.inject.controller(constants.namingConventions.jobLogs),
   results       : Ember.inject.controller(constants.namingConventions.jobResults),
   explain       : Ember.inject.controller(constants.namingConventions.jobExplain),
-  settings      : Ember.inject.controller(constants.namingConventions.settings),
   visualExplain : Ember.inject.controller(constants.namingConventions.visualExplain),
   tezUI         : Ember.inject.controller(constants.namingConventions.tezUI),
 

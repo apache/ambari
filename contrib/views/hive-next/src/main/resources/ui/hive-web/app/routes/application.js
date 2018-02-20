@@ -60,29 +60,17 @@ export default Ember.Route.extend({
         parentView: 'application'
       });
     },
-
-    openOverlay: function (overlay) {
-      return this.render(overlay.template, {
-        outlet: overlay.outlet,
-        into: overlay.into
-      });
-    },
-
-    closeOverlay: function (overlay) {
-      return this.disconnectOutlet({
-        outlet: overlay.outlet,
-        parentView: overlay.into
-      });
-    },
-
     removeNotification: function (notification) {
       this.get('notifyService').removeNotification(notification);
     },
 
-    willTransition: function(transition) {
+    willTransition: function (transition) {
+      this.controllerFor('application').hideQueryMenu();
       // close active overlay if we transition
       this.controllerFor('queryTabs').setDefaultActive();
-
+      if (transition.targetName.indexOf('index') > -1) {
+        this.controllerFor('application').showQueryMenu();
+      }
       return transition;
     }
   }
