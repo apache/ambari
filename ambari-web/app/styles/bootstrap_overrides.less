@@ -18,28 +18,6 @@
 
 @import 'common.less';
 
-@bootstrap-success: #5cb85c;
-@bootstrap-info: #5bc0de;
-@bootstrap-warning: #f0ad4e;
-@bootstrap-danger: #d9534f;
-@bootstrap-primary: #337ab7;
-
-.@{health-status-red-icon} {
-  color: @health-status-red;
-}
-.@{health-status-green-icon} {
-  color: @health-status-green;
-}
-.@{health-status-yellow-icon} {
-  color: @health-status-yellow;
-}
-.@{health-status-orange-icon} {
-  color: @health-status-orange;
-}
-.@{maintenance-icon} {
-  color: @maintenance-black;
-}
-
 select.form-control {
   display: inline-block;
 }
@@ -458,6 +436,10 @@ select.form-control {
 
 input[type="checkbox"]:checked + label:after {
   line-height: 2em;
+}
+
+.checkbox-colored-background input[type="checkbox"] + label:before {
+  border-color: #999;
 }
 
 .form-horizontal .radio,

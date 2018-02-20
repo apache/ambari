@@ -132,20 +132,14 @@ describe('App.ConfigVersionsControlView', function () {
   describe('#sendRevertCallSuccess()', function () {
     beforeEach(function () {
       sinon.spy(view.get('controller'), 'loadStep');
-      sinon.stub(App.router.get('updateController'), 'updateComponentConfig', Em.K);
-      view.sendRevertCallSuccess();
     });
     afterEach(function () {
       view.get('controller').loadStep.restore();
-      App.router.get('updateController').updateComponentConfig.restore();
     });
 
     it('loadStep is called', function () {
+      view.sendRevertCallSuccess();
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
-    });
-
-    it('updateComponentConfig is called', function () {
-      expect(App.router.get('updateController').updateComponentConfig.calledOnce).to.be.true;
     });
   });
 });
