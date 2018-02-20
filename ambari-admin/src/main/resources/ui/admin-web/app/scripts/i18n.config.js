@@ -193,6 +193,7 @@ angular.module('ambariAdminConsole')
     'views.visible': 'Visible',
     'views.description': 'Description',
     'views.shortUrl': 'Short URL',
+    'views.urlName': 'URL Name',
     'views.instanceDescription': 'Instance Description',
     'views.clusterConfiguration': 'Cluster Configuration',
     'views.localCluster': 'Local Cluster',
