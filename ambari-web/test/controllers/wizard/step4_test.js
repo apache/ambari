@@ -25,7 +25,7 @@ describe('App.WizardStep4Controller', function () {
 
   var services = [
     'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER', 'SMARTSENSE', 'LOGSEARCH',
-    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK', 'SLIDER', 'ATLAS', 'AMBARI_INFRA'
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK', 'SLIDER', 'ATLAS', 'AMBARI_INFRA_SOLR'
   ];
   var controller;
 
@@ -610,22 +610,22 @@ describe('App.WizardStep4Controller', function () {
     var tests = [
       {
         services: ['HDFS'],
-        dependencies: ['ZOOKEEPER'] 
+        dependencies: ['ZOOKEEPER']
       },
       {
         services: ['STORM'],
-        dependencies: ['ZOOKEEPER'] 
+        dependencies: ['ZOOKEEPER']
       }
     ];
     tests.forEach(function(test) {
       var message = '{0} dependency should be {1}'.format(test.services.join(','), test.dependencies.join(','));
       it(message, function() {
-        
+
         controller.clear();
         controller.set('content', generateSelectedServicesContent(test.services));
-        
+
         var dependentServicesTest = [];
-        
+
         test.services.forEach(function(serviceName) {
           var service = controller.filterProperty('serviceName', serviceName);
           service.forEach(function(item) {

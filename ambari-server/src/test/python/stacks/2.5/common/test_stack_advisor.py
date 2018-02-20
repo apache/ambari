@@ -4867,9 +4867,9 @@ class TestHDP25StackAdvisor(TestCase):
       },
       "services": [
         {
-          "href": "/api/v1/stacks/HDP/versions/2.2/services/AMBARI_INFRA",
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/AMBARI_INFRA_SOLR",
           "StackServices": {
-            "service_name": "AMBARI_INFRA",
+            "service_name": "AMBARI_INFRA_SOLR",
             "service_version": "2.6.0.2.2",
             "stack_name": "HDP",
             "stack_version": "2.3"
