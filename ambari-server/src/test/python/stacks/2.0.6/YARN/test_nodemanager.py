@@ -297,7 +297,7 @@ class TestNodeManager(RMFTestCase):
                               mode = 02050,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
-                              content = Template('container-executor.cfg.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['container-executor']['content']),
                               group = 'hadoop',
                               mode = 0644,
                               )
@@ -501,7 +501,7 @@ class TestNodeManager(RMFTestCase):
       mode = 06050,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
-      content = Template('container-executor.cfg.j2'),
+      content = InlineTemplate(self.getConfig()['configurations']['container-executor']['content']),
       group = 'hadoop',
       mode = 0644,
     )
