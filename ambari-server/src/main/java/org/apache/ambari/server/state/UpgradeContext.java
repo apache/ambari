@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.HostOrderGrouping;
 import org.apache.ambari.server.state.stack.upgrade.HostOrderItem;
 import org.apache.ambari.server.state.stack.upgrade.HostOrderItem.HostOrderActionType;
+import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
@@ -1296,7 +1297,7 @@ public class UpgradeContext {
       // verify that the upgradepack has the required grouping and set the
       // action items on it
       HostOrderGrouping hostOrderGrouping = null;
-      List<Grouping> groupings = upgradePack.getGroups(direction);
+      List<Grouping> groupings = upgradePack.getGroups(Lifecycle.LifecycleType.UPGRADE, direction);
       for (Grouping grouping : groupings) {
         if (grouping instanceof HostOrderGrouping) {
           hostOrderGrouping = (HostOrderGrouping) grouping;

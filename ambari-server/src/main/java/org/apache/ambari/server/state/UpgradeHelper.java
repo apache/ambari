@@ -61,6 +61,7 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
@@ -301,7 +302,7 @@ public class UpgradeHelper {
     List<UpgradeGroupHolder> groups = new ArrayList<>();
 
     UpgradeGroupHolder previousGroupHolder = null;
-    for (Grouping group : upgradePack.getGroups(context.getDirection())) {
+    for (Grouping group : upgradePack.getGroups(Lifecycle.LifecycleType.UPGRADE, context.getDirection())) {
 
       // !!! grouping is not scoped to context
       if (!context.isScoped(group.scope)) {
