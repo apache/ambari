@@ -329,7 +329,7 @@ public class AmbariSolrCloudCLI {
       .build();
 
     final Option copyDestOption = Option.builder("cpd")
-      .longOpt("copy-dist")
+      .longOpt("copy-dest")
       .desc("ZNode or local destination (used for ZNode transfer)")
       .numberOfArgs(1)
       .argName("/myznode | /my/path")
