@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_version_column'),
@@ -32,17 +31,21 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
         title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')
       });
     }
-    //set the width, height of each version colum dynamically
-    var widthFactor = App.RepositoryVersion.find().get('length') > 3 ? 0.18: 0.31;
+    this.adjustColumnWidth();
+  },
+
+  adjustColumnWidth: function() {
+    //set the width, height of each version column dynamically
+    var reposCount = App.RepositoryVersion.find().filterProperty('isVisible').get('length');
+    var widthFactor = reposCount > 3 ? 0.18: 0.31;
     $('.version-column').width($('.versions-slides').width() * widthFactor);
     var height = App.Service.find().get('length') > 10 ? ((App.Service.find().get('length') - 10) * 40 + 500) : 500;
     $('.version-column').height(height);
 
     // set the lines width of the table, line up the labels
-    var account = App.RepositoryVersion.find().get('length');
-    $('.border-extended-table').width(account * 100 + 100 + "%");
-    $('.border-extended-table').css("max-width", account * 100 + 100 + "%");
-  },
+    $('.border-extended-table').width(reposCount * 100 + 100 + "%");
+    $('.border-extended-table').css("max-width", reposCount * 100 + 100 + "%");
+  }.observes('parentView.repoVersions.@each.isVisible'),
 
   services: function() {
     var originalServices = this.get('content.stackServices');
