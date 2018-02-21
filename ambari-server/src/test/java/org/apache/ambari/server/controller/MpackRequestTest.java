@@ -29,7 +29,7 @@ public class MpackRequestTest {
   public void testBasicGetAndSet() {
     MpackRequest mpackRequest =
             new MpackRequest(1L);
-    Assert.assertEquals((Long)1L, mpackRequest.getMpackId());
+    Assert.assertEquals((Long)1L, mpackRequest.getId());
     mpackRequest.setMpackUri("abc.tar.gz");
     mpackRequest.setRegistryId(1L);
     mpackRequest.setMpackVersion("3.0");

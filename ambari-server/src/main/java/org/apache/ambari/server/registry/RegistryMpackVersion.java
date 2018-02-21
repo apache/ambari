@@ -19,6 +19,8 @@ package org.apache.ambari.server.registry;
 
 import java.util.List;
 
+import org.apache.ambari.server.state.Module;
+
 /**
  * Represents a single instance of a registry mpack version
  */
@@ -30,39 +32,22 @@ public interface RegistryMpackVersion {
   public String getMpackVersion();
 
   /**
-   * Get mpack build number
+   * Get mpack uri
    * @return
    */
-  public String getMpackBuildNumber();
+  public String getMpackUri();
 
   /**
-   * Get mpack url
+   * Get mpack doc uri
    * @return
    */
-  public String getMpackUrl();
+  public String getMpackDocUri();
 
   /**
-   * Get mpack doc url
+   * Get list of mpack dependencies
    * @return
    */
-  public String getMpackDocUrl();
+  List<? extends RegistryMpackDependency> getDependencies();
 
-
-  /**
-   * Get mpack stack id
-   * @return
-   */
-  public String getMpackStackId();
-
-  /**
-   * Get list of services in the mpack version
-   * @return
-   */
-  public List<? extends RegistryMpackService> getMpackServices();
-
-  /**
-   * Get list of compatible mpacks
-   * @return
-   */
-  public List<? extends RegistryMpackCompatiblity> getCompatibleMpacks();
+  List<Module> getModules();
 }

@@ -49,13 +49,13 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
   public static final String RESPONSE_KEY = "RegistryMpackInfo";
   public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
   public static final String REGISTRY_ID =  RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP +  "registry_id";
+  public static final String REGISTRY_MPACK_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
   public static final String REGISTRY_MPACK_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_name";
-  public static final String REGISTRY_MPACK_DISPLAY_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_display_name";
   public static final String REGISTRY_MPACK_DESC = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_description";
-  public static final String REGISTRY_MPACK_LOGO_URL = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_logo_url";
+  public static final String REGISTRY_MPACK_LOGO_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_logo_uri";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(REGISTRY_ID, REGISTRY_MPACK_NAME));
+    Arrays.asList(REGISTRY_ID, REGISTRY_MPACK_ID, REGISTRY_MPACK_NAME));
 
   /**
    * The property ids for a software registry resource.
@@ -70,10 +70,10 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
   static {
     // properties
     PROPERTY_IDS.add(REGISTRY_ID);
+    PROPERTY_IDS.add(REGISTRY_MPACK_ID);
     PROPERTY_IDS.add(REGISTRY_MPACK_NAME);
-    PROPERTY_IDS.add(REGISTRY_MPACK_DISPLAY_NAME);
     PROPERTY_IDS.add(REGISTRY_MPACK_DESC);
-    PROPERTY_IDS.add(REGISTRY_MPACK_LOGO_URL);
+    PROPERTY_IDS.add(REGISTRY_MPACK_LOGO_URI);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Registry, REGISTRY_ID);
@@ -130,10 +130,10 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
     for (RegistryMpackResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RegistryMpack);
       setResourceProperty(resource, REGISTRY_ID, response.getRegistryId(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_ID, response.getMpackId(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_NAME, response.getMpackName(), requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_DISPLAY_NAME, response.getMpackDisplayName(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_DESC, response.getMpackDescription(), requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_LOGO_URL, response.getMpackLogoUrl(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_LOGO_URI, response.getMpackLogoUri(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -184,10 +184,10 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
       for (RegistryMpack registryMpack : registry.getRegistryMpacks()) {
         RegistryMpackResponse response = new RegistryMpackResponse(
           registry.getRegistryId(),
+          registryMpack.getMpackId(),
           registryMpack.getMpackName(),
-          registryMpack.getMpackDisplayName(),
           registryMpack.getMpackDescription(),
-          registryMpack.getMpackLogoUrl());
+          registryMpack.getMpackLogoUri());
         responses.add(response);
       }
     } else {
@@ -195,10 +195,10 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
       if(registryMpack != null) {
         RegistryMpackResponse response = new RegistryMpackResponse(
           registry.getRegistryId(),
+          registryMpack.getMpackId(),
           registryMpack.getMpackName(),
-          registryMpack.getMpackDisplayName(),
           registryMpack.getMpackDescription(),
-          registryMpack.getMpackLogoUrl());
+          registryMpack.getMpackLogoUri());
         responses.add(response);
       }
     }

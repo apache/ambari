@@ -38,12 +38,12 @@ public class MpackEntityTest {
     Assert.assertEquals(entity1.hashCode(), entity2.hashCode());
     Assert.assertTrue(Objects.equals(entity1, entity2));
 
-    entity1.setMpackId(new Long(1));
-    entity2.setMpackId(new Long(2));
+    entity1.setId(new Long(1));
+    entity2.setId(new Long(2));
     Assert.assertNotSame(entity1.hashCode(), entity2.hashCode());
     Assert.assertFalse(Objects.equals(entity1, entity2));
 
-    entity2.setMpackId(new Long(1));
+    entity2.setId(new Long(1));
     Assert.assertEquals(entity1.hashCode(), entity2.hashCode());
     Assert.assertTrue(Objects.equals(entity1, entity2));
 

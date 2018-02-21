@@ -26,25 +26,25 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class RegistryMpackResponse {
   private Long registryId;
+  private String mpackId;
   private String mpackName;
-  private String mpackDisplayName;
   private String mpackDescription;
-  private String mpackLogoUrl;
+  private String mpackLogoUri;
 
   /**
    * Constructor
    * @param registryId        registry id
+   * @param mpackId           mpack id
    * @param mpackName         mpack name
-   * @param mpackDisplayName      mpack Display Name
    * @param mpackDescription  mpack description
-   * @param mpackLogoUrl      mpack logo url
+   * @param mpackLogoUri      mpack logo uri
    */
-  public RegistryMpackResponse(Long registryId, String mpackName, String mpackDisplayName, String mpackDescription, String mpackLogoUrl) {
+  public RegistryMpackResponse(Long registryId, String mpackId, String mpackName, String mpackDescription, String mpackLogoUri) {
     this.registryId = registryId;
     this.mpackName = mpackName;
-    this.mpackDisplayName = mpackDisplayName;
+    this.mpackId = mpackId;
     this.mpackDescription = mpackDescription;
-    this.mpackLogoUrl = mpackLogoUrl;
+    this.mpackLogoUri = mpackLogoUri;
   }
 
   /**
@@ -56,18 +56,21 @@ public class RegistryMpackResponse {
   }
 
   /**
+   * Get mpack id
+   * @return mpack id
+   */
+  public String getMpackId() {
+    return mpackId;
+  }
+
+
+  /**
    * Get mpack name
    * @return mpack name
    */
   public String getMpackName() {
     return mpackName;
   }
-
-  /**
-   * Get mpack summary
-   * @return
-   */
-  public String getMpackDisplayName() {return mpackDisplayName;}
 
   /**
    * Get mpack description
@@ -78,11 +81,11 @@ public class RegistryMpackResponse {
   }
 
   /**
-   * Get mpack logo url
-   * @return mpack logo url
+   * Get mpack logo uri
+   * @return mpack logo uri
    */
-  public String getMpackLogoUrl() {
-    return mpackLogoUrl;
+  public String getMpackLogoUri() {
+    return mpackLogoUri;
   }
 
   /**

@@ -73,7 +73,7 @@ public class MpacksService extends BaseService {
     response = MpackResponseWrapper.class, responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING,
-      paramType = PARAM_TYPE_QUERY, defaultValue = MpackResourceProvider.MPACK_ID),
+      paramType = PARAM_TYPE_QUERY, defaultValue = MpackResourceProvider.MPACK_RESOURCE_ID),
     @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING,
       paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE,
@@ -123,13 +123,13 @@ public class MpacksService extends BaseService {
   }
 
   /***
-   * Handles: GET /mpacks/{mpack_id}
-   * Return a specific mpack given an mpack_id
+   * Handles: GET /mpacks/{id}
+   * Return a specific mpack given an id
    *
    * @param
    */
   @GET
-  @Path("{mpack_id}")
+  @Path("{id}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Returns information about a specific mpack that is registered with this Ambari instance",
     response = MpackResponseWrapper.class)
@@ -145,14 +145,14 @@ public class MpacksService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response getMpack(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-    @PathParam("mpack_id") String mpackId) {
+    @PathParam("id") String id) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-            createMpackResource(mpackId));
+            createMpackResource(id));
   }
 
   @DELETE
-  @Path("{mpack_id}")
+  @Path("{id}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Deletes a selected management pack")
   @ApiImplicitParams({
@@ -166,19 +166,19 @@ public class MpacksService extends BaseService {
           @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
           @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response deleteMpack(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("mpack_id") String mpackId) {
+  public Response deleteMpack(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("id") String id) {
     return handleRequest(headers, body, ui, Request.Type.DELETE,
-            createMpackResource(mpackId));
+            createMpackResource(id));
   }
 
   /**
    * Create an mpack resource instance
-   * @param mpackId
+   * @param id
    * @return ResourceInstance
    */
-  private ResourceInstance createMpackResource(String mpackId) {
+  private ResourceInstance createMpackResource(String id) {
     return createResource(Resource.Type.Mpack,
-            Collections.singletonMap(Resource.Type.Mpack, mpackId));
+            Collections.singletonMap(Resource.Type.Mpack, id));
 
   }
 
