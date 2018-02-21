@@ -559,7 +559,6 @@ class Script(object):
     if package_version is None:
       package_version = default("hostLevelParams/package_version", None)
 
-    package_version = None
     if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
       self.load_available_packages()
       package_name = self.get_package_from_available(name, self.available_packages_in_repos)
