@@ -112,7 +112,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    * @type {App.ServiceConfigVersion}
    */
   selectedVersionRecord: function() {
-    return App.ServiceConfigVersion.find().findProperty('version', this.get('selectedVersion'));
+    const id = App.serviceConfigVersionsMapper.makeId(this.get('content.serviceName'), this.get('selectedVersion'));
+    return App.ServiceConfigVersion.find(id);
   }.property('selectedVersion'),
 
   /**
