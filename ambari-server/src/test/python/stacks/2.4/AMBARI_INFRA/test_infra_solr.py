@@ -26,7 +26,7 @@ from mock.mock import MagicMock, call, patch
 @patch("os.listdir", new = MagicMock(return_value=['solr-8886.pid']))
 @patch("os.path.isdir", new = MagicMock(return_value=True))
 class TestInfraSolr(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "AMBARI_INFRA/0.1.0/package"
+  COMMON_SERVICES_PACKAGE_DIR = "AMBARI_INFRA_SOLR/0.1.0/package"
   STACK_VERSION = "2.4"
 
   def configureResourcesCalled(self):

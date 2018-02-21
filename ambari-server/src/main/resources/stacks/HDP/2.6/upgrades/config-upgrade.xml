@@ -51,6 +51,23 @@
           </definition>
         </changes>
       </component>
+      <component name="DATANODE">
+        <changes>
+          <definition xsi:type="configure" id="hdfs_set_data_transfer_protection"
+                      summary="Enables SASL for authentication of data transfer protocol">
+            <type>hdfs-site</type>
+            <set key="dfs.data.transfer.protection" value="authentication,privacy" if-type="hdfs-site"
+                 if-key="dfs.http.policy" if-value="HTTPS_ONLY"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_set_hadoop_rpc_protection_on_kerberized_cluster"
+                      summary="Encrypting the data transfered between hadoop services and clients">
+            <type>core-site</type>
+            <set key="hadoop.rpc.protection" value="authentication,privacy" if-type="cluster-env"
+                 if-key="security_enabled" if-value="true"/>
+          </definition>
+        </changes>
+      </component>
     </service>
 
     <service name="HIVE">
