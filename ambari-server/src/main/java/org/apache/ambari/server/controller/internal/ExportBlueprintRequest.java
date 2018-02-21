@@ -46,11 +46,11 @@ import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
-import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.topology.InvalidTopologyTemplateException;import org.apache.ambari.server.topology.TopologyRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -154,14 +154,16 @@ public class ExportBlueprintRequest implements TopologyRequest {
 
 
   private Stack parseStack(Resource clusterResource) throws InvalidTopologyTemplateException {
-    String[] stackTokens = String.valueOf(clusterResource.getPropertyValue(
-        ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID)).split("-");
+    Splitter splitter = Splitter.on('-').limit(2);  // We are only interested to split on the first '-', e.g.
+                                                    // HDPCORE-1.0.0-b46 should split to HDPCORE, 1.0.0-b46
+    List<String> stackTokens = splitter.splitToList(clusterResource.getPropertyValue(
+      ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID).toString());
 
     try {
-      return new Stack(stackTokens[0], stackTokens[1], controller);
+      return new Stack(stackTokens.get(0), stackTokens.get(1), controller);
     } catch (AmbariException e) {
       throw new InvalidTopologyTemplateException(String.format(
-          "The specified stack doesn't exist: name=%s version=%s", stackTokens[0], stackTokens[1]));
+          "The specified stack doesn't exist: name=%s version=%s", stackTokens.get(0), stackTokens.get(1)));
     }
   }
 

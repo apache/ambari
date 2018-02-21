@@ -288,7 +288,23 @@ public class ClusterBlueprintRendererTest {
 
     TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
 
-    TreeNode<Resource> servicesTree = clusterTree.addChild(null, "services");
+    // Add global recovery_enabled as cluster setting
+    TreeNode<Resource> settingsNode = clusterTree.addChild(null, "settings");
+    Resource clusterSettingResource = new ResourceImpl(Resource.Type.ClusterSetting);
+    clusterSettingResource.setProperty("ClusterSettingInfo/cluster_setting_name", "recovery_enabled");
+    clusterSettingResource.setProperty("ClusterSettingInfo/cluster_setting_value", "true");
+    settingsNode.addChild(clusterSettingResource, "ClusterSetting:1");
+
+    TreeNode<Resource> serviceGroupsTree = clusterTree.addChild(null, "servicegroups");
+    Resource serviceGroupResource = new ResourceImpl(Resource.Type.ServiceGroup);
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
+    clusterTree.addChild(serviceGroupsTree);
+
+    TreeNode<Resource> servicesTree = serviceGroup1Tree.addChild(null, "services");
     servicesTree.setProperty("isCollection", "true");
 
     //Scenario 1 : Service with Credential Store enabled, Recovery enabled for Component:1 and not for Component:2
@@ -381,15 +397,15 @@ public class ClusterBlueprintRendererTest {
     assertTrue(children.containsKey("settings"));
 
     List<Map<String,Object>> settingValues = (ArrayList)children.get("settings");
-    Boolean isRecoverySettings = false;
+    Boolean isClusterSettings = false;
     Boolean isComponentSettings = false;
     Boolean isServiceSettings = false;
 
     //Verify actual values
     for(Map<String,Object> settingProp : settingValues){
-      if(settingProp.containsKey("recovery_settings")){
-        isRecoverySettings = true;
-        HashSet<Map<String,String>> checkPropSize = (HashSet)settingProp.get("recovery_settings");
+      if(settingProp.containsKey("cluster_settings")){
+        isClusterSettings = true;
+        HashSet<Map<String,String>> checkPropSize = (HashSet)settingProp.get("cluster_settings");
         assertEquals(1,checkPropSize.size());
         assertEquals("true",checkPropSize.iterator().next().get("recovery_enabled"));
 
@@ -416,7 +432,7 @@ public class ClusterBlueprintRendererTest {
       }
     }
     //Verify if required information is present in actual result
-    assertTrue(isRecoverySettings);
+    assertTrue(isClusterSettings);
     assertTrue(isComponentSettings);
     assertTrue(isServiceSettings);
 
@@ -461,8 +477,7 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
-    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
+    checkMpackInstance(properties);
 
     Map<String, Object> securityProperties = (Map<String, Object>) properties.get("Blueprints").get("security");
     assertEquals("KERBEROS", securityProperties.get("type"));
@@ -487,8 +502,7 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
-    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
+    checkMpackInstance(properties);
 
     Collection<Map<String, Object>> host_groups = (Collection<Map<String, Object>>) properties.get("").get("host_groups");
     assertEquals(2, host_groups.size());
@@ -566,8 +580,7 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
-    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
+    checkMpackInstance(properties);
 
     Collection<Map<String, Object>> host_groups = (Collection<Map<String, Object>>) properties.get("").get("host_groups");
     assertEquals(2, host_groups.size());
@@ -702,9 +715,18 @@ public class ClusterBlueprintRendererTest {
 
     TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
 
-    // add empty services resource for basic unit testing
-    Resource servicesResource = new ResourceImpl(Resource.Type.Service);
-    clusterTree.addChild(servicesResource, "services");
+    // add a service group and empty services resource for basic unit testing
+    TreeNode<Resource> serviceGroupsTree = clusterTree.addChild(null, "servicegroups");
+    Resource serviceGroupResource = new ResourceImpl(Resource.Type.ServiceGroup);
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
+    clusterTree.addChild(serviceGroupsTree);
+
+    TreeNode<Resource> servicesTree = serviceGroup1Tree.addChild(null, "services");
+    servicesTree.setProperty("isCollection", "true");
 
 
     Resource configurationsResource = new ResourceImpl(Resource.Type.Configuration);
@@ -802,6 +824,13 @@ public class ClusterBlueprintRendererTest {
     // host 3 components
     host3ComponentsTree.addChild(dnComponentResource, "HostComponent:1");
     host3ComponentsTree.addChild(ttComponentResource, "HostComponent:2");
+  }
+
+  private void checkMpackInstance(Map<String, Map<String, Object>> blueprintProperties) {
+    Map<String, Object> mpackInstanceProperties =
+      ((List<Map<String, Object>>)blueprintProperties.get("").get("mpack_instances")).get(0);
+    assertEquals(STACK_ID.getStackName(), mpackInstanceProperties.get("name"));
+    assertEquals(STACK_ID.getStackVersion(), mpackInstanceProperties.get("version"));
   }
 
   private String getLocalHostName() throws UnknownHostException {
