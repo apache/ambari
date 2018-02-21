@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -30,7 +33,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * A lifecycle is used to delineate specific portions of an upgrade.  Orchestration
- * will occur based on the lifecycle phases in order they are declared in {@link LifecycleType}
+ * will occur based on the lifecycle phases in order they are declared in {@link LifecycleType},
+ * namely:
+ *
+ * <ol>
+ *   <li>INSTALL</li>
+ *   <li>QUIET</li>
+ *   <li>SNAPSHOT</li>
+ *   <li>PREPARE</li>
+ *   <li>STOP</li>
+ *   <li>UPGRADE</li>
+ *   <li>START</li>
+ *   <li>FINALIZE</li>
+ * </ol>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement
@@ -54,50 +69,65 @@ public class Lifecycle {
      * bits occurs outside the scope of upgrade orchestration.
      */
     @XmlEnumValue("install")
-    INSTALL,
+    INSTALL(1.0f),
 
     /**
      * Work to stop and wait on, for example, queues or topologies.
      */
     @XmlEnumValue("quiet")
-    QUIET,
+    QUIET(2.0f),
 
     /**
      * Work required to snapshot or other backup.
      */
     @XmlEnumValue("snapshot")
-    SNAPSHOT,
+    SNAPSHOT(3.0f),
 
     /**
      * Work required to prepare to upgrade.
      */
     @XmlEnumValue("prepare")
-    PREPARE,
+    PREPARE(4.0f),
 
     /**
      * Work required to stop a service.
      */
     @XmlEnumValue("stop")
-    STOP,
+    STOP(5.0f),
 
     /**
      * For a Rolling upgrade, work required to restart and upgrade the service.
      */
     @XmlEnumValue("upgrade")
-    UPGRADE,
+    UPGRADE(6.0f),
 
     /**
      * Work required to start a service.
      */
     @XmlEnumValue("start")
-    START,
+    START(7.0f),
 
     /**
      * Work required to finalize.  Will not happen until the end of the upgrade.
      */
     @XmlEnumValue("finalize")
-    FINALIZE
+    FINALIZE(8.0f);
 
+    private float m_order;
+
+    private LifecycleType(float order) {
+      m_order = order;
+    }
+
+
+    /**
+     * Returns the ordered collection of lifecycle types.  This is prefered over {@link #values()}
+     * to preserve ordering when adding new values.
+     */
+    public static Collection<LifecycleType> ordered() {
+      return Stream.of(LifecycleType.values()).sorted((l1, l2) ->
+        Float.compare(l1.m_order, l2.m_order)).collect(Collectors.toList());
+    }
   }
 
 }

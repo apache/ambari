@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,16 @@ import org.junit.Test;
  * Tests for the upgrade pack
  */
 public class UpgradePackTest {
+
+  @Test
+  public void testLifecycleOrdering() throws Exception {
+    Collection<LifecycleType> typeSet = LifecycleType.ordered();
+
+    LifecycleType[] types = typeSet.toArray(new LifecycleType[typeSet.size()]);
+
+    assertEquals(LifecycleType.INSTALL, types[0]);
+    assertEquals(LifecycleType.FINALIZE, types[types.length-1]);
+  }
 
   @Test
   public void testUpgradeParsing() throws Exception {
