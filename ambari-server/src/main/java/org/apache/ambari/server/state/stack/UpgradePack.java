@@ -18,11 +18,13 @@
 package org.apache.ambari.server.state.stack;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.Unmarshaller;
@@ -35,12 +37,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -55,8 +60,6 @@ import org.slf4j.LoggerFactory;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UpgradePack {
 
-  private static final String ALL_VERSIONS = "*";
-
   private static final Logger LOG = LoggerFactory.getLogger(UpgradePack.class);
 
   /**
@@ -70,9 +73,8 @@ public class UpgradePack {
   @XmlElement(name="target-stack")
   private String targetStack;
 
-  @XmlElementWrapper(name="order")
-  @XmlElement(name="group")
-  private List<Grouping> groups;
+  @XmlElement(name="lifecycle")
+  public List<Lifecycle> lifecycles;
 
   @XmlElement(name="prerequisite-checks")
   private PrerequisiteChecks prerequisiteChecks;
@@ -152,8 +154,8 @@ public class UpgradePack {
    */
   public List<String> getPrerequisiteChecks() {
     if (prerequisiteChecks == null) {
-      return new ArrayList<String>();
-    }    
+      return new ArrayList<>();
+    }
     return new ArrayList<>(prerequisiteChecks.checks);
   }
 
@@ -164,7 +166,7 @@ public class UpgradePack {
   public PrerequisiteCheckConfig getPrerequisiteCheckConfig() {
     if (prerequisiteChecks == null) {
       return new PrerequisiteCheckConfig();
-    }    
+    }
     return prerequisiteChecks.configuration;
   }
 
@@ -281,8 +283,16 @@ public class UpgradePack {
     return skipServiceCheckFailures;
   }
 
+  /**
+   * Used to get all groups defined for an upgrade.  This method is deprecated as orchestration
+   * will change to per-lifecycle.  At the time of writing, keep this for compilation purposes.
+   * @return
+   */
+  @Experimental(feature = ExperimentalFeature.MPACK_UPGRADES)
+  @Deprecated
   public List<Grouping> getAllGroups() {
-    return groups;
+
+    return Collections.emptyList();
   }
 
   /**
@@ -293,19 +303,28 @@ public class UpgradePack {
    *          the direction to return the ordered groups
    * @return the list of groups
    */
-  public List<Grouping> getGroups(Direction direction) {
-    List<Grouping> list = new ArrayList<>();
+  public List<Grouping> getGroups(Lifecycle.LifecycleType type, Direction direction) {
+
+    // !!! lifecycles are bound to be only one per-type per-Upgrade Pack, so findFirst() is ok here
+    Optional<Lifecycle> optional = lifecycles.stream().filter(l -> l.type == type).findFirst();
+    if (!optional.isPresent()) {
+      return Collections.<Grouping>emptyList();
+    }
+
+    List<Grouping> list;
+    List<Grouping> groups = optional.get().groups;
+
     if (direction.isUpgrade()) {
       list = groups;
     } else {
-      switch (type) {
+      switch (this.type) {
         case NON_ROLLING:
-          list = getDowngradeGroupsForNonrolling();
+          list = getDowngradeGroupsForNonrolling(groups);
           break;
         case HOST_ORDERED:
         case ROLLING:
         default:
-          list = getDowngradeGroupsForRolling();
+          list = getDowngradeGroupsForRolling(groups);
           break;
       }
     }
@@ -369,7 +388,7 @@ public class UpgradePack {
    * </ol>
    * @return the list of groups, reversed appropriately for a downgrade.
    */
-  private List<Grouping> getDowngradeGroupsForRolling() {
+  private List<Grouping> getDowngradeGroupsForRolling(List<Grouping> groups) {
     List<Grouping> reverse = new ArrayList<>();
 
     // !!! Testing exposed groups.size() == 1 issue.  Normally there's no precedent for
@@ -405,7 +424,7 @@ public class UpgradePack {
     return reverse;
   }
 
-  private List<Grouping> getDowngradeGroupsForNonrolling() {
+  private List<Grouping> getDowngradeGroupsForNonrolling(List<Grouping> groups) {
     List<Grouping> list = new ArrayList<>();
     for (Grouping g : groups) {
       list.add(g);
@@ -477,8 +496,10 @@ public class UpgradePack {
    * @return {@code true} if the upgrade targets any version or stack.  Both
    * {@link #target} and {@link #targetStack} must equal "*"
    */
+  @Deprecated
+  @Experimental(feature=ExperimentalFeature.MPACK_UPGRADES)
   public boolean isAllTarget() {
-    return ALL_VERSIONS.equals(target) && ALL_VERSIONS.equals(targetStack);
+    return false;
   }
 
 

@@ -19,9 +19,22 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.1">
   <xs:annotation>
     <xs:documentation>
-    This document describes the schema for an Upgrade Pack
+    This document describes the schema for an Upgrade Pack for a Management Pack
     </xs:documentation>
   </xs:annotation>
+
+  <xs:simpleType name="lifecycle-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="install" />
+      <xs:enumeration value="quiet" />
+      <xs:enumeration value="snapshot" />
+      <xs:enumeration value="prepare" />
+      <xs:enumeration value="stop" />
+      <xs:enumeration value="upgrade" />   <!-- restart -->
+      <xs:enumeration value="start" />
+      <xs:enumeration value="finalize" />
+    </xs:restriction>
+  </xs:simpleType>
 
   <!-- FIXME case sensitivity -->
   <xs:simpleType name="upgrade-kind-type">
@@ -272,7 +285,7 @@
 
   <xs:complexType name="abstract-task-type" abstract="true">
     <xs:sequence>
-      <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1" />
       <xs:element name="scope" minOccurs="0" type="scope-type" />
       <xs:element name="summary" minOccurs="0" />
     </xs:sequence>
@@ -410,18 +423,6 @@
     </xs:sequence>
   </xs:complexType>
   
-  <xs:complexType name="upgrade-path-type">
-    <xs:sequence>
-      <xs:element name="intermediate-stack" minOccurs="1" maxOccurs="unbounded">
-        <xs:complexType>
-          <xs:sequence />
-          <xs:attribute name="version" />
-        </xs:complexType>
-      </xs:element>
-    </xs:sequence>
-  </xs:complexType>
-  
-
   <xs:element name="upgrade">
     <xs:annotation>
       <xs:documentation>
@@ -438,15 +439,21 @@
         <xs:element name="downgrade-allowed" minOccurs="0" type="xs:boolean" />
         <xs:element name="type" type="upgrade-kind-type" />
         <xs:element name="prerequisite-checks" type="prerequisite-check-type" minOccurs="0" />
-        <xs:element name="upgrade-path" type="upgrade-path-type" minOccurs="0" /> 
-        <xs:element name="order" type="order-type">
-          <xs:unique name="unique-by-group">
-            <xs:annotation>
-              <xs:documentation>Ensures that the element "processing" does not have duplicate services</xs:documentation>
-            </xs:annotation>
-            <xs:selector xpath="group" />
-            <xs:field xpath="@name" />
-          </xs:unique>
+        <xs:element name="lifecycle" minOccurs="1" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="order" type="order-type">
+                <xs:unique name="unique-by-group">
+                  <xs:annotation>
+                    <xs:documentation>Ensures that the element "processing" does not have duplicate services</xs:documentation>
+                  </xs:annotation>
+                  <xs:selector xpath="lifecycle/group" />
+                  <xs:field xpath="@name" />
+                </xs:unique>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="type" type="lifecycle-type" use="required" />
+          </xs:complexType>
         </xs:element>
         <xs:element name="processing" type="processing-type">
           <xs:unique name="unique-by-service">
@@ -466,6 +473,12 @@
         </xs:element>
       </xs:sequence>
     </xs:complexType>
+
+    <xs:unique name="unique-by-lifecycle">
+      <xs:selector xpath="lifecycle" />
+      <xs:field xpath="@type" />
+    </xs:unique>
+
   </xs:element>
   
 
