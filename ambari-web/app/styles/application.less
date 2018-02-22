@@ -2895,3 +2895,72 @@ td .no-data {
 #notifications-dropdown.dropdown-menu .notifications-header .notifications-title {
   line-height: 30px;
 }
+
+#start-upgrade-plan {
+  text-align: center;
+  padding: 30px 0;
+  max-width: 1000px;
+
+  h3 {
+    margin-top: 0;
+    color: #333;
+  }
+
+  #description {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    color: #999;
+  }
+
+  ol {
+    display: flex;
+    justify-content: space-around;
+    margin: 40px auto;
+    counter-reset: items;
+    
+    li {
+      list-style-type: none;
+      width: 225px;
+      margin: 20px 15px;
+      margin-bottom: 0;
+      color: #999;
+
+      h4 {
+        color: #333;
+      }
+
+      &:before {
+        display: block;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 20px;
+        height: 30px;
+        width: 30px;
+        counter-increment: items;
+        content: counter(items);
+        border: #999 1px solid;
+        border-radius: 100%;
+        font-size: 20px;
+        line-height: 28px;
+      }
+
+      &:not(:last-child):after {
+        width: ~"calc(100% + 1px)";
+        height: 1px;
+        background-color: #999;
+        content: "";
+        position: relative;
+        display: block;
+        bottom: 138px;
+        left: 123px;
+      }
+    }
+  }
+}
+
+.btn-lg {
+  text-transform: uppercase;
+  outline: none;
+}

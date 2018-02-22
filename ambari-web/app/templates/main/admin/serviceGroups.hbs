@@ -32,7 +32,7 @@
       <div class="dropdown pull-right">
         <button class="btn btn-primary dropdown-toggle" type="button" id="actions-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Actions&nbsp;<span class="caret"></span></button>
         <ul class="dropdown-menu" aria-labelledby="actions-menu">
-          <li><a href="#"><i class="icon-arrow-up"></i>&nbsp;{{t admin.serviceGroups.createUpgradePlan}}</a></li>
+          <li><a href="#" {{action handleCreateUpgradePlan target="view"}}><i class="icon-arrow-up"></i>&nbsp;{{t admin.serviceGroups.createUpgradePlan}}</a></li>
           <li><a href="#"><i class="icon-plus"></i>&nbsp;{{t admin.serviceGroups.addServiceGroup}}</a></li>
           <li><a href="#"><i class="icon-trash"></i>&nbsp;{{t admin.serviceGroups.removeOldVersions}}</a></li>
           <li><a href="#"><i class="icon-book"></i>&nbsp;{{t common.documentation}}</a></li>

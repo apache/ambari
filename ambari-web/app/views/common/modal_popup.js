@@ -21,7 +21,9 @@ var App = require('app');
 App.ModalPopup = Ember.View.extend({
 
   viewName: 'modalPopup',
+  modalWrapperClasses: [],
   modalDialogClasses: [],
+  modalId: "modal",
   templateName: require('templates/common/modal_popup'),
   header: '&nbsp;',
   body: '&nbsp;',
@@ -31,6 +33,7 @@ App.ModalPopup = Ember.View.extend({
   secondary: Em.I18n.t('common.cancel'),
   third: null,
   autoHeight: true,
+  autoWidth: true,
   marginBottom: 300,
   disablePrimary: false,
   disableSecondary: false,
@@ -38,6 +41,13 @@ App.ModalPopup = Ember.View.extend({
   primaryClass: 'btn-success',
   secondaryClass: 'btn-secondary',
   thirdClass: 'btn-default',
+  modalWrapperClassesStr: function () {
+    var modalWrapperClasses = this.get('modalWrapperClasses');
+    if (!Em.isArray(modalWrapperClasses)) {
+      return '';
+    }
+    return modalWrapperClasses.join(' ');
+  }.property('modalWrapperClasses.[]'),
   modalDialogClassesStr: function () {
     var modalDialogClasses = this.get('modalDialogClasses');
     if (!Em.isArray(modalDialogClasses)) {
@@ -71,6 +81,8 @@ App.ModalPopup = Ember.View.extend({
     }
     this.destroy();
   },
+
+  showHeader: true,
 
   showFooter: true,
 
@@ -109,12 +121,20 @@ App.ModalPopup = Ember.View.extend({
       this.fitHeight();
       $(window).on('resize', this.fitHeight.bind(this));
     }
+
+    if (this.get('autoWidth') && !$.mocho) {
+      this.fitWidth();
+      $(window).on('resize', this.fitWidth.bind(this));
+    }
   },
 
   willDestroyElement: function() {
     this.$().find('#modal').off('enter-key-pressed').off('escape-key-pressed');
     if (this.get('autoHeight') && !$.mocho) {
       $(window).off('resize', this.fitHeight);
+    }
+    if (this.get('autoWidth') && !$.mocho) {
+      $(window).off('resize', this.fitWidth);
     }
   },
 
@@ -176,6 +196,23 @@ App.ModalPopup = Ember.View.extend({
 
     newMaxHeight = Math.max(newMaxHeight, 500);
     block.css('max-height', newMaxHeight);
+  },
+
+  fitWidth: function () {
+    if (this.get('state') === 'destroyed') return;
+    var popup = this.$().find('#modal'),
+      wrapper = $(popup).find('.modal-dialog'),
+      //block = $(popup).find('.modal-body'),
+      ww = $(window).width(),
+      margin = ww * 0.05,
+      newMaxWidth = ww - margin * 2;
+
+    newMaxWidth = Math.min(newMaxWidth, 1400);
+    wrapper.css({
+      'max-width': newMaxWidth,
+      'min-width': 600,
+      'width': 'auto'
+    });
   }
 });
 
