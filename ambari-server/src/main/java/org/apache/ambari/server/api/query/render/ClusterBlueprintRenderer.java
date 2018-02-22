@@ -112,30 +112,30 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     copyPropertiesToResult(queryProperties, resultTree);
 
-    ensureChild(resultTree, Resource.Type.Configuration.name(), "properties");
+    ensureChild(resultTree, Resource.Type.Configuration, "properties");
 
-    ensureChild(resultTree, Resource.Type.ClusterSetting.name());
+    ensureChild(resultTree, Resource.Type.ClusterSetting);
 
-    TreeNode<Set<String>> serviceGroupNode = ensureChild(resultTree, Resource.Type.ServiceGroup.name());
-    TreeNode<Set<String>> serviceNode = ensureChild(serviceGroupNode, Resource.Type.Service.name());
-    ensureChild(serviceNode, Resource.Type.Component.name(),
+    TreeNode<Set<String>> serviceGroupNode = ensureChild(resultTree, Resource.Type.ServiceGroup);
+    TreeNode<Set<String>> serviceNode = ensureChild(serviceGroupNode, Resource.Type.Service);
+    ensureChild(serviceNode, Resource.Type.Component,
       "ServiceComponentInfo/cluster_name",
       "ServiceComponentInfo/service_name",
       "ServiceComponentInfo/component_name",
       "ServiceComponentInfo/recovery_enabled");
 
-    TreeNode<Set<String>> hostNode = ensureChild(resultTree, Resource.Type.Host.name());
-    ensureChild(hostNode, Resource.Type.HostComponent.name(), "HostRoles/component_name");
+    TreeNode<Set<String>> hostNode = ensureChild(resultTree, Resource.Type.Host);
+    ensureChild(hostNode, Resource.Type.HostComponent, "HostRoles/component_name");
 
     return resultTree;
   }
 
   private TreeNode<Set<String>> ensureChild(TreeNode<Set<String>> parent,
-                                            String resourceType,
+                                            Resource.Type resourceType,
                                             String... properties) {
-    TreeNode<Set<String>> child = parent.getChild(resourceType);
+    TreeNode<Set<String>> child = parent.getChild(resourceType.name());
     if (null == child) {
-      child = parent.addChild(new HashSet<>(), resourceType);
+      child = parent.addChild(new HashSet<>(), resourceType.name());
     }
     for (String property: properties) {
       child.getObject().add(property);
