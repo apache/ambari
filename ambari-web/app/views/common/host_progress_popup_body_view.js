@@ -390,6 +390,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       this.updateHostInfo();
     } else {
       this.get('parentView').switchView("HOSTS_LIST");
+      this.set('hostCategory', this.get('categories').findProperty('value', 'all'));
     }
   },
 
