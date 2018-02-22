@@ -34,9 +34,9 @@
     <!-- Needed for generating FindBugs warnings using parent pom -->
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
-    <hadoop.version>2.7.1.2.3.4.0-3347</hadoop.version>
-    <phoenix.version>4.4.0.2.3.4.0-3347</phoenix.version>
-    <hbase.version>1.1.2.2.3.4.0-3347</hbase.version>
+    <hadoop.version>2.7.3.2.6.4.0-91</hadoop.version>
+    <phoenix.version>4.7.0.2.6.4.0-91</phoenix.version>
+    <hbase.version>1.1.2.2.6.4.0-91</hbase.version>
   </properties>
 
   <build>
@@ -532,6 +532,18 @@
           <groupId>commons-pool2</groupId>
           <artifactId>commons-pool2</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>tika-core</artifactId>
+          <groupId>org.apache.tika</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>tika-parsers</artifactId>
+          <groupId>org.apache.tika</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -551,6 +563,18 @@
         <exclusion>
           <groupId>commons-pool2</groupId>
           <artifactId>commons-pool2</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>tika-core</artifactId>
+          <groupId>org.apache.tika</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>tika-parsers</artifactId>
+          <groupId>org.apache.tika</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -596,7 +620,7 @@
     <dependency>
       <groupId>commons-collections</groupId>
       <artifactId>commons-collections</artifactId>
-      <version>3.2.1</version>
+      <version>3.2.2</version>
     </dependency>
 
     <dependency>
