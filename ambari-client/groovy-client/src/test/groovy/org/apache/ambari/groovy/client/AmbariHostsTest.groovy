@@ -28,7 +28,7 @@ class AmbariHostsTest extends AbstractAmbariClientTest {
 
   def "test get host components as map when there is no cluster yet"() {
     given:
-    ambari.metaClass.getHostComponenets = { return null }
+    ambari.metaClass.getHostComponents = { return null }
 
     when:
     def result = ambari.getHostComponentsMap("host")
