@@ -39,7 +39,24 @@ def init_action_parser(action, parser):
   try:
     action_parser_map[action](parser)
   except KeyError:
-    parser.error("Invalid action: " + action)
+    parser.error(
+      "Invalid action {0}. Possible options are: create-mpack-instance|set-mpack-instance|get-conf-dir|list-instances".format(
+        action))
+
+
+def check_required_options(options, action, parser):
+  missing_options = []
+  if action == CREATE_MPACK_INSTANCE_ACTION or action == SET_MPACK_INSTANCE_ACTION:
+    if not options.mpack:
+      missing_options.append("mpack")
+    if not options.mpack_version:
+      missing_options.append("mpack-version")
+    if not options.mpack_instance:
+      missing_options.append("mpack-instance")
+    if not options.module_name:
+      missing_options.append("module-name")
+
+  parser.error("Missing following required command options: {0}".format(missing_options))
 
 
 def init_create_parser_options(parser):
@@ -95,44 +112,60 @@ def init_get_parser_options(parser):
 
 def main(options, args):
   action = sys.argv[1]
+
+  parsed_components = None
+  parsed_components_map = None
+  try:
+    if hasattr(options, 'components') and options.components and options.components != '*':
+      parsed_components = ast.literal_eval(options.components)
+    if options.components_map:
+      parsed_components_map = ast.literal_eval(options.components_map)
+  except ValueError:
+    raise ValueError("Components or components-map format is invalid.")
+
   if action == CREATE_MPACK_INSTANCE_ACTION:
     create_mpack(mpack_name=options.mpack, mpack_version=options.mpack_version,
                  mpack_instance=options.mpack_instance,
                  subgroup_name=options.subgroup_name, module_name=options.module_name,
-                 components=options.components,
-                 components_map=ast.literal_eval(options.components_map))
+                 components=parsed_components,
+                 components_map=parsed_components_map)
 
   elif action == SET_MPACK_INSTANCE_ACTION:
     set_mpack_instance(mpack=options.mpack, mpack_version=options.mpack_version,
                        mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components=options.components,
-                       components_map=ast.literal_eval(options.components_map))
+                       components=parsed_components,
+                       components_map=parsed_components_map)
 
   elif action == GET_CONF_DIR_ACTION:
     print get_conf_dir(mpack=options.mpack, mpack_instance=options.mpack_instance,
                        subgroup_name=options.subgroup_name, module_name=options.module_name,
-                       components_map=ast.literal_eval(options.components_map))
+                       components_map=parsed_components_map)
 
   elif action == LIST_INSTANCES_ACTION:
     print list_instances(mpack=options.mpack, mpack_instance=options.mpack_instance,
                          subgroup_name=options.subgroup_name, module_name=options.module_name,
-                         components_map=ast.literal_eval(options.components_map))
+                         components_map=parsed_components_map)
 
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
     print(
-      "Missing the command. Possible options are: {create-mpack-instance|set-mpack-instance|get-conf-dir|list-instances}")
+      "Missing the command. Possible options are: create-mpack-instance|set-mpack-instance|get-conf-dir|list-instances")
     sys.exit(1)
 
-  parser = optparse.OptionParser()
+  usage = "Usage: %prog create-mpack-instance|set-mpack-instance|get-conf-dir|list-instances [options]"
+  parser = optparse.OptionParser(usage=usage)
   action = sys.argv[1]
   init_action_parser(action, parser)
   (options, args) = parser.parse_args()
+  check_required_options(options, action, parser)
 
   try:
     main(options, args)
   except (KeyboardInterrupt, EOFError):
     print("\nAborting ... Keyboard Interrupt.")
+    sys.exit(1)
+  except ValueError as e:
+    print "ERROR: " + e.message
     sys.exit(1)
