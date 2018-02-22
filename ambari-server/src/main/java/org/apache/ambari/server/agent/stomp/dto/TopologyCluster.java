@@ -27,7 +27,7 @@ import org.apache.commons.collections.SetUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TopologyCluster {
   @JsonProperty("components")
   private Set<TopologyComponent> topologyComponents = new HashSet<>();
