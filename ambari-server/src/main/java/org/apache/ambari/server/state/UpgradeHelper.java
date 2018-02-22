@@ -338,7 +338,7 @@ public class UpgradeHelper {
 
       // NonRolling defaults to not performing service checks on a group.
       // Of course, a Service Check Group does indeed run them.
-      if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
+      if (upgradePack.getType() == UpgradeType.EXPRESS) {
         group.performServiceCheck = false;
       }
 
@@ -449,7 +449,7 @@ public class UpgradeHelper {
                       StringUtils.join(hostsType.getHosts(), ','), hostsType.getMasters(), hostsType.getSecondaries());
                 }
                 break;
-              case NON_ROLLING:
+              case EXPRESS:
                 boolean isNameNodeHA = mhr.isNameNodeHA();
                 if (isNameNodeHA && hostsType.hasMastersAndSecondaries()) {
                   // This could be any order, but the NameNodes have to know what role they are going to take.

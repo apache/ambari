@@ -21,7 +21,7 @@
   <target-stack>HDP-2.6</target-stack>
   <skip-failures>false</skip-failures>
   <skip-service-check-failures>false</skip-service-check-failures>
-  <type>ROLLING</type>
+  <type>rolling</type>
   <prerequisite-checks>
     <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
     <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>

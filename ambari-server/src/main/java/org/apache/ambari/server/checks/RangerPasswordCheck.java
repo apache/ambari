@@ -53,7 +53,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.CONFIGURATION_WARNING,
     order = 23.0f,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
 public class RangerPasswordCheck extends AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(RangerPasswordCheck.class);

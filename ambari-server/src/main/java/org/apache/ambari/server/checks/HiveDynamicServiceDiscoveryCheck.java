@@ -44,7 +44,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.DEFAULT,
     order = 20.0f,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING })
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS })
 public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
 
   static final String HIVE_DYNAMIC_SERVICE_DISCOVERY_ENABLED_KEY = "hive.dynamic-service.discovery.enabled.key";

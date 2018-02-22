@@ -43,7 +43,7 @@ from resource_management.core.shell import as_user, as_sudo, call, checked_call
 from resource_management.core.exceptions import Fail
 
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
-from ambari_commons.constants import SERVICE, UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import SERVICE, UPGRADE_TYPE_EXPRESS, UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -397,7 +397,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
   then copy the entire contents of that directory to the Oozie Sharelib in DFS, e.g.,
   /usr/$stack/$current_version/atlas/hook/hive/ -> hdfs:///user/oozie/share/lib/lib_$timetamp/hive
 
-  :param upgrade_type: If in the middle of a stack upgrade, the type as UPGRADE_TYPE_ROLLING or UPGRADE_TYPE_NON_ROLLING
+  :param upgrade_type: If in the middle of a stack upgrade, the type as UPGRADE_TYPE_ROLLING or UPGRADE_TYPE_EXPRESS
   :param upgrade_direction: If in the middle of a stack upgrade, the direction as Direction.UPGRADE or Direction.DOWNGRADE.
   """
   import params

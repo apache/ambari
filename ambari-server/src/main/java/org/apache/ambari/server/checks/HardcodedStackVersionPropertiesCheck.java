@@ -46,7 +46,7 @@ import com.google.inject.Singleton;
 @Singleton
 @UpgradeCheck(
     order = 98.0f,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
 public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescriptor {
 
   public HardcodedStackVersionPropertiesCheck() {

@@ -26,7 +26,7 @@ from resource_management.libraries.functions import stack_select
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_EXPRESS, UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
 import os
 
@@ -71,7 +71,7 @@ class RangerUsersync(Script):
     import params
     env.set_params(params)
 
-    if upgrade_type == UPGRADE_TYPE_NON_ROLLING and params.upgrade_direction == Direction.UPGRADE:
+    if upgrade_type == UPGRADE_TYPE_EXPRESS and params.upgrade_direction == Direction.UPGRADE:
       if params.stack_supports_usersync_non_root and os.path.isfile(params.usersync_services_file):
         File(params.usersync_services_file,
           mode = 0755

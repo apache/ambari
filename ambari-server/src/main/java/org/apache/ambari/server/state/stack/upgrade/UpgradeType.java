@@ -28,21 +28,21 @@ public enum UpgradeType {
   /**
    * Services are up the entire time
    */
-  @XmlEnumValue("ROLLING")
+  @XmlEnumValue("rolling")
   @SerializedName("rolling_upgrade")
   ROLLING,
 
   /**
    * All services are stopped, then started
    */
-  @XmlEnumValue("NON_ROLLING")
-  @SerializedName("nonrolling_upgrade")
-  NON_ROLLING,
+  @XmlEnumValue("express")
+  @SerializedName("express_upgrade")
+  EXPRESS,
 
   /**
    * Host-ordered upgrade.
    */
-  @XmlEnumValue("HOST_ORDERED")
+  @XmlEnumValue("host_ordered")
   @SerializedName("host_ordered_upgrade")
   HOST_ORDERED;
 }
