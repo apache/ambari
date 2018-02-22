@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -112,8 +113,12 @@ public class BlueprintFactory {
 
     Collection<MpackInstance> mpackInstances = createMpackInstances(properties);
     if (mpackInstances.isEmpty()) {
-      StackId stackId = getStackId(properties);
-      mpackInstances = Collections.singleton(new MpackInstance(stackId.getStackName(), stackId.getStackVersion(), null, null, Configuration.createEmpty()));
+      Optional<StackId> stackId = getStackId(properties);
+      if (stackId.isPresent()) {
+        String stackName = stackId.get().getStackName();
+        String stackVersion = stackId.get().getStackVersion();
+        mpackInstances = Collections.singleton(new MpackInstance(stackName, stackVersion, null, null, Configuration.createEmpty()));
+      }
     }
     Set<StackId> stackIds = mpackInstances.stream()
         .map(MpackInstance::getStackId)
@@ -142,10 +147,12 @@ public class BlueprintFactory {
     }
   }
 
-  private static StackId getStackId(Map<String, Object> properties) throws NoSuchStackException {
-    String stackName = String.valueOf(properties.get(STACK_NAME_PROPERTY_ID));
-    String stackVersion = String.valueOf(properties.get(STACK_VERSION_PROPERTY_ID));
-    return new StackId(stackName, stackVersion);
+  private static Optional<StackId> getStackId(Map<String, Object> properties) throws NoSuchStackException {
+    Object stackName = properties.get(STACK_NAME_PROPERTY_ID);
+    Object stackVersion = properties.get(STACK_VERSION_PROPERTY_ID);
+    return stackName != null && stackVersion != null
+      ? Optional.of(new StackId(stackName.toString(), stackVersion.toString()))
+      : Optional.empty();
   }
 
   public StackDefinition composeStacks(Set<StackId> stackIds) {
