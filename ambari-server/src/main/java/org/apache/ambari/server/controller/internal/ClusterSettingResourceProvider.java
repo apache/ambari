@@ -70,13 +70,16 @@ public class ClusterSettingResourceProvider extends AbstractControllerResourcePr
 
     // ----- Property ID constants ---------------------------------------------
 
+    public static final String CLUSTER_SETTING_NAME_PROPERTY_ID = "cluster_setting_name";
+    public static final String CLUSTER_SETTING_VALUE_PROPERTY_ID = "cluster_setting_value";
+
     public static final String RESPONSE_KEY = "ClusterSettingInfo";
     public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
     public static final String CLUSTER_SETTING_CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_id";
     public static final String CLUSTER_SETTING_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
     public static final String CLUSTER_SETTING_CLUSTER_SETTING_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_setting_id";
-    public static final String CLUSTER_SETTING_CLUSTER_SETTING_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_setting_name";
-    public static final String CLUSTER_SETTING_CLUSTER_SETTING_VALUE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_setting_value";
+    public static final String CLUSTER_SETTING_CLUSTER_SETTING_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_SETTING_NAME_PROPERTY_ID;
+    public static final String CLUSTER_SETTING_CLUSTER_SETTING_VALUE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_SETTING_VALUE_PROPERTY_ID;
 
     private static final Set<String> pkPropertyIds =
             Sets.newHashSet(new String[]{

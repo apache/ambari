@@ -46,6 +46,7 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
+import org.apache.ambari.server.controller.internal.ClusterSettingResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
@@ -111,58 +112,37 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     copyPropertiesToResult(queryProperties, resultTree);
 
-    String configType = Resource.Type.Configuration.name();
-    if (resultTree.getChild(configType) == null) {
-      resultTree.addChild(new HashSet<>(), configType);
-    }
+    getOrCreateChild(resultTree, Resource.Type.Configuration.name(), "properties");
 
-    if (resultTree.getChild(Resource.Type.ClusterSetting.name()) == null) {
-      resultTree.addChild(new HashSet<>(), Resource.Type.ClusterSetting.name());
-    }
+    getOrCreateChild(resultTree, Resource.Type.ClusterSetting.name());
 
-    String serviceGroupType = Resource.Type.ServiceGroup.name();
-    if (resultTree.getChild(serviceGroupType) == null) {
-      resultTree.addChild(new HashSet<>(), serviceGroupType);
-    }
+    TreeNode<Set<String>> serviceGroupNode = getOrCreateChild(resultTree, Resource.Type.ServiceGroup.name());
+    TreeNode<Set<String>> serviceNode = getOrCreateChild(serviceGroupNode, Resource.Type.Service.name());
+    getOrCreateChild(serviceNode, Resource.Type.Component.name(),
+      "ServiceComponentInfo/cluster_name",
+      "ServiceComponentInfo/service_name",
+      "ServiceComponentInfo/component_name",
+      "ServiceComponentInfo/recovery_enabled");
 
-    TreeNode<Set<String>> serviceGroupNode = resultTree.getChild(serviceGroupType);
-    String serviceType = Resource.Type.Service.name();
-    if (serviceGroupNode.getChild(serviceType) == null) {
-      serviceGroupNode.addChild(new HashSet<>(), serviceType);
-    }
-
-    TreeNode<Set<String>> serviceNode = serviceGroupNode.getChild(serviceType);
-    if (serviceNode == null) {
-      serviceNode = serviceGroupNode.addChild(new HashSet<>(), serviceType);
-    }
-
-    String serviceComponentType = Resource.Type.Component.name();
-    TreeNode<Set<String>> serviceComponentNode = serviceNode.getChild(serviceComponentType);
-    if (serviceComponentNode == null) {
-      serviceComponentNode = serviceNode.addChild(new HashSet<>(), serviceComponentType);
-    }
-    serviceComponentNode.getObject().add("ServiceComponentInfo/cluster_name");
-    serviceComponentNode.getObject().add("ServiceComponentInfo/service_name");
-    serviceComponentNode.getObject().add("ServiceComponentInfo/component_name");
-    serviceComponentNode.getObject().add("ServiceComponentInfo/recovery_enabled");
-
-    String hostType = Resource.Type.Host.name();
-    String hostComponentType = Resource.Type.HostComponent.name();
-    TreeNode<Set<String>> hostComponentNode = resultTree.getChild(
-        hostType + "/" + hostComponentType);
-
-    if (hostComponentNode == null) {
-      TreeNode<Set<String>> hostNode = resultTree.getChild(hostType);
-      if (hostNode == null) {
-        hostNode = resultTree.addChild(new HashSet<>(), hostType);
-      }
-      hostComponentNode = hostNode.addChild(new HashSet<>(), hostComponentType);
-    }
-    resultTree.getChild(configType).getObject().add("properties");
-    hostComponentNode.getObject().add("HostRoles/component_name");
+    TreeNode<Set<String>> hostNode = getOrCreateChild(resultTree, Resource.Type.Host.name());
+    getOrCreateChild(hostNode, Resource.Type.HostComponent.name(), "HostRoles/component_name");
 
     return resultTree;
   }
+
+  private TreeNode<Set<String>> getOrCreateChild(TreeNode<Set<String>> parent,
+                                                 String resourceType,
+                                                 String... properties) {
+    TreeNode<Set<String>> child = parent.getChild(resourceType);
+    if (null == child) {
+      child = parent.addChild(new HashSet<>(), resourceType);
+    }
+    for (String property: properties) {
+      child.getObject().add(property);
+    }
+    return child;
+  }
+
 
   @Override
   public Result finalizeResult(Result queryResult) {
@@ -343,9 +323,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     TreeNode<Resource> settingsNode = clusterNode.getChild("settings");
     if (null != settingsNode) {
       for (TreeNode<Resource> clusterSettingNode: settingsNode.getChildren()) {
-        Map<String, Object> nodeProperties = clusterSettingNode.getObject().getPropertiesMap().get("ClusterSettingInfo");
-        String key = Objects.toString(nodeProperties.get("cluster_setting_name"));
-        String value = Objects.toString(nodeProperties.get("cluster_setting_value"));
+        Map<String, Object> nodeProperties = clusterSettingNode.getObject().getPropertiesMap().get(ClusterSettingResourceProvider.RESPONSE_KEY);
+        String key = Objects.toString(nodeProperties.get(ClusterSettingResourceProvider.CLUSTER_SETTING_NAME_PROPERTY_ID));
+        String value = Objects.toString(nodeProperties.get(ClusterSettingResourceProvider.CLUSTER_SETTING_VALUE_PROPERTY_ID));
         clusterSettings.add(ImmutableMap.of(key, value));
       }
     }
