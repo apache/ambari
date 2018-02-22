@@ -28,6 +28,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -133,7 +134,8 @@ public class HostService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
-  public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                           @ApiParam(value = "summary", required = false) @QueryParam("format") String format) {
     return handleRequest(headers, body, ui, Request.Type.GET,
         createHostResource(m_clusterName, null));
   }
