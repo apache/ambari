@@ -330,6 +330,32 @@ var urls = {
     }
   },
 
+  'common.service.host_component.update': {
+    'real': '/clusters/{clusterName}/host_components',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            context: data.context,
+            operation_level: {
+              level: 'SERVICE',
+              cluster_name: data.clusterName,
+              service_name: data.serviceName
+            },
+            query: data.query
+          },
+          Body: {
+            HostRoles: {
+              state: data.state
+            }
+          }
+        })
+      }
+    }
+  },
+
   'common.host.host_component.passive': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',

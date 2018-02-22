@@ -41,6 +41,12 @@ App.Service = DS.Model.extend({
   slaveComponents: DS.hasMany('App.SlaveComponent'),
   masterComponents: DS.hasMany('App.MasterComponent'),
 
+  masterComponentGroups: DS.attr('array', {
+    defaultValue: []
+  }),
+
+  hasMultipleMasterComponentGroups: Em.computed.gt('masterComponentGroups.length', 1),
+
   /**
    * Check master/slave component state of service
    * and general services state to define if it can be removed

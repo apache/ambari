@@ -283,12 +283,12 @@ describe('App.MainServiceItemController', function () {
       mainServiceItemController.startStopPopup.restore();
     });
     it("start service", function () {
-      mainServiceItemController.startService({});
-      expect(mainServiceItemController.startStopPopup.calledWith({},App.HostComponentStatus.started)).to.equal(true);
+      mainServiceItemController.startService();
+      expect(mainServiceItemController.startStopPopup.calledWith(App.HostComponentStatus.started)).to.equal(true);
     });
     it("stop service", function () {
-      mainServiceItemController.stopService({});
-      expect(mainServiceItemController.startStopPopup.calledWith({},App.HostComponentStatus.stopped)).to.equal(true);
+      mainServiceItemController.stopService();
+      expect(mainServiceItemController.startStopPopup.calledWith(App.HostComponentStatus.stopped)).to.equal(true);
     });
   });
 
@@ -356,27 +356,26 @@ describe('App.MainServiceItemController', function () {
   });
 
   describe("#startStopPopup", function () {
-    var el = document.createElement("BUTTON");
-    el.disabled = false;
-    var event = {
-      target: el
-    };
     var mainServiceItemController = App.MainServiceItemController.create({
       content: {
-        serviceName: "HDFS",
-        hostComponents: [ {
-          componentName: 'NAMENODE',
-          workStatus: 'INSTALLED'
-        }]
+        serviceName: 'HDFS',
+        hostComponents: [
+          Em.Object.create({
+            componentName: 'NAMENODE',
+            workStatus: 'INSTALLED'
+          })
+        ]
       }
     });
     var mainServiceItemControllerHdfsStarted = App.MainServiceItemController.create({
       content: {
-        serviceName: "HDFS",
-        hostComponents: [ {
-          componentName: 'NAMENODE',
-          workStatus: 'STARTED'
-        }]
+        serviceName: 'HDFS',
+        hostComponents: [
+          Em.Object.create({
+            componentName: 'NAMENODE',
+            workStatus: 'STARTED'
+          })
+        ]
       }
     });
     beforeEach(function () {
@@ -394,12 +393,12 @@ describe('App.MainServiceItemController', function () {
       Em.I18n.t.restore();
     });
     it("start start/stop service popup", function () {
-      mainServiceItemController.startStopPopup(event, "").onPrimary();
+      mainServiceItemController.startStopPopup("").onPrimary();
       expect(mainServiceItemController.startStopPopupPrimary.calledOnce).to.equal(true);
     });
 
     it ("should popup warning to check last checkpoint time if work status is STARTED", function() {
-      mainServiceItemControllerHdfsStarted.startStopPopup(event, "INSTALLED");
+      mainServiceItemControllerHdfsStarted.startStopPopup("INSTALLED");
       expect(mainServiceItemControllerHdfsStarted.checkNnLastCheckpointTime.calledOnce).to.equal(true);
     });
 
@@ -445,13 +444,13 @@ describe('App.MainServiceItemController', function () {
       });
 
       it ("should confirm stop if serviceHealth is INSTALLED", function() {
-        mainServiceItemController.startStopPopup(event, "INSTALLED");
+        mainServiceItemController.startStopPopup("INSTALLED");
         expect(Em.I18n.t.calledWith('services.service.stop.confirmMsg')).to.be.ok;
         expect(Em.I18n.t.calledWith('services.service.stop.confirmButton')).to.be.ok;
       });
 
       it ("should confirm start if serviceHealth is not INSTALLED", function() {
-        mainServiceItemController.startStopPopup(event, "");
+        mainServiceItemController.startStopPopup("");
         expect(Em.I18n.t.calledWith('services.service.start.confirmMsg')).to.be.ok;
         expect(Em.I18n.t.calledWith('services.service.start.confirmButton')).to.be.ok;
       });
@@ -459,7 +458,7 @@ describe('App.MainServiceItemController', function () {
       it ("should not display a dependent list if it is to start a service", function() {
         var _mainServiceItemController = App.MainServiceItemController.create(
             {content: {serviceName: "HDFS", passiveState:'OFF'}});
-        _mainServiceItemController.startStopPopup(event, "");
+        _mainServiceItemController.startStopPopup("");
         expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.not.be.ok;
       });
 
@@ -467,15 +466,17 @@ describe('App.MainServiceItemController', function () {
         beforeEach(function () {
           var _mainServiceItemController = App.MainServiceItemController.create(
             {content: {
-              serviceName: "HDFS",
+              serviceName: 'HDFS',
               passiveState:'OFF',
-              hostComponents: [{
-                componentName: 'NAMENODE',
-                workStatus: 'INSTALLED'
-              }]
+              hostComponents: [
+                Em.Object.create({
+                  componentName: 'NAMENODE',
+                  workStatus: 'INSTALLED'
+                })
+              ]
             }}
           );
-          _mainServiceItemController.startStopPopup(event, "INSTALLED");
+          _mainServiceItemController.startStopPopup("INSTALLED");
           this.dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HDFS", "HBase,YARN");
           this.msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HDFS");
           this.fullMsg = _mainServiceItemController.addAdditionalWarningMessage("INSTALLED", this.msg, "HDFS");
@@ -497,7 +498,7 @@ describe('App.MainServiceItemController', function () {
         beforeEach(function () {
           var _mainServiceItemController = App.MainServiceItemController.create(
             {content: {serviceName: "HIVE", passiveState:'OFF'}});
-          _mainServiceItemController.startStopPopup(event, "INSTALLED");
+          _mainServiceItemController.startStopPopup("INSTALLED");
           this.dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HIVE", "Spark");
           this.msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HIVE");
           this.fullMsg = _mainServiceItemController.addAdditionalWarningMessage("INSTALLED", this.msg, "HIVE");
@@ -521,11 +522,13 @@ describe('App.MainServiceItemController', function () {
     var temp = batchUtils.restartAllServiceHostComponents;
     var mainServiceItemController = App.MainServiceItemController.create({
       content: {
-        serviceName: "HDFS",
-        hostComponents: [{
-          componentName: 'NAMENODE',
-          workStatus: 'STARTED'
-        }]
+        serviceName: 'HDFS',
+        hostComponents: [
+          Em.Object.create({
+            componentName: 'NAMENODE',
+            workStatus: 'STARTED'
+          })
+        ]
       }
     });
     beforeEach(function () {
@@ -548,11 +551,13 @@ describe('App.MainServiceItemController', function () {
     it("start restartAllHostComponents for service", function () {
       var controller = App.MainServiceItemController.create({
         content: {
-          serviceName: "HDFS",
-          hostComponents: [{
-            componentName: 'NAMENODE',
-            workStatus: 'INSTALLED'
-          }]
+          serviceName: 'HDFS',
+          hostComponents: [
+            Em.Object.create({
+              componentName: 'NAMENODE',
+              workStatus: 'INSTALLED'
+            })
+          ]
         }
       });
       controller.restartAllHostComponents({}).onPrimary();

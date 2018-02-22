@@ -52,7 +52,30 @@ App.HDFSService = App.Service.extend({
   upgradeStatus: DS.attr('string'),
   safeModeStatus: DS.attr('string'),
   nameNodeRpc: DS.attr('number'),
-  metricsNotAvailable: DS.attr('boolean')
+  metricsNotAvailable: DS.attr('boolean'),
+  masterComponentGroups: function () {
+    let result = [];
+    this.get('hostComponents').forEach(component => {
+      const nameSpace = component.get('haNameSpace');
+      if (nameSpace) {
+        const hostName = component.get('hostName'),
+          existingNameSpace = result.findProperty('name', nameSpace),
+          currentNameSpace = existingNameSpace || {
+              name: nameSpace,
+              title: nameSpace,
+              hosts: [],
+              components: ['NAMENODE', 'ZKFC']
+            };
+        if (!existingNameSpace) {
+          result.push(currentNameSpace);
+        }
+        if (!currentNameSpace.hosts.contains(hostName)) {
+          currentNameSpace.hosts.push(hostName);
+        }
+      }
+    });
+    return result;
+  }.property('hostComponents')
 });
 
 App.HDFSService.FIXTURES = [];

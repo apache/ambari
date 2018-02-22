@@ -253,14 +253,15 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   startStopPopupSuccessCallback: function (data, ajaxOptions, params) {
     if (data && data.Requests) {
       params.query.set('status', 'SUCCESS');
-      var config = this.get('callBackConfig')[(JSON.parse(ajaxOptions.data)).Body.ServiceInfo.state];
-      var self = this;
       if (App.get('testMode')) {
-        self.set('content.workStatus', App.Service.Health[config.f]);
-        self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.f]);
-        setTimeout(function () {
-          self.set('content.workStatus', App.Service.Health[config.c2]);
-          self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.hs]);
+        const requestData = JSON.parse(ajaxOptions.data),
+          state = requestData.Body.ServiceInfo.state || requestData.Body.HostRoles.state,
+          config = this.get('callBackConfig')[state];
+        this.set('content.workStatus', App.Service.Health[config.f]);
+        this.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.f]);
+        setTimeout(() => {
+          this.set('content.workStatus', App.Service.Health[config.c2]);
+          this.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.hs]);
         }, App.get('testModeDelayForActions'));
       }
       // load data (if we need to show this background operations popup) from persist
@@ -279,41 +280,83 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
   /**
    * Confirmation popup for start/stop services
-   * @param event
    * @param serviceHealth - 'STARTED' or 'INSTALLED'
    */
-  startStopPopup: function(event, serviceHealth) {
-    if ($(event.target).hasClass('disabled') || $(event.target.parentElement).hasClass('disabled')) {
-      return;
-    }
-    var self = this;
-    var serviceDisplayName = this.get('content.displayName');
-    var isMaintenanceOFF = this.get('content.passiveState') === 'OFF';
+  startStopPopup: function (serviceHealth) {
+    const serviceDisplayName = this.get('content.displayName'),
+      isMaintenanceOFF = this.get('content.passiveState') === 'OFF';
 
-    var msg = isMaintenanceOFF && serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format(serviceDisplayName) : null;
-    msg = self.addAdditionalWarningMessage(serviceHealth, msg, serviceDisplayName);
+    let msg = isMaintenanceOFF && serviceHealth === 'INSTALLED' ?
+      Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format(serviceDisplayName) : null;
+    msg = this.addAdditionalWarningMessage(serviceHealth, msg, serviceDisplayName);
 
-    var bodyMessage = Em.Object.create({
-      putInMaintenance: (serviceHealth == 'INSTALLED' && isMaintenanceOFF) || (serviceHealth == 'STARTED' && !isMaintenanceOFF),
-      turnOnMmMsg: serviceHealth == 'INSTALLED' ? Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName) : Em.I18n.t('passiveState.turnOffFor').format(serviceDisplayName),
-      confirmMsg: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmMsg').format(serviceDisplayName) : Em.I18n.t('services.service.start.confirmMsg').format(serviceDisplayName),
-      confirmButton: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmButton') : Em.I18n.t('services.service.start.confirmButton'),
-      additionalWarningMsg:  msg
+    const bodyMessage = Em.Object.create({
+      putInMaintenance: (serviceHealth === 'INSTALLED' && isMaintenanceOFF) ||
+        (serviceHealth === 'STARTED' && !isMaintenanceOFF),
+      turnOnMmMsg: serviceHealth === 'INSTALLED' ?
+        Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName) :
+        Em.I18n.t('passiveState.turnOffFor').format(serviceDisplayName),
+      confirmMsg: serviceHealth === 'INSTALLED'
+        ? Em.I18n.t('services.service.stop.confirmMsg').format(serviceDisplayName) :
+        Em.I18n.t('services.service.start.confirmMsg').format(serviceDisplayName),
+      confirmButton: serviceHealth === 'INSTALLED' ?
+        Em.I18n.t('services.service.stop.confirmButton') : Em.I18n.t('services.service.start.confirmButton'),
+      additionalWarningMsg: msg
     });
 
     // check HDFS NameNode checkpoint before stop service
-    if (this.get('content.serviceName') == 'HDFS' && serviceHealth == 'INSTALLED' &&
-      this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+    if (serviceHealth === 'INSTALLED' && this.hasStartedNameNode()) {
       this.checkNnLastCheckpointTime(function () {
-        return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
-          self.set('isPending', true);
-          self.startStopWithMmode(serviceHealth, query, runMmOperation);
+        return App.showConfirmationFeedBackPopup((query, runMmOperation) => {
+          this.set('isPending', true);
+          this.startStopWithMmode(serviceHealth, query, runMmOperation);
         }, bodyMessage);
       });
     } else {
-      return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
-        self.set('isPending', true);
-        self.startStopWithMmode(serviceHealth, query, runMmOperation);
+      return App.showConfirmationFeedBackPopup((query, runMmOperation) => {
+        this.set('isPending', true);
+        this.startStopWithMmode(serviceHealth, query, runMmOperation);
+      }, bodyMessage);
+    }
+  },
+
+  /**
+   * Confirmation popup for start/stop services
+   * @param context
+   * @param serviceHealth - 'STARTED' or 'INSTALLED'
+   */
+  startStopCertainPopup: function (context, serviceHealth) {
+    const {components, hosts, label} = context,
+      serviceDisplayName = this.get('content.displayName'),
+      isMaintenanceOFF = this.get('content.passiveState') === 'OFF',
+      confirmDisplayName = Em.I18n.t('services.service.componentsInNameSpace').format(label);
+    let msg = isMaintenanceOFF && serviceHealth == 'INSTALLED' ?
+      Em.I18n.t('services.service.stopCertain.warningMsg.turnOnMM').format(serviceDisplayName) : null;
+    msg = this.addAdditionalWarningMessage(serviceHealth, msg, serviceDisplayName);
+    const bodyMessage = Em.Object.create({
+      putInMaintenance: (serviceHealth === 'INSTALLED' && isMaintenanceOFF) ||
+        (serviceHealth === 'STARTED' && !isMaintenanceOFF),
+      turnOnMmMsg: serviceHealth === 'INSTALLED' ?
+        Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName) :
+        Em.I18n.t('passiveState.turnOffFor').format(serviceDisplayName),
+      confirmMsg: serviceHealth === 'INSTALLED' ?
+        Em.I18n.t('services.service.stop.confirmMsg').format(confirmDisplayName) :
+        Em.I18n.t('services.service.start.confirmMsg').format(confirmDisplayName),
+      confirmButton: serviceHealth === 'INSTALLED' ?
+        Em.I18n.t('services.service.stop.confirmButton') :
+        Em.I18n.t('services.service.start.confirmButton'),
+      additionalWarningMsg: msg
+    });
+    // check HDFS NameNode checkpoint before stop components
+    if (serviceHealth === 'INSTALLED' && this.hasStartedNameNode(label)) {
+      this.checkNnLastCheckpointTime(() => App.showConfirmationFeedBackPopup((query, runMmOperation) => {
+        this.set('isPending', true);
+        this.startStopWithMmode(serviceHealth, query, runMmOperation, components, hosts, label);
+      }, bodyMessage));
+    } else {
+      return App.showConfirmationFeedBackPopup((query, runMmOperation) => {
+        this.set('isPending', true);
+        this.startStopWithMmode(serviceHealth, query, runMmOperation, components, hosts, label);
       }, bodyMessage);
     }
   },
@@ -459,62 +502,89 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     return msg;
   },
 
-  startStopWithMmode: function(serviceHealth, query, runMmOperation) {
-    var self = this;
+  startStopWithMmode: function(serviceHealth, query, runMmOperation, components, hosts, label) {
     if (runMmOperation) {
-      if (serviceHealth == "STARTED") {
-        this.startStopPopupPrimary(serviceHealth, query).complete(function() {
-          batchUtils.turnOnOffPassiveRequest("OFF", Em.I18n.t('passiveState.turnOff'), self.get('content.serviceName').toUpperCase());
+      if (serviceHealth === 'STARTED') {
+        this.startStopPopupPrimary(serviceHealth, query, components, hosts, label).complete(() => {
+          batchUtils.turnOnOffPassiveRequest('OFF', Em.I18n.t('passiveState.turnOff'), this.get('content.serviceName').toUpperCase());
         });
       } else {
-        batchUtils.turnOnOffPassiveRequest("ON", Em.I18n.t('passiveState.turnOn'), this.get('content.serviceName').toUpperCase()).complete(function() {
-          self.startStopPopupPrimary(serviceHealth, query);
+        batchUtils.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOn'), this.get('content.serviceName').toUpperCase()).complete(() => {
+          this.startStopPopupPrimary(serviceHealth, query, components, hosts, label);
         })
       }
     } else {
-      this.startStopPopupPrimary(serviceHealth, query);
+      this.startStopPopupPrimary(serviceHealth, query, components, hosts, label);
     }
-
   },
 
-  startStopPopupPrimary: function (serviceHealth, query) {
-    var requestInfo = (serviceHealth == "STARTED")
-        ? App.BackgroundOperationsController.CommandContexts.START_SERVICE.format(this.get('content.serviceName'))
-        : App.BackgroundOperationsController.CommandContexts.STOP_SERVICE.format(this.get('content.serviceName'));
+  startStopPopupPrimary: function (serviceHealth, query, components, hosts, label) {
+    const isStart = (serviceHealth === 'STARTED'),
+      serviceName = this.get('content.serviceName');
+    if (components || hosts) {
+      batchUtils.getComponentsFromServer({
+        hosts,
+        components,
+        passiveState: 'OFF',
+        displayParams: ['host_components/HostRoles/component_name']
+      }, data => {
+        const contextKey = isStart ? 'services.service.startAllComponents' : 'services.service.stopAllComponents',
+          context = Em.I18n.t(contextKey).format(label),
+          requestQuery = data.items.map(host => {
+            const hostName = host.Hosts.host_name,
+              componentNames = host.host_components.mapProperty('HostRoles.component_name').join(',');
+            return `(HostRoles/component_name.in(${componentNames})&HostRoles/host_name=${hostName})`
+          }).join('|');
+        App.ajax.send({
+          name: 'common.service.host_component.update',
+          sender: this,
+          data: {
+            context,
+            serviceName: serviceName.toUpperCase(),
+            state: serviceHealth,
+            query: requestQuery
+          },
+          showLoadingPopup: true
+        });
+      });
+    } else {
+      const context = isStart
+          ? App.BackgroundOperationsController.CommandContexts.START_SERVICE.format(serviceName)
+          : App.BackgroundOperationsController.CommandContexts.STOP_SERVICE.format(serviceName),
+        data = {
+          context,
+          serviceName: serviceName.toUpperCase(),
+          ServiceInfo: {
+            state: serviceHealth
+          },
+          query,
+          success: 'startStopPopupSuccessCallback',
+          error: 'startStopPopupErrorCallback'
+        };
 
-    var data = {
-      'context': requestInfo,
-      'serviceName': this.get('content.serviceName').toUpperCase(),
-      'ServiceInfo': {
-        'state': serviceHealth
-      },
-      'query': query
-    };
-
-    return App.ajax.send({
-      'name': 'common.service.update',
-      'sender': this,
-      'success': 'startStopPopupSuccessCallback',
-      'error': 'startStopPopupErrorCallback',
-      'data': data,
-      'showLoadingPopup': true
-    });
+      return App.ajax.send({
+        name: 'common.service.update',
+        sender: this,
+        success: 'startStopPopupSuccessCallback',
+        error: 'startStopPopupErrorCallback',
+        data: data,
+        showLoadingPopup: true
+      });
+    }
   },
 
   /**
    * On click callback for <code>start service</code> button
-   * @param event
    */
-  startService: function (event) {
-    this.startStopPopup(event, App.HostComponentStatus.started);
+  startService: function () {
+    this.startStopPopup(App.HostComponentStatus.started);
   },
 
   /**
    * On click callback for <code>stop service</code> button
-   * @param event
    */
-  stopService: function (event) {
-    this.startStopPopup(event, App.HostComponentStatus.stopped);
+  stopService: function () {
+    this.startStopPopup(App.HostComponentStatus.stopped);
   },
 
   /**
@@ -836,19 +906,18 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
 
-  restartAllHostComponents : function(serviceName) {
-    var serviceDisplayName = this.get('content.displayName');
-    var bodyMessage = Em.Object.create({
-      putInMaintenance: this.get('content.passiveState') === 'OFF',
-      turnOnMmMsg: Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName),
-      confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(serviceDisplayName),
-      confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
-      additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
-     });
+  restartAllHostComponents: function (serviceName) {
+    const serviceDisplayName = this.get('content.displayName'),
+      bodyMessage = Em.Object.create({
+        putInMaintenance: this.get('content.passiveState') === 'OFF',
+        turnOnMmMsg: Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName),
+        confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(serviceDisplayName),
+        confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
+        additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName) : null
+      });
 
     // check HDFS NameNode checkpoint before stop service
-    if (this.get('content.serviceName') == 'HDFS' &&
-      this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+    if (this.hasStartedNameNode()) {
       this.checkNnLastCheckpointTime(function () {
         return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
           batchUtils.restartAllServiceHostComponents(serviceDisplayName, serviceName, false, query, runMmOperation);
@@ -859,6 +928,58 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         batchUtils.restartAllServiceHostComponents(serviceDisplayName, serviceName, false, query, runMmOperation);
       }, bodyMessage);
     }
+  },
+
+  restartCertainHostComponents: function (context) {
+    const serviceDisplayName = this.get('content.displayName'),
+      {components, hosts, label, serviceName} = context;
+    if (hosts) {
+      const bodyMessage = Em.Object.create({
+        putInMaintenance: this.get('content.passiveState') === 'OFF',
+        turnOnMmMsg: Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName),
+        confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(Em.I18n.t('services.service.componentsInNameSpace').format(label)),
+        confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
+        additionalWarningMsg: this.get('content.passiveState') === 'OFF' ?
+          Em.I18n.t('services.service.restartCertain.warningMsg.turnOnMM').format(serviceDisplayName) : null
+      });
+      if (this.hasStartedNameNode(label)) {
+        this.checkNnLastCheckpointTime(function () {
+          return App.showConfirmationFeedBackPopup(function (query, runMmOperation) {
+            batchUtils.restartCertainServiceHostComponents(serviceName, components, hosts, label, query, runMmOperation);
+          }, bodyMessage);
+        });
+      } else {
+        App.showConfirmationFeedBackPopup(function (query, runMmOperation) {
+          batchUtils.restartCertainServiceHostComponents(serviceName, components, hosts, label, query, runMmOperation);
+        }, bodyMessage);
+      }
+    } else {
+      this.restartAllHostComponents(serviceName);
+    }
+  },
+
+  startCertainHostComponents: function (context) {
+    if (context.hosts) {
+      this.startStopCertainPopup(context, App.HostComponentStatus.started);
+    } else {
+      this.startService();
+    }
+  },
+
+  stopCertainHostComponents: function (context) {
+    if (context.hosts) {
+      this.startStopCertainPopup(context, App.HostComponentStatus.stopped);
+    } else {
+      this.stopService();
+    }
+  },
+
+  hasStartedNameNode: function (nameSpace) {
+    return this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').some(component => {
+        return component.get('componentName') === 'NAMENODE'
+          && (!nameSpace || component.get('haNameSpace') === nameSpace)
+          && component.get('workStatus') === App.HostComponentStatus.started;
+      });
   },
 
   turnOnOffPassive: function(label) {

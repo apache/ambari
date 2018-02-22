@@ -295,22 +295,55 @@ App.HostComponentStatus = {
 };
 
 App.HostComponentActionMap = {
-  getMap: function(ctx) {
-    var NN = ctx.get('controller.content.hostComponents').findProperty('componentName', 'NAMENODE');
-    var RM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
-    var RA = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RANGER_ADMIN');
-    var HM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQMASTER');
-    var HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY');
-    var HMComponent = App.MasterComponent.find('HAWQMASTER');
-    var HSComponent = App.MasterComponent.find('HAWQSTANDBY');
+  getMap: function (ctx) {
+    const NN = ctx.get('controller.content.hostComponents').findProperty('componentName', 'NAMENODE'),
+      RM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER'),
+      RA = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RANGER_ADMIN'),
+      HM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQMASTER'),
+      HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY'),
+      HMComponent = App.MasterComponent.find('HAWQMASTER'),
+      HSComponent = App.MasterComponent.find('HAWQSTANDBY'),
+      hasMultipleMasterComponentGroups = ctx.get('service.hasMultipleMasterComponentGroups'),
+      isClientsOnlyService = ctx.get('controller.isClientsOnlyService'),
+      isStartDisabled = ctx.get('controller.isStartDisabled'),
+      isStopDisabled = ctx.get('controller.isStopDisabled');
 
     return {
+      START_ALL: {
+        action: hasMultipleMasterComponentGroups ? '' : 'startService',
+        label: Em.I18n.t('services.service.start'),
+        cssClass: `glyphicon glyphicon-play ${isStartDisabled ? 'disabled' : 'enabled'}`,
+        isHidden: isClientsOnlyService,
+        disabled: isStartDisabled,
+        hasSubmenu: !isStartDisabled && hasMultipleMasterComponentGroups,
+        submenuOptions: !isStartDisabled && hasMultipleMasterComponentGroups ? this.getMastersSubmenu(ctx, 'startCertainHostComponents') : []
+      },
+      STOP_ALL: {
+        action: hasMultipleMasterComponentGroups ? '' : 'stopService',
+        label: Em.I18n.t('services.service.stop'),
+        cssClass: `glyphicon glyphicon-stop ${isStopDisabled ? 'disabled' : 'enabled'}`,
+        isHidden: isClientsOnlyService,
+        disabled: isStopDisabled,
+        hasSubmenu: !isStopDisabled && hasMultipleMasterComponentGroups,
+        submenuOptions: !isStopDisabled && hasMultipleMasterComponentGroups ? this.getMastersSubmenu(ctx, 'stopCertainHostComponents') : []
+      },
       RESTART_ALL: {
-        action: 'restartAllHostComponents',
+        action: hasMultipleMasterComponentGroups ? '' : 'restartAllHostComponents',
         context: ctx.get('serviceName'),
-        label: Em.I18n.t('restart.service.all'),
-        cssClass: 'glyphicon glyphicon-repeat',
-        disabled: false
+        label: hasMultipleMasterComponentGroups ? Em.I18n.t('common.restart') : Em.I18n.t('restart.service.all'),
+        cssClass: 'glyphicon glyphicon-time',
+        disabled: false,
+        hasSubmenu: hasMultipleMasterComponentGroups,
+        submenuOptions: hasMultipleMasterComponentGroups ? this.getMastersSubmenu(ctx, 'restartCertainHostComponents') : []
+      },
+      RESTART_NAMENODES: {
+        action: '',
+        label: Em.I18n.t('rollingrestart.dialog.title').format(pluralize(App.format.role('NAMENODE', false))),
+        cssClass: 'glyphicon glyphicon-time',
+        isHidden: !hasMultipleMasterComponentGroups,
+        disabled: false,
+        hasSubmenu: true,
+        submenuOptions: this.getMastersSubmenu(ctx, 'restartCertainHostComponents', ['NAMENODE'])
       },
       RUN_SMOKE_TEST: {
         action: 'runSmokeTest',
@@ -513,5 +546,35 @@ App.HostComponentActionMap = {
         //todo: provide disabled flag
       }
     };
+  },
+
+  getMastersSubmenu: function (context, action, components) {
+    const serviceName = context.get('service.serviceName'),
+      groups = context.get('service.masterComponentGroups') || [],
+      allItem = {
+        action: action,
+        context: Object.assign({
+          label: Em.I18n.t('services.service.allComponents')
+        }, components ? {
+          components,
+          hosts: groups.mapProperty('hosts').reduce((acc, groupHosts) => [...acc, ...groupHosts], []).uniq()
+        } : {
+          serviceName
+        }),
+        disabled: false
+      },
+      groupItems = groups.map(group => {
+        return {
+          action: action,
+          context: {
+            label: group.title,
+            hosts: group.hosts,
+            components: components || group.components,
+            serviceName
+          },
+          disabled: false
+        };
+      });
+    return [allItem, ...groupItems];
   }
 };
