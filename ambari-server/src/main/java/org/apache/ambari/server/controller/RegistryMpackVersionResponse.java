@@ -20,8 +20,8 @@ package org.apache.ambari.server.controller;
 import java.util.List;
 
 import org.apache.ambari.server.controller.internal.RegistryMpackVersionResourceProvider;
-import org.apache.ambari.server.registry.RegistryMpackCompatiblity;
-import org.apache.ambari.server.registry.RegistryMpackService;
+import org.apache.ambari.server.registry.RegistryMpackDependency;
+import org.apache.ambari.server.state.Module;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -30,82 +30,82 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class RegistryMpackVersionResponse {
   private Long registryId;
+  private String mpackId;
   private String mpackName;
+  private String mpackDescription;
   private String mpackVersion;
-  private String mpackBuildNumber;
-  private String stackId;
-  private String mpackUrl;
-  private String mpackDocUrl;
-  private List<? extends RegistryMpackService> mpackServices;
-  private List<? extends RegistryMpackCompatiblity> compatibleMpacks;
+  private String mpackUri;
+  private String mpackDocUri;
+  private String mpackLogoUri;
+  private List<? extends RegistryMpackDependency> dependencies;
+  private List<Module> modules;
 
   /**
    * Constructor
    * @param registryId        registry id
+   * @param mpackId           mpack id
    * @param mpackName         mpack name
+   * @param mpackDescription mpack description
    * @param mpackVersion      mpack version
-   * @param mpackBuildNumber  mpack build number
-   * @param mpackUrl          mpack download url
-   * @param mpackDocUrl       mpack documentation url
-   * @param mpackServices     list of mpack services
-   * @param compatibleMpacks  list of compatible mpacks
-   * @param stackId           stack id of the mpack version
+   * @param mpackUri          mpack uri
+   * @param mpackDocUri       mpack documentation uri
+   * @param mpackLogoUri mpack logo uri
+   * @param dependencies      list of mpack dependencies
+   * @param modules list of modules in the mpack
    */
-  public RegistryMpackVersionResponse(
-    Long registryId, String mpackName, String mpackVersion, String mpackBuildNumber,
-    String mpackUrl, String mpackDocUrl,
-    List<? extends RegistryMpackService> mpackServices,
-    List<? extends RegistryMpackCompatiblity> compatibleMpacks, String stackId) {
+  public RegistryMpackVersionResponse(Long registryId, String mpackId, String mpackName, String mpackDescription,
+    String mpackVersion, String mpackUri, String mpackDocUri, String mpackLogoUri,
+    List<? extends RegistryMpackDependency> dependencies, List<Module> modules) {
     this.registryId = registryId;
+    this.mpackId = mpackId;
     this.mpackName = mpackName;
+    this.mpackDescription = mpackDescription;
     this.mpackVersion = mpackVersion;
-    this.mpackBuildNumber = mpackBuildNumber;
-    this.mpackUrl = mpackUrl;
-    this.mpackDocUrl = mpackDocUrl;
-    this.mpackServices = mpackServices;
-    this.compatibleMpacks = compatibleMpacks;
-    this.stackId = stackId;
+    this.mpackUri = mpackUri;
+    this.mpackDocUri = mpackDocUri;
+    this.mpackLogoUri = mpackLogoUri;
+    this.dependencies = dependencies;
+    this.modules = modules;
   }
 
   public Long getRegistryId() {
     return registryId;
   }
 
+  public String getMpackId() {
+    return mpackId;
+  }
+
   public String getMpackName() {
     return mpackName;
+  }
+
+  public String getMpackDescription() {
+    return mpackDescription;
   }
 
   public String getMpackVersion() {
     return mpackVersion;
   }
 
-  public String getMpackBuildNumber() {
-    return mpackBuildNumber;
+  public String getMpackUri() {
+    return mpackUri;
   }
 
-  public String getMpackUrl() {
-    return mpackUrl;
+  public String getMpackDocUri() {
+    return mpackDocUri;
   }
 
-  public String getMpackDocUrl() {
-    return mpackDocUrl;
+  public String getMpackLogoUri() {
+    return mpackLogoUri;
   }
 
-  public List<? extends RegistryMpackService> getMpackServices() {
-    return mpackServices;
+  public List<? extends RegistryMpackDependency> getDependencies() {
+    return dependencies;
   }
 
-  public List<? extends RegistryMpackCompatiblity> getCompatibleMpacks() {
-    return compatibleMpacks;
-  }
-
-
-  public String getStackId() {
-    return stackId;
-  }
-
-  public void setStackId(String stackId) {
-    this.stackId = stackId;
+  public List<Module> getModules() {
+    return modules;
   }
 
   @Override

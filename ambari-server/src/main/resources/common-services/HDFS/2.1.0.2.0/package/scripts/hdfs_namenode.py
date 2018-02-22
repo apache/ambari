@@ -143,7 +143,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
         options = "-rollingUpgrade started"
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
-    elif upgrade_type == constants.UPGRADE_TYPE_NON_ROLLING:
+    elif upgrade_type == constants.UPGRADE_TYPE_EXPRESS:
       is_previous_image_dir = is_previous_fs_image()
       Logger.info("Previous file system image dir present is {0}".format(str(is_previous_image_dir)))
 
@@ -209,7 +209,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
 
     # During an Express Upgrade, NameNode will not leave SafeMode until the DataNodes are started,
     # so always disable the Safemode check
-    if upgrade_type == constants.UPGRADE_TYPE_NON_ROLLING:
+    if upgrade_type == constants.UPGRADE_TYPE_EXPRESS:
       ensure_safemode_off = False
 
     # some informative logging separate from the above logic to keep things a little cleaner

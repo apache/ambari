@@ -23,10 +23,12 @@ public class ServiceGroupRequest {
 
   private String clusterName; // REF
   private String serviceGroupName; // GET/CREATE/UPDATE/DELETE
+  private String version; // Associated stack version info
 
-  public ServiceGroupRequest(String clusterName, String serviceGroupName) {
+  public ServiceGroupRequest(String clusterName, String serviceGroupName, String version) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
+    this.version = version;
   }
 
   /**
@@ -57,9 +59,25 @@ public class ServiceGroupRequest {
     this.serviceGroupName = serviceGroupName;
   }
 
+  /**
+   * @return the servicegroup version
+   */
+  public String getVersion() {
+    return version;
+  }
+
+  /**
+   * @param version the servicegroup version to set
+   */
+  public void setVersion(String version) {
+    this.version = version;
+  }
+
   @Override
   public String toString() {
-    return String.format("clusterName=%s, serviceGroupName=%s", clusterName, serviceGroupName);
+    StringBuilder sb = new StringBuilder();
+    sb.append("clusterName=").append(clusterName).append(", serviceGroupName=").append(serviceGroupName).append(", version=").append(version);
+    return sb.toString();
   }
 
   @Override
@@ -73,12 +91,11 @@ public class ServiceGroupRequest {
 
     ServiceGroupRequest other = (ServiceGroupRequest) obj;
 
-    return Objects.equals(clusterName, other.clusterName) &&
-      Objects.equals(serviceGroupName, other.serviceGroupName);
+    return Objects.equals(clusterName, other.clusterName) && Objects.equals(serviceGroupName, other.serviceGroupName) && Objects.equals(version, other.version);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(clusterName, serviceGroupName);
+    return Objects.hash(clusterName, serviceGroupName, version);
   }
 }

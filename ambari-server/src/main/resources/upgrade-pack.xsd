@@ -39,9 +39,9 @@
   <!-- FIXME case sensitivity -->
   <xs:simpleType name="upgrade-kind-type">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="ROLLING" />
-      <xs:enumeration value="NON_ROLLING" />
-      <xs:enumeration value="HOST_ORDERED" />
+      <xs:enumeration value="rolling" />
+      <xs:enumeration value="express" />
+      <xs:enumeration value="host_ordered" />
     </xs:restriction>
   </xs:simpleType>
   

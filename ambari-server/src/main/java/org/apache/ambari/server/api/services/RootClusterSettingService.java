@@ -70,7 +70,7 @@ public class RootClusterSettingService extends BaseService {
           response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class, responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
           @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING,
-                  paramType = PARAM_TYPE_QUERY, defaultValue = MpackResourceProvider.MPACK_ID),
+                  paramType = PARAM_TYPE_QUERY, defaultValue = MpackResourceProvider.MPACK_RESOURCE_ID),
           @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING,
                   paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE,

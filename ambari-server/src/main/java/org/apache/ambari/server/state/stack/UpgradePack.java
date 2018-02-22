@@ -318,7 +318,7 @@ public class UpgradePack {
       list = groups;
     } else {
       switch (this.type) {
-        case NON_ROLLING:
+        case EXPRESS:
           list = getDowngradeGroupsForNonrolling(groups);
           break;
         case HOST_ORDERED:

@@ -32,7 +32,7 @@ import time
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_EXPRESS
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.network import reconfigure_urllib2_opener
@@ -1130,8 +1130,8 @@ class Script(object):
     upgrade_type = None
     if upgrade_type_command_param.lower() == "rolling_upgrade":
       upgrade_type = UPGRADE_TYPE_ROLLING
-    elif upgrade_type_command_param.lower() == "nonrolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_NON_ROLLING
+    elif upgrade_type_command_param.lower() == "express_upgrade":
+      upgrade_type = UPGRADE_TYPE_EXPRESS
     elif upgrade_type_command_param.lower() == "host_ordered_upgrade":
       upgrade_type = UPGRADE_TYPE_HOST_ORDERED
 

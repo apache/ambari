@@ -95,7 +95,9 @@ public interface Cluster {
    * @return
    * @throws AmbariException
    */
-  ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException;
+  ServiceGroup addServiceGroup(String serviceGroupName, String version) throws AmbariException;
+
+  ServiceGroup addServiceGroup(String serviceGroupName, StackId stackId) throws AmbariException;
 
   /**
    * Add service group dependency to the service group

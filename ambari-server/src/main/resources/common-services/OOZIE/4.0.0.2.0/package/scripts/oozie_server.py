@@ -34,7 +34,7 @@ from resource_management.libraries.functions.security_commons import FILE_TYPE_X
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_EXPRESS, UPGRADE_TYPE_ROLLING
 
 from oozie import oozie
 from oozie_service import oozie_service

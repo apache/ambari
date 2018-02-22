@@ -118,7 +118,7 @@ public class ClustersDeadlockTest {
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     // install HDFS
-    serviceGroup = cluster.addServiceGroup("CORE");
+    serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     installService("HDFS", serviceGroup);
 
     writerStoppedSignal = new CountDownLatch(NUMBER_OF_THREADS);

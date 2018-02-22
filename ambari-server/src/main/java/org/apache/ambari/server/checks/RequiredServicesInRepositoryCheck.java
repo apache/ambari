@@ -45,7 +45,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.REPOSITORY_VERSION,
     order = 1.0f,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED },
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED },
     orchestration = { RepositoryType.PATCH, RepositoryType.MAINT, RepositoryType.SERVICE })
 public class RequiredServicesInRepositoryCheck extends AbstractCheckDescriptor {
 

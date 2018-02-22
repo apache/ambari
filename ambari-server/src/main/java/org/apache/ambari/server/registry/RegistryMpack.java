@@ -25,17 +25,18 @@ import org.apache.ambari.server.AmbariException;
  * Represents a single instance of a software registry
  */
 public interface RegistryMpack {
+
+  /**
+   * Get mpack id
+   * @return
+   */
+  public String getMpackId();
+
   /**
    * Get mpack name
    * @return
    */
   public String getMpackName();
-
-  /**
-   * Get mpack display name
-   * @return
-   */
-  public String getMpackDisplayName();
 
   /**
    * Get mpack description
@@ -44,10 +45,10 @@ public interface RegistryMpack {
   public String getMpackDescription();
 
   /**
-   * Get mpack logo url
+   * Get mpack logo uri
    * @return
    */
-  public String getMpackLogoUrl();
+  public String getMpackLogoUri();
 
   /**
    * Get list of mpack versions

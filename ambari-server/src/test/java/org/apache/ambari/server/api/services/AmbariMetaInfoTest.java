@@ -1741,12 +1741,12 @@ public class AmbariMetaInfoTest {
 
     Clusters clusters = injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getClusterById(clusterId);
-    cluster.setDesiredStackVersion(
-        new StackId(STACK_NAME_HDP, stackVersion));
+    StackId stackId = new StackId(STACK_NAME_HDP, stackVersion);
+    cluster.setDesiredStackVersion(stackId);
 
     RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
         cluster.getCurrentStackVersion(), repoVersion);
-    ServiceGroup sg = cluster.addServiceGroup("core");
+    ServiceGroup sg = cluster.addServiceGroup("core", stackId.getStackId());
     cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
 
     metaInfo.reconcileAlertDefinitions(clusters, false);
@@ -1861,7 +1861,7 @@ public class AmbariMetaInfoTest {
     RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
       cluster.getCurrentStackVersion(), repoVersion);
 
-    ServiceGroup sg = cluster.addServiceGroup("core");
+    ServiceGroup sg = cluster.addServiceGroup("core", "HDP-2.0.6");
     cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
 
     metaInfo.reconcileAlertDefinitions(clusters, false);

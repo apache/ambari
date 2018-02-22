@@ -47,7 +47,7 @@ import com.google.inject.persist.Transactional;
 
 /**
  * Action that represents updating the Desired Stack Id during the middle of a stack upgrade (typically NonRolling).
- * In a {@link org.apache.ambari.server.state.stack.upgrade.UpgradeType#NON_ROLLING}, the effective Stack Id is
+ * In a {@link org.apache.ambari.server.state.stack.upgrade.UpgradeType#EXPRESS}, the effective Stack Id is
  * actually changed half-way through calculating the Actions, and this serves to update the database to make it
  * evident to the user at which point it changed.
  */

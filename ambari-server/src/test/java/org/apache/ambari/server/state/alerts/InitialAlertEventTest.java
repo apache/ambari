@@ -181,7 +181,7 @@ public class InitialAlertEventTest {
 
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    ServiceGroup serviceGroup = m_cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = m_cluster.addServiceGroup("CORE", "HDP-1.0");
     m_serviceFactory.createNew(m_cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, m_repositoryVersion);
     Service service = m_cluster.getService(serviceName);
 

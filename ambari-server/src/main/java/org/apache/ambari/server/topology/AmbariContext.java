@@ -363,7 +363,7 @@ public class AmbariContext {
 
   private void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName, Map<StackId, Long> repoVersionByStack) {
     Set<ServiceGroupRequest> serviceGroupRequests = topology.getComponents()
-      .map(c -> new ServiceGroupRequest(clusterName, c.effectiveServiceGroupName()))
+      .map(c -> new ServiceGroupRequest(clusterName, c.effectiveServiceGroupName(), c.stackId().getStackId()))
       .collect(toSet());
 
     Set<ServiceRequest> serviceRequests = topology.getComponents()

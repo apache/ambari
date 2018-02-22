@@ -58,20 +58,18 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
   public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
 
   public static final String REGISTRY_ID =  RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP +  "registry_id";
+  public static final String REGISTRY_MPACK_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
   public static final String REGISTRY_MPACK_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_name";
+  public static final String REGISTRY_MPACK_DESCRIPTION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_description";
   public static final String REGISTRY_MPACK_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_version";
-  public static final String REGISTRY_MPACK_BUILDNUM = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_buildnum";
-  public static final String REGISTRY_MPACK_URL = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_url";
-  public static final String REGISTRY_MPACK_DOC_URL = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_doc_url";
-  public static final String REGISTRY_MPACK_SERVICES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "services";
-  public static final String REGISTRY_MPACK_COMPATIBLE_MPACKS = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "compatible_mpacks";
-  public static final String REGISTRY_MPACK_STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
-  public static final String REGISTRY_MPACK_STACK_VERSION_PROPERTY_ID =
-          RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
-
+  public static final String REGISTRY_MPACK_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_uri";
+  public static final String REGISTRY_MPACK_DOC_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_doc_uri";
+  public static final String REGISTRY_MPACK_LOGO_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_logo_uri";
+  public static final String REGISTRY_MPACK_DEPENDENCIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_dependencies";
+  public static final String REGISTRY_MPACK_MODULES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "modules";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(REGISTRY_ID, REGISTRY_MPACK_NAME));
+    Arrays.asList(REGISTRY_ID, REGISTRY_MPACK_ID, REGISTRY_MPACK_NAME));
 
   /**
    * The property ids for a software registry resource.
@@ -91,17 +89,15 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
   static {
     // properties
     PROPERTY_IDS.add(REGISTRY_ID);
+    PROPERTY_IDS.add(REGISTRY_MPACK_ID);
     PROPERTY_IDS.add(REGISTRY_MPACK_NAME);
+    PROPERTY_IDS.add(REGISTRY_MPACK_DESCRIPTION);
     PROPERTY_IDS.add(REGISTRY_MPACK_VERSION);
-    PROPERTY_IDS.add(REGISTRY_MPACK_BUILDNUM);
-    PROPERTY_IDS.add(REGISTRY_MPACK_URL);
-    PROPERTY_IDS.add(REGISTRY_MPACK_DOC_URL);
-    PROPERTY_IDS.add(REGISTRY_MPACK_SERVICES);
-    PROPERTY_IDS.add(REGISTRY_MPACK_COMPATIBLE_MPACKS);
-    PROPERTY_IDS.add(REGISTRY_MPACK_STACK_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(REGISTRY_MPACK_STACK_VERSION_PROPERTY_ID);
-
-
+    PROPERTY_IDS.add(REGISTRY_MPACK_URI);
+    PROPERTY_IDS.add(REGISTRY_MPACK_DOC_URI);
+    PROPERTY_IDS.add(REGISTRY_MPACK_LOGO_URI);
+    PROPERTY_IDS.add(REGISTRY_MPACK_DEPENDENCIES);
+    PROPERTY_IDS.add(REGISTRY_MPACK_MODULES);
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Registry, REGISTRY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.RegistryMpack, REGISTRY_MPACK_NAME);
@@ -157,15 +153,15 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
     for (RegistryMpackVersionResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RegistryMpackVersion);
       setResourceProperty(resource, REGISTRY_ID, response.getRegistryId(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_ID, response.getMpackId(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_NAME, response.getMpackName(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_DESCRIPTION, response.getMpackDescription(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_VERSION, response.getMpackVersion(), requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_BUILDNUM, response.getMpackBuildNumber(), requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_URL, response.getMpackUrl(), requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_DOC_URL, response.getMpackDocUrl(), requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_SERVICES, response.getMpackServices(), requestedIds);
-      String[] stackid = ((String) response.getStackId()).split("-");
-      setResourceProperty(resource, REGISTRY_MPACK_STACK_NAME_PROPERTY_ID, stackid[0], requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_STACK_VERSION_PROPERTY_ID, stackid[1], requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_URI, response.getMpackUri(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_DOC_URI, response.getMpackDocUri(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_LOGO_URI, response.getMpackLogoUri(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_DEPENDENCIES, response.getDependencies(), requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_MODULES, response.getModules(), requestedIds);
       sortedResources.add(resource);
     }
     sortedResources.sort(new Comparator<Resource>() {
@@ -244,14 +240,15 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
       for (RegistryMpackVersion registryMpackVersion : registryMpack.getMpackVersions()) {
         RegistryMpackVersionResponse response = new RegistryMpackVersionResponse(
           registry.getRegistryId(),
+          registryMpack.getMpackId(),
           registryMpack.getMpackName(),
+          registryMpack.getMpackDescription(),
           registryMpackVersion.getMpackVersion(),
-          registryMpackVersion.getMpackBuildNumber(),
-          registryMpackVersion.getMpackUrl(),
-          registryMpackVersion.getMpackDocUrl(),
-          registryMpackVersion.getMpackServices(),
-          registryMpackVersion.getCompatibleMpacks(),
-          registryMpackVersion.getMpackStackId());
+          registryMpackVersion.getMpackUri(),
+          registryMpackVersion.getMpackDocUri(),
+          registryMpack.getMpackLogoUri(),
+          registryMpackVersion.getDependencies(),
+          registryMpackVersion.getModules());
         responses.add(response);
       }
     } else {
@@ -259,14 +256,15 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
       if(registryMpackVersion != null) {
         RegistryMpackVersionResponse response = new RegistryMpackVersionResponse(
           registry.getRegistryId(),
+          registryMpack.getMpackId(),
           registryMpack.getMpackName(),
+          registryMpack.getMpackDescription(),
           registryMpackVersion.getMpackVersion(),
-          registryMpackVersion.getMpackBuildNumber(),
-          registryMpackVersion.getMpackUrl(),
-          registryMpackVersion.getMpackDocUrl(),
-          registryMpackVersion.getMpackServices(),
-          registryMpackVersion.getCompatibleMpacks(),
-          registryMpackVersion.getMpackStackId());
+          registryMpackVersion.getMpackUri(),
+          registryMpackVersion.getMpackDocUri(),
+          registryMpack.getMpackLogoUri(),
+          registryMpackVersion.getDependencies(),
+          registryMpackVersion.getModules());
         responses.add(response);
       }
     }

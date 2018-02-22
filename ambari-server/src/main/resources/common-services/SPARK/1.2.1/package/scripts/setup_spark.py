@@ -35,7 +35,7 @@ def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
   """
   :param env: Python environment
   :param type: Spark component type
-  :param upgrade_type: If in a stack upgrade, either UPGRADE_TYPE_ROLLING or UPGRADE_TYPE_NON_ROLLING
+  :param upgrade_type: If in a stack upgrade, either UPGRADE_TYPE_ROLLING or UPGRADE_TYPE_EXPRESS
   :param action: Action to perform, such as generate configs
   :param config_dir: Optional config directory to write configs to.
   """

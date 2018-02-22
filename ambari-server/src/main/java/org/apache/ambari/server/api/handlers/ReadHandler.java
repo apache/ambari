@@ -121,4 +121,5 @@ public class ReadHandler implements RequestHandler {
       query.addProperty(propertyId, entry.getValue());
     }
   }
+
 }

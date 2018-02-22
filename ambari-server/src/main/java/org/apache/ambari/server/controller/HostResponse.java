@@ -146,6 +146,29 @@ public class HostResponse {
 
   private MaintenanceState maintenanceState;
 
+  /**
+   * Summary information of all hosts in a cluster or multiple clusters
+   *
+   * The response json schema is:
+   * {
+   * "Hosts" : {
+   *     "cluster_name" : "c1",
+   *     "summary" : [
+   *       {
+   *         "operating_systems" : [
+   *           {
+   *             "centos6" : 2
+   *           },
+   *           {
+   *             "centos7" : 5
+   *           }
+   *         ]
+   *       }
+   *     ]
+   * }
+   */
+  private List<Object> hostsSummary;
+
   public HostResponse(String hostname, String clusterName,
                       String ipv4, int cpuCount, int phCpuCount, String osArch, String osType,
                       long totalMemBytes,
@@ -419,6 +442,21 @@ public class HostResponse {
   @ApiModelProperty(name = HostResourceProvider.RECOVERY_REPORT_PROPERTY_ID)
   public RecoveryReport getRecoveryReport() {
     return recoveryReport;
+  }
+
+  /**
+   * Set the hostsSummary
+   */
+  public void setHostsSummary(List<Object> hostsSummary) {
+    this.hostsSummary = hostsSummary;
+  }
+
+  /**
+   * Get the aggregation info of hosts in a cluster or in multiple clusters
+   */
+  @ApiModelProperty(name = HostResourceProvider.SUMMARY_PROPERTY_ID)
+  public List<Object> getHostsSummary() {
+    return hostsSummary;
   }
 
   /**

@@ -76,14 +76,14 @@ public class MpackResourceProviderTest {
     Resource.Type type = Resource.Type.Mpack;
 
     Resource resourceExpected1 = new ResourceImpl(Resource.Type.Mpack);
-    resourceExpected1.setProperty(MpackResourceProvider.MPACK_ID, (long)1);
+    resourceExpected1.setProperty(MpackResourceProvider.MPACK_RESOURCE_ID, (long)1);
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_NAME, "TestMpack1");
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_VERSION, "3.0");
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_URI, "abcd.tar.gz");
     resourceExpected1.setProperty(MpackResourceProvider.REGISTRY_ID, null);
 
     Resource resourceExpected2 = new ResourceImpl(Resource.Type.Mpack);
-    resourceExpected2.setProperty(MpackResourceProvider.MPACK_ID, (long)2);
+    resourceExpected2.setProperty(MpackResourceProvider.MPACK_RESOURCE_ID, (long)2);
     resourceExpected2.setProperty(MpackResourceProvider.MPACK_NAME, "TestMpack2");
     resourceExpected2.setProperty(MpackResourceProvider.MPACK_VERSION, "3.0");
     resourceExpected2.setProperty(MpackResourceProvider.MPACK_URI, "abc.tar.gz");
@@ -91,14 +91,14 @@ public class MpackResourceProviderTest {
 
     List<MpackEntity> entities = new ArrayList<>();
     MpackEntity entity = new MpackEntity();
-    entity.setMpackId((long) 1);
+    entity.setId((long) 1);
     entity.setMpackUri("abcd.tar.gz");
     entity.setMpackName("TestMpack1");
     entity.setMpackVersion("3.0");
     entities.add(entity);
 
     entity = new MpackEntity();
-    entity.setMpackId((long) 2);
+    entity.setId((long) 2);
     entity.setMpackUri("abc.tar.gz");
     entity.setMpackName("TestMpack2");
     entity.setMpackVersion("3.0");
@@ -124,7 +124,7 @@ public class MpackResourceProviderTest {
     Assert.assertEquals(2, resources.size());
 
     for (Resource resource : resources) {
-      Long mpackId = (Long) resource.getPropertyValue(MpackResourceProvider.MPACK_ID);
+      Long mpackId = (Long) resource.getPropertyValue(MpackResourceProvider.MPACK_RESOURCE_ID);
       if (mpackId == (long) 1) {
         Assert.assertEquals(resourceExpected1.getPropertyValue(MpackResourceProvider.MPACK_NAME), (String) resource.getPropertyValue(MpackResourceProvider.MPACK_NAME));
         Assert.assertEquals(resourceExpected1.getPropertyValue(MpackResourceProvider.MPACK_VERSION), (String) resource.getPropertyValue(MpackResourceProvider.MPACK_VERSION));
@@ -149,11 +149,11 @@ public class MpackResourceProviderTest {
     Resource.Type type = Resource.Type.Mpack;
 
     Predicate predicate = new PredicateBuilder().property(
-            MpackResourceProvider.MPACK_ID).equals(
+            MpackResourceProvider.MPACK_RESOURCE_ID).equals(
             Long.valueOf(1).toString()).toPredicate();
 
     MpackEntity entity = new MpackEntity();
-    entity.setMpackId((long) 1);
+    entity.setId((long) 1);
     entity.setMpackUri("abcd.tar.gz");
     entity.setMpackName("TestMpack1");
     entity.setMpackVersion("3.0");
@@ -168,7 +168,7 @@ public class MpackResourceProviderTest {
     packletArrayList.add(module);
 
     Resource resourceExpected1 = new ResourceImpl(Resource.Type.Mpack);
-    resourceExpected1.setProperty(MpackResourceProvider.MPACK_ID, (long)1);
+    resourceExpected1.setProperty(MpackResourceProvider.MPACK_RESOURCE_ID, (long)1);
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_NAME, "TestMpack1");
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_VERSION, "3.0");
     resourceExpected1.setProperty(MpackResourceProvider.MPACK_URI, "abcd.tar.gz");
@@ -233,7 +233,7 @@ public class MpackResourceProviderTest {
 
     Assert.assertEquals(1,associatedResources.size());
     for(Resource r : associatedResources){
-      Assert.assertEquals((long)100,r.getPropertyValue(MpackResourceProvider.MPACK_ID));
+      Assert.assertEquals((long)100,r.getPropertyValue(MpackResourceProvider.MPACK_RESOURCE_ID));
       Assert.assertEquals("testMpack",r.getPropertyValue(MpackResourceProvider.MPACK_NAME));
       Assert.assertEquals("3.0",r.getPropertyValue(MpackResourceProvider.MPACK_VERSION));
       Assert.assertEquals("../../../../../../../resources/mpacks-v2/abc.tar.gz",r.getPropertyValue(MpackResourceProvider.MPACK_URI));
@@ -250,7 +250,7 @@ public class MpackResourceProviderTest {
 
   public Mpack setupMpack() {
     Mpack mpack = new Mpack();
-    mpack.setMpackId((long)100);
+    mpack.setResourceId((long)100);
     mpack.setModules(new ArrayList<Module>());
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(new Long(100));

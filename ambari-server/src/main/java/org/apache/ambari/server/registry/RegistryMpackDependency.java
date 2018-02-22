@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,38 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.registry.json;
+package org.apache.ambari.server.registry;
 
-import org.apache.ambari.server.registry.RegistryMpackCompatiblity;
-
-import com.google.gson.annotations.SerializedName;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * JSON implementation of {@link RegistryMpackCompatiblity}
+ * Represents registry mpack dependency
  */
-public class JsonRegistryMpackCompatibility implements RegistryMpackCompatiblity {
+public interface RegistryMpackDependency {
 
-  @SerializedName("name")
-  private String name;
+  /**
+   * Get dependent mpack id
+   * @return
+   */
+  @JsonProperty("id")
+  public String getId();
 
-  @SerializedName("minVersion")
-  private String minVersion;
+  /**
+   * Get dependent mpack name
+   * @return
+   */
+  @JsonProperty("name")
+  public String getName();
 
-  @SerializedName("maxVersion")
-  private String maxVersion;
+  /**
+   * Get min version of dependent mpack
+   * @return
+   */
+  @JsonProperty("minVersion")
+  public String getMinVersion();
 
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getMinVersion() {
-    return minVersion;
-  }
-
-  @Override
-  public String getMaxVersion() {
-    return maxVersion;
-  }
+  /**
+   * Get max version of dependent mpack
+   * @return
+   */
+  @JsonProperty("maxVersion")
+  public String getMaxVersion();
 }

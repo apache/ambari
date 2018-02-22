@@ -2225,7 +2225,7 @@ public class AmbariManagementControllerImplTest {
     MpackRequest mpackRequest = createNiceMock(MpackRequest.class);
     RequestStatusResponse response = new RequestStatusResponse(new Long(201));
     Mpack mpack = new Mpack();
-    mpack.setMpackId((long)100);
+    mpack.setResourceId((long)100);
     mpack.setModules(new ArrayList<Module>());
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(new Long(100));

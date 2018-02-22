@@ -126,7 +126,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     helper.createStack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", new HashSet<ServiceGroupKey>());
+    serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", stackId, new HashSet<ServiceGroupKey>());
     Config config1 = configFactory.createNew(cluster, "test-type1", null, new HashMap<>(), new HashMap<>());
 
     Config config2 = configFactory.createNew(cluster, "test-type2", null, new HashMap<>(), new HashMap<>());

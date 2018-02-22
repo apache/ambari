@@ -20,7 +20,7 @@ Ambari Agent
 """
 import random
 
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_EXPRESS
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_unique_id_and_date
@@ -77,7 +77,7 @@ class ZookeeperServerLinux(ZookeeperServer):
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     # during an express upgrade, there is no quorum, so don't try to perform the check
-    if upgrade_type == UPGRADE_TYPE_NON_ROLLING:
+    if upgrade_type == UPGRADE_TYPE_EXPRESS:
       return
 
     Logger.info("Executing Stack Upgrade post-restart")

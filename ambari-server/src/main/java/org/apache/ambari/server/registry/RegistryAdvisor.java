@@ -34,8 +34,12 @@ import org.apache.ambari.server.registry.RegistryRecommendationResponse.Registry
 import org.apache.ambari.server.registry.RegistryRecommendationResponse.RegistryRecommendations;
 import org.apache.ambari.server.registry.RegistryValidationResponse.RegistryValidationResponseBuilder;
 import org.apache.ambari.server.registry.RegistryValidationResponse.RegistryValidationResult;
+import org.apache.ambari.server.utils.MpackVersion;
 import org.apache.ambari.server.utils.SetUtils;
+
 import org.apache.ambari.server.utils.VersionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -46,8 +50,11 @@ import com.google.inject.Singleton;
 @Singleton
 public class RegistryAdvisor {
 
+  private final static Logger LOG = LoggerFactory.getLogger(RegistryAdvisor.class);
+
   private AmbariManagementController managementController;
   private long requestId = 0;
+
 
   /**
    * Given list of all possible mpack bundles, check compatibility and return compatible mpack bundles.
@@ -76,19 +83,24 @@ public class RegistryAdvisor {
     }
     for(MpackEntry mvr: mpackMap.values()) {
       RegistryMpackVersion rmv = mvr.getRegistryMpackVersion();
-      List<RegistryMpackCompatiblity> compatiblities = (List<RegistryMpackCompatiblity>) rmv.getCompatibleMpacks();
-      if(compatiblities != null && !compatiblities.isEmpty()) {
-        for(RegistryMpackCompatiblity compatiblity : compatiblities) {
-          if(mpackMap.containsKey(compatiblity.getName())) {
-            String selectedVersion = mpackMap.get(compatiblity.getName()).getMpackVersion();
-            String minVersion = compatiblity.getMinVersion();
-            String maxVersion = compatiblity.getMaxVersion();
-            if(minVersion != null && !minVersion.isEmpty()
-              && VersionUtils.compareVersions(selectedVersion, minVersion) < 0) {
+      List<RegistryMpackDependency> dependencies = (List<RegistryMpackDependency>) rmv.getDependencies();
+      if(dependencies != null && !dependencies.isEmpty()) {
+        for(RegistryMpackDependency dependency : dependencies) {
+          if(mpackMap.containsKey(dependency.getName())) {
+            String selectedVersion = mpackMap.get(dependency.getName()).getMpackVersion();
+            MpackVersion selectedMpackVersion = MpackVersion.parse(selectedVersion);
+            if(selectedMpackVersion == null) {
+              LOG.error("Cannot validate compatibility of mpack as the mpack version is not known");
               return false;
             }
-            if(maxVersion != null && !maxVersion.isEmpty()
-              && VersionUtils.compareVersions(selectedVersion, maxVersion) >= 0) {
+            String minVersion = dependency.getMinVersion();
+            String maxVersion = dependency.getMaxVersion();
+            MpackVersion minMpackVersion = MpackVersion.parse(minVersion, false);
+            MpackVersion maxMpackVersion = MpackVersion.parse(maxVersion, false);
+            if(minMpackVersion != null && VersionUtils.compareTo(selectedMpackVersion, minMpackVersion)  < 0) {
+              return false;
+            }
+            if(maxMpackVersion != null && VersionUtils.compareTo(selectedMpackVersion, maxMpackVersion) >= 0) {
               return false;
             }
           }
@@ -248,7 +260,9 @@ public class RegistryAdvisor {
         for(Map.Entry<String, MpackEntry> mapEntry : o1Map.entrySet()) {
           MpackEntry o1Entry = mapEntry.getValue();
           MpackEntry o2Entry = o2Map.get(mapEntry.getKey());
-          int compareResult = VersionUtils.compareVersions(o1Entry.getMpackVersion(), o2Entry.getMpackVersion());
+          MpackVersion v1 = MpackVersion.parse(o1Entry.getMpackVersion());
+          MpackVersion v2 = MpackVersion.parse(o2Entry.getMpackVersion());
+          int compareResult = VersionUtils.compareTo(v1, v2);
           if(compareResult > 0) {
             o1Wins++;
           } else if(compareResult < 0) {
@@ -314,11 +328,15 @@ public class RegistryAdvisor {
     registryMpackVersions.sort(new Comparator<RegistryMpackVersion>() {
       @Override
       public int compare(final RegistryMpackVersion o1, final RegistryMpackVersion o2) {
-        return -1 * VersionUtils.compareVersions(o1.getMpackVersion(), o2.getMpackVersion());
+        MpackVersion v1 = MpackVersion.parse(o1.getMpackVersion());
+        MpackVersion v2 = MpackVersion.parse(o2.getMpackVersion());
+        return -1 *  VersionUtils.compareTo(v1, v2);
       }
     });
     for(RegistryMpackVersion registryMpackVersion : registryMpackVersions) {
-      if(VersionUtils.compareVersions(registryMpackVersion.getMpackVersion(), minMpackEntry.getMpackVersion()) > 0) {
+      MpackVersion version = MpackVersion.parse(registryMpackVersion.getMpackVersion());
+      MpackVersion minMpackVersion = MpackVersion.parse(minMpackEntry.getMpackVersion());
+      if(VersionUtils.compareTo(version, minMpackVersion) > 0) {
         MpackEntry mpackEntry = new MpackEntry(selectedMpackName, registryMpackVersion.getMpackVersion());
         MpackBundle mpackBundle = new MpackBundle(rank++, Collections.singletonList(mpackEntry));
         mpackBundles.add(mpackBundle);
@@ -496,7 +514,9 @@ public class RegistryAdvisor {
           for(Map.Entry<String, MpackEntry> mapEntry : o1Map.entrySet()) {
             MpackEntry o1Entry = mapEntry.getValue();
             MpackEntry o2Entry = o2Map.get(mapEntry.getKey());
-            int compareResult = VersionUtils.compareVersions(o1Entry.getMpackVersion(), o2Entry.getMpackVersion());
+            MpackVersion v1 = MpackVersion.parse(o1Entry.getMpackVersion());
+            MpackVersion v2 = MpackVersion.parse(o2Entry.getMpackVersion());
+            int compareResult = VersionUtils.compareTo(v1, v2);
             if(compareResult > 0) {
               o1Wins++;
             } else if(compareResult < 0) {
@@ -514,9 +534,10 @@ public class RegistryAdvisor {
         for(Map.Entry<String, MpackEntry> selectedEntry : selectedMpacksMap.entrySet()) {
           String selectedKey = selectedEntry.getKey();
           MpackEntry selectedMpackEntry = selectedEntry.getValue();
-          if (!mpackBundleMap.containsKey(selectedKey) ||
-            !VersionUtils.areVersionsEqual(selectedMpackEntry.getMpackVersion(),
-              mpackBundleMap.get(selectedKey).getMpackVersion(), true)) {
+          MpackVersion selectedVersion = MpackVersion.parse(selectedMpackEntry.getMpackVersion());
+          MpackVersion bundleMpackVersion = MpackVersion.parse(mpackBundleMap.get(selectedKey).getMpackVersion());
+
+          if (!mpackBundleMap.containsKey(selectedKey) || !selectedVersion.equals(bundleMpackVersion)) {
             isMatch = false;
           }
         }

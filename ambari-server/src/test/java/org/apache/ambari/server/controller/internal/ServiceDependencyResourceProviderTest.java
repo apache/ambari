@@ -349,8 +349,8 @@ public class ServiceDependencyResourceProviderTest {
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion206;
 
-    ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE);
-    ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST);
+    ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE, "HDP-1.0");
+    ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST, "HDP-1.0");
 
     Service hdfs = cluster.addService(serviceGroupCore, SERVICE_NAME_HDFS, SERVICE_NAME_HDFS, repositoryVersion);
     Service yarn = cluster.addService(serviceGroupCore, SERVICE_NAME_YARN, SERVICE_NAME_YARN, repositoryVersion);

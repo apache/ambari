@@ -32,7 +32,7 @@ public class MpackResponseTest {
   @Test
   public void testBasicGetAndSet() {
     MpackResponse mpackResponse = new MpackResponse(setupMpack());
-    Assert.assertEquals((Long)100L, mpackResponse.getMpackId());
+    Assert.assertEquals((Long)100L, mpackResponse.getId());
     Assert.assertEquals((Long)100L, mpackResponse.getRegistryId());
     Assert.assertEquals("3.0",mpackResponse.getMpackVersion());
     Assert.assertEquals("abc.tar.gz",mpackResponse.getMpackUri());
@@ -41,7 +41,7 @@ public class MpackResponseTest {
   }
   public Mpack setupMpack() {
     Mpack mpack = new Mpack();
-    mpack.setMpackId(100L);
+    mpack.setResourceId(100L);
     mpack.setModules(new ArrayList<Module>());
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(100L);

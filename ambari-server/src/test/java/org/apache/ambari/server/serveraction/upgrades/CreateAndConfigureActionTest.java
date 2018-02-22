@@ -222,7 +222,7 @@ public class CreateAndConfigureActionTest {
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!
-    ServiceGroup serviceGroup = c.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c.addServiceGroup("CORE", repoVersion2110.getStackId().getStackId());
     Service zk = installService(c, serviceGroup, "ZOOKEEPER", repoVersion2110);
     addServiceComponent(zk, "ZOOKEEPER_SERVER");
     addServiceComponent(zk, "ZOOKEEPER_CLIENT");
@@ -312,7 +312,7 @@ public class CreateAndConfigureActionTest {
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
     upgradeEntity.setRepositoryVersion(repositoryVersion);
-    upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
+    upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
 
     Map<String, Service> services = cluster.getServices();
     for (String serviceName : services.keySet()) {

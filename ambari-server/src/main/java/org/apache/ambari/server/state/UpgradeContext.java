@@ -1069,7 +1069,7 @@ public class UpgradeContext {
       case HOST_ORDERED:
         upgradeTypeValidator = new HostOrderedUpgradeValidator();
         break;
-      case NON_ROLLING:
+      case EXPRESS:
       case ROLLING:
       default:
         upgradeTypeValidator = null;
