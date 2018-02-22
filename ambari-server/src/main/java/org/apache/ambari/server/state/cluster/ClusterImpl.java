@@ -1019,10 +1019,6 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public ServiceGroup addServiceGroup(String serviceGroupName, String version) throws AmbariException {
-    if (serviceGroups.containsKey(serviceGroupName)) {
-      throw new AmbariException("Service group already exists" + ", clusterName=" + getClusterName()
-              + ", clusterId=" + getClusterId() + ", serviceGroupName=" + serviceGroupName);
-    }
     return addServiceGroup(serviceGroupName, new StackId(version));
   }
 
