@@ -141,7 +141,7 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, r.getStackVersion());
     String serviceName = "HDFS";
     createService(clusterName, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -207,7 +207,7 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, r.getStackVersion());
     String serviceName = "HDFS";
     String serviceName2 = "YARN";
     String serviceName3 = "MAPREDUCE2";
@@ -327,7 +327,7 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, r.getStackVersion());
     String serviceName = "HDFS";
     createService(clusterName, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";

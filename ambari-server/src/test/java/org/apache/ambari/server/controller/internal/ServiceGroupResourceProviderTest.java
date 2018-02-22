@@ -50,6 +50,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelperInitia
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,6 +59,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class ServiceGroupResourceProviderTest {
+
+  private static final String STACK_ID = "HDP-1.2.3";
 
   public static ServiceGroupResourceProvider getProvider(AmbariManagementController controller) {
     return new ServiceGroupResourceProvider(controller);
@@ -68,9 +71,9 @@ public class ServiceGroupResourceProviderTest {
     getProvider(controller).createServiceGroups(requests);
   }
 
-  public static void createServiceGroup(AmbariManagementController controller, String clusterName, String serviceGroupName)
+  public static void createServiceGroup(AmbariManagementController controller, String clusterName, String serviceGroupName, String version)
       throws AmbariException, AuthorizationException {
-    ServiceGroupRequest request = new ServiceGroupRequest(clusterName, serviceGroupName, "dummy-stack-name");
+    ServiceGroupRequest request = new ServiceGroupRequest(clusterName, serviceGroupName, version);
     createServiceGroups(controller, Collections.singleton(request));
   }
 
@@ -108,11 +111,12 @@ public class ServiceGroupResourceProviderTest {
     ClusterController clusterController = createNiceMock(ClusterController.class);
     ServiceGroup coreServiceGroup = createNiceMock(ServiceGroup.class);
     ServiceGroup edmServiceGroup = createNiceMock(ServiceGroup.class);
-    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1l, "CORE", "HDP-1.2.3");
+    ServiceGroupResponse coreServiceGroupResponse = new ServiceGroupResponse(1l, "c1", 1l, "CORE", STACK_ID);
     expect(ambariManagementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(ambariManagementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
-    expect(cluster.addServiceGroup("CORE", "HDP-1.2.3")).andReturn(coreServiceGroup).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId(STACK_ID)).anyTimes();
+    expect(cluster.addServiceGroup("CORE", STACK_ID)).andReturn(coreServiceGroup).anyTimes();
     expect(coreServiceGroup.convertToResponse()).andReturn(coreServiceGroupResponse).anyTimes();
     expect(clusterController.getSchema(Resource.Type.ServiceGroup)).andReturn(serviceGroupSchema).anyTimes();
     expect(serviceGroupSchema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("ServiceGroupInfo/cluster_name").anyTimes();

@@ -167,7 +167,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     addHost("c6402", clusterName);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, stackName);
 
     String serviceName = "YARN";
     createService(clusterName, serviceGroupName, serviceName, null);
