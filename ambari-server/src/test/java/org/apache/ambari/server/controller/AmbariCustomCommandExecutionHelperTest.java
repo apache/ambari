@@ -786,7 +786,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertNotNull(cluster);
 
     String serviceGroupName = "CORE";
-    cluster.addServiceGroup(serviceGroupName);
+    cluster.addServiceGroup(serviceGroupName, stackId.getStackId());
 
     createService(clusterName, serviceGroupName, "HDFS", repositoryVersion);
     createService(clusterName, serviceGroupName, "YARN", repositoryVersion);

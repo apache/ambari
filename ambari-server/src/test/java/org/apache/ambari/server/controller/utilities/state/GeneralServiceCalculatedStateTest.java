@@ -87,7 +87,7 @@ public abstract class GeneralServiceCalculatedStateTest {
     clusters.addCluster(clusterName, stack211);
     cluster = clusters.getCluster(clusterName);
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stack211.getStackId());
     service = cluster.addService(serviceGroup, getServiceName(), getServiceName(), repositoryVersion);
 
     createComponentsAndHosts();

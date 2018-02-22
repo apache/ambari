@@ -31,10 +31,12 @@ import org.apache.ambari.server.events.ServiceGroupRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntityPK;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,19 +53,23 @@ public class ServiceGroupImpl implements ServiceGroup {
   private final Cluster cluster;
 
   private final ClusterDAO clusterDAO;
+  private final StackDAO stackDAO;
   private final ServiceGroupDAO serviceGroupDAO;
   private final AmbariEventPublisher eventPublisher;
   private final Clusters clusters;
 
   private Long serviceGroupId;
   private String serviceGroupName;
+  private StackId stackId;
   private Set<ServiceGroupKey> serviceGroupDependencies;
 
   @AssistedInject
   public ServiceGroupImpl(@Assisted Cluster cluster,
                           @Assisted("serviceGroupName") String serviceGroupName,
+                          @Assisted("stackId") StackId stackId,
                           @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies,
                           ClusterDAO clusterDAO,
+                          StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
@@ -71,16 +77,18 @@ public class ServiceGroupImpl implements ServiceGroup {
     this.cluster = cluster;
     this.clusters = clusters;
     this.clusterDAO = clusterDAO;
+    this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupName = serviceGroupName;
+    this.stackId = stackId;
 
     ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
     serviceGroupEntity.setClusterId(cluster.getClusterId());
     serviceGroupEntity.setServiceGroupId(serviceGroupId);
     serviceGroupEntity.setServiceGroupName(serviceGroupName);
-
+    serviceGroupEntity.setStack(stackDAO.find(stackId));
     if (serviceGroupDependencies == null) {
       this.serviceGroupDependencies = new HashSet<>();
     } else {
@@ -96,17 +104,21 @@ public class ServiceGroupImpl implements ServiceGroup {
   public ServiceGroupImpl(@Assisted Cluster cluster,
                           @Assisted ServiceGroupEntity serviceGroupEntity,
                           ClusterDAO clusterDAO,
+                          StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
     this.cluster = cluster;
     this.clusters = clusters;
     this.clusterDAO = clusterDAO;
+    this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupId = serviceGroupEntity.getServiceGroupId();
     this.serviceGroupName = serviceGroupEntity.getServiceGroupName();
+    StackEntity stack = serviceGroupEntity.getStack();
+    this.stackId = new StackId(stack.getStackName(), stack.getStackVersion());
     this.serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
     this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
@@ -136,6 +148,11 @@ public class ServiceGroupImpl implements ServiceGroup {
   }
 
   @Override
+  public StackId getStackId() {
+    return stackId;
+  }
+
+  @Override
   public Set<ServiceGroupKey> getServiceGroupDependencies() {
     return serviceGroupDependencies;
   }
@@ -148,7 +165,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   public ServiceGroupResponse convertToResponse() {
     ServiceGroupResponse r = new ServiceGroupResponse(cluster.getClusterId(),
-      cluster.getClusterName(), getServiceGroupId(), getServiceGroupName());
+      cluster.getClusterName(), getServiceGroupId(), getServiceGroupName(), stackId.getStackId());
     return r;
   }
 
@@ -216,8 +233,10 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    sb.append("ServiceGroup={ serviceGroupName=" + getServiceGroupName() + ", clusterName="
-      + cluster.getClusterName() + ", clusterId=" + cluster.getClusterId() + "}");
+    sb.append("ServiceGroup={ serviceGroupName=").append(getServiceGroupName())
+      .append(", clusterName=").append(cluster.getClusterName()).append(", clusterId=")
+      .append(cluster.getClusterId()).append(", stackId=").append(getStackId());
+    sb.append("}");
   }
 
   /**
@@ -254,10 +273,9 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   @Transactional
   public void refresh() {
-    ServiceGroupEntityPK pk = new ServiceGroupEntityPK();
-    pk.setClusterId(getClusterId());
-    pk.setServiceGroupId(getServiceGroupId());
-    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(pk);
+    serviceGroupEntityPK.setClusterId(getClusterId());
+    serviceGroupEntityPK.setServiceGroupId(getServiceGroupId());
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
     serviceGroupDAO.refresh(serviceGroupEntity);
   }
 

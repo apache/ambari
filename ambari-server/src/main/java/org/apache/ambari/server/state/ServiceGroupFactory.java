@@ -29,6 +29,7 @@ public interface ServiceGroupFactory {
 
   ServiceGroup createNew(Cluster cluster,
                          @Assisted("serviceGroupName") String serviceGroupName,
+                         @Assisted("stackId") StackId stackId,
                          @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies);
 
   ServiceGroup createExisting(Cluster cluster, ServiceGroupEntity serviceGroupEntity);

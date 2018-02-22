@@ -336,7 +336,7 @@ public class AmbariContextTest {
     assertEquals(String.format("%s-%s", STACK_NAME, STACK_VERSION), clusterRequest.getStackVersion());
 
     Set<ServiceGroupRequest> serviceGroupRequests = serviceGroupRequestCapture.getValue();
-    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), AmbariContext.DEFAULT_SERVICE_GROUP_NAME));
+    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), AmbariContext.DEFAULT_SERVICE_GROUP_NAME, clusterRequest.getStackVersion()));
     assertEquals(expectedServiceGroupRequests, serviceGroupRequests);
 
     Collection<ServiceRequest> serviceRequests = serviceRequestCapture.getValue();

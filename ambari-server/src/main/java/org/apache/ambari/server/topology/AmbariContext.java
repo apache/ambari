@@ -355,7 +355,7 @@ public class AmbariContext {
     }
 
     Set<ServiceGroupRequest> serviceGroupRequests = serviceGroups.stream()
-      .map(serviceGroupName -> new ServiceGroupRequest(clusterName, serviceGroupName))
+      .map(serviceGroupName -> new ServiceGroupRequest(clusterName, serviceGroupName, Iterables.getFirst(topology.getBlueprint().getStackIds(), null).getStackId()))
       .collect(toSet());
 
     Set<ServiceRequest> serviceRequests = new HashSet<>();
