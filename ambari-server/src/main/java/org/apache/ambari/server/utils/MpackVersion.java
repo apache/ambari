@@ -23,6 +23,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class should be used to compare mpack and stack versions.
  * Base method which should be used is parse/parseStackVersion, depends
@@ -38,11 +41,15 @@ public class MpackVersion implements Comparable<MpackVersion> {
   private final static String VERSION_WITH_HOTFIX_AND_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
   private final static String VERSION_WITH_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
   private final static String LEGACY_STACK_VERSION_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-([0-9]+)";
+  private final static String FORMAT_VERSION_PATTERN = "^([0-9]+)(\\.)?([0-9]+)?(\\.)?([0-9]+)?(-h)?([0-9]+)?(-b)?([0-9]+)?";
 
   // Patterns for previous RE
   private final static Pattern PATTERN_WITH_HOTFIX = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
   private final static Pattern PATTERN_LEGACY_STACK_VERSION = Pattern.compile(LEGACY_STACK_VERSION_PATTERN);
   private final static Pattern PATTERN_WITHOUT_HOTFIX = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
+  private final static Pattern PATTERN_FORMAT_VERSION = Pattern.compile(FORMAT_VERSION_PATTERN);
+
+  private final static Logger LOG = LoggerFactory.getLogger(MpackVersion.class);
 
   // Parts of version
   private int major;
@@ -68,20 +75,59 @@ public class MpackVersion implements Comparable<MpackVersion> {
    * @return MpackVersion instance which contains parsed version
    * */
   public static MpackVersion parse(String mpackVersion) {
-    Matcher versionMatcher = validateMpackVersion(mpackVersion);
-    MpackVersion result = null;
+    return parse(mpackVersion, true);
+  }
 
+  public static MpackVersion parse(String mpackVersion, boolean strict) {
+
+    if(!strict) {
+      mpackVersion = format(mpackVersion);
+    }
+    Matcher versionMatcher = validateMpackVersion(mpackVersion);
+    if(versionMatcher == null) {
+      throw new IllegalArgumentException("Wrong format for mpack version");
+    }
     if (versionMatcher.pattern().pattern().equals(VERSION_WITH_BUILD_PATTERN)) {
-      result = new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
+      return new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
               Integer.parseInt(versionMatcher.group(3)), 0, Integer.parseInt(versionMatcher.group(4)));
+    } else if (versionMatcher.pattern().pattern().equals(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN)) {
+      return new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
+              Integer.parseInt(versionMatcher.group(3)), Integer.parseInt(versionMatcher.group(4)), Integer.parseInt(versionMatcher.group(5)));
+    } else {
+      throw new IllegalArgumentException("Wrong format for mpack version");
+    }
+  }
+
+  /**
+   * Method to format an mpack version in {major}.{minor}.{maint}-h{hotfix}-b{build} format
+   * @param mpackVersion input mpack version string
+   * @return formatted mpack version string
+   */
+  public static String format(String mpackVersion) {
+    Matcher m = PATTERN_FORMAT_VERSION.matcher(mpackVersion);
+    if(m.matches()) {
+      String majorVersion = m.group(1);
+      String minorVersion = m.group(3);
+      String maintVersion = m.group(5);
+      String hotfixNum = m.group(7);
+      String buildNum = m.group(9);
+      if(hotfixNum != null || buildNum != null) {
+        if(minorVersion == null || maintVersion == null) {
+          // Both minorVersion and maintVersion should be specified
+          throw new IllegalArgumentException("Wrong format for mpack version");
+        }
+      }
+      minorVersion = minorVersion != null? minorVersion: "0";
+      maintVersion = maintVersion != null? maintVersion: "0";
+      hotfixNum = hotfixNum != null? hotfixNum: "0";
+      buildNum = buildNum != null? buildNum: "0";
+      String formattedMpackVersion = String.format("%s.%s.%s-h%s-b%s",
+        majorVersion, minorVersion, maintVersion, hotfixNum, buildNum);
+      return formattedMpackVersion;
 
     } else {
-      result = new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
-              Integer.parseInt(versionMatcher.group(3)), Integer.parseInt(versionMatcher.group(4)), Integer.parseInt(versionMatcher.group(5)));
-
+      throw new IllegalArgumentException("Wrong format for mpack version");
     }
-
-    return result;
   }
 
   /**
@@ -93,10 +139,18 @@ public class MpackVersion implements Comparable<MpackVersion> {
    * */
   public static MpackVersion parseStackVersion(String stackVersion) {
     Matcher versionMatcher = validateStackVersion(stackVersion);
-    MpackVersion result = new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
-          Integer.parseInt(versionMatcher.group(3)), Integer.parseInt(versionMatcher.group(4)), Integer.parseInt(versionMatcher.group(5)));
+    if(versionMatcher == null) {
+      throw new IllegalArgumentException("Wrong format for mpack version");
+    }
 
-    return result;
+    if(versionMatcher.pattern().pattern().equals(LEGACY_STACK_VERSION_PATTERN)) {
+      return new MpackVersion(Integer.parseInt(versionMatcher.group(1)),
+        Integer.parseInt(versionMatcher.group(2)),
+        Integer.parseInt(versionMatcher.group(3)), Integer.parseInt(versionMatcher.group(4)),
+        Integer.parseInt(versionMatcher.group(5)));
+    } else {
+      throw new IllegalArgumentException("Wrong format for mpack version");
+    }
   }
 
   /**
@@ -114,12 +168,9 @@ public class MpackVersion implements Comparable<MpackVersion> {
 
     String stackVersion = StringUtils.trim(version);
 
-    Matcher versionMatcher = PATTERN_WITH_HOTFIX.matcher(stackVersion);
+    Matcher versionMatcher = PATTERN_LEGACY_STACK_VERSION.matcher(stackVersion);
     if (!versionMatcher.find()) {
-      versionMatcher = PATTERN_LEGACY_STACK_VERSION.matcher(stackVersion);
-      if (!versionMatcher.find()) {
-        throw new IllegalArgumentException("Wrong format for stack version, should be N.N.N.N-N or N.N.N-hN-bN");
-      }
+      throw new IllegalArgumentException("Wrong format for stack version, should be N.N.N.N-N or N.N.N-hN-bN");
     }
 
     return versionMatcher;

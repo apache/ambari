@@ -40,7 +40,7 @@ import java.util.Objects;
 @Entity
 @TableGenerator(name = "mpack_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "mpack_id_seq", initialValue = 1)
 @NamedQueries({
-        @NamedQuery(name = "MpackEntity.findById", query = "SELECT mpack FROM MpackEntity mpack where mpack.mpackId = :mpackId"),
+        @NamedQuery(name = "MpackEntity.findById", query = "SELECT mpack FROM MpackEntity mpack where mpack.id = :id"),
         @NamedQuery(name = "MpackEntity.findAll", query = "SELECT mpack FROM MpackEntity mpack"),
         @NamedQuery(name = "MpackEntity.findByNameVersion", query = "SELECT mpack FROM MpackEntity mpack where mpack.mpackName = :mpackName and mpack.mpackVersion = :mpackVersion")})
 
@@ -49,7 +49,7 @@ public class MpackEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "mpack_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
-  private Long mpackId;
+  private Long id;
 
   @Column(name = "registry_id", nullable = true, insertable = true, updatable = false, length = 10)
   private Long registryId;
@@ -63,8 +63,8 @@ public class MpackEntity {
   @Column(name = "mpack_uri", nullable = false)
   private String mpackUri;
 
-  public Long getMpackId() {
-    return mpackId;
+  public Long getId() {
+    return id;
   }
 
   public Long getRegistryId() {
@@ -83,8 +83,8 @@ public class MpackEntity {
     return mpackUri;
   }
 
-  public void setMpackId(Long mpackId) {
-    this.mpackId = mpackId;
+  public void setId(Long id) {
+    this.id = id;
   }
 
   public void setRegistryId(Long registryId) {
@@ -120,7 +120,7 @@ public class MpackEntity {
     MpackEntity that = (MpackEntity) object;
     EqualsBuilder equalsBuilder = new EqualsBuilder();
 
-    equalsBuilder.append(mpackId, that.mpackId);
+    equalsBuilder.append(id, that.id);
     equalsBuilder.append(mpackName, that.mpackName);
     equalsBuilder.append(mpackVersion, that.mpackVersion);
     return equalsBuilder.isEquals();
@@ -129,7 +129,7 @@ public class MpackEntity {
   /**
    * Generates a hash for the mpack based on the following criteria:
    * <ul>
-   * <li>{@link #mpackId}
+   * <li>{@link #id}
    * </ul>
    * <p/>
    * <p/>
@@ -137,7 +137,7 @@ public class MpackEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(mpackId, mpackName, mpackVersion);
+    return Objects.hash(id, mpackName, mpackVersion);
   }
 
   /**
@@ -146,7 +146,7 @@ public class MpackEntity {
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("MpackEntity{");
-    buffer.append("mpackId=").append(mpackId);
+    buffer.append("id=").append(id);
     if (null != registryId) {
       buffer.append(", registryId=").append(registryId);
     }
