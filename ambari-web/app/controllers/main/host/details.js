@@ -839,8 +839,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
             if (componentsMapItem.hostPropertyName) {
               self.set(componentsMapItem.hostPropertyName, hostName);
             }
+            if (componentsMapItem.addPropertyName) {
+              self.set(componentsMapItem.addPropertyName, true);
+            }
             if (configs) {
               self.clearConfigsChanges(true);
+              self.set('isReconfigureRequired', true);
               self.set('isConfigsLoadingInProgress', true);
               self[componentsMapItem.configsCallbackName](configs, null, params);
             } else {

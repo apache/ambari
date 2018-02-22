@@ -77,7 +77,9 @@ App.DependentConfigsListView = Em.View.extend({
     }
   }),
   setAllConfigsWithErrors: function () {
-    if (this.get('state') === 'inBuffer') return [];
+    if (this.get('state') === 'inBuffer' || Em.isNone(this.get('controller.stepConfigs'))) {
+      return;
+    }
     this.set('allConfigsWithErrors', this.get('controller.stepConfigs').reduce(function (result, stepConfig) {
       if (stepConfig.get('configsWithErrors.length')) {
         result = result.concat(stepConfig.get('configsWithErrors'));
