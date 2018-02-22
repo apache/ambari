@@ -112,27 +112,27 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     copyPropertiesToResult(queryProperties, resultTree);
 
-    getOrCreateChild(resultTree, Resource.Type.Configuration.name(), "properties");
+    ensureChild(resultTree, Resource.Type.Configuration.name(), "properties");
 
-    getOrCreateChild(resultTree, Resource.Type.ClusterSetting.name());
+    ensureChild(resultTree, Resource.Type.ClusterSetting.name());
 
-    TreeNode<Set<String>> serviceGroupNode = getOrCreateChild(resultTree, Resource.Type.ServiceGroup.name());
-    TreeNode<Set<String>> serviceNode = getOrCreateChild(serviceGroupNode, Resource.Type.Service.name());
-    getOrCreateChild(serviceNode, Resource.Type.Component.name(),
+    TreeNode<Set<String>> serviceGroupNode = ensureChild(resultTree, Resource.Type.ServiceGroup.name());
+    TreeNode<Set<String>> serviceNode = ensureChild(serviceGroupNode, Resource.Type.Service.name());
+    ensureChild(serviceNode, Resource.Type.Component.name(),
       "ServiceComponentInfo/cluster_name",
       "ServiceComponentInfo/service_name",
       "ServiceComponentInfo/component_name",
       "ServiceComponentInfo/recovery_enabled");
 
-    TreeNode<Set<String>> hostNode = getOrCreateChild(resultTree, Resource.Type.Host.name());
-    getOrCreateChild(hostNode, Resource.Type.HostComponent.name(), "HostRoles/component_name");
+    TreeNode<Set<String>> hostNode = ensureChild(resultTree, Resource.Type.Host.name());
+    ensureChild(hostNode, Resource.Type.HostComponent.name(), "HostRoles/component_name");
 
     return resultTree;
   }
 
-  private TreeNode<Set<String>> getOrCreateChild(TreeNode<Set<String>> parent,
-                                                 String resourceType,
-                                                 String... properties) {
+  private TreeNode<Set<String>> ensureChild(TreeNode<Set<String>> parent,
+                                            String resourceType,
+                                            String... properties) {
     TreeNode<Set<String>> child = parent.getChild(resourceType);
     if (null == child) {
       child = parent.addChild(new HashSet<>(), resourceType);
