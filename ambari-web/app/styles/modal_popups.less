@@ -99,6 +99,18 @@
       }
     }
   }
+
+  &.wide-modal {
+    right: initial;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  &.no-header {
+    .modal-header {
+      display: none;
+    }
+  }
 }
 .modal-body {
   max-height: 600px;
