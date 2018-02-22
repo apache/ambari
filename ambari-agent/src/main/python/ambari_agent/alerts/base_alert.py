@@ -92,7 +92,7 @@ class BaseAlert(object):
   def set_cluster(self, cluster_name, cluster_id, host_name, public_host_name = None):
     """ sets cluster information for the alert """
     self.cluster_name = cluster_name
-    self.cluster_id = cluster_id
+    self.cluster_id = str(cluster_id)
     self.host_name = host_name
     self.public_host_name = host_name
     if public_host_name:
