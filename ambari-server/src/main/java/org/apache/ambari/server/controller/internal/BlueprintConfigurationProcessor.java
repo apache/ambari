@@ -522,7 +522,7 @@ public class BlueprintConfigurationProcessor {
 
       doFilterPriorToExport(configuration);
     }
-    }
+  }
 
   /**
    * This method iterates over the properties passed in, and applies a
