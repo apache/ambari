@@ -229,7 +229,7 @@ public class ClusterTest {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     c1 = clusters.getCluster(clusterName);
-    serviceGroup = c1.addServiceGroup("CORE");
+    serviceGroup = c1.addServiceGroup("CORE", stackId.getStackId());
   }
 
   public ClusterEntity createDummyData() {
@@ -334,7 +334,7 @@ public class ClusterTest {
     }
 
     // Add Services
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service s1 = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), "HDFS", "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion);
     Service s3 = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), "GANGLIA", "GANGLIA", repositoryVersion);
@@ -1872,7 +1872,7 @@ public class ClusterTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
 
-    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", stackId.getStackId());
     Service service = c1.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER", repositoryVersion);
     ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
     sc.addServiceComponentHost("h-1");

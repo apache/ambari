@@ -1043,7 +1043,7 @@ public class AmbariManagementControllerTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         stackId.getStackVersion());
 
-    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName);
+    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName, stackId.getStackId());
     Service s1 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "MAPREDUCE", "MAPREDUCE", repositoryVersion);
     c1.addService(s1);
@@ -1364,7 +1364,7 @@ public class AmbariManagementControllerTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     String serviceGroupName = "CORE";
-    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName);
+    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName, stackId.getStackId());
     Service s1 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "MAPREDUCE", "MAPREDUCE", repositoryVersion);
     c1.addService(s1);
@@ -1625,11 +1625,11 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    Service s1 = serviceFactory.createNew(foo, foo.addServiceGroup(serviceGroupName), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
+    Service s1 = serviceFactory.createNew(foo, foo.addServiceGroup(serviceGroupName, stackId.getStackId()), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     foo.addService(s1);
-    Service s2 = serviceFactory.createNew(c1, c1.addServiceGroup(serviceGroupName), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
+    Service s2 = serviceFactory.createNew(c1, c1.addServiceGroup(serviceGroupName, stackId.getStackId()), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     c1.addService(s2);
-    Service s3 = serviceFactory.createNew(c2, c2.addServiceGroup(serviceGroupName), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
+    Service s3 = serviceFactory.createNew(c2, c2.addServiceGroup(serviceGroupName, stackId.getStackId()), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     c2.addService(s3);
 
 
@@ -2215,7 +2215,7 @@ public class AmbariManagementControllerTest {
 
     clusters.addCluster(cluster1, stackId);
     Cluster c1 = clusters.getCluster(cluster1);
-    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", stackId.getStackId());
     Service s1 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
 
     c1.addService(s1);
@@ -2251,11 +2251,11 @@ public class AmbariManagementControllerTest {
     c1.setDesiredStackVersion(stackId);
     c2.setDesiredStackVersion(stackId);
 
-    ServiceGroup sg1 = c1.addServiceGroup("CORE");
+    ServiceGroup sg1 = c1.addServiceGroup("CORE", stackId.getStackId());
     Service s1 = serviceFactory.createNew(c1, sg1, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(c1, sg1, new ArrayList<>(),"MAPREDUCE", "MAPREDUCE", repositoryVersion);
     Service s3 = serviceFactory.createNew(c1, sg1, new ArrayList<>(),"HBASE", "HBASE", repositoryVersion);
-    ServiceGroup sg2 = c2.addServiceGroup("CORE");
+    ServiceGroup sg2 = c2.addServiceGroup("CORE", stackId.getStackId());
     Service s4 = serviceFactory.createNew(c2, sg2, new ArrayList<>(),"HIVE", "HIVE", repositoryVersion);
     Service s5 = serviceFactory.createNew(c2, sg2, new ArrayList<>(),"ZOOKEEPER", "ZOOKEEPER", repositoryVersion);
 
@@ -2329,7 +2329,7 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster(cluster1);
     c1.setDesiredStackVersion(stackId);
     String serviceGroupName = "CORE";
-    Service s1 = serviceFactory.createNew(c1, c1.addServiceGroup(serviceGroupName), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
+    Service s1 = serviceFactory.createNew(c1, c1.addServiceGroup(serviceGroupName, "HDP-0.2"), new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     c1.addService(s1);
     s1.setDesiredState(State.INSTALLED);
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
@@ -2369,11 +2369,11 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster(cluster1);
     Cluster c2 = clusters.getCluster(cluster2);
 
-    ServiceGroup sg1 = c1.addServiceGroup("CORE");
+    ServiceGroup sg1 = c1.addServiceGroup("CORE", stackId.getStackId());
     Service s1 = serviceFactory.createNew(c1, sg1, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(c1, sg1, new ArrayList<>(), "MAPREDUCE", "MAPREDUCE", repositoryVersion);
     Service s3 = serviceFactory.createNew(c1, sg1, new ArrayList<>(), "HBASE", "HBASE", repositoryVersion);
-    ServiceGroup sg2 = c2.addServiceGroup("CORE");
+    ServiceGroup sg2 = c2.addServiceGroup("CORE", stackId.getStackId());
     Service s4 = serviceFactory.createNew(c2, sg2, new ArrayList<>(), "HIVE", "HIVE", repositoryVersion);
     Service s5 = serviceFactory.createNew(c2, sg2, new ArrayList<>(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion);
 
@@ -2486,7 +2486,7 @@ public class AmbariManagementControllerTest {
     Cluster c1 = setupClusterWithHosts(cluster1, "HDP-0.1", Lists.newArrayList(host1), "centos5");
     RepositoryVersionEntity repositoryVersion = repositoryVersion01;
 
-    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", "HDP-0.1");
     Service s1 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     c1.addService(s1);
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
@@ -2858,7 +2858,7 @@ public class AmbariManagementControllerTest {
     RepositoryVersionEntity repositoryVersion = repositoryVersion02;
 
     String serviceGroupName = "CORE";
-    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName);
+    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName, "HDP-0.2");
     Service s1 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "MAPREDUCE", "MAPREDUCE", repositoryVersion);
     Service s3 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HBASE", "HBASE", repositoryVersion);
@@ -3849,7 +3849,7 @@ public class AmbariManagementControllerTest {
     RepositoryVersionEntity repositoryVersion = repositoryVersion206;
 
     String serviceGroupName = "CORE";
-    ServiceGroup serviceGroup = cluster.addServiceGroup(serviceGroupName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup(serviceGroupName, "HDP-2.0.6");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     Service mapred = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
 
@@ -4007,7 +4007,7 @@ public class AmbariManagementControllerTest {
     RepositoryVersionEntity repositoryVersion = repositoryVersion207;
 
     String serviceGroupName = "CORE";
-    ServiceGroup serviceGroup = cluster.addServiceGroup(serviceGroupName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup(serviceGroupName, "HDP-2.0.7");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
@@ -4113,7 +4113,7 @@ public class AmbariManagementControllerTest {
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
     String serviceGroupName = "CORE";
-    ServiceGroup serviceGroup = cluster.addServiceGroup(serviceGroupName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup(serviceGroupName, "HDP-2.0.7");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     Service hive = cluster.addService(serviceGroup, "HIVE", "HIVE", repositoryVersion);
 
@@ -4381,7 +4381,7 @@ public class AmbariManagementControllerTest {
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-0.1");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     Service mapReduce = cluster.addService(serviceGroup, "MAPREDUCE", "MAPREDUCE", repositoryVersion);
 
@@ -5916,7 +5916,7 @@ public class AmbariManagementControllerTest {
         put("key1", "value1");
       }}, new HashMap<>());
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.0.6");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     Service mapred = cluster.addService(serviceGroup, "YARN", "YARN",  repositoryVersion);
 
@@ -6014,7 +6014,7 @@ public class AmbariManagementControllerTest {
         put("key1", "value1");
       }}, new HashMap<>());
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.0.6");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     Service mapred = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
 
@@ -8882,7 +8882,7 @@ public class AmbariManagementControllerTest {
     RepositoryVersionEntity repositoryVersion = repositoryVersion120;
 
     String serviceGroupName = "CORE";
-    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName);
+    ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName, "HDP-1.2.0");
     Service hdfs = c1.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     createServiceComponent(cluster1, serviceGroupName, "HDFS", "NAMENODE", State.INIT);
     createServiceComponent(cluster1, serviceGroupName, "HDFS", "DATANODE", State.INIT);

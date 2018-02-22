@@ -340,7 +340,7 @@ public class ComponentVersionCheckActionTest {
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getCluster("c1");
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", targetStack.getStackId());
 
     RepositoryVersionEntity sourceRepoVersion = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_0);
     RepositoryVersionEntity targetRepoVersion = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_1_0);
@@ -441,7 +441,7 @@ public class ComponentVersionCheckActionTest {
     host.setOsInfo("redhat6");
 
     Cluster cluster = clusters.getCluster("c1");
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", targetStack.getStackId());
     clusters.mapHostToCluster("h1", "c1");
 
     RepositoryVersionEntity repositoryVersion2110 = m_helper.getOrCreateRepositoryVersion(

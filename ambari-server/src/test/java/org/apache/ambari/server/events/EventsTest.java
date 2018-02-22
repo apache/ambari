@@ -121,7 +121,7 @@ public class EventsTest {
     m_cluster = m_clusters.getCluster(m_clusterName);
     Assert.assertNotNull(m_cluster);
 
-    serviceGroup = m_cluster.addServiceGroup("CORE");
+    serviceGroup = m_cluster.addServiceGroup("CORE", stackId.getStackId());
 
     m_cluster.setDesiredStackVersion(stackId);
     m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);

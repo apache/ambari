@@ -46,6 +46,8 @@ public interface ServiceGroup {
 
   Set<ServiceGroupDependencyResponse> getServiceGroupDependencyResponses();
 
+  StackId getStackId();
+
   void debugDump(StringBuilder sb);
 
   void refresh();
