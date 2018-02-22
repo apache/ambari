@@ -41,6 +41,9 @@ from mock.mock import MagicMock, patch
 @patch("ambari_agent.hostname.hostname", new=MagicMock(return_value="c6401.ambari.apache.org"))
 class TestAgentStompResponses(BaseStompServerTestCase):
   def setUp(self):
+    self.maxDiff = None
+    self.initializer_module = None
+
     self.remove_files(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json', '/tmp/host_level_params.json', '/tmp/cluster_cache/alert_definitions.json'])
 
     if not os.path.exists("/tmp/ambari-agent"):
@@ -50,6 +53,12 @@ class TestAgentStompResponses(BaseStompServerTestCase):
       fp.write("2.5.0.0")
 
     return super(TestAgentStompResponses, self).setUp()
+
+  def tearDown(self):
+    if self.initializer_module:
+      self.initializer_module.stop_event.set()
+
+    return super(TestAgentStompResponses, self).tearDown()
 
   @patch.object(CustomServiceOrchestrator, "runCommand")
   def test_mock_server_can_start(self, runCommand_mock):
@@ -286,9 +295,9 @@ class TestAgentStompResponses(BaseStompServerTestCase):
       #json_excepted_lopology = json.dumps(self.get_dict_from_file("topology_cache_expected.json"), indent=2, sort_keys=True)
       #print json_topology
       #print json_excepted_lopology
-      self.assertEquals(Utils.get_mutable_copy(self.initializer_module.topology_cache), self.get_dict_from_file("topology_cache_expected.json"))
+      self.assertDictEqual(Utils.get_mutable_copy(self.initializer_module.topology_cache), self.get_dict_from_file("topology_cache_expected.json"))
 
-    self.assert_with_retries(is_json_equal, tries=80, try_sleep=0.1)
+    self.assert_with_retries(is_json_equal, tries=160, try_sleep=0.1)
 
     self.initializer_module.stop_event.set()
 
@@ -354,9 +363,9 @@ class TestAgentStompResponses(BaseStompServerTestCase):
       #json_excepted_definitions = json.dumps(self.get_dict_from_file("alert_definition_expected.json"), indent=2, sort_keys=True)
       #print json_definitions
       #print json_excepted_definitions
-      self.assertEquals(Utils.get_mutable_copy(self.initializer_module.alert_definitions_cache), self.get_dict_from_file("alert_definition_expected.json"))
+      self.assertDictEqual(Utils.get_mutable_copy(self.initializer_module.alert_definitions_cache), self.get_dict_from_file("alert_definition_expected.json"))
 
-    self.assert_with_retries(is_json_equal, tries=80, try_sleep=0.1)
+    self.assert_with_retries(is_json_equal, tries=160, try_sleep=0.1)
 
     self.initializer_module.stop_event.set()
 
