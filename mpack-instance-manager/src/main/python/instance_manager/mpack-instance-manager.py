@@ -56,7 +56,8 @@ def check_required_options(options, action, parser):
     if not options.module_name:
       missing_options.append("module-name")
 
-  parser.error("Missing following required command options: {0}".format(missing_options))
+  if missing_options:
+    parser.error("Missing following required command options: {0}".format(missing_options))
 
 
 def init_create_parser_options(parser):
