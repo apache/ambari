@@ -549,7 +549,7 @@ describe('App.MainServiceItemView', function () {
       App.StackServiceComponent.find.restore();
     });
 
-    testCases.slice(0,1).forEach(function (testCase) {
+    testCases.forEach(function (testCase) {
 
       describe('Maintenance for ' + testCase.serviceName + ' service', function () {
 
@@ -584,7 +584,7 @@ describe('App.MainServiceItemView', function () {
           view.observeMaintenanceOnce();
         });
         testCase.result.forEach(function (option, index) {
-          Object.keys(option).slice(0.1).forEach(function (key) {
+          Object.keys(option).forEach(function (key) {
             it(option.action + ', key - ' + key, function () {
               var r = view.get('maintenance')[index];
               expect(Em.get(option, key)).to.eql(Em.get(r, key));

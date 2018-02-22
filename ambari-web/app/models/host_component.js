@@ -552,7 +552,7 @@ App.HostComponentActionMap = {
     const serviceName = context.get('service.serviceName'),
       groups = context.get('service.masterComponentGroups') || [],
       allItem = {
-        action: action,
+        action,
         context: Object.assign({
           label: Em.I18n.t('services.service.allComponents')
         }, components ? {
@@ -565,7 +565,7 @@ App.HostComponentActionMap = {
       },
       groupItems = groups.map(group => {
         return {
-          action: action,
+          action,
           context: {
             label: group.title,
             hosts: group.hosts,
