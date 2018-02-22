@@ -69,19 +69,20 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   public static final String RESPONSE_KEY = "MpackInfo";
   public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
-  public static final String MPACK_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
+  public static final String MPACK_RESOURCE_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
   public static final String REGISTRY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "registry_id";
+  public static final String MPACK_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
   public static final String MPACK_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_name";
   public static final String MPACK_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_version";
+  public static final String MPACK_DESCRIPTION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_description";
   public static final String MPACK_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_uri";
   public static final String MODULES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "modules";
-  public static final String MPACK_DESC = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "description";
   public static final String STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
   public static final String STACK_VERSION_PROPERTY_ID =
     RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(MPACK_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID));
+    Arrays.asList(MPACK_RESOURCE_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID));
 
   /**
    * The property ids for an mpack resource.
@@ -104,18 +105,19 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
 
   static {
     // properties
-    PROPERTY_IDS.add(MPACK_ID);
+    PROPERTY_IDS.add(MPACK_RESOURCE_ID);
     PROPERTY_IDS.add(REGISTRY_ID);
+    PROPERTY_IDS.add(MPACK_ID);
     PROPERTY_IDS.add(MPACK_NAME);
     PROPERTY_IDS.add(MPACK_VERSION);
     PROPERTY_IDS.add(MPACK_URI);
-    PROPERTY_IDS.add(MPACK_DESC);
+    PROPERTY_IDS.add(MPACK_DESCRIPTION);
     PROPERTY_IDS.add(MODULES);
     PROPERTY_IDS.add(STACK_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(STACK_VERSION_PROPERTY_ID);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_RESOURCE_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID);
 
@@ -147,11 +149,12 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       if (response != null) {
         notifyCreate(Resource.Type.Mpack, request);
         Resource resource = new ResourceImpl(Resource.Type.Mpack);
+        resource.setProperty(MPACK_RESOURCE_ID, response.getId());
         resource.setProperty(MPACK_ID, response.getMpackId());
         resource.setProperty(MPACK_NAME, response.getMpackName());
         resource.setProperty(MPACK_VERSION, response.getMpackVersion());
         resource.setProperty(MPACK_URI, response.getMpackUri());
-        resource.setProperty(MPACK_DESC, response.getDescription());
+        resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
         resource.setProperty(REGISTRY_ID, response.getRegistryId());
         associatedResources.add(resource);
         return getRequestStatus(null, associatedResources);
@@ -203,21 +206,21 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     Set<Map<String, Object>> properties = request.getProperties();
     for (Map propertyMap : properties) {
       //Mpack Download url is either given in the request body or is fetched using the registry id
-      if (!propertyMap.containsKey(MPACK_URI) && !propertyMap.containsKey(REGISTRY_ID))
+      if (!propertyMap.containsKey(MPACK_URI) && !propertyMap.containsKey(REGISTRY_ID)) {
         return null;
-        //Fetch Mpack Download Url using the given registry id
-      else if (!propertyMap.containsKey(MPACK_URI)) {
+      } else if (!propertyMap.containsKey(MPACK_URI)) {
+        // Retrieve mpack download url using the given registry id
         mpackRequest.setRegistryId(Long.valueOf((String) propertyMap.get(REGISTRY_ID)));
         mpackRequest.setMpackName((String) propertyMap.get(MPACK_NAME));
         mpackRequest.setMpackVersion((String) propertyMap.get(MPACK_VERSION));
         mpackRequest.setMpackUri(getMpackUri(mpackRequest));
       }
-      //Directly download the mpack using the given url
-      else
+      else {
+        //Directly download the mpack using the given url
         mpackRequest.setMpackUri((String) propertyMap.get(MPACK_URI));
+      }
     }
     return mpackRequest;
-
   }
 
   /***
@@ -231,7 +234,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     Registry registry = getManagementController().getRegistry(mpackRequest.getRegistryId());
     RegistryMpack registryMpack = registry.getRegistryMpack(mpackRequest.getMpackName());
     RegistryMpackVersion registryMpackVersion = registryMpack.getMpackVersion(mpackRequest.getMpackVersion());
-    return registryMpackVersion.getMpackUrl();
+    return registryMpackVersion.getMpackUri();
   }
 
   @Override
@@ -249,11 +252,12 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       }
       for (MpackResponse response : responses){
         Resource resource = new ResourceImpl(Resource.Type.Mpack);
+        resource.setProperty(MPACK_RESOURCE_ID, response.getId());
         resource.setProperty(MPACK_ID, response.getMpackId());
         resource.setProperty(MPACK_NAME, response.getMpackName());
         resource.setProperty(MPACK_VERSION, response.getMpackVersion());
         resource.setProperty(MPACK_URI, response.getMpackUri());
-        resource.setProperty(MPACK_DESC, response.getDescription());
+        resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
         resource.setProperty(REGISTRY_ID, response.getRegistryId());
         results.add(resource);
       }
@@ -269,11 +273,12 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
           MpackResponse response = getManagementController().getMpack(mpackId);
           Resource resource = new ResourceImpl(Resource.Type.Mpack);
           if (null != response) {
+            resource.setProperty(MPACK_RESOURCE_ID, response.getId());
             resource.setProperty(MPACK_ID, response.getMpackId());
             resource.setProperty(MPACK_NAME, response.getMpackName());
             resource.setProperty(MPACK_VERSION, response.getMpackVersion());
             resource.setProperty(MPACK_URI, response.getMpackUri());
-            resource.setProperty(MPACK_DESC, response.getDescription());
+            resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
             resource.setProperty(REGISTRY_ID, response.getRegistryId());
             resource.setProperty(STACK_NAME_PROPERTY_ID, stackName);
             resource.setProperty(STACK_VERSION_PROPERTY_ID, stackVersion);
@@ -283,21 +288,22 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         return results;
       }
 
-      if (propertyMap.containsKey(MPACK_ID)) {
-        Object objMpackId = propertyMap.get(MPACK_ID);
+      if (propertyMap.containsKey(MPACK_RESOURCE_ID)) {
+        Object objMpackId = propertyMap.get(MPACK_RESOURCE_ID);
         if (objMpackId != null)
           mpackId = Long.valueOf((String) objMpackId);
 
           MpackResponse response = getManagementController().getMpack(mpackId);
           Resource resource = new ResourceImpl(Resource.Type.Mpack);
           if (null != response) {
+            resource.setProperty(MPACK_RESOURCE_ID, response.getId());
             resource.setProperty(MPACK_ID, response.getMpackId());
             resource.setProperty(MPACK_NAME, response.getMpackName());
             resource.setProperty(MPACK_VERSION, response.getMpackVersion());
             resource.setProperty(MPACK_URI, response.getMpackUri());
-            resource.setProperty(MPACK_DESC, response.getDescription());
+            resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
             resource.setProperty(REGISTRY_ID, response.getRegistryId());
-            List<Module> modules = getManagementController().getModules(response.getMpackId());
+            List<Module> modules = getManagementController().getModules(response.getId());
             resource.setProperty(MODULES, modules);
             results.add(resource);
           }
@@ -325,8 +331,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     if (getManagementController().getClusters().getClusters().size() > 0) {
       throw new SystemException("Delete request cannot be completed since there is a cluster deployed");
     } else {
-      if (propertyMap.containsKey(MPACK_ID)) {
-        Object objMpackId = propertyMap.get(MPACK_ID);
+      if (propertyMap.containsKey(MPACK_RESOURCE_ID)) {
+        Object objMpackId = propertyMap.get(MPACK_RESOURCE_ID);
         if (objMpackId != null) {
           mpackId = Long.valueOf((String) objMpackId);
           LOG.info("Deleting Mpack, id = " + mpackId.toString());

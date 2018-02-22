@@ -26,25 +26,25 @@ import org.apache.ambari.server.orm.entities.MpackEntity;
  */
 public class MpackRequest {
 
-  private Long mpackId;
+  private Long id;
+  private Long registryId;
   private String mpackName;
   private String mpackVersion;
   private String mpackUri;
-  private Long registryId;
 
-  public MpackRequest(Long mpackId) {
-    this.setMpackId(mpackId);
+  public MpackRequest(Long id) {
+    this.setId(id);
   }
 
   public MpackRequest() {
   }
 
-  public Long getMpackId() {
-    return mpackId;
+  public Long getId() {
+    return id;
   }
 
-  public void setMpackId(Long mpackId) {
-    this.mpackId = mpackId;
+  public void setId(Long id) {
+    this.id = id;
   }
 
   public String getMpackName() {
@@ -82,7 +82,7 @@ public class MpackRequest {
   @Override
   public int hashCode() {
     int result = 1;
-    result = 31 + getMpackId().hashCode();
+    result = 31 + getId().hashCode();
     return result;
   }
 
@@ -96,11 +96,11 @@ public class MpackRequest {
     }
     MpackRequest mpackRequest = (MpackRequest) obj;
 
-    if (mpackId == null) {
-      if (mpackRequest.mpackId != null) {
+    if (id == null) {
+      if (mpackRequest.id != null) {
         return false;
       }
-    } else if (!mpackId.equals(mpackRequest.mpackId)) {
+    } else if (!id.equals(mpackRequest.id)) {
       return false;
     }
 

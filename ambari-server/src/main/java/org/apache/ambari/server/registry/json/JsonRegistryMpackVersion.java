@@ -17,13 +17,21 @@
  */
 package org.apache.ambari.server.registry.json;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.server.registry.RegistryMpackCompatiblity;
-import org.apache.ambari.server.registry.RegistryMpackService;
+import org.apache.ambari.server.registry.RegistryMpackDependency;
 import org.apache.ambari.server.registry.RegistryMpackVersion;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -33,23 +41,16 @@ public class JsonRegistryMpackVersion implements RegistryMpackVersion {
   @SerializedName("version")
   private String version;
 
-  @SerializedName("buildNumber")
-  private String buildNumber;
+  @SerializedName("mpackUri")
+  private String mpackUri;
 
-  @SerializedName("mpackUrl")
-  private String mpackUrl;
+  @SerializedName("docUri")
+  private String docUri;
 
-  @SerializedName("docUrl")
-  private String docUrl;
+  @SerializedName("dependencies")
+  private ArrayList<JsonRegistryMpackDependency> dependencies;
 
-  @SerializedName("stack-id")
-  private String stackId;
-
-  @SerializedName("services")
-  private ArrayList<JsonRegistryMpackService> services;
-
-  @SerializedName("compatibleMpacks")
-  private ArrayList<JsonRegistryMpackCompatibility> compatibleMpacks;
+  private Mpack mpack = null;
 
   @Override
   public String getMpackVersion() {
@@ -57,32 +58,39 @@ public class JsonRegistryMpackVersion implements RegistryMpackVersion {
   }
 
   @Override
-  public String getMpackBuildNumber() {
-    return buildNumber;
+  public String getMpackUri() {
+    return mpackUri;
   }
 
   @Override
-  public String getMpackUrl() {
-    return mpackUrl;
+  public String getMpackDocUri() {
+    return docUri;
   }
 
   @Override
-  public String getMpackDocUrl() {
-    return docUrl;
+  public List<? extends RegistryMpackDependency> getDependencies() {
+    return dependencies;
   }
 
-  @Override
-  public List<? extends RegistryMpackService> getMpackServices() {
-    return services;
-  }
+  private final static Logger LOG = LoggerFactory.getLogger(JsonRegistryMpackVersion.class);
+
 
   @Override
-  public List<? extends RegistryMpackCompatiblity> getCompatibleMpacks() {
-    return compatibleMpacks;
-  }
+  public List<Module> getModules() {
 
-  @Override
-  public String getMpackStackId() {
-    return stackId;
+    if(mpack == null) {
+      try {
+        URL url = new URL(mpackUri);
+        InputStreamReader reader = new InputStreamReader(url.openStream());
+        Gson gson = new Gson();
+        mpack = gson.fromJson(reader, Mpack.class);
+      } catch (MalformedURLException e) {
+        LOG.warn("Failed to get list of modules, malformed mpack uri {}", mpackUri);
+      }
+      catch (IOException e) {
+        LOG.warn("Failed to get list of modules, mpack uri {} cannot be read", mpackUri);
+      }
+    }
+    return mpack == null? null: mpack.getModules();
   }
 }

@@ -243,7 +243,6 @@ public class MpackGenerator {
     Mpack mpack = new Mpack();
     mpack.setName(dstStackName);
     mpack.setVersion(vdf.release.version);
-    mpack.setStackId(dstStackId.getStackId());
     mpack.setDescription(dstStackName + " Ambari Management Pack");
     Map<String, String> prereqs = new HashMap<>();
     prereqs.put("min-ambari-version", "3.0.0.0");
