@@ -720,7 +720,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // Non Rolling Upgrades require a group with name "UPDATE_DESIRED_REPOSITORY_ID".
     // This is needed as a marker to indicate which version to use when an upgrade is paused.
-    if (pack.getType() == UpgradeType.NON_ROLLING) {
+    if (pack.getType() == UpgradeType.EXPRESS) {
       boolean foundUpdateDesiredRepositoryIdGrouping = false;
       for (UpgradeGroupHolder group : groups) {
         if (group.groupClass == UpdateStackGrouping.class) {

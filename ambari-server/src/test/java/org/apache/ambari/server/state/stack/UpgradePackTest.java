@@ -30,6 +30,7 @@ import org.apache.ambari.server.stack.ModuleFileUnmarshaller;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
 import org.apache.ambari.server.state.stack.upgrade.Lifecycle.LifecycleType;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.Test;
 
 /**
@@ -55,6 +56,7 @@ public class UpgradePackTest {
 
     UpgradePack upgradepack = unmarshaller.unmarshal(UpgradePack.class, f, true);
 
+    assertEquals(UpgradeType.ROLLING, upgradepack.getType());
     assertEquals(6, upgradepack.lifecycles.size());
 
     Optional<Lifecycle> upgradeLifecycle = upgradepack.lifecycles.stream()

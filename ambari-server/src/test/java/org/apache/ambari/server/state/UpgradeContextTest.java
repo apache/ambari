@@ -236,7 +236,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     replayAll();
 
     Map<String, Object> requestMap = new HashMap<>();
-    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.NON_ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.EXPRESS.name());
     requestMap.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
     requestMap.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, m_targetRepositoryVersion.getId().toString());
     requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
@@ -284,7 +284,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     replayAll();
 
     Map<String, Object> requestMap = new HashMap<>();
-    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.NON_ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.EXPRESS.name());
     requestMap.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
     requestMap.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, m_targetRepositoryVersion.getId().toString());
     requestMap.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
@@ -354,7 +354,7 @@ public class UpgradeContextTest extends EasyMockSupport {
       EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
 
     expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
-    expect(m_completedRevertableUpgrade.getUpgradeType()).andReturn(UpgradeType.NON_ROLLING);
+    expect(m_completedRevertableUpgrade.getUpgradeType()).andReturn(UpgradeType.EXPRESS);
 
     Map<String, Object> requestMap = new HashMap<>();
     requestMap.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, "1");
@@ -366,7 +366,7 @@ public class UpgradeContextTest extends EasyMockSupport {
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
-    assertEquals(UpgradeType.NON_ROLLING, context.getType());
+    assertEquals(UpgradeType.EXPRESS, context.getType());
     assertEquals(1, context.getSupportedServices().size());
     assertTrue(context.isPatchRevert());
 
@@ -486,7 +486,7 @@ public class UpgradeContextTest extends EasyMockSupport {
 
 
     Map<String, Object> requestMap = new HashMap<>();
-    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.NON_ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.EXPRESS.name());
     requestMap.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     replayAll();

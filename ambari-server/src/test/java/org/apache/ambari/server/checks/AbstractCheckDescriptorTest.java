@@ -207,23 +207,23 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
   public void testRequired() throws Exception {
     RollingTestCheckImpl rollingCheck = new RollingTestCheckImpl(PrereqCheckType.SERVICE);
     Assert.assertTrue(rollingCheck.isRequired(UpgradeType.ROLLING));
-    Assert.assertFalse(rollingCheck.isRequired(UpgradeType.NON_ROLLING));
+    Assert.assertFalse(rollingCheck.isRequired(UpgradeType.EXPRESS));
 
     NotRequiredCheckTest notRequiredCheck = new NotRequiredCheckTest(PrereqCheckType.SERVICE);
     Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.ROLLING));
-    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.NON_ROLLING));
+    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.EXPRESS));
     Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.HOST_ORDERED));
 
     TestCheckImpl requiredCheck = new TestCheckImpl(PrereqCheckType.SERVICE);
     Assert.assertTrue(requiredCheck.isRequired(UpgradeType.ROLLING));
-    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.NON_ROLLING));
+    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.EXPRESS));
     Assert.assertTrue(requiredCheck.isRequired(UpgradeType.HOST_ORDERED));
   }
 
   @UpgradeCheck(
       group = UpgradeCheckGroup.DEFAULT,
       order = 1.0f,
-      required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+      required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
   private class TestCheckImpl extends AbstractCheckDescriptor {
     private PrereqCheckType m_type;
     private Set<String> m_applicableServices = Sets.newHashSet();

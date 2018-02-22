@@ -29,7 +29,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
 from resource_management.libraries.functions import solr_cloud_util
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_EXPRESS
 from resource_management.libraries.functions.constants import Direction
 
 import setup_ranger_xml
@@ -58,7 +58,7 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
 
-    if upgrade_type == UPGRADE_TYPE_NON_ROLLING and params.upgrade_direction == Direction.UPGRADE:
+    if upgrade_type == UPGRADE_TYPE_EXPRESS and params.upgrade_direction == Direction.UPGRADE:
       if params.stack_supports_rolling_upgrade and not params.stack_supports_config_versioning and os.path.isfile(format('{ranger_home}/ews/stop-ranger-admin.sh')):
         File(format('{ranger_home}/ews/stop-ranger-admin.sh'),
           owner=params.unix_user,

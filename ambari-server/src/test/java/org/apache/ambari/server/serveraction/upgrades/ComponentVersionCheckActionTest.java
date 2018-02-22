@@ -211,7 +211,7 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
     upgradeEntity.setRepositoryVersion(toRepositoryVersion);
-    upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
+    upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
     upgradeDAO.create(upgradeEntity);
 
     c.setUpgradeEntity(upgradeEntity);
@@ -276,7 +276,7 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
     upgradeEntity.setRepositoryVersion(toRepositoryVersion);
-    upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
+    upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
     upgradeDAO.create(upgradeEntity);
 
     c.setUpgradeEntity(upgradeEntity);

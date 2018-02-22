@@ -553,7 +553,7 @@ class TestHiveMetastore(RMFTestCase):
         }
       },
       "direction":"UPGRADE",
-      "type":"nonrolling_upgrade",
+      "type":"express_upgrade",
       "isRevert":False,
       "orchestration":"STANDARD"
     }

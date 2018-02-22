@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_EXPRESS
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
@@ -64,7 +64,7 @@ class JournalNodeDefault(JournalNode):
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     # express upgrade cannot determine if the JN quorum is established
-    if upgrade_type == UPGRADE_TYPE_NON_ROLLING:
+    if upgrade_type == UPGRADE_TYPE_EXPRESS:
       return
 
     Logger.info("Executing Stack Upgrade post-restart")

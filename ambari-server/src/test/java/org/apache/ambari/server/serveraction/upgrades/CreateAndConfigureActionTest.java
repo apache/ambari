@@ -312,7 +312,7 @@ public class CreateAndConfigureActionTest {
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
     upgradeEntity.setRepositoryVersion(repositoryVersion);
-    upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
+    upgradeEntity.setUpgradeType(UpgradeType.EXPRESS);
 
     Map<String, Service> services = cluster.getServices();
     for (String serviceName : services.keySet()) {

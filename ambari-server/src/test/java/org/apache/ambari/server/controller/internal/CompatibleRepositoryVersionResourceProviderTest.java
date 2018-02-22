@@ -161,7 +161,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
 
           @Override
           public UpgradeType getType() {
-            return UpgradeType.NON_ROLLING;
+            return UpgradeType.EXPRESS;
           }
         };
 
@@ -212,7 +212,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
 
           @Override
           public UpgradeType getType() {
-            return UpgradeType.NON_ROLLING;
+            return UpgradeType.EXPRESS;
           }
         };
 
@@ -300,7 +300,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     // Test For Upgrade Types
     Map<String, List<UpgradeType>> versionToUpgradeTypesMap = new HashMap<>();
     versionToUpgradeTypesMap.put("1.1", Arrays.asList(UpgradeType.ROLLING));
-    versionToUpgradeTypesMap.put("2.2", Arrays.asList(UpgradeType.NON_ROLLING, UpgradeType.ROLLING));
+    versionToUpgradeTypesMap.put("2.2", Arrays.asList(UpgradeType.EXPRESS, UpgradeType.ROLLING));
     assertEquals(versionToUpgradeTypesMap.size(), checkUpgradeTypes(resources, versionToUpgradeTypesMap));
 
     // !!! verify we can get services
@@ -382,7 +382,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     // Test For Upgrade Types
     Map<String, List<UpgradeType>> versionToUpgradeTypesMap = new HashMap<>();
     versionToUpgradeTypesMap.put("1.1", Arrays.asList(UpgradeType.ROLLING));
-    versionToUpgradeTypesMap.put("2.2", Arrays.asList(UpgradeType.NON_ROLLING, UpgradeType.ROLLING));
+    versionToUpgradeTypesMap.put("2.2", Arrays.asList(UpgradeType.EXPRESS, UpgradeType.ROLLING));
     assertEquals(versionToUpgradeTypesMap.size(), checkUpgradeTypes(resources, versionToUpgradeTypesMap));
   }
 
