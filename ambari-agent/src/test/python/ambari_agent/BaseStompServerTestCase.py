@@ -173,6 +173,13 @@ class BaseStompServerTestCase(unittest.TestCase):
     else:
       func()
 
+  def assertDictEqual(self, d1, d2):
+    try:
+      super(BaseStompServerTestCase, self).assertDictEqual(d1, d2)
+    except AttributeError:
+      super(BaseStompServerTestCase, self).assertEqual(d1, d2) # Python 2.6 compatibility
+
+
 
 class TestStompServer(ThreadedStompServer):
     """
