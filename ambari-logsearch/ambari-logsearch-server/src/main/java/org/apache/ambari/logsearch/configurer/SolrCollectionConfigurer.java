@@ -25,7 +25,6 @@ import org.apache.ambari.logsearch.handler.ACLHandler;
 import org.apache.ambari.logsearch.handler.CreateCollectionHandler;
 import org.apache.ambari.logsearch.handler.ListCollectionHandler;
 import org.apache.ambari.logsearch.handler.ReloadCollectionHandler;
-import org.apache.ambari.logsearch.handler.UpgradeSchemaHandler;
 import org.apache.ambari.logsearch.handler.UploadConfigurationHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -107,8 +106,7 @@ public class SolrCollectionConfigurer implements Configurer {
     if (!state.isConfigurationUploaded()) {
       state.setConfigurationUploaded(true);
     }
-    boolean upgradeSchema = new UpgradeSchemaHandler(cloudSolrClient, configSetFolder).handle(cloudSolrClient, solrPropsConfig);
-    return reloadCollectionNeeded || upgradeSchema;
+    return reloadCollectionNeeded;
   }
 
   public boolean stopSetupCondition(SolrCollectionState state) {
