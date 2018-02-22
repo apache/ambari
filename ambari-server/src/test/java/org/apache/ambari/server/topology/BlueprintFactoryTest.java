@@ -63,7 +63,7 @@ public class BlueprintFactoryTest {
   private BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
   private BlueprintEntity entity = createStrictMock(BlueprintEntity.class);
   private BlueprintConfigEntity configEntity = createStrictMock(BlueprintConfigEntity.class);
-  private BlueprintFactory testFactory = new BlueprintFactory(Providers.of(dao), __ -> stack);
+  private BlueprintFactory testFactory = new BlueprintFactory(Providers.of(dao));
 
   @Before
   public void init() throws Exception {
@@ -129,7 +129,7 @@ public class BlueprintFactoryTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null).once();
     replay(dao, entity, configEntity);
 
-    BlueprintFactory factory = new BlueprintFactory(Providers.of(dao), null);
+    BlueprintFactory factory = new BlueprintFactory(Providers.of(dao));
     assertNull(factory.getBlueprint(BLUEPRINT_NAME));
   }
 

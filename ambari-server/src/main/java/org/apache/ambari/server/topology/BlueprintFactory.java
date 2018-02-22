@@ -50,10 +50,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
@@ -76,12 +73,10 @@ public class BlueprintFactory {
 
   private final Provider<BlueprintDAO> blueprintDAO;
   private final ConfigurationFactory configFactory = new ConfigurationFactory();
-  private final StackFactory stackFactory;
 
   @Inject
-  public BlueprintFactory(Provider<BlueprintDAO> blueprintDAO, StackFactory stackFactory) {
+  public BlueprintFactory(Provider<BlueprintDAO> blueprintDAO) {
     this.blueprintDAO = blueprintDAO;
-    this.stackFactory = stackFactory;
   }
 
   public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
@@ -155,19 +150,6 @@ public class BlueprintFactory {
       : Optional.empty();
   }
 
-  public StackDefinition composeStacks(Set<StackId> stackIds) {
-    Set<Stack> stacks = stackIds.stream()
-      .map(this::createStack)
-      .collect(toSet());
-    StackDefinition composite = StackDefinition.of(stacks);
-
-    // temporary check
-    verifyStackDefinitionsAreDisjoint(composite.getServices().stream(), "Service", composite::getStacksForService);
-    verifyStackDefinitionsAreDisjoint(composite.getComponents().stream(), "Component", composite::getStacksForComponent);
-
-    return composite;
-  }
-
   /**
    * Verify that each item in <code>items</code> is defined by only one stack.
    *
@@ -188,14 +170,6 @@ public class BlueprintFactory {
         .collect(joining("\n"));
       LOG.error(msg);
       throw new IllegalArgumentException(msg);
-    }
-  }
-
-  private Stack createStack(StackId stackId) {
-    try {
-      return stackFactory.createStack(stackId);
-    } catch (ObjectNotFoundException e) {
-      throw new NoSuchStackException(stackId);
     }
   }
 
