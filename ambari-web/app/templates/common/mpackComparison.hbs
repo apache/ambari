@@ -1,0 +1,39 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="mpack-comparison">
+  <h4>{{mpack.name}} {{mpack.currentVersion}}&nbsp;<i class="icon-arrow-right"></i>&nbsp;<span class="new-version">{{mpack.newVersion}}</span>&nbsp;<i class="icon-book"></i></h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>{{t common.service}}</th>
+        <th class="text-center">{{t common.current}}&nbsp;{{t common.version}}</th>
+        <th class="text-center">{{t common.new}}&nbsp;{{t common.version}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each service in mpack.services}}
+        <tr>
+          <td><span class="capsule">{{service.name}}</span></td>          
+          <td class="text-center">{{service.currentVersion}}</td>
+          <td class="text-center"><span class="new-version">{{service.newVersion}}</span></td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
