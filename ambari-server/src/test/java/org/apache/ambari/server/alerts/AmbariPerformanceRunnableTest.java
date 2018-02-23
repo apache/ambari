@@ -248,22 +248,6 @@ public class AmbariPerformanceRunnableTest {
   }
 
   /**
-   * Tests that the event is triggerd with a status of UNKNOWN.
-   */
-  @Test
-  public void testThresholdCalculations() {
-    // instantiate and inject mocks
-    AmbariPerformanceRunnable runnable = new AmbariPerformanceRunnable(
-        m_definition.getDefinitionName());
-
-    assertEquals(1, runnable.getThresholdValue(1, 2));
-    assertEquals(1, runnable.getThresholdValue("1", 2));
-    assertEquals(1, runnable.getThresholdValue("1.00", 2));
-    assertEquals(1, runnable.getThresholdValue("foo", 1));
-    assertEquals(1, runnable.getThresholdValue(new Object(), 1));
-  }
-
-  /**
    *
    */
   private class MockModule implements Module {
