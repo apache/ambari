@@ -28,9 +28,9 @@ public class RegistryRequestTest {
   @Test
   public void testBasicGetAndSet() {
     RegistryRequest registryRequest =
-            new RegistryRequest((Long) 1L, "hwx", RegistryType.JSON, "abc.tar.gz");
+            new RegistryRequest((Long) 1L, "hwx", RegistryType.JSON, "hwx-software-registry.json");
     Assert.assertEquals((Long) 1L, registryRequest.getRegistryId());
-    Assert.assertEquals("abc.tar.gz", registryRequest.getRegistryUri());
+    Assert.assertEquals("hwx-software-registry.json", registryRequest.getRegistryUri());
     Assert.assertEquals("hwx", registryRequest.getRegistryName());
     Assert.assertEquals(RegistryType.JSON, registryRequest.getRegistryType());
   }

@@ -122,7 +122,7 @@ public class ConcurrentServiceConfigVersionTest {
     helper.createStack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", new HashSet<ServiceGroupKey>());
+    serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", stackId, new HashSet<ServiceGroupKey>());
 
     String hostName = "c6401.ambari.apache.org";
     clusters.addHost(hostName);

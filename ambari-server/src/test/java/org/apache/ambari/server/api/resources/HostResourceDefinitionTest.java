@@ -19,10 +19,13 @@
 package org.apache.ambari.server.api.resources;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.HostSummaryRenderer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
@@ -51,6 +54,13 @@ public class HostResourceDefinitionTest {
     assertTrue(includesType(subResources, Resource.Type.Alert));
     assertTrue(includesType(subResources, Resource.Type.HostStackVersion));
     assertTrue(includesType(subResources, Resource.Type.HostKerberosIdentity));
+  }
+
+  @Test
+  public void getRenderer() {
+    ResourceDefinition resource = new HostResourceDefinition();
+    assertSame(HostSummaryRenderer.class, resource.getRenderer("summary").getClass());
+    assertSame(DefaultRenderer.class, resource.getRenderer(null).getClass());
   }
 
   private boolean includesType(Set<SubResourceDefinition> resources, Resource.Type type) {

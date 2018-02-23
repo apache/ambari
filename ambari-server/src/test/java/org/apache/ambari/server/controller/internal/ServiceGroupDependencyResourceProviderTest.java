@@ -344,8 +344,8 @@ public class ServiceGroupDependencyResourceProviderTest {
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion206;
 
-    ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE);
-    ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST);
+    ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE, "HDP-2.0.6");
+    ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST, "HDP-2.0.6");
 
 
     return cluster;

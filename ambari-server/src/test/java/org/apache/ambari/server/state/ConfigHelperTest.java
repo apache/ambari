@@ -159,7 +159,7 @@ public class ConfigHelperTest {
       cr2.setType("flume-conf");
       cr2.setVersionTag("version1");
 
-      ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+      ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
       cluster.addService(serviceGroup, "FLUME", "FLUME", repositoryVersion);
       cluster.addService(serviceGroup, "OOZIE", "OOZIE", repositoryVersion);
       cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);

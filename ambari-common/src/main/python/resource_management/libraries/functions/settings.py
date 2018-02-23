@@ -55,7 +55,7 @@ def get_setting_type_entries(setting_type, setting_names=None):
         return None
 
     if setting_names is None: # Return all settings
-        return settings
+        setting_names = settings.keys()
 
     if not isinstance(setting_names, (set, frozenset, tuple, list)):
         Logger.error("'setting_names' type expected to be either a : set, frozenset, tuple, or list. "
@@ -66,7 +66,7 @@ def get_setting_type_entries(setting_type, setting_names=None):
         Logger.error("Passed-in settings set is EMPTY")
         return None
     else:
-        result = dict((setting, settings[setting]) for setting in setting_names if setting in settings)
+        result = dict((setting, convert_value(settings[setting])) for setting in setting_names if setting in settings)
         if not result:
             Logger.error("Passed-in setting(s) in set not present.")
             return {}
@@ -100,7 +100,7 @@ def get_setting_value(setting_type, setting_name):
         Logger.info("Couldn't retrieve '"+setting_type+"'.")
         return None
 
-    return settings.get(setting_name)
+    return convert_value(settings.get(setting_name))
 
 
 def is_setting_type_supported(setting_type):
@@ -110,3 +110,16 @@ def is_setting_type_supported(setting_type):
     :return: True or False
     """
     return setting_type in (STACK_SETTINGS_TYPE, CLUSTER_SETTINGS_TYPE)
+
+
+def convert_value(value):
+    """
+    Converts some values for easier consumption.
+    Currently only strings corresponding to true/false are converted to actual boolean values.
+    """
+
+    if value == "true":
+        return True
+    if value == "false":
+        return False
+    return value

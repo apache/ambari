@@ -32,20 +32,25 @@ import com.google.gson.annotations.SerializedName;
  */
 public class JsonRegistryMpack implements RegistryMpack {
 
+  @SerializedName("id")
+  private String id;
+
   @SerializedName("name")
   private String name;
-
-  @SerializedName("displayName")
-  private String displayName;
 
   @SerializedName("description")
   private String description;
 
-  @SerializedName("logoUrl")
-  private String logoUrl;
+  @SerializedName("logoUri")
+  private String logoUri;
 
-  @SerializedName("mpackVersions")
+  @SerializedName("versions")
   private ArrayList<JsonRegistryMpackVersion> mpackVersions;
+
+  @Override
+  public String getMpackId() {
+    return id;
+  }
 
   @Override
   public String getMpackName() {
@@ -53,16 +58,13 @@ public class JsonRegistryMpack implements RegistryMpack {
   }
 
   @Override
-  public String getMpackDisplayName() {return displayName;}
-
-  @Override
   public String getMpackDescription() {
     return description;
   }
 
   @Override
-  public String getMpackLogoUrl() {
-    return logoUrl;
+  public String getMpackLogoUri() {
+    return logoUri;
   }
 
   @Override

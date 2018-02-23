@@ -123,7 +123,7 @@ public class AlertsDAOTest {
     // install YARN so there is at least 1 service installed and no
     // unexpected alerts since the test YARN service doesn't have any alerts
     m_cluster = m_clusters.getClusterById(m_helper.createCluster());
-    serviceGroup = m_cluster.addServiceGroup("CORE");
+    serviceGroup = m_cluster.addServiceGroup("CORE", "HDP-1.0");
     m_helper.initializeClusterWithStack(m_cluster);
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
     m_helper.installYarnService(m_cluster, m_serviceFactory,

@@ -316,6 +316,11 @@
     </file>
     <file>
       <fileMode>755</fileMode>
+      <source>target/classes/cluster-settings.xml</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-Postgres-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>

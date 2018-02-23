@@ -206,6 +206,7 @@ public class OrmTestHelper {
     ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
     serviceGroupEntity.setServiceGroupName(SERVICE_GROUP_NAME);
     serviceGroupEntity.setClusterEntity(clusterEntity);
+    serviceGroupEntity.setStack(stackEntity);
 
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
     clusterServiceEntity.setServiceType("HDFS");
@@ -415,7 +416,7 @@ public class OrmTestHelper {
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME);
+    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME, stackId.getStackId());
     cluster = initializeClusterWithStack(cluster);
 
     addHost(clusters, cluster, hostName);

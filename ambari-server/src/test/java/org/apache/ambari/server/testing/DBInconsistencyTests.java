@@ -91,7 +91,7 @@ public class DBInconsistencyTests {
     Assert.assertNotNull(clusterId);
 
     Cluster cluster = clusters.getCluster(OrmTestHelper.CLUSTER_NAME);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-1.0");
     Assert.assertNotNull(cluster);
 
     helper.addHost(clusters, cluster, "h1");

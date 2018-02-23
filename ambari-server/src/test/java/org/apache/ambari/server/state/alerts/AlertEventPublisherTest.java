@@ -298,7 +298,7 @@ public class AlertEventPublisherTest {
         cluster.getCurrentStackVersion(), REPO_VERSION);
 
     String serviceName = "HDFS";
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-1.0");
     serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
     Service service = cluster.getService(serviceName);
 

@@ -116,6 +116,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String STATE_PROPERTY_ID = "host_state";
   public static final String TOTAL_MEM_PROPERTY_ID = "total_mem";
   public static final String ATTRIBUTES_PROPERTY_ID = "attributes";
+  public static final String SUMMARY_PROPERTY_ID = "summary";
 
   public static final String HOST_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME_PROPERTY_ID;
   public static final String HOST_CPU_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CPU_COUNT_PROPERTY_ID;
@@ -139,7 +140,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String HOST_RECOVERY_SUMMARY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RECOVERY_SUMMARY_PROPERTY_ID;
   public static final String HOST_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + STATE_PROPERTY_ID;
   public static final String HOST_TOTAL_MEM_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_MEM_PROPERTY_ID;
-  public static final String HOST_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId(RESPONSE_KEY,ATTRIBUTES_PROPERTY_ID);
+  public static final String HOST_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId(RESPONSE_KEY, ATTRIBUTES_PROPERTY_ID);
 
   public static final String BLUEPRINT_PROPERTY_ID = "blueprint";
   public static final String HOST_GROUP_PROPERTY_ID = "host_group";
@@ -154,6 +155,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Host, HOST_HOST_NAME_PROPERTY_ID)
       .put(Resource.Type.Cluster, HOST_CLUSTER_NAME_PROPERTY_ID)
+      .put(Resource.Type.HostComponent, HOST_OS_TYPE_PROPERTY_ID)
       .build();
 
   /**
@@ -195,7 +197,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param managementController  the management controller
+   * @param managementController the management controller
    */
   @AssistedInject
   HostResourceProvider(@Assisted AmbariManagementController managementController) {
@@ -214,9 +216,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   @Override
   protected RequestStatus createResourcesAuthorized(final Request request)
       throws SystemException,
-          UnsupportedPropertyException,
-          ResourceAlreadyExistsException,
-          NoSuchParentResourceException {
+      UnsupportedPropertyException,
+      ResourceAlreadyExistsException,
+      NoSuchParentResourceException {
 
     RequestStatusResponse createResponse = null;
     if (isHostGroupRequest(request)) {
@@ -237,6 +239,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    return getHostResource(request, predicate);
+  }
+
+  private Set<Resource> getHostResource(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<>();
