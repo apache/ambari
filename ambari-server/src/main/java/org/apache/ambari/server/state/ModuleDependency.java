@@ -30,7 +30,7 @@ public class ModuleDependency {
     @SerializedName("INSTALL")
     INSTALL
   }
-  @SerializedName("dependencyType")
+  @SerializedName("type")
   private DependencyType dependencyType;
 
   public String getName() {

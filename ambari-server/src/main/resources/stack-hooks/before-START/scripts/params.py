@@ -34,6 +34,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -49,10 +50,10 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 # Whether to skip copying fast-hdfs-resource.jar to /var/lib/ambari-agent/lib/
 # This is required if tarballs are going to be copied to HDFS, so set to False
-sysprep_skip_copy_fast_jar_hdfs = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_copy_fast_jar_hdfs", False)
+sysprep_skip_copy_fast_jar_hdfs = host_sys_prepped and get_cluster_setting_value('sysprep_skip_copy_fast_jar_hdfs')
 
 # Whether to skip setting up the unlimited key JCE policy
-sysprep_skip_setup_jce = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_setup_jce", False)
+sysprep_skip_setup_jce = host_sys_prepped and get_cluster_setting_value('sysprep_skip_setup_jce')
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
@@ -79,7 +80,7 @@ create_lib_snappy_symlinks = False
 current_service = config['serviceName']
 
 #security params
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+security_enabled = get_cluster_setting_value('security_enabled')
 
 ambari_server_resources_url = default("/hostLevelParams/jdk_location", None)
 if ambari_server_resources_url is not None and ambari_server_resources_url.endswith('/'):
@@ -98,7 +99,7 @@ mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
 
-user_group = config['configurations']['cluster-env']['user_group']
+user_group = get_cluster_setting_value('user_group')
 
 #hosts
 hostname = config["hostname"]
@@ -292,7 +293,7 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
-smoke_user =  config['configurations']['cluster-env']['smokeuser']
+smoke_user =  get_cluster_setting_value('smokeuser')
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
 

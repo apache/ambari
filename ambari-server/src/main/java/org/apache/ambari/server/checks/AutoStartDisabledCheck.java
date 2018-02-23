@@ -36,7 +36,7 @@ import com.google.inject.Singleton;
 @Singleton
 @UpgradeCheck(
     group = UpgradeCheckGroup.CONFIGURATION_WARNING,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
 public class AutoStartDisabledCheck extends AbstractCheckDescriptor {
 
   static final String CLUSTER_ENV_TYPE = "cluster-env";

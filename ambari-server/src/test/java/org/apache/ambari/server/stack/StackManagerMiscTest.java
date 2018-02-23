@@ -143,45 +143,4 @@ public class StackManagerMiscTest  {
     verify(metaInfoDao, stackDao, actionMetadata, osFamily);
   }
 
-  /**
-   * This test ensures that service upgrade xml that creates circular dependencies
-   * will throw an exception.
-   */
-  @Test
-  public void testCircularDependencyForServiceUpgrade() throws Exception {
-    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
-    StackDAO stackDao = createNiceMock(StackDAO.class);
-    ExtensionDAO extensionDao = createNiceMock(ExtensionDAO.class);
-    ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
-    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
-    OsFamily osFamily = createNiceMock(OsFamily.class);
-    StackEntity stackEntity = createNiceMock(StackEntity.class);
-
-    expect(
-        stackDao.find(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
-
-    List<ExtensionLinkEntity> list = Collections.emptyList();
-    expect(
-        linkDao.findByStack(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
-
-    replay(metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata, osFamily);
-
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
-
-    try {
-      String upgradeCycle = ClassLoader.getSystemClassLoader().getResource("stacks_with_upgrade_cycle").getPath();
-      File stacksRoot = new File(upgradeCycle);
-      File resourcesRoot = new File(stacksRoot.getParent());
-
-      StackManager stackManager = new StackManager(resourcesRoot, stacksRoot, null, null, osFamily, false, false,
-          metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
-
-      fail("Expected exception due to cyclic service upgrade xml");
-    } catch (AmbariException e) {
-      // expected
-      assertEquals("Missing groups: [BAR, FOO]", e.getMessage());
-    }
-  }
 }

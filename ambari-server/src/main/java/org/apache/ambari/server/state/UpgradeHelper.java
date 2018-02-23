@@ -61,6 +61,7 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
@@ -301,7 +302,7 @@ public class UpgradeHelper {
     List<UpgradeGroupHolder> groups = new ArrayList<>();
 
     UpgradeGroupHolder previousGroupHolder = null;
-    for (Grouping group : upgradePack.getGroups(context.getDirection())) {
+    for (Grouping group : upgradePack.getGroups(Lifecycle.LifecycleType.UPGRADE, context.getDirection())) {
 
       // !!! grouping is not scoped to context
       if (!context.isScoped(group.scope)) {
@@ -337,7 +338,7 @@ public class UpgradeHelper {
 
       // NonRolling defaults to not performing service checks on a group.
       // Of course, a Service Check Group does indeed run them.
-      if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
+      if (upgradePack.getType() == UpgradeType.EXPRESS) {
         group.performServiceCheck = false;
       }
 
@@ -448,7 +449,7 @@ public class UpgradeHelper {
                       StringUtils.join(hostsType.getHosts(), ','), hostsType.getMasters(), hostsType.getSecondaries());
                 }
                 break;
-              case NON_ROLLING:
+              case EXPRESS:
                 boolean isNameNodeHA = mhr.isNameNodeHA();
                 if (isNameNodeHA && hostsType.hasMastersAndSecondaries()) {
                   // This could be any order, but the NameNodes have to know what role they are going to take.

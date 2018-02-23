@@ -143,7 +143,7 @@ public class ClusterDeadlockTest {
       clusters.mapHostToCluster(hostName, "c1");
     }
 
-    serviceGroup = cluster.addServiceGroup("CORE");
+    serviceGroup = cluster.addServiceGroup("CORE", "HDP-1.0");
     Service service = installService("HDFS", serviceGroup);
     addServiceComponent(service, "NAMENODE");
     addServiceComponent(service, "DATANODE");

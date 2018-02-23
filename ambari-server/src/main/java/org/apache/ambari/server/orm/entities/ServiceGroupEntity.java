@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,6 +32,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -70,6 +72,13 @@ public class ServiceGroupEntity {
   @Column(name = "service_group_name", nullable = false, insertable = true, updatable = true)
   private String serviceGroupName;
 
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private StackEntity stack;
+
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
@@ -96,13 +105,20 @@ public class ServiceGroupEntity {
     this.serviceGroupId = serviceGroupId;
   }
 
-
   public String getServiceGroupName() {
     return serviceGroupName;
   }
 
   public void setServiceGroupName(String serviceGroupName) {
     this.serviceGroupName = serviceGroupName;
+  }
+
+  public StackEntity getStack() {
+    return stack;
+  }
+
+  public void setStack(StackEntity stack) {
+    this.stack = stack;
   }
 
   public List<ServiceGroupDependencyEntity> getDependencies() {
@@ -131,15 +147,15 @@ public class ServiceGroupEntity {
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (serviceGroupName != null ? !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null)
       return false;
+    if (Long.valueOf(stack.getStackId()) != Long.valueOf(((ServiceGroupEntity) o).getStack().getStackId()))
+      return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = clusterId != null ? clusterId.intValue() : 0;
-    result = 31 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
-    return result;
+    return Objects.hash(serviceGroupId, clusterId, serviceGroupName, stack);
   }
 
   public ClusterEntity getClusterEntity() {

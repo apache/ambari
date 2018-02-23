@@ -59,10 +59,8 @@ import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
@@ -734,29 +732,6 @@ public class StackManagerTest {
     assertTrue(customMasterStartValues.contains("ZOOKEEPER_SERVER-START"));
     assertTrue(customMasterStartValues.contains("NAMENODE-START"));
 
-  }
-
-  /**
-   * Tests that {@link UpgradePack} and {@link ConfigUpgradePack} instances are correctly initialized
-   * post-unmarshalling.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testUpgradePacksInitializedAfterUnmarshalling() throws Exception {
-    StackInfo stack = stackManager.getStack("HDP", "2.2.0");
-    Map<String, UpgradePack> upgradePacks = stack.getUpgradePacks();
-    for (UpgradePack upgradePack : upgradePacks.values()) {
-      assertNotNull(upgradePack);
-      assertNotNull(upgradePack.getTasks());
-      assertTrue(upgradePack.getTasks().size() > 0);
-
-      // reference equality (make sure it's the same list)
-      assertTrue(upgradePack.getTasks() == upgradePack.getTasks());
-    }
-    ConfigUpgradePack configUpgradePack = stack.getConfigUpgradePack();
-    assertNotNull(configUpgradePack);
-    assertNotNull(configUpgradePack.services);
   }
 
   @Test

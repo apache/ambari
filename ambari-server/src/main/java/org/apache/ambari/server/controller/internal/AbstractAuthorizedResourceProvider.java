@@ -219,7 +219,7 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    */
   @Override
   public RequestStatus createResources(Request request)
-      throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+      throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException, IllegalArgumentException {
     Authentication authentication = AuthorizationHelper.getAuthentication();
 
     if (authentication == null || !authentication.isAuthenticated()) {
