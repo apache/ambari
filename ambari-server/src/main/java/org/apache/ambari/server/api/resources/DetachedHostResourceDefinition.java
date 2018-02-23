@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.api.query.render.HostSummaryRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
+import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
@@ -45,7 +46,7 @@ public class DetachedHostResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Renderer getRenderer(String name) {
-    if (name.equals("summary")) {
+    if (HostResourceProvider.SUMMARY_PROPERTY_ID.equals(name)) {
       return new HostSummaryRenderer();
     }
     return super.getRenderer(name);
