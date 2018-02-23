@@ -244,7 +244,12 @@
     .pre-scrollable {
       max-height: 440px;
       position: relative;
+      display: flex;
+      overflow-y: visible;
       #component_assign_table {
+        display: inline-block;
+        overflow-x: scroll;
+        margin-left: 190px;
         tbody td, th {
           white-space: nowrap;
         }
@@ -263,6 +268,21 @@
           line-height: 17px;
           font-size: 12px;
           top: 0px;
+        }
+        .freeze {
+          position: absolute;
+          left: 0px;
+          width: 210px;
+          border-top-color: #eee;
+          border-bottom: 1px solid #eee;
+        }
+        td.freeze {
+          padding-bottom: 11px;
+        }
+        tr.last-row {
+          td {
+            border-bottom: 2px solid #eee;
+          }
         }
       }
     }
