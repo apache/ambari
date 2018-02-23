@@ -26,7 +26,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.util.SSLUtil;
-import org.apache.commons.httpclient.auth.InvalidCredentialsException;
+import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
