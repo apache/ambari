@@ -162,9 +162,12 @@ App.MainAdminServiceGroupsController = Em.Controller.extend(App.LocalStorage, {
     }
   ],
 
+  // upgrade: null,
   upgrade: {
     id: "upgrade-1",
-    currentStep: "upgrade", //can be "prerequisites", "install", or "upgrade"
+    currentStep: "prerequisites", //can be "prerequisites", "install", or "upgrade"
+    //currentStep: "install", //can be "prerequisites", "install", or "upgrade"
+    //currentStep: "upgrade", //can be "prerequisites", "install", or "upgrade"
     history: [
       {
         name: "Event 1",

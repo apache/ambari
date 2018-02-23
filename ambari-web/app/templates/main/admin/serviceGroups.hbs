@@ -50,10 +50,12 @@
             {{view App.ServiceGroupView serviceGroupBinding="serviceGroup"}}
             {{/each}}
           </div>
-          <div id="upgrade-status">
-            <h3>{{t common.upgrade}}</h3>
-            {{view App.UpgradeStatusView upgradeBinding="controller.upgrade"}}
-          </div>
+          {{#if controller.upgrade}}
+            <div id="upgrade-status">
+              <h3>{{t common.upgrade}}</h3>
+              {{view App.UpgradeStatusView upgradeBinding="controller.upgrade"}}
+            </div>
+          {{/if}}
         </div>
         <div role="tabpanel" class="tab-pane" id="history">
           <div class="panel panel-default">
