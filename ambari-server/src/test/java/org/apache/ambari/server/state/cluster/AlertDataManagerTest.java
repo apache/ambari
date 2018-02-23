@@ -159,7 +159,7 @@ public class AlertDataManagerTest {
   }
 
   @Test
-  public void testAlertRecords() {
+  public void testAlertRecords() throws AmbariException {
     Alert alert1 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1,
         AlertState.OK);
     alert1.setLabel(ALERT_LABEL);

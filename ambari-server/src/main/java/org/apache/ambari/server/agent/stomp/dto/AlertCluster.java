@@ -30,21 +30,38 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AlertCluster {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlertCluster.class);
 
   private final Map<Long, AlertDefinition> alertDefinitions;
   private final String hostName;
+  private Integer staleIntervalMultiplier;
+
+  public AlertCluster(AlertDefinition alertDefinition, String hostName, Integer staleIntervalMultiplier) {
+    this(Collections.singletonMap(alertDefinition.getDefinitionId(), alertDefinition), hostName, staleIntervalMultiplier);
+  }
+
+  public AlertCluster(Map<Long, AlertDefinition> alertDefinitions, String hostName, Integer staleIntervalMultiplier) {
+    this.alertDefinitions = new HashMap<>(alertDefinitions);
+    this.hostName = hostName;
+    this.staleIntervalMultiplier = staleIntervalMultiplier;
+  }
 
   public AlertCluster(AlertDefinition alertDefinition, String hostName) {
-    this(Collections.singletonMap(alertDefinition.getDefinitionId(), alertDefinition), hostName);
+    this(Collections.singletonMap(alertDefinition.getDefinitionId(), alertDefinition), hostName, null);
   }
 
   public AlertCluster(Map<Long, AlertDefinition> alertDefinitions, String hostName) {
     this.alertDefinitions = new HashMap<>(alertDefinitions);
     this.hostName = hostName;
+    this.staleIntervalMultiplier = null;
+  }
+
+  @JsonProperty("staleIntervalMultiplier")
+  public Integer getStaleIntervalMultiplier() {
+    return staleIntervalMultiplier;
   }
 
   @JsonProperty("alertDefinitions")
@@ -58,10 +75,6 @@ public class AlertCluster {
   }
 
   public boolean handleUpdate(AlertDefinitionEventType eventType, AlertCluster update) {
-    if (update.alertDefinitions.isEmpty()) {
-      return false;
-    }
-
     boolean changed = false;
 
     switch (eventType) {
@@ -78,6 +91,11 @@ public class AlertCluster {
             AlertDefinition oldDefinition = alertDefinitions.put(definitionId, newDefinition);
             changed = changed || !oldDefinition.deeplyEquals(newDefinition);
           }
+        }
+        if (update.getStaleIntervalMultiplier() != null
+            && !update.getStaleIntervalMultiplier().equals(staleIntervalMultiplier)) {
+          staleIntervalMultiplier = update.getStaleIntervalMultiplier();
+          changed = true;
         }
         LOG.debug("Handled {} of {} alerts, changed = {}", eventType, update.alertDefinitions.size(), changed);
         break;

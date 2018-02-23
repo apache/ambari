@@ -41,8 +41,10 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
+import org.apache.ambari.server.state.alert.AlertHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +71,14 @@ public class AlertDefinitionsUIUpdateListener {
   private AlertDefinitionsHolder alertDefinitionsHolder;
 
   @Inject
+  private AlertHelper alertHelper;
+
+  @Inject
   public AlertDefinitionsUIUpdateListener(AmbariEventPublisher ambariEventPublisher) {
     ambariEventPublisher.register(this);
   }
+
+  public final static String AMBARI_STALE_ALERT_NAME = "ambari_server_stale_alerts";
 
   @Subscribe
   public void onAlertDefinitionRegistered(AlertDefinitionRegistrationEvent event) throws AmbariException {
@@ -131,6 +138,12 @@ public class AlertDefinitionsUIUpdateListener {
     for (String hostName : hosts) {
       alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(eventType, alertDefinition.getClusterId(),
           Collections.singletonMap(alertDefinition.getDefinitionId(), alertDefinition), hostName);
+    }
+    if (alertDefinition.getName().equals(AMBARI_STALE_ALERT_NAME)) {
+      for (Host host : clusters.get().getCluster(alertDefinition.getClusterId()).getHosts()) {
+        alertDefinitionsHolder.provideStaleAlertDefinitionUpdateEvent(eventType, alertDefinition.getClusterId(),
+            alertHelper.getWaitFactorMultiplier(alertDefinition), host.getHostName());
+      }
     }
     Map<Long, AlertCluster> update = Collections.singletonMap(alertDefinition.getClusterId(), new AlertCluster(alertDefinition, null));
     AlertDefinitionsUIUpdateEvent event = new AlertDefinitionsUIUpdateEvent(eventType, update);

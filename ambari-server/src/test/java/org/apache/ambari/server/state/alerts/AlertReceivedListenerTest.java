@@ -157,7 +157,7 @@ public class AlertReceivedListenerTest {
    * Tests that a disabled definition doesn't record alert events.
    */
   @Test
-  public void testDisabledAlert() {
+  public void testDisabledAlert() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String componentName = "DATANODE";
 
@@ -199,7 +199,7 @@ public class AlertReceivedListenerTest {
    * Tests an invalid host is being reported in an alert.
    */
   @Test
-  public void testInvalidHost() {
+  public void testInvalidHost() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String componentName = "DATANODE";
 
@@ -237,7 +237,7 @@ public class AlertReceivedListenerTest {
    * Tests that a disabled definition doesn't record alert events.
    */
   @Test
-  public void testInvalidAlertDefinition() {
+  public void testInvalidAlertDefinition() throws AmbariException {
     String componentName = "DATANODE";
 
     Alert alert = new Alert("missing_alert_definition_name", null, "HDFS",
@@ -261,7 +261,7 @@ public class AlertReceivedListenerTest {
    * Tests an invalid pairing of component to host.
    */
   @Test
-  public void testInvalidServiceComponentHost() {
+  public void testInvalidServiceComponentHost() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String componentName = "DATANODE";
 
@@ -346,7 +346,7 @@ public class AlertReceivedListenerTest {
    * Tests that an invalid host from a host-level agent alert is rejected.
    */
   @Test
-  public void testAgentAlertFromInvalidHost() {
+  public void testAgentAlertFromInvalidHost() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String serviceName = RootService.AMBARI.name();
     String componentName = RootComponent.AMBARI_AGENT.name();
@@ -385,7 +385,7 @@ public class AlertReceivedListenerTest {
    * Tests that an alert for AMBARI/AMBARI_SERVER is always valid.
    */
   @Test
-  public void testAmbariServerValidAlerts() {
+  public void testAmbariServerValidAlerts() throws AmbariException {
     String definitionName = AMBARI_ALERT_DEFINITION;
     String serviceName = RootService.AMBARI.name();
     String componentName = RootComponent.AMBARI_SERVER.name();
@@ -426,7 +426,7 @@ public class AlertReceivedListenerTest {
    * alert.
    */
   @Test
-  public void testMissingClusterAndInvalidHost() {
+  public void testMissingClusterAndInvalidHost() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String serviceName = RootService.AMBARI.name();
     String componentName = RootComponent.AMBARI_AGENT.name();
@@ -467,7 +467,7 @@ public class AlertReceivedListenerTest {
    * if there is currently no current alert.
    */
   @Test
-  public void testSkippedAlertWithNoCurrentAlert() {
+  public void testSkippedAlertWithNoCurrentAlert() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String serviceName = "HDFS";
     String componentName = "NAMENODE";
@@ -493,7 +493,7 @@ public class AlertReceivedListenerTest {
    * create an entry if there is currently no current alert.
    */
   @Test
-  public void testSkippedAlertUpdatesTimestampAndText() {
+  public void testSkippedAlertUpdatesTimestampAndText() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String serviceName = "HDFS";
     String componentName = "NAMENODE";
@@ -550,7 +550,7 @@ public class AlertReceivedListenerTest {
    * Tests that we correctly record alert occurance information.
    */
   @Test
-  public void testAlertOccurrences() {
+  public void testAlertOccurrences() throws AmbariException {
     String definitionName = ALERT_DEFINITION + "1";
     String serviceName = "HDFS";
     String componentName = "NAMENODE";
@@ -931,7 +931,11 @@ public class AlertReceivedListenerTest {
           alert.setTimestamp(System.currentTimeMillis());
 
           final AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
-          listener.onAlertEvent(event);
+          try {
+            listener.onAlertEvent(event);
+          } catch (AmbariException e) {
+            e.printStackTrace();
+          }
         }
       };
 

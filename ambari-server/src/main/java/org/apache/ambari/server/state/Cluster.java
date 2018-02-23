@@ -147,6 +147,14 @@ public interface Cluster {
    */
   Host getHost(String hostName);
 
+  /**
+   * Get specific host info using host id.
+   *
+   * @param hostId the host id
+   * @return Host info {@link Host}
+   */
+  Host getHost(Long hostId);
+
 
   /**
    * Adds schs to cluster AND persists them

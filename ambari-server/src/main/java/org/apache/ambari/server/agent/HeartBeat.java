@@ -36,6 +36,9 @@ public class HeartBeat {
   @com.fasterxml.jackson.annotation.JsonProperty("id")
   private long responseId = -1;
 
+  @com.fasterxml.jackson.annotation.JsonProperty("staleAlerts")
+  private List<StaleAlert> staleAlerts = new ArrayList<>();
+
   private long timestamp;
   private String hostname;
   List<CommandReport> reports = new ArrayList<>();
@@ -155,6 +158,10 @@ public class HeartBeat {
 
   public void setAlerts(List<Alert> alerts) {
     this.alerts = alerts;
+  }
+
+  public List<StaleAlert> getStaleAlerts() {
+    return staleAlerts;
   }
 
   @Override

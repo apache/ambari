@@ -75,6 +75,7 @@ class HeartbeatThread(threading.Thread):
     ]
     self.responseId = 0
     self.file_cache = initializer_module.file_cache
+    self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
 
 
   def run(self):
@@ -191,8 +192,21 @@ class HeartbeatThread(threading.Thread):
   def get_heartbeat_body(self):
     """
     Heartbeat body to be send to server
+
+    Heartbeat should as lightweight as possible.
+    It purposes only connectivity and health check (whether all threads are ran correctly aka. stale_alerts, stale_component_status).
+    Putting anything in heartbeat poses a problem for big clusters (e.g. 5K nodes) as heartbeats are sent often.
+
+    Please use other event threads to send information.
     """
-    return {'id':self.responseId}
+    body = {'id':self.responseId}
+
+    stale_alerts = self.stale_alerts_monitor.get_stale_alerts()
+    if stale_alerts:
+      body['staleAlerts'] = stale_alerts
+
+    return body
+
 
   def establish_connection(self):
     """

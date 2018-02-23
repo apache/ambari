@@ -30,7 +30,7 @@ import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.ambari.server.state.alert.AlertHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +75,9 @@ public abstract class AlertRunnable implements Runnable {
    */
   @Inject
   private AlertEventPublisher m_alertEventPublisher;
+
+  @Inject
+  protected AlertHelper alertHelper;
 
   /**
    * Constructor.
@@ -134,34 +137,6 @@ public abstract class AlertRunnable implements Runnable {
     } catch (Exception exception) {
       LOG.error("Unable to run the {} alert", m_definitionName, exception);
     }
-  }
-
-  /**
-   * Converts the given value to an integer safely.
-   *
-   * @param value
-   * @param defaultValue
-   * @return
-   */
-  int getThresholdValue(Object value, int defaultValue) {
-    if (null == value) {
-      return defaultValue;
-    }
-
-    if (value instanceof Number) {
-      return ((Number) value).intValue();
-    }
-
-    if (!(value instanceof String)) {
-      value = value.toString();
-    }
-
-    if (!NumberUtils.isNumber((String) value)) {
-      return defaultValue;
-    }
-
-    Number number = NumberUtils.createNumber((String) value);
-    return number.intValue();
   }
 
   /**

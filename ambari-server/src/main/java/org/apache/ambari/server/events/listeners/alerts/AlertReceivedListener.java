@@ -50,10 +50,13 @@ import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.alert.AlertHelper;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +109,9 @@ public class AlertReceivedListener {
   @Inject
   private Provider<MaintenanceStateHelper> m_maintenanceStateHelper;
 
+  @Inject
+  private AlertHelper alertHelper;
+
   /**
    * Receives and publishes {@link AlertEvent} instances.
    */
@@ -137,7 +143,7 @@ public class AlertReceivedListener {
   @Subscribe
   @AllowConcurrentEvents
   @RequiresSession
-  public void onAlertEvent(AlertReceivedEvent event) {
+  public void onAlertEvent(AlertReceivedEvent event) throws AmbariException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
@@ -239,6 +245,7 @@ public class AlertReceivedListener {
           current.setAlertHistory(history);
           current.setLatestTimestamp(alert.getTimestamp());
           current.setOriginalTimestamp(alert.getTimestamp());
+          clearStaleAlerts(alert.getHostName(), definition.getDefinitionId());
 
           // brand new alert instances being received are always HARD
           current.setFirmness(AlertFirmness.HARD);
@@ -256,6 +263,7 @@ public class AlertReceivedListener {
 
         // update the timestamp no matter what
         current.setLatestTimestamp(alert.getTimestamp());
+        clearStaleAlerts(alert.getHostName(), definition.getDefinitionId());
 
         // only update some fields if the alert isn't SKIPPED
         if (alertState != AlertState.SKIPPED) {
@@ -314,6 +322,8 @@ public class AlertReceivedListener {
         current.setLatestTimestamp(alert.getTimestamp());
         current.setOriginalTimestamp(alert.getTimestamp());
         current.setLatestText(alert.getText());
+
+        clearStaleAlerts(alert.getHostName(), definition.getDefinitionId());
 
         current.setAlertHistory(history);
 
@@ -375,6 +385,18 @@ public class AlertReceivedListener {
     }
     if (!alertUpdates.isEmpty()) {
       stateUpdateEventPublisher.publish(new AlertUpdateEvent(alertUpdates));
+    }
+  }
+
+  private void clearStaleAlerts(String hostName, Long definitionId) throws AmbariException {
+    if (StringUtil.isNotBlank(hostName)) {
+      Host host = m_clusters.get().getHosts().stream().filter(h -> h.getHostName().equals(hostName))
+          .findFirst().orElse(null);
+      if (host != null) {
+        alertHelper.clearStaleAlert(host.getHostId(), definitionId);
+      }
+    } else {
+      alertHelper.clearStaleAlert(definitionId);
     }
   }
 

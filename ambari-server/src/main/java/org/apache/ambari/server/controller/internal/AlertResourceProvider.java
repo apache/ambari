@@ -68,6 +68,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   public static final String ALERT_ID = "Alert/id";
   public static final String ALERT_STATE = "Alert/state";
   public static final String ALERT_ORIGINAL_TIMESTAMP = "Alert/original_timestamp";
+  // TODO remove after UI-side fix
   public static final String ALERT_LATEST_TIMESTAMP = "Alert/latest_timestamp";
   public static final String ALERT_MAINTENANCE_STATE = "Alert/maintenance_state";
   public static final String ALERT_DEFINITION_ID = "Alert/definition_id";
@@ -118,6 +119,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     PROPERTY_IDS.add(ALERT_DEFINITION_ID);
     PROPERTY_IDS.add(ALERT_DEFINITION_NAME);
     PROPERTY_IDS.add(ALERT_CLUSTER_NAME);
+    // TODO remove after UI-side fix
     PROPERTY_IDS.add(ALERT_LATEST_TIMESTAMP);
     PROPERTY_IDS.add(ALERT_MAINTENANCE_STATE);
     PROPERTY_IDS.add(ALERT_INSTANCE);
@@ -260,6 +262,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     Resource resource = new ResourceImpl(Resource.Type.Alert);
     setResourceProperty(resource, ALERT_CLUSTER_NAME, clusterName, requestedIds);
     setResourceProperty(resource, ALERT_ID, entity.getAlertId(), requestedIds);
+    // TODO remove after UI-side fix
     setResourceProperty(resource, ALERT_LATEST_TIMESTAMP, entity.getLatestTimestamp(), requestedIds);
     setResourceProperty(resource, ALERT_MAINTENANCE_STATE, entity.getMaintenanceState(), requestedIds);
     setResourceProperty(resource, ALERT_ORIGINAL_TIMESTAMP, entity.getOriginalTimestamp(), requestedIds);
