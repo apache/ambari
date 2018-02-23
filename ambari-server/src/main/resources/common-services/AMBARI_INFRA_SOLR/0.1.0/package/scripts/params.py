@@ -91,10 +91,10 @@ zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
 # get comma separated list of zookeeper hosts from clusterHostInfo
 index = 0
 zookeeper_quorum = ""
-for host in config['clusterHostInfo']['zookeeper_hosts']:
+for host in config['clusterHostInfo']['zookeeper_server_hosts']:
   zookeeper_quorum += host + ":" + str(zookeeper_port)
   index += 1
-  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
+  if index < len(config['clusterHostInfo']['zookeeper_server_hosts']):
     zookeeper_quorum += ","
 
 if "infra-solr-env" in config['configurations']:
