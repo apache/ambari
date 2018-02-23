@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -565,53 +563,6 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid3, "HDF-2.1"));
   }
 
-  private void testGPLRepoCheck(RepositoryVersionEntity repositoryVersionEntity) throws NoSuchMethodException,
-      InvocationTargetException, IllegalAccessException {
-    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class)
-        .getRepositoryVersionResourceProvider();
-
-    Method validateGPLRepoMethod = RepositoryVersionResourceProvider.class.getDeclaredMethod("validateGPLRepoPresence",
-        RepositoryVersionEntity.class);
-    validateGPLRepoMethod.setAccessible(true);
-    validateGPLRepoMethod.invoke(provider, repositoryVersionEntity);
-  }
-
-  @Test
-  public void testGPLRepoCheckWithUnsatisfiedGPLRepoRequirement() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    RepositoryVersionEntity repositoryVersionEntity = new RepositoryVersionEntity();
-    repositoryVersionEntity.setOperatingSystems("[{\"repositories\":[],\"OperatingSystems/os_type\":\"debian7\"}]");
-
-    // check should not be failed for no-HDP stack
-    StackEntity hdpStackEntity = new StackEntity();
-    hdpStackEntity.setStackName("NOTHDP");
-    repositoryVersionEntity.setStack(hdpStackEntity);
-    testGPLRepoCheck(repositoryVersionEntity);
-
-    // should be failed for HDP only
-    hdpStackEntity.setStackName("HDP");
-    try {
-      testGPLRepoCheck(repositoryVersionEntity);
-    } catch (InvocationTargetException e) {
-      Assert.assertTrue(e.getTargetException() instanceof AmbariException);
-    }
-  }
-
-  @Test
-  public void testGPLRepoCheckWithSatisfiedGPLRepoRequirement() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    RepositoryVersionEntity newRepositoryVersion = new RepositoryVersionEntity();
-    StackEntity hdpStackEntity = new StackEntity();
-    hdpStackEntity.setStackName("HDP");
-    newRepositoryVersion.setStack(hdpStackEntity);
-    newRepositoryVersion.setOperatingSystems("[{\"repositories\":[{\"Repositories/repo_id\":\"\"" +
-        ",\"Repositories/tags\":[\"GPL\"],\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"\"}" +
-        ",{\"Repositories/repo_id\":\"\",\"Repositories/tags\":[],\"Repositories/base_url\":\"\"" +
-        ",\"Repositories/repo_name\":\"\"}],\"OperatingSystems/os_type\":\"debian7\"}]");
-
-    testGPLRepoCheck(newRepositoryVersion);
-
-    hdpStackEntity.setStackName("NOTHDP");
-    testGPLRepoCheck(newRepositoryVersion);
-  }
 
   @After
   public void after() throws AmbariException, SQLException {
