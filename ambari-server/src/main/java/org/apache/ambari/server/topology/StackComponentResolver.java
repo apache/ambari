@@ -36,10 +36,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 
-/**
- * Resolves all incompletely specified host group components in the topology:
- * finds stack and/or service type that each component is defined in.
- */
 public class StackComponentResolver implements ComponentResolver {
 
   private static final Logger LOG = LoggerFactory.getLogger(StackComponentResolver.class);

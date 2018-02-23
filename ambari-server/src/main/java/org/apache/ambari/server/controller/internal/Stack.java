@@ -597,6 +597,7 @@ public class Stack implements StackDefinition {
     excludedConfigurationTypes.put(stackServiceResponse.getName(), stackServiceResponse.getExcludedConfigTypes());
   }
 
+  //todo: This information should be specified in the stack definition.
   private void registerConditionalDependencies() {
     dbDependencyInfo.put("MYSQL_SERVER", "global/hive_database");
   }

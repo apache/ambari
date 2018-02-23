@@ -92,6 +92,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
@@ -352,12 +353,8 @@ public class AmbariContext {
   // FIXME temporarily add default cluster settings -- should be provided by ClusterImpl itself
   private void addDefaultClusterSettings(String clusterName) throws AmbariException {
     Cluster cluster = getController().getClusters().getCluster(clusterName);
-    Set<Pair<String, String>> properties = getController().getAmbariMetaInfo().getClusterProperties().stream()
-      .map(p -> Pair.of(p.getName(), p.getValue()))
-      .collect(toSet());
-
-    for (Pair<String, String> p : properties) {
-      cluster.addClusterSetting(p.getKey(), p.getValue());
+    for (PropertyInfo p : getController().getAmbariMetaInfo().getClusterProperties()) {
+      cluster.addClusterSetting(p.getName(), p.getValue());
     }
   }
 

@@ -74,17 +74,8 @@ public class GplPropertiesValidator implements TopologyValidator {
     Map<String, Map<String, String>> clusterConfigurations = topology.getConfiguration().getProperties();
 
     if (clusterConfigurations != null) {
-      for (Map.Entry<String, Map<String, String>> configEntry : clusterConfigurations.entrySet()) {
-        String configType = configEntry.getKey();
-        if (!CORE_SITE.equals(configType)) {
-          continue;
-        }
-
-        Map<String, String> properties = configEntry.getValue();
-        if (properties == null) {
-          continue;
-        }
-
+      Map<String, String> properties = clusterConfigurations.get(CORE_SITE);
+      if (properties != null) {
         for (String propertyName : PROPERTY_NAMES) {
           String propertyValue = properties.get(propertyName);
           if (propertyValue != null && propertyValue.contains(LZO_CODEC_CLASS)) {
