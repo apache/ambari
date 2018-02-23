@@ -123,6 +123,16 @@ limitations under the License.
       <artifactId>flume-ng-core</artifactId>
       <version>1.5.1</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>libthrift</artifactId>
+          <groupId>org.apache.thrift</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jetty-util</artifactId>
+          <groupId>org.mortbay.jetty</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
