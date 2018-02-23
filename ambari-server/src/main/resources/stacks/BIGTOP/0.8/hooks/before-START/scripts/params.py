@@ -63,7 +63,7 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 hs_host = default("/clusterHostInfo/hs_host", [])
 jtnode_host = default("/clusterHostInfo/jtnode_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
-zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
+zk_hosts = default("/clusterHostInfo/zookeeper_server_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 
 has_namenode = not len(namenode_host) == 0
