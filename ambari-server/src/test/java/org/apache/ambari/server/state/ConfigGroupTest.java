@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state;
 
+import static java.util.stream.Collectors.joining;
+
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,11 +29,17 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.junit.After;
@@ -54,6 +62,9 @@ public class ConfigGroupTest {
   private ConfigFactory configFactory;
   private ConfigGroupDAO configGroupDAO;
   private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
+  private ClusterDAO clusterDAO;
+  private ClusterServiceDAO clusterServiceDAO;
+  private ServiceGroupDAO serviceGroupDAO;
 
   @Before
   public void setup() throws Exception {
@@ -65,6 +76,9 @@ public class ConfigGroupTest {
     configGroupDAO = injector.getInstance(ConfigGroupDAO.class);
     configGroupHostMappingDAO = injector.getInstance
       (ConfigGroupHostMappingDAO.class);
+    clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+    clusterDAO = injector.getInstance(ClusterDAO.class);
+    serviceGroupDAO = injector.getInstance(ServiceGroupDAO.class);
 
     StackId stackId = new StackId("HDP-0.1");
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
@@ -105,7 +119,21 @@ public class ConfigGroupTest {
     configs.put(config.getType(), config);
     hosts.put(host.getHostId(), host);
 
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, 1L, 1L, "HDFS", "", "New HDFS configs for h1", configs, hosts);
+    ClusterEntity clusterEntity = clusterDAO.findByName("foo");
+
+    ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
+    serviceGroupEntity.setClusterEntity(clusterEntity);
+    serviceGroupEntity.setServiceGroupName("default");
+    serviceGroupDAO.create(serviceGroupEntity);
+
+    ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
+    clusterServiceEntity.setClusterEntity(clusterEntity);
+    clusterServiceEntity.setServiceGroupEntity(serviceGroupEntity);
+    clusterServiceEntity.setServiceName("HDFS");
+    clusterServiceEntity.setServiceType("HDFS");
+    clusterServiceDAO.create(clusterServiceEntity);
+
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, 1L, clusterServiceEntity.getServiceId(), "cg-test", "HDFS", "New HDFS configs for h1", configs, hosts);
 
     cluster.addConfigGroup(configGroup);
     return configGroup;
