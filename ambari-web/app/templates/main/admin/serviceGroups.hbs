@@ -32,7 +32,7 @@
       <div class="dropdown pull-right">
         <button class="btn btn-primary dropdown-toggle" type="button" id="actions-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Actions&nbsp;<span class="caret"></span></button>
         <ul class="dropdown-menu" aria-labelledby="actions-menu">
-          <li><a href="#" {{action handleCreateUpgradePlan target="view"}}><i class="icon-arrow-up"></i>&nbsp;{{t admin.serviceGroups.createUpgradePlan}}</a></li>
+          <li><a href="#" {{bindAttr class="view.canCreatePlan::disabled"}} {{action handleCreateUpgradePlan target="view"}}><i class="icon-arrow-up"></i>&nbsp;{{t admin.serviceGroups.createUpgradePlan}}</a></li>
           <li><a href="#"><i class="icon-plus"></i>&nbsp;{{t admin.serviceGroups.addServiceGroup}}</a></li>
           <li><a href="#"><i class="icon-trash"></i>&nbsp;{{t admin.serviceGroups.removeOldVersions}}</a></li>
           <li><a href="#"><i class="icon-book"></i>&nbsp;{{t common.documentation}}</a></li>
@@ -45,9 +45,15 @@
     <div class="col-xs-12">
       <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="mpacks">
-          {{#each serviceGroup in controller.serviceGroups}}
-          {{view App.ServiceGroupView serviceGroupBinding="serviceGroup"}}
-          {{/each}}
+          <div id="serviceGroups">
+            {{#each serviceGroup in controller.serviceGroups}}
+            {{view App.ServiceGroupView serviceGroupBinding="serviceGroup"}}
+            {{/each}}
+          </div>
+          <div id="upgrade-status">
+            <h3>{{t common.upgrade}}</h3>
+            {{view App.UpgradeStatusView upgradeBinding="controller.upgrade"}}
+          </div>
         </div>
         <div role="tabpanel" class="tab-pane" id="history">
           <div class="panel panel-default">

@@ -20,22 +20,22 @@
 <div id="start-upgrade-plan">
   <h3>{{t admin.serviceGroups.startUpgradePlan.title}}</h3>
   <p id="description">{{t admin.serviceGroups.startUpgradePlan.description}}</p>
-  <ol>
+  <ol class="upgrade-steps">
     <li>
-      <h4>{{t admin.serviceGroups.startUpgradePlan.step1Title}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.step1Description}}</p>
+      <h4>{{t admin.serviceGroups.upgrade.upgradePlan}}</h4>
+      <p>{{t admin.serviceGroups.startUpgradePlan.upgradePlanDescription}}</p>
     </li>
     <li>
-      <h4>{{t admin.serviceGroups.startUpgradePlan.step2Title}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.step2Description}}</p>
+      <h4>{{t common.prerequisites}}</h4>
+      <p>{{t admin.serviceGroups.startUpgradePlan.prerequisitesDescription}}</p>
     </li>
     <li>
-      <h4>{{t admin.serviceGroups.startUpgradePlan.step3Title}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.step3Description}}</p>
+      <h4>{{t common.install}}</h4>
+      <p>{{t admin.serviceGroups.startUpgradePlan.installDescription}}</p>
     </li>
     <li>
-      <h4>{{t admin.serviceGroups.startUpgradePlan.step4Title}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.step4Description}}</p>
+      <h4>{{t common.upgrade}}</h4>
+      <p>{{t admin.serviceGroups.startUpgradePlan.upgradeDescription}}</p>
     </li>
   </ol>
   <button type="button" class="btn-lg btn-primary" {{action createUpgradePlan target="view"}}>{{t admin.serviceGroups.startUpgradePlan.buttonLabel}}</button>

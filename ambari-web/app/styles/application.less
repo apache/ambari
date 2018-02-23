@@ -2573,6 +2573,7 @@ a.abort-icon:hover {
   border-radius: 12px;
   border: none;
   outline: none;
+  white-space: nowrap;
   
   &:hover {
     background-color: #ccc;
@@ -2912,51 +2913,141 @@ td .no-data {
     margin-right: auto;
     color: #999;
   }
+}
 
-  ol {
-    display: flex;
-    justify-content: space-around;
-    margin: 40px auto;
-    counter-reset: items;
-    
-    li {
-      list-style-type: none;
-      width: 225px;
-      margin: 20px 15px;
-      margin-bottom: 0;
-      color: #999;
+.upgrade-steps {
+  display: flex;
+  justify-content: space-around;
+  margin: 40px auto;
+  counter-reset: items;
+  
+  li {
+    list-style-type: none;
+    width: 225px;
+    margin: 20px 15px;
+    margin-bottom: 0;
+    color: #999;
+    text-align: center;
+    border-color: #999;
+
+    h4 {
+      color: inherit;
+    }
+
+    &:before {
+      display: block;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 20px;
+      height: 30px;
+      width: 30px;
+      counter-increment: items;
+      content: counter(items);
+      border-color: inherit;
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 100%;
+      font-size: 20px;
+      line-height: 28px;
+    }
+
+    &:not(:last-child):after {
+      width: ~"calc(100% + 1px)";
+      height: 1px;
+      background-color: #999;
+      content: "";
+      position: relative;
+      display: block;
+      bottom: 138px;
+      left: 123px;
+    }
+
+    &.active {
+      color: #3fae2a;
+      border-color: #3fae2a;
+
+      &:before {
+        color: #fff;
+        background-color: #3fae2a;
+      }
+    }
+
+    &.complete {
+      color: #3fae2a;
+      border-color: #3fae2a;
 
       h4 {
         color: #333;
       }
 
       &:before {
-        display: block;
-        position: relative;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 20px;
-        height: 30px;
-        width: 30px;
-        counter-increment: items;
-        content: counter(items);
-        border: #999 1px solid;
-        border-radius: 100%;
-        font-size: 20px;
-        line-height: 28px;
+        color: inherit;
+        font-family: "Glyphicons Halflings";
+        content: "\e013";
+        font-size: 18px;
+      }
+
+      &:after {
+        background-color: #3fae2a;
+      }
+    }
+  }
+}
+
+#upgrade-status {
+  .upgrade-steps {
+    margin: 0 -45px;
+    padding: 0;
+
+    li {
+      margin: 0 15px;
+
+      h4 {
+        margin-bottom: 0;
+      }
+
+      &:before {
+        bottom: 0;
       }
 
       &:not(:last-child):after {
-        width: ~"calc(100% + 1px)";
-        height: 1px;
-        background-color: #999;
-        content: "";
-        position: relative;
-        display: block;
-        bottom: 138px;
-        left: 123px;
+        bottom: 44px;
+        left: 128px;
       }
-    }
+    }  
+  }
+}
+
+#upgrade-status-header {
+  display: flex;
+  align-items: center;
+
+  button {
+    width: 200px;
+  }
+}
+
+#upgrade-status-body {
+  margin: 0 -15px;
+  display: flex;
+  
+  > * {
+    //width: ~"calc(50% - 32px)";
+    margin: 0 15px;
+    //float: left;
+  }
+  
+  #plan-history {
+    flex: 2 1 60%;
+  }
+  
+  #plan-mpacks {
+    flex-grow: 1 1 40%;
+  }
+  
+  table {
+    background: inherit;
   }
 }
 
