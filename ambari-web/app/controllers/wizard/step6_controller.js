@@ -381,9 +381,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       masterHostNamesMap = masterHostNames.toWickMap(),
       hosts = this.get('isAddHostWizard') ? this.getNewHosts() : this.getAllHosts();
 
+    var i = 1;
     hosts.mapProperty('hostName').forEach(function (_hostName) {
       var hasMaster = masterHostNamesMap[_hostName];
-
       var obj = {
         hostName: _hostName,
         hasMaster: hasMaster,
@@ -397,7 +397,8 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
             uId: _hostName + '-checkbox-' + index,
             dataQaAttr: header.name === 'CLIENT' ? 'client-component' : ''
           };
-        })
+        }),
+        isLast: i === hosts.length ? true : false
       };
 
       if (hasMaster) {
@@ -405,6 +406,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       } else {
         hostsObj.pushObject(obj);
       }
+      i++;
     });
     //hosts with master components should be in the beginning of list
     hostsObj.unshift.apply(hostsObj, masterHosts);
