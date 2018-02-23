@@ -58,6 +58,11 @@ class BaseAlert(object):
       interval = self.alert_meta['interval']
       return 1 if interval < 1 else interval
 
+  def get_definition_id(self):
+    """
+    gets the id of definition (a number)
+    """
+    return self.alert_meta['definitionId']
 
   def is_enabled(self):
     """
@@ -151,6 +156,7 @@ class BaseAlert(object):
     data['name'] = self._get_alert_meta_value_safely('name')
     data['clusterId'] = self.cluster_id
     data['timestamp'] = long(time.time() * 1000)
+    data['definitionId'] = self.get_definition_id()
 
     try:
       data['state'] = res[0]

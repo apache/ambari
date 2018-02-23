@@ -34,10 +34,15 @@ import org.apache.ambari.server.events.AlertDefinitionEventType;
 import org.apache.ambari.server.events.AlertDefinitionsAgentUpdateEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
+import org.apache.ambari.server.events.listeners.alerts.AlertDefinitionsUIUpdateListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
+import org.apache.ambari.server.state.alert.AlertHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +61,15 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
   private Provider<Clusters> clusters;
 
   @Inject
+  private AlertDefinitionDAO alertDefinitionDAO;
+
+  @Inject
+  private AlertHelper alertHelper;
+
+  @Inject
+  private AlertDefinitionFactory alertDefinitionFactory;
+
+  @Inject
   public AlertDefinitionsHolder(AmbariEventPublisher eventPublisher) {
     eventPublisher.register(this);
   }
@@ -69,7 +83,11 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
     for (Map.Entry<Long, Map<Long, AlertDefinition>> e : alertDefinitions.entrySet()) {
       Long clusterId = e.getKey();
       Map<Long, AlertDefinition> definitionMap = e.getValue();
-      result.put(clusterId, new AlertCluster(definitionMap, hostName));
+
+      AlertDefinitionEntity ambariStaleAlert = alertDefinitionDAO.findByName(clusterId, AlertDefinitionsUIUpdateListener.AMBARI_STALE_ALERT_NAME);
+      Integer staleIntervalMultiplier = alertHelper.getWaitFactorMultiplier(alertDefinitionFactory.coerce(ambariStaleAlert));
+
+      result.put(clusterId, new AlertCluster(definitionMap, hostName, staleIntervalMultiplier));
       count += definitionMap.size();
     }
     LOG.info("Loaded {} alert definitions for {} clusters for host {}", count, result.size(), hostName);
@@ -160,6 +178,14 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
                                                      Map<Long, AlertDefinition> alertDefinitions, String hostName) throws AmbariException {
     Long hostId = clusters.get().getHost(hostName).getHostId();
     Map<Long, AlertCluster> update = Collections.singletonMap(clusterId, new AlertCluster(alertDefinitions, hostName));
+    AlertDefinitionsAgentUpdateEvent event = new AlertDefinitionsAgentUpdateEvent(eventType, update, hostName, hostId);
+    safelyUpdateData(event);
+  }
+
+  public void provideStaleAlertDefinitionUpdateEvent(AlertDefinitionEventType eventType, Long clusterId,
+                                                     Integer staleIntervalMultiplier, String hostName) throws AmbariException {
+    Long hostId = clusters.get().getHost(hostName).getHostId();
+    Map<Long, AlertCluster> update = Collections.singletonMap(clusterId, new AlertCluster(Collections.emptyMap(), hostName, staleIntervalMultiplier));
     AlertDefinitionsAgentUpdateEvent event = new AlertDefinitionsAgentUpdateEvent(eventType, update, hostName, hostId);
     safelyUpdateData(event);
   }

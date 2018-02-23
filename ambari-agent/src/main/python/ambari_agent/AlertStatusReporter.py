@@ -38,6 +38,7 @@ class AlertStatusReporter(threading.Thread):
     self.collector = initializer_module.alert_scheduler_handler.collector()
     self.stop_event = initializer_module.stop_event
     self.alert_reports_interval = initializer_module.config.alert_reports_interval
+    self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
     self.reported_alerts = defaultdict(lambda:defaultdict(lambda:[]))
     threading.Thread.__init__(self)
 
@@ -53,6 +54,8 @@ class AlertStatusReporter(threading.Thread):
       try:
         if self.initializer_module.is_registered:
           alerts = self.collector.alerts()
+          self.stale_alerts_monitor.save_executed_alerts(alerts)
+
           changed_alerts = self.get_changed_alerts(alerts)
 
           if changed_alerts and self.initializer_module.is_registered:
