@@ -2213,6 +2213,23 @@ List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();    String serviceN
   }
 
   @Override
+  public Host getHost(final Long hostId) {
+    if (hostId == null) {
+      return null;
+    }
+
+    Collection<Host> hosts = getHosts();
+    if(hosts != null) {
+      for (Host host : hosts) {
+        if(hostId.equals(host.getHostId())) {
+          return host;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Collection<Host> getHosts() {
     Map<String, Host> hosts;
 
