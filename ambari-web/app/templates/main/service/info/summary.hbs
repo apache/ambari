@@ -50,7 +50,7 @@
   <ul class="nav nav-tabs">
     {{#each group in view.mastersObj}}
       <li {{bindAttr class="group.isActive:active"}}>
-        <a href="#" {{action setActiveComponentGroup group.title target="view"}}>{{group.title}}</a>
+        <a href="#" {{action setActiveComponentGroup group.name target="view"}}>{{group.title}}</a>
       </li>
     {{/each}}
   </ul>

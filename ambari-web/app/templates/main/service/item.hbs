@@ -32,53 +32,32 @@
       <ul class="pull-right dropdown-menu">
         <!-- dropdown menu links -->
 
-        <!-- Start/Stop service actions -->
-        {{#isAuthorized "SERVICE.START_STOP"}}
-        {{#unless controller.isClientsOnlyService}}
-          <li {{bindAttr class="controller.isStartDisabled:disabled"}}>
-            <a href="javascript:void(null)" {{bindAttr class="controller.isStartDisabled:disabled" }}
-              {{action "startService" target="controller"}}>
-              <i {{bindAttr class=":glyphicon :glyphicon-play controller.isStartDisabled:disabled:enabled" }}></i>
-              {{t services.service.start}}
-            </a>
-          </li>
-          <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
-            <a href="javascript:void(null)" {{bindAttr class="controller.isStopDisabled:disabled" }}
-              data-toggle="modal" {{action "stopService" target="controller"}}>
-              <i {{bindAttr class=":glyphicon :glyphicon-stop controller.isStopDisabled:disabled:enabled" }}></i>
-              {{t services.service.stop}}
-            </a>
-          </li>
-        {{/unless}}
-        {{/isAuthorized}}
-        {{#isAuthorized "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA"}}
-          {{#if view.maintenance.length}}
-            <!-- Other service actions -->
-            {{#each option in view.maintenance}}
-              {{#unless option.isHidden}}
-                <li {{bindAttr class="option.disabled option.hasSubmenu:dropdown-submenu option.hasSubmenu:submenu-left"}}>
-                  <a {{action "doAction" option target="controller" href=true}} {{bindAttr data-title="option.tooltip"}} rel="HealthTooltip">
-                      <i {{bindAttr class="option.cssClass"}}></i>
-                      {{option.label}}
-                  </a>
-                  {{#if option.hasSubmenu}}
-                    <div class="dropdown-menu-wrap">
-                      <ul class="dropdown-menu">
-                        {{#each item in option.submenuOptions}}
-                          <li>
-                            <a {{action "doAction" item target="controller" href=true}}>{{item.context.label}}</a>
-                          </li>
-                        {{/each}}
-                      </ul>
-                    </div>
-                  {{/if}}
-                </li>
-              {{/unless}}
-            {{/each}}
-          {{else}}
-            {{view App.SpinnerView classNames="service-button-spinner"}}
-          {{/if}}
-        {{/isAuthorized}}
+        {{#if view.maintenance.length}}
+          <!-- Service actions -->
+          {{#each option in view.maintenance}}
+            {{#unless option.isHidden}}
+              <li {{bindAttr class="option.disabled option.hasSubmenu:dropdown-submenu option.hasSubmenu:submenu-left"}}>
+                <a {{action "doAction" option target="controller" href=true}} {{bindAttr data-title="option.tooltip"}} rel="HealthTooltip">
+                  <i {{bindAttr class="option.cssClass"}}></i>
+                  {{option.label}}
+                </a>
+                {{#if option.hasSubmenu}}
+                  <div class="dropdown-menu-wrap">
+                    <ul class="dropdown-menu">
+                      {{#each item in option.submenuOptions}}
+                        <li>
+                          <a {{action "doAction" item target="controller" href=true}}>{{item.context.label}}</a>
+                        </li>
+                      {{/each}}
+                    </ul>
+                  </div>
+                {{/if}}
+              </li>
+            {{/unless}}
+          {{/each}}
+        {{else}}
+          {{view App.SpinnerView classNames="service-button-spinner"}}
+        {{/if}}
       </ul>
     </div>
   {{/if}}
