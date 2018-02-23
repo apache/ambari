@@ -32,6 +32,7 @@
     <jetty.version>8.1.19.v20160209</jetty.version>
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
     <checkstyle.skip>false</checkstyle.skip>
+    <fasterxml.jackson.version>2.9.4</fasterxml.jackson.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -XX:MaxPermSize=512m -Xms512m</surefire.argLine>
@@ -491,6 +492,16 @@
         <groupId>com.puppycrawl.tools</groupId>
         <artifactId>checkstyle</artifactId>
         <version>${checkstyle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${fasterxml.jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${fasterxml.jackson.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

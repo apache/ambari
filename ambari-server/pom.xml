@@ -1446,7 +1446,10 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.8.0</version>
+    </dependency>
+   <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
       <groupId>net.sf.ehcache</groupId>
@@ -1543,6 +1546,12 @@
       <artifactId>json-schema-validator</artifactId>
       <version>0.1.10</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
