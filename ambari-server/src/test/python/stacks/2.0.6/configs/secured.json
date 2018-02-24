@@ -25,6 +25,7 @@
         "user_list": "[\"ambari-qa\",\"hdfs\"]"
     },
     "ambariLevelParams": {
+        "ambari_server_host": "c6401.ambari.apache.org",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "agent_stack_retry_count": "5", 
         "db_driver_filename": "mysql-connector-java.jar", 
