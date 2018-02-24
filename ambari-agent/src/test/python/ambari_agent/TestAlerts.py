@@ -225,7 +225,8 @@ class TestAlerts(TestCase):
 
 
   def test_port_alert_no_sub(self):
-    definition_json = { "name": "namenode_process",
+    definition_json = { "name": "namenode_process", 
+      "definitionId": 1,
       "service": "HDFS",
       "component": "NAMENODE",
       "label": "NameNode process",
@@ -1435,6 +1436,7 @@ class TestAlerts(TestCase):
 
   def _get_script_alert_definition(self):
     return {
+      "definitionId": 1,
       "name": "namenode_process",
       "service": "HDFS",
       "component": "NAMENODE",
@@ -1451,6 +1453,7 @@ class TestAlerts(TestCase):
 
   def _get_script_alert_definition_with_parameters(self):
     return {
+      "definitionId": 1,
       "name": "namenode_process",
       "service": "HDFS",
       "component": "NAMENODE",
@@ -1473,6 +1476,7 @@ class TestAlerts(TestCase):
 
   def _get_port_alert_definition(self):
     return { "name": "namenode_process",
+      "definitionId": 1,
       "service": "HDFS",
       "component": "NAMENODE",
       "label": "NameNode process",
@@ -1503,6 +1507,7 @@ class TestAlerts(TestCase):
 
   def _get_recovery_alert_definition(self):
     return {
+      "definitionId": 1,
       "componentName": "METRICS_COLLECTOR",
       "name": "ams_metrics_collector_autostart",
       "label": "Metrics Collector Recovery",
@@ -1530,6 +1535,7 @@ class TestAlerts(TestCase):
 
   def _get_metric_alert_definition(self):
     return {
+      "definitionId": 1,
       "name": "DataNode CPU Check",
       "service": "HDFS",
       "component": "DATANODE",
@@ -1571,6 +1577,7 @@ class TestAlerts(TestCase):
 
   def _get_ams_alert_definition(self):
     return {
+      "definitionId": 1,
       "ignore_host": False,
       "name": "namenode_mean_heapsize_used",
       "componentName": "NAMENODE",
@@ -1617,6 +1624,7 @@ class TestAlerts(TestCase):
 
   def _get_metric_alert_definition_with_float_division(self):
     return {
+      "definitionId": 1,
       "name": "DataNode CPU Check",
       "service": "HDFS",
       "component": "DATANODE",
@@ -1658,6 +1666,7 @@ class TestAlerts(TestCase):
 
   def _get_web_alert_definition(self):
     return {
+      "definitionId": 1,
       "name": "webalert_test",
       "service": "HDFS",
       "component": "DATANODE",
@@ -1692,6 +1701,7 @@ class TestAlerts(TestCase):
 
   def _get_alert_definition_with_value_error_text(self):
     return { "name": "namenode_process",
+      "definitionId": 1,
       "service": "HDFS",
       "component": "NAMENODE",
       "label": "NameNode process",
@@ -1721,6 +1731,7 @@ class TestAlerts(TestCase):
 
   def _get_alert_definition_with_too_many_positional_arguments(self):
     return { "name": "namenode_process",
+      "definitionId": 1,
       "service": "HDFS",
       "component": "NAMENODE",
       "label": "NameNode process",

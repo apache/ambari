@@ -155,6 +155,7 @@ class TestMetricAlert(TestCase):
   @patch("urllib2.urlopen")
   def test_collect(self, urllib):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
