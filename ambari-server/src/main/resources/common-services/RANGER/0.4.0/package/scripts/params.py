@@ -138,7 +138,7 @@ if stack_supports_ranger_log4j:
   usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.properties')
 cred_validator_file = format('{usersync_home}/native/credValidator.uexe')
 
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 
 db_flavor =  (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 usersync_exturl =  config['configurations']['admin-properties']['policymgr_external_url']
