@@ -32,6 +32,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_defaultPort(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -69,6 +70,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_warning(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -106,6 +108,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_connectionTimeout(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -144,6 +147,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_noUrl(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -180,6 +184,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_exception(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -218,6 +223,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_warningTimeoutChanged(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -260,6 +266,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_criticalTimeoutChanged(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -303,6 +310,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_criticalTimeoutTooBig(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -345,6 +353,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_zookeeper(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'zookeeper_server_process',
       'label': 'label1',
       'serviceName': 'service1',
@@ -402,6 +411,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_zookeeper_warning(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'zookeeper_server_process',
       'label': 'label1',
       'serviceName': 'service1',
@@ -459,6 +469,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_zookeeper_connectionTimeout(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'zookeeper_server_process',
       'label': 'label1',
       'serviceName': 'service1',
