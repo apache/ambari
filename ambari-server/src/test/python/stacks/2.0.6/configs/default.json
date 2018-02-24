@@ -45,6 +45,7 @@
         "cluster_name": "c1"
     }, 
     "ambariLevelParams": {
+        "ambari_server_host": "c6401.ambari.apache.org",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "agent_stack_retry_count": "5", 
         "db_driver_filename": "mysql-connector-java.jar", 
@@ -1287,9 +1288,6 @@
     },
     "commandId": "7-1",
     "clusterHostInfo": {
-        "ambari_server_host": [
-            "c6401.ambari.apache.org"
-        ],
         "snamenode_hosts": [
             "c6402.ambari.apache.org"
         ],

@@ -59,7 +59,7 @@ hadoop_custom_extensions_enabled = default("/configurations/core-site/hadoop.cus
 
 sudo = AMBARI_SUDO_BINARY
 
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 
 stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)

@@ -45,7 +45,7 @@ stack_root = Script.get_stack_root()
 # Needed since this is an Atlas Hook service.
 cluster_name = config['clusterName']
 
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 
 stack_name = default("/clusterLevelParams/stack_name", None)
 

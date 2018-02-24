@@ -343,7 +343,7 @@ if sqla_db_used:
 
 
 # Start, Common Hosts and Ports
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 
 hive_metastore_hosts = default('/clusterHostInfo/hive_metastore_hosts', [])
 hive_metastore_host = hive_metastore_hosts[0] if len(hive_metastore_hosts) > 0 else None
