@@ -94,7 +94,7 @@ class BaseAlert(object):
     self.configuration_builder = configuration_builder
 
 
-  def set_cluster(self, cluster_name, cluster_id, host_name, public_host_name = None):
+  def set_cluster(self, cluster_name, cluster_id, host_name, public_host_name=None):
     """ sets cluster information for the alert """
     self.cluster_name = cluster_name
     self.cluster_id = str(cluster_id)
@@ -140,9 +140,9 @@ class BaseAlert(object):
         self.get_name(), str(exception))
 
       # print the exception if in DEBUG, otherwise just log the warning
-      #if logger.isEnabledFor(logging.DEBUG):
+      # if logger.isEnabledFor(logging.DEBUG):
       logger.exception(message)
-      #else:
+      # else:
       #  logger.warning(message)
 
       res = (BaseAlert.RESULT_UNKNOWN, [str(exception)])
@@ -526,7 +526,7 @@ class BaseAlert(object):
     res[0] = the result code
     res[1] = the list of arguments supplied to the reporting text for the result code
     """
-    #TODO: After implementation uncomment /src/test/python/ambari_agent/TestMetricAlert.py:194
+    # TODO: After implementation uncomment /src/test/python/ambari_agent/TestMetricAlert.py:194
     # and /src/test/python/ambari_agent/TestScriptAlert.py:52
     raise NotImplementedError
 

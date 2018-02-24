@@ -34,6 +34,7 @@ class TestScriptAlert(TestCase):
 
   def test_collect(self):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
