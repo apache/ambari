@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import static java.util.stream.Collectors.joining;
-
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
