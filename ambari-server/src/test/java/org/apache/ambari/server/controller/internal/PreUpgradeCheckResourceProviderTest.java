@@ -123,7 +123,7 @@ public class PreUpgradeCheckResourceProviderTest {
 
     expect(repoDao.findByPK(1L)).andReturn(repo).anyTimes();
     expect(repo.getStackId()).andReturn(targetStackId).atLeastOnce();
-    expect(upgradeHelper.suggestUpgradePack("Cluster100", currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.NON_ROLLING, "upgrade_pack11")).andReturn(upgradePack);
+    expect(upgradeHelper.suggestUpgradePack("Cluster100", currentStackId, targetStackId, Direction.UPGRADE, UpgradeType.EXPRESS, "upgrade_pack11")).andReturn(upgradePack);
 
     List<AbstractCheckDescriptor> upgradeChecksToRun = new LinkedList<>();
     List<String> prerequisiteChecks = new LinkedList<>();
@@ -146,7 +146,7 @@ public class PreUpgradeCheckResourceProviderTest {
     PredicateBuilder builder = new PredicateBuilder();
     Predicate predicate = builder.property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals("upgrade_pack11").and()
-        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(UpgradeType.NON_ROLLING).and()
+        .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(UpgradeType.EXPRESS).and()
         .property(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_TARGET_REPOSITORY_VERSION_ID_ID).equals("1").toPredicate();
 
 
@@ -174,7 +174,7 @@ public class PreUpgradeCheckResourceProviderTest {
       String clusterName = (String) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
       UpgradeType upgradeType = (UpgradeType) resource.getPropertyValue(PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
-      Assert.assertEquals(UpgradeType.NON_ROLLING, upgradeType);
+      Assert.assertEquals(UpgradeType.EXPRESS, upgradeType);
     }
 
     // verify

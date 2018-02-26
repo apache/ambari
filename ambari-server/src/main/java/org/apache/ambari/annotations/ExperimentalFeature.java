@@ -45,5 +45,11 @@ public enum ExperimentalFeature {
   /**
    * For code that is for multi-service
    */
-  MULTI_SERVICE
+  MULTI_SERVICE,
+
+  /**
+   * For code that is for upgrading Mpacks.  Use this to mark code that may ultimately
+   * be removed.
+   */
+  MPACK_UPGRADES
 }

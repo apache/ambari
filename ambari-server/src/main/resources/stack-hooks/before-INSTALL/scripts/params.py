@@ -23,6 +23,7 @@ from resource_management.core.system import System
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import default, format
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -35,19 +36,19 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
-smoke_user =  config['configurations']['cluster-env']['smokeuser']
+smoke_user = get_cluster_setting_value('smokeuser')
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
 
-user_group = config['configurations']['cluster-env']['user_group']
+user_group = get_cluster_setting_value('user_group')
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 
 # repo templates
-repo_rhel_suse =  config['configurations']['cluster-env']['repo_suse_rhel_template']
-repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
+repo_rhel_suse =  get_cluster_setting_value('repo_suse_rhel_template')
+repo_ubuntu =  get_cluster_setting_value('repo_ubuntu_template')
 
 #hosts
 hostname = config["hostname"]
@@ -93,7 +94,7 @@ if has_ganglia_server:
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
 #security params
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+security_enabled = get_cluster_setting_value('security_enabled')
 
 #java params
 java_home = config['hostLevelParams']['java_home']
@@ -102,7 +103,7 @@ jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
-ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
+ignore_groupsusers_create = get_cluster_setting_value('ignore_groupsusers_create')
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")

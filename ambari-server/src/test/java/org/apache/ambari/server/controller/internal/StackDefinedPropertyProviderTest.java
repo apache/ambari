@@ -140,7 +140,7 @@ public class StackDefinedPropertyProviderTest {
 
     cluster.setDesiredStackVersion(stackId);
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     service.addServiceComponent("NAMENODE");
     service.addServiceComponent("DATANODE");

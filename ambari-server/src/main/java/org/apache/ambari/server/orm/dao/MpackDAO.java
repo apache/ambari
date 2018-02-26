@@ -56,19 +56,19 @@ public class MpackDAO {
   @Transactional
   public Long create(MpackEntity mpackEntity) {
     m_entityManagerProvider.get().persist(mpackEntity);
-    return mpackEntity.getMpackId();
+    return mpackEntity.getId();
   }
 
   /**
    * Gets an mpack with the specified ID.
    *
-   * @param mpackId
-   *          the ID of the alert to retrieve.
+   * @param id
+   *          the ID of the mpack to retrieve.
    * @return the mpack or {@code null} if none exists.
    */
   @RequiresSession
-  public MpackEntity findById(long mpackId) {
-    return m_entityManagerProvider.get().find(MpackEntity.class, mpackId);
+  public MpackEntity findById(long id) {
+    return m_entityManagerProvider.get().find(MpackEntity.class, id);
   }
 
   /**
@@ -99,8 +99,8 @@ public class MpackDAO {
   }
 
   @Transactional
-  public void removeById(Long mpackId) {
-    m_entityManagerProvider.get().remove(findById(mpackId));
+  public void removeById(Long id) {
+    m_entityManagerProvider.get().remove(findById(id));
   }
 
 }

@@ -471,6 +471,7 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>mpack-instance-manager</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
@@ -495,6 +496,7 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>mpack-instance-manager</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
       </modules>
@@ -509,6 +511,7 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>mpack-instance-manager</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
@@ -532,6 +535,7 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>mpack-instance-manager</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>

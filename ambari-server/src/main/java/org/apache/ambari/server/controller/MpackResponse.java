@@ -27,34 +27,79 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class MpackResponse {
 
-  private Long mpackId;
-  private String mpackVersion;
+  private Long id;
+  private String mpackId;
   private String mpackName;
+  private String mpackVersion;
   private String mpackUri;
   private Long registryId;
   private String stackId;
   private String description;
 
   public MpackResponse(Mpack mpack) {
+    this.id = mpack.getResourceId();
     this.mpackId = mpack.getMpackId();
+    this.mpackName = mpack.getName();
     this.mpackVersion = mpack.getVersion();
     this.mpackUri = mpack.getMpackUri();
-    this.mpackName = mpack.getName();
     this.registryId = mpack.getRegistryId();
-    this.stackId = mpack.getStackId();
     this.description = mpack.getDescription();
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public Long getRegistryId() {
+    return registryId;
+  }
+
+  public void setRegistryId(Long registryId) {
+    this.registryId = registryId;
+  }
+
+  public String getMpackId() {
+    return mpackId;
+  }
+
+  public void setMpackId(String mpackId) {
+    this.mpackId = mpackId;
+  }
+
+  public String getMpackName() {
+    return mpackName;
+  }
+
+  public void setMpackName(String mpackName) {
+    this.mpackName = mpackName;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public String getMpackVersion() {
     return mpackVersion;
   }
 
+  public void setMpackVersion(String mpackVersion) {
+    this.mpackVersion = mpackVersion;
+  }
+
   public String getMpackUri() {
     return mpackUri;
   }
 
-  public Long getMpackId() {
-    return mpackId;
+  public void setMpackUri(String mpackUri) {
+    this.mpackUri = mpackUri;
   }
 
   public String getStackId() {
@@ -65,48 +110,10 @@ public class MpackResponse {
     this.stackId = stackId;
   }
 
-  public String getMpackName() {
-    return mpackName;
-  }
-
-  public Long getRegistryId() {
-    return registryId;
-  }
-
-  public void setMpackVersion(String mpackVersion) {
-    this.mpackVersion = mpackVersion;
-  }
-
-  public void setMpackName(String mpackName) {
-    this.mpackName = mpackName;
-  }
-
-  public void setMpackUri(String mpackUri) {
-    this.mpackUri = mpackUri;
-  }
-
-  public void setRegistryId(Long registryId) {
-    this.registryId = registryId;
-  }
-
-  public void setMpackId(Long mpackId) {
-    this.mpackId = mpackId;
-  }
-
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-
   @Override
   public int hashCode() {
     int result = 1;
-    result = 31 + getMpackId().hashCode();
+    result = 31 + getId().hashCode();
     return result;
   }
 
@@ -119,7 +126,7 @@ public class MpackResponse {
       return true;
     }
     MpackResponse MpackResponse = (MpackResponse) obj;
-    return getMpackId().equals(MpackResponse.getMpackId());
+    return getId().equals(MpackResponse.getId());
   }
 
   public interface MpackResponseWrapper extends ApiModel {

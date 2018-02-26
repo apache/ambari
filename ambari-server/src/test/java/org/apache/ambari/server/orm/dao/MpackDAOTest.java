@@ -56,7 +56,7 @@ public class MpackDAOTest {
     // create 2 definitions
     for (int i = 1; i < 3; i++) {
       MpackEntity definition = new MpackEntity();
-      definition.setMpackId(new Long(100)+i);
+      definition.setId(new Long(100)+i);
       definition.setMpackName("testMpack" + i);
       definition.setRegistryId(Long.valueOf(i));
       definition.setMpackVersion("3.0.0.0-12"+i);
@@ -70,7 +70,7 @@ public class MpackDAOTest {
     assertEquals(2, definitions.size());
     definitions = m_dao.findByNameVersion("testMpack1","3.0.0.0-121");
     assertEquals(1, definitions.size());
-    assertEquals(new Long(101),(Long)definitions.get(0).getMpackId());
+    assertEquals(new Long(101),(Long)definitions.get(0).getId());
     MpackEntity entity = m_dao.findById(new Long(102));
     assertEquals(entity.getMpackName(),"testMpack2");
     assertEquals(entity.getMpackVersion(),"3.0.0.0-122");

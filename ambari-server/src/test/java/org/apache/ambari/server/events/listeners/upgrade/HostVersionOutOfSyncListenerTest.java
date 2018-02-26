@@ -151,7 +151,7 @@ public class HostVersionOutOfSyncListenerTest {
     Map<String, List<Integer>> zkTopology = new HashMap<>();
     List<Integer> zkServerHosts = Arrays.asList(0, 1, 2);
     zkTopology.put("ZOOKEEPER_SERVER", new ArrayList<>(zkServerHosts));
-    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", "HDP-1.0");
     addService(c1, serviceGroup, hostList, zkTopology, "ZOOKEEPER", repositoryVersionEntity);
 
     // install new version
@@ -477,7 +477,7 @@ public class HostVersionOutOfSyncListenerTest {
         .put("NAMENODE", Lists.newArrayList(0))
         .put("DATANODE", Lists.newArrayList(1))
         .build();
-    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", "HDP-1.0");
     addService(c1, serviceGroup, allHosts, topology, "HDFS", repo);
 
     topology = new ImmutableMap.Builder<String, List<Integer>>()

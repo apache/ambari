@@ -117,7 +117,7 @@ class NameNode(Script):
 
     # after starting NN in an upgrade, touch the marker file - but only do this for certain
     # upgrade types - not all upgrades actually tell NN about the upgrade (like HOU)
-    if upgrade_type in (constants.UPGRADE_TYPE_ROLLING, constants.UPGRADE_TYPE_NON_ROLLING):
+    if upgrade_type in (constants.UPGRADE_TYPE_ROLLING, constants.UPGRADE_TYPE_EXPRESS):
       # place a file on the system indicating that we've submitting the command that
       # instructs NN that it is now part of an upgrade
       namenode_upgrade.create_upgrade_marker()
@@ -200,7 +200,7 @@ class NameNodeDefault(NameNode):
 
   def finalize_non_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
-    namenode_upgrade.finalize_upgrade(constants.UPGRADE_TYPE_NON_ROLLING, hfds_binary)
+    namenode_upgrade.finalize_upgrade(constants.UPGRADE_TYPE_EXPRESS, hfds_binary)
 
   def finalize_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
