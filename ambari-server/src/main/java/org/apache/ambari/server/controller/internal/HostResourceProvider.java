@@ -958,7 +958,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(cluster.getClusterName(),
                                                                              sch.getServiceGroupName(),
                                                                              sch.getServiceName(),
+                                                                             sch.getHostComponentId(),
                                                                              sch.getServiceComponentName(),
+                                                                             sch.getServiceComponentType(),
                                                                              sch.getHostName(),
                                                                              null);
           schrs.add(schr);

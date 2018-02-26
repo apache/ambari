@@ -151,7 +151,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
    * @param componentMetrics         the map of supported metrics
    * @param streamProvider           the stream provider
    * @param jmxHostProvider          the JMX host mapping
-   * @param metricHostProvider      the host mapping
+   * @param metricHostProvider       the host mapping
    * @param clusterNamePropertyId    the cluster name property id
    * @param hostNamePropertyId       the host name property id
    * @param componentNamePropertyId  the component name property id

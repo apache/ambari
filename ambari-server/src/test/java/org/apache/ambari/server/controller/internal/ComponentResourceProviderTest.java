@@ -152,7 +152,7 @@ public class ComponentResourceProviderTest {
     expect(componentInfo.isRecoveryEnabled()).andReturn(true).anyTimes();
     expect(ambariMetaInfo.getComponent("HDP", "99", "Service100", "Component100")).andReturn(componentInfo).anyTimes();
 
-    expect(serviceComponentFactory.createNew(service, "Component100")).andReturn(serviceComponent);
+    expect(serviceComponentFactory.createNew(service, "Component100", "Component100")).andReturn(serviceComponent);
 
     ServiceComponentResponse componentResponse = createNiceMock(ServiceComponentResponse.class);
     expect(serviceComponent.convertToResponse()).andReturn(componentResponse);
@@ -251,13 +251,13 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", "Component100", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", 1L, "Component100", "Component100", stackId, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component100 Client", null, null));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", "Component101", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", 2L, "Component101", "Component101", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", "Component102", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", 3L, "Component102", "Component102", stackId, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component102 Client", "1.1", RepositoryVersionState.CURRENT));
 
     expect(ambariMetaInfo.getComponent("FOO", "1.0", null, "Component100")).andReturn(
@@ -431,13 +431,13 @@ public class ComponentResourceProviderTest {
     expect(component3Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component101", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component101", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component102", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 2L, "Component102", "Component102",stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component102 Client", null, null));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component103", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 3L, "Component103", "Component103", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component103 Client", null, null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -740,7 +740,7 @@ public class ComponentResourceProviderTest {
     expect(component1Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-        new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component101", stackId, "", serviceComponentStateCountMap,
+        new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component101", stackId, "", serviceComponentStateCountMap,
             false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
 

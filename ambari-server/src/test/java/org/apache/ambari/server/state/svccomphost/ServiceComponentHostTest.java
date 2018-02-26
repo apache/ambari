@@ -202,7 +202,7 @@ public class ServiceComponentHostTest {
     try {
       sc = s.getServiceComponent(svcComponent);
     } catch (ServiceComponentNotFoundException e) {
-      sc = serviceComponentFactory.createNew(s, svcComponent);
+      sc = serviceComponentFactory.createNew(s, svcComponent, svcComponent);
       s.addServiceComponent(sc);
     }
 
@@ -1057,7 +1057,7 @@ public class ServiceComponentHostTest {
       cluster.getClusterId(),
       customServiceGroup.getServiceGroupId(),
       sch1.getServiceId(),
-      sch1.getServiceComponentName(),
+      sch1.getServiceComponentId(),
       hostEntity.getHostId()
     );
     Assert.assertEquals(MaintenanceState.OFF, entity.getMaintenanceState());
@@ -1070,7 +1070,7 @@ public class ServiceComponentHostTest {
       cluster.getClusterId(),
       customServiceGroup.getServiceGroupId(),
       sch1.getServiceId(),
-      sch1.getServiceComponentName(),
+      sch1.getServiceComponentId(),
       hostEntity.getHostId()
     );
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());

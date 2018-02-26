@@ -88,11 +88,11 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
                                  MetricHostProvider hostProvider,
                                  String clusterNamePropertyId,
                                  String hostNamePropertyId,
-                                 String componentNamePropertyId) {
+                                 String componentIdPropertyId) {
 
     super(componentPropertyInfoMap, streamProvider,configuration,
       hostProvider, clusterNamePropertyId, hostNamePropertyId,
-      componentNamePropertyId);
+            componentIdPropertyId);
   }
 
 
@@ -131,12 +131,12 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
 
 
   /**
-   * Get the component name property id.
+   * Get the component id property id.
    *
-   * @return the component name property id
+   * @return the component Id property id
    */
-  protected String getComponentNamePropertyId() {
-    return componentNamePropertyId;
+  protected String getComponentIdPropertyId() {
+    return componentIdPropertyId;
   }
 
   /**

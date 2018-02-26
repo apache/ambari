@@ -19,7 +19,10 @@ package org.apache.ambari.server.controller.metrics.timeline;
 
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
@@ -35,11 +38,11 @@ public class AMSHostComponentPropertyProvider extends AMSPropertyProvider {
                                  MetricHostProvider hostProvider,
                                  String clusterNamePropertyId,
                                  String hostNamePropertyId,
-                                 String componentNamePropertyId) {
+                                 String componentIdPropertyId) {
 
     super(componentPropertyInfoMap, streamProvider, configuration,
       cacheProvider, hostProvider, clusterNamePropertyId, hostNamePropertyId,
-      componentNamePropertyId);
+            componentIdPropertyId);
   }
 
   @Override
@@ -48,9 +51,39 @@ public class AMSHostComponentPropertyProvider extends AMSPropertyProvider {
   }
 
   @Override
-  protected String getComponentName(Resource resource) {
-    String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
+  protected Long getComponentId(Resource resource) {
+    Long componentId = (Long) resource.getPropertyValue(componentIdPropertyId);
 
+    return componentId;
+  }
+
+  @Override
+  protected String getComponentType(Resource resource) {
+    AmbariManagementController managementController = AmbariServer.getController();
+    String componentType = null;
+    Long componentId = getComponentId(resource);
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
+    try {
+      componentType = managementController.getClusters().getCluster(clusterName).getComponentType(componentId);
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    return componentType;
+  }
+
+  @Override
+  protected String getComponentName(Resource resource) {
+    AmbariManagementController managementController = AmbariServer.getController();
+    String componentName = null;
+    Long componentId = getComponentId(resource);
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
+    try {
+      componentName = managementController.getClusters().getCluster(clusterName).getComponentName(componentId);
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
     return componentName;
   }
 }

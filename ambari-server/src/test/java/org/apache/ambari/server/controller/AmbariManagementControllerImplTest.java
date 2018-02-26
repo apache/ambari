@@ -846,7 +846,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
@@ -913,7 +913,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -978,7 +978,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
     request1.setState("INSTALLED");
 
 
@@ -1055,7 +1055,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
     request1.setMaintenanceState("ON");
 
 
@@ -1139,13 +1139,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host1", null);
+        "cluster1", "CORE", "service1", "component2", "component2","host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1238,13 +1238,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service2", "component2", "host1", null);
+        "cluster1", "CORE", "service2", "component2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1344,13 +1344,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service2", "component2", "host1", null);
+        "cluster1", "CORE", "service2", "component2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1452,13 +1452,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", null, null);
+        "cluster1", "CORE", "service1", "component1", "component1", null, null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host2", null);
+        "cluster1", "CORE", "service1", "component2", "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", null, null);
+        "cluster1", "CORE", "service1", "component3", "component3", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1537,13 +1537,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host1", null);
+        "cluster1", "CORE", "service1", "component2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1592,13 +1592,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host2", null);
+        "cluster1", "CORE", "service1", "component2", "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1657,7 +1657,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", null, null);
+        "cluster1", "CORE", "service1", "component1", "component1", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1737,7 +1737,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", null, null, null, null);
+        "cluster1", "CORE", null, null, null, null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();

@@ -246,7 +246,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               setQueryParams(hostComponentHostMetricParams, hostNamesBatch, true, componentName);
               TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
                 getTimelineAppMetricCacheKey(hostComponentHostMetrics,
-                  componentName, hostNamesBatch, uriBuilder.toString()), componentName);
+                  hostNamesBatch, componentName, uriBuilder.toString()), componentName);
 
               if (metricsResponse != null) {
                 timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
@@ -258,7 +258,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               setQueryParams(nonHostComponentHostMetricParams, hostNamesBatch, false, componentName);
               TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
                 getTimelineAppMetricCacheKey(nonHostComponentMetrics,
-                  componentName, hostNamesBatch, uriBuilder.toString()), componentName);
+                        hostNamesBatch, componentName, uriBuilder.toString()), componentName);
 
               if (metricsResponse != null) {
                 timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
@@ -576,9 +576,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     if (metricPropertyIds.containsKey(HBASE_REGIONSERVER.name())) {
       amsMetrics.putAll(metricPropertyIds.get(HBASE_REGIONSERVER.name()));
     }
-    if (!amsMetrics.isEmpty()) {
-      super.getComponentMetrics().putAll(Collections.singletonMap(METRICS_COLLECTOR.name(), amsMetrics));
-    }
 
     return super.getComponentMetrics();
   }
@@ -666,7 +663,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       for (String id : ids) {
         Map<String, PropertyInfo> propertyInfoMap = new HashMap<>();
 
-        String componentName = getOverridenComponentName(resource);
+        String componentName  = getOverridenComponentName(resource);
 
         Map<String, PropertyInfo> componentMetricMap = getComponentMetrics().get(componentName);
 

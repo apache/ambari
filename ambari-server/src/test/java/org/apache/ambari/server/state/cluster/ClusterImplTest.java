@@ -237,20 +237,20 @@ public class ClusterImplTest {
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
-    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE", "NAMENODE");
     nameNode.addServiceComponentHost(hostName1);
 
-    ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
+    ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE", "DATANODE");
     dataNode.addServiceComponentHost(hostName1);
     dataNode.addServiceComponentHost(hostName2);
 
-    ServiceComponent hdfsClient = hdfs.addServiceComponent("HDFS_CLIENT");
+    ServiceComponent hdfsClient = hdfs.addServiceComponent("HDFS_CLIENT", "HDFS_CLIENT");
     hdfsClient.addServiceComponentHost(hostName1);
     hdfsClient.addServiceComponentHost(hostName2);
 
     Service tez = cluster.addService(serviceGroup, serviceToDelete, serviceToDelete, repositoryVersion);
 
-    ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
+    ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT", "TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
     ServiceComponentHost tezClientHost2 = tezClient.addServiceComponentHost(hostName2);
 

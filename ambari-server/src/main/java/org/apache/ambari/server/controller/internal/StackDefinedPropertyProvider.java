@@ -30,6 +30,8 @@ import java.util.Set;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
@@ -162,21 +164,24 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       for (Resource r : resources) {
         String clusterName = r.getPropertyValue(clusterNamePropertyId).toString();
         String componentName = r.getPropertyValue(componentNamePropertyId).toString();
-
         Cluster cluster = clusters.getCluster(clusterName);
         Service service = null;
 
+        Long componentId = null;
+        String componentType = null;
         try {
-          service = cluster.getServiceByComponentName(componentName);
+          componentId = cluster.getComponentId(componentName);
+          componentType = cluster.getComponentType(componentId);
+          service = cluster.getServiceByComponentId(componentId);
         } catch (ServiceNotFoundException e) {
-          LOG.debug("Could not load component {}", componentName);
+          LOG.debug("Could not load componentName {}", componentName);
           continue;
         }
 
         StackId stack = service.getDesiredStackId();
 
         List<MetricDefinition> defs = metaInfo.getMetrics(
-            stack.getStackName(), stack.getStackVersion(), service.getServiceType(), componentName, type.name());
+            stack.getStackName(), stack.getStackVersion(), service.getServiceType(), componentType, type.name());
 
         if (null == defs || 0 == defs.size()) {
           continue;
@@ -191,7 +196,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
           } else {
             PropertyProvider pp = getDelegate(m,
                 streamProvider, metricHostProvider,
-                clusterNamePropertyId, hostNamePropertyId,
+                clusterNamePropertyId, clusterName, hostNamePropertyId,
                 componentNamePropertyId, resourceStatePropertyId,
                 componentName);
             if (pp == null) {
@@ -221,10 +226,10 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
       if (jmxMap.size() > 0) {
         JMXPropertyProvider jpp = metricPropertyProviderFactory.createJMXPropertyProvider(jmxMap,
-            streamProvider,
-            jmxHostProvider, metricHostProvider,
-            clusterNamePropertyId, hostNamePropertyId,
-            componentNamePropertyId, resourceStatePropertyId);
+                streamProvider,
+                jmxHostProvider, metricHostProvider,
+                clusterNamePropertyId, hostNamePropertyId,
+                componentNamePropertyId, resourceStatePropertyId);
 
         jpp.populateResources(resources, request, predicate);
       } else {
@@ -320,7 +325,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
    * @param definition the metric definition for a component
    * @param streamProvider the stream provider
    * @param metricsHostProvider the metrics host provider
-   * @param clusterNamePropertyId the cluster name property id
+   * @param clusterNamePropertyId the cluster id property id
    * @param hostNamePropertyId the host name property id
    * @param componentNamePropertyId the component name property id
    * @param statePropertyId the state property id
@@ -331,24 +336,27 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
                                        StreamProvider streamProvider,
                                        MetricHostProvider metricsHostProvider,
                                        String clusterNamePropertyId,
+                                       String clusterName,
                                        String hostNamePropertyId,
                                        String componentNamePropertyId,
                                        String statePropertyId,
                                        String componentName) {
     Map<String, PropertyInfo> metrics = getPropertyInfo(definition);
-    HashMap<String, Map<String, PropertyInfo>> componentMetrics =
-      new HashMap<>();
+    HashMap<String, Map<String, PropertyInfo>> componentMetrics = new HashMap<>();
     componentMetrics.put(WRAPPED_METRICS_KEY, metrics);
 
     try {
       Class<?> clz = Class.forName(definition.getType());
 
       // use a Factory for the REST provider
+
+      AmbariManagementController managementController = AmbariServer.getController();
       if (clz.equals(RestMetricsPropertyProvider.class)) {
+        // TODO : Multi_Metrics_Changes. We need to pass UniqueComponentName like :
+        // {SG_instance_name}_{service_instance_name}_component_name instead of just 'componentName'.
         return metricPropertyProviderFactory.createRESTMetricsPropertyProvider(
             definition.getProperties(), componentMetrics, streamProvider, metricsHostProvider,
-            clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId, statePropertyId,
-            componentName);
+            clusterNamePropertyId, hostNamePropertyId, clusterNamePropertyId, statePropertyId, componentName);
       }
 
       try {
@@ -359,6 +367,8 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         Constructor<?> ct = clz.getConstructor(Map.class,
             Map.class, StreamProvider.class, MetricHostProvider.class,
             String.class, String.class, String.class, String.class, String.class);
+        // TODO : Multi_Metrics_Changes. Check if we need to pass UniqueComponentName like :
+        // {SG_instance_name}_{service_instance_name}_component_name instead of just 'componentId'.
         Object o = ct.newInstance(
             injector,
             definition.getProperties(), componentMetrics,

@@ -49,7 +49,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
 
   protected final String hostNamePropertyId;
 
-  protected final String componentNamePropertyId;
+  protected final String componentIdPropertyId;
 
   protected final ComponentSSLConfiguration configuration;
 
@@ -65,7 +65,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
        MetricHostProvider hostProvider,
        String clusterNamePropertyId,
        String hostNamePropertyId,
-       String componentNamePropertyId) {
+       String componentIdPropertyId) {
 
     super(componentPropertyInfoMap);
 
@@ -74,7 +74,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
     this.hostProvider             = hostProvider;
     this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
-    this.componentNamePropertyId  = componentNamePropertyId;
+    this.componentIdPropertyId    = componentIdPropertyId;
   }
 
   public static MetricsPropertyProviderProxy createInstance(
@@ -115,6 +115,24 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
    * @return the host name
    */
   protected abstract String getHostName(Resource resource);
+
+  /**
+   * Get the component id for the given resource.
+   *
+   * @param resource  the resource
+   *
+   * @return the component id
+   */
+  protected abstract Long getComponentId(Resource resource);
+
+  /**
+   * Get the component type for the given resource.
+   *
+   * @param resource  the resource
+   *
+   * @return the component type
+   */
+  protected abstract String getComponentType(Resource resource);
 
   /**
    * Get the component name for the given resource.
