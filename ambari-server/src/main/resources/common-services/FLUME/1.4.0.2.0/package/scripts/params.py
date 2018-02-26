@@ -129,7 +129,7 @@ host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.met
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = None
-if not len(default("/clusterHostInfo/zookeeper_hosts", [])) == 0:
+if not len(default("/clusterHostInfo/zookeeper_server_hosts", [])) == 0:
   if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
     zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
   else:

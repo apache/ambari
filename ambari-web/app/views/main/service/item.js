@@ -127,116 +127,175 @@ App.MainServiceItemView = Em.View.extend({
     var serviceCheckSupported = App.get('services.supportsServiceCheck').contains(service.get('serviceName'));
     var hasConfigTab = this.get('hasConfigTab');
     var excludedCommands = this.get('mastersExcludedCommands');
+    var serviceName = service.get('serviceName');
+    var hasMultipleMasterComponentGroups = this.get('service.hasMultipleMasterComponentGroups');
 
-    if (this.get('controller.isClientsOnlyService')) {
-      if (serviceCheckSupported) {
-        options.push(actionMap.RUN_SMOKE_TEST);
-      }
-      if (hasConfigTab) {
-	      options.push(actionMap.REFRESH_CONFIGS);
-	    }
-    } else {
-      if (this.get('serviceName') === 'FLUME') {
-        options.push(actionMap.REFRESH_CONFIGS);
-      }
-      if (this.get('serviceName') === 'YARN') {
-        options.push(actionMap.REFRESHQUEUES);
-      }
-      options.push(actionMap.RESTART_ALL);
-      allSlaves.concat(allMasters).filter(function (_component) {
-        return App.get('components.rollinRestartAllowed').contains(_component);
-      }).forEach(function(_component) {
-        var _componentNamePluralized = pluralize(App.format.role(_component, false));
-        options.push(self.createOption(actionMap.ROLLING_RESTART, {
-          context: _component,
-          label: actionMap.ROLLING_RESTART.label.format(_componentNamePluralized)
-        }));
-      });
-      allMasters.filter(function(master) {
-        return App.get('components.reassignable').contains(master);
-      }).forEach(function(master) {
-        options.push(self.createOption(actionMap.MOVE_COMPONENT, {
-          context: master,
-          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master, false)),
-          disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
-        }));
-      });
-      // add "Manage JournalNode" when NNHA is enabled and there is more hosts than JNs
-      var JNCount = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length');
-      if (App.get('supports.manageJournalNode') && service.get('serviceName') == 'HDFS' && service.get('serviceTypes').contains('HA_MODE')
-          && (App.router.get('mainHostController.totalCount') > JNCount || JNCount > 3)) {
-        options.push(actionMap.MANAGE_JN);
-      }
-      if (service.get('serviceTypes').contains('HA_MODE') && App.isAuthorized('SERVICE.ENABLE_HA')) {
-        switch (service.get('serviceName')) {
-          case 'HDFS':
-            options.push(actionMap.TOGGLE_NN_HA);
-            break;
-          case 'YARN':
-            options.push(actionMap.TOGGLE_RM_HA);
-            break;
-          case 'RANGER':
-            options.push(actionMap.TOGGLE_RA_HA);
-            break;
-          case 'HAWQ':
-            options.push(actionMap.TOGGLE_ADD_HAWQ_STANDBY);
-            break;
+    if (App.isAuthorized('SERVICE.START_STOP')) {
+      options.push(actionMap.START_ALL);
+      options.push(actionMap.STOP_ALL);
+    }
+    if (App.isAuthorized('SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA')) {
+      if (this.get('controller.isClientsOnlyService')) {
+        if (serviceCheckSupported) {
+          options.push(actionMap.RUN_SMOKE_TEST);
         }
-      }
-      if (service.get('serviceTypes').contains('FEDERATION') && App.isAuthorized('SERVICE.ENABLE_HA')) {
-        switch (service.get('serviceName')) {
-          case 'HDFS':
-            options.push(actionMap.TOGGLE_NN_FEDERATION);
-            break;
+        if (hasConfigTab) {
+          options.push(actionMap.REFRESH_CONFIGS);
         }
-      }
-      if (serviceCheckSupported) {
-        options.push(actionMap.RUN_SMOKE_TEST);
-      }
-      options.push(actionMap.TOGGLE_PASSIVE);
-      var serviceName = service.get('serviceName');
-      var nnComponent = App.StackServiceComponent.find().findProperty('componentName', 'NAMENODE');
-      var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName', 'KNOX_GATEWAY');
-      if (serviceName === 'HDFS' && nnComponent) {
-        var namenodeCustomCommands = nnComponent.get('customCommands');
-        if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS')) {
-          options.push(actionMap.REBALANCEHDFS);
+      } else {
+        if (this.get('serviceName') === 'FLUME') {
+          options.push(actionMap.REFRESH_CONFIGS);
         }
-      }
-
-      if (serviceName === 'KNOX' && knoxGatewayComponent) {
-        var knoxGatewayCustomCommands = knoxGatewayComponent.get('customCommands');
-        knoxGatewayCustomCommands.forEach(function(command) {
-          if (actionMap[command]) {
-            options.push(actionMap[command]);
-          }
+        if (this.get('serviceName') === 'YARN') {
+          options.push(actionMap.REFRESHQUEUES);
+        }
+        options.push(actionMap.RESTART_ALL);
+        if (hasMultipleMasterComponentGroups && this.get('serviceName') === 'HDFS') {
+          options.push(actionMap.RESTART_NAMENODES);
+        }
+        allSlaves.concat(allMasters).filter(function (_component) {
+          return App.get('components.rollinRestartAllowed').contains(_component);
+        }).forEach(function (_component) {
+          var _componentNamePluralized = pluralize(App.format.role(_component, false));
+          options.push(self.createOption(actionMap.ROLLING_RESTART, {
+            context: _component,
+            label: actionMap.ROLLING_RESTART.label.format(_componentNamePluralized)
+          }));
         });
-      }
+        allMasters.filter(function (master) {
+          return App.get('components.reassignable').contains(master);
+        }).forEach(function (master) {
+          options.push(self.createOption(actionMap.MOVE_COMPONENT, {
+            context: master,
+            label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master, false)),
+            disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
+          }));
+        });
+        // add "Manage JournalNode" when NNHA is enabled and there is more hosts than JNs
+        var JNCount = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length');
+        if (App.get('supports.manageJournalNode') && service.get('serviceName') == 'HDFS' && service.get('serviceTypes').contains('HA_MODE')
+          && (App.router.get('mainHostController.totalCount') > JNCount || JNCount > 3)) {
+          options.push(actionMap.MANAGE_JN);
+        }
+        if (service.get('serviceTypes').contains('HA_MODE') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+          switch (service.get('serviceName')) {
+            case 'HDFS':
+              options.push(actionMap.TOGGLE_NN_HA);
+              break;
+            case 'YARN':
+              options.push(actionMap.TOGGLE_RM_HA);
+              break;
+            case 'RANGER':
+              options.push(actionMap.TOGGLE_RA_HA);
+              break;
+            case 'HAWQ':
+              options.push(actionMap.TOGGLE_ADD_HAWQ_STANDBY);
+              break;
+          }
+        }
+        if (service.get('serviceTypes').contains('FEDERATION') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+          switch (service.get('serviceName')) {
+            case 'HDFS':
+              options.push(actionMap.TOGGLE_NN_FEDERATION);
+              break;
+          }
+        }
+        if (serviceCheckSupported) {
+          options.push(actionMap.RUN_SMOKE_TEST);
+        }
+        options.push(actionMap.TOGGLE_PASSIVE);
+        var nnComponent = App.StackServiceComponent.find().findProperty('componentName', 'NAMENODE');
+        var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName', 'KNOX_GATEWAY');
+        if (serviceName === 'HDFS' && nnComponent) {
+          var namenodeCustomCommands = nnComponent.get('customCommands');
+          if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS')) {
+            options.push(actionMap.REBALANCEHDFS);
+          }
+        }
 
-      if (serviceName === 'HIVE') {
-        var hiveServerInteractiveComponent = App.StackServiceComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE');
-        var isHiveInteractiveServerPresent = allMasters.contains('HIVE_SERVER_INTERACTIVE');
-        if (hiveServerInteractiveComponent && isHiveInteractiveServerPresent) {
-          var LLAPCustomCommands = hiveServerInteractiveComponent.get('customCommands');
-          LLAPCustomCommands.forEach(function (command) {
+        if (serviceName === 'KNOX' && knoxGatewayComponent) {
+          var knoxGatewayCustomCommands = knoxGatewayComponent.get('customCommands');
+          knoxGatewayCustomCommands.forEach(function (command) {
             if (actionMap[command]) {
               options.push(actionMap[command]);
             }
           });
         }
-      }
 
-      /**
-       * Display all custom commands of Master and StandBy on Service page.
-       **/
-      if(serviceName === 'HAWQ') {
-        var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQMASTER');
-        var hawqStandByComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQSTANDBY');
-        [hawqMasterComponent,hawqStandByComponent].forEach(function(component){
-          component.get('customCommands').forEach(function(command){
-            options.push(self.createOption(actionMap[command], {
+        if (serviceName === 'HIVE') {
+          var hiveServerInteractiveComponent = App.StackServiceComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE');
+          var isHiveInteractiveServerPresent = allMasters.contains('HIVE_SERVER_INTERACTIVE');
+          if (hiveServerInteractiveComponent && isHiveInteractiveServerPresent) {
+            var LLAPCustomCommands = hiveServerInteractiveComponent.get('customCommands');
+            LLAPCustomCommands.forEach(function (command) {
+              if (actionMap[command]) {
+                options.push(actionMap[command]);
+              }
+            });
+          }
+        }
+
+        /**
+         * Display all custom commands of Master and StandBy on Service page.
+         **/
+        if (serviceName === 'HAWQ') {
+          var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName', 'HAWQMASTER');
+          var hawqStandByComponent = App.StackServiceComponent.find().findProperty('componentName', 'HAWQSTANDBY');
+          [hawqMasterComponent, hawqStandByComponent].forEach(function (component) {
+            component.get('customCommands').forEach(function (command) {
+              options.push(self.createOption(actionMap[command], {
+                context: {
+                  label: actionMap[command].context,
+                  service: component.get('serviceName'),
+                  component: component.get('componentName'),
+                  command: command
+                }
+              }));
+            });
+          });
+        }
+
+        if (App.isAuthorized('HOST.ADD_DELETE_COMPONENTS')) {
+          self.addActionMap().filterProperty('service', serviceName).forEach(function (item) {
+            if (App.get('components.addableToHost').contains(item.component)) {
+
+              var isEnabled = App.HostComponent.find().filterProperty('componentName', item.component).length < App.get('allHostNames.length');
+
+              if (item.component === 'OOZIE_SERVER') {
+                isEnabled = isEnabled && !(Em.isEmpty(self.get('controller.configs.oozie-env.oozie_database')) || self.get('controller.configs.oozie-env.oozie_database') === 'New Derby Database');
+              }
+
+              item.action = 'addComponent';
+              item.disabled = isEnabled ? '' : 'disabled';
+              item.tooltip = isEnabled ? '' : Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(item.component);
+              item.context = item.component;
+
+              options.push(item);
+            }
+          });
+        }
+
+        if (App.get('isKerberosEnabled')) {
+          options.push(actionMap.REGENERATE_KEYTAB_FILE_OPERATIONS);
+        }
+
+        allMasters.forEach(function (master) {
+          var component = App.StackServiceComponent.find(master);
+          var commands = component.get('customCommands');
+
+          if (!commands.length) {
+            return;
+          }
+
+          commands.forEach(function (command) {
+            if (excludedCommands[master] && excludedCommands[master].contains(command)) {
+              return;
+            }
+
+            options.push(self.createOption(actionMap.MASTER_CUSTOM_COMMAND, {
+              label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "])),
               context: {
-                label: actionMap[command].context,
+                label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "])),
                 service: component.get('serviceName'),
                 component: component.get('componentName'),
                 command: command
@@ -246,62 +305,13 @@ App.MainServiceItemView = Em.View.extend({
         });
       }
 
-      if(App.isAuthorized('HOST.ADD_DELETE_COMPONENTS')){
-        self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
-        if (App.get('components.addableToHost').contains(item.component)) {
-
-          var isEnabled = App.HostComponent.find().filterProperty('componentName', item.component).length < App.get('allHostNames.length');
-
-          if (item.component === 'OOZIE_SERVER') {
-            isEnabled = isEnabled && !(Em.isEmpty(self.get('controller.configs.oozie-env.oozie_database')) || self.get('controller.configs.oozie-env.oozie_database') === 'New Derby Database');
-          }
-
-          item.action = 'addComponent';
-          item.disabled = isEnabled ? '' : 'disabled';
-          item.tooltip = isEnabled ? '' : Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(item.component);
-          item.context = item.component;
-
-          options.push(item);
-        }
-       });
+      if (hasConfigTab) {
+        options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
       }
 
-      if (App.get('isKerberosEnabled')){
-        options.push(actionMap.REGENERATE_KEYTAB_FILE_OPERATIONS);
+      if (App.isAuthorized("SERVICE.ADD_DELETE_SERVICES") && App.supports.enableAddDeleteServices) {
+        options.push(actionMap.DELETE_SERVICE);
       }
-
-      allMasters.forEach(function(master) {
-        var component = App.StackServiceComponent.find(master);
-        var commands = component.get('customCommands');
-
-        if (!commands.length) {
-          return;
-        }
-
-        commands.forEach(function(command) {
-          if (excludedCommands[master] && excludedCommands[master].contains(command)){
-            return;
-          }
-
-          options.push(self.createOption(actionMap.MASTER_CUSTOM_COMMAND, {
-            label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "])),
-            context: {
-              label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "])),
-              service: component.get('serviceName'),
-              component: component.get('componentName'),
-              command: command
-            }
-          }));
-        });
-      });
-    }
-
-    if (hasConfigTab) {
-      options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
-    }
-
-    if (App.isAuthorized("SERVICE.ADD_DELETE_SERVICES") && App.supports.enableAddDeleteServices) {
-      options.push(actionMap.DELETE_SERVICE);
     }
 
     if (this.get('maintenance.length')) {

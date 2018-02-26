@@ -431,28 +431,27 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   getGroupedMasterComponents: function (components) {
     switch (this.get('serviceName')) {
       case 'HDFS':
-        const hostComponents = this.get('service.hostComponents'),
+        const masterComponentGroups = this.get('service.masterComponentGroups'),
+          hostComponents = this.get('service.hostComponents'),
           zkfcs = hostComponents.filterProperty('componentName', 'ZKFC'),
-          hasNameNodeFederation = App.get('hasNameNodeFederation');
+          hasNameNodeFederation = this.get('service.hasMultipleMasterComponentGroups');
         let groups = [];
         hostComponents.forEach(component => {
           if (component.get('isMaster') && component.get('componentName') !== 'JOURNALNODE') {
             const hostName = component.get('hostName'),
               zkfc = zkfcs.findProperty('hostName', hostName);
             if (hasNameNodeFederation) {
-              const title = component.get('haNameSpace'),
-                existingGroup = groups.findProperty('title', title),
-                currentGroup = existingGroup || {
-                    title,
-                    isActive: title === this.get('activeMasterComponentGroup'),
-                    components: [],
-                    hosts: []
-                  };
+              const name = component.get('haNameSpace'),
+                existingGroup = groups.findProperty('name', name),
+                currentGroup = existingGroup || Object.assign({}, masterComponentGroups.findProperty('name', name));
               if (!existingGroup) {
                 groups.push(currentGroup);
+                Em.setProperties(currentGroup, {
+                  isActive: name === this.get('activeMasterComponentGroup'),
+                  components: []
+                });
               }
               currentGroup.components.push(component);
-              currentGroup.hosts.push(hostName);
               if (zkfc) {
                 zkfc.set('isSubComponent', true);
                 currentGroup.components.push(zkfc);
@@ -484,6 +483,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   setActiveComponentGroup: function (event) {
     const groupName = event.context;
-    this.get('mastersObj').forEach(group => Em.set(group, 'isActive', group.title === groupName));
+    this.get('mastersObj').forEach(group => Em.set(group, 'isActive', group.name === groupName));
   }
 });

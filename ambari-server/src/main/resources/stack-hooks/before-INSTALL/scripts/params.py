@@ -51,7 +51,7 @@ repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
 
 #hosts
 hostname = config['agentLevelParams']['hostname']
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
 slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
@@ -61,7 +61,7 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 hs_host = default("/clusterHostInfo/historyserver_hosts", [])
 jtnode_host = default("/clusterHostInfo/jtnode_hosts", [])
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
-zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
+zk_hosts = default("/clusterHostInfo/zookeeper_server_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
 storm_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
 falcon_host =  default('/clusterHostInfo/falcon_server_hosts', [])

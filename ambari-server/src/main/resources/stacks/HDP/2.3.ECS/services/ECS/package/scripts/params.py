@@ -29,9 +29,9 @@ from resource_management.libraries.functions import stack_select
 
 config = Script.get_config()
 
-jdk_name = default("/hostLevelParams/jdk_name", None)
+jdk_name = default("/ambariLevelParams/jdk_name", None)
 java_home = config['ambariLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = int(config['ambariLevelParams']['java_version'])
 jdk_location = config['ambariLevelParams']['jdk_location']
 
 #hadoop_conf_dir = "/etc/hadoop/conf"
@@ -47,7 +47,7 @@ smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
 
 java64_home = config['ambariLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = int(config['ambariLevelParams']['java_version'])
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']

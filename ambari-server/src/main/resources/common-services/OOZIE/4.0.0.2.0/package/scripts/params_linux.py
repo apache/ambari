@@ -328,7 +328,7 @@ if sqla_db_used:
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 
 hdfs_share_dir = format("{oozie_hdfs_user_dir}/share")
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 has_falcon_host = not len(falcon_host)  == 0
 

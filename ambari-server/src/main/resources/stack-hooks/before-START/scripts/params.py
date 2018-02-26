@@ -102,7 +102,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 
 #hosts
 hostname = config['agentLevelParams']['hostname']
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
 slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
@@ -112,7 +112,7 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 hs_host = default("/clusterHostInfo/historyserver_hosts", [])
 jtnode_host = default("/clusterHostInfo/jtnode_hosts", [])
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
-zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
+zk_hosts = default("/clusterHostInfo/zookeeper_server_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
 cluster_name = config["clusterName"]
 set_instanceId = "false"

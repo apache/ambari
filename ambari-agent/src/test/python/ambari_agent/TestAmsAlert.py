@@ -102,6 +102,7 @@ class TestAmsAlert(TestCase):
   @patch("httplib.HTTPConnection")
   def test_collect_warn(self, conn_mock):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -169,6 +170,7 @@ class TestAmsAlert(TestCase):
   @patch("httplib.HTTPConnection")
   def test_collect_ok(self, conn_mock):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
