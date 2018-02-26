@@ -85,6 +85,7 @@ public class UpgradeDAOTest {
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(99L);
+    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterId.longValue());
     requestEntity.setStatus(HostRoleStatus.PENDING);
     requestEntity.setStages(new ArrayList<>());
@@ -166,6 +167,7 @@ public class UpgradeDAOTest {
     // create upgrade entities
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
+    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterId.longValue());
     requestEntity.setStatus(HostRoleStatus.PENDING);
     requestEntity.setStages(new ArrayList<>());
@@ -215,6 +217,7 @@ public class UpgradeDAOTest {
   public void testUpdatableColumns() throws Exception {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
+    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterId.longValue());
     requestEntity.setStatus(HostRoleStatus.PENDING);
     requestEntity.setStages(new ArrayList<>());
@@ -258,6 +261,7 @@ public class UpgradeDAOTest {
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
+    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterId.longValue());
     requestEntity.setStatus(HostRoleStatus.PENDING);
     requestEntity.setStages(new ArrayList<StageEntity>());

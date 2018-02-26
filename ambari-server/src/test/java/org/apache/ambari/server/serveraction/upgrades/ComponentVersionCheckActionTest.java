@@ -200,6 +200,7 @@ public class ComponentVersionCheckActionTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setClusterId(c.getClusterId());
     requestEntity.setRequestId(1L);
+    requestEntity.setUserName("test");
     requestEntity.setStartTime(System.currentTimeMillis());
     requestEntity.setCreateTime(System.currentTimeMillis());
     requestDAO.create(requestEntity);
@@ -273,6 +274,7 @@ public class ComponentVersionCheckActionTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setClusterId(c.getClusterId());
     requestEntity.setRequestId(1L);
+    requestEntity.setUserName("test");
     requestEntity.setStartTime(System.currentTimeMillis());
     requestEntity.setCreateTime(System.currentTimeMillis());
     requestDAO.create(requestEntity);

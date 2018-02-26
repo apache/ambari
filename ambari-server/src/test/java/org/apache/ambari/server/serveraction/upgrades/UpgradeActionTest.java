@@ -661,6 +661,7 @@ public class UpgradeActionTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setClusterId(cluster.getClusterId());
     requestEntity.setRequestId(1L);
+    requestEntity.setUserName("test");
     requestEntity.setStartTime(System.currentTimeMillis());
     requestEntity.setCreateTime(System.currentTimeMillis());
     requestDAO.create(requestEntity);

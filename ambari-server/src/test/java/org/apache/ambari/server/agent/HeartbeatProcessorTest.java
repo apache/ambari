@@ -876,6 +876,7 @@ public class HeartbeatProcessorTest {
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
+    request.setUserName("test");
     actionDBAccessor.persistActions(request);
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));

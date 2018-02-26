@@ -652,6 +652,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     // the DB
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(2L);
+    requestEntity.setUserName("test");
     requestEntity.setClusterId(cluster.getClusterId());
     requestEntity.setStages(new ArrayList<>());
     requestDao.create(requestEntity);

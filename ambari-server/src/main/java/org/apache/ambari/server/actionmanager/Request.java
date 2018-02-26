@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestOperationLevelEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -59,6 +60,7 @@ public class Request {
   private long startTime;
   private long endTime;
   private String clusterHostInfo;
+  private String userName;
 
   /**
    * If true, this request can not be executed in parallel with any another
@@ -96,6 +98,7 @@ public class Request {
     this.endTime = -1;
     this.exclusive = false;
     this.clusterHostInfo = "{}";
+    this.userName = AuthorizationHelper.getAuthenticatedName();
 
     if (-1L != this.clusterId) {
       try {
@@ -134,6 +137,7 @@ public class Request {
       this.clusterHostInfo = clusterHostInfo;
       this.requestType = RequestType.INTERNAL_REQUEST;
       this.exclusive = false;
+      this.userName = AuthorizationHelper.getAuthenticatedName();
     } else {
       String message = "Attempted to construct request from empty stage collection";
       LOG.error(message);
@@ -156,6 +160,7 @@ public class Request {
       this.requestType = actionRequest.isCommand() ? RequestType.COMMAND : RequestType.ACTION;
       this.commandName = actionRequest.isCommand() ? actionRequest.getCommandName() : actionRequest.getActionName();
       this.exclusive = actionRequest.isExclusive();
+      this.userName = AuthorizationHelper.getAuthenticatedName();
     }
   }
 
@@ -250,6 +255,7 @@ public class Request {
     requestEntity.setStatus(status);
     requestEntity.setDisplayStatus(displayStatus);
     requestEntity.setClusterHostInfo(clusterHostInfo);
+    requestEntity.setUserName(userName);
     //TODO set all fields
 
     if (resourceFilters != null) {
@@ -420,6 +426,14 @@ public class Request {
 
   public void setExclusive(boolean isExclusive) {
     exclusive = isExclusive;
+  }
+
+  public String getUserName() {
+    return userName;
+  }
+
+  public void setUserName(String userName) {
+    this.userName = userName;
   }
 
   /**

@@ -870,6 +870,7 @@ public class TestHeartbeatHandler {
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
+    request.setUserName("test");
     actionDBAccessor.persistActions(request);
     actionDBAccessor.abortHostRole(DummyHostname1, 1, 1, Role.DATANODE.name());
 

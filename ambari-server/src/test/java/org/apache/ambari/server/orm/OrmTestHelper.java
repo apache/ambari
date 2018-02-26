@@ -265,6 +265,7 @@ public class OrmTestHelper {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
     requestEntity.setClusterId(clusterDAO.findByName("test_cluster1").getClusterId());
+    requestEntity.setUserName("test");
 
     StageEntity stageEntity = new StageEntity();
     stageEntity.setRequest(requestEntity);

@@ -98,6 +98,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String STAGE_DISPLAY_STATUS_COLUMN = "display_status";
   protected static final String REQUEST_TABLE = "request";
   protected static final String REQUEST_DISPLAY_STATUS_COLUMN = "display_status";
+  protected static final String REQUEST_USER_NAME_COLUMN = "user_name";
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
   protected static final String COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
@@ -600,6 +601,11 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
     dbAccessor.addColumn(REQUEST_TABLE,
       new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+  }
+
+  protected void updateRequestTable() throws SQLException {
+    dbAccessor.addColumn(REQUEST_TABLE,
+            new DBAccessor.DBColumnInfo(REQUEST_USER_NAME_COLUMN, String.class, 255, "n/a", false));
   }
 
   protected void addAmbariConfigurationTable() throws SQLException {

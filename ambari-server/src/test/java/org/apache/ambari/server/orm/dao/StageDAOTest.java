@@ -69,6 +69,7 @@ public class StageDAOTest {
     RequestDAO    requestDao = injector.getInstance(RequestDAO.class);
 
     RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterId);
     requestEntity.setStartTime(1000L);
     requestEntity.setEndTime(1200L);

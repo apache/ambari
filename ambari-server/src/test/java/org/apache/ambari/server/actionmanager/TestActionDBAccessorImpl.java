@@ -194,6 +194,7 @@ public class TestActionDBAccessorImpl {
     stages.add(createStubStage(hostName, requestId, stageId, false));
     stages.add(createStubStage(hostName, requestId, stageId + 1, false));
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
     db.persistActions(request);
     assertEquals(2, stages.size());
   }
@@ -601,6 +602,7 @@ public class TestActionDBAccessorImpl {
 
     Request request = new Request(stages, "", clusters);
     request.setClusterHostInfo("clusterHostInfo");
+    request.setUserName("test");
     db.persistActions(request);
     db.abortOperation(requestId);
 
@@ -645,6 +647,7 @@ public class TestActionDBAccessorImpl {
     stages.add(stage);
 
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
 
     // persist entities
     db.persistActions(request);
@@ -706,6 +709,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
     request.setClusterHostInfo("clusterHostInfo");
     db.persistActions(request);
 
@@ -735,6 +739,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
     db.persistActions(request);
   }
 
@@ -749,6 +754,7 @@ public class TestActionDBAccessorImpl {
     }
 
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
     db.persistActions(request);
   }
 
@@ -759,6 +765,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
 
     s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.COMPLETED);
     s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
@@ -773,6 +780,7 @@ public class TestActionDBAccessorImpl {
     stages.add(s);
 
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
 
     s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.PENDING);
     s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
@@ -811,6 +819,7 @@ public class TestActionDBAccessorImpl {
     List<RequestResourceFilter> resourceFilters = new
       ArrayList<RequestResourceFilter>() {{ add(resourceFilter); }};
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
     request.setClusterHostInfo("");
     db.persistActions(request);
   }
@@ -825,6 +834,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "", clusters);
+    request.setUserName("test");
     request.setClusterHostInfo("");
     db.persistActions(request);
   }
