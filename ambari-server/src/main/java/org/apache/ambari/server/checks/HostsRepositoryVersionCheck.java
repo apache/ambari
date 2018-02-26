@@ -45,7 +45,7 @@ import com.google.inject.Singleton;
 @Singleton
 @UpgradeCheck(
     group = UpgradeCheckGroup.REPOSITORY_VERSION,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
 public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
   /**

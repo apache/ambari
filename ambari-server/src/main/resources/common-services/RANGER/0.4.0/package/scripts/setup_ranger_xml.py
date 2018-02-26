@@ -34,7 +34,7 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import solr_cloud_util
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_EXPRESS, UPGRADE_TYPE_ROLLING
 from resource_management.core.exceptions import ExecutionFailed
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.

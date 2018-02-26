@@ -90,7 +90,7 @@ public class ServiceTest {
 
   @Test
   public void testCanBeRemoved() throws Exception{
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-1.0");
     Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     for (State state : State.values()) {
@@ -133,7 +133,7 @@ public class ServiceTest {
   @Test
   public void testGetAndSetServiceInfo() throws AmbariException {
     String serviceName = "HDFS";
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>());
     Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
     cluster.addService(s);
 
@@ -160,7 +160,7 @@ public class ServiceTest {
   @Test
   public void testAddGetDeleteServiceComponents() throws AmbariException {
     String serviceName = "HDFS";
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>() );
     Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
     cluster.addService(s);
 
@@ -243,7 +243,7 @@ public class ServiceTest {
   @Test
   public void testConvertToResponse() throws AmbariException {
     String serviceName = "HDFS";
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>());
     Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);
@@ -280,7 +280,7 @@ public class ServiceTest {
   @Test
   public void testServiceMaintenance() throws Exception {
     String serviceName = "HDFS";
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>());
     Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
     cluster.addService(s);
 

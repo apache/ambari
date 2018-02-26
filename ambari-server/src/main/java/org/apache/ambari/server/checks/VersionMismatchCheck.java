@@ -43,7 +43,7 @@ import com.google.inject.Singleton;
 @UpgradeCheck(
     group = UpgradeCheckGroup.COMPONENT_VERSION,
     order = 7.0f,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
 public class VersionMismatchCheck extends AbstractCheckDescriptor {
 
   public VersionMismatchCheck() {

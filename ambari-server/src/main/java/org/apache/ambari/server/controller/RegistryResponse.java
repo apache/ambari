@@ -67,7 +67,6 @@ public class RegistryResponse {
         return registryUri;
     }
 
-
     public void setRegistryUri(String registryUri) {
         this.registryUri = registryUri;
     }

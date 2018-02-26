@@ -27,9 +27,18 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Mpack {
 
-  private Long mpackId;
+  /**
+   * Mpack DB Id
+   */
+  private Long resourceId;
 
   private Long registryId;
+
+  /**
+   * Mpack id as defined in mpack.json
+   */
+  @SerializedName("id")
+  private String mpackId;
 
   @SerializedName("name")
   private String name;
@@ -37,23 +46,12 @@ public class Mpack {
   @SerializedName("version")
   private String version;
 
-  @SerializedName("artifacts-path")
-  private String artifactsPath;
 
   @SerializedName("prerequisites")
   private Map<String, String> prerequisites;
 
   @SerializedName("modules")
   private List<Module> modules;
-
-  @SerializedName("modules-path")
-  private String modulesPath;
-
-  @SerializedName("mpack-path")
-  private String mpackPath;
-
-  @SerializedName("stack-id")
-  private String stackId;
 
   @SerializedName("definition")
   private String definition;
@@ -63,12 +61,12 @@ public class Mpack {
 
   private String mpackUri;
 
-  public Long getMpackId() {
-    return mpackId;
+  public Long getResourceId() {
+    return resourceId;
   }
 
-  public void setMpackId(Long mpackId) {
-    this.mpackId = mpackId;
+  public void setResourceId(Long resourceId) {
+    this.resourceId = resourceId;
   }
 
   public Long getRegistryId() {
@@ -85,6 +83,14 @@ public class Mpack {
 
   public void setMpackUri(String mpackUri) {
     this.mpackUri = mpackUri;
+  }
+
+  public String getMpackId() {
+    return mpackId;
+  }
+
+  public void setMpackId(String mpackId) {
+    this.mpackId = mpackId;
   }
 
   public String getName() {
@@ -127,37 +133,6 @@ public class Mpack {
     this.modules = modules;
   }
 
-  public String getStackId() {
-    return stackId;
-  }
-
-  public void setStackId(String stackId) {
-    this.stackId = stackId;
-  }
-
-  public String getArtifactsPath() {
-    return artifactsPath;
-  }
-
-  public void setArtifactsPath(String artifactsPath) {
-    this.artifactsPath = artifactsPath;
-  }
-
-  public String getModulesPath() {
-    return modulesPath;
-  }
-
-  public void setModulesPath(String modulesPath) {
-    this.modulesPath = modulesPath;
-  }
-
-  public String getMpackPath() {
-    return mpackPath;
-  }
-
-  public void setMpackPath(String mpackPath) {
-    this.mpackPath = mpackPath;
-  }
 
   public String getDefinition() {
     return definition;
@@ -174,16 +149,13 @@ public class Mpack {
 
     Mpack mpack = (Mpack) o;
 
-    if (!mpackId.equals(mpack.mpackId)) return false;
+    if (!resourceId.equals(mpack.resourceId)) return false;
     if (registryId != null ? !registryId.equals(mpack.registryId) : mpack.registryId != null) return false;
+    if (!mpackId.equals(mpack.mpackId)) return false;
     if (!name.equals(mpack.name)) return false;
     if (!version.equals(mpack.version)) return false;
-    if (!artifactsPath.equals(mpack.artifactsPath)) return false;
     if (!prerequisites.equals(mpack.prerequisites)) return false;
     if (!modules.equals(mpack.modules)) return false;
-    if (!modulesPath.equals(mpack.modulesPath)) return false;
-    if (!mpackPath.equals(mpack.mpackPath)) return false;
-    if (!stackId.equals(mpack.stackId)) return false;
     if (!definition.equals(mpack.definition)) return false;
     if (!description.equals(mpack.description)) return false;
     return mpackUri.equals(mpack.mpackUri);
@@ -191,16 +163,13 @@ public class Mpack {
 
   @Override
   public int hashCode() {
-    int result = mpackId.hashCode();
+    int result = resourceId.hashCode();
     result = 31 * result + (registryId != null ? registryId.hashCode() : 0);
+    result = 31 * result + mpackId.hashCode();
     result = 31 * result + name.hashCode();
     result = 31 * result + version.hashCode();
-    result = 31 * result + artifactsPath.hashCode();
     result = 31 * result + prerequisites.hashCode();
     result = 31 * result + modules.hashCode();
-    result = 31 * result + modulesPath.hashCode();
-    result = 31 * result + mpackPath.hashCode();
-    result = 31 * result + stackId.hashCode();
     result = 31 * result + definition.hashCode();
     result = 31 * result + description.hashCode();
     result = 31 * result + mpackUri.hashCode();
@@ -210,16 +179,13 @@ public class Mpack {
   @Override
   public String toString() {
     return "Mpack{" +
-            "mpackId=" + mpackId +
+            "id=" + resourceId +
             ", registryId=" + registryId +
+            ", mpackId='" + mpackId + '\'' +
             ", name='" + name + '\'' +
             ", version='" + version + '\'' +
-            ", artifactsPath='" + artifactsPath + '\'' +
             ", prerequisites=" + prerequisites +
             ", modules=" + modules +
-            ", modulesPath='" + modulesPath + '\'' +
-            ", mpackPath='" + mpackPath + '\'' +
-            ", stackId='" + stackId + '\'' +
             ", definition='" + definition + '\'' +
             ", description='" + description + '\'' +
             ", mpackUri='" + mpackUri + '\'' +
@@ -227,6 +193,9 @@ public class Mpack {
   }
 
   public void copyFrom(Mpack mpack) {
+    if (this.resourceId == null) {
+      this.resourceId = mpack.getResourceId();
+    }
     if (this.name == null) {
       this.name = mpack.getName();
     }
@@ -235,9 +204,6 @@ public class Mpack {
     }
     if (this.version == null) {
       this.version = mpack.getVersion();
-    }
-    if (this.stackId == null) {
-      this.stackId = mpack.getStackId();
     }
     if (this.registryId == null) {
       this.registryId = mpack.getRegistryId();
@@ -248,17 +214,8 @@ public class Mpack {
     if (this.modules == null) {
       this.modules = mpack.getModules();
     }
-    if (this.artifactsPath == null) {
-      this.artifactsPath = mpack.getArtifactsPath();
-    }
     if (this.prerequisites == null) {
       this.prerequisites = mpack.getPrerequisites();
-    }
-    if (this.modulesPath == null) {
-      this.modulesPath = mpack.getModulesPath();
-    }
-    if (this.mpackPath == null) {
-      this.mpackPath = mpack.getMpackPath();
     }
     if (this.definition == null) {
       this.definition = mpack.getDefinition();
