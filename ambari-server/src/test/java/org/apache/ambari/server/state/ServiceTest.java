@@ -90,7 +90,7 @@ public class ServiceTest {
 
   @Test
   public void testCanBeRemoved() throws Exception{
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-1.0");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", STACK_ID.getStackId());
     Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     for (State state : State.values()) {
