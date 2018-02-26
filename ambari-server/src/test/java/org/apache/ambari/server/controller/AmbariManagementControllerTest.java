@@ -198,6 +198,7 @@ public class AmbariManagementControllerTest {
   private static final String COMPONENT_NAME_HIVE_SERVER = "HIVE_SERVER";
   private static final String STACK_VERSION = "0.2";
   private static final String NEW_STACK_VERSION = "2.0.6";
+  private static final String HDP_0_1 = "HDP-0.1";
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-1.1.1.16";
   private static final String REPO_NAME = "HDP";
@@ -297,7 +298,7 @@ public class AmbariManagementControllerTest {
     EasyMock.replay(injector.getInstance(AuditLogger.class));
 
     repositoryVersion01 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-0.1"), "0.1-1234");
+        new StackId(HDP_0_1), "0.1-1234");
 
     repositoryVersion02 = helper.getOrCreateRepositoryVersion(
         new StackId("HDP-0.2"), "0.2-1234");
@@ -376,7 +377,7 @@ public class AmbariManagementControllerTest {
    * @throws Exception
    */
   private void createCluster(String clusterName) throws Exception{
-    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, "HDP-0.1", null);
+    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, HDP_0_1, null);
     controller.createCluster(r);
   }
 
@@ -658,7 +659,7 @@ public class AmbariManagementControllerTest {
     Set<String> hostNames = new HashSet<>();
     hostNames.add(host1);
     hostNames.add(host2);
-    ClusterRequest r = new ClusterRequest(null, cluster1, "HDP-0.1", hostNames);
+    ClusterRequest r = new ClusterRequest(null, cluster1, HDP_0_1, hostNames);
 
     try {
       controller.createCluster(r);
@@ -713,7 +714,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, State.INIT);
 
@@ -778,11 +779,11 @@ public class AmbariManagementControllerTest {
     String cluster2 = getUniqueName();
 
 
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
-    clusters.addCluster(cluster2, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
+    clusters.addCluster(cluster2, new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster2, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster2, serviceGroupName, HDP_0_1);
 
     try {
       set1.clear();
@@ -848,7 +849,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     try {
       createService(cluster1, serviceGroupName, serviceName, State.INSTALLING);
@@ -892,10 +893,10 @@ public class AmbariManagementControllerTest {
 
     String cluster1 = getUniqueName();
 
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     ServiceRequest valid1 = new ServiceRequest(cluster1, serviceGroupName, "HDFS", repositoryVersion01.getId(), null, null);
     ServiceRequest valid2 = new ServiceRequest(cluster1, serviceGroupName, "MAPREDUCE", repositoryVersion01.getId(), null, null);
     set1.add(valid1);
@@ -925,7 +926,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
 
@@ -1020,8 +1021,8 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
-    clusters.addCluster(cluster2, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
+    clusters.addCluster(cluster2, new StackId(HDP_0_1));
 
     String serviceGroupName = "CORE";
 
@@ -1037,7 +1038,7 @@ public class AmbariManagementControllerTest {
     }
 
     Cluster c1 = clusters.getCluster(cluster1);
-    StackId stackId = new StackId("HDP-0.1");
+    StackId stackId = new StackId(HDP_0_1);
     c1.setDesiredStackVersion(stackId);
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
@@ -1119,9 +1120,9 @@ public class AmbariManagementControllerTest {
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
     clusters.getCluster(cluster1)
-        .setDesiredStackVersion(new StackId("HDP-0.1"));
+        .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -1403,8 +1404,8 @@ public class AmbariManagementControllerTest {
   private void createServiceComponentHostSimple(String clusterName, String host1, String host2, String serviceGroupName, String serviceName) throws Exception {
 
     createCluster(clusterName);
-    clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-0.1"));
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    clusters.getCluster(clusterName).setDesiredStackVersion(new StackId(HDP_0_1));
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, HDP_0_1);
     createService(clusterName, serviceGroupName, serviceName, repositoryVersion01, null);
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
@@ -1494,7 +1495,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -1779,9 +1780,9 @@ public class AmbariManagementControllerTest {
 
     request.setClusterName(cluster1);
 
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
     Cluster c = clusters.getCluster(cluster1);
-    StackId stackId = new StackId("HDP-0.1");
+    StackId stackId = new StackId(HDP_0_1);
     c.setDesiredStackVersion(stackId);
     c.setCurrentStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
@@ -1806,9 +1807,9 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host1);
     clusters.addHost(host2);
     clusters.addHost(host3);
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
     Cluster c = clusters.getCluster(cluster1);
-    StackId stackID = new StackId("HDP-0.1");
+    StackId stackID = new StackId(HDP_0_1);
     c.setDesiredStackVersion(stackID);
     c.setCurrentStackVersion(stackID);
     helper.getOrCreateRepositoryVersion(stackID, stackID.getStackVersion());
@@ -1866,7 +1867,7 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
 
     try {
       set1.clear();
@@ -2147,11 +2148,11 @@ public class AmbariManagementControllerTest {
   public void testGetClusters() throws Exception {
     String cluster1 = getUniqueName();
 
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
 
     Cluster c1 = clusters.getCluster(cluster1);
 
-    StackId stackId = new StackId("HDP-0.1");
+    StackId stackId = new StackId(HDP_0_1);
     c1.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
@@ -2181,10 +2182,10 @@ public class AmbariManagementControllerTest {
     String cluster3 = getUniqueName();
     String cluster4 = getUniqueName();
 
-    clusters.addCluster(cluster1, new StackId("HDP-0.1"));
-    clusters.addCluster(cluster2, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster1, new StackId(HDP_0_1));
+    clusters.addCluster(cluster2, new StackId(HDP_0_1));
     clusters.addCluster(cluster3, new StackId("HDP-1.2.0"));
-    clusters.addCluster(cluster4, new StackId("HDP-0.1"));
+    clusters.addCluster(cluster4, new StackId(HDP_0_1));
 
     ClusterRequest r = new ClusterRequest(null, null, null, null);
     Set<ClusterResponse> resp = controller.getClusters(Collections.singleton(r));
@@ -2196,7 +2197,7 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster(cluster1);
     Assert.assertEquals(c1.getClusterId(), resp.iterator().next().getClusterId());
 
-    r = new ClusterRequest(null, null, "HDP-0.1", null);
+    r = new ClusterRequest(null, null, HDP_0_1, null);
     resp = controller.getClusters(Collections.singleton(r));
     Assert.assertTrue(resp.size() >= 3);
 
@@ -2209,7 +2210,7 @@ public class AmbariManagementControllerTest {
   public void testGetServices() throws Exception {
     String cluster1 = getUniqueName();
 
-    StackId stackId = new StackId("HDP-0.1");
+    StackId stackId = new StackId(HDP_0_1);
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         stackId.getStackVersion());
 
@@ -2229,7 +2230,7 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(s1.getClusterId().longValue() == resp1.getClusterId().longValue());
     Assert.assertEquals(s1.getCluster().getClusterName(), resp1.getClusterName());
     Assert.assertEquals(s1.getName(), resp1.getServiceName());
-    Assert.assertEquals("HDP-0.1", s1.getDesiredStackId().getStackId());
+    Assert.assertEquals(HDP_0_1, s1.getDesiredStackId().getStackId());
     Assert.assertEquals(s1.getDesiredStackId().getStackId(), resp1.getDesiredStackId());
     Assert.assertEquals(State.INSTALLED.toString(), resp1.getDesiredState());
 
@@ -2483,10 +2484,10 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     String host1 = getUniqueName();
 
-    Cluster c1 = setupClusterWithHosts(cluster1, "HDP-0.1", Lists.newArrayList(host1), "centos5");
+    Cluster c1 = setupClusterWithHosts(cluster1, HDP_0_1, Lists.newArrayList(host1), "centos5");
     RepositoryVersionEntity repositoryVersion = repositoryVersion01;
 
-    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", "HDP-0.1");
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE", HDP_0_1);
     Service s1 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HDFS", "HDFS", repositoryVersion);
     c1.addService(s1);
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
@@ -2535,7 +2536,7 @@ public class AmbariManagementControllerTest {
 
     Long clusterId = c.getClusterId();
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.5");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -2628,7 +2629,7 @@ public class AmbariManagementControllerTest {
 
     setupClusterWithHosts(cluster1, "HDP-2.0.7", Arrays.asList(host1, host2), "centos5");
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.7");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -2697,7 +2698,7 @@ public class AmbariManagementControllerTest {
     createCluster(cluster1);
     clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("HDP-2.0.7"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.7");
     String serviceName = "HBASE";
     createService(cluster1, serviceGroupName, serviceName, repositoryVersion207, null);
     String componentName1 = "HBASE_MASTER";
@@ -3074,7 +3075,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
 
     Map<String, String> mapRequestProps = new HashMap<>();
@@ -3126,8 +3127,8 @@ public class AmbariManagementControllerTest {
     createCluster(cluster2);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster2, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster2, serviceGroupName, HDP_0_1);
     String serviceName1 = "HDFS";
     createService(cluster1, serviceGroupName, serviceName1, null);
 
@@ -3208,7 +3209,7 @@ public class AmbariManagementControllerTest {
     clusters.getCluster(cluster1)
         .setDesiredStackVersion(new StackId("HDP-0.2"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-0.2");
     String serviceName1 = "HDFS";
     createService(cluster1, serviceGroupName, serviceName1, null);
 
@@ -3459,7 +3460,7 @@ public class AmbariManagementControllerTest {
 
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName1 = "HDFS";
     createService(cluster1, serviceGroupName, serviceName1, null);
     String componentName1 = "NAMENODE";
@@ -3650,7 +3651,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName1 = "HDFS";
     createService(cluster1, serviceGroupName, serviceName1, null);
     String componentName1 = "NAMENODE";
@@ -4361,11 +4362,11 @@ public class AmbariManagementControllerTest {
     final String host1 = getUniqueName();
     final String host2 = getUniqueName();
 
-    setupClusterWithHosts(cluster1, "HDP-0.1", Arrays.asList(host1, host2), "centos5");
+    setupClusterWithHosts(cluster1, HDP_0_1, Arrays.asList(host1, host2), "centos5");
 
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
-    cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
+    cluster.setCurrentStackVersion(new StackId(HDP_0_1));
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion01;
 
@@ -4381,7 +4382,7 @@ public class AmbariManagementControllerTest {
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-0.1");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", HDP_0_1);
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     Service mapReduce = cluster.addService(serviceGroup, "MAPREDUCE", "MAPREDUCE", repositoryVersion);
 
@@ -4466,9 +4467,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-            .setDesiredStackVersion(new StackId("HDP-0.1"));
+            .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -4665,9 +4666,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-        .setDesiredStackVersion(new StackId("HDP-0.1"));
+        .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -4807,9 +4808,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+      .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -4958,9 +4959,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName1 = "HDFS";
     String serviceName2 = "MAPREDUCE";
     String componentName1 = "NAMENODE";
@@ -5136,9 +5137,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -5222,7 +5223,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "PIG";
     createService(cluster1, serviceGroupName, serviceName, repositoryVersion01, null);
     String componentName1 = "PIG";
@@ -5318,9 +5319,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-        .setDesiredStackVersion(new StackId("HDP-0.1"));
+        .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -5452,9 +5453,9 @@ public class AmbariManagementControllerTest {
   public void testServiceCheckWhenHostIsUnhealthy() throws Exception {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
-    clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.getCluster(cluster1).setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -5546,9 +5547,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+      .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -5608,7 +5609,7 @@ public class AmbariManagementControllerTest {
     clusters.getCluster(cluster1)
       .setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.6");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -5667,7 +5668,7 @@ public class AmbariManagementControllerTest {
     clusters.getCluster(cluster1)
       .setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.6");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName = "HDFS_CLIENT";
@@ -5720,7 +5721,7 @@ public class AmbariManagementControllerTest {
     Cluster cluster = clusters.getCluster(cluster1);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.7");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6142,9 +6143,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6217,10 +6218,10 @@ public class AmbariManagementControllerTest {
   public void testConfigsAttachedToServiceNotCluster() throws Exception {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
-    clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.getCluster(cluster1).setDesiredStackVersion(new StackId(HDP_0_1));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6292,7 +6293,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "PIG";
     createService(cluster1, serviceGroupName, serviceName, repositoryVersion01, null);
     String componentName1 = "PIG";
@@ -6350,7 +6351,7 @@ public class AmbariManagementControllerTest {
     Cluster cluster = clusters.getCluster(cluster1);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.6");
     String serviceName1 = "HDFS";
     String serviceName2 = "MAPREDUCE2";
     createService(cluster1, serviceGroupName, serviceName1, repositoryVersion206, null);
@@ -6511,7 +6512,7 @@ public class AmbariManagementControllerTest {
     Cluster cluster = clusters.getCluster(cluster1);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.7");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6600,9 +6601,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -7183,9 +7184,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+      .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -7330,7 +7331,7 @@ public class AmbariManagementControllerTest {
     final String hostName1 = getUniqueName();
     final String context = "Test invocation";
 
-    StackId stackID = new StackId("HDP-0.1");
+    StackId stackID = new StackId(HDP_0_1);
     clusters.addCluster(cluster1, stackID);
     Cluster c = clusters.getCluster(cluster1);
     Long clusterId = c.getClusterId();
@@ -7449,9 +7450,9 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+      .setDesiredStackVersion(new StackId(HDP_0_1));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -7552,7 +7553,7 @@ public class AmbariManagementControllerTest {
         .setDesiredStackVersion(new StackId("HDP-0.2"));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-0.2");
     String serviceName1 = "HDFS";
     createService(cluster1, serviceGroupName, serviceName1, null);
 
@@ -7634,7 +7635,7 @@ public class AmbariManagementControllerTest {
     createCluster(cluster1);
     clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("HDP-1.3.1"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-1.3.1");
     String hdfs = "HDFS";
     String mapred = "MAPREDUCE";
     createService(cluster1, serviceGroupName, hdfs, null);
@@ -7718,10 +7719,10 @@ public class AmbariManagementControllerTest {
     createCluster(cluster1);
 
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -7814,10 +7815,10 @@ public class AmbariManagementControllerTest {
     createCluster(cluster1);
 
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -7994,10 +7995,10 @@ public class AmbariManagementControllerTest {
     createCluster(cluster1);
 
     Cluster cluster = clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -8119,7 +8120,7 @@ public class AmbariManagementControllerTest {
       amc.createCluster(clusterRequest);
 
       String serviceGroupName = "CORE";
-      ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+      ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-1.2.0");
 
       Set<ServiceRequest> serviceRequests = new HashSet<>();
       serviceRequests.add(new ServiceRequest(cluster1, serviceGroupName, "HDFS", repositoryVersion120.getId(), null, null));
@@ -8183,7 +8184,7 @@ public class AmbariManagementControllerTest {
     HostResourceProviderTest.createHosts(amc, hrs);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, stackId);
 
     Set<ServiceRequest> serviceRequests = new HashSet<>();
     serviceRequests.add(new ServiceRequest(clusterName, serviceGroupName, "HDFS", repositoryVersion201.getId(), null, null));
@@ -8258,11 +8259,12 @@ public class AmbariManagementControllerTest {
     host = clusters.getHost("host3");
     setOsFamily(host, "redhat", "5.9");
 
-    ClusterRequest clusterRequest = new ClusterRequest(null, cluster1, "HDP-1.2.0", null);
+    String version = "HDP-1.2.0";
+    ClusterRequest clusterRequest = new ClusterRequest(null, cluster1, version, null);
     amc.createCluster(clusterRequest);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, version);
 
     Set<ServiceRequest> serviceRequests = new HashSet<>();
     String serviceName = "HDFS";
@@ -8330,19 +8332,19 @@ public class AmbariManagementControllerTest {
     Map<String, ServiceComponentHost> hostComponents = cluster.getService(serviceName).getServiceComponent("DATANODE").getServiceComponentHosts();
     for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
       ServiceComponentHost cHost = entry.getValue();
-      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), version));
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
     hostComponents = cluster.getService(serviceName).getServiceComponent("NAMENODE").getServiceComponentHosts();
     for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
       ServiceComponentHost cHost = entry.getValue();
-      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), version));
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
     hostComponents = cluster.getService(serviceName).getServiceComponent("SECONDARY_NAMENODE").getServiceComponentHosts();
     for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
       ServiceComponentHost cHost = entry.getValue();
-      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), version));
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
 
@@ -8381,7 +8383,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(2, namenodes.size());
 
     componentHost = namenodes.get(host2);
-    componentHost.handleEvent(new ServiceComponentHostInstallEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+    componentHost.handleEvent(new ServiceComponentHostInstallEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis(), version));
     componentHost.handleEvent(new ServiceComponentHostOpSucceededEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis()));
 
     serviceRequests.clear();
@@ -8414,7 +8416,7 @@ public class AmbariManagementControllerTest {
 
     // make INSTALLED again
     componentHost = namenodes.get(host1);
-    componentHost.handleEvent(new ServiceComponentHostInstallEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+    componentHost.handleEvent(new ServiceComponentHostInstallEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis(), version));
     componentHost.handleEvent(new ServiceComponentHostOpSucceededEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis()));
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest(cluster1, serviceGroupName, null, "NAMENODE", host1, "INSTALLED"));
@@ -8565,7 +8567,7 @@ public class AmbariManagementControllerTest {
     amc.createCluster(clusterRequest);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, CLUSTER_NAME, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, CLUSTER_NAME, serviceGroupName, STACK_ID);
 
     Set<ServiceRequest> serviceRequests = new HashSet<>();
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, serviceGroupName, "HDFS", repositoryVersion201.getId(), null, null));
@@ -8933,7 +8935,7 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(stackId);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, stackId.getStackId());
     String hdfsService = "HDFS";
     String fakeMonitoringService = "FAKENAGIOS";
     createService(cluster1, serviceGroupName, hdfsService, repositoryVersion208, null);
@@ -8985,7 +8987,7 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(stackId);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, stackId.getStackId());
     String hdfsService = "HDFS";
     String zookeeperService = "ZOOKEEPER";
     createService(cluster1, serviceGroupName, hdfsService, repositoryVersion207, null);
@@ -9047,7 +9049,7 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(stackId);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, stackId.getStackId());
     String hdfsService = "HDFS";
     String zookeeperService = "ZOOKEEPER";
     createService(cluster1, serviceGroupName, hdfsService, null);
@@ -9115,7 +9117,7 @@ public class AmbariManagementControllerTest {
         new StackId("HDP-1.2.0"));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-1.2.0");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
 
@@ -9336,7 +9338,7 @@ public class AmbariManagementControllerTest {
         new StackId("HDP-2.2.0"));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.2.0");
     String service1Name = "HDFS";
     String service2Name = "STORM";
     String service3Name = "ZOOKEEPER";
@@ -9418,10 +9420,10 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
-        .setDesiredStackVersion(new StackId("HDP-0.1"));
+        .setDesiredStackVersion(new StackId(HDP_0_1));
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
     String serviceName1 = "HDFS";
     String serviceName2 = "MAPREDUCE";
     createService(cluster1, serviceGroupName, serviceName1, null);
@@ -9560,7 +9562,7 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster =  clusters.getCluster(cluster1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setDesiredStackVersion(new StackId(HDP_0_1));
 
     ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), cluster.getClusterName(), null, null);
 
@@ -9732,7 +9734,7 @@ public class AmbariManagementControllerTest {
     Long clusterId = c.getClusterId();
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.5");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -9831,7 +9833,7 @@ public class AmbariManagementControllerTest {
     Long clusterId = cl.getClusterId();
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.5");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -9976,7 +9978,7 @@ public class AmbariManagementControllerTest {
 
     Cluster cluster = setupClusterWithHosts(cluster1, "HDP-2.0.5", Arrays.asList(host1), "centos5");
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "HDP-2.0.5");
     String serviceName = "HDFS";
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -10075,7 +10077,7 @@ public class AmbariManagementControllerTest {
       State.INSTALLED.name(), SecurityType.NONE, "OTHER-2.0", null);
     controller.createCluster(r);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, "OTHER-2.0");
     String serviceName = "HBASE";
     clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("OTHER-2.0"));
 

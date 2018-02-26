@@ -183,7 +183,7 @@ public class BackgroundCustomCommandExecutionTest {
 
     clusters.getCluster(clusterName);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, STACK_ID.getStackId());
     createService(clusterName, serviceGroupName, "HDFS", null);
 
     createServiceComponent(clusterName, serviceGroupName, "HDFS","NAMENODE", State.INIT);
