@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
@@ -143,6 +144,8 @@ public class RequestStageContainerTest {
 
     //expectations
     expect(requestFactory.createNewFromStages(stages, "{}")).andReturn(request);
+    request.setUserName(null);
+    expectLastCall().once();
     expect(request.getStages()).andReturn(stages).anyTimes();
     actionManager.sendActions(request, null);
 
