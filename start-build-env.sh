@@ -30,6 +30,9 @@ cd "$(dirname "$0")"
 # Maven version
 : ${MAVEN_VERSION:=3.3.9}
 
+# Docker user
+: ${DOCKER_USER:=${USER}}
+
 docker build -t ambari-build-base:${BUILD_OS} dev-support/docker/${BUILD_OS}
 docker build -t ambari-build:${BUILD_OS} --build-arg BUILD_OS="${BUILD_OS}" --build-arg MAVEN_VERSION="${MAVEN_VERSION}" dev-support/docker/common
 
@@ -60,5 +63,6 @@ docker run --rm=true $TTY_MODE \
   -v "${AMBARI_DIR}:/home/${USER_NAME}/src:delegated" \
   -v "${HOME}/.m2:/home/${USER_NAME}/.m2:cached" \
   -w "/home/${USER_NAME}/src" \
+  --user ${DOCKER_USER} \
   "$USER_TAG" \
   "$@"
