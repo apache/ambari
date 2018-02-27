@@ -19,11 +19,14 @@
 package org.apache.ambari.server.topology;
 
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 import static org.powermock.api.easymock.PowerMock.verify;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -217,6 +221,24 @@ public class ClusterTopologyImplTest {
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
     new ClusterTopologyImpl(null, request);
+  }
+
+  @Test
+  public void testHasHadoopCompatibleFsWhenThereIsHCFS() throws Exception {
+    ServiceInfo hcfs = new ServiceInfo();
+    hcfs.setServiceType(ServiceInfo.HADOOP_COMPATIBLE_FS);
+    expect(blueprint.getServiceInfos()).andReturn(Arrays.asList(hcfs)).anyTimes();
+    replayAll();
+    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
+    assertTrue(new ClusterTopologyImpl(null, request).hasHadoopCompatibleFileSystem());
+  }
+
+  @Test
+  public void testHasHadoopCompatibleFsWhenThereIsNoHCFS() throws Exception {
+    expect(blueprint.getServiceInfos()).andReturn(Arrays.asList(new ServiceInfo())).anyTimes();
+    replayAll();
+    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
+    assertFalse(new ClusterTopologyImpl(null, request).hasHadoopCompatibleFileSystem());
   }
 
   private class TestTopologyRequest implements TopologyRequest {

@@ -145,6 +145,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   public void init() throws Exception {
     expect(bp.getStack()).andReturn(stack).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
+    expect(bp.getServiceInfos()).andReturn(Collections.emptyList()).anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
