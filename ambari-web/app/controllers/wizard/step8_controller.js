@@ -1051,7 +1051,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.get('selectedServices').forEach(function (_service) {
       var serviceName = _service.get('serviceName');
       var componentsData = serviceComponents.filterProperty('serviceName', serviceName).map(function (_component) {
-        return { "ServiceComponentInfo": { "component_name": _component.get('componentName') } };
+        return { "ServiceComponentInfo": { "component_name": _component.get('componentName'), "component_type": _component.get('componentName') } };
       });
 
       // Service must be specified in terms of a query for creating multiple components at the same time.
@@ -1459,7 +1459,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         "host_components": [
           {
             "HostRoles": {
-              "component_name": componentName
+              "component_name": componentName,
+              "component_type": componentName
             }
           }
         ]

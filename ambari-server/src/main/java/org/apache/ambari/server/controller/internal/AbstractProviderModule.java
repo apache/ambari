@@ -505,10 +505,17 @@ public abstract class AbstractProviderModule implements ProviderModule,
   public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
 
     final String collectorHostName = getCollectorHostName(clusterName, service);
+    Long componentId = null;
+    AmbariManagementController managementController = AmbariServer.getController();
+    try {
+      componentId = managementController.getClusters().getCluster(clusterName).getComponentId(Role.METRICS_COLLECTOR.name());
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
 
     if (service.equals(GANGLIA)) {
       return HostStatusHelper.isHostComponentLive(managementController, clusterName, collectorHostName, "GANGLIA",
-        Role.GANGLIA_SERVER.name());
+        componentId, Role.GANGLIA_SERVER.name(), Role.GANGLIA_SERVER.name());
     } else if (service.equals(TIMELINE_METRICS)) {
       return metricsCollectorHAManager.isCollectorComponentLive(clusterName);
     }
@@ -1112,7 +1119,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
                                                                       String clusterNamePropertyId,
                                                                       String hostNamePropertyId,
                                                                       String componentNamePropertyId) {
-
     return MetricsPropertyProvider.createInstance(type,
       PropertyHelper.getMetricPropertyIds(type), streamProvider, configuration,
       metricCacheProvider, hostProvider, serviceProvider, clusterNamePropertyId,

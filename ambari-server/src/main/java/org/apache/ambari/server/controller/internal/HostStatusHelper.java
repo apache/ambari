@@ -38,11 +38,11 @@ import org.slf4j.LoggerFactory;
 public class HostStatusHelper {
 
   private static final Logger LOG =
-    LoggerFactory.getLogger(HostStatusHelper.class);
+          LoggerFactory.getLogger(HostStatusHelper.class);
 
   public static boolean isHostComponentLive(AmbariManagementController managementController,
-                                             String clusterName, String hostName,
-                                      String serviceName, String componentName) {
+                                            String clusterName, String hostName, String serviceName,
+                                            Long componentId, String componentName, String componentType) {
     if (clusterName == null) {
       return false;
     }
@@ -54,11 +54,11 @@ public class HostStatusHelper {
       Cluster cluster = clusters.getCluster(clusterName);
       Service s = cluster.getService(serviceName);
       ServiceComponentHostRequest componentRequest =
-        new ServiceComponentHostRequest(clusterName, s.getServiceGroupName(), serviceName, componentName, hostName,
-                null);
+              new ServiceComponentHostRequest(clusterName, s.getServiceGroupName(), serviceName, componentId, componentName, componentType,
+                      hostName, null);
 
       Set<ServiceComponentHostResponse> hostComponents =
-        managementController.getHostComponents(Collections.singleton(componentRequest));
+              managementController.getHostComponents(Collections.singleton(componentRequest));
 
       componentHostResponse = hostComponents.size() == 1 ? hostComponents.iterator().next() : null;
     } catch (AmbariException e) {
@@ -68,7 +68,7 @@ public class HostStatusHelper {
 
     //Cluster without SCH
     return componentHostResponse != null &&
-      componentHostResponse.getLiveState().equals(State.STARTED.name());
+            componentHostResponse.getLiveState().equals(State.STARTED.name());
   }
 
   public static boolean isHostLive(AmbariManagementController managementController, String clusterName, String hostName) {
@@ -88,6 +88,6 @@ public class HostStatusHelper {
     }
     //Cluster without host
     return hostResponse != null &&
-      !hostResponse.getHostState().equals(HostState.HEARTBEAT_LOST);
+            !hostResponse.getHostState().equals(HostState.HEARTBEAT_LOST);
   }
 }

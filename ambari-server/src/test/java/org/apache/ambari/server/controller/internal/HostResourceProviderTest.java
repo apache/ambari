@@ -314,11 +314,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100","Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L,"Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L,"Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component102", "Component 102",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L,"Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L,"Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component103", "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -409,11 +409,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component102", "Component 102",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component103", "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -501,11 +501,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100",  "Component100","Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component102", "Component 102",
         "Host100", "Host100", "INSTALLED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component103",  "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -688,7 +688,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -772,11 +772,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component102", "Component 102",
         "Host100", "Host100", "INSTALLED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component103", "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();

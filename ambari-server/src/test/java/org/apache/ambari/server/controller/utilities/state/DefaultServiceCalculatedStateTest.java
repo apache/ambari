@@ -43,8 +43,8 @@ public final class DefaultServiceCalculatedStateTest extends GeneralServiceCalcu
 
   @Override
   protected void createComponentsAndHosts() throws Exception{
-    ServiceComponent masterComponent = service.addServiceComponent("ZOOKEEPER_SERVER");
-    ServiceComponent clientComponent = service.addServiceComponent("ZOOKEEPER_CLIENT");
+    ServiceComponent masterComponent = service.addServiceComponent("ZOOKEEPER_SERVER", "ZOOKEEPER_SERVER");
+    ServiceComponent clientComponent = service.addServiceComponent("ZOOKEEPER_CLIENT", "ZOOKEEPER_CLIENT");
 
     for (String hostName: hosts){
       clusters.addHost(hostName);

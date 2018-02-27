@@ -42,11 +42,11 @@ public class HiveServiceCalculatedStateTest extends GeneralServiceCalculatedStat
 
   @Override
   protected void createComponentsAndHosts() throws Exception {
-    ServiceComponent masterComponent = service.addServiceComponent("HIVE_METASTORE");
-    ServiceComponent secondMasterComponent = service.addServiceComponent("HIVE_SERVER");
-    ServiceComponent thirdMasterComponent = service.addServiceComponent("WEBHCAT_SERVER");
-    ServiceComponent fourMasterComponent = service.addServiceComponent("MYSQL_SERVER");
-    ServiceComponent clientComponent = service.addServiceComponent("HIVE_CLIENT");
+    ServiceComponent masterComponent = service.addServiceComponent("HIVE_METASTORE", "HIVE_METASTORE");
+    ServiceComponent secondMasterComponent = service.addServiceComponent("HIVE_SERVER", "HIVE_SERVER");
+    ServiceComponent thirdMasterComponent = service.addServiceComponent("WEBHCAT_SERVER", "WEBHCAT_SERVER");
+    ServiceComponent fourMasterComponent = service.addServiceComponent("MYSQL_SERVER", "MYSQL_SERVER");
+    ServiceComponent clientComponent = service.addServiceComponent("HIVE_CLIENT", "HIVE_CLIENT");
 
     for (String hostName: hosts){
       clusters.addHost(hostName);

@@ -73,6 +73,17 @@ public class GangliaHostPropertyProvider extends GangliaPropertyProvider {
     return (String) resource.getPropertyValue(getHostNamePropertyId());
   }
 
+  // TODO : Multi_Metrics_Changes. Confirm that getComponentId is correct, as we are passing '*' in Name and Type below.
+  @Override
+  protected Long getComponentId(Resource resource) {
+    return getComponentId(resource);
+  }
+
+  @Override
+  protected String getComponentType(Resource resource) {
+    return "*";
+  }
+
   @Override
   protected String getComponentName(Resource resource) {
     return "*";

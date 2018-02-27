@@ -78,7 +78,8 @@ public class ServiceImpl implements Service {
 
   private final Cluster cluster;
   private final ServiceGroup serviceGroup;
-  private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, ServiceComponent> componentsByName = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Long, ServiceComponent> componentsById = new ConcurrentHashMap<>();
   private List<ServiceKey> serviceDependencies = new ArrayList<>();
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
@@ -224,10 +225,12 @@ public class ServiceImpl implements Service {
       for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity
           : serviceEntity.getServiceComponentDesiredStateEntities()) {
         try {
-            components.put(serviceComponentDesiredStateEntity.getComponentName(),
-                serviceComponentFactory.createExisting(this,
-                    serviceComponentDesiredStateEntity));
-          } catch(ProvisionException ex) {
+            ServiceComponent svcComponent = serviceComponentFactory.createExisting(this,
+                    serviceComponentDesiredStateEntity);
+            componentsByName.put(serviceComponentDesiredStateEntity.getComponentName(), svcComponent);
+            componentsById.put(serviceComponentDesiredStateEntity.getId(), svcComponent);
+
+        } catch(ProvisionException ex) {
             StackId stackId = new StackId(serviceComponentDesiredStateEntity.getDesiredStack());
             LOG.error(String.format("Can not get component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s",
               stackId.getStackName(), stackId.getStackVersion(),
@@ -302,13 +305,13 @@ public class ServiceImpl implements Service {
 
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
-    return new HashMap<>(components);
+    return new HashMap<>(componentsByName);
   }
 
   @Override
   public void addServiceComponents(
-      Map<String, ServiceComponent> components) throws AmbariException {
-    for (ServiceComponent sc : components.values()) {
+      Map<String, ServiceComponent> componentsByName) throws AmbariException {
+    for (ServiceComponent sc : componentsByName.values()) {
       addServiceComponent(sc);
     }
   }
@@ -324,7 +327,7 @@ public class ServiceImpl implements Service {
 
   @Override
   public void addServiceComponent(ServiceComponent component) throws AmbariException {
-    if (components.containsKey(component.getName())) {
+    if (componentsByName.containsKey(component.getName())) {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
@@ -333,13 +336,13 @@ public class ServiceImpl implements Service {
           + ", serviceComponentName=" + component.getName());
     }
 
-    components.put(component.getName(), component);
+    componentsByName.put(component.getName(), component);
   }
 
   @Override
-  public ServiceComponent addServiceComponent(String serviceComponentName)
+  public ServiceComponent addServiceComponent(String serviceComponentName, String serviceComponentType)
       throws AmbariException {
-    ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
+    ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName, serviceComponentType);
     addServiceComponent(component);
     return component;
   }
@@ -347,10 +350,21 @@ public class ServiceImpl implements Service {
   @Override
   public ServiceComponent getServiceComponent(String componentName)
       throws AmbariException {
-    ServiceComponent serviceComponent = components.get(componentName);
+    ServiceComponent serviceComponent = componentsByName.get(componentName);
     if (null == serviceComponent) {
       throw new ServiceComponentNotFoundException(cluster.getClusterName(),
           getName(), getServiceType(), serviceGroup.getServiceGroupName(), componentName);
+    }
+
+    return serviceComponent;
+  }
+
+  @Override
+  public ServiceComponent getServiceComponent(Long componentId) throws AmbariException {
+    ServiceComponent serviceComponent = componentsById.get(componentId);
+    if (null == serviceComponent) {
+      throw new ServiceComponentNotFoundException(cluster.getClusterName(),
+              getName(), getServiceType(), serviceGroup.getServiceGroupName(), componentId);
     }
 
     return serviceComponent;
@@ -462,8 +476,8 @@ public class ServiceImpl implements Service {
     serviceDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
     serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
 
-    Collection<ServiceComponent> components = getServiceComponents().values();
-    for (ServiceComponent component : components) {
+    Collection<ServiceComponent> componentsByName = getServiceComponents().values();
+    for (ServiceComponent component : componentsByName) {
       component.setDesiredRepositoryVersion(repositoryVersionEntity);
     }
   }
@@ -473,12 +487,12 @@ public class ServiceImpl implements Service {
    */
   @Override
   public RepositoryVersionState getRepositoryState() {
-    if (components.isEmpty()) {
+    if (componentsByName.isEmpty()) {
       return RepositoryVersionState.NOT_REQUIRED;
     }
 
     List<RepositoryVersionState> states = new ArrayList<>();
-    for( ServiceComponent component : components.values() ){
+    for( ServiceComponent component : componentsByName.values() ){
       states.add(component.getRepositoryState());
     }
 
@@ -649,9 +663,9 @@ public class ServiceImpl implements Service {
       .append(", clusterId=").append(cluster.getClusterId())
       .append(", desiredStackVersion=").append(getDesiredStackId())
       .append(", desiredState=").append(getDesiredState())
-      .append(", components=[ ");
+      .append(", componentsByName=[ ");
     boolean first = true;
-    for (ServiceComponent sc : components.values()) {
+    for (ServiceComponent sc : componentsByName.values()) {
       if (!first) {
         sb.append(" , ");
       }
@@ -702,11 +716,11 @@ public class ServiceImpl implements Service {
   @Override
   public boolean canBeRemoved() {
     //
-    // A service can be deleted if all it's components
+    // A service can be deleted if all it's componentsByName
     // can be removed, irrespective of the state of
     // the service itself.
     //
-    for (ServiceComponent sc : components.values()) {
+    for (ServiceComponent sc : componentsByName.values()) {
       if (!sc.canBeRemoved()) {
         LOG.warn("Found non-removable component when trying to delete service" + ", clusterName="
             + cluster.getClusterName() + ", serviceName=" + getName() + ", serviceType="
@@ -748,22 +762,22 @@ public class ServiceImpl implements Service {
   public void deleteAllComponents() throws AmbariException {
     lock.lock();
     try {
-      LOG.info("Deleting all components for service" + ", clusterName=" + cluster.getClusterName()
+      LOG.info("Deleting all componentsByName for service" + ", clusterName=" + cluster.getClusterName()
           + ", serviceName=" + getName());
       // FIXME check dependencies from meta layer
-      for (ServiceComponent component : components.values()) {
+      for (ServiceComponent component : componentsByName.values()) {
         if (!component.canBeRemoved()) {
           throw new AmbariException("Found non removable component when trying to"
-              + " delete all components from service" + ", clusterName=" + cluster.getClusterName()
+              + " delete all componentsByName from service" + ", clusterName=" + cluster.getClusterName()
               + ", serviceName=" + getName() + ", componentName=" + component.getName());
         }
       }
 
-      for (ServiceComponent serviceComponent : components.values()) {
+      for (ServiceComponent serviceComponent : componentsByName.values()) {
         serviceComponent.delete();
       }
 
-      components.clear();
+      componentsByName.clear();
     } finally {
       lock.unlock();
     }
@@ -786,7 +800,7 @@ public class ServiceImpl implements Service {
       }
 
       component.delete();
-      components.remove(componentName);
+      componentsByName.remove(componentName);
     } finally {
       lock.unlock();
     }
@@ -800,7 +814,7 @@ public class ServiceImpl implements Service {
   @Override
   @Transactional
   public void delete() throws AmbariException {
-    List<Component> components = getComponents(); // XXX temporal coupling, need to call this BEFORE deletingAllComponents
+    List<Component> componentsByName = getComponents(); // XXX temporal coupling, need to call this BEFORE deletingAllComponents
     deleteAllComponents();
     deleteAllServiceConfigs();
 
@@ -815,7 +829,7 @@ public class ServiceImpl implements Service {
 
     ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(), stackId.getStackName(), stackId.getStackVersion(),
                                                         getName(), getServiceType(),
-                                                        serviceGroup.getServiceGroupName(), components);
+                                                        serviceGroup.getServiceGroupName(), componentsByName);
 
     eventPublisher.publish(event);
   }

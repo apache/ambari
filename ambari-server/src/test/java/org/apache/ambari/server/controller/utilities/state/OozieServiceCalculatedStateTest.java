@@ -41,8 +41,8 @@ public class OozieServiceCalculatedStateTest extends GeneralServiceCalculatedSta
 
   @Override
   protected void createComponentsAndHosts() throws Exception {
-    ServiceComponent masterComponent = service.addServiceComponent("OOZIE_SERVER");
-    ServiceComponent clientComponent = service.addServiceComponent("OOZIE_CLIENT");
+    ServiceComponent masterComponent = service.addServiceComponent("OOZIE_SERVER", "OOZIE_SERVER");
+    ServiceComponent clientComponent = service.addServiceComponent("OOZIE_CLIENT", "OOZIE_CLIENT");
 
     for (String hostName: hosts){
       clusters.addHost(hostName);

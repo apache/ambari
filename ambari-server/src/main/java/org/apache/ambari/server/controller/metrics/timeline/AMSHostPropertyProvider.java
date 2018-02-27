@@ -46,6 +46,17 @@ public class AMSHostPropertyProvider extends AMSPropertyProvider {
   }
 
   @Override
+  protected Long getComponentId(Resource resource) {
+    return (Long) resource.getPropertyValue(componentIdPropertyId);
+  }
+
+  @Override
+  protected String getComponentType(Resource resource) {
+    return "HOST";
+  }
+
+  // TODO : Multi_Metrics_Changes. Confirm if its always going to be HOST ?
+  @Override
   protected String getComponentName(Resource resource) {
     return "HOST";
   }

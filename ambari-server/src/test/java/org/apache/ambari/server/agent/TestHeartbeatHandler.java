@@ -186,9 +186,9 @@ public class TestHeartbeatHandler {
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
-    hdfs.addServiceComponent(NAMENODE);
-    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE, SECONDARY_NAMENODE);
     Collection<Host> hosts = cluster.getHosts();
     assertEquals(hosts.size(), 1);
 
@@ -237,9 +237,9 @@ public class TestHeartbeatHandler {
   public void testStatusHeartbeatWithAnnotation() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
-    hdfs.addServiceComponent(NAMENODE);
-    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE, SECONDARY_NAMENODE);
 
     ActionQueue aq = new ActionQueue();
 
@@ -287,10 +287,10 @@ public class TestHeartbeatHandler {
   public void testLiveStatusUpdateAfterStopFailed() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
     hdfs.getServiceComponent(DATANODE).
         addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(NAMENODE, DATANODE);
     hdfs.getServiceComponent(NAMENODE).
         addServiceComponentHost(DummyHostname1);
 
@@ -391,15 +391,15 @@ public class TestHeartbeatHandler {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
 
-    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
-    hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(NAMENODE);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
-    hdfs.addServiceComponent(HDFS_CLIENT);
+    hdfs.addServiceComponent(HDFS_CLIENT, HDFS_CLIENT);
     hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
     // Create helper after creating service to avoid race condition caused by asynchronous recovery configs
@@ -467,15 +467,15 @@ public class TestHeartbeatHandler {
     /*
      * Add three service components enabled for auto start.
      */
-    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
-    hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(NAMENODE);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
-    hdfs.addServiceComponent(HDFS_CLIENT).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(HDFS_CLIENT, HDFS_CLIENT).setRecoveryEnabled(true);
     hdfs.getServiceComponent(HDFS_CLIENT);
     hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
@@ -796,11 +796,11 @@ public class TestHeartbeatHandler {
   public void testTaskInProgressHandling() throws Exception, InvalidStateTransitionException {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE, SECONDARY_NAMENODE);
     hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
@@ -852,11 +852,11 @@ public class TestHeartbeatHandler {
   public void testOPFailedEventForAbortedTask() throws Exception, InvalidStateTransitionException {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE, SECONDARY_NAMENODE);
     hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
@@ -922,11 +922,11 @@ public class TestHeartbeatHandler {
   public void testStatusHeartbeat() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(HDFS_CLIENT);
+    hdfs.addServiceComponent(HDFS_CLIENT, HDFS_CLIENT);
     hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
     ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
@@ -982,9 +982,9 @@ public class TestHeartbeatHandler {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Host hostObject = clusters.getHost(DummyHostname1);
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
@@ -1062,9 +1062,9 @@ public class TestHeartbeatHandler {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Host hostObject = clusters.getHost(DummyHostname1);
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
-    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(NAMENODE, NAMENODE);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
@@ -1388,7 +1388,7 @@ public class TestHeartbeatHandler {
   public void testCommandStatusProcesses_empty() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
-    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(DATANODE, DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
 

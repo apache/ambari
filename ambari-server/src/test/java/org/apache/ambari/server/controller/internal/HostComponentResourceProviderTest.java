@@ -112,7 +112,7 @@ public class HostComponentResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    ServiceComponentHostRequest request = new ServiceComponentHostRequest("Cluster100", SERVICE_GROUP_NAME, "Service100", "Component100", "Host100", null);
+    ServiceComponentHostRequest request = new ServiceComponentHostRequest("Cluster100", SERVICE_GROUP_NAME, "Service100", "Component100", "Component100", "Host100", null);
     Set<ServiceComponentHostRequest> expectedRequests = Collections.singleton(request);
     expect(managementController.createHostComponents(eq(expectedRequests))).andReturn(null).once();
 
@@ -183,17 +183,17 @@ public class HostComponentResourceProviderTest {
     String repositoryVersion2 = "0.2-1234";
 
     allResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component 101", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component101", "Component 101", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component102", "Component 102", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
@@ -350,7 +350,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100","Component 100", "Host100", "Host100",
         "INSTALLED", "", "", "", "", null));
 
     // set expectations
@@ -450,7 +450,7 @@ public class HostComponentResourceProviderTest {
         new HostComponentResourceProvider(managementController, injector);
 
     // set expectations
-    ServiceComponentHostRequest request = new ServiceComponentHostRequest(null, null, null, "Component100", "Host100", null);
+    ServiceComponentHostRequest request = new ServiceComponentHostRequest(null, null, null, "Component100", "Component100", "Host100", null);
     expect(managementController.deleteHostComponents(Collections.singleton(request))).andReturn(deleteStatusMetaData);
 
     // replay
@@ -535,7 +535,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100", "Host100", "Host100",
         "INSTALLED", "", "", "", "", null));
 
     // set expectations

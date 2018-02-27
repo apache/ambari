@@ -32,4 +32,14 @@ public class ServiceComponentNotFoundException
         + ", serviceComponentName=" + serviceComponentName);
   }
 
+  public ServiceComponentNotFoundException (String clusterName,
+      String serviceName, String serviceType, String serviceGroupName, Long serviceComponentId) {
+    super("ServiceComponent not found"
+            + ", clusterName=" + clusterName
+            + ", serviceGroupName=" + serviceGroupName
+            + ", serviceName=" + serviceName
+            + ", serviceType=" + serviceType
+            + ", serviceComponentId=" + serviceComponentId);
+  }
+
 }

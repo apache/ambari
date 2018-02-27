@@ -130,7 +130,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
    * @param metricsProperties       the map of per-component metrics properties
    * @param componentMetrics        the map of supported metrics for component
    * @param streamProvider          the stream provider
-   * @param metricHostProvider     metricsHostProvider instance
+   * @param metricHostProvider      metricsHostProvider instance
    * @param clusterNamePropertyId   the cluster name property id
    * @param hostNamePropertyId      the host name property id
    * @param componentNamePropertyId the component name property id
@@ -215,7 +215,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
     try {
       String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
       Cluster cluster = clusters.getCluster(clusterName);
-      hostname = getHost(resource, clusterName, resourceComponentName);
+      hostname = getHost(resource, clusterName, componentName);
       if (hostname == null) {
         String msg = String.format("Unable to get component REST metrics. " +
             "No host name for %s.", resourceComponentName);

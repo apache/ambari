@@ -19,7 +19,10 @@ package org.apache.ambari.server.controller.metrics.timeline;
 
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
@@ -34,21 +37,16 @@ public class AMSComponentPropertyProvider extends AMSPropertyProvider {
                                           TimelineMetricCacheProvider cacheProvider,
                                           MetricHostProvider hostProvider,
                                           String clusterNamePropertyId,
-                                          String componentNamePropertyId) {
+                                          String componentIdPropertyId) {
 
     super(componentPropertyInfoMap, streamProvider, configuration,
-      cacheProvider, hostProvider, clusterNamePropertyId, null, componentNamePropertyId);
+      cacheProvider, hostProvider, clusterNamePropertyId, null, componentIdPropertyId);
   }
 
   @Override
   protected String getHostName(Resource resource) {
       return hostProvider
-        .getExternalHostName((String) resource.getPropertyValue(clusterNamePropertyId), (String) resource.getPropertyValue(componentNamePropertyId))
+        .getExternalHostName((String) resource.getPropertyValue(clusterNamePropertyId), (String) resource.getPropertyValue(componentIdPropertyId))
         .orElse(null);
-  }
-
-  @Override
-  protected String getComponentName(Resource resource) {
-    return (String) resource.getPropertyValue(componentNamePropertyId);
   }
 }

@@ -71,19 +71,19 @@ public class HostComponentService extends BaseService {
   }
 
   /**
-   * Handles GET /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
+   * Handles GET /clusters/{clusterName}/hosts/{hostID}/host_components/{hostComponentID}
    * Get a specific host_component.
    *
    * @param headers           http headers
    * @param ui                uri info
-   * @param hostComponentName host_component id
-   * @return host_component resource representation
+   * @param hostComponentId   host_component id
+   * @return host_component   resource representation
    */
   @GET @ApiIgnore // until documented
-  @Path("{hostComponentName}")
+  @Path("{hostComponentId}")
   @Produces("text/plain")
   public Response getHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName, @QueryParam("format") String format) {
+                                   @PathParam("hostComponentId") String hostComponentId, @QueryParam("format") String format) {
 
     //todo: needs to be refactored when properly handling exceptions
     if (m_hostName == null) {
@@ -93,11 +93,11 @@ public class HostComponentService extends BaseService {
     }
 
     if (format != null && format.equals("client_config_tar")) {
-      return createClientConfigResource(body, headers, ui, hostComponentName);
+      return createClientConfigResource(body, headers, ui, hostComponentId);
     }
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentId));
   }
 
   /**
@@ -144,18 +144,18 @@ public class HostComponentService extends BaseService {
    * @param body              http body
    * @param headers           http headers
    * @param ui                uri info
-   * @param hostComponentName host_component id
+   * @param hostComponentId   host_component id
    *
    * @return host_component resource representation
    */
   @POST @ApiIgnore // until documented
-  @Path("{hostComponentName}")
+  @Path("{hostComponentId}")
   @Produces("text/plain")
   public Response createHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName) {
+                                   @PathParam("hostComponentId") String hostComponentId) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentId));
   }
 
   /**
@@ -165,18 +165,18 @@ public class HostComponentService extends BaseService {
    * @param body              http body
    * @param headers           http headers
    * @param ui                uri info
-   * @param hostComponentName host_component id
+   * @param hostComponentId   host_component id
    *
    * @return information regarding updated host_component
    */
   @PUT @ApiIgnore // until documented
-  @Path("{hostComponentName}")
+  @Path("{hostComponentId}")
   @Produces("text/plain")
   public Response updateHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                      @PathParam("hostComponentName") String hostComponentName) {
+                                      @PathParam("hostComponentId") String hostComponentId) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentId));
   }
 
   /**
@@ -203,18 +203,18 @@ public class HostComponentService extends BaseService {
    *
    * @param headers           http headers
    * @param ui                uri info
-   * @param hostComponentName host_component id
+   * @param hostComponentId   host_component id
    *
    * @return host_component resource representation
    */
   @DELETE @ApiIgnore // until documented
-  @Path("{hostComponentName}")
+  @Path("{hostComponentId}")
   @Produces("text/plain")
   public Response deleteHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName) {
+                                   @PathParam("hostComponentId") String hostComponentId) {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentId));
   }
 
   /**
@@ -235,14 +235,14 @@ public class HostComponentService extends BaseService {
   }
 
   @GET @ApiIgnore // until documented
-  @Path("{hostComponentName}/processes")
+  @Path("{hostComponentId}/processes")
   @Produces("text/plain")
   public Response getProcesses(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("hostComponentName") String hostComponentName) {
+      @PathParam("hostComponentId") String hostComponentId) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Host, m_hostName);
-    mapIds.put(Resource.Type.HostComponent, hostComponentName);
+    mapIds.put(Resource.Type.HostComponent, hostComponentId);
 
     ResourceInstance ri = createResource(Resource.Type.HostComponentProcess, mapIds);
 
@@ -254,25 +254,25 @@ public class HostComponentService extends BaseService {
    *
    * @param clusterName       cluster name
    * @param hostName          host name
-   * @param hostComponentName host_component name
+   * @param hostComponentId   host_component id
    *
    * @return a host resource instance
    */
-  ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentName) {
+  ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentId) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Host, hostName);
-    mapIds.put(Resource.Type.HostComponent, hostComponentName);
+    mapIds.put(Resource.Type.HostComponent, hostComponentId);
 
     return createResource(Resource.Type.HostComponent, mapIds);
   }
 
   private Response createClientConfigResource(String body, HttpHeaders headers, UriInfo ui,
-                                              String hostComponentName) {
+                                              String hostComponentId) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Host, m_hostName);
-    mapIds.put(Resource.Type.Component, hostComponentName);
+    mapIds.put(Resource.Type.Component, hostComponentId);
 
     Response response = handleRequest(headers, body, ui, Request.Type.GET,
             createResource(Resource.Type.ClientConfig, mapIds));
@@ -284,10 +284,10 @@ public class HostComponentService extends BaseService {
 
     String filePrefixName;
 
-    if (StringUtils.isEmpty(hostComponentName)) {
+    if (StringUtils.isEmpty(hostComponentId)) {
       filePrefixName = m_hostName + "(" + Resource.InternalType.Host.toString().toUpperCase()+")";
     } else {
-      filePrefixName = hostComponentName;
+      filePrefixName = hostComponentId;
     }
 
     Validate.notNull(filePrefixName, "compressed config file name should not be null");
