@@ -54,6 +54,7 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KKP_MAPPING_
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PRINCIPAL_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_DISPLAY_STATUS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_USER_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SECURITY_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SERVICE_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.SERVICE_NAME_COLUMN;
@@ -345,6 +346,11 @@ public class UpgradeCatalog270Test {
     dbAccessor.addColumn(eq(REQUEST_TABLE), capture(updateStageTableCaptures));
     expectLastCall().once();
 
+    // updateRequestTable
+    Capture<DBAccessor.DBColumnInfo> updateRequestTableCapture = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq(REQUEST_TABLE), capture(updateRequestTableCapture));
+    expectLastCall().once();
+
     // addOpsDisplayNameColumnToHostRoleCommand
     Capture<DBAccessor.DBColumnInfo> hrcOpsDisplayNameColumn = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog270.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
@@ -433,6 +439,12 @@ public class UpgradeCatalog270Test {
             new DBAccessor.DBColumnInfo(STAGE_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false),
             new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false),
             new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false))
+    );
+
+    // Validate updateRequestTableCapture
+    Assert.assertTrue(updateRequestTableCapture.hasCaptured());
+    validateColumns(updateRequestTableCapture.getValues(),
+            Arrays.asList(new DBAccessor.DBColumnInfo(REQUEST_USER_NAME_COLUMN, String.class, 255))
     );
 
     DBAccessor.DBColumnInfo capturedOpsDisplayNameColumn = hrcOpsDisplayNameColumn.getValue();
