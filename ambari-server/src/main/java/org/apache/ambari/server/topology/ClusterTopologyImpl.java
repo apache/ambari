@@ -33,6 +33,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -311,6 +312,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public String getDefaultPassword() {
     return defaultPassword;
+  }
+
+  @Override
+  public boolean hasHadoopCompatibleFileSystem() {
+    return blueprint.getServiceInfos().stream().anyMatch(each -> ServiceInfo.HADOOP_COMPATIBLE_FS.equals(each.getServiceType()));
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {

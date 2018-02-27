@@ -1542,6 +1542,10 @@ public class BlueprintConfigurationProcessor {
                 return origValue;
             }
 
+            if (topology.hasHadoopCompatibleFileSystem()) {
+              return origValue;
+            }
+
             throw new IllegalArgumentException(
                 String.format("Unable to update configuration property '%s' with topology information. " +
                     "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
