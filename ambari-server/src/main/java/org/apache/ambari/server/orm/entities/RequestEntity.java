@@ -302,10 +302,16 @@ public class RequestEntity {
     this.requestScheduleId = scheduleId;
   }
 
+  /**
+   * Returns the user name associated with the request.
+   */
   public String getUserName() {
     return userName;
   }
 
+  /**
+   * Sets the user name
+   */
   public void setUserName(String userName) {
     this.userName = userName;
   }
