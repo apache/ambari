@@ -56,7 +56,7 @@ public class RepoOsEntity {
   private String family;
 
   @Column(name = "ambari_managed", nullable = false)
-  private short ambariManaged = 0;
+  private short ambariManaged = 1;
 
   /**
    * one-to-many association to {@link RepoDefinitionEntity}
