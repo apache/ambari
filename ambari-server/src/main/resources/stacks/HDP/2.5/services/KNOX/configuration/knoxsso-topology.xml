@@ -107,7 +107,7 @@
               &lt;/param&gt;
               &lt;param&gt;
                  &lt;name&gt;knoxsso.redirect.whitelist.regex&lt;/name&gt;
-                 &lt;value&gt;^https?:\/\/(localhost|127\.0\.0\.1|0:0:0:0:0:0:0:1|::1)(:[0-9]+)?(\/|\/.*)$&lt;/value&gt;
+                 &lt;value&gt;^https?:\/\/(localhost|127\.0\.0\.1|0:0:0:0:0:0:0:1|::1)(:[0-9]+)?(\/|\/.*)?$&lt;/value&gt;
               &lt;/param&gt;
           &lt;/service&gt;
 
