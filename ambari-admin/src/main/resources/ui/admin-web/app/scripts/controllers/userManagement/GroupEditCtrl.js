@@ -104,7 +104,7 @@ function($scope, $rootScope, Group, $routeParams, Cluster, View, Alert, Confirma
           });
         }
         group.destroy().then(function() {
-          $location.path('/userManagement?tab=groups');
+          $location.url('/userManagement?tab=groups');
           if (clusterPrivilegesIds.length) {
             Cluster.deleteMultiplePrivileges($rootScope.cluster.Clusters.cluster_name, clusterPrivilegesIds);
           }
