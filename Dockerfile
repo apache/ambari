@@ -19,5 +19,6 @@ RUN sh setuptools-0.6c11-py2.6.egg
 
 # install gcc packages
 RUN yum -y groupinstall "Development Tools"
+RUN yum -y install epel-release
 RUN yum -y install python-devel python-pip python-setuptools
 RUN pip install awscli
