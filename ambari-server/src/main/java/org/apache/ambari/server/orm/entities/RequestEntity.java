@@ -125,6 +125,9 @@ public class RequestEntity {
   @Column(name = "exclusive_execution", insertable = true, updatable = true, nullable = false)
   private Integer exclusive = 0;
 
+  @Column(name = "user_name")
+  private String userName;
+
   @OneToMany(mappedBy = "request", cascade = CascadeType.REMOVE)
   private Collection<StageEntity> stages;
 
@@ -297,6 +300,14 @@ public class RequestEntity {
 
   public void setRequestScheduleId(Long scheduleId) {
     this.requestScheduleId = scheduleId;
+  }
+
+  public String getUserName() {
+    return userName;
+  }
+
+  public void setUserName(String userName) {
+    this.userName = userName;
   }
 
   @Override
