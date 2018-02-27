@@ -19,7 +19,10 @@ package org.apache.ambari.server.controller.metrics.timeline;
 
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
@@ -35,22 +38,15 @@ public class AMSHostComponentPropertyProvider extends AMSPropertyProvider {
                                  MetricHostProvider hostProvider,
                                  String clusterNamePropertyId,
                                  String hostNamePropertyId,
-                                 String componentNamePropertyId) {
+                                 String componentIdPropertyId) {
 
     super(componentPropertyInfoMap, streamProvider, configuration,
       cacheProvider, hostProvider, clusterNamePropertyId, hostNamePropertyId,
-      componentNamePropertyId);
+            componentIdPropertyId);
   }
 
   @Override
   protected String getHostName(Resource resource) {
     return (String) resource.getPropertyValue(hostNamePropertyId);
-  }
-
-  @Override
-  protected String getComponentName(Resource resource) {
-    String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
-
-    return componentName;
   }
 }

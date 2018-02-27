@@ -97,7 +97,6 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     this.componentMetrics = componentMetrics;
   }
 
-
   // ----- accessors ---------------------------------------------------------
 
   /**
@@ -477,7 +476,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
 
   /**
    * Verify that the component metrics contains the property id.
-   * @param componentName Name of the component
+   * @param componentName  Name of the component
    * @param propertyId Property Id
    * @return true/false
    */

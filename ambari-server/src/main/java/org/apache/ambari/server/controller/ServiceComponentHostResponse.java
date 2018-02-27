@@ -35,6 +35,7 @@ public class ServiceComponentHostResponse {
   private String serviceType;
   private Long hostComponentId;
   private String componentName;
+  private String componentType;
   private String displayName;
   private String publicHostname;
   private String hostname;
@@ -53,9 +54,10 @@ public class ServiceComponentHostResponse {
 
   public ServiceComponentHostResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
                                       Long serviceId, String serviceName, String serviceType, Long hostComponentId,
-                                      String componentName, String displayName, String hostname, String publicHostname,
-                                      String liveState, String version, String desiredState, String desiredStackVersion,
-                                      String desiredRepositoryVersion, HostComponentAdminState adminState) {
+                                      String componentName, String componentType, String displayName, String hostname,
+                                      String publicHostname, String liveState, String version, String desiredState,
+                                      String desiredStackVersion, String desiredRepositoryVersion,
+                                      HostComponentAdminState adminState) {
     this.clusterId = clusterId;
     this.serviceGroupId = serviceGroupId;
     this.serviceGroupName = serviceGroupName;
@@ -65,6 +67,7 @@ public class ServiceComponentHostResponse {
     this.serviceType = serviceType;
     this.hostComponentId = hostComponentId;
     this.componentName = componentName;
+    this.componentType = componentType;
     this.displayName = displayName;
     this.hostname = hostname;
     this.publicHostname = publicHostname;
@@ -150,10 +153,24 @@ public class ServiceComponentHostResponse {
   }
 
   /**
+   * @return the componentType
+   */
+  public String getComponentType() {
+    return componentType;
+  }
+
+  /**
    * @param componentName the componentName to set
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  /**
+   * @param componentType the componentType to set
+   */
+  public void setComponentType(String componentType) {
+    this.componentType = componentType;
   }
 
   /**
@@ -339,6 +356,11 @@ public class ServiceComponentHostResponse {
       return false;
     }
 
+    if (componentType != null ?
+            !componentType.equals(that.componentType) : that.componentType != null) {
+      return false;
+    }
+
     if (displayName != null ?
             !displayName.equals(that.displayName) : that.displayName != null) {
       return false;
@@ -362,6 +384,7 @@ public class ServiceComponentHostResponse {
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 71 * result + (serviceType != null ? serviceType.hashCode() : 0);
     result = 71 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 71 * result + (componentType != null ? componentType.hashCode() : 0);
     result = 71 * result + (displayName != null ? displayName.hashCode() : 0);
     result = 71 * result + (hostname != null ? hostname.hashCode() : 0);
     return result;

@@ -14,6 +14,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ *
+ *
  */
 
 package org.apache.ambari.server.controller.metrics.ganglia;
@@ -23,7 +26,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
@@ -57,16 +63,11 @@ public class GangliaComponentPropertyProvider extends GangliaPropertyProvider {
   }
 
   @Override
-  protected String getComponentName(Resource resource) {
-    return (String) resource.getPropertyValue(getComponentNamePropertyId());
-  }
-
-  @Override
   protected Set<String> getGangliaClusterNames(Resource resource, String clusterName) {
-    String component = getComponentName(resource);
+    Long componentId = getComponentId(resource);
     
-    return new HashSet<>(GANGLIA_CLUSTER_NAME_MAP.containsKey(component) ?
-      GANGLIA_CLUSTER_NAME_MAP.get(component) :
+    return new HashSet<>(GANGLIA_CLUSTER_NAME_MAP.containsKey(componentId) ?
+      GANGLIA_CLUSTER_NAME_MAP.get(componentId) :
       Collections.emptyList());
   }
 }

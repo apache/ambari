@@ -54,6 +54,8 @@ public interface Service {
   ServiceComponent getServiceComponent(String componentName)
       throws AmbariException;
 
+  ServiceComponent getServiceComponent(Long componentId) throws AmbariException;
+
   Map<String, ServiceComponent> getServiceComponents();
 
   void addServiceComponents(Map<String, ServiceComponent> components)
@@ -72,7 +74,7 @@ public interface Service {
 
   void debugDump(StringBuilder sb);
 
-  ServiceComponent addServiceComponent(String serviceComponentName)
+  ServiceComponent addServiceComponent(String serviceComponentName, String serviceComponentType)
       throws AmbariException;
 
   /**

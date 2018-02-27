@@ -142,22 +142,22 @@ public class StackDefinedPropertyProviderTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
-    service.addServiceComponent("NAMENODE");
-    service.addServiceComponent("DATANODE");
-    service.addServiceComponent("JOURNALNODE");
+    service.addServiceComponent("NAMENODE", "NAMENODE");
+    service.addServiceComponent("DATANODE", "DATANODE");
+    service.addServiceComponent("JOURNALNODE", "JOURNALNODE");
 
     service = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
-    service.addServiceComponent("RESOURCEMANAGER");
+    service.addServiceComponent("RESOURCEMANAGER", "RESOURCEMANAGER");
 
     service = cluster.addService(serviceGroup, "HBASE", "HBASE", repositoryVersion);
-    service.addServiceComponent("HBASE_MASTER");
-    service.addServiceComponent("HBASE_REGIONSERVER");
+    service.addServiceComponent("HBASE_MASTER", "HBASE_MASTER");
+    service.addServiceComponent("HBASE_REGIONSERVER", "HBASE_REGIONSERVER");
 
     stackId = new StackId("HDP-2.1.1");
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     service = cluster.addService(serviceGroup, "STORM", "STORM", repositoryVersion);
-    service.addServiceComponent("STORM_REST_API");
+    service.addServiceComponent("STORM_REST_API", "STORM_REST_API");
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");

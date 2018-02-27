@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics.ganglia;
 
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 
+import com.google.inject.Inject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -36,7 +37,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
@@ -60,7 +64,6 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
    */
   static final Map<String, List<String>> GANGLIA_CLUSTER_NAME_MAP = new HashMap<>();
 
-  
   static {
     GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           Collections.singletonList("HDPNameNode"));
     GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           Arrays.asList("HDPDataNode", "HDPSlaves"));
@@ -88,11 +91,12 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
                                  MetricHostProvider hostProvider,
                                  String clusterNamePropertyId,
                                  String hostNamePropertyId,
-                                 String componentNamePropertyId) {
+                                 String componentIdPropertyId) {
 
     super(componentPropertyInfoMap, streamProvider,configuration,
       hostProvider, clusterNamePropertyId, hostNamePropertyId,
-      componentNamePropertyId);
+            componentIdPropertyId);
+
   }
 
 
@@ -131,15 +135,6 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
 
 
   /**
-   * Get the component name property id.
-   *
-   * @return the component name property id
-   */
-  protected String getComponentNamePropertyId() {
-    return componentNamePropertyId;
-  }
-
-  /**
    * Get the host name property id.
    *
    * @return the host name property id
@@ -159,6 +154,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
 
 
   // ----- helper methods ----------------------------------------------------
+
 
   /**
    * Get the request objects containing all the information required to

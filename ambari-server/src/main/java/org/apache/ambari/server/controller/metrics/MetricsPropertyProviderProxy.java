@@ -51,16 +51,16 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
   private String clusterNamePropertyId;
 
   public MetricsPropertyProviderProxy(
-    InternalType type,
-    Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-    URLStreamProvider streamProvider,
-    ComponentSSLConfiguration configuration,
-    TimelineMetricCacheProvider cacheProvider,
-    MetricHostProvider hostProvider,
-    MetricsServiceProvider serviceProvider,
-    String clusterNamePropertyId,
-    String hostNamePropertyId,
-    String componentNamePropertyId) {
+        InternalType type,
+        Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
+        URLStreamProvider streamProvider,
+        ComponentSSLConfiguration configuration,
+        TimelineMetricCacheProvider cacheProvider,
+        MetricHostProvider hostProvider,
+        MetricsServiceProvider serviceProvider,
+        String clusterNamePropertyId,
+        String hostNamePropertyId,
+        String componentNamePropertyId) {
 
     super(componentPropertyInfoMap);
     this.metricsServiceProvider = serviceProvider;
@@ -133,7 +133,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                             MetricHostProvider hostProvider,
                                             String clusterNamePropertyId,
                                             String hostNamePropertyId,
-                                            String componentNamePropertyId) {
+                                            String componentIdPropertyId) {
 
     this.amsPropertyProvider = new AMSHostComponentPropertyProvider(
                                             componentPropertyInfoMap,
@@ -143,7 +143,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                             hostProvider,
                                             clusterNamePropertyId,
                                             hostNamePropertyId,
-                                            componentNamePropertyId);
+                                            componentIdPropertyId);
 
     this.gangliaPropertyProvider = new GangliaHostComponentPropertyProvider(
                                             componentPropertyInfoMap,
@@ -152,7 +152,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                             hostProvider,
                                             clusterNamePropertyId,
                                             hostNamePropertyId,
-                                            componentNamePropertyId);
+                                            componentIdPropertyId);
   }
 
   private void createComponentPropertyProviders(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
@@ -160,7 +160,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                                 ComponentSSLConfiguration configuration,
                                                 MetricHostProvider hostProvider,
                                                 String clusterNamePropertyId,
-                                                String componentNamePropertyId) {
+                                                String componentIdPropertyId) {
 
     this.amsPropertyProvider = new AMSComponentPropertyProvider(
                                             componentPropertyInfoMap,
@@ -169,7 +169,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                             cacheProvider,
                                             hostProvider,
                                             clusterNamePropertyId,
-                                            componentNamePropertyId);
+                                            componentIdPropertyId);
 
     this.gangliaPropertyProvider = new GangliaComponentPropertyProvider(
                                             componentPropertyInfoMap,
@@ -177,7 +177,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                             configuration,
                                             hostProvider,
                                             clusterNamePropertyId,
-                                            componentNamePropertyId);
+                                            componentIdPropertyId);
   }
 
   @Override

@@ -19,11 +19,15 @@ package org.apache.ambari.server.controller.metrics;
 
 import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.ZERO_PADDING_PARAM;
 
+import com.google.inject.Inject;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -49,11 +53,14 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
 
   protected final String hostNamePropertyId;
 
-  protected final String componentNamePropertyId;
+  protected final String componentIdPropertyId;
 
   protected final ComponentSSLConfiguration configuration;
 
   protected MetricsPaddingMethod metricsPaddingMethod;
+
+  @Inject
+  AmbariManagementController managementController;
 
   private static final MetricsPaddingMethod DEFAULT_PADDING_METHOD =
     new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
@@ -65,7 +72,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
        MetricHostProvider hostProvider,
        String clusterNamePropertyId,
        String hostNamePropertyId,
-       String componentNamePropertyId) {
+       String componentIdPropertyId) {
 
     super(componentPropertyInfoMap);
 
@@ -74,7 +81,11 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
     this.hostProvider             = hostProvider;
     this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
-    this.componentNamePropertyId  = componentNamePropertyId;
+    this.componentIdPropertyId    = componentIdPropertyId;
+
+    if (managementController == null) {
+      managementController = AmbariServer.getController();
+    }
   }
 
   public static MetricsPropertyProviderProxy createInstance(
@@ -116,6 +127,38 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
    */
   protected abstract String getHostName(Resource resource);
 
+
+  /**
+   * Get the component id for the given resource.
+   *
+   * @param resource  the resource
+   *
+   * @return the component id
+   */
+  protected Long getComponentId(Resource resource) {
+    return (Long) resource.getPropertyValue(getComponentIdPropertyId());
+  }
+
+  /**
+   * Get the component type for the given resource.
+   *
+   * @param resource  the resource
+   *
+   * @return the component type
+   */
+  protected String getComponentType(Resource resource) {
+    String componentType = null;
+    Long componentId = getComponentId(resource);
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
+    try {
+      componentType = managementController.getClusters().getCluster(clusterName).getComponentType(componentId);
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    return componentType;
+  }
+
   /**
    * Get the component name for the given resource.
    *
@@ -123,7 +166,28 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
    *
    * @return the component name
    */
-  protected abstract String getComponentName(Resource resource);
+  protected String getComponentName(Resource resource) {
+    AmbariManagementController managementController = AmbariServer.getController();
+    String componentName = null;
+    Long componentId = getComponentId(resource);
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
+    try {
+      componentName = managementController.getClusters().getCluster(clusterName).getComponentName(componentId);
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    return componentName;
+  }
+
+  /**
+   * Get the component id property id.
+   *
+   * @return the component Id property id
+   */
+  protected String getComponentIdPropertyId() {
+    return componentIdPropertyId;
+  }
 
   @Override
   public Set<Resource> populateResources(Set<Resource> resources,

@@ -468,7 +468,7 @@ public class OrmTestHelper {
     Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
-    ServiceComponent datanode = componentFactory.createNew(service, "DATANODE");
+    ServiceComponent datanode = componentFactory.createNew(service, "DATANODE", "DATANODE");
 
     service.addServiceComponent(datanode);
     datanode.setDesiredState(State.INSTALLED);
@@ -479,7 +479,7 @@ public class OrmTestHelper {
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
 
-    ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE");
+    ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE", "NAMENODE");
 
     service.addServiceComponent(namenode);
     namenode.setDesiredState(State.INSTALLED);
@@ -503,7 +503,7 @@ public class OrmTestHelper {
     assertNotNull(service);
 
     ServiceComponent resourceManager = componentFactory.createNew(service,
-        "RESOURCEMANAGER");
+        "RESOURCEMANAGER", "RESOURCEMANAGER");
 
     service.addServiceComponent(resourceManager);
     resourceManager.setDesiredState(State.INSTALLED);

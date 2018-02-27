@@ -51,7 +51,7 @@ public interface MetricPropertyProviderFactory {
    * @param hostNamePropertyId
    *          the host name property id
    * @param componentNamePropertyId
-   *          the component name property id
+   *          the component Name property id
    * @param statePropertyId
    *          the state property id
    * @return the instantiated and injected {@link JMXPropertyProvider}.

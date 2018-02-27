@@ -1432,7 +1432,8 @@ var urls = {
           "components": [
             {
               "ServiceComponentInfo": {
-                "component_name": data.componentName
+                "component_name": data.componentName,
+                "component_type": data.componentName
               }
             }
           ]

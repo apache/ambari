@@ -100,7 +100,7 @@ public class ServiceTest {
       org.junit.Assert.assertTrue(service.canBeRemoved());
     }
 
-    ServiceComponent component = service.addServiceComponent("NAMENODE");
+    ServiceComponent component = service.addServiceComponent("NAMENODE", "NAMENODE");
 
     // component can be removed
     component.setDesiredState(State.INSTALLED);
@@ -179,11 +179,11 @@ public class ServiceTest {
     Assert.assertTrue(s.getServiceComponents().isEmpty());
 
     ServiceComponent sc1 =
-        serviceComponentFactory.createNew(s, "NAMENODE");
+        serviceComponentFactory.createNew(s, "NAMENODE", "NAMENODE");
     ServiceComponent sc2 =
-        serviceComponentFactory.createNew(s, "DATANODE1");
+        serviceComponentFactory.createNew(s, "DATANODE1", "DATANODE1");
     ServiceComponent sc3 =
-        serviceComponentFactory.createNew(s, "DATANODE2");
+        serviceComponentFactory.createNew(s, "DATANODE2", "DATANODE2");
 
     Map<String, ServiceComponent> comps = new
       HashMap<>();
@@ -205,7 +205,7 @@ public class ServiceTest {
 
     s.addServiceComponent(sc3);
 
-    ServiceComponent sc4 = s.addServiceComponent("HDFS_CLIENT");
+    ServiceComponent sc4 = s.addServiceComponent("HDFS_CLIENT", "HDFS_CLIENT");
     Assert.assertNotNull(s.getServiceComponent(sc4.getName()));
     Assert.assertEquals(State.INIT,
         s.getServiceComponent("HDFS_CLIENT").getDesiredState());

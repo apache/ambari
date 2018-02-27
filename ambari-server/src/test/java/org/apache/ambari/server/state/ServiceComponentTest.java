@@ -116,7 +116,7 @@ public class ServiceComponentTest {
   public void testCreateServiceComponent() throws AmbariException {
     String componentName = "DATANODE2";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-        componentName);
+        componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -138,7 +138,7 @@ public class ServiceComponentTest {
   public void testGetAndSetServiceComponentInfo() throws AmbariException {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-        componentName);
+        componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -162,7 +162,7 @@ public class ServiceComponentTest {
     long serviceId = 1;
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     ServiceComponent sc1 = serviceComponentFactory.createExisting(service,
         serviceComponentDesiredStateEntity);
@@ -200,7 +200,7 @@ public class ServiceComponentTest {
   @Test
   public void testAddAndGetServiceComponentHosts() throws AmbariException {
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -253,18 +253,19 @@ public class ServiceComponentTest {
 
     long serviceGroupId = 1;
     long serviceId = 1;
+    long componentId = 1;
 
     HostComponentDesiredStateEntity desiredStateEntity =
         desiredStateDAO.findByIndex(
           cluster.getClusterId(),
           serviceGroupId,
-                serviceId,
-          componentName,
+          serviceId,
+          componentId,
           hostEntity1.getHostId()
         );
 
     HostComponentStateEntity stateEntity = liveStateDAO.findByIndex(cluster.getClusterId(),
-            serviceGroupId, serviceId, componentName, hostEntity1.getHostId());
+            serviceGroupId, serviceId, componentId, hostEntity1.getHostId());
 
     ServiceComponentHost sch = serviceComponentHostFactory.createExisting(sc,
         stateEntity, desiredStateEntity);
@@ -278,7 +279,7 @@ public class ServiceComponentTest {
   @Test
   public void testConvertToResponse() throws AmbariException {
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     addHostToCluster("h1", service.getCluster().getClusterName());
@@ -339,7 +340,7 @@ public class ServiceComponentTest {
   public void testCanBeRemoved() throws Exception {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-                                                                   componentName);
+                                                                   componentName, componentName);
     addHostToCluster("h1", service.getCluster().getClusterName());
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
     component.addServiceComponentHost(sch);
@@ -367,7 +368,7 @@ public class ServiceComponentTest {
         ServiceComponentDesiredStateDAO.class);
 
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -380,7 +381,7 @@ public class ServiceComponentTest {
     long serviceId = 1;
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
@@ -420,7 +421,7 @@ public class ServiceComponentTest {
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     Assert.assertNull(serviceComponentDesiredStateEntity);
  }
@@ -431,7 +432,7 @@ public class ServiceComponentTest {
         ServiceComponentDesiredStateDAO.class);
 
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -444,7 +445,7 @@ public class ServiceComponentTest {
     long serviceId = 1;
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
@@ -475,7 +476,7 @@ public class ServiceComponentTest {
         serviceComponentDesiredStateEntity);
 
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     assertEquals(1, serviceComponentDesiredStateEntity.getVersions().size());
     ServiceComponentVersionEntity persistedVersion = serviceComponentDesiredStateEntity.getVersions().iterator().next();
@@ -489,7 +490,7 @@ public class ServiceComponentTest {
         ServiceComponentDesiredStateDAO.class);
 
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -502,7 +503,7 @@ public class ServiceComponentTest {
     long serviceId = 1;
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
@@ -532,7 +533,7 @@ public class ServiceComponentTest {
         serviceComponentDesiredStateEntity);
 
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     assertEquals(1, serviceComponentDesiredStateEntity.getVersions().size());
     ServiceComponentVersionEntity persistedVersion = serviceComponentDesiredStateEntity.getVersions().iterator().next();
@@ -542,7 +543,7 @@ public class ServiceComponentTest {
     sc.delete();
 
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
     Assert.assertNull(serviceComponentDesiredStateEntity);
 
 
@@ -559,7 +560,7 @@ public class ServiceComponentTest {
 
     String componentName = "NAMENODE";
 
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
 
     StackId newStackId = new StackId("HDP-2.2.0");
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(newStackId,
@@ -575,7 +576,8 @@ public class ServiceComponentTest {
     long serviceGroupId = 1;
     long serviceId = 1;
 
-    ServiceComponentDesiredStateEntity entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+    ServiceComponentDesiredStateEntity entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(),
+            serviceGroupId, serviceId, componentName, componentName);
 
     RepositoryVersionEntity repoVersion2201 = helper.getOrCreateRepositoryVersion(
         component.getDesiredStackId(), "2.2.0.1");
@@ -597,7 +599,7 @@ public class ServiceComponentTest {
     sch1.setVersion("2.2.0.1");
     sch2.setVersion("2.2.0.2");
     sc.updateRepositoryState("2.2.0.2");
-    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
     assertEquals(RepositoryVersionState.OUT_OF_SYNC, entity.getRepositoryState());
 
     // !!! case 2: component desired is UNKNOWN, all h-c same version
@@ -605,7 +607,7 @@ public class ServiceComponentTest {
     sch1.setVersion("2.2.0.1");
     sch2.setVersion("2.2.0.1");
     sc.updateRepositoryState("2.2.0.1");
-    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
     assertEquals(RepositoryVersionState.OUT_OF_SYNC, entity.getRepositoryState());
 
     // !!! case 3: component desired is known, any component reports different version
@@ -613,7 +615,7 @@ public class ServiceComponentTest {
     sch1.setVersion("2.2.0.1");
     sch2.setVersion("2.2.0.2");
     sc.updateRepositoryState("2.2.0.2");
-    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
     assertEquals(RepositoryVersionState.OUT_OF_SYNC, entity.getRepositoryState());
 
     // !!! case 4: component desired is known, component reports same as desired, mix of h-c versions
@@ -621,7 +623,7 @@ public class ServiceComponentTest {
     sch1.setVersion("2.2.0.1");
     sch2.setVersion("2.2.0.2");
     sc.updateRepositoryState("2.2.0.1");
-    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
     assertEquals(RepositoryVersionState.OUT_OF_SYNC, entity.getRepositoryState());
 
     // !!! case 5: component desired is known, component reports same as desired, all h-c the same
@@ -629,7 +631,7 @@ public class ServiceComponentTest {
     sch1.setVersion("2.2.0.1");
     sch2.setVersion("2.2.0.1");
     sc.updateRepositoryState("2.2.0.1");
-    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
     assertEquals(RepositoryVersionState.CURRENT, entity.getRepositoryState());
   }
 }
