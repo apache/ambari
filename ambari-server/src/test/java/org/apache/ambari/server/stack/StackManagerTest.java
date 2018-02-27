@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.stack;
 
+import static java.util.stream.Collectors.toCollection;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -39,6 +40,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -301,10 +304,11 @@ public class StackManagerTest {
     assertNotNull(si);
 
     //should include all stacks in hierarchy
-    assertEquals(18, services.size());
+    assertEquals(19, services.size());
 
-    HashSet<String> expectedServices = new HashSet<>();
+    Set<String> expectedServices = new TreeSet<>();
     expectedServices.add("GANGLIA");
+    expectedServices.add("HADOOP_CLIENTS");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");
     expectedServices.add("HDFS");
@@ -323,12 +327,13 @@ public class StackManagerTest {
     expectedServices.add("SPARK3");
     expectedServices.add("SYSTEMML");
 
+    assertEquals(expectedServices, services.stream().map(ServiceInfo::getName).collect(toCollection(TreeSet::new)));
     ServiceInfo pigService = null;
     for (ServiceInfo service : services) {
       if (service.getName().equals("PIG")) {
         pigService = service;
       }
-      assertTrue(expectedServices.remove(service.getName()));
+      assertTrue(service.getName(), expectedServices.remove(service.getName()));
     }
     assertTrue(expectedServices.isEmpty());
 
@@ -524,7 +529,7 @@ public class StackManagerTest {
   public void testMonitoringServicePropertyInheritance() throws Exception{
     StackInfo stack = stackManager.getStack("HDP", "2.0.8");
     Collection<ServiceInfo> allServices = stack.getServices();
-    assertEquals(15, allServices.size());
+    assertEquals(16, allServices.size());
 
     boolean monitoringServiceFound = false;
 
@@ -545,9 +550,10 @@ public class StackManagerTest {
     StackInfo stack = stackManager.getStack("HDP", "2.0.6");
     Collection<ServiceInfo> allServices = stack.getServices();
 
-    assertEquals(12, allServices.size());
+    assertEquals(13, allServices.size());
     HashSet<String> expectedServices = new HashSet<>();
     expectedServices.add("GANGLIA");
+    expectedServices.add("HADOOP_CLIENTS");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");
     expectedServices.add("HDFS");
