@@ -262,7 +262,6 @@ public class RetryUpgradeActionServiceTest {
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(upgradeRequestId);
-    requestEntity.setUserName("test");
     requestEntity.setClusterId(cluster.getClusterId());
     requestDAO.create(requestEntity);
 

@@ -260,7 +260,6 @@ public class UpgradeSummaryResourceProviderTest {
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
-    requestEntity.setUserName("test");
     requestEntity.setClusterId(cluster.getClusterId());
     requestEntity.setStatus(HostRoleStatus.PENDING);
     requestEntity.setStages(new ArrayList<>());

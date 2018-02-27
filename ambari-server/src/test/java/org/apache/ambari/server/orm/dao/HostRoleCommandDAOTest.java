@@ -90,7 +90,6 @@ public class HostRoleCommandDAOTest {
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(requestId);
-    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterEntity.getClusterId());
     requestEntity.setStages(new ArrayList<>());
     m_requestDAO.create(requestEntity);
@@ -126,7 +125,6 @@ public class HostRoleCommandDAOTest {
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(requestId);
-    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterEntity.getClusterId());
     requestEntity.setStages(new ArrayList<>());
     m_requestDAO.create(requestEntity);

@@ -7600,7 +7600,6 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
     Request request = new Request(stages, "", clusters);
-    request.setUserName("test");
     actionDB.persistActions(request);
 
     stages.clear();
@@ -7621,7 +7620,6 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
     request = new Request(stages, "", clusters);
-    request.setUserName("test");
     actionDB.persistActions(request);
 
     // Add a stage to execute a task as server-side action on the Ambari server
@@ -7635,7 +7633,6 @@ public class AmbariManagementControllerTest {
         RoleCommand.EXECUTE, cluster1, serviceComponentHostServerActionEvent, null, null, null, null, false, false);
     assertEquals("_internal_ambari", stages.get(0).getOrderedHostRoleCommands().get(0).getHostName());
     request = new Request(stages, "", clusters);
-    request.setUserName("test");
     actionDB.persistActions(request);
 
     org.apache.ambari.server.controller.spi.Request spiRequest = PropertyHelper.getReadRequest(

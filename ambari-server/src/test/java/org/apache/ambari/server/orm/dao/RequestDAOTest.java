@@ -174,7 +174,6 @@ public class RequestDAOTest {
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(requestId);
-    requestEntity.setUserName("test");
     requestEntity.setClusterId(clusterEntity.getClusterId());
     requestEntity.setStages(new ArrayList<>());
     requestDAO.create(requestEntity);

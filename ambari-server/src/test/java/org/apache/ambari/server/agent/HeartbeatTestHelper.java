@@ -231,7 +231,6 @@ public class HeartbeatTestHelper {
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
-    request.setUserName("test");
     db.persistActions(request);
   }
 
