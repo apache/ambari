@@ -122,6 +122,7 @@ public class ConfigGroupTest {
     ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
     serviceGroupEntity.setClusterEntity(clusterEntity);
     serviceGroupEntity.setServiceGroupName("default");
+    serviceGroupEntity.setStack(clusterEntity.getDesiredStack());
     serviceGroupDAO.create(serviceGroupEntity);
 
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();

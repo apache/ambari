@@ -117,7 +117,7 @@ public class AlertDispatchDAOTest {
     EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
 
     m_cluster = m_clusters.getClusterById(m_helper.createCluster());
-    serviceGroup = m_cluster.addServiceGroup("CORE", "HDP-1.0");
+    serviceGroup = m_cluster.addServiceGroup("CORE", m_cluster.getDesiredStackVersion().getStackId());
     m_helper.initializeClusterWithStack(m_cluster);
   }
 
