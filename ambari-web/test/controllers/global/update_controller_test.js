@@ -108,7 +108,7 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: ['metrics/1']
+        result: ['metrics/1', 'host_components/metrics/dfs/namenode/ClusterId']
       },
       {
         title: 'FLUME service',

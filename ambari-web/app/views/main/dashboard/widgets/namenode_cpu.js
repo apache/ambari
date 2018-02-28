@@ -35,6 +35,7 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
       intervalId;
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
       if (App.get('isHaEnabled')) {
+        // TODO rewrite considering federation case and using activeNameNodes array
         self.set('nnHostName', self.get('model.activeNameNode.hostName'));
       } else {
         self.set('nnHostName', self.get('model.nameNode.hostName'));

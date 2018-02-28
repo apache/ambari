@@ -163,7 +163,7 @@ App.BulkOperationsController = Em.Controller.extend({
         if (nn_hosts.length == 1) {
           return App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(request, nn_hosts[0]);
         }
-        if (nn_hosts.length == 2) {
+        if (nn_hosts.length > 1) {
           // HA enabled
           return App.router.get('mainServiceItemController').checkNnLastCheckpointTime(request);
         }
@@ -224,8 +224,8 @@ App.BulkOperationsController = Em.Controller.extend({
       }, hostName);
     }
     else {
-      if (nn_count == 2 && isHDFSStarted) {
-        // HA enabled
+      if (nn_count > 1 && isHDFSStarted) {
+        // HA or federation enabled
         App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
           batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
         });

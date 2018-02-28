@@ -81,6 +81,8 @@ App.QuickLinksView = Em.View.extend({
 
   masterGroups: [],
 
+  tooltipAttribute: 'quick-links-title-tooltip',
+
   /**
    * @type {object}
    */
@@ -618,20 +620,18 @@ App.QuickLinksView = Em.View.extend({
    * @method hostForQuickLink
    */
   processHdfsHosts: function (hosts) {
-    return hosts.map(function (host) {
-      if (host.hostName === Em.get(this, 'content.activeNameNode.hostName')) {
+    return hosts.map(host => {
+      const {hostName} = host,
+        isActiveNameNode = Em.get(this, 'content.activeNameNodes').someProperty('hostName', hostName),
+        isStandbyNameNode = Em.get(this, 'content.standbyNameNodes').someProperty('hostName', hostName);
+      if (isActiveNameNode) {
         host.status = Em.I18n.t('quick.links.label.active');
       }
-      else
-        if (host.hostName === Em.get(this, 'content.standbyNameNode.hostName')) {
-          host.status = Em.I18n.t('quick.links.label.standby');
-        }
-        else
-          if (host.hostName === Em.get(this, 'content.standbyNameNode2.hostName')) {
-            host.status = Em.I18n.t('quick.links.label.standby');
-          }
+      if (isStandbyNameNode) {
+        host.status = Em.I18n.t('quick.links.label.standby');
+      }
       return host;
-    }, this);
+    });
   },
 
   /**
@@ -889,5 +889,13 @@ App.QuickLinksView = Em.View.extend({
     } else {
       return propertyValue;
     }
-  }
+  },
+
+  setTooltip: function () {
+    Em.run.next(() => {
+      if (this.get('showQuickLinks') && this.get('isLoaded') && this.get('quickLinksArray.length')) {
+        App.tooltip($(`[rel="${this.get('tooltipAttribute')}"]`));
+      }
+    });
+  }.observes('showQuickLinks', 'isLoaded', 'quickLinksArray.length')
 });

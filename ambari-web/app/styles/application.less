@@ -868,6 +868,9 @@ a:focus {
       display: inline-block;
     }
   }
+  .master-group-title {
+    .ellipsis-overflow-nowrap;
+  }
 }
 
 .faintText {
@@ -1573,9 +1576,7 @@ ul.inline li {
 }
 
 .rack-id {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  .ellipsis-overflow-nowrap;
 }
 
 .advanced-header-table {

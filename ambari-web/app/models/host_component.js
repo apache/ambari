@@ -572,7 +572,8 @@ App.HostComponentActionMap = {
             components: components || group.components,
             serviceName
           },
-          disabled: false
+          disabled: false,
+          tooltip: group.title
         };
       });
     return [allItem, ...groupItems];
