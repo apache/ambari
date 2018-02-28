@@ -376,24 +376,17 @@ describe('App.QuickViewLinks', function () {
 
   describe("#processHdfsHosts()", function () {
     beforeEach(function () {
-      quickViewLinks.set('content.activeNameNode', null);
-      quickViewLinks.set('content.standbyNameNode', null);
-      quickViewLinks.set('content.standbyNameNode2', null);
+      quickViewLinks.set('content.activeNameNodes', []);
+      quickViewLinks.set('content.standbyNameNodes', []);
     });
     it("active namenode host", function () {
-      quickViewLinks.set('content.activeNameNode', Em.Object.create({hostName: 'host1'}));
+      quickViewLinks.get('content.activeNameNodes').pushObject(Em.Object.create({hostName: 'host1'}));
       var host = {hostName: 'host1'};
       quickViewLinks.processHdfsHosts([host]);
       expect(host.status).to.equal(Em.I18n.t('quick.links.label.active'));
     });
     it("standby namenode host", function () {
-      quickViewLinks.set('content.standbyNameNode', Em.Object.create({hostName: 'host1'}));
-      var host = {hostName: 'host1'};
-      quickViewLinks.processHdfsHosts([host]);
-      expect(host.status).to.equal(Em.I18n.t('quick.links.label.standby'));
-    });
-    it("second standby namenode host", function () {
-      quickViewLinks.set('content.standbyNameNode2', Em.Object.create({hostName: 'host1'}));
+      quickViewLinks.get('content.standbyNameNodes').pushObject(Em.Object.create({hostName: 'host1'}));
       var host = {hostName: 'host1'};
       quickViewLinks.processHdfsHosts([host]);
       expect(host.status).to.equal(Em.I18n.t('quick.links.label.standby'));

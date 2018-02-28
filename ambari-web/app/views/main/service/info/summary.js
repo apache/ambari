@@ -29,7 +29,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   /**
    * Contain array with list of groups of master components from <code>App.Service.hostComponets</code> which are
    * <code>App.HostComponent</code> models.
-   * @type {{title: String, isActive: Boolean, hosts: String[], components: App.HostComponent[]}[]}
+   * @type {{title: String, hosts: String[], components: App.HostComponent[]}[]}
    */
   mastersObj: [
     {
@@ -423,11 +423,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   hasMultipleMasterGroups: Em.computed.gt('mastersObj.length', 1),
 
-  activeMasterComponentGroup: function () {
-    const activeGroup = this.get('mastersObj').findProperty('isActive');
-    return activeGroup ? activeGroup.title : '';
-  }.property('mastersObj.@each.isActive'),
-
   getGroupedMasterComponents: function (components) {
     switch (this.get('serviceName')) {
       case 'HDFS':
@@ -447,7 +442,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
               if (!existingGroup) {
                 groups.push(currentGroup);
                 Em.setProperties(currentGroup, {
-                  isActive: name === this.get('activeMasterComponentGroup'),
                   components: []
                 });
               }
@@ -479,10 +473,5 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           }
         ];
     }
-  },
-
-  setActiveComponentGroup: function (event) {
-    const groupName = event.context;
-    this.get('mastersObj').forEach(group => Em.set(group, 'isActive', group.name === groupName));
   }
 });
