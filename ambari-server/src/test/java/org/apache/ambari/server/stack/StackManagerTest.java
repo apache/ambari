@@ -243,7 +243,7 @@ public class StackManagerTest {
     assertEquals("1.0", pigService.getVersion());
     assertEquals("This is comment for PIG service", pigService.getComment());
     components = pigService.getComponents();
-    assertEquals(1, components.size());
+    assertEquals(2, components.size());
     CommandScriptDefinition commandScript = pigService.getCommandScript();
     assertEquals("scripts/service_check.py", commandScript.getScript());
     assertEquals(CommandScriptDefinition.Type.PYTHON, commandScript.getScriptType());

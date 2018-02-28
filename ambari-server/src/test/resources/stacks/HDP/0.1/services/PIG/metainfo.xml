@@ -34,6 +34,16 @@
             <timeout>600</timeout>
           </commandScript>
         </component>
+        <component>
+          <name>SOME_CLIENT_FOR_SERVICE_CHECK</name>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/pig_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
       </components>
       <osSpecifics>
         <osSpecific>

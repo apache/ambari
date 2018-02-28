@@ -5228,6 +5228,7 @@ public class AmbariManagementControllerTest {
     createService(cluster1, serviceGroupName, serviceName, repositoryVersion01, null);
     String componentName1 = "PIG";
     createServiceComponent(cluster1, serviceGroupName, serviceName, componentName1, State.INIT);
+    createServiceComponent(cluster1, serviceGroupName, serviceName, "SOME_CLIENT_FOR_SERVICE_CHECK", State.INIT);
 
     String host1 = getUniqueName();
     String host2 = getUniqueName();
@@ -5242,6 +5243,8 @@ public class AmbariManagementControllerTest {
     createServiceComponentHost(cluster1, serviceGroupName, null, componentName1,
         host1, null);
     createServiceComponentHost(cluster1, serviceGroupName, null, componentName1,
+        host2, null);
+    createServiceComponentHost(cluster1, serviceGroupName, null, "SOME_CLIENT_FOR_SERVICE_CHECK",
         host2, null);
 
     ServiceRequest r = new ServiceRequest(cluster1, serviceGroupName, serviceName, repositoryVersion01.getId(),
@@ -5266,7 +5269,7 @@ public class AmbariManagementControllerTest {
     }
 
     List<ShortTaskStatus> taskStatuses = trackAction.getTasks();
-    Assert.assertEquals(2, taskStatuses.size());
+    Assert.assertEquals(3, taskStatuses.size());
 
     List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
     Assert.assertEquals(1, stages.size());
@@ -5326,9 +5329,11 @@ public class AmbariManagementControllerTest {
     createService(cluster1, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
 
     createServiceComponent(cluster1, serviceGroupName, serviceName, componentName1, State.INIT);
     createServiceComponent(cluster1, serviceGroupName, serviceName, componentName2, State.INIT);
+    createServiceComponent(cluster1, serviceGroupName, serviceName, componentName3, State.INIT);
 
     String host1 = getUniqueName();
     String host2 = getUniqueName();
@@ -5344,6 +5349,8 @@ public class AmbariManagementControllerTest {
         host2, null);
     createServiceComponentHost(cluster1, serviceGroupName, serviceName, componentName2,
         host3, null);
+    createServiceComponentHost(cluster1, serviceGroupName, serviceName, componentName3,
+        host2, null);
 
     // Install
     installService(cluster1, serviceGroupName, serviceName, false, false);
@@ -6018,6 +6025,9 @@ public class AmbariManagementControllerTest {
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.0.6");
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     Service mapred = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
+    Service hadoop_clients = cluster.addService(serviceGroup, "HADOOP_CLIENTS", "HADOOP_CLIENTS", repositoryVersion);
+
+    hdfs = cluster.addDependencyToService("CORE", "HDFS", hadoop_clients.getServiceId());
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -6116,6 +6126,11 @@ public class AmbariManagementControllerTest {
     }
 
     // Test service checks - specific host
+
+    hadoop_clients.addServiceComponent("SOME_CLIENT_FOR_SERVICE_CHECK");
+    hadoop_clients.getServiceComponent("SOME_CLIENT_FOR_SERVICE_CHECK").addServiceComponentHost(host1);
+    hadoop_clients.getServiceComponent("SOME_CLIENT_FOR_SERVICE_CHECK").addServiceComponentHost(host2);
+
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("CORE", "HDFS", null,
       Arrays.asList(host1));
@@ -8580,9 +8595,11 @@ public class AmbariManagementControllerTest {
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "HDFS", "NAMENODE", null));
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "HDFS", "SECONDARY_NAMENODE", null));
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "HDFS", "DATANODE", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "HDFS", "HDFS_CLIENT", null));
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "MAPREDUCE2", "HISTORYSERVER", null));
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "YARN", "RESOURCEMANAGER", null));
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "YARN", "NODEMANAGER", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, serviceGroupName, "YARN", "YARN_CLIENT", null));
 
     ComponentResourceProviderTest.createComponents(amc, serviceComponentRequests);
 
@@ -8594,10 +8611,12 @@ public class AmbariManagementControllerTest {
     Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<>();
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "DATANODE", HOST1, null));
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "NAMENODE", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "HDFS_CLIENT", HOST1, null));
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "SECONDARY_NAMENODE", HOST1, null));
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "HISTORYSERVER", HOST1, null));
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "RESOURCEMANAGER", HOST1, null));
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "NODEMANAGER", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, serviceGroupName, null, "YARN_CLIENT", HOST1, null));
 
     amc.createHostComponents(componentHostRequests);
 
