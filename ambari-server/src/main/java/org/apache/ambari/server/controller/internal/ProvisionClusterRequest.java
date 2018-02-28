@@ -18,8 +18,9 @@
 package org.apache.ambari.server.controller.internal;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.topology.TopologyManager.KDC_ADMIN_CREDENTIAL;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,8 +30,11 @@ import java.util.Set;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilder;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileEvaluationException;
+import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.ConfigurationFactory;
@@ -40,13 +44,11 @@ import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.ManagementPackMapping;
 import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
+import org.apache.ambari.server.topology.ProvisionRequest;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
@@ -55,7 +57,7 @@ import com.google.common.base.Strings;
  * Request for provisioning a cluster.
  */
 @SuppressWarnings("unchecked")
-public class ProvisionClusterRequest extends BaseClusterRequest {
+public class ProvisionClusterRequest extends BaseClusterRequest implements ProvisionRequest {
   /**
    * host groups property name
    */
@@ -129,8 +131,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   public static final String MANAGEMENT_PACK_MAPPINGS_PROPERTY = "management_pack_mappings";
 
-  public static final String MPACK_INSTANCES_PROPERTY = BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID;
-
   public static final String MPACK_INSTANCE_PROPERTY = "mpack_instance";
 
   public static final String COMPONENT_NAME_PROPERTY = "component_name";
@@ -163,7 +163,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private final String quickLinksProfileJson;
 
-  private Collection<MpackInstance> mpackInstances;
+  private final Collection<MpackInstance> mpackInstances;
+  private final Set<StackId> stackIds;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
@@ -199,41 +200,28 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     }
 
     this.securityConfiguration = securityConfiguration;
+    this.credentialsMap = parseCredentials(properties);
+    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS && getCredentialsMap().get(KDC_ADMIN_CREDENTIAL) == null) {
+      throw new InvalidTopologyTemplateException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
+    }
 
-    Configuration configuration = configurationFactory.getConfiguration(
-      (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
+    Configuration configuration = configurationFactory.getConfiguration((Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
     configuration.setParentConfiguration(blueprint.getConfiguration());
     setConfiguration(configuration);
 
     parseHostGroupInfo(properties);
 
-    this.credentialsMap = parseCredentials(properties);
-
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
 
     setProvisionAction(parseProvisionAction(properties));
 
-    processMpackInstances(properties);
+    mpackInstances = BlueprintFactory.createMpackInstances(properties);
+    stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet()); // FIXME persist these
 
     try {
       this.quickLinksProfileJson = processQuickLinksProfile(properties);
     } catch (QuickLinksProfileEvaluationException ex) {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
-    }
-  }
-
-  private void processMpackInstances(Map<String, Object> properties) throws InvalidTopologyTemplateException {
-    if (properties.containsKey(MPACK_INSTANCES_PROPERTY)) {
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-      try {
-        String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY));
-        this.mpackInstances = mapper.readValue(mpackInstancesJson,
-          new TypeReference<Collection<MpackInstance>>() {});
-      }
-      catch (IOException ex) {
-        throw new InvalidTopologyTemplateException("Cannot process mpack instances.", ex);
-      }
     }
   }
 
@@ -291,6 +279,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     this.clusterName = clusterName;
   }
 
+  @Override
   public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
     return configRecommendationStrategy;
   }
@@ -530,11 +519,18 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     return quickLinksProfileJson;
   }
 
+  @Override
   public String getDefaultPassword() {
     return defaultPassword;
   }
 
-  public Collection<MpackInstance> getMpackInstances() {
+  @Override
+  public Set<StackId> getStackIds() {
+    return stackIds;
+  }
+
+  @Override
+  public Collection<MpackInstance> getMpacks() {
     return mpackInstances;
   }
 }

@@ -15,12 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.topology;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+
+import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.StackId;
+
 /**
- * Performs topology validation.
+ * Default implementation of StackFactory.
+ *
+ * Calls the Stack constructor to create the Stack instance.
+ *
  */
-public interface TopologyValidator {
-  void validate(ClusterTopology topology) throws InvalidTopologyException;
+public class DefaultStackFactory implements StackFactory {
+
+  @Inject
+  private Provider<AmbariMetaInfo> metaInfo;
+
+  @Override
+  public Stack createStack(StackId stackId) throws StackAccessException {
+    return new Stack(stackId, metaInfo.get());
+  }
 }

@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller;
 
 
+import java.util.Objects;
+
 public class ServiceComponentRequest {
 
   private String clusterName; // REF
@@ -144,5 +146,30 @@ public class ServiceComponentRequest {
     return String.format("[clusterName=%s, serviceGroupName=%s, serviceName=%s, componentName=%s, " +
       "desiredState=%s, recoveryEnabled=%s, componentCategory=%s]", clusterName, serviceGroupName,
       serviceName, clusterName, desiredState, recoveryEnabled, componentCategory);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ServiceComponentRequest other = (ServiceComponentRequest) obj;
+
+    return Objects.equals(clusterName, other.clusterName) &&
+      Objects.equals(serviceGroupName, other.serviceGroupName) &&
+      Objects.equals(serviceName, other.serviceName) &&
+      Objects.equals(componentCategory, other.componentCategory) &&
+      Objects.equals(componentName, other.componentName) &&
+      Objects.equals(desiredState, other.desiredState) &&
+      Objects.equals(recoveryEnabled, other.recoveryEnabled);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(clusterName, serviceGroupName, serviceName, componentCategory, componentName, desiredState, recoveryEnabled);
   }
 }

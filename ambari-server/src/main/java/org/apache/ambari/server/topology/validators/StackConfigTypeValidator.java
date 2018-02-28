@@ -19,7 +19,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,7 @@ public class StackConfigTypeValidator implements TopologyValidator {
       return;
     }
 
-    Set<String> stackConfigTypes = new HashSet<>(topology.getBlueprint().getStack().getConfiguration().getAllConfigTypes());
+    Set<String> stackConfigTypes = new HashSet<>(topology.getStack().getConfiguration().getAllConfigTypes());
 
     // remove all "valid" config types from the incoming set
     incomingConfigTypes.removeAll(stackConfigTypes);
@@ -58,7 +57,3 @@ public class StackConfigTypeValidator implements TopologyValidator {
     }
   }
 }
-
-
-
-
