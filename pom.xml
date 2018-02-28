@@ -670,6 +670,8 @@ instead of a SNAPSHOT. -->
                 </goals>
                 <configuration>
                   <keyname>${gpg.keyname}</keyname>
+                  <passphrase>${gpg.passphrase}</passphrase>
+                  <homedir>${gpg.homedir}</homedir>
                 </configuration>
               </execution>
             </executions>
