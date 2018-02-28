@@ -1524,8 +1524,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       //get info about services from specific stack versions and save to StackService model
       const selectedServices = this.get('content.selectedServices');
       const servicePromises = selectedServices.map(service =>
-        this.loadMpackServiceInfo(service.stackName, service.stackVersion, service.name)
-          .then(this.loadMpackServiceInfoSuccess, this.loadMpackServiceInfoError)
+        this.loadMpackServiceInfo(service.mpackName, service.mpackVersion, service.name)
+          .then(this.loadMpackServiceInfoSuccess.bind(this), this.loadMpackServiceInfoError.bind(this))
       );
 
       return $.when(...servicePromises);
