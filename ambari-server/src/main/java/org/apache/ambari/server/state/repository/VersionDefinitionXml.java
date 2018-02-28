@@ -65,13 +65,13 @@ import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import jline.internal.Log;
 
 /**
  * Class that wraps a repository definition file.
@@ -79,6 +79,8 @@ import jline.internal.Log;
 @XmlRootElement(name="repository-version")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class VersionDefinitionXml {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VersionDefinitionXml.class);
 
   public static String SCHEMA_LOCATION = "version_definition.xsd";
 
@@ -369,7 +371,7 @@ public class VersionDefinitionXml {
     try {
       stackPackages = gson.fromJson(stackPackagesJson, type);
     } catch( Exception exception ) {
-      Log.warn("Unable to deserialize the stack packages JSON, assuming no service dependencies",
+      LOG.warn("Unable to deserialize the stack packages JSON, assuming no service dependencies",
           exception);
 
       return missingDependencies;
