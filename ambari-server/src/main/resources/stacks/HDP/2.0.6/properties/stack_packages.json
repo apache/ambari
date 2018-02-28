@@ -731,13 +731,16 @@
         "SPARK2_CLIENT": {
           "STACK-SELECT-PACKAGE": "spark2-client",
           "INSTALL": [
-            "spark2-client"
+            "spark2-client",
+            "livy2-client"
           ],
           "PATCH": [
-            "spark2-client"
+            "spark2-client",
+            "livy2-client"
           ],
           "STANDARD": [
-            "spark2-client"
+            "spark2-client",
+            "livy2-client"
           ]
         },
         "SPARK2_JOBHISTORYSERVER": {
