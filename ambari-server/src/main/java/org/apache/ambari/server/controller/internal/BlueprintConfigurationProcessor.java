@@ -2907,11 +2907,11 @@ public class BlueprintConfigurationProcessor {
   private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, StackDefinition stack) {
     Collection<String> blueprintServices = clusterTopology.getServices();
 
-    LOG.info("Handling excluded properties for blueprint services: {}", blueprintServices);
+    LOG.debug("Handling excluded properties for blueprint services: {}", blueprintServices);
 
     for (String blueprintService : blueprintServices) {
 
-      LOG.info("Handling excluded properties for blueprint service: {}", blueprintService);
+      LOG.debug("Handling excluded properties for blueprint service: {}", blueprintService);
       Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(blueprintService);
 
       if (excludedConfigTypes.isEmpty()) {
