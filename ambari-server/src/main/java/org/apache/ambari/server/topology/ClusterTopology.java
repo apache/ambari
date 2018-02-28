@@ -181,7 +181,7 @@ public interface ClusterTopology {
   String getDefaultPassword();
 
   /**
-   * @return true if a service with serviceType=HCFS exists
+   * @return true if the given component belongs to a service that has serviceType=HCFS
    */
-  boolean hasHadoopCompatibleFileSystem();
+  boolean isComponentHadoopCompatible(String component);
 }
