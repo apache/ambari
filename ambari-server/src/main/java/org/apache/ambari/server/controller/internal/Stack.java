@@ -261,6 +261,9 @@ public class Stack {
     return componentInfo;
   }
 
+  /**
+   * @return an optional ServiceInfo of the given serviceName or Optional.empty() if the service doesn't exist in the stack
+   */
   public Optional<ServiceInfo> getServiceInfo(String serviceName) {
     try {
       return Optional.of(controller.getAmbariMetaInfo().getService(getName(), getVersion(), serviceName));
