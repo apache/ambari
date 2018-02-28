@@ -88,7 +88,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ALWAYS_APPLY).anyTimes();
     expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(clusterTopology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
@@ -127,7 +127,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(clusterTopology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
@@ -167,7 +167,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(clusterTopology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
@@ -205,7 +205,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES).anyTimes();
     expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(clusterTopology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
@@ -241,7 +241,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(clusterTopology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();
@@ -274,7 +274,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(clusterTopology.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(clusterTopology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_ID.getStackVersion()).anyTimes();
     expect(stack.getName()).andReturn(STACK_ID.getStackName()).anyTimes();

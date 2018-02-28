@@ -562,7 +562,7 @@ public class BlueprintConfigurationProcessor {
       String clusterName = clusterTopology.getAmbariContext().getClusterName(clusterTopology.getClusterId());
       Cluster cluster = clusterTopology.getAmbariContext().getController().getClusters().getCluster(clusterName);
       authToLocalPerClusterMap = new HashMap<>();
-      authToLocalPerClusterMap.put(Long.valueOf(clusterTopology.getClusterId()), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster, false).getAllAuthToLocalProperties());
+      authToLocalPerClusterMap.put(clusterTopology.getClusterId(), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster, false).getAllAuthToLocalProperties());
       } catch (AmbariException e) {
         LOG.error("Error while getting authToLocal properties. ", e);
     }

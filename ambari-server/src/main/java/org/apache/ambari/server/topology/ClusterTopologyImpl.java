@@ -79,8 +79,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
     provisionRequest = null;
     defaultPassword = null;
-    stackIds = ImmutableSet.of();
-    stack = null;
+    stackIds = topologyRequest.getBlueprint().getStackIds();
+    stack = ambariContext.composeStacks(stackIds);
     resolvedComponents = ImmutableMap.of();
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
