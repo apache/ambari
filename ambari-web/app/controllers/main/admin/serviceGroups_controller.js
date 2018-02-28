@@ -18,12 +18,6 @@
 
 var App = require('app');
 
-const VersionType = {
-  HOTFIX: 'hotfix',
-  PATCH: 'patch',
-  RELEASE: 'release'
-}  
-
 App.MainAdminServiceGroupsController = Em.Controller.extend(App.LocalStorage, {
   name: 'mainAdminServiceGroupsController',
 

@@ -112,7 +112,6 @@ require('views/common/controls_view');
 require('views/common/chosen_plugin');
 require('views/common/export_metrics_menu_view');
 require('views/common/dashrow_view');
-require('views/common/mpackComparison_view');
 require('views/common/widget/graph_widget_view');
 require('views/common/widget/template_widget_view');
 require('views/common/widget/gauge_widget_view');

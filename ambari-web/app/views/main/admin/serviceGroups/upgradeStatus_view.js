@@ -28,15 +28,7 @@ App.UpgradeStatusView = App.DashRow.extend({
 
   menuClass: Em.View.extend({
     templateName: require('templates/main/admin/serviceGroups/upgradeStatusMenu'),
-    canModifyPlan: function () {
-      const step = this.get('parentView.upgrade.currentStep');
-      
-      if (step === 'prerequisites') {
-        return true;
-      }
-      
-      return false;
-    }.property('parentView.upgrade.currentStep'),
+    canModifyPlan: Em.computed.equal('parentView.upgrade.currentStep', 'prerequisites'),
     handleEditPlan: function () {
       if (this.get('canModifyPlan')) {
         this.get('parentView.controller').editPlan();
@@ -51,55 +43,13 @@ App.UpgradeStatusView = App.DashRow.extend({
 
   headerClass: Em.View.extend({
     templateName: require('templates/main/admin/serviceGroups/upgradeStatusHeader'),
-    step: Em.computed.alias('parentView.upgrade.currentStep'),
-    isPrerequisitesActive: function () {
-      const step = this.get('step');
-      
-      if (step === 'prerequisites') {
-        return true;
-      }
-
-      return false;
-    }.property('step'),
-    isPrerequisitesComplete: function () {
-      const step = this.get('step');
-      
-      if (step === 'install' || step === 'upgrade') {
-        return true;
-      }
-
-      return false;
-    }.property('step'),
-    isInstallActive: function () {
-      const step = this.get('step');
-      
-      if (step === 'install') {
-        return true;
-      }
-
-      return false;
-    }.property('step'),
-    isInstallComplete: function () {
-      const step = this.get('step');
-      
-      if (step === 'upgrade') {
-        return true;
-      }
-
-      return false;
-    }.property('step'),
-    isUpgradeActive: function () {
-      const step = this.get('step');
-      
-      if (step === 'upgrade') {
-        return true;
-      }
-
-      return false;
-    }.property('step'),
+    isUpgradeActive: Em.computed.equal('parentView.upgrade.currentStep', 'upgrade'),
+    isInstallComplete: Em.computed.alias('isUpgradeActive'),
+    isInstallActive: Em.computed.equal('parentView.upgrade.currentStep', 'install'),
+    isPrerequisitesComplete: Em.computed.or('isInstallActive', 'isUpgradeActive'),
+    isPrerequisitesActive: Em.computed.equal('parentView.upgrade.currentStep', 'prerequisites'),
     label: function () {
-      const step = this.get('step');
-      switch (step) {
+      switch (this.get('parentView.upgrade.currentStep')) {
         case 'prerequisites':
           return Em.I18n.t('admin.serviceGroups.upgradeStatus.button.prerequisites');
           break;
@@ -110,7 +60,7 @@ App.UpgradeStatusView = App.DashRow.extend({
           return Em.I18n.t('admin.serviceGroups.upgradeStatus.button.upgrade');
           break;
       }
-    }.property('step'),
+    }.property('parentView.upgrade.currentStep'),
     action: Em.computed.alias('parentView.upgrade.currentAction')
   }),
 

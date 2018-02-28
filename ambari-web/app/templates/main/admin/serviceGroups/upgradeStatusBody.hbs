@@ -39,7 +39,7 @@
   </div>
   <div id="plan-mpacks">
     {{#each mpack in view.mpacks}}
-      {{view App.MpackComparison mpackBinding="mpack"}}
+      {{template "templates/common/mpackComparison" mpackBinding="mpack"}}
     {{/each}}
   </div>
 </div>
