@@ -432,6 +432,7 @@ Em.I18n.translations = {
   'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes. Should be less than 255 symbols.',
   'hostPopup.RackId': 'Rack',
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
+  'hostPopup.default.userName': 'none',
 
   'question.sure':'Are you sure?',
   'question.sure.restart':'Are you sure you want to restart {0}?',

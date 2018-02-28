@@ -45,6 +45,7 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
   private String requestContext;
   private HostRoleStatus requestStatus;
   private Long startTime;
+  private String userName;
 
   @JsonProperty("Tasks")
   private Set<HostRoleCommand> hostRoleCommands = new HashSet<>();
@@ -62,6 +63,7 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
     this.requestContext = requestEntity.getRequestContext();
     this.requestStatus = requestEntity.getStatus();
     this.startTime = requestEntity.getStartTime();
+    this.userName = requestEntity.getUserName();
 
     for (HostRoleCommandEntity hostRoleCommandEntity : hostRoleCommandEntities) {
       hostRoleCommands.add(new HostRoleCommand(hostRoleCommandEntity.getTaskId(),
@@ -134,6 +136,10 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
   public void setStartTime(Long startTime) {
     this.startTime = startTime;
   }
+
+  public String getUserName() { return userName; }
+
+  public void setUserName(String userName) { this.userName = userName; }
 
   public Set<HostRoleCommand> getHostRoleCommands() {
     return hostRoleCommands;
@@ -225,6 +231,7 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
       return false;
     if (requestStatus != that.requestStatus) return false;
     if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) return false;
+    if (userName != null ? !userName.equals(that.userName) : that.userName != null ) return false;
     return hostRoleCommands != null ? hostRoleCommands.equals(that.hostRoleCommands) : that.hostRoleCommands == null;
   }
 
@@ -237,6 +244,7 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
     result = 31 * result + (requestContext != null ? requestContext.hashCode() : 0);
     result = 31 * result + (requestStatus != null ? requestStatus.hashCode() : 0);
     result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
+    result = 31 * result + (userName != null ? userName.hashCode() : 0);
     result = 31 * result + (hostRoleCommands != null ? hostRoleCommands.hashCode() : 0);
     return result;
   }
