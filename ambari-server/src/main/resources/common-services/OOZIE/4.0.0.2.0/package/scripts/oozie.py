@@ -121,7 +121,8 @@ def oozie(is_server=False, upgrade_type=None):
                                                       'oozie-site',
                                                       os.path.join(params.conf_dir, 'oozie-site.jceks'),
                                                       params.oozie_user,
-                                                      params.user_group
+                                                      params.user_group,
+                                                      use_local_jceks=True
                                                       )
 
   XmlConfig("oozie-site.xml",
