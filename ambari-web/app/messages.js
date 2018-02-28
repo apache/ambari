@@ -2335,15 +2335,17 @@ Em.I18n.translations = {
   'services.service.restartCertain.warningMsg.turnOnMM': 'This will trigger alerts as components are restarted. To suppress alerts, turn on Maintenance Mode for {0} prior to running restart all',
   'services.service.componentsInNameSpace': 'components in {0} namespace',
   'services.service.stop.HDFS.warningMsg.checkPointNA': 'Could not determine the age of the last HDFS checkpoint. Please ensure that you have a recent checkpoint. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login': '<br><ol><li>Login to the NameNode host <b>{0}</b>.</li>',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.multipleHosts.login': '<ol><li>Login to the NameNode hosts {0}.</li>',
   'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions':
-    '<br><ol>' +
-    '<li>Login to the NameNode host <b>{0}</b>.</li>' +
     '<li>Put the NameNode in Safe Mode (read-only mode):' +
-    '<div class="code-snippet">sudo su {1} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
     '<li>Once in Safe Mode, create a Checkpoint:' +
-    '<div class="code-snippet">sudo su {1} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
     '</ol>',
-  'services.service.stop.HDFS.warningMsg.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours. Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours. ',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure': 'Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.nameSpaces.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours for the following namespaces:',
   'services.service.config_groups_popup.header':'Manage {0} Configuration Groups',
   'services.service.config_groups_popup.notice':'You can apply different sets of {{serviceName}} configurations to groups of hosts by managing {{serviceName}} Configuration Groups and their host membership.  Hosts belonging to a {{serviceName}} Configuration Group have the same set of configurations for {{serviceName}}. Each host belongs to one {{serviceName}} Configuration Group.',
   'services.service.config_groups_popup.rename':'Rename',

@@ -35,6 +35,8 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
 
   isHAEnabled: Em.computed.not('model.snameNode'),
 
+  // TODO rewrite considering federation case and using activeNameNodes and standbyNameNodes arrays
+
   isActiveNNValid: Em.computed.bool('model.activeNameNode'),
 
   isStandbyNNValid: Em.computed.bool('model.standbyNameNode'),

@@ -67,7 +67,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     stale_configs: 'HostRoles.stale_configs',
     host_name: 'host_name',
     public_host_name: 'public_host_name',
-    admin_state: 'HostRoles.desired_admin_state'
+    admin_state: 'HostRoles.desired_admin_state',
+    ha_name_space: 'metrics.dfs.namenode.ClusterId'
   },
   stackVersionConfig: {
     id: 'HostStackVersions.id',

@@ -21,9 +21,18 @@ App.HDFSService = App.Service.extend({
   version: DS.attr('string'),
   nameNode: DS.belongsTo('App.HostComponent'),
   snameNode: DS.belongsTo('App.HostComponent'),
+
+  // TODO remove after implementing widgets changes
   activeNameNode: DS.belongsTo('App.HostComponent'),
   standbyNameNode: DS.belongsTo('App.HostComponent'),
   standbyNameNode2: DS.belongsTo('App.HostComponent'),
+
+  activeNameNodes: DS.hasMany('App.HostComponent', {
+    defaultValue: []
+  }),
+  standbyNameNodes: DS.hasMany('App.HostComponent', {
+    defaultValue: []
+  }),
   isNnHaEnabled: function() {
     return !this.get('snameNode') && this.get('hostComponents').filterProperty('componentName', 'NAMENODE').length > 1;
   }.property('snameNode','hostComponents'),
@@ -75,7 +84,7 @@ App.HDFSService = App.Service.extend({
       }
     });
     return result;
-  }.property('hostComponents')
+  }.property('hostComponents.length')
 });
 
 App.HDFSService.FIXTURES = [];
