@@ -324,6 +324,11 @@ class TestHDP23StackAdvisor(TestCase):
           },
           "property_attributes": {}
         },
+        "kafka-env": {
+          "properties": {
+            "kafka_user" : "custom_kafka"
+          }
+        },
         "kafka-broker": {
           "properties": {
             "authorizer.class.name" : "kafka.security.auth.SimpleAclAuthorizer"

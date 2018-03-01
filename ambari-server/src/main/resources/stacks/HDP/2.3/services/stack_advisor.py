@@ -349,7 +349,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
 
     if security_enabled:
-      kafka_user = kafka_env.get('kafka_user') if kafka_env is not None else None
+      kafka_user = kafka_env.get('kafka_user')
 
       if kafka_user is not None:
         kafka_super_users = kafka_broker.get('super.users') if kafka_broker is not None else None
