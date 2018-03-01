@@ -71,6 +71,12 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
       regenerateDataIdentifiers(hostData);
       setIdentifiersToEventUpdate(update, hostData);
       stateUpdateEventPublisher.publish(update);
+    } else {
+      // in case update does not have changes empty identifiers should be populated anyway
+      T hostData = getData(update.getHostId());
+      if (!isIdentifierValid(hostData)) {
+        regenerateDataIdentifiers(hostData);
+      }
     }
   }
 
