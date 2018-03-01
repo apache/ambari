@@ -232,7 +232,7 @@ class TestInstanceManager(TestCase):
                         "hdfs_server": {
                           "component-instances": {
                             "server1": {
-                              "path": "/tmp/instance_manager_test/modules/hdfs/3.1.0.0-b1",
+                              "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_server",
                               "name": "server1"
                             }
                           }
@@ -243,7 +243,7 @@ class TestInstanceManager(TestCase):
                       "category": "CLIENT",
                       "component_instances": {
                         "default": {
-                          "path": "/tmp/instance_manager_test/modules/hdfs-clients/3.1.0.0-b1",
+                          "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_client",
                           "name": "default"
                         }
                       },
@@ -317,7 +317,7 @@ class TestInstanceManager(TestCase):
     expected_filter_result = {'mpacks': {'edw': {'mpack-instances': {'eCommerce': {'name': 'eCommerce', 'subgroups': {
       'default': {'modules': {'hdfs': {'category': 'SERVER', 'name': 'hdfs', 'components': {'hdfs_server': {
         'component-instances': {
-          'server2': {'path': '/tmp/instance_manager_test/modules/hdfs/3.1.0.0-b1', 'name': 'server2'}}}}}}}}}}}}}
+          'server2': {'path': '/tmp/instance_manager_test/mpacks/edw/1.0.0-b1/hdfs_server', 'name': 'server2'}}}}}}}}}}}}}
     self.assertEquals(expected_filter_result, filter_by_component_instance_name_json)
 
   def test_validation(self):
@@ -383,7 +383,9 @@ class TestInstanceManager(TestCase):
       raise AssertionError("The previous call should have thrown exception")
     except ValueError as e:
       self.assertEquals(e.message,
-                        "Found no instances for the given filters.")
+                        "Found no instances for the given filters: mpack_name:hdpcore, instance_name:Production,"
+                        " subgroup_name:default, module_name:hdfs, components:None,"
+                        " components_map:{'hdfs_server': ['non-existing-instance']}")
 
 
 def create_mpack_with_defaults(mpack_name=MPACK_NAME, mpack_version=MPACK_VERSION_1, mpack_instance=INSTANCE_NAME_1,

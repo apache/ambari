@@ -53,6 +53,10 @@ def create_mpack(mpack_name, mpack_version, mpack_instance, subgroup_name=DEFAUL
   """
   mpack_name = mpack_name.lower()
   module_name = module_name.lower()
+  if components and components != "*":
+    components = [component.lower() for component in components]
+  if components_map:
+    components_map = dict((k.lower(), v) for k, v in components_map.iteritems())
 
   validate_mpack_for_creation_or_changing(mpack_name, mpack_version, module_name, components, components_map)
 
@@ -73,12 +77,19 @@ def set_mpack_instance(mpack, mpack_version, mpack_instance, subgroup_name=DEFAU
   """
   mpack = mpack.lower()
   module_name = module_name.lower()
+  if components and components != "*":
+    components = [component.lower() for component in components]
+  if components_map:
+    components_map = dict((k.lower(), v) for k, v in components_map.iteritems())
 
   instances = MpackInstance.parse_instances_with_filtering(os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME), mpack,
                                                            mpack_instance, subgroup_name, module_name,
                                                            components, components_map)
   if not instances:
-    raise ValueError("Found no instances for the given filters.")
+    raise ValueError("Found no instances for the given filters: mpack_name:{0}, instance_name:{1},"
+                     " subgroup_name:{2}, module_name:{3}, components:{4}, components_map:{5}".
+                     format(mpack, mpack_instance, subgroup_name, module_name,
+                            components, components_map))
 
   validate_mpack_for_creation_or_changing(mpack, mpack_version, module_name, components, components_map)
 
@@ -147,6 +158,8 @@ def build_granular_json_with_filtering(mpack_name_filter, instance_name_filter, 
     mpack_name_filter = mpack_name_filter.lower()
   if module_name_filter:
     module_name_filter = module_name_filter.lower()
+  if components_name_filter_map:
+    components_name_filter_map = dict((k.lower(), v) for k, v in components_name_filter_map.iteritems())
 
   instances = MpackInstance.parse_instances_with_filtering(os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME),
                                                            mpack_name_filter,
@@ -155,7 +168,10 @@ def build_granular_json_with_filtering(mpack_name_filter, instance_name_filter, 
                                                            None,
                                                            components_name_filter_map)
   if not instances:
-    raise ValueError("Found no instances for the given filters.")
+    raise ValueError("Found no instances for the given filters: mpack_name:{0}, instance_name:{1},"
+                     " subgroup_name:{2}, module_name:{3}, components_name_map:{4}".
+                     format(mpack_name_filter, instance_name_filter, subgroup_name_filter,
+                            module_name_filter, components_name_filter_map))
 
   full_json_output = build_json_output(instances, output_conf_dir=output_conf_dir, output_path=output_path)
 
@@ -478,7 +494,7 @@ class ModuleInstance(Instance):
                 (components_name_filter_map and folder_name in components_name_filter_map)):
             components_map = ComponentInstance(name=DEFAULT_COMPONENT_INSTANCE_NAME,
                                                component_path=os.path.join(path, folder_name),
-                                               path_exec=os.path.realpath(
+                                               path_exec=os.readlink(
                                                  os.path.join(path, folder_name, CURRENT_SOFTLINK_NAME)))
         else:
           components_map = ComponentInstance.parse_into_components_dict(os.path.join(path, folder_name),
@@ -566,7 +582,7 @@ class ComponentInstance(Instance):
       if not component_names_filter or component_instance_name in component_names_filter:
         result[component_instance_name] = ComponentInstance(name=component_instance_name,
                                                             component_path=os.path.join(path, component_instance_name),
-                                                            path_exec=os.path.realpath(
+                                                            path_exec=os.readlink(
                                                               os.path.join(path, component_instance_name,
                                                                            CURRENT_SOFTLINK_NAME)))
     return result
