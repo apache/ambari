@@ -683,7 +683,7 @@ class RecoveryManager:
       return
 
     if status == ActionQueue.COMPLETED_STATUS:
-      if command[self.ROLE_COMMAND] == self.ROLE_COMMAND_START:
+      if command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START:
         self.update_current_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
         #self.update_config_staleness(command['role'], False)
         logger.info("After EXECUTION_COMMAND (START), with taskId=" + str(command['taskId']) +

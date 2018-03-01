@@ -370,6 +370,7 @@ CREATE TABLE request (
   status VARCHAR(255) DEFAULT 'PENDING' NOT NULL,
   display_status VARCHAR(255) DEFAULT 'PENDING' NOT NULL,
   cluster_host_info BLOB NOT NULL,
+  user_name VARCHAR(255),
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 

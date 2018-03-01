@@ -20,5 +20,15 @@ var App = require('app');
 
 App.NameNodeFederationWizardStep3View = Em.View.extend({
 
-  templateName: require('templates/main/admin/federation/step3')
+  templateName: require('templates/main/admin/federation/step3'),
+
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
+  curNameNodes: function () {
+    return this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', true).mapProperty('hostName');
+  }.property('controller.content.masterComponentHosts'),
+  addNameNodes: function () {
+    return this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', false).mapProperty('hostName');
+  }.property('controller.content.masterComponentHosts'),
 });

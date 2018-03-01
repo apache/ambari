@@ -432,6 +432,7 @@ Em.I18n.translations = {
   'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes. Should be less than 255 symbols.',
   'hostPopup.RackId': 'Rack',
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
+  'hostPopup.default.userName': 'none',
 
   'question.sure':'Are you sure?',
   'question.sure.restart':'Are you sure you want to restart {0}?',
@@ -1674,6 +1675,10 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step1.nameserviceid.error':'Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
   'admin.nameNodeFederation.wizard.step2.header': 'Select Hosts',
   'admin.nameNodeFederation.wizard.step3.header': 'Review',
+  'admin.nameNodeFederation.wizard.step3.confirm.config.body': '<div class="alert alert-info">' +
+    '<p><b>Review Configuration Changes.</b></p>' +
+    'The following lists the configuration changes that will be made by the Wizard to enable NameNode Federation. This information is for <b> review only </b> and is not editable except for the  <b>dfs.journalnode.edits.dir</b> properties' +
+    '</div>',
   'admin.nameNodeFederation.wizard.step4.header': 'Configure Components',
 
   'admin.security.title':'Kerberos security has not been enabled',

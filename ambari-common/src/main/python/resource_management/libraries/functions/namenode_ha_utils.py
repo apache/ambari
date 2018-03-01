@@ -175,7 +175,7 @@ def get_property_for_active_namenode(hdfs_site, property_name, security_enabled,
     name_services = get_nameservices(hdfs_site)
     if len(name_services) > 1:
       raise Fail('Multiple name services not supported by this function')
-    name_service = name_services(hdfs_site)[0]
+    name_service = name_services[0]
     active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
 
     if not len(active_namenodes):

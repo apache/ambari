@@ -75,6 +75,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     const updatedState = {
       progress: Math.floor(event.progressPercent),
       status: event.requestStatus,
+      userName: event.userName,
       isRunning: this.isRunning(event.requestStatus),
       startTime: App.dateTimeWithTimeZone(event.startTime),
       endTime: event.endTime > 0 ? App.dateTimeWithTimeZone(event.endTime) : event.endTime,
@@ -322,6 +323,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
       const requestState = {
         progress: Math.floor(request.Requests.progress_percent),
         status: request.Requests.request_status,
+        userName: request.Requests.user_name || Em.I18n.t('hostPopup.default.userName'),
         isRunning: isRunning,
         startTime: App.dateTimeWithTimeZone(request.Requests.start_time),
         endTime: request.Requests.end_time > 0 ? App.dateTimeWithTimeZone(request.Requests.end_time) : request.Requests.end_time
