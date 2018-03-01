@@ -242,36 +242,7 @@ describe('App.MainHostSummaryView', function() {
     });
 
   });
-
-  describe("#redrawComponents()", function() {
-
-    beforeEach(function() {
-      this.mock = sinon.stub(App.router, 'get');
-      sinon.stub(mainHostSummaryView, 'sortedComponentsFormatter');
-      sinon.stub(App.router, 'set');
-    });
-    afterEach(function() {
-      this.mock.restore();
-      mainHostSummaryView.sortedComponentsFormatter.restore();
-      App.router.set.restore();
-    });
-
-    it("redrawComponents is false", function() {
-      this.mock.returns(false);
-      mainHostSummaryView.redrawComponents();
-      expect(mainHostSummaryView.sortedComponentsFormatter.called).to.be.false;
-    });
-
-    it("redrawComponents is true", function() {
-      this.mock.returns(true);
-      mainHostSummaryView.redrawComponents();
-      expect(mainHostSummaryView.sortedComponentsFormatter.calledOnce).to.be.true;
-      expect(mainHostSummaryView.get('sorteComponents')).to.be.empty;
-      expect(App.router.set.calledWith('mainHostDetailsController.redrawComponents', false)).to.be.true;
-    });
-
-  });
-
+  
   describe("#willInsertElement()", function() {
 
     beforeEach(function() {
