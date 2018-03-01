@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
  *
@@ -848,6 +847,10 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+  </property>
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation.http.policy</name>
+    <value>HTTP_ONLY</value>
   </property>
   <property>
     <name>timeline.metrics.downsampler.event.metric.patterns</name>

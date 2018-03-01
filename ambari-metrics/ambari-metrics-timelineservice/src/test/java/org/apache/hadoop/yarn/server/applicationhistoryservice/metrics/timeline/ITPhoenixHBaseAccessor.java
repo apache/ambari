@@ -17,14 +17,41 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import junit.framework.Assert;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineClusterMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createMetricHostAggregate;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.DATE_TIERED_COMPACTION_POLICY;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.FIFO_COMPACTION_POLICY_CLASS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.HSTORE_COMPACTION_CLASS_KEY;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.HSTORE_ENGINE_CLASS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES_REGEX_PATTERN;
+
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
 import org.apache.hadoop.hbase.client.Durability;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.TableDescriptor;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
@@ -40,35 +67,10 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.sql.SQLException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineClusterMetric;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineMetric;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createMetricHostAggregate;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.DATE_TIERED_COMPACTION_POLICY;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.FIFO_COMPACTION_POLICY_CLASS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.HSTORE_COMPACTION_CLASS_KEY;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.HSTORE_ENGINE_CLASS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
+import junit.framework.Assert;
 
 
 
@@ -93,7 +95,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // WHEN
     long endTime = ctime + minute;
     Condition condition = new DefaultCondition(
-      Collections.singletonList("disk_free"), Collections.singletonList("local1"),
+      new ArrayList<String>() {{ add("disk_free"); }},
+      Collections.singletonList("local1"),
       null, null, startTime, endTime, Precision.SECONDS, null, true);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_free"));
@@ -111,24 +114,25 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetMetricRecordsMinutes() throws IOException, SQLException {
     // GIVEN
     TimelineMetricAggregator aggregatorMinute =
-      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb, new Configuration(), null);
+      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb, new Configuration(), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
     long minute = 60 * 1000;
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
-        "disk_free", 1));
+      "disk_free", 1));
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime + minute, "local1",
-        "disk_free", 2));
+      "disk_free", 2));
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
-        "disk_free", 2));
+      "disk_free", 2));
     long endTime = ctime + minute;
     boolean success = aggregatorMinute.doWork(startTime, endTime);
     assertTrue(success);
 
     // WHEN
     Condition condition = new DefaultCondition(
-      Collections.singletonList("disk_free"), Collections.singletonList("local1"),
+      new ArrayList<String>() {{ add("disk_free"); }},
+      Collections.singletonList("local1"),
       null, null, startTime, endTime, Precision.MINUTES, null, false);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_free"));
@@ -148,13 +152,13 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetMetricRecordsHours() throws IOException, SQLException {
     // GIVEN
     TimelineMetricAggregator aggregator =
-      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hdb, new Configuration(), null);
+      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hdb, new Configuration(), null, null);
 
     MetricHostAggregate expectedAggregate =
-        createMetricHostAggregate(2.0, 0.0, 20, 15.0);
+      createMetricHostAggregate(2.0, 0.0, 20, 15.0);
     Map<TimelineMetric, MetricHostAggregate>
-        aggMap = new HashMap<TimelineMetric,
-        MetricHostAggregate>();
+      aggMap = new HashMap<TimelineMetric,
+      MetricHostAggregate>();
 
     long startTime = System.currentTimeMillis();
     int min_5 = 5 * 60 * 1000;
@@ -179,7 +183,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     Condition condition = new DefaultCondition(
-      Collections.singletonList("disk_used"), Collections.singletonList("test_host"),
+      new ArrayList<String>() {{ add("disk_free"); }},
+      Collections.singletonList("test_host"),
       "test_app", null, startTime, endTime, Precision.HOURS, null, true);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_used"));
@@ -200,20 +205,20 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator agg =
       TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(
-        hdb, new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()), null);
+        hdb, new Configuration(), new TimelineMetricMetadataManager(new Configuration(), hdb), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
     long minute = 60 * 1000;
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
-        "disk_free", 1));
+      "disk_free", 1));
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
-        "disk_free", 2));
+      "disk_free", 2));
     ctime += minute;
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
-        "disk_free", 2));
+      "disk_free", 2));
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
-        "disk_free", 1));
+      "disk_free", 1));
 
     long endTime = ctime + minute + 1;
     boolean success = agg.doWork(startTime, endTime);
@@ -221,8 +226,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     Condition condition = new DefaultCondition(
-        Collections.singletonList("disk_free"), null, null, null,
-        startTime, endTime, Precision.SECONDS, null, true);
+      new ArrayList<String>() {{ add("disk_free"); }},
+      null, null, null, startTime, endTime, Precision.SECONDS, null, true);
     TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,
       singletonValueFunctionMap("disk_free"));
 
@@ -240,7 +245,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator agg =
       TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb,
-        new Configuration(), new TimelineMetricMetadataManager(hdb, new Configuration()), null);
+        new Configuration(), new TimelineMetricMetadataManager(new Configuration(), hdb), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
@@ -261,8 +266,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     Condition condition = new DefaultCondition(
-      Collections.singletonList("disk_free"), null, null, null,
-      null, null, Precision.SECONDS, null, true);
+      new ArrayList<String>() {{ add("disk_free"); }},
+      null, null, null, null, null, Precision.SECONDS, null, true);
 
     Multimap<String, List<Function>> mmap = ArrayListMultimap.create();
     mmap.put("disk_free", Collections.singletonList(new Function(Function.ReadFunction.SUM, null)));
@@ -281,21 +286,21 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetClusterMetricRecordsHours() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, new Configuration(), null);
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, new Configuration(), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
     long minute = 60 * 1000;
 
     Map<TimelineClusterMetric, MetricClusterAggregate> records =
-        new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
+      new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
 
     records.put(createEmptyTimelineClusterMetric(ctime),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
     records.put(createEmptyTimelineClusterMetric(ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
     records.put(createEmptyTimelineClusterMetric(ctime += minute),
-        new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
+      new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
     records.put(createEmptyTimelineClusterMetric(ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
 
@@ -305,8 +310,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     Condition condition = new DefaultCondition(
-        Collections.singletonList("disk_used"), null, null, null,
-        startTime, ctime + minute, Precision.HOURS, null, true);
+      new ArrayList<String>() {{ add("disk_free"); }},
+      null, null, null, startTime, ctime + minute, Precision.HOURS, null, true);
     TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,
       singletonValueFunctionMap("disk_used"));
 
@@ -322,26 +327,13 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
   @Test
   public void testInitPoliciesAndTTL() throws Exception {
-    HBaseAdmin hBaseAdmin = hdb.getHBaseAdmin();
-    String precisionTtl = "";
-    // Verify policies are unset
-    for (String tableName : PHOENIX_TABLES) {
-      HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
-      tableDescriptor.setNormalizationEnabled(true);
-      Assert.assertTrue("Normalizer enabled.", tableDescriptor.isNormalizationEnabled());
-
-      for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
-        if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
-          precisionTtl = family.getValue("TTL");
-        }
-      }
-      Assert.assertEquals("Precision TTL value.", "86400", precisionTtl);
-    }
+    Admin hBaseAdmin = hdb.getHBaseAdmin();
+    int precisionTtl = 2 * 86400;
 
     Field f = PhoenixHBaseAccessor.class.getDeclaredField("tableTTL");
     f.setAccessible(true);
-    Map<String, String> precisionValues = (Map<String, String>) f.get(hdb);
-    precisionValues.put(METRICS_RECORD_TABLE_NAME, String.valueOf(2 * 86400));
+    Map<String, Integer> precisionValues = (Map<String, Integer>) f.get(hdb);
+    precisionValues.put(METRICS_RECORD_TABLE_NAME, precisionTtl);
     f.set(hdb, precisionValues);
 
     Field f2 = PhoenixHBaseAccessor.class.getDeclaredField("timelineMetricsTablesDurability");
@@ -358,13 +350,18 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     for (int i = 0; i < 10; i++) {
       LOG.warn("Policy check retry : " + i);
       for (String tableName : PHOENIX_TABLES) {
-        HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
+        TableName[] tableNames = hBaseAdmin.listTableNames(PHOENIX_TABLES_REGEX_PATTERN, false);
+        Optional<TableName> tableNameOptional = Arrays.stream(tableNames)
+          .filter(t -> tableName.equals(t.getNameAsString())).findFirst();
+
+        TableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableNameOptional.get());
+        
         normalizerEnabled = tableDescriptor.isNormalizationEnabled();
         tableDurabilitySet = (Durability.ASYNC_WAL.equals(tableDescriptor.getDurability()));
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
-          precisionTableCompactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_ENGINE_CLASS);
+          precisionTableCompactionPolicy = tableDescriptor.getValue(HSTORE_ENGINE_CLASS);
         } else {
-          aggregateTableCompactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY);
+          aggregateTableCompactionPolicy = tableDescriptor.getValue(HSTORE_COMPACTION_CLASS_KEY);
         }
         LOG.debug("Table: " + tableName + ", normalizerEnabled = " + normalizerEnabled);
         // Best effort for 20 seconds
@@ -372,8 +369,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
           Thread.sleep(20000l);
         }
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
-          for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
-            precisionTtl = family.getValue("TTL");
+          for (ColumnFamilyDescriptor family : tableDescriptor.getColumnFamilies()) {
+            precisionTtl = family.getTimeToLive();
           }
         }
       }
@@ -383,7 +380,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     Assert.assertTrue("Durability Set.", tableDurabilitySet);
     Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
     Assert.assertEquals("FIFO compaction policy is set for aggregate tables", DATE_TIERED_COMPACTION_POLICY, aggregateTableCompactionPolicy);
-    Assert.assertEquals("Precision TTL value not changed.", String.valueOf(2 * 86400), precisionTtl);
+    Assert.assertEquals("Precision TTL value as expected.", 2 * 86400, precisionTtl);
 
     hBaseAdmin.close();
   }
@@ -420,7 +417,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     while (set.next()) {
       assertEquals("application_1450744875949_0001", set.getString("APP_ID"));
       assertEquals("container_1450744875949_0001_01_000001", set.getString("CONTAINER_ID"));
-      assertEquals(new java.sql.Timestamp(startTime), set.getTimestamp("START_TIME"));
+      assertEquals(new java.sql.Timestamp(startTime), set.getTimestamp("SERVER_TIME"));
       assertEquals(new java.sql.Timestamp(finishTime), set.getTimestamp("FINISH_TIME"));
       assertEquals(5000, set.getLong("DURATION"));
       assertEquals("host1", set.getString("HOSTNAME"));
