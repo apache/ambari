@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -41,9 +43,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -69,6 +73,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.TopologyValidator;
 import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -87,6 +92,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -108,6 +114,9 @@ public class TopologyManagerTest {
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock
+  private org.apache.ambari.server.configuration.Configuration configuration;
 
   @TestSubject
   private TopologyManager topologyManager = new TopologyManager();
@@ -170,6 +179,9 @@ public class TopologyManagerTest {
   @Mock
   private TopologyValidatorService topologyValidatorService;
 
+  @Mock
+  private ComponentResolver componentResolver;
+
   private final Configuration stackConfig = new Configuration(new HashMap<>(),
     new HashMap<>());
   private final Configuration bpConfiguration = new Configuration(new HashMap<>(),
@@ -190,8 +202,10 @@ public class TopologyManagerTest {
   private HostGroupInfo group2Info = new HostGroupInfo("group2");
   private Map<String, HostGroupInfo> groupInfoMap = new HashMap<>();
 
-  private Collection<Component> group1Components = Arrays.asList(new Component("component1"), new Component("component2"), new Component("component3"));
-  private Collection<Component> group2Components = Arrays.asList(new Component("component3"), new Component("component4"));
+  private final Collection<Component> group1Components = Arrays.asList(new Component("component1"), new Component("component2"), new Component("component3"));
+  private final Collection<String> group1ComponentNames = group1Components.stream().map(Component::getName).collect(toSet());
+  private final Collection<Component> group2Components = Arrays.asList(new Component("component3"), new Component("component4"));
+  private final Collection<String> group2ComponentNames = group2Components.stream().map(Component::getName).collect(toSet());
 
   private Map<String, Collection<String>> group1ServiceComponents = new HashMap<>();
   private Map<String, Collection<String>> group2ServiceComponents = new HashMap<>();
@@ -209,6 +223,11 @@ public class TopologyManagerTest {
 
   @Before
   public void setup() throws Exception {
+    expect(configuration.getParallelTopologyTaskCreationThreadPoolSize()).andReturn(1).anyTimes();
+    expect(configuration.getParallelStageExecution()).andReturn(false).anyTimes();
+    expect(configuration.getGplLicenseAccepted()).andReturn(true).anyTimes();
+    replay(configuration);
+
     clusterTopologyCapture = newCapture();
     configRequestPropertiesCapture = newCapture();
     configRequestPropertiesCapture2 = newCapture();
@@ -247,21 +266,24 @@ public class TopologyManagerTest {
 
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
-    expect(blueprint.getComponentNames("service1")).andReturn(Arrays.asList("component1", "component3")).anyTimes();
-    expect(blueprint.getComponentNames("service2")).andReturn(Arrays.asList("component2", "component4")).anyTimes();
+    expect(clusterTopologyMock.getComponents()).andReturn(Stream.of(
+      ResolvedComponent.builder(new Component("component1")).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("component2")).serviceType("service2").buildPartial(),
+      ResolvedComponent.builder(new Component("component3")).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("component4")).serviceType("service2").buildPartial()
+    )).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.singleton(group1)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Collections.singleton(group1)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component3")).andReturn(Arrays.asList(group1, group2)).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component4")).andReturn(Collections.singleton(group2)).anyTimes();
-    expect(blueprint.getHostGroupsForService("service1")).andReturn(Arrays.asList(group1, group2)).anyTimes();
-    expect(blueprint.getHostGroupsForService("service2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
-    expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(clusterTopologyMock.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
+    expect(clusterTopologyMock.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
-    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
+    expect(blueprint.getSecurity()).andReturn(SecurityConfiguration.NONE).anyTimes();
+    expect(blueprint.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -278,12 +300,17 @@ public class TopologyManagerTest {
     expect(stack.getComponents("service1")).andReturn(components1).anyTimes();
     expect(stack.getComponents("service2")).andReturn(components2).anyTimes();
     expect(stack.getServiceForConfigType("service1-site")).andReturn("service1").anyTimes();
+    expect(stack.getDependenciesForComponent(anyString())).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getServiceForConfigType("service2-site")).andReturn("service2").anyTimes();
     expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getExcludedConfigurationTypes("service1")).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getExcludedConfigurationTypes("service2")).andReturn(Collections.emptySet()).anyTimes();
+    expect(stack.getServiceForComponent("component1")).andReturn("service1").anyTimes();
+    expect(stack.getServiceForComponent("component2")).andReturn("service2").anyTimes();
+    expect(stack.getServiceForComponent("component3")).andReturn("service1").anyTimes();
+    expect(stack.getServiceForComponent("component4")).andReturn("service2").anyTimes();
 
     expect(request.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(request.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
@@ -293,29 +320,24 @@ public class TopologyManagerTest {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+    expect(request.getStackIds()).andReturn(ImmutableSet.of()).anyTimes();
+    expect(request.getMpacks()).andReturn(ImmutableSet.of()).anyTimes();
 
+    expect(componentResolver.resolveComponents(anyObject())).andReturn(ImmutableMap.of()).anyTimes();
 
-    expect(group1.getBlueprintName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(group1.containsMasterComponent()).andReturn(true).anyTimes();
+    expect(clusterTopologyMock.containsMasterComponent("group1")).andReturn(true).anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
-    expect(group1.getComponentNames("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
-    expect(group1.getComponentNames("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
+    expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
     expect(group1.getConfiguration()).andReturn(topoGroup1Config).anyTimes();
     expect(group1.getName()).andReturn("group1").anyTimes();
-    expect(group1.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
-    expect(group1.getStack()).andReturn(stack).anyTimes();
 
-    expect(group2.getBlueprintName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
-    expect(group2.containsMasterComponent()).andReturn(false).anyTimes();
+    expect(clusterTopologyMock.containsMasterComponent("group2")).andReturn(false).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
-    expect(group2.getComponentNames("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
-    expect(group2.getComponentNames("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
+    expect(group2.getComponentNames()).andReturn(group2ComponentNames).anyTimes();
     expect(group2.getConfiguration()).andReturn(topoGroup2Config).anyTimes();
     expect(group2.getName()).andReturn("group2").anyTimes();
-    expect(group2.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
-    expect(group2.getStack()).andReturn(stack).anyTimes();
 
 
     expect(logicalRequestFactory.createRequest(eq(1L), (TopologyRequest) anyObject(), capture(clusterTopologyCapture))).
@@ -325,9 +347,10 @@ public class TopologyManagerTest {
     expect(logicalRequest.getReservedHosts()).andReturn(Collections.singleton("host1")).anyTimes();
     expect(logicalRequest.getRequestStatus()).andReturn(requestStatusResponse).anyTimes();
 
+    expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull(), anyLong());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), eq(SecurityType.NONE), isNull(), anyLong());
     expectLastCall().anyTimes();
     expect(ambariContext.getNextRequestId()).andReturn(1L).anyTimes();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
@@ -377,12 +400,12 @@ public class TopologyManagerTest {
   @After
   public void tearDown() {
     PowerMock.verify(System.class);
-    verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
+    verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
         requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
 
     PowerMock.reset(System.class);
-    reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
+    reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
         requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
   }
@@ -538,7 +561,7 @@ public class TopologyManagerTest {
   }
 
   private void replayAll() {
-    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
+    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, componentResolver,
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
             clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO,
@@ -547,7 +570,7 @@ public class TopologyManagerTest {
 
   @Test(expected = InvalidTopologyException.class)
   public void testScaleHosts__alreadyExistingHost() throws InvalidTopologyTemplateException, InvalidTopologyException, AmbariException, NoSuchStackException {
-    HashSet<Map<String, Object>> propertySet = new HashSet<>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
     Map<String,Object> properties = new TreeMap<>();
     properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, "host1");
     properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, "group1");

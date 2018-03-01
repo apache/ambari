@@ -218,8 +218,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       try {
         String clusterName = topology.getAmbariContext().getClusterName(topology.getClusterId());
-        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(topology.getAmbariContext()
-          .getClusterController(), clusterName);
+        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(AmbariContext.getClusterController(), clusterName);
         if (kerberosDescriptor != null) {
           securityConfigMap.put(SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, kerberosDescriptor);
         }
@@ -301,6 +300,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     Set<Map<String, String>> componentSettingValue = new HashSet<>();
 
     //Fetch the services, to obtain ServiceInfo and ServiceComponents
+    // TODO: set mpack instance if needed (multi-mpack case)
     Collection<TreeNode<Resource>> serviceChildren =
       clusterNode.getChild("servicegroups").
         getChildren().stream().flatMap(

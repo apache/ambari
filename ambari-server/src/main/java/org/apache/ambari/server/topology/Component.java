@@ -29,12 +29,12 @@ import org.apache.ambari.server.state.StackId;
 public class Component {
 
   private final String name;
+
   @Nullable
   private final StackId stackId;
 
   @Nullable
   private final String serviceInstance;
-
   private final ProvisionAction provisionAction;
 
   @Deprecated
@@ -42,7 +42,7 @@ public class Component {
     this(name, null, null, null);
   }
 
-  public Component(String name, StackId stackId, String serviceInstance, ProvisionAction provisionAction) {
+  public Component(String name, @Nullable StackId stackId, @Nullable String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
     this.stackId = stackId;
     this.serviceInstance = serviceInstance;
@@ -59,14 +59,22 @@ public class Component {
   }
 
   /**
-   * @return the mpack associated with this component (can be {@code null} if component -> mpack mapping is unambigous)
+   * @return the mpack associated with this component as {@link String} (can be {@code null} if component -> mpack mapping is unambiguous)
+   */
+  public String getStackIdAsString() {
+    return stackId != null ? stackId.toString() : null;
+  }
+
+  /**
+   * @return the mpack associated with this component as {@link StackId} (can be {@code null} if component -> mpack mapping is unambiguous)
    */
   public StackId getStackId() {
     return stackId;
   }
 
+
   /**
-   * @return the service instance this component belongs to. Can be {@null} if component does not belong to a service
+   * @return the service instance this component belongs to. Can be {@code null} if component does not belong to a service
    * instance (there is a single service of the component's service type)
    */
   public String getServiceInstance() {

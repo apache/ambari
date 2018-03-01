@@ -111,9 +111,7 @@ public class MpackResourceProviderTest {
     // replay
     replay(m_dao);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            type
-    );
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type, m_amc);
 
     // create the request
     Request request = PropertyHelper.getReadRequest();
@@ -182,8 +180,7 @@ public class MpackResourceProviderTest {
     // replay
     replay(m_dao,m_amc);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-            type);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type, m_amc);
 
     // create the request
     Request request = PropertyHelper.getReadRequest();
@@ -222,8 +219,7 @@ public class MpackResourceProviderTest {
     replay(m_amc,request);
     // end expectations
 
-    MpackResourceProvider provider = (MpackResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Mpack);
+    MpackResourceProvider provider = (MpackResourceProvider) AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Mpack, m_amc);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);

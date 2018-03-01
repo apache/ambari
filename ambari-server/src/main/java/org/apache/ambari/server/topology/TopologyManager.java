@@ -51,7 +51,6 @@ import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
-import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -131,6 +130,9 @@ public class TopologyManager {
   private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<>();
 
   @Inject
+  private Configuration configuration;
+
+  @Inject
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
 
   @Inject
@@ -155,6 +157,9 @@ public class TopologyManager {
 
   @Inject
   private TopologyValidatorService topologyValidatorService;
+
+  @Inject
+  private ComponentResolver resolver;
 
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
@@ -206,7 +211,7 @@ public class TopologyManager {
           // ensure KERBEROS_CLIENT is present in each hostgroup even if it's not in original BP
           for(ClusterTopology clusterTopology : clusterTopologyMap.values()) {
             if (clusterTopology.isClusterKerberosEnabled()) {
-              addKerberosClient(clusterTopology);
+              clusterTopology.getBlueprint().ensureKerberosClientIsPresent();
             }
           }
           isInitialized = true;
@@ -234,12 +239,12 @@ public class TopologyManager {
       if(isLogicalRequestSuccessful(provisionRequest)) {
         LOG.info("Cluster creation request id={} using Blueprint {} successfully completed for cluster id={}",
                 clusterProvisionWithBlueprintCreateRequests.get(event.getClusterId()).getRequestId(),
-                clusterTopologyMap.get(event.getClusterId()).getBlueprint().getName(),
+                clusterTopologyMap.get(event.getClusterId()).getBlueprintName(),
                 event.getClusterId());
       } else {
         LOG.info("Cluster creation request id={} using Blueprint {} failed for cluster id={}",
                 clusterProvisionWithBlueprintCreateRequests.get(event.getClusterId()).getRequestId(),
-                clusterTopologyMap.get(event.getClusterId()).getBlueprint().getName(),
+                clusterTopologyMap.get(event.getClusterId()).getBlueprintName(),
                 event.getClusterId());
       }
     }
@@ -275,55 +280,35 @@ public class TopologyManager {
   public RequestStatusResponse provisionCluster(final ProvisionClusterRequest request) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
 
-    final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
+    BlueprintBasedClusterProvisionRequest provisionRequest = new BlueprintBasedClusterProvisionRequest(ambariContext, securityConfigurationFactory, request.getBlueprint(), request);
+    Map<String, Set<ResolvedComponent>> resolved = resolver.resolveComponents(provisionRequest);
+
+    final ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
     final String clusterName = request.getClusterName();
-    final StackDefinition stack = topology.getBlueprint().getStack();
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
+    final SecurityConfiguration securityConfiguration = provisionRequest.getSecurity();
+
+    topologyValidatorService.validateTopologyConfiguration(topology); // FIXME known stacks validation is too late here
 
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
 
-    SecurityType securityType = null;
-    Credential credential = null;
-
-    SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
-
-    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
-      securityType = SecurityType.KERBEROS;
-      addKerberosClient(topology);
-
-      // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
-
-      credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
-      if (credential == null) {
-        throw new InvalidTopologyException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
-      }
-    }
-
-    topologyValidatorService.validateTopologyConfiguration(topology);
-
-
     // create resources
-    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);
+    ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType(), repoVersion, repoVersionID);
 
-    if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
+    if (securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
     }
 
-    if (credential != null) {
+    if (securityConfiguration.getType() == SecurityType.KERBEROS) {
+      Credential credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       submitCredential(clusterName, credential);
     }
 
     long clusterId = ambariContext.getClusterId(clusterName);
     topology.setClusterId(clusterId);
     request.setClusterId(clusterId);
-    // set recommendation strategy
-    topology.setConfigRecommendationStrategy(request.getConfigRecommendationStrategy());
-    // set provision action requested
-    topology.setProvisionAction(request.getProvisionAction());
-
 
     // create task executor for TopologyTasks
     getOrCreateTopologyTaskExecutor(clusterId);
@@ -341,7 +326,7 @@ public class TopologyManager {
     clusterTopologyMap.put(clusterId, topology);
 
     addClusterConfigRequest(logicalRequest, topology, new ClusterConfigurationRequest(ambariContext, topology, true,
-      stackAdvisorBlueprintProcessor, securityType == SecurityType.KERBEROS));
+      stackAdvisorBlueprintProcessor, securityConfiguration.getType() == SecurityType.KERBEROS));
 
     // Process the logical request
     processRequest(request, topology, logicalRequest);
@@ -349,7 +334,7 @@ public class TopologyManager {
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
     //todo: be tied to cluster state
 
-    StackId stackId = Iterables.getFirst(topology.getBlueprint().getStackIds(), null); // FIXME need for stackId in ClusterRequest will be removed
+    StackId stackId = Iterables.getFirst(topology.getStackIds(), null); // FIXME need for stackId in ClusterRequest will be removed
     ambariContext.persistInstallStateForUI(clusterName, stackId);
     clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
     return getRequestStatus(logicalRequest.getRequestId());
@@ -421,33 +406,10 @@ public class TopologyManager {
 
   }
 
-  /**
-   * Retrieve security info from Blueprint if missing from Cluster Template request.
-   *
-   * @param request
-   * @return
-   */
-  private SecurityConfiguration processSecurityConfiguration(ProvisionClusterRequest request) {
-    LOG.debug("Getting security configuration from the request ...");
-    SecurityConfiguration securityConfiguration = request.getSecurityConfiguration();
-
-    if (securityConfiguration == null) {
-      // todo - perform this logic at request creation instead!
-      LOG.debug("There's no security configuration in the request, retrieving it from the associated blueprint");
-      securityConfiguration = request.getBlueprint().getSecurity();
-      if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS &&
-          securityConfiguration.getDescriptorReference() != null) {
-        securityConfiguration = securityConfigurationFactory.loadSecurityConfigurationByReference
-          (securityConfiguration.getDescriptorReference());
-      }
-    }
-    return securityConfiguration;
-  }
-
   private void submitKerberosDescriptorAsArtifact(String clusterName, String descriptor) {
 
     ResourceProvider artifactProvider =
-        ambariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);
+        AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);
 
     Map<String, Object> properties = new HashMap<>();
     properties.put(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY, "kerberos_descriptor");
@@ -851,8 +813,6 @@ public class TopologyManager {
 
     LOG.info("TopologyManager.processRequest: Entering");
 
-    finalizeTopology(request, topology);
-
     boolean requestHostComplete = false;
     //todo: overall synchronization. Currently we have nested synchronization here
 
@@ -1083,23 +1043,8 @@ public class TopologyManager {
     return logicalRequest != null && logicalRequest.isSuccessful();
   }
 
-  //todo: this should invoke a callback on each 'service' in the topology
-  private void finalizeTopology(TopologyRequest request, ClusterTopology topology) {
-  }
-
   private boolean isHostIgnored(String host) {
     return hostsToIgnore.remove(host);
-  }
-
-  /**
-   * Add the kerberos client to groups if kerberos is enabled for the cluster.
-   *
-   * @param topology  cluster topology
-   */
-  private void addKerberosClient(ClusterTopology topology) {
-    for (HostGroup group : topology.getBlueprint().getHostGroups().values()) {
-      group.addComponent(new Component("KERBEROS_CLIENT"));
-    }
   }
 
   /**
