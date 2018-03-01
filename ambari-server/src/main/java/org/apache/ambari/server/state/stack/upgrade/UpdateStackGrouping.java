@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * Used to represent operations that update the Stack.
- * This is primarily needed during a {@link UpgradeType#NON_ROLLING} upgrade.
+ * This is primarily needed during a {@link UpgradeType#EXPRESS} upgrade.
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)

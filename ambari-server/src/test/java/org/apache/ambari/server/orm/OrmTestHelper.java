@@ -144,6 +144,7 @@ public class OrmTestHelper {
   @Inject
   private StackDAO stackDAO;
 
+  private static final StackId HDP_206 = new StackId("HDP", "2.0.6");
   public static final StackId STACK_ID = new StackId("HDP", "2.2.0");
   public static final String CLUSTER_NAME = "test_cluster1";
   public static final String SERVICE_GROUP_NAME = "CORE";
@@ -206,6 +207,7 @@ public class OrmTestHelper {
     ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
     serviceGroupEntity.setServiceGroupName(SERVICE_GROUP_NAME);
     serviceGroupEntity.setClusterEntity(clusterEntity);
+    serviceGroupEntity.setStack(stackEntity);
 
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
     clusterServiceEntity.setServiceType("HDFS");
@@ -371,7 +373,7 @@ public class OrmTestHelper {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
 
-    StackEntity stackEntity = stackDAO.find("HDP", "2.0.6");
+    StackEntity stackEntity = stackDAO.find(HDP_206);
     assertNotNull(stackEntity);
 
     ClusterEntity clusterEntity = new ClusterEntity();
@@ -409,13 +411,12 @@ public class OrmTestHelper {
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String clusterName = "cluster-" + System.currentTimeMillis();
-    StackId stackId = new StackId("HDP", "2.0.6");
 
-    createStack(stackId);
+    createStack(HDP_206);
 
-    clusters.addCluster(clusterName, stackId);
+    clusters.addCluster(clusterName, HDP_206);
     Cluster cluster = clusters.getCluster(clusterName);
-    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME);
+    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME, HDP_206.getStackId());
     cluster = initializeClusterWithStack(cluster);
 
     addHost(clusters, cluster, hostName);
@@ -426,9 +427,8 @@ public class OrmTestHelper {
   }
 
   public Cluster initializeClusterWithStack(Cluster cluster) throws Exception {
-    StackId stackId = new StackId("HDP", "2.0.6");
-    cluster.setDesiredStackVersion(stackId);
-    getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.setDesiredStackVersion(HDP_206);
+    getOrCreateRepositoryVersion(HDP_206, HDP_206.getStackVersion());
     return cluster;
   }
 

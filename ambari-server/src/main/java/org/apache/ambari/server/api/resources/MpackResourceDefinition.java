@@ -85,7 +85,7 @@ public class MpackResourceDefinition extends BaseResourceDefinition {
         Map<String, Object> mpackInfo = mapInfo.get("MpackInfo");
 
         int idx = href.indexOf("stacks/");
-        Long mpackId = (Long)mpackInfo.get("mpack_id");
+        Long mpackId = (Long)mpackInfo.get("id");
         href = href.substring(0, idx) + "mpacks/" + mpackId;
         resultNode.setProperty("href", href);
       } else {

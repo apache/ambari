@@ -1604,7 +1604,7 @@ public class TestHeartbeatHandler {
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", DummyStackId);
     return cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
   }
 

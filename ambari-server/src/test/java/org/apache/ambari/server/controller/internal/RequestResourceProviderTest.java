@@ -85,6 +85,7 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.HostRequest;
 import org.apache.ambari.server.topology.LogicalRequest;
+import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.utils.SecretReference;
@@ -1684,7 +1685,9 @@ public class RequestResourceProviderTest {
 
       expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
       expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
-      expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
+      Setting setting = createNiceMock(Setting.class);
+      expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+      expect(setting.shouldSkipFailure()).andReturn(true).anyTimes();
 
       expect(logicalRequest.getHostRequests()).andReturn(hostRequests).anyTimes();
       expect(logicalRequest.constructNewPersistenceEntity()).andReturn(requestMock).anyTimes();

@@ -20,7 +20,10 @@ package org.apache.ambari.server.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
@@ -253,7 +256,15 @@ public class VersionUtils {
     compare = v2 - v1;
 
     return Integer.compare(compare, 0);
-
   }
 
+  /**
+   * Helper function to compare two comparable versions with null checks
+   * @param v1 The first version
+   * @param v2 The second version
+   * @return 0 if both are equal, <0 if first one is lower, >0 otherwise
+   */
+  public static int compareTo(@Nullable Comparable v1, @Nullable Comparable v2) {
+    return v1 == null ? (v2 == null ? 0 : -1) : v2 == null ? 1 : v1.compareTo(v2);
+  }
 }

@@ -170,33 +170,6 @@ public class ClusterResourceProviderTest {
     verifyAll();
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testCreateResource_blueprint_withInvalidSecurityConfiguration() throws Exception {
-    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    Map<String, Object> properties = requestProperties.iterator().next();
-    Map<String, String> requestInfoProperties = new HashMap<>();
-    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"security\" : {\n\"type\" : \"NONE\"," +
-      "\n\"kerberos_descriptor_reference\" : " + "\"testRef\"\n}}");
-    SecurityConfiguration blueprintSecurityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef",
-      null);
-    SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.NONE, null, null);
-
-    // set expectations
-    expect(request.getProperties()).andReturn(requestProperties).anyTimes();
-    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
-
-    expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
-      (securityConfiguration).once();
-    expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
-    expect(topologyRequest.getBlueprint()).andReturn(blueprint).anyTimes();
-    expect(blueprint.getSecurity()).andReturn(blueprintSecurityConfiguration).anyTimes();
-    expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
-
-    replayAll();
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
-    RequestStatus requestStatus = provider.createResources(request);
-  }
-
   @Test
   public void testCreateResource_blueprint_withSecurityConfiguration() throws Exception {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);

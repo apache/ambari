@@ -41,7 +41,7 @@ import com.google.inject.Singleton;
 @Singleton
 @UpgradeCheck(
     order = 99.0f,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+    required = { UpgradeType.ROLLING, UpgradeType.EXPRESS, UpgradeType.HOST_ORDERED })
 public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
 
   @Inject

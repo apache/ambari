@@ -427,7 +427,7 @@ public class ClustersTest {
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
 
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     //Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));

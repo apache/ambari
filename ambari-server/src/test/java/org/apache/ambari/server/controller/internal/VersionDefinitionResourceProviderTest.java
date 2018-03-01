@@ -698,7 +698,7 @@ public class VersionDefinitionResourceProviderTest {
     } catch (AmbariException e) {
       clusters.addCluster(clusterName, parentEntity.getStackId());
       cluster = clusters.getCluster(clusterName);
-      serviceGroup = cluster.addServiceGroup(serviceGroupName);
+      serviceGroup = cluster.addServiceGroup(serviceGroupName, cluster.getDesiredStackVersion().getStackId());
     }
 
     cluster.addService(serviceGroup, serviceName, serviceName, serviceRepo);

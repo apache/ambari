@@ -1018,13 +1018,17 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException {
+  public ServiceGroup addServiceGroup(String serviceGroupName, String version) throws AmbariException {
+    return addServiceGroup(serviceGroupName, new StackId(version));
+  }
+
+  @Override
+  public ServiceGroup addServiceGroup(String serviceGroupName, StackId stackId) throws AmbariException {
     if (serviceGroups.containsKey(serviceGroupName)) {
       throw new AmbariException("Service group already exists" + ", clusterName=" + getClusterName()
-              + ", clusterId=" + getClusterId() + ", serviceGroupName=" + serviceGroupName);
+        + ", clusterId=" + getClusterId() + ", serviceGroupName=" + serviceGroupName);
     }
-
-    ServiceGroup serviceGroup = serviceGroupFactory.createNew(this, serviceGroupName, new HashSet<ServiceGroupKey>());
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(this, serviceGroupName, stackId, new HashSet<ServiceGroupKey>());
     addServiceGroup(serviceGroup);
     return serviceGroup;
   }
