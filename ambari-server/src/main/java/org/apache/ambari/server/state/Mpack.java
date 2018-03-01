@@ -20,6 +20,10 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.stack.RepoUtil;
+import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.commons.lang.StringUtils;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -60,6 +64,11 @@ public class Mpack {
   private String description;
 
   private String mpackUri;
+
+  /**
+   * The {@link RepoUtil#REPOSITORY_FILE_NAME} representation.
+   */
+  private RepositoryXml repositoryXml;
 
   public Long getResourceId() {
     return resourceId;
@@ -142,22 +151,100 @@ public class Mpack {
     this.definition = definition;
   }
 
+  /**
+   * Gets the repository XML representation.
+   *
+   * @return the {@link RepoUtil#REPOSITORY_FILE_NAME} unmarshalled.
+   */
+  public RepositoryXml getRepositoryXml() {
+    return repositoryXml;
+  }
+
+  /**
+   * Gets the repository XML representation.
+   *
+   * @param repositoryXml
+   *          the {@link RepoUtil#REPOSITORY_FILE_NAME} unmarshalled.
+   */
+  public void setRepositoryXml(RepositoryXml repositoryXml) {
+    this.repositoryXml = repositoryXml;
+  }
+
+  /**
+   * Gets the module with the given name. Module names are service names.
+   *
+   * @param moduleName
+   *          the name of the module.
+   * @return the module or {@code null}.
+   */
+  public Module getModule(String moduleName) {
+    for (Module module : modules) {
+      if (StringUtils.equals(moduleName, module.getName())) {
+        return module;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets a component from a given module.
+   *
+   * @param moduleName
+   *          the module (service) name.
+   * @param moduleComponentName
+   *          the name of the component.
+   * @return the component or {@code null}.
+   */
+  public ModuleComponent getModuleComponent(String moduleName, String moduleComponentName) {
+    for( Module module : modules ) {
+      ModuleComponent moduleComponent = module.getModuleComponent(moduleComponentName);
+      if( null != moduleComponent ) {
+        return moduleComponent;
+      }
+    }
+
+    return null;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Mpack mpack = (Mpack) o;
 
-    if (!resourceId.equals(mpack.resourceId)) return false;
-    if (registryId != null ? !registryId.equals(mpack.registryId) : mpack.registryId != null) return false;
-    if (!mpackId.equals(mpack.mpackId)) return false;
-    if (!name.equals(mpack.name)) return false;
-    if (!version.equals(mpack.version)) return false;
-    if (!prerequisites.equals(mpack.prerequisites)) return false;
-    if (!modules.equals(mpack.modules)) return false;
-    if (!definition.equals(mpack.definition)) return false;
-    if (!description.equals(mpack.description)) return false;
+    if (!resourceId.equals(mpack.resourceId)) {
+      return false;
+    }
+    if (registryId != null ? !registryId.equals(mpack.registryId) : mpack.registryId != null) {
+      return false;
+    }
+    if (!mpackId.equals(mpack.mpackId)) {
+      return false;
+    }
+    if (!name.equals(mpack.name)) {
+      return false;
+    }
+    if (!version.equals(mpack.version)) {
+      return false;
+    }
+    if (!prerequisites.equals(mpack.prerequisites)) {
+      return false;
+    }
+    if (!modules.equals(mpack.modules)) {
+      return false;
+    }
+    if (!definition.equals(mpack.definition)) {
+      return false;
+    }
+    if (!description.equals(mpack.description)) {
+      return false;
+    }
     return mpackUri.equals(mpack.mpackUri);
   }
 
@@ -193,32 +280,32 @@ public class Mpack {
   }
 
   public void copyFrom(Mpack mpack) {
-    if (this.resourceId == null) {
-      this.resourceId = mpack.getResourceId();
+    if (resourceId == null) {
+      resourceId = mpack.getResourceId();
     }
-    if (this.name == null) {
-      this.name = mpack.getName();
+    if (name == null) {
+      name = mpack.getName();
     }
-    if (this.mpackId == null) {
-      this.mpackId = mpack.getMpackId();
+    if (mpackId == null) {
+      mpackId = mpack.getMpackId();
     }
-    if (this.version == null) {
-      this.version = mpack.getVersion();
+    if (version == null) {
+      version = mpack.getVersion();
     }
-    if (this.registryId == null) {
-      this.registryId = mpack.getRegistryId();
+    if (registryId == null) {
+      registryId = mpack.getRegistryId();
     }
-    if (this.description == null) {
-      this.description = mpack.getDescription();
+    if (description == null) {
+      description = mpack.getDescription();
     }
-    if (this.modules == null) {
-      this.modules = mpack.getModules();
+    if (modules == null) {
+      modules = mpack.getModules();
     }
-    if (this.prerequisites == null) {
-      this.prerequisites = mpack.getPrerequisites();
+    if (prerequisites == null) {
+      prerequisites = mpack.getPrerequisites();
     }
-    if (this.definition == null) {
-      this.definition = mpack.getDefinition();
+    if (definition == null) {
+      definition = mpack.getDefinition();
     }
   }
 }

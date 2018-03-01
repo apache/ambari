@@ -19,6 +19,7 @@ package org.apache.ambari.server.stack;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -55,16 +56,20 @@ public class RepoUtil {
    */
   private final static Logger LOG = LoggerFactory.getLogger(RepoUtil.class);
 
+  /**
+   * Used to unmarshal XML stack files, such as {@code repoinfo.xml}.
+   */
+  private static final ModuleFileUnmarshaller m_unmarshaller = new ModuleFileUnmarshaller();
 
   /**
    * repository directory name
    */
-  final static String REPOSITORY_FOLDER_NAME = "repos";
+  public final static String REPOSITORY_FOLDER_NAME = "repos";
 
   /**
    * repository file name
    */
-  final static String REPOSITORY_FILE_NAME = "repoinfo.xml";
+  public final static String REPOSITORY_FILE_NAME = "repoinfo.xml";
 
   private static final Function<RepoDefinitionEntity, String> REPO_ENTITY_TO_NAME = new Function<RepoDefinitionEntity, String>() {
     @Override
@@ -73,6 +78,19 @@ public class RepoUtil {
     }
   };
 
+  /**
+   * Gets the repository XML as an unmarshalled object.
+   *
+   * @param directory
+   *          the root stack directory.
+   * @return the repository XML or {@code null}.
+   */
+  public static RepositoryXml getRepositoryXml(File directory) {
+    RepositoryFolderAndXml repositoryFolderAndXml = parseRepoFile(directory,
+        Arrays.asList(directory.list()), m_unmarshaller);
+
+    return repositoryFolderAndXml.repoXml.orNull();
+  }
 
   /**
    * Parses the repository file for a stack/service if exists.
@@ -126,11 +144,12 @@ public class RepoUtil {
     for (RepoOsEntity os : operatingSystems) {
       List<RepositoryInfo> serviceReposForOs = stackReposByOs.get(os.getFamily());
       ImmutableSet<String> repoNames = ImmutableSet.copyOf(Lists.transform(os.getRepoDefinitionEntities(), REPO_ENTITY_TO_NAME));
-      for (RepositoryInfo repoInfo : serviceReposForOs)
+      for (RepositoryInfo repoInfo : serviceReposForOs) {
         if (!repoNames.contains(repoInfo.getRepoName())) {
           os.addRepoDefinition(toRepositoryEntity(repoInfo));
           addedRepos.add(String.format("%s (%s)", repoInfo.getRepoId(), os.getFamily()));
         }
+      }
     }
     LOG.info("Added {} service repos: {}", addedRepos.size(),Iterables.toString(addedRepos));
 

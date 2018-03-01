@@ -18,10 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -40,6 +38,8 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
 
@@ -91,6 +91,8 @@ public class ServiceComponentDesiredStateEntity {
   @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
   private Integer recoveryEnabled = 0;
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   @Column(name = "repo_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(EnumType.STRING)
   private RepositoryVersionState repoState = RepositoryVersionState.NOT_REQUIRED;
@@ -98,6 +100,8 @@ public class ServiceComponentDesiredStateEntity {
   /**
    * Unidirectional one-to-one association to {@link RepositoryVersionEntity}
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   @OneToOne
   @JoinColumn(
       name = "desired_repo_version_id",
@@ -121,11 +125,6 @@ public class ServiceComponentDesiredStateEntity {
 
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
-
-  @OneToMany(
-    mappedBy = "m_serviceComponentDesiredStateEntity",
-    cascade = {CascadeType.ALL})
-  private Collection<ServiceComponentVersionEntity> serviceComponentVersions;
 
   public Long getId() {
     return id;
@@ -163,41 +162,29 @@ public class ServiceComponentDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionEntity getDesiredRepositoryVersion() {
     return desiredRepositoryVersion;
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
     this.desiredRepositoryVersion = desiredRepositoryVersion;
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public StackEntity getDesiredStack() {
     return desiredRepositoryVersion.getStack();
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public String getDesiredVersion() {
     return desiredRepositoryVersion.getVersion();
   }
-
-  /**
-   * @param versionEntity the version to add
-   */
-  public void addVersion(ServiceComponentVersionEntity versionEntity) {
-    if (null == serviceComponentVersions) {
-      serviceComponentVersions = new ArrayList<>();
-    }
-
-    serviceComponentVersions.add(versionEntity);
-    versionEntity.setServiceComponentDesiredState(this);
-  }
-
-  /**
-   * @return the collection of versions for the component
-   */
-  public Collection<ServiceComponentVersionEntity> getVersions() {
-    return serviceComponentVersions;
-  }
-
 
   public boolean isRecoveryEnabled() {
     return recoveryEnabled != 0;
@@ -287,6 +274,8 @@ public class ServiceComponentDesiredStateEntity {
   /**
    * @param state the repository state for {@link #getDesiredVersion()}
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setRepositoryState(RepositoryVersionState state) {
     repoState = state;
   }
@@ -294,6 +283,8 @@ public class ServiceComponentDesiredStateEntity {
   /**
    * @return the state of the repository for {@link #getDesiredVersion()}
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionState getRepositoryState() {
     return repoState;
   }

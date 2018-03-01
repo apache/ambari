@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -210,11 +212,11 @@ public class ServiceImpl implements Service {
     this.serviceDesiredStateDAO = serviceDesiredStateDAO;
     this.serviceComponentFactory = serviceComponentFactory;
     this.eventPublisher = eventPublisher;
-    this.serviceId = serviceEntity.getServiceId();
-    this.serviceName = serviceEntity.getServiceName();
-    this.serviceType = serviceEntity.getServiceType();
+    serviceId = serviceEntity.getServiceId();
+    serviceName = serviceEntity.getServiceName();
+    serviceType = serviceEntity.getServiceType();
     this.ambariMetaInfo = ambariMetaInfo;
-    this.serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
+    serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
@@ -447,6 +449,8 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionEntity getDesiredRepositoryVersion() {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     return serviceDesiredStateEntity.getDesiredRepositoryVersion();
@@ -457,6 +461,8 @@ public class ServiceImpl implements Service {
    */
   @Override
   @Transactional
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     serviceDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
@@ -472,6 +478,8 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionState getRepositoryState() {
     if (components.isEmpty()) {
       return RepositoryVersionState.NOT_REQUIRED;
@@ -488,11 +496,12 @@ public class ServiceImpl implements Service {
   @Override
   public ServiceResponse convertToResponse() {
     RepositoryVersionEntity desiredRespositoryVersion = getDesiredRepositoryVersion();
-    StackId desiredStackId = desiredRespositoryVersion.getStackId();
+    Mpack mpack = ambariMetaInfo.getMpack(serviceGroup.getMpackId());
+    Module module = mpack.getModule(getName());
 
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
-        getServiceId(), getName(), getServiceType(), desiredStackId, desiredRespositoryVersion.getVersion(),
+        getServiceId(), getName(), getServiceType(), serviceGroup.getStackId(), module.getVersion(),
         getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());

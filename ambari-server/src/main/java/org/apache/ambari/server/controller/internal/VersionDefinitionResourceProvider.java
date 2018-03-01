@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
@@ -47,8 +49,10 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -87,6 +91,8 @@ import com.google.inject.Provider;
  * files.
  */
 @StaticallyInject
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(VersionDefinitionResourceProvider.class);
@@ -137,6 +143,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
   @Inject
   private static Configuration s_configuration;
+
+  @Inject
+  private static MpackDAO s_mpackDAO;
 
   /**
    * Key property ids
@@ -604,6 +613,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     StackId stackId = new StackId(holder.xml.release.stackId);
 
     StackEntity stackEntity = s_stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+    MpackEntity mpackEntity = s_mpackDAO.findById(stackEntity.getMpackId());
 
     entity.setStack(stackEntity);
 
@@ -614,7 +624,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         s_metaInfo.get().getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
     repos.addAll(RepoUtil.getServiceRepos(repos, stackReposByOs));
 
-    entity.addRepoOsEntities(s_repoVersionHelper.get().createRepoOsEntities(repos));
+
+    entity.addRepoOsEntities(mpackEntity.getRepositoryOperatingSystems());
 
     entity.setVersion(holder.xml.release.getFullVersion());
     entity.setDisplayName(stackId, holder.xml.release);
