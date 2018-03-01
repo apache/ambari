@@ -158,7 +158,7 @@ var files = [
   'test/mappers/hosts_mapper_test',
   'test/mappers/service_mapper_test',
   'test/mappers/service_metrics_mapper_test',
-  'test/mappers/status_mapper_test',
+  'test/mappers/components_state_mapper_test',
   'test/mappers/users_mapper_test',
   'test/mappers/stack_mapper_test',
   'test/mappers/stack_service_mapper_test',
