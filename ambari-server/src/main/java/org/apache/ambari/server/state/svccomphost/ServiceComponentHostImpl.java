@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +70,6 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
@@ -1463,28 +1461,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
           + getServiceComponentName() + ", hostName = " + getHostName());
     }
-  }
-
-  @Transactional
-  RepositoryVersionEntity createRepositoryVersion(String version, final StackId stackId, final StackInfo stackInfo) throws AmbariException {
-    // During an Ambari Upgrade from 1.7.0 -> 2.0.0, the Repo Version will not exist, so bootstrap it.
-    LOG.info("Creating new repository version " + stackId.getStackName() + "-" + version);
-
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-      stackId.getStackVersion());
-
-    // Ensure that the version provided is part of the Stack.
-    // E.g., version 2.3.0.0 is part of HDP 2.3, so is 2.3.0.0-1234
-    if (null == version) {
-      throw new AmbariException(MessageFormat.format("Cannot create Repository Version for Stack {0}-{1} if the version is empty",
-          stackId.getStackName(), stackId.getStackVersion()));
-    }
-
-    return repositoryVersionDAO.create(
-        stackEntity,
-        version,
-        stackId.getStackName() + "-" + version,
-        repositoryVersionHelper.createRepoOsEntities(stackInfo.getRepositories()));
   }
 
   /**

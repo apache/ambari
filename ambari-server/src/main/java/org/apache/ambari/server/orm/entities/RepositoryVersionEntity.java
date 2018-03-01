@@ -92,6 +92,8 @@ import com.google.inject.Provider;
         name = "findByServiceDesiredVersion",
         query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion IN (SELECT DISTINCT sd1.desiredRepositoryVersion FROM ServiceDesiredStateEntity sd1 WHERE sd1.desiredRepositoryVersion IN ?1)") })
 @StaticallyInject
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class RepositoryVersionEntity {
   @Inject
   private static Provider<RepositoryVersionHelper> repositoryVersionHelperProvider;

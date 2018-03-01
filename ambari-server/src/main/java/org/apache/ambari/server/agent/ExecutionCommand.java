@@ -482,9 +482,6 @@ public class ExecutionCommand extends AgentCommand {
     String STACK_NAME = "stack_name";
     String SERVICE_TYPE = "service_type";
     String STACK_VERSION = "stack_version";
-    @Deprecated
-    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-    String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";
     String JDK_LOCATION = "jdk_location";
     String JAVA_HOME = "java_home";
@@ -501,12 +498,6 @@ public class ExecutionCommand extends AgentCommand {
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
     String CLIENTS_TO_UPDATE_CONFIGS = "clientsToUpdateConfigs";
-    /**
-     * Keep for backward compatibility.
-     */
-    @Deprecated
-    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-    String REPO_INFO = "repo_info";
 
     String DB_NAME = "db_name";
     String GLOBAL = "global";
@@ -537,27 +528,9 @@ public class ExecutionCommand extends AgentCommand {
     String CUSTOM_COMMAND = "custom_command";
 
     /**
-     * The key indicating that the package_version string is available
-     */
-    @Deprecated
-    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-    String PACKAGE_VERSION = "package_version";
-
-    /**
      * The key indicating that there is an un-finalized upgrade which is suspended.
      */
     String UPGRADE_SUSPENDED = "upgrade_suspended";
-
-    /**
-     * When installing packages, optionally provide the row id the version is
-     * for in order to precisely match response data.
-     * <p/>
-     * The agent will return this value back in its response so the repository
-     * can be looked up and possibly have its version updated.
-     */
-    @Deprecated
-    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-    String REPO_VERSION_ID = "repository_version_id";
 
     /**
      * The version of the component to send down with the command. Normally,
@@ -570,11 +543,15 @@ public class ExecutionCommand extends AgentCommand {
         comment = "Change this to reflect the component version")
     String VERSION = "version";
 
-
     /**
      * When installing packages, includes what services will be included in the upgrade
      */
     String CLUSTER_VERSION_SUMMARY = "cluster_version_summary";
+
+    /**
+     * The ID of the mpack associated with this command.
+     */
+    String MPACK_ID = "mpack_id";
   }
 
   /**
