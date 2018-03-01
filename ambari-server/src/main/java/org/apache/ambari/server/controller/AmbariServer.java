@@ -81,7 +81,6 @@ import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -948,7 +947,6 @@ public class AmbariServer {
         injector.getInstance(TopologyRequestFactoryImpl.class), injector.getInstance(SecurityConfigurationFactory
             .class), injector.getInstance(Gson.class));
     HostResourceProvider.setTopologyManager(injector.getInstance(TopologyManager.class));
-    BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
     BaseClusterRequest.init(injector.getInstance(BlueprintFactory.class));
     AmbariContext.init(injector.getInstance(HostRoleCommandFactory.class));
 

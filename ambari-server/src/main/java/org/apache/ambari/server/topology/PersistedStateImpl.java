@@ -31,6 +31,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostGroupDAO;
@@ -215,9 +216,6 @@ public class PersistedStateImpl implements PersistedState {
       if (clusterTopology == null) {
         try {
           clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
-          if (entity.getProvisionAction() != null) {
-            clusterTopology.setProvisionAction(entity.getProvisionAction());
-          }
           topologyRequests.put(replayedRequest.getClusterId(), clusterTopology);
           allRequests.put(clusterTopology, new ArrayList<>());
         } catch (InvalidTopologyException e) {
@@ -392,11 +390,13 @@ public class PersistedStateImpl implements PersistedState {
     private final Blueprint blueprint;
     private final Configuration configuration;
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
+    private final ProvisionAction provisionAction;
 
     public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
       clusterId = entity.getClusterId();
       type = Type.valueOf(entity.getAction());
       description = entity.getDescription();
+      provisionAction = entity.getProvisionAction();
 
       try {
         blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());
@@ -449,6 +449,10 @@ public class PersistedStateImpl implements PersistedState {
 
       //todo: config parent
       return new Configuration(properties, attributes);
+    }
+
+    public ProvisionAction getProvisionAction() {
+      return provisionAction;
     }
 
     private void parseHostGroupInfo(TopologyRequestEntity entity) {

@@ -26,6 +26,7 @@ import org.apache.ambari.server.orm.entities.BlueprintMpackConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintServiceEntity;
+import org.apache.ambari.server.state.StackId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -71,8 +72,8 @@ public class MpackInstance implements Configurable {
   }
 
   @JsonIgnore
-  public String getMpackNameAndVersion() {
-    return mpackName + "-" + mpackVersion;
+  public StackId getStackId() {
+    return new StackId(getMpackName(), getMpackVersion());
   }
 
   @JsonIgnore

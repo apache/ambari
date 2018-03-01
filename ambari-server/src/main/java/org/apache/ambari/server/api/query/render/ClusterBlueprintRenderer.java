@@ -198,7 +198,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    Set<StackId> stackIds = topology.getBlueprint().getStackIds();
+    Set<StackId> stackIds = topology.getStackIds();
     // TODO: mpacks should come from service groups once https://github.com/apache/ambari/pull/234 will be committed
     Collection<Map<String, String>> mpackInstances = stackIds.stream().
       map( stackId -> ImmutableMap.of("name", stackId.getStackName(), "version", stackId.getStackVersion())).collect(toList());
@@ -210,8 +210,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       try {
         String clusterName = topology.getAmbariContext().getClusterName(topology.getClusterId());
-        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(topology.getAmbariContext()
-          .getClusterController(), clusterName);
+        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(AmbariContext.getClusterController(), clusterName);
         if (kerberosDescriptor != null) {
           securityConfigMap.put(SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, kerberosDescriptor);
         }
