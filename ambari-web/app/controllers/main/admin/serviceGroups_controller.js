@@ -18,12 +18,6 @@
 
 var App = require('app');
 
-const VersionType = {
-  HOTFIX: 'hotfix',
-  PATCH: 'patch',
-  RELEASE: 'release'
-}  
-
 App.MainAdminServiceGroupsController = Em.Controller.extend(App.LocalStorage, {
   name: 'mainAdminServiceGroupsController',
 
@@ -162,24 +156,98 @@ App.MainAdminServiceGroupsController = Em.Controller.extend(App.LocalStorage, {
     }
   ],
 
-  // /**
-  //  * data to load from local storage
-  //  */
-  // dbPropsToLoad: [ ],
+  // upgrade: null,
+  upgrade: {
+    id: "upgrade-1",
+    currentStep: "prerequisites", //can be "prerequisites", "install", or "upgrade"
+    //currentStep: "install", //can be "prerequisites", "install", or "upgrade"
+    //currentStep: "upgrade", //can be "prerequisites", "install", or "upgrade"
+    history: [
+      {
+        name: "Event 1",
+        user: "Jason",
+        date: new Date(2018,1,1)
+      },
+      {
+        name: "Event 2",
+        user: "Jason",
+        date: new Date(2018,2,1)
+      },
+      {
+        name: "Event 3",
+        user: "Jason",
+        date: new Date(2017,3,1)
+      },
+      {
+        name: "Event 4",
+        user: "Jason",
+        date: new Date(2017,4,1)
+      },
+      {
+        name: "Event 5",
+        user: "Jason",
+        date: new Date(2017,5,1)
+      }
+    ],
+    mpacks: [
+      {
+        name: "Hortonworks Data Platform Core",
+        currentVersion: "2.6",
+        newVersion: "2.7",
+        services: [
+          {
+            name: "HDFS",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          },
+          {
+            name: "Zookeeper",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          },
+          {
+            name: "Zookeeper Client",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          },
+          {
+            name: "MapReduce",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          }
+        ]
+      },
+      {
+        name: "Data Science and Machine Learning",
+        currentVersion: "2.1",
+        newVersion: "2.2",
+        services: [
+          {
+            name: "HDFS",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          },
+          {
+            name: "Zookeeper",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          },
+          {
+            name: "Zookeeper Client",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          },
+          {
+            name: "MapReduce",
+            currentVersion: "2.6",
+            newVersion: "3.0"
+          }
+        ]
+      }
+    ]
+  },
 
-  // init: function () {
-  //   this.initDBProperties();
-  // },
-
-  // /**
-  //  * restore data from localStorage
-  //  */
-  // initDBProperties: function () {
-  //   var props = this.getDBProperties(this.get('dbPropsToLoad'));
-  //   Em.keys(props).forEach(function (k) {
-  //     if (!Em.isNone(props[k])) {
-  //       this.set(k, props[k]);
-  //     }
-  //   }, this);
-  // },
+  createPlan: function () { },
+  editPlan: function () { },
+  discardPlan: function () {}
 });

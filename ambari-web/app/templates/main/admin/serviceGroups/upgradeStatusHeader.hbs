@@ -16,27 +16,20 @@
 * limitations under the License.
 }}
 
-<a class="close" {{action close target="view"}}>&times;</a>
-<div id="start-upgrade-plan">
-  <h3>{{t admin.serviceGroups.startUpgradePlan.title}}</h3>
-  <p id="description">{{t admin.serviceGroups.startUpgradePlan.description}}</p>
+<div id="upgrade-status-header">
   <ol class="upgrade-steps">
-    <li>
+    <li class="complete">
       <h4>{{t admin.serviceGroups.upgradePlan}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.upgradePlanDescription}}</p>
     </li>
-    <li>
+    <li {{bindAttr class="view.isPrerequisitesActive:active view.isPrerequisitesComplete:complete"}}>
       <h4>{{t common.prerequisites}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.prerequisitesDescription}}</p>
     </li>
-    <li>
+    <li {{bindAttr class="view.isInstallActive:active view.isInstallComplete:complete"}}>
       <h4>{{t common.install}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.installDescription}}</p>
     </li>
-    <li>
+    <li {{bindAttr class="view.isUpgradeActive:active"}}>
       <h4>{{t common.upgrade}}</h4>
-      <p>{{t admin.serviceGroups.startUpgradePlan.upgradeDescription}}</p>
     </li>
   </ol>
-  <button type="button" class="btn-lg btn-primary" {{action createUpgradePlan target="view"}}>{{t admin.serviceGroups.startUpgradePlan.buttonLabel}}</button>
+  <button class="btn btn-secondary" {{action handleNextStep target="view"}}>{{view.label}}</button>
 </div>

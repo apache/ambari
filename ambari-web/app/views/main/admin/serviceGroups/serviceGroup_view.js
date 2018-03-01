@@ -25,17 +25,17 @@ App.ServiceGroupView = App.DashRow.extend({
   collapseId: Em.computed.alias('serviceGroup.id'),
 
   // menuClass: Em.View.extend({
-  //   templateName: require('templates/main/admin/serviceGroups/menu')
+  //   templateName: require('templates/main/admin/serviceGroups/serviceGroupMenu')
   // }),
 
   headerClass: Em.View.extend({
-    templateName: require('templates/main/admin/serviceGroups/header'),
+    templateName: require('templates/main/admin/serviceGroups/serviceGroupHeader'),
     name: Em.computed.alias('parentView.serviceGroup.name'),
     version: Em.computed.alias('parentView.serviceGroup.version'),
   }),
 
   bodyClass: Em.View.extend({
-    templateName: require('templates/main/admin/serviceGroups/body'),
+    templateName: require('templates/main/admin/serviceGroups/serviceGroupBody'),
     installedServices: Em.computed.alias('parentView.serviceGroup.installedServices'),
     otherServices: Em.computed.alias('parentView.serviceGroup.otherServices'),
     history: Em.computed.alias('parentView.serviceGroup.history')

@@ -42,6 +42,9 @@ App.DashRow = Ember.View.extend({
   
   //Define a property named headerClass which extends Ember.View to use an arbitrary Handlebars template as the header.
 
+  //specifies initial collapsed state
+  collapsed: true,
+
   //set this to provide an id for the collapsible part
   //so it can be targeted by the Bootstrap collapse plugin
   collapseId: null,
