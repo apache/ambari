@@ -22,3 +22,6 @@ RUN yum -y groupinstall "Development Tools"
 RUN yum -y install epel-release
 RUN yum -y install python-devel python-pip python-setuptools
 RUN pip install awscli
+
+#Install openjdk-devel
+RUN yum install -y java-1.7.0-openjdk-devel
