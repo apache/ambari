@@ -159,12 +159,15 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         associatedResources.add(resource);
         return getRequestStatus(null, associatedResources);
       }
-    } catch (IOException e) {
-      if (e instanceof ConnectException)
-        throw new SystemException("The Mpack Uri : " + mpackRequest.getMpackUri() + " is not valid. Please try again");
-      e.printStackTrace();
-    } catch (BodyParseException e1) {
-      e1.printStackTrace();
+    }
+    catch (ConnectException e) {
+      throw new SystemException("The Mpack Uri: " + mpackRequest.getMpackUri() + " is not valid. Please try again", e);
+    }
+    catch (IOException e) {
+      throw new SystemException("I/O exception occured during installing mpack: " + mpackRequest.getMpackUri(), e);
+    }
+    catch (BodyParseException e) {
+      throw new SystemException("Invalid mpack registration request", e);
     }
     return null;
   }
