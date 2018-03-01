@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive20.resources.uploads;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -480,7 +481,8 @@ public class UploadService extends BaseService {
     else return e.getMessage();
   }
 
-  private PreviewData generatePreview(Boolean isFirstRowHeader, String inputFileType, CSVParams csvParams, InputStream uploadedInputStream) throws Exception {
+  @VisibleForTesting
+  PreviewData generatePreview(Boolean isFirstRowHeader, String inputFileType, CSVParams csvParams, InputStream uploadedInputStream) throws Exception {
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, inputFileType);
     if (inputFileType.equals(ParseOptions.InputFileType.CSV.toString())){
