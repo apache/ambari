@@ -337,6 +337,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     kafka_broker = getServicesSiteProperties(services, "kafka-broker")
+    kafka_env = getServicesSiteProperties(services, "kafka-env")
+
+    if not kafka_env: #Kafka check not required
+      return
 
     security_enabled = self.isSecurityEnabled(services)
 
@@ -345,7 +349,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
 
     if security_enabled:
-      kafka_env = getServicesSiteProperties(services, "kafka-env")
       kafka_user = kafka_env.get('kafka_user') if kafka_env is not None else None
 
       if kafka_user is not None:
