@@ -199,17 +199,17 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
       throw new InvalidTopologyTemplateException("The specified blueprint doesn't exist: " + e, e);
     }
 
-    this.securityConfiguration = securityConfiguration;
-    this.credentialsMap = parseCredentials(properties);
-    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS && getCredentialsMap().get(KDC_ADMIN_CREDENTIAL) == null) {
-      throw new InvalidTopologyTemplateException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
-    }
-
     Configuration configuration = configurationFactory.getConfiguration((Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
     configuration.setParentConfiguration(blueprint.getConfiguration());
     setConfiguration(configuration);
 
     parseHostGroupInfo(properties);
+
+    this.securityConfiguration = securityConfiguration;
+    this.credentialsMap = parseCredentials(properties);
+    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS && getCredentialsMap().get(KDC_ADMIN_CREDENTIAL) == null) {
+      throw new InvalidTopologyTemplateException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
+    }
 
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
 
