@@ -83,7 +83,7 @@ public class HostSummaryRenderer extends DefaultRenderer {
       Resource resource = node.getObject();
       String osType = (String) resource.getPropertyValue(HostResourceProvider.HOST_OS_TYPE_PROPERTY_ID);
       if (StringUtils.isNotBlank(osType)) {
-        osTypeCount.put(osType, osTypeCount.getOrDefault(osTypeCount, 0) + 1);
+        osTypeCount.merge(osType, 1, Integer::sum);
       }
     }
   }
