@@ -290,6 +290,11 @@
       <direction>UPGRADE</direction> <!--  prevent config changes on downgrade -->
       <skippable>true</skippable> <!-- May fix configuration problems manually -->
 
+      <!-- ZEPPELIN -->
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply zeppelin.notebook.storage config">
+        <task xsi:type="configure" id="hdp_2_6_0_0_zeppelin_notebook_storage"/>
+      </execute-stage>
+
       <!-- HDFS -->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Ranger Hdfs plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hdfs_plugin_cluster_name"/>
