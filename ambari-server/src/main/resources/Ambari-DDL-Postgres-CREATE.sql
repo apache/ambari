@@ -139,7 +139,7 @@ CREATE TABLE servicegroups (
   CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id),
-  CONSTRAINT UQ_WTF UNIQUE(id));
+  CONSTRAINT UQ_TEMP_UNTIL_REAL_PK UNIQUE(id));
 
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,
