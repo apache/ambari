@@ -141,7 +141,7 @@ public class ExecutionCommandWrapper {
       return executionCommand;
     }
 
-    if( null == jsonExecutionCommand ){
+    if (null == jsonExecutionCommand) {
       throw new RuntimeException(
           "Invalid ExecutionCommandWrapper, both object and string representations are null");
     }
@@ -309,11 +309,11 @@ public class ExecutionCommandWrapper {
         moduleComponent = mpack.getModuleComponent(serviceName, componentName);
       }
 
-      if( null != moduleComponent ) {
+      if (null != moduleComponent) {
         if (!commandParams.containsKey(VERSION)
             && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
-            commandParams.put(VERSION, moduleComponent.getVersion());
-          }
+          commandParams.put(VERSION, moduleComponent.getVersion());
+        }
       }
 
       if (null != stackEntity) {

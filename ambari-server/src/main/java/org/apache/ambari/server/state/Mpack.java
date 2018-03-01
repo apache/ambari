@@ -19,10 +19,12 @@ package org.apache.ambari.server.state;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -197,9 +199,9 @@ public class Mpack {
    * @return the component or {@code null}.
    */
   public ModuleComponent getModuleComponent(String moduleName, String moduleComponentName) {
-    for( Module module : modules ) {
+    for (Module module : modules) {
       ModuleComponent moduleComponent = module.getModuleComponent(moduleComponentName);
-      if( null != moduleComponent ) {
+      if (null != moduleComponent) {
         return moduleComponent;
       }
     }
@@ -207,60 +209,42 @@ public class Mpack {
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
+
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
-    Mpack mpack = (Mpack) o;
+    Mpack that = (Mpack) o;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
+    equalsBuilder.append(resourceId, that.resourceId);
+    equalsBuilder.append(registryId, that.registryId);
+    equalsBuilder.append(mpackId, that.mpackId);
+    equalsBuilder.append(name, that.name);
+    equalsBuilder.append(version, that.version);
+    equalsBuilder.append(prerequisites, that.prerequisites);
+    equalsBuilder.append(modules, that.modules);
+    equalsBuilder.append(definition, that.definition);
+    equalsBuilder.append(description, that.description);
+    equalsBuilder.append(mpackUri, that.mpackUri);
 
-    if (!resourceId.equals(mpack.resourceId)) {
-      return false;
-    }
-    if (registryId != null ? !registryId.equals(mpack.registryId) : mpack.registryId != null) {
-      return false;
-    }
-    if (!mpackId.equals(mpack.mpackId)) {
-      return false;
-    }
-    if (!name.equals(mpack.name)) {
-      return false;
-    }
-    if (!version.equals(mpack.version)) {
-      return false;
-    }
-    if (!prerequisites.equals(mpack.prerequisites)) {
-      return false;
-    }
-    if (!modules.equals(mpack.modules)) {
-      return false;
-    }
-    if (!definition.equals(mpack.definition)) {
-      return false;
-    }
-    if (!description.equals(mpack.description)) {
-      return false;
-    }
-    return mpackUri.equals(mpack.mpackUri);
+    return equalsBuilder.isEquals();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = resourceId.hashCode();
-    result = 31 * result + (registryId != null ? registryId.hashCode() : 0);
-    result = 31 * result + mpackId.hashCode();
-    result = 31 * result + name.hashCode();
-    result = 31 * result + version.hashCode();
-    result = 31 * result + prerequisites.hashCode();
-    result = 31 * result + modules.hashCode();
-    result = 31 * result + definition.hashCode();
-    result = 31 * result + description.hashCode();
-    result = 31 * result + mpackUri.hashCode();
-    return result;
+    return Objects.hash(resourceId, registryId, mpackId, name, version, prerequisites, modules,
+        definition, description, mpackUri);
   }
 
   @Override
