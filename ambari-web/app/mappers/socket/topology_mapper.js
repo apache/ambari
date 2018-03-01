@@ -56,9 +56,11 @@ App.topologyMapper = App.QuickDataMapper.create({
         if (eventType === 'UPDATE' && component.version === 'UNKNOWN') {
           this.addServiceIfNew(component.serviceName);
           this.createHostComponent(component, hostName, component.publicHostNames[index]);
+          App.componentsStateMapper.updateComponentCountOnCreate(component);
         } else if (eventType === 'DELETE') {
           this.deleteHostComponent(component, hostName);
           this.deleteServiceIfHasNoComponents(component.serviceName);
+          App.componentsStateMapper.updateComponentCountOnDelete(component);
         }
       });
     });

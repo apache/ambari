@@ -61,12 +61,16 @@ describe('App.topologyMapper', function () {
       sinon.stub(mapper, 'createHostComponent');
       sinon.stub(mapper, 'deleteHostComponent');
       sinon.stub(mapper, 'deleteServiceIfHasNoComponents');
+      sinon.stub(App.componentsStateMapper, 'updateComponentCountOnCreate');
+      sinon.stub(App.componentsStateMapper, 'updateComponentCountOnDelete');
     });
     afterEach(function() {
       mapper.addServiceIfNew.restore();
       mapper.createHostComponent.restore();
       mapper.deleteHostComponent.restore();
       mapper.deleteServiceIfHasNoComponents.restore();
+      App.componentsStateMapper.updateComponentCountOnCreate.restore();
+      App.componentsStateMapper.updateComponentCountOnDelete.restore();
     });
     it('CREATE component event', function () {
       const components = [
@@ -80,6 +84,7 @@ describe('App.topologyMapper', function () {
       mapper.applyComponentTopologyChanges(components, 'UPDATE');
       expect(mapper.addServiceIfNew.calledWith('S1')).to.be.true;
       expect(mapper.createHostComponent.calledWith(components[0], 'host1', 'public1')).to.be.true;
+      expect(App.componentsStateMapper.updateComponentCountOnCreate.calledWith(components[0])).to.be.true;
     });
 
     it('DELETE component event', function () {
@@ -92,6 +97,7 @@ describe('App.topologyMapper', function () {
       mapper.applyComponentTopologyChanges(components, 'DELETE');
       expect(mapper.deleteHostComponent.calledWith(components[0], 'host1')).to.be.true;
       expect(mapper.deleteServiceIfHasNoComponents.calledWith('S1')).to.be.true;
+      expect(App.componentsStateMapper.updateComponentCountOnDelete.calledWith(components[0])).to.be.true;
     });
   });
 
