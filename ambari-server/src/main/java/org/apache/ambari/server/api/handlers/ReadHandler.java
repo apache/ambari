@@ -102,7 +102,7 @@ public class ReadHandler implements RequestHandler {
         LOG.error("Caught a runtime exception executing a query", e);
       }
       //result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e));
-      throw e;
+        throw e;
     }
     return result;
   }

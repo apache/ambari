@@ -24,12 +24,14 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.state.StackId;
 
 public class Component {
 
   private final String name;
   @Nullable
-  private final String mpackInstance;
+  private final StackId stackId;
+
   @Nullable
   private final String serviceInstance;
 
@@ -40,9 +42,9 @@ public class Component {
     this(name, null, null, null);
   }
 
-  public Component(String name, String mpackInstance, String serviceInstance, ProvisionAction provisionAction) {
+  public Component(String name, StackId stackId, String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
-    this.mpackInstance = mpackInstance;
+    this.stackId = stackId;
     this.serviceInstance = serviceInstance;
     this.provisionAction = provisionAction;
   }
@@ -59,8 +61,8 @@ public class Component {
   /**
    * @return the mpack associated with this component (can be {@code null} if component -> mpack mapping is unambigous)
    */
-  public String getMpackInstance() {
-    return mpackInstance;
+  public StackId getStackId() {
+    return stackId;
   }
 
   /**
@@ -85,7 +87,7 @@ public class Component {
   public String toString() {
     return com.google.common.base.Objects.toStringHelper(this)
       .add("name", name)
-      .add("mpackInstance", mpackInstance)
+      .add("stackId", stackId)
       .add("serviceInstance", serviceInstance)
       .add("provisionAction", provisionAction)
       .toString();
@@ -98,13 +100,13 @@ public class Component {
     if (o == null || getClass() != o.getClass()) return false;
     Component component = (Component) o;
     return Objects.equals(name, component.name) &&
-      Objects.equals(mpackInstance, component.mpackInstance) &&
+      Objects.equals(stackId, component.stackId) &&
       Objects.equals(serviceInstance, component.serviceInstance) &&
       provisionAction == component.provisionAction;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, mpackInstance, serviceInstance, provisionAction);
+    return Objects.hash(name, stackId, serviceInstance, provisionAction);
   }
 }

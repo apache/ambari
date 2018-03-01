@@ -35,6 +35,7 @@ import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -248,7 +249,7 @@ public class HostGroupImpl implements HostGroup {
     for (HostGroupComponentEntity componentEntity : entity.getComponents() ) {
       Component component = new Component(
         componentEntity.getName(),
-        componentEntity.getMpackName(),
+        new StackId(componentEntity.getMpackName(), componentEntity.getMpackVersion()),
         componentEntity.getServiceName(),
         null == componentEntity.getProvisionAction() ? null : ProvisionAction.valueOf(componentEntity.getProvisionAction()));
       addComponent(component);

@@ -62,7 +62,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   //todo: will need to convert all usages of hostgroup name to use fully qualified name (BP/HG)
   //todo: for now, restrict scaling to the same BP
   public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
-    this.clusterId = topologyRequest.getClusterId();
+      this.clusterId = topologyRequest.getClusterId();
     // provision cluster currently requires that all hostgroups have same BP so it is ok to use root level BP here
     this.blueprint = topologyRequest.getBlueprint();
     this.configuration = topologyRequest.getConfiguration();

@@ -265,7 +265,7 @@ public class BlueprintFactory {
       //TODO, might want to add some validation here, to only accept value enum types, rwn
       ProvisionAction provisionAction = componentProperties.containsKey(COMPONENT_PROVISION_ACTION_PROPERTY_ID) ?
         ProvisionAction.valueOf(componentProperties.get(COMPONENT_PROVISION_ACTION_PROPERTY_ID)) : null;
-      components.add(new Component(componentName, mpackInstance, serviceInstance, provisionAction));
+      components.add(new Component(componentName, new StackId(mpackInstance), serviceInstance, provisionAction));
     }
 
     return components;

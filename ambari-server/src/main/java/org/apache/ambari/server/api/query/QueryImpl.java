@@ -1020,7 +1020,6 @@ public class QueryImpl implements Query, ResourceInstance {
         mapTemporalInfo, pageRequest, sortRequest);
   }
 
-
   // Get a key value map based on the given resource and an existing key value map
   private Map<Resource.Type, String> getKeyValueMap(Resource resource,
                                                     Map<Resource.Type, String> keyValueMap) {
