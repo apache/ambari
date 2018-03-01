@@ -505,7 +505,6 @@ parquet_logging_properties = None
 if 'parquet-logging' in config['configurations']:
   parquet_logging_properties = config['configurations']['parquet-logging']['content']
 
-daemon_name = status_params.daemon_name
 process_name = status_params.process_name
 hive_env_sh_template = config['configurations']['hive-env']['content']
 

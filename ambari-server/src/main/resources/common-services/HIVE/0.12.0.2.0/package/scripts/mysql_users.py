@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from mysql_service import get_daemon_name
 
 # Used to add hive access to the needed components
 def mysql_adduser():
@@ -30,6 +31,8 @@ def mysql_adduser():
   )
   hive_server_host = format("{hive_server_host}")
   hive_metastore_host = format("{hive_metastore_host}")
+  
+  daemon_name = get_daemon_name()
 
   add_metastore_cmd = "bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_metastore_host}"
   add_hiveserver_cmd = "bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_server_host}"
@@ -54,6 +57,8 @@ def mysql_deluser():
   )
   hive_server_host = format("{hive_server_host}")
   hive_metastore_host = format("{hive_metastore_host}")
+  
+  daemon_name = get_daemon_name()
 
   del_hiveserver_cmd = "bash -x {mysql_deluser_path} {daemon_name} {hive_metastore_user_name} {hive_server_host}"
   del_metastore_cmd = "bash -x {mysql_deluser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_host}"
