@@ -726,14 +726,6 @@ public interface AmbariManagementController {
         Cluster cluster, String hostName) throws AmbariException;
 
   /**
-   * Returns parameters for RCA database
-   *
-   * @return the map with parameters for RCA db
-   *
-   */
-  Map<String, String> getRcaParameters();
-
-  /**
    * Get the Factory to create Request schedules
    * @return the request execution factory
    */

@@ -24,6 +24,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -43,6 +45,8 @@ import com.google.inject.persist.Transactional;
  * {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLING}.
  */
 @Singleton
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   @Inject
   Provider<EntityManager> entityManagerProvider;
@@ -157,9 +161,9 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
     query.setParameter("clusterName", clusterName);
     query.setParameter("state", state);
 
-    return daoUtils.selectList(query);  
+    return daoUtils.selectList(query);
   }
-  
+
   /**
    * Retrieve all of the host versions for the given cluster name, host name, and state. <br/>
    * @param clusterName Cluster name

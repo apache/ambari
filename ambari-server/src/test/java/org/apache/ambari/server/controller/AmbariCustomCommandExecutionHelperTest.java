@@ -56,7 +56,6 @@ import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -747,12 +746,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(), serviceYARN.getServiceGroupId(),
         serviceYARN.getServiceId(), componentRM.getName());
 
-    ServiceComponentVersionEntity componentVersionEntity = new ServiceComponentVersionEntity();
-    componentVersionEntity.setRepositoryVersion(repositoryVersion);
-    componentVersionEntity.setUserName("admin");
-
     componentEntity.setDesiredRepositoryVersion(repositoryVersion);
-    componentEntity.addVersion(componentVersionEntity);
     componentDAO.merge(componentEntity);
 
     // !!! make sure the override is set

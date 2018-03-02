@@ -48,6 +48,8 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -78,6 +80,8 @@ import jline.internal.Log;
  */
 @XmlRootElement(name="repository-version")
 @XmlAccessorType(XmlAccessType.FIELD)
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class VersionDefinitionXml {
 
   public static String SCHEMA_LOCATION = "version_definition.xsd";

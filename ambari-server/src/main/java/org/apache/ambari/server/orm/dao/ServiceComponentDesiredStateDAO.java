@@ -26,7 +26,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -129,53 +128,4 @@ public class ServiceComponentDesiredStateDAO {
       entityManagerProvider.get().remove(entity);
     }
   }
-
-  /**
-   * @param clusterId     the cluster id
-   * @param serviceGroupId   the service group id
-   * @param serviceId   the service id
-   * @param componentName the component name
-   * @return the list of repository versions for a component
-   */
-  @RequiresSession
-  public List<ServiceComponentVersionEntity> findVersions(long clusterId, long serviceGroupId, long serviceId,
-      String componentName) {
-    EntityManager entityManager = entityManagerProvider.get();
-    TypedQuery<ServiceComponentVersionEntity> query = entityManager.createNamedQuery(
-        "ServiceComponentVersionEntity.findByComponent", ServiceComponentVersionEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceGroupId", serviceGroupId);
-    query.setParameter("serviceId", serviceId);
-    query.setParameter("componentName", componentName);
-
-    return daoUtils.selectList(query);
-  }
-
-  /**
-   * Gets a specific version for a component
-   * @param clusterId     the cluster id
-   * @param serviceGroupId   the service group id
-   * @param serviceId   the service id
-   * @param componentName the component name
-   * @param version       the component version to find
-   * @return the version entity, or {@code null} if not found
-   */
-  @RequiresSession
-  public ServiceComponentVersionEntity findVersion(long clusterId, long serviceGroupId, long serviceId,
-      String componentName, String version) {
-
-    EntityManager entityManager = entityManagerProvider.get();
-    TypedQuery<ServiceComponentVersionEntity> query = entityManager.createNamedQuery(
-        "ServiceComponentVersionEntity.findByComponentAndVersion", ServiceComponentVersionEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceGroupId", serviceGroupId);
-    query.setParameter("serviceId", serviceId);
-    query.setParameter("componentName", componentName);
-    query.setParameter("repoVersion", version);
-
-    return daoUtils.selectSingle(query);
-  }
-
 }

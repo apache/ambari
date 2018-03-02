@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +26,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
@@ -35,7 +36,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
-import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
@@ -48,16 +48,11 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.ProvisionException;
 import com.google.inject.assistedinject.Assisted;
@@ -393,6 +388,8 @@ public class ServiceComponentImpl implements ServiceComponent {
    * {@inheritDoc}
    */
   @Override
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
@@ -410,6 +407,8 @@ public class ServiceComponentImpl implements ServiceComponent {
    * {@inheritDoc}
    */
   @Override
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionEntity getDesiredRepositoryVersion() {
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
@@ -418,6 +417,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public String getDesiredVersion() {
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
@@ -429,18 +430,23 @@ public class ServiceComponentImpl implements ServiceComponent {
   public ServiceComponentResponse convertToResponse() {
     Cluster cluster = service.getCluster();
     ServiceGroup sg = null;
-    RepositoryVersionEntity repositoryVersionEntity = getDesiredRepositoryVersion();
-    StackId desiredStackId = repositoryVersionEntity.getStackId();
 
     try {
       sg = cluster.getServiceGroup(service.getServiceGroupId());
     } catch (ServiceGroupNotFoundException e) {
       LOG.warn("Service Group " + service.getServiceGroupId() + " not found");
     }
+
+    String serviceName = service.getName();
+    String componentName = getName();
+
+    Mpack mpack = ambariMetaInfo.getMpack(sg.getMpackId());
+    ModuleComponent moduleComponent = mpack.getModuleComponent(serviceName, componentName);
+
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), sg.getServiceGroupId(), sg.getServiceGroupName(), service.getServiceId(),
-        service.getName(), service.getServiceType(), getName(), desiredStackId, getDesiredState().toString(),
-        getServiceComponentStateCount(), isRecoveryEnabled(), displayName, repositoryVersionEntity.getVersion(),
+        serviceName, service.getServiceType(), componentName, sg.getStackId(), getDesiredState().toString(),
+        getServiceComponentStateCount(), isRecoveryEnabled(), displayName, moduleComponent.getVersion(),
         getRepositoryState());
 
     return r;
@@ -590,139 +596,9 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
   }
 
-
-  /**
-   * Follows this version logic:
-   * <table border="1">
-   *   <tr>
-   *     <th>DB hostcomponent1</th>
-   *     <th>DB hostcomponentN</th>
-   *     <th>DB desired</th>
-   *     <th>New desired</th>
-   *     <th>Repo State</th>
-   *   </tr>
-   *   <tr>
-   *     <td>v1</td>
-   *     <td>v1</td>
-   *     <td>UNKNOWN</td>
-   *     <td>v1</td>
-   *     <td>CURRENT</td>
-   *   </tr>
-   *   <tr>
-   *     <td>v1</td>
-   *     <td>v2</td>
-   *     <td>UNKNOWN</td>
-   *     <td>UNKNOWN</td>
-   *     <td>OUT_OF_SYNC</td>
-   *   </tr>
-   *   <tr>
-   *     <td>v1</td>
-   *     <td>v2</td>
-   *     <td>v2</td>
-   *     <td>v2 (no change)</td>
-   *     <td>OUT_OF_SYNC</td>
-   *   </tr>
-   *   <tr>
-   *     <td>v2</td>
-   *     <td>v2</td>
-   *     <td>v1</td>
-   *     <td>v1 (no change)</td>
-   *     <td>OUT_OF_SYNC</td>
-   *   </tr>
-   *   <tr>
-   *     <td>v2</td>
-   *     <td>v2</td>
-   *     <td>v2</td>
-   *     <td>v2 (no change)</td>
-   *     <td>CURRENT</td>
-   *   </tr>
-   * </table>
-   */
   @Override
-  @Transactional
-  public void updateRepositoryState(String reportedVersion) throws AmbariException {
-
-    ServiceComponentDesiredStateEntity component = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
-
-    List<ServiceComponentVersionEntity> componentVersions = serviceComponentDesiredStateDAO.findVersions(
-      getClusterId(), getServiceGroupId(), getServiceId(), getName());
-
-    // per component, this list should be small, so iterating here isn't a big deal
-    Map<String, ServiceComponentVersionEntity> map = new HashMap<>(Maps.uniqueIndex(componentVersions,
-        new Function<ServiceComponentVersionEntity, String>() {
-          @Override
-          public String apply(ServiceComponentVersionEntity input) {
-            return input.getRepositoryVersion().getVersion();
-          }
-      }));
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Existing versions for {}/{}/{}: {}",
-          getClusterName(), getServiceName(), getName(), map.keySet());
-    }
-
-    ServiceComponentVersionEntity componentVersion = map.get(reportedVersion);
-
-    if (null == componentVersion) {
-      RepositoryVersionEntity repoVersion = repoVersionDAO.findByStackAndVersion(
-          getDesiredStackId(), reportedVersion);
-
-      if (null != repoVersion) {
-        componentVersion = new ServiceComponentVersionEntity();
-        componentVersion.setRepositoryVersion(repoVersion);
-        componentVersion.setState(RepositoryVersionState.INSTALLED);
-        componentVersion.setUserName("auto-reported");
-
-        // since we've never seen this version before, mark the component as CURRENT
-        component.setRepositoryState(RepositoryVersionState.CURRENT);
-        component.addVersion(componentVersion);
-
-        component = serviceComponentDesiredStateDAO.merge(component);
-
-        map.put(reportedVersion, componentVersion);
-
-      } else {
-        LOG.warn("There is no repository available for stack {}, version {}",
-            getDesiredStackId(), reportedVersion);
-      }
-    }
-
-    if (MapUtils.isNotEmpty(map)) {
-      String desiredVersion = component.getDesiredVersion();
-      RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
-
-      // TODO : is this function call rally required. check ?
-      List<HostComponentStateEntity> hostComponents = hostComponentDAO.findByServiceAndComponentAndNotVersion(
-        getClusterId(), getServiceGroupId(), getServiceId(), component.getComponentName(), reportedVersion);
-
-      LOG.debug("{}/{} reportedVersion={}, desiredVersion={}, non-matching desired count={}, repo_state={}",
-          component.getServiceId(), component.getComponentName(), reportedVersion,
-          desiredVersion, hostComponents.size(), component.getRepositoryState());
-
-      // !!! if we are unknown, that means it's never been set.  Try to determine it.
-      if (StackVersionListener.UNKNOWN_VERSION.equals(desiredVersion)) {
-        if (CollectionUtils.isEmpty(hostComponents)) {
-          // all host components are the same version as reported
-          component.setDesiredRepositoryVersion(desiredRepositoryVersion);
-          component.setRepositoryState(RepositoryVersionState.CURRENT);
-        } else {
-          // desired is UNKNOWN and there's a mix of versions in the host components
-          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
-        }
-      } else {
-        if (!reportedVersion.equals(desiredVersion)) {
-          component.setRepositoryState(RepositoryVersionState.OUT_OF_SYNC);
-        } else if (CollectionUtils.isEmpty(hostComponents)) {
-          component.setRepositoryState(RepositoryVersionState.CURRENT);
-        }
-      }
-
-      component = serviceComponentDesiredStateDAO.merge(component);
-    }
-  }
-
-  @Override
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionState getRepositoryState() {
     ServiceComponentDesiredStateEntity component = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);

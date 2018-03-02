@@ -20,6 +20,8 @@ package org.apache.ambari.server.state;
 
 import java.util.Map;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -63,12 +65,20 @@ public interface ServiceComponent {
    *
    * @return
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   RepositoryVersionEntity getDesiredRepositoryVersion();
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   StackId getDesiredStackId();
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   String getDesiredVersion();
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity);
 
   /**
@@ -111,17 +121,9 @@ public interface ServiceComponent {
   void delete() throws AmbariException;
 
   /**
-   * This method computes the state of the repository that's associated with the desired
-   * version.  It is used, for example, when a host component reports its version and the
-   * state can be in flux.
-   *
-   * @param reportedVersion
-   * @throws AmbariException
-   */
-  void updateRepositoryState(String reportedVersion) throws AmbariException;
-
-  /**
    * @return the repository state for the desired version
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   RepositoryVersionState getRepositoryState();
 }
