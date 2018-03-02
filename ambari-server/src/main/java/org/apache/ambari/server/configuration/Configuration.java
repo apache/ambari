@@ -2596,6 +2596,12 @@ public class Configuration {
   // Ambari server log4j file name
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
+  /**
+   * Default value of Max number of tasks to schedule in parallel for upgrades.
+   */
+  @Markdown(description = "Default value of max number of tasks to schedule in parallel for upgrades. Upgrade packs can override this value.")
+  public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
+    "stack.upgrade.default.parallelism", 100);
 
   /**
    * The number of tasks that can be queried from the database at once In the
@@ -5566,6 +5572,13 @@ public class Configuration {
       throw new IllegalArgumentException("Invalid " + TLS_EPHEMERAL_DH_KEY_SIZE + " " + getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
     }
     return keySize;
+  }
+
+  /**
+   * @return default value of number of tasks to run in parallel during upgrades
+   */
+  public int getDefaultMaxParallelismForUpgrades() {
+    return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
   }
 
   /**

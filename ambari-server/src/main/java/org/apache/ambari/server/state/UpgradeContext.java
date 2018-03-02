@@ -47,6 +47,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.PreUpgradeCheckResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -260,6 +261,12 @@ public class UpgradeContext {
    * Defines orchestration type.  This is not the repository type when reverting a patch.
    */
   private RepositoryType m_orchestration = RepositoryType.STANDARD;
+
+  /**
+   * Used to lookup overridable settings like default task parallelism
+   */
+  @Inject
+  private Configuration configuration;
 
   /**
    * Reading upgrade type from provided request  or if nothing were provided,
@@ -919,6 +926,13 @@ public class UpgradeContext {
 
   public long getPatchRevertUpgradeId() {
     return m_revertUpgradeId;
+  }
+
+  /**
+   * @return default value of number of tasks to run in parallel during upgrades
+   */
+  public int getDefaultMaxDegreeOfParallelism() {
+    return configuration.getDefaultMaxParallelismForUpgrades();
   }
 
   /**

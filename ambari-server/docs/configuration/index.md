@@ -114,9 +114,9 @@ The following are the properties which can be used to configure Ambari.
 | auto.group.creation | The auto group creation by Ambari |`false` | 
 | bootstrap.dir | The directory on the Ambari Server file system used for storing Ambari Agent bootstrap information such as request responses. |`/var/run/ambari-server/bootstrap` | 
 | bootstrap.master_host_name | The host name of the Ambari Server which will be used by the Ambari Agents for communication. | | 
-| bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py` | 
+| bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/usr/lib/ambari-server/lib/ambari_server/bootstrap.py` | 
 | bootstrap.setup_agent.password | The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script. |`password` | 
-| bootstrap.setup_agent.script | The location and name of the Python script executed on the Ambari Agent host during the bootstrap process. |`/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py` | 
+| bootstrap.setup_agent.script | The location and name of the Python script executed on the Ambari Agent host during the bootstrap process. |`/usr/lib/ambari-server/lib/ambari_server/setupAgent.py` | 
 | client.api.acceptor.count | Count of acceptors to configure for the jetty connector used for Ambari API. | | 
 | client.api.port | The port that client connections will use with the REST API. The Ambari Web client runs on this port. |`8080` | 
 | client.api.ssl.cert_pass_file | The filename which contains the password for the keystores, truststores, and certificates for the REST API when it's protected by SSL. |`https.pass.txt` | 
@@ -135,7 +135,11 @@ The following are the properties which can be used to configure Ambari.
 | db.oracle.jdbc.name | The name of the Oracle JDBC JAR connector. |`ojdbc6.jar` | 
 | default.kdcserver.port | The port used to communicate with the Kerberos Key Distribution Center. |`88` | 
 | extensions.path | The location on the Ambari Server where stack extensions exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/extensions`</ul> | | 
+| gpl.license.accepted | Whether user accepted GPL license. |`false` | 
+| http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header. |`no-store` | 
+| http.pragma | The value that will be used to set the `PRAGMA` HTTP response header. |`no-cache` | 
 | http.strict-transport-security | When using SSL, this will be used to set the `Strict-Transport-Security` response header. |`max-age=31536000` | 
+| http.x-content-type-options | The value that will be used to set the `X-CONTENT-TYPE` HTTP response header. |`nosniff` | 
 | http.x-frame-options | The value that will be used to set the `X-Frame-Options` HTTP response header. |`DENY` | 
 | http.x-xss-protection | The value that will be used to set the `X-XSS-Protection` HTTP response header. |`1; mode=block` | 
 | java.home | The location of the JDK on the Ambari Agent hosts.<br/><br/>The following are examples of valid values:<ul><li>`/usr/jdk64/jdk1.7.0_45`</ul> | | 
@@ -172,6 +176,7 @@ The following are the properties which can be used to configure Ambari.
 | recovery.window_in_minutes | The length of a recovery window, in minutes, in which recovery attempts can be retried.<br/><br/> This property is related to `recovery.max_count`. | | 
 | repo.validation.suffixes.default | The suffixes to use when validating most types of repositories. |`/repodata/repomd.xml` | 
 | repo.validation.suffixes.ubuntu | The suffixes to use when validating Ubuntu repositories. |`/dists/%s/Release` | 
+| repositories.legacy-override.enabled | This property is used in specific testing circumstances only. Its use otherwise will lead to very unpredictable results with repository management and package installation |`false` | 
 | resources.dir | The location on the Ambari Server where all resources exist, including common services, stacks, and scripts. |`/var/lib/ambari-server/resources/` | 
 | rolling.upgrade.skip.packages.prefixes | A comma-separated list of packages which will be skipped during a stack upgrade. | | 
 | security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.<br><br>WARNING: By setting this value to false, host names will not be validated, allowing a possible security vulnerability as described in CVE-2014-3582. See https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Vulnerabilities for more information. |`true` | 
@@ -204,6 +209,7 @@ The following are the properties which can be used to configure Ambari.
 | server.ecCacheSize | The size of the cache which is used to hold current operations in memory until they complete. |`10000` | 
 | server.execution.scheduler.isClustered | Determines whether Quartz will use a clustered job scheduled when performing scheduled actions like rolling restarts. |`false` | 
 | server.execution.scheduler.maxDbConnections | The number of concurrent database connections that the Quartz job scheduler can use. |`5` | 
+| server.execution.scheduler.maxStatementsPerConnection | The maximum number of prepared statements cached per database connection. |`120` | 
 | server.execution.scheduler.maxThreads | The number of threads that the Quartz job scheduler will use when executing scheduled jobs. |`5` | 
 | server.execution.scheduler.misfire.toleration.minutes | The time, in minutes, that a scheduled job can be run after its missed scheduled execution time. |`480` | 
 | server.execution.scheduler.start.delay.seconds | The delay, in seconds, that a Quartz job must wait before it starts. |`120` | 
@@ -248,6 +254,9 @@ The following are the properties which can be used to configure Ambari.
 | server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`16` | 
 | server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`32` | 
 | server.property-provider.threadpool.worker.size | The maximum size of pending federated datasource requests, such as those to JMX endpoints, which can be queued before rejecting new requests. |`2147483647` | 
+| server.requestlogs.namepattern | The pattern of request log file name |`ambari-access-yyyy_mm_dd.log` | 
+| server.requestlogs.path | The location on the Ambari Server where request logs can be created. | | 
+| server.requestlogs.retaindays | The number of days that request log would be retained. |`15` | 
 | server.script.threads | The number of threads that should be allocated to run external script. |`20` | 
 | server.script.timeout | The time, in milliseconds, until an external script is killed. |`10000` | 
 | server.stage.command.execution_type | How to execute commands in one stage |`STAGE` | 
@@ -277,6 +286,7 @@ The following are the properties which can be used to configure Ambari.
 | stack.upgrade.auto.retry.command.names.to.ignore | A comma-separate list of upgrade tasks names to skip when retrying failed commands automatically. |`"ComponentVersionCheckAction","FinalizeUpgradeAction"` | 
 | stack.upgrade.auto.retry.timeout.mins | The amount of time to wait in order to retry a command during a stack upgrade when an agent loses communication. This value must be greater than the `agent.task.timeout` value. |`0` | 
 | stack.upgrade.bypass.prechecks | Determines whether pre-upgrade checks will be skipped when performing a rolling or express stack upgrade. |`false` | 
+| stack.upgrade.default.parallelism | Default value of max number of tasks to schedule in parallel for upgrades. Upgrade packs can override this value. |`100` | 
 | stackadvisor.script | The location and name of the Python stack advisor script executed when configuring services. |`/var/lib/ambari-server/resources/scripts/stack_advisor.py` | 
 | task.query.parameterlist.size | The maximum number of tasks which can be queried by ID from the database. |`999` | 
 | topology.task.creation.parallel | Indicates whether parallel topology task creation is enabled |`false` | 
@@ -290,7 +300,11 @@ The following are the properties which can be used to configure Ambari.
 | views.ambari.request.connect.timeout.millis | The amount of time, in milliseconds, that a view will wait when trying to connect on HTTP(S) operations to the Ambari REST API. |`30000` | 
 | views.ambari.request.read.timeout.millis | The amount of time, in milliseconds, that a view will wait before terminating an HTTP(S) read request to the Ambari REST API. |`45000` | 
 | views.dir | The directory on the Ambari Server file system used for expanding Views and storing webapp work. |`/var/lib/ambari-server/resources/views` | 
+| views.directory.watcher.disable | Determines whether the view directory watcher service should be disabled. |`false` | 
+| views.http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header for Ambari View requests. |`no-store` | 
+| views.http.pragma | The value that will be used to set the `PRAGMA` HTTP response header for Ambari View requests. |`no-cache` | 
 | views.http.strict-transport-security | The value that will be used to set the `Strict-Transport-Security` HTTP response header for Ambari View requests. |`max-age=31536000` | 
+| views.http.x-content-type-options | The value that will be used to set the `X-CONTENT-TYPE` HTTP response header for Ambari View requests. |`nosniff` | 
 | views.http.x-frame-options | The value that will be used to set the `X-Frame-Options` HTTP response header for Ambari View requests. |`SAMEORIGIN` | 
 | views.http.x-xss-protection | The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests. |`1; mode=block` | 
 | views.remove.undeployed | Determines whether remove undeployed views from the Ambari database. |`false` | 
