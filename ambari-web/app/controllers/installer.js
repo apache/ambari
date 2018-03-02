@@ -1548,8 +1548,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       this.set('content.clients', clients);
       this.save('clients');
 
-      //TODO: mpacks - hard coding this for now. We need to get rid of the concept of "selected stack".
-      this.set('content.selectedStack', { name: "HDP", version: "3.0.0" });
+      //TODO: mpacks - hard coding this to use the name and version of the first stack/mpack for now. We need to get rid of the concept of "selected stack".
+      const stacks = App.Stack.find();
+      const selectedStack = stacks.objectAtContent(0);
+      this.set('content.selectedStack', { name: selectedStack.get('stackName'), version: selectedStack.get('stackVersion') });
       this.save('selectedStack');
 
       dfd.resolve();
