@@ -26,7 +26,7 @@
   <url>http://ambari.apache.org/</url>
   <scm>
     <url>https://github.com/apache/ambari</url>
-    <connection>https://git-wip-us.apache.org/repos/asf/ambari.git</connection>
+    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/ambari.git</connection>
   </scm>
   <licenses>
     <license>
