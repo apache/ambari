@@ -131,6 +131,10 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
     else:
       hadoop_secure_dn_user = '""'
 
+# Parameters for upgrade packs
+skip_namenode_save_namespace_express = default("/configurations/cluster-env/stack_upgrade_express_skip_namenode_save_namespace", False)
+skip_namenode_namedir_backup_express = default("/configurations/cluster-env/stack_upgrade_express_skip_backup_namenode_dir", False)
+
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 limits_conf_dir = "/etc/security/limits.d"
 
