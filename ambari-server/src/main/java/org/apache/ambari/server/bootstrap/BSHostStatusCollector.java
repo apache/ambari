@@ -98,6 +98,10 @@ class BSHostStatusCollector {
           while (null != (line = reader.readLine())) {
             if (line.startsWith("tcgetattr:") || line.startsWith("tput:"))
               continue;
+            if (line.startsWith("ERROR MESSAGE:") && !status.getStatusCode().equals("0")) {
+              // Remove "ERROR MESSAGE:" string
+              status.setError(line.substring(line.indexOf("ERROR MESSAGE:")+(new String("ERROR MESSAGE: ")).length()));
+            }
 
             if (0 != sb.length() || 0 == line.length())
               sb.append('\n');
