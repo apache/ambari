@@ -44,6 +44,7 @@ else:
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
 HOST_BOOTSTRAP_TIMEOUT = 300
+HOST_CONNECTIVITY_TIMEOUT = 10
 # how many parallel bootstraps may be run at a time
 MAX_PARALLEL_BOOTSTRAPS = 20
 # How many seconds to wait between polling parallel bootstraps
@@ -207,6 +208,7 @@ class Bootstrap(threading.Thread):
     log_file = os.path.join(self.shared_state.bootdir, self.host + ".log")
     self.host_log = HostLog(log_file)
     self.daemon = True
+    self.timeout = HOST_BOOTSTRAP_TIMEOUT
 
     if OSCheck.is_ubuntu_family():
       self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".list"
@@ -251,6 +253,9 @@ class Bootstrap(threading.Thread):
 
   def getStatus(self):
     return self.status
+
+  def getTimeout(self):
+    return self.timeout
 
   def interruptBootstrap(self):
     """
@@ -793,25 +798,45 @@ class BootstrapDefault(Bootstrap):
     self.createDoneFile(last_retcode)
     self.status["return_code"] = last_retcode
 
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ValidateHost(Bootstrap, threading.Thread):
+  def __init__(self, hosts, sharedState):
+    super(ValidateHost, self).__init__(hosts, sharedState)
+    self.timeout = HOST_CONNECTIVITY_TIMEOUT
 
+  def login(self):
+    params = self.shared_state
+    self.host_log.write("==========================\n")
+    self.host_log.write("Running login to the host {0} ...".format(self.host))
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, "exit",
+              params.bootdir, self.host_log) #login and exit immediately
+    retcode = ssh.run()
+    self.host_log.write("\n")
+    return retcode
+
+  def run(self):
+    self.timeout = HOST_CONNECTIVITY_TIMEOUT
+    self.status["start_time"] = time.time()
+    ret = self.try_to_execute(self.login)
+    retcode = ret["exitstatus"]
+    err_msg = ret["errormsg"]
+    std_out = ret["log"]
+    if retcode != 0:
+      message = "ERROR: Validation of host {0} fails because it finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(self.host, retcode, err_msg, std_out)
+      self.host_log.write(message)
+      logging.error(message)
+    self.createDoneFile(retcode)
+    self.status["return_code"] = retcode
 
 class PBootstrap:
   """ BootStrapping the agents on a list of hosts"""
   def __init__(self, hosts, sharedState):
     self.hostlist = hosts
     self.sharedState = sharedState
+    self.validate = sharedState.validate
     pass
 
-  def run_bootstrap(self, host):
-    bootstrap = Bootstrap(host, self.sharedState)
-    bootstrap.start()
-    return bootstrap
-
-  def run(self):
-    """ Run up to MAX_PARALLEL_BOOTSTRAPS at a time in parallel """
-    logging.info("Executing parallel bootstrap")
-    queue = list(self.hostlist)
-    queue.reverse()
+  def run_bootstraps(self, queue):
     running_list = []
     finished_list = []
     while queue or running_list: # until queue is not empty or not all parallel bootstraps are
@@ -822,10 +847,10 @@ class PBootstrap:
         else:
           starttime = bootstrap.getStatus()["start_time"]
           elapsedtime = time.time() - starttime
-          if elapsedtime > HOST_BOOTSTRAP_TIMEOUT:
+          if elapsedtime > bootstrap.getTimeout():
             # bootstrap timed out
-            logging.warn("Bootstrap at host {0} timed out and will be "
-                            "interrupted".format(bootstrap.host))
+            logging.warn("Host {0} timed out and will be "
+                         "interrupted".format(bootstrap.host))
             bootstrap.interruptBootstrap()
             finished_list.append(bootstrap)
       # Remove finished from the running list
@@ -834,17 +859,24 @@ class PBootstrap:
       free_slots = MAX_PARALLEL_BOOTSTRAPS - len(running_list)
       for i in range(free_slots):
         if queue:
-          next_host = queue.pop()
-          bootstrap = self.run_bootstrap(next_host)
-          running_list.append(bootstrap)
+          next_bootstrap = queue.pop()
+          next_bootstrap.start()
+          running_list.append(next_bootstrap)
       time.sleep(POLL_INTERVAL_SEC)
-    logging.info("Finished parallel bootstrap")
+    logging.info("Finished parallel {0}".format("connectivity validation" if self.validate else "bootstrap"))
 
+  def run(self):
+    """ Run up to MAX_PARALLEL_BOOTSTRAPS at a time in parallel """
+    logging.info("Executing parallel {0}".format("connectivity validation" if self.validate else "bootstrap"))
+    queue = map(lambda host: ValidateHost(host, self.sharedState) if self.validate else Bootstrap(host, self.sharedState), list(self.hostlist))
+    queue.reverse()
+    self.run_bootstraps(queue)
+    logging.info("Finished parallel {0}".format("connectivity validation" if self.validate else "bootstrap"))
 
 class SharedState:
   def __init__(self, user, sshPort, sshkey_file, script_dir, boottmpdir, setup_agent_file,
                ambari_server, cluster_os_type, ambari_version, server_port,
-               user_run_as, password_file = None):
+               user_run_as, validate = False, password_file = None):
     self.hostlist_to_remove_password_file = None
     self.user = user
     self.sshPort = sshPort
@@ -859,6 +891,7 @@ class SharedState:
     self.password_file = password_file
     self.statuses = None
     self.server_port = server_port
+    self.validate = validate
     self.remote_files = {}
     self.ret = {}
     pass
@@ -888,6 +921,10 @@ def main(argv=None):
   server_port = onlyargs[9]
   user_run_as = onlyargs[10]
   passwordFile = onlyargs[11]
+  if onlyargs[12]:
+    validate = True if onlyargs[12].lower() == "true" else False
+  else:
+    validate = False
 
   if not OSCheck.is_windows_family():
     # ssh doesn't like open files
@@ -903,7 +940,7 @@ def main(argv=None):
                "; ambari version: " + ambariVersion+"; user_run_as: " + user_run_as)
   sharedState = SharedState(user, sshPort, sshkey_file, scriptDir, bootdir, setupAgentFile,
                        ambariServer, cluster_os_type, ambariVersion,
-                       server_port, user_run_as, passwordFile)
+                       server_port, user_run_as, validate, passwordFile)
   pbootstrap = PBootstrap(hostList, sharedState)
   pbootstrap.run()
   return 0 # Hack to comply with current usage

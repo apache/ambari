@@ -68,7 +68,7 @@ public class BootStrapResourceTest extends JerseyTest {
     protected void configure() {
       BootStrapImpl bsImpl = mock(BootStrapImpl.class);
       when(bsImpl.getStatus(0)).thenReturn(generateDummyBSStatus());
-      when(bsImpl.runBootStrap(any(SshHostInfo.class))).thenReturn(generateBSResponse());
+      when(bsImpl.runBootStrap(any(SshHostInfo.class), false)).thenReturn(generateBSResponse());
       bind(BootStrapImpl.class).toInstance(bsImpl);
       requestStaticInjection(BootStrapResource.class);
     }
