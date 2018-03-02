@@ -1435,18 +1435,17 @@ public class BlueprintConfigurationProcessor {
     /**
      * Update the property with the new host name which runs the associated component.
      *
-     * @param propertyName  name of property
-     * @param origValue     original value of property
-     * @param properties    all properties
-     * @param topology      cluster topology
-     *
+     * @param propertyName name of property
+     * @param origValue    original value of property
+     * @param properties   all properties
+     * @param topology     cluster topology
      * @return updated property value with old host name replaced by new host name
      */
     @Override
     public String updateForClusterCreate(String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
-                                         ClusterTopology topology)  {
+                                         ClusterTopology topology) {
 
       String replacedValue = super.updateForClusterCreate(propertyName, origValue, properties, topology);
       if (!Objects.equals(origValue, replacedValue)) {
@@ -1456,7 +1455,7 @@ public class BlueprintConfigurationProcessor {
         if (matchingGroupCount == 1) {
           //todo: warn if > 1 hosts
           return replacePropertyValue(origValue,
-              topology.getHostAssignmentsForComponent(component).iterator().next(), properties);
+            topology.getHostAssignmentsForComponent(component).iterator().next(), properties);
         } else {
           //todo: extract all hard coded HA logic
           Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
@@ -1507,7 +1506,7 @@ public class BlueprintConfigurationProcessor {
               }
             }
 
-            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroupCount > 1))     {
+            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroupCount > 1)) {
               if (!origValue.contains("localhost")) {
                 // if this Oozie property is a FQDN, then simply return it
                 return origValue;
@@ -1537,14 +1536,18 @@ public class BlueprintConfigurationProcessor {
 
             if ((isComponentAppTimelineServer() || isComponentHistoryServer()) &&
               (matchingGroupCount > 1 && origValue != null && !origValue.contains("localhost"))) {
-                // in case of multiple component instances of AppTimelineServer or History Server leave custom value
-                // if set
-                return origValue;
+              // in case of multiple component instances of AppTimelineServer or History Server leave custom value
+              // if set
+              return origValue;
+            }
+
+            if (topology.isComponentHadoopCompatible(component)) {
+              return origValue;
             }
 
             throw new IllegalArgumentException(
-                String.format("Unable to update configuration property '%s' with topology information. " +
-                    "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
+              String.format("Unable to update configuration property '%s' with topology information. " +
+                "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
           }
         }
       }
@@ -1692,6 +1695,7 @@ public class BlueprintConfigurationProcessor {
     public String getComponentName() {
       return component;
     }
+
   }
 
   /**

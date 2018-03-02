@@ -25,7 +25,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -41,6 +43,7 @@ import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
@@ -151,6 +154,15 @@ public class BlueprintImpl implements Blueprint {
       services.addAll(group.getServices());
     }
     return services;
+  }
+
+  @Override
+  public Collection<ServiceInfo> getServiceInfos() {
+    return getServices().stream()
+      .map(stack::getServiceInfo)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .collect(Collectors.toList());
   }
 
   @Override
@@ -611,11 +623,7 @@ public class BlueprintImpl implements Blueprint {
     if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
       return true;
     }
-    String service = getStack().getServiceForConfigType(configType);
-    if (getServices().contains(service)) {
-        return true;
-    }
-    return false;
+    return getStack().getServicesForConfigType(configType).stream().anyMatch(getServices()::contains);
   }
 
   /**
