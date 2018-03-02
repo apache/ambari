@@ -20,7 +20,7 @@ Ambari Agent
 """
 
 import os
-from instance_manager import *
+from instance_manager import create_mpack, set_mpack_instance, get_conf_dir, list_instances
 
 CONFIG_DIR_KEY_NAME = 'config_dir'
 PATH_KEY_NAME = 'path'

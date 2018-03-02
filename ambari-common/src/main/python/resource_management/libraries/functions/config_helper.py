@@ -33,7 +33,7 @@ def get_mpack_instance_name(config):
   return config['serviceGroupName']
 
 
-def get_service_type(config):
+def get_module_name(config):
   return config['serviceName']
 
 
