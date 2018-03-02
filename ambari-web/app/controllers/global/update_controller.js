@@ -617,7 +617,7 @@ App.UpdateController = Em.Controller.extend({
   },
 
   makeCallForClusterEnv: function(event) {
-    if (event.configs.someProperty('type', 'cluster-env')) {
+    if (event.configs && event.configs.someProperty('type', 'cluster-env')) {
       this.updateClusterEnv();
     }
   },
