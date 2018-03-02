@@ -51,12 +51,8 @@ def create_mpack(mpack_name, mpack_version, mpack_instance, subgroup_name=DEFAUL
   OR
   list of 'components_instances_name' to be created. (default) OR '*' for all components
   """
-  mpack_name = mpack_name.lower()
-  module_name = module_name.lower()
-  if components and components != "*":
-    components = [component.lower() for component in components]
-  if components_map:
-    components_map = dict((k.lower(), v) for k, v in components_map.iteritems())
+  mpack_name, module_name, components, components_map = normalize_parameters(
+    mpack_name, module_name, components, components_map)
 
   validate_mpack_for_creation_or_changing(mpack_name, mpack_version, module_name, components, components_map)
 
@@ -75,12 +71,8 @@ def set_mpack_instance(mpack, mpack_version, mpack_instance, subgroup_name=DEFAU
   OR
   list of 'components_instances_name' to be created. (default) OR '*' for all components
   """
-  mpack = mpack.lower()
-  module_name = module_name.lower()
-  if components and components != "*":
-    components = [component.lower() for component in components]
-  if components_map:
-    components_map = dict((k.lower(), v) for k, v in components_map.iteritems())
+  mpack, module_name, components, components_map = normalize_parameters(
+    mpack, module_name, components, components_map)
 
   instances = MpackInstance.parse_instances_with_filtering(os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME), mpack,
                                                            mpack_instance, subgroup_name, module_name,
@@ -153,13 +145,8 @@ def build_granular_json_with_filtering(mpack_name_filter, instance_name_filter, 
 
   The output_conf_dir or output_path for each component instance will be included in json depending on given parameters.
   """
-
-  if mpack_name_filter:
-    mpack_name_filter = mpack_name_filter.lower()
-  if module_name_filter:
-    module_name_filter = module_name_filter.lower()
-  if components_name_filter_map:
-    components_name_filter_map = dict((k.lower(), v) for k, v in components_name_filter_map.iteritems())
+  mpack_name_filter, module_name_filter, skipped, components_name_filter_map = normalize_parameters(
+    mpack_name_filter, module_name_filter, [], components_name_filter_map)
 
   instances = MpackInstance.parse_instances_with_filtering(os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME),
                                                            mpack_name_filter,
@@ -243,6 +230,22 @@ def build_json_output(instances, output_conf_dir=False, output_path=False):
     result[mpack_name] = build_json_output_from_instances_dict(instances[mpack_name], MpackInstance.plural_name,
                                                                output_conf_dir, output_path)
   return {'mpacks': result}
+
+
+def normalize_parameters(mpack_name, module_name, components, components_map):
+  """
+  normalize parameters to be lowercase, for components_map dictionary only keys are normalized
+  """
+  if mpack_name:
+    mpack_name = mpack_name.lower()
+  if module_name:
+    module_name = module_name.lower()
+  if components and components != "*":
+    components = [component.lower() for component in components]
+  if components_map:
+    components_map = dict((k.lower(), v) for k, v in components_map.iteritems())
+
+  return mpack_name, module_name, components, components_map
 
 
 def validate_mpack_for_creation_or_changing(mpack_name, mpack_version, module_name, components, components_map):
