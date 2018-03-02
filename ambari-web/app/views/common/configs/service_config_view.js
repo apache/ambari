@@ -127,7 +127,7 @@ App.ServiceConfigView = Em.View.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
-        var newVersionToBeCreated = App.ServiceConfigVersion.find().filterProperty('serviceName', self.get('serviceName')).get('length') + 1;
+        var newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
         self.get('controller').setProperties({
           saveConfigsFlag: true,
           serviceConfigVersionNote: this.get('serviceConfigNote'),
