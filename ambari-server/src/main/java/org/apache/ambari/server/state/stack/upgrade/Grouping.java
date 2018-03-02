@@ -225,8 +225,13 @@ public class Grouping {
       // Expand some of the TaskWrappers into multiple based on the batch size.
       for (TaskWrapper tw : tasks) {
         List<Set<String>> hostSets = null;
-        if (m_grouping.parallelScheduler != null && m_grouping.parallelScheduler.maxDegreeOfParallelism > 0) {
-          hostSets = SetUtils.split(tw.getHosts(), m_grouping.parallelScheduler.maxDegreeOfParallelism);
+
+        if (m_grouping.parallelScheduler != null) {
+          int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
+          if (taskParallelism == Integer.MAX_VALUE) {
+            taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
+          }
+          hostSets = SetUtils.split(tw.getHosts(), taskParallelism);
         } else {
           hostSets = SetUtils.split(tw.getHosts(), 1);
         }
