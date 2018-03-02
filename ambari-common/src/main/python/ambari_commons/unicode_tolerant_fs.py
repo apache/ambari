@@ -19,6 +19,11 @@ Ambari Agent
 
 """
 
+def get_encoded_string(data):
+  try:
+    return data.encode("utf8")
+  except UnicodeDecodeError:
+    return data
 
 def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
   """
@@ -31,7 +36,7 @@ def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
 
   islink, join, isdir = os.path.islink, os.path.join, os.path.isdir
 
-  top = top.encode("utf8")
+  top = get_encoded_string(top)
 
   try:
     # Note that listdir and error are globals in this module due
@@ -44,7 +49,7 @@ def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
 
   dirs, nondirs = [], []
   for name in names:
-    name = name.encode("utf8")
+    name = get_encoded_string(name)
     if isdir(join(top, name)):
       dirs.append(name)
     else:
@@ -53,7 +58,7 @@ def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
   if topdown:
     yield top, dirs, nondirs
   for name in dirs:
-    name = name.encode("utf8")
+    name = get_encoded_string(name)
     new_path = join(top, name)
     if followlinks or not islink(new_path):
       for x in unicode_walk(new_path, topdown, onerror, followlinks):
