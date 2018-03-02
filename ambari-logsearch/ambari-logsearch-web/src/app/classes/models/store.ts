@@ -27,9 +27,8 @@ import {BarGraph} from '@app/classes/models/bar-graph';
 import {Graph} from '@app/classes/models/graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {UserConfig} from '@app/classes/models/user-config';
-import {AuditLogField} from '@app/classes/models/audit-log-field';
-import {ServiceLogField} from '@app/classes/models/service-log-field';
 import {Tab} from '@app/classes/models/tab';
+import {LogField} from "@app/classes/object";
 import {UtilsService} from '@app/services/utils.service';
 
 const storeActions = {
@@ -60,8 +59,8 @@ export interface AppStore {
   userConfigs: UserConfig[];
   clusters: string[];
   components: NodeItem[];
-  serviceLogsFields: ServiceLogField[];
-  auditLogsFields: AuditLogField[];
+  serviceLogsFields: LogField[];
+  auditLogsFields: LogField[];
   tabs: Tab[];
 }
 

@@ -20,8 +20,9 @@ import {URLSearchParams, Response, ResponseOptions} from '@angular/http';
 import {InMemoryDbService, InMemoryBackendService, createErrorResponse} from 'angular-in-memory-web-api';
 import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
+import 'rxjs/add/operator/delay';
 import * as moment from 'moment';
-import {mockData} from '@app/mock-data';
+import {mockDataByUrl} from '@app/mock-data-by-url';
 
 export class mockBackendService extends InMemoryBackendService {
   getLocation(url: string): any {
@@ -123,24 +124,30 @@ export class mockApiDataService implements InMemoryDbService {
     };
   }
 
+  private findDataByUrlPatter(path: string): {[key: string]: any} | undefined | Function {
+    const paths: string[] = Object.keys(mockDataByUrl);
+    const matchedPath:string = paths.find((key:string):boolean => {
+      const test:RegExp = new RegExp(key);
+      return test.test(path);
+    });
+    return mockDataByUrl[matchedPath];
+  }
+
   get(interceptorArgs: any): Observable<Response> {
-    const query = interceptorArgs.requestInfo.query,
-      path = interceptorArgs.requestInfo.base + interceptorArgs.requestInfo.collectionName,
-      pathArray = path.split('/').filter(part => part !== '');
+    const query = interceptorArgs.requestInfo.query;
+    const path = interceptorArgs.requestInfo.base + interceptorArgs.requestInfo.collectionName;
     if (query && query.paramsMap.has('static') && interceptorArgs.passThruBackend) {
       return interceptorArgs.passThruBackend.createConnection(interceptorArgs.requestInfo.req).response;
     } else {
-      let is404 = false;
-      const allData = pathArray.reduce((currentObject, currentKey, index, array) => {
-        if (!currentObject && index < array.length - 1) {
-          return {};
-        } else if (currentObject.hasOwnProperty(currentKey)) {
-          return currentObject[currentKey];
-        } else {
-          is404 = true;
-          return {};
-        }
-      }, interceptorArgs.db);
+      let allData = mockDataByUrl[path];
+      if (!allData) {
+        allData = this.findDataByUrlPatter(path);
+      }
+      if (typeof allData === 'function') {
+        allData = allData(query);
+      }
+      let is404 = !allData;
+
       if (is404) {
         return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
           new Response(createErrorResponse(
@@ -216,6 +223,6 @@ export class mockApiDataService implements InMemoryDbService {
   }
 
   createDb() {
-    return mockData;
+    return {};
   }
 }

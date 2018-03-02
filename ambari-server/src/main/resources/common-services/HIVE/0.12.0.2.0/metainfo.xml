@@ -352,6 +352,21 @@
         <config-type>application.properties</config-type>
         <config-type>druid-common</config-type>
       </configuration-dependencies>
+
+      <themes>
+        <theme>
+          <fileName>credentials.json</fileName>
+          <default>true</default>
+        </theme>
+        <theme>
+          <fileName>database.json</fileName>
+          <default>true</default>
+        </theme>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
   </services>
 </metainfo>

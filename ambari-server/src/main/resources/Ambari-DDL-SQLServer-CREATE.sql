@@ -246,6 +246,7 @@ CREATE TABLE hostcomponentstate (
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_state VARCHAR(255) NOT NULL,
+  last_live_state VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
   host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
@@ -373,6 +374,7 @@ CREATE TABLE request (
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   cluster_host_info VARBINARY(MAX) NOT NULL,
+  user_name VARCHAR(255),
   CONSTRAINT PK_request PRIMARY KEY CLUSTERED (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 

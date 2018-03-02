@@ -54,7 +54,7 @@ def get_package_dirs():
   Get package dir mappings
   :return:
   """
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for conf-select tool cannot be loaded.")
 
@@ -271,7 +271,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
           '''
           In the case of Atlas, the Hive RPM installs /usr/$stack/$version/atlas with some partial packages that
           contain Hive hooks, while the Atlas RPM is responsible for installing the full content.
-    
+
           If the user does not have Atlas currently installed on their stack, then /usr/$stack/current/atlas-client
           will be a broken symlink, and we should not create the
           symlink /etc/atlas/conf -> /usr/$stack/current/atlas-client/conf .
@@ -329,7 +329,7 @@ def get_restricted_packages():
     Logger.info("No services found, there are no restrictions for conf-select")
     return package_names
 
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     Logger.info("The stack name is not present in the command. Restricted names skipped.")
     return package_names

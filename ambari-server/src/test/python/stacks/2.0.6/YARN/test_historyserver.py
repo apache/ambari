@@ -305,7 +305,7 @@ class TestHistoryServer(RMFTestCase):
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs', 
+        user = 'hdfs',
         dfs_type = '',
         owner = 'mapred',
         hadoop_conf_dir = '/etc/hadoop/conf',
@@ -365,7 +365,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hdfs',
@@ -373,7 +373,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
@@ -381,7 +381,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site']
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
@@ -389,7 +389,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['yarn-site']
     )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
@@ -397,7 +397,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
+      configuration_attributes = self.getConfig()['configurationAttributes']['capacity-scheduler']
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
@@ -442,14 +442,14 @@ class TestHistoryServer(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site']
                               )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['capacity-scheduler']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
                               owner = 'mapred',
@@ -632,7 +632,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hdfs',
@@ -640,7 +640,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
@@ -648,7 +648,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site']
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
@@ -656,7 +656,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['yarn-site']
     )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
@@ -664,7 +664,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
+      configuration_attributes = self.getConfig()['configurationAttributes']['capacity-scheduler']
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
@@ -731,14 +731,14 @@ class TestHistoryServer(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site']
                               )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['capacity-scheduler']
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
                               owner = 'mapred',
@@ -762,7 +762,7 @@ class TestHistoryServer(RMFTestCase):
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = '2.3'
+    json_content['clusterLevelParams']['stack_version'] = '2.3'
     copy_to_hdfs_mock.return_value = True
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/historyserver.py",

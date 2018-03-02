@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -37,9 +38,14 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
+import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
@@ -84,6 +90,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
@@ -141,6 +148,15 @@ public class ClustersImpl implements Clusters {
    */
   @Inject
   private AmbariEventPublisher eventPublisher;
+
+  @Inject
+  private Provider<TopologyHolder> m_topologyHolder;
+
+  @Inject
+  private Provider<MetadataHolder> m_metadataHolder;
+
+  @Inject
+  private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
 
   @Inject
   public ClustersImpl(ClusterDAO clusterDAO, ClusterFactory clusterFactory, HostDAO hostDAO,
@@ -246,6 +262,14 @@ public class ClustersImpl implements Clusters {
         Collections.newSetFromMap(new ConcurrentHashMap<>()));
 
     cluster.setCurrentStackVersion(stackId);
+
+    TreeMap<String, TopologyCluster> addedClusters = new TreeMap<>();
+    TopologyCluster addedCluster = new TopologyCluster();
+    addedClusters.put(Long.toString(cluster.getClusterId()), addedCluster);
+    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedClusters,
+        TopologyUpdateEvent.EventType.UPDATE);
+    m_topologyHolder.get().updateData(topologyUpdateEvent);
+    m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadata(cluster));
   }
 
   @Override
@@ -324,10 +348,10 @@ public class ClustersImpl implements Clusters {
    * {@inheritDoc}
    */
   @Override
-  public boolean isHostMappedToCluster(String clusterName, String hostName) {
+  public boolean isHostMappedToCluster(long clusterId, String hostName) {
     Set<Cluster> clusters = hostClusterMap.get(hostName);
     for (Cluster cluster : clusters) {
-      if (clusterName.equals(cluster.getClusterName())) {
+      if (clusterId == cluster.getClusterId()) {
         return true;
       }
     }
@@ -533,6 +557,8 @@ public class ClustersImpl implements Clusters {
   public void updateClusterName(String oldName, String newName) {
     clusters.put(newName, clusters.remove(oldName));
     clusterHostMap.put(newName, clusterHostMap.remove(oldName));
+
+    //TODO metadata update
   }
 
 

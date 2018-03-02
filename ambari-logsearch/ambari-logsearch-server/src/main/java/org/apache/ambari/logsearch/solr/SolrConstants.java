@@ -57,6 +57,7 @@ public class SolrConstants {
     public static final String LOG_MESSAGE = "log_message";
     public static final String KEY_LOG_MESSAGE = "key_log_message";
     public static final String HOST = "host";
+    public static final String GROUP = "group";
     public static final String LEVEL = "level";
     public static final String THREAD_NAME = "thread_name";
     public static final String LOGGER_NAME = "logger_name";

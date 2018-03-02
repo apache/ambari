@@ -77,6 +77,9 @@ import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
@@ -391,6 +394,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
       protected void configure() {
         install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
         install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+        install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
@@ -423,6 +427,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
         bind(HookService.class).toInstance(createMock(HookService.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(PersistedState.class).to(PersistedStateImpl.class);
       }
     });
   }

@@ -21,23 +21,30 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Controller to Agent response data model.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class HeartBeatResponse {
 
   @SerializedName("responseId")
+  @com.fasterxml.jackson.annotation.JsonProperty("id")
   private long responseId;
 
   @SerializedName("executionCommands")
+  @JsonIgnore
   private List<ExecutionCommand> executionCommands = new ArrayList<>();
 
   @SerializedName("statusCommands")
+  @JsonIgnore
   private List<StatusCommand> statusCommands = new ArrayList<>();
 
   @SerializedName("cancelCommands")
+  @JsonIgnore
   private List<CancelCommand> cancelCommands = new ArrayList<>();
 
   /**
@@ -48,6 +55,7 @@ public class HeartBeatResponse {
    * the agent to abandon all alert definitions that are scheduled.
    */
   @SerializedName("alertDefinitionCommands")
+  @JsonIgnore
   private List<AlertDefinitionCommand> alertDefinitionCommands = null;
 
   /**
@@ -55,24 +63,31 @@ public class HeartBeatResponse {
    * immediately.
    */
   @SerializedName("alertExecutionCommands")
+  @JsonIgnore
   private List<AlertExecutionCommand> alertExecutionCommands = null;
 
   @SerializedName("registrationCommand")
+  @JsonIgnore
   private RegistrationCommand registrationCommand;
 
   @SerializedName("restartAgent")
-  private boolean restartAgent = false;
+  @com.fasterxml.jackson.annotation.JsonProperty("restartAgent")
+  private Boolean restartAgent = null;
 
   @SerializedName("hasMappedComponents")
+  @JsonIgnore
   private boolean hasMappedComponents = false;
 
   @SerializedName("hasPendingTasks")
+  @JsonIgnore
   private boolean hasPendingTasks = false;
 
   @SerializedName("recoveryConfig")
+  @JsonIgnore
   private RecoveryConfig recoveryConfig;
 
   @SerializedName("clusterSize")
+  @JsonIgnore
   private int clusterSize = -1;
 
   public long getResponseId() {
@@ -154,11 +169,11 @@ public class HeartBeatResponse {
     alertDefinitionCommands = commands;
   }
 
-  public boolean isRestartAgent() {
+  public Boolean isRestartAgent() {
     return restartAgent;
   }
 
-  public void setRestartAgent(boolean restartAgent) {
+  public void setRestartAgent(Boolean restartAgent) {
     this.restartAgent = restartAgent;
   }
 

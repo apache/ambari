@@ -101,6 +101,9 @@ import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
@@ -388,6 +391,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
       protected void configure() {
         install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
         install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+        install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
 
         bind(EntityManager.class).toInstance(createMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
@@ -416,6 +420,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
         bind(HookService.class).toInstance(createMock(HookService.class));
         bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(PersistedState.class).to(PersistedStateImpl.class);
         bind(UserDAO.class).toInstance(createMock(UserDAO.class));
 
         bind(UserAuthenticationDAO.class).toInstance(createMock(UserAuthenticationDAO.class));

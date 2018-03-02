@@ -17,7 +17,7 @@
 
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -36,7 +36,6 @@ import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/s
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {TabsComponent} from '@app/components/tabs/tabs.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {AuditLogsEntriesComponent} from './audit-logs-entries.component';
@@ -46,14 +45,6 @@ describe('AuditLogsEntriesComponent', () => {
   let fixture: ComponentFixture<AuditLogsEntriesComponent>;
 
   beforeEach(async(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       declarations: [
         AuditLogsEntriesComponent,
@@ -78,11 +69,8 @@ describe('AuditLogsEntriesComponent', () => {
         }),
       ],
       providers: [
+        ...MockHttpRequestModules,
         LogsContainerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         UtilsService,
         AuditLogsService,
         ServiceLogsService,

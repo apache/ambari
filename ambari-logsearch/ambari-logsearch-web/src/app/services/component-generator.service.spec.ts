@@ -17,7 +17,6 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
@@ -35,21 +34,14 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
+
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 
 import {ComponentGeneratorService} from './component-generator.service';
 
 describe('ComponentGeneratorService', () => {
   beforeEach(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       imports: [
         StoreModule.provideStore({
@@ -70,12 +62,9 @@ describe('ComponentGeneratorService', () => {
         ...TranslationModules
       ],
       providers: [
+        ...MockHttpRequestModules,
         ComponentGeneratorService,
         LogsContainerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         UtilsService,
         HostsService,
         AuditLogsService,

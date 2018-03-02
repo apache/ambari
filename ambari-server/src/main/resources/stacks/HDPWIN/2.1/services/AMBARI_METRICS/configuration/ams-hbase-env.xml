@@ -22,12 +22,14 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>hbase_log_dir</name>
+    <display-name>HBase Log Dir Prefix</display-name>
     <value>c:\hadoop\logs\ams-hbase</value>
     <description>Log Directories for HBase.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_pid_dir</name>
+    <display-name>HBase PID Dir</display-name>
     <value>c:\hadoop\run\ams-hbase</value>
     <description>Pid Directory for HBase.</description>
     <on-ambari-upgrade add="true"/>

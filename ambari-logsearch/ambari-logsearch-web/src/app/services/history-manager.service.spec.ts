@@ -17,7 +17,6 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -34,22 +33,16 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {HistoryManagerService} from './history-manager.service';
 
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
+
 describe('HistoryService', () => {
   beforeEach(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
+
     TestBed.configureTestingModule({
       imports: [
         ...TranslationModules,
@@ -70,11 +63,8 @@ describe('HistoryService', () => {
         })
       ],
       providers: [
+        ...MockHttpRequestModules,
         HistoryManagerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         LogsContainerService,
         UtilsService,
         AuditLogsService,

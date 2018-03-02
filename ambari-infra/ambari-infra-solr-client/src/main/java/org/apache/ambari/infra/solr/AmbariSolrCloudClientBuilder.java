@@ -54,6 +54,9 @@ public class AmbariSolrCloudClientBuilder {
   String propValue;
   String securityJsonLocation;
   boolean secure;
+  String transferMode;
+  String copySrc;
+  String copyDest;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -194,6 +197,21 @@ public class AmbariSolrCloudClientBuilder {
 
   public AmbariSolrCloudClientBuilder withClusterPropValue(String clusterPropValue) {
     this.propValue = clusterPropValue;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withTransferMode(String transferMode) {
+    this.transferMode = transferMode;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withCopySrc(String copySrc) {
+    this.copySrc = copySrc;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withCopyDest(String copyDest) {
+    this.copyDest = copyDest;
     return this;
   }
 

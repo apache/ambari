@@ -19,15 +19,11 @@ package org.apache.ambari.server.state.services;
 
 import static org.easymock.EasyMock.expect;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
@@ -132,14 +128,12 @@ public class CachedAlertFlushServiceTest extends EasyMockSupport {
 
       EasyMock.replay(configuration);
 
+      PartialNiceMockBinder.newBuilder().addDBAccessorBinding().addAlertDefinitionDAOBinding().build().configure(binder);
+
       binder.bind(Configuration.class).toInstance(configuration);
-      binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
       binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
-      binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
     }
   }
 }

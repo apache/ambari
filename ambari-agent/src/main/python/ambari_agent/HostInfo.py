@@ -36,6 +36,7 @@ from resource_management.core import shell
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 from AmbariConfig import AmbariConfig
 from resource_management.core.resources.jcepolicyinfo import JcePolicyInfo
+import Hardware
 
 logger = logging.getLogger()
 
@@ -314,17 +315,15 @@ class HostInfoLinux(HostInfo):
       logger.exception('Unable to get information about JCE')
       return None
 
-  def register(self, metrics, componentsMapped=True, commandsInProgress=True):
-    """ Return various details about the host
-    componentsMapped: indicates if any components are mapped to this host
-    commandsInProgress: indicates if any commands are in progress
-    """
+  def register(self, metrics, runExpensiveChecks=False, checkJavaProcs=False):
+    """ Return various details about the host"""
 
     metrics['hostHealth'] = {}
 
-    java = []
-    self.javaProcs(java)
-    metrics['hostHealth']['activeJavaProcs'] = java
+    if checkJavaProcs:
+      java = []
+      self.javaProcs(java)
+      metrics['hostHealth']['activeJavaProcs'] = java
 
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
@@ -339,7 +338,7 @@ class HostInfoLinux(HostInfo):
     metrics['hasUnlimitedJcePolicy'] = self.checkUnlimitedJce()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
-    if componentsMapped or commandsInProgress:
+    if not runExpensiveChecks:
       metrics['alternatives'] = []
       metrics['stackFoldersAndFiles'] = []
       metrics['existingUsers'] = []
@@ -436,10 +435,8 @@ class HostInfoWindows(HostInfo):
     code, out, err = run_powershell_script(self.SERVICE_STATUS_CMD.format(serivce_name))
     return out, err, code
 
-  def register(self, metrics, componentsMapped=True, commandsInProgress=True):
+  def register(self, metrics, runExpensiveChecks=False):
     """ Return various details about the host
-    componentsMapped: indicates if any components are mapped to this host
-    commandsInProgress: indicates if any commands are in progress
     """
     metrics['hostHealth'] = {}
 
@@ -456,9 +453,8 @@ class HostInfoWindows(HostInfo):
     metrics['firewallRunning'] = self.checkFirewall()
     metrics['firewallName'] = self.getFirewallName()
     metrics['reverseLookup'] = self.checkReverseLookup()
-    # If commands are in progress or components are already mapped to this host
-    # Then do not perform certain expensive host checks
-    if componentsMapped or commandsInProgress:
+
+    if not runExpensiveChecks:
       metrics['alternatives'] = []
       metrics['stackFoldersAndFiles'] = []
       metrics['existingUsers'] = []

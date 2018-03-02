@@ -44,6 +44,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     active_name_node_id: 'active_name_node_id',
     standby_name_node_id: 'standby_name_node_id',
     standby_name_node2_id: 'standby_name_node2_id',
+    active_name_nodes: 'active_name_nodes',
+    standby_name_nodes: 'standby_name_nodes',
     journal_nodes: 'journal_nodes',
     name_node_id: 'name_node_id',
     sname_node_id: 'sname_node_id',
@@ -164,9 +166,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     stale_configs: 'HostRoles.stale_configs',
     ha_status: 'HostRoles.ha_state',
     display_name_advanced: 'display_name_advanced',
-    admin_state: 'HostRoles.desired_admin_state'
-    // TODO add mapping for namespace property
-    // ha_name_space:
+    admin_state: 'HostRoles.desired_admin_state',
+    ha_name_space: 'metrics.dfs.namenode.ClusterId'
   },
 
   /**
@@ -349,7 +350,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     hostComponents.forEach(function (hostComponent) {
       var service = services.findProperty('ServiceInfo.service_name', hostComponent.service_id);
       if (hostComponent) {
-        // set advanced nameNode display name for HA, Active NameNode or Standby NameNode
+        // set advanced nameNode display name for HA and Federation, Active NameNodes or Standby NameNodes
         // this is useful on three places: 1) HDFS health status hover tooltip, 2) HDFS service summary 3) NameNode component on host detail page
         if (hostComponent.component_name === 'NAMENODE' && !isSecondaryNamenode) {
           var hdfs = this.hdfsMapper(service);
@@ -358,9 +359,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var standbyNNText = Em.I18n.t('services.service.summary.nameNode.standby');
           if (hdfs) {
             // active_name_node_id format : NAMENODE_c6401.ambari.apache.org
-            if (hdfs.active_name_node_id && hdfs.active_name_node_id.contains(hostName)) {
+            if (hdfs.active_name_nodes && hdfs.active_name_nodes.contains(`NAMENODE_${hostName}`)) {
               hostComponent.display_name_advanced = activeNNText;
-            } else if ((hdfs.standby_name_node_id && hdfs.standby_name_node_id.contains(hostName)) || ( hdfs.standby_name_node2_id && hdfs.standby_name_node2_id.contains(hostName))) {
+            } else if (hdfs.standby_name_nodes && hdfs.standby_name_nodes.contains(`NAMENODE_${hostName}`)) {
               hostComponent.display_name_advanced = standbyNNText;
             } else {
               hostComponent.display_name_advanced = null;
@@ -418,20 +419,55 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
 
   hdfsMapper: function (item) {
-    var finalConfig = jQuery.extend({}, this.config);
+    let finalConfig = jQuery.extend({}, this.config);
     // Change the JSON so that it is easy to map
-    var hdfsConfig = this.hdfsConfig;
-    var self = this;
-    item.components.forEach(function (component) {
+    const hdfsConfig = this.hdfsConfig;
+    item.components.forEach(component => {
+      const hostComponents = component.host_components,
+        firstHostComponent = hostComponents[0];
       if (this.isHostComponentPresent(component, 'NAMENODE')) {
         //enabled HA
-        if (component.host_components.length == 2) {
-          var haState1 = Em.get(component.host_components[0], 'metrics.dfs.FSNamesystem.HAState');
-          var haState2 = Em.get(component.host_components[1], 'metrics.dfs.FSNamesystem.HAState');
-          var active_name_node = [];
-          var standby_name_nodes = [];
-          var namenodeName1 = component.host_components[0].HostRoles.host_name;
-          var namenodeName2 = component.host_components[1].HostRoles.host_name;
+        if (hostComponents.length > 1) {
+          let nameSpacesWithActiveNameNodes = [],
+            unknownNameNodes = [];
+          item.active_name_nodes = [];
+          item.standby_name_nodes = [];
+          hostComponents.forEach(hc => {
+            const haState = Em.get(hc, 'metrics.dfs.FSNamesystem.HAState'),
+              hostName = Em.get(hc, 'HostRoles.host_name'),
+              haNameSpace = Em.get(hc, 'metrics.dfs.namenode.ClusterId'),
+              id = `NAMENODE_${hostName}`;
+            switch (haState) {
+              case 'active':
+                nameSpacesWithActiveNameNodes.push(haNameSpace);
+                item.active_name_nodes.push(id);
+                break;
+              case 'standby':
+                item.standby_name_nodes.push(id);
+                break;
+              default:
+                unknownNameNodes.push({
+                  hostName,
+                  haNameSpace
+                });
+                break;
+            }
+          });
+          unknownNameNodes.forEach(nameNode => {
+            if (nameSpacesWithActiveNameNodes.contains(nameNode.haNameSpace)) {
+              item.standby_name_nodes.push(`NAMENODE_${nameNode.hostName}`);
+            }
+          });
+        }
+
+        // TODO remove after implementing widgets changes
+        if (hostComponents.length === 2) {
+          const haState1 = Em.get(firstHostComponent, 'metrics.dfs.FSNamesystem.HAState'),
+            haState2 = Em.get(hostComponents[1], 'metrics.dfs.FSNamesystem.HAState'),
+            namenodeName1 = firstHostComponent.HostRoles.host_name,
+            namenodeName2 = hostComponents[1].HostRoles.host_name;
+          let active_name_node = [],
+            standby_name_nodes = [];
 
           switch (haState1) {
             case "active":
@@ -454,31 +490,32 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           item.standby_name_node2_id = null;
           switch (active_name_node.length) {
             case 1:
-              item.active_name_node_id = 'NAMENODE' + '_' + active_name_node[0];
+              item.active_name_node_id = `NAMENODE_${active_name_node[0]}`;
               break;
           }
           switch (standby_name_nodes.length) {
             case 0:
               if (active_name_node.length === 1) {
-                var standbyNameNode =  (active_name_node[0] === namenodeName1) ? namenodeName2 : namenodeName1;
-                item.standby_name_node_id = 'NAMENODE' + '_' + standbyNameNode;
+                const standbyNameNode =  (active_name_node[0] === namenodeName1) ? namenodeName2 : namenodeName1;
+                item.standby_name_node_id = `NAMENODE_${standbyNameNode}`;
               }
               break;
             case 1:
-              item.standby_name_node_id = 'NAMENODE' + '_' + standby_name_nodes[0];
+              item.standby_name_node_id = `NAMENODE_${standby_name_nodes[0]}`;
               break;
             case 2:
-              item.standby_name_node_id = 'NAMENODE' + '_' + standby_name_nodes[0];
-              item.standby_name_node2_id = 'NAMENODE' + '_' + standby_name_nodes[1];
+              item.standby_name_node_id = `NAMENODE_${standby_name_nodes[0]}`;
+              item.standby_name_node2_id = `NAMENODE_${standby_name_nodes[1]}`;
               break;
           }
           var activeHostComponentIndex = haState2 == "active" ? 1 : 0;
-          self.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
+          this.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
         }
+
         item.nameNodeComponent = component;
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
         // Get the live, dead & decommission nodes from string json
-        if (component.host_components[0].metrics && component.host_components[0].metrics.dfs && component.host_components[0].metrics.dfs.namenode) {
+        if (firstHostComponent.metrics && firstHostComponent.metrics.dfs && firstHostComponent.metrics.dfs.namenode) {
           item.metrics_not_available = false;
           var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
           var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
@@ -489,29 +526,26 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         item.decommission_data_nodes = [];
         item.dead_data_nodes = [];
         item.live_data_nodes = [];
-        for (var host in decommissionNodesJson) {
-          item.decommission_data_nodes.push('DATANODE' + '_' + host);
+        for (let host in decommissionNodesJson) {
+          item.decommission_data_nodes.push(`DATANODE_${host}`);
         }
-        for (var host in deadNodesJson) {
-          item.dead_data_nodes.push('DATANODE' + '_' + host);
+        for (let host in deadNodesJson) {
+          item.dead_data_nodes.push(`DATANODE_${host}`);
         }
-        for (var host in liveNodesJson) {
-          item.live_data_nodes.push('DATANODE' + '_' + host);
+        for (let host in liveNodesJson) {
+          item.live_data_nodes.push(`DATANODE_${host}`);
         }
-        item.name_node_id = "NAMENODE" + "_" + component.host_components[0].HostRoles.host_name;
+        item.name_node_id = `NAMENODE_${firstHostComponent.HostRoles.host_name}`;
       }
       if (this.isHostComponentPresent(component, "JOURNALNODE")) {
-        item.journal_nodes = [];
-          component.host_components.forEach(function (hc) {
-            item.journal_nodes.push("JOURNALNODE" + "_" + hc.HostRoles.host_name);
-          });
+        item.journal_nodes = hostComponents.map(hc => `JOURNALNODE_${hc.HostRoles.host_name}`);
       }
       if (this.isHostComponentPresent(component, "SECONDARY_NAMENODE")) {
-        item.sname_node_id = "SECONDARY_NAMENODE" + "_" + component.host_components[0].HostRoles.host_name;
+        item.sname_node_id = `SECONDARY_NAMENODE_${firstHostComponent.HostRoles.host_name}`;
       }
-    }, this);
+    });
     // Map
-    var finalJson = this.parseIt(item, finalConfig);
+    let finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [1, 2, 3, 4];
 
     return finalJson;

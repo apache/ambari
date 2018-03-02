@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-@import 'bootstrap_overrides.less';
 @import 'common.less';
 
 body {
@@ -354,6 +353,10 @@ footer {
 
 .badge-important {
   background-color: #b94a48!important;
+}
+
+.badge-warning {
+  background-color: #e98a41!important;
 }
 
 table.diff {
@@ -864,6 +867,9 @@ a:focus {
     span {
       display: inline-block;
     }
+  }
+  .master-group-title {
+    .ellipsis-overflow-nowrap;
   }
 }
 
@@ -1570,9 +1576,7 @@ ul.inline li {
 }
 
 .rack-id {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  .ellipsis-overflow-nowrap;
 }
 
 .advanced-header-table {
@@ -2122,6 +2126,21 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
           .property-description {
             font-size: 0.9em;
           }
+          .big-checkbox {
+            text-align: center;
+            label {
+              &:before {
+                width: 16px;
+                height: 16px;
+              }
+              &:after {
+                font-size: 11px;
+                top:2px;
+                left: 3px;
+              }
+              top: 0;
+            }
+          }
         }
       }
     }
@@ -2623,4 +2642,11 @@ a.abort-icon:hover {
 
 #notifications-dropdown.dropdown-menu .notifications-header .notifications-title {
   line-height: 30px;
+}
+
+.alert {
+  &.enhanced-configs {
+    margin-right: 20px;
+    font-size: 12px;
+  }
 }

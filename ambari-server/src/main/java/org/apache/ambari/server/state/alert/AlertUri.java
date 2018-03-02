@@ -24,6 +24,8 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -34,6 +36,7 @@ import com.google.gson.annotations.SerializedName;
  * can be swapped out in other source types where a plain string is used for the
  * URI.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AlertUri {
   /**
    * The HTTP URI to use.
@@ -90,6 +93,7 @@ public class AlertUri {
    * An optional timeout value for connections.
    */
   @SerializedName("connection_timeout")
+  @JsonProperty("connection_timeout")
   private float m_connectionTimeout = 5.0f;
 
 
@@ -114,6 +118,7 @@ public class AlertUri {
    *
    * @return the httpUri the URI (or {@code null} to always use the secure URL).
    */
+  @JsonProperty("http")
   public String getHttpUri() {
     return m_httpUri;
   }
@@ -147,6 +152,7 @@ public class AlertUri {
    *
    * @return the default port if none of the http properties are found.
    */
+  @JsonProperty("default_port")
   public Number getDefaultPort() {
     return m_port;
   }
@@ -157,6 +163,7 @@ public class AlertUri {
    * @return the httpsUri the URI (or {@code null} to always use the insecure
    *         URL).
    */
+  @JsonProperty("https")
   public String getHttpsUri() {
     return m_httpsUri;
   }
@@ -168,6 +175,7 @@ public class AlertUri {
    * @return the httpsProperty the configuration property, or {@code null} for
    *         none.
    */
+  @JsonProperty("https_property")
   public String getHttpsProperty() {
     return m_httpsProperty;
   }
@@ -179,6 +187,7 @@ public class AlertUri {
    * @return the httpsPropertyValue the literal value that indicates SSL mode is
    *         enabled, or {@code null} for none.
    */
+  @JsonProperty("https_property_value")
   public String getHttpsPropertyValue() {
     return m_httpsPropertyValue;
   }
@@ -188,6 +197,7 @@ public class AlertUri {
    *
    * @return the configuration property, or {@code null} for none.
    */
+  @JsonProperty("kerberos_keytab")
   public String getKerberosKeytab() {
     return m_kerberosKeytab;
   }
@@ -197,6 +207,7 @@ public class AlertUri {
    *
    * @return the configuration property, or {@code null} for none.
    */
+  @JsonProperty("kerberos_principal")
   public String getKerberosPrincipal() {
     return m_kerberosPrincipal;
   }
@@ -208,6 +219,7 @@ public class AlertUri {
    * @return the HA structure or {@code null} if the component does not support
    *         HA mode.
    */
+  @JsonProperty("high_availability")
   public HighAvailability getHighAvailability() {
     return m_highAvailability;
   }
@@ -268,6 +280,7 @@ public class AlertUri {
      *
      * @return the nameservice
      */
+    @JsonProperty("nameservice")
     public String getNameservice() {
       return m_nameservice;
     }
@@ -277,6 +290,7 @@ public class AlertUri {
      *
      * @return the alias key
      */
+    @JsonProperty("alias_key")
     public String getAliasKey() {
       return m_aliasKey;
     }
@@ -286,6 +300,7 @@ public class AlertUri {
      *
      * @return the httpPattern
      */
+    @JsonProperty("http_pattern")
     public String getHttpPattern() {
       return m_httpPattern;
     }
@@ -295,6 +310,7 @@ public class AlertUri {
      *
      * @return the httpsPattern
      */
+    @JsonProperty("https_pattern")
     public String getHttpsPattern() {
       return m_httpsPattern;
     }
@@ -391,7 +407,11 @@ public class AlertUri {
       return false;
     }
 
-    if (m_port != other.m_port) {
+    if (m_connectionTimeout != other.m_connectionTimeout) {
+      return false;
+    }
+
+    if (m_port.intValue() != other.m_port.intValue()) {
       return false;
     }
     return true;

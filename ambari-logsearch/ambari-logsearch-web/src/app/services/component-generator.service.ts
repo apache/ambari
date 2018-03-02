@@ -27,7 +27,8 @@ import {LogLevelObject} from '@app/classes/object';
 @Injectable()
 export class ComponentGeneratorService {
 
-  constructor(private resolver: ComponentFactoryResolver, private hostsStorage: HostsService, private componentsStorage: ComponentsService, private logsContainer: LogsContainerService) {
+  constructor(private resolver: ComponentFactoryResolver, private hostsStorage: HostsService,
+              private componentsStorage: ComponentsService, private logsContainer: LogsContainerService) {
   }
 
   private get logLevels(): LogLevelObject[] {

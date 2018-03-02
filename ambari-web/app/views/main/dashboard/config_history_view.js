@@ -60,16 +60,14 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     this.addObserver('displayLength', this, 'updatePagination');
     this.set('isInitialRendering', true);
     this.refresh();
-    this.set('controller.isPolling', true);
-    this.get('controller').doPolling();
+    this.get('controller').subscribeToUpdates();
   },
 
   /**
    * stop polling after leaving config history page
    */
   willDestroyElement: function () {
-    this.set('controller.isPolling', false);
-    clearTimeout(this.get('controller.timeoutRef'));
+    this.get('controller').unsubscribeOfUpdates();
   },
 
   sortView: sort.serverWrapperView,

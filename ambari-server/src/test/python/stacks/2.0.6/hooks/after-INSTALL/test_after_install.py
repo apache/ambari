@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -35,9 +36,9 @@ class TestHookAfterInstall(RMFTestCase):
     Logger.initialize_logger()
 
     Script.config = dict()
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "hostLevelParams": {} } )
+    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = RMFTestCase.get_stack_packages()
-    Script.config["hostLevelParams"] = { "stack_name" : "HDP" }
+    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
 
 
   def test_hook_default(self):
@@ -55,7 +56,7 @@ class TestHookAfterInstall(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               only_if="ls /etc/hadoop/conf")
     self.assertResourceCalled('Directory',
                               '/usr/lib/ambari-logsearch-logfeeder/conf',
@@ -83,7 +84,7 @@ class TestHookAfterInstall(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
@@ -102,7 +103,7 @@ class TestHookAfterInstall(RMFTestCase):
       group = 'hadoop',
       conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
@@ -151,7 +152,7 @@ class TestHookAfterInstall(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
@@ -170,7 +171,7 @@ class TestHookAfterInstall(RMFTestCase):
       group = 'hadoop',
       conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
@@ -223,7 +224,7 @@ class TestHookAfterInstall(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     self.executeScript("after-INSTALL/scripts/hook.py",
       classname="AfterInstallHook",
@@ -255,7 +256,7 @@ class TestHookAfterInstall(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
     json_content['roleParams']['upgrade_suspended'] = "true"
 
     self.executeScript("after-INSTALL/scripts/hook.py",
@@ -273,7 +274,7 @@ class TestHookAfterInstall(RMFTestCase):
       group = 'hadoop',
       conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
@@ -321,8 +322,8 @@ class TestHookAfterInstall(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
-    json_content['hostLevelParams']['host_sys_prepped'] = "true"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
+    json_content['ambariLevelParams']['host_sys_prepped'] = "true"
 
     self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",

@@ -84,7 +84,7 @@ class TestHBaseMaster(RMFTestCase):
       # the json file is not a "well formed" install command
       json_content['roleCommand'] = 'INSTALL'
       json_content['commandParams']['version'] = version
-      json_content['hostLevelParams']['package_list'] = "[{\"name\":\"hbase_${stack_version}\",\"condition\":\"\",\"skipUpgrade\":false}]"
+      json_content['commandParams']['package_list'] = "[{\"name\":\"hbase_${stack_version}\",\"condition\":\"\",\"skipUpgrade\":false}]"
 
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                          classname = "HbaseMaster",
@@ -185,19 +185,19 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
+    self.assertResourceCalled('Execute', ' HBASE_OPTS="$HBASE_OPTS " /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', ' HBASE_OPTS="$HBASE_OPTS " /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host2',
+    self.assertResourceCalled('Execute', ' HBASE_OPTS="$HBASE_OPTS " /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host2',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host2',
+    self.assertResourceCalled('Execute', ' HBASE_OPTS="$HBASE_OPTS " /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host2',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -216,7 +216,7 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
+    self.assertResourceCalled('Execute', ' HBASE_OPTS="$HBASE_OPTS " /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -284,11 +284,11 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_master_jaas.conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config=/etc/hbase/conf/hbase_master_jaas.conf" /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_master_jaas.conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config=/etc/hbase/conf/hbase_master_jaas.conf" /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -327,21 +327,21 @@ class TestHBaseMaster(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hbase-site']
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
     )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
       owner = 'hbase',
@@ -458,21 +458,21 @@ class TestHBaseMaster(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hbase-site']
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
     )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
       owner = 'hbase',
@@ -600,28 +600,28 @@ class TestHBaseMaster(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-master/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site'])
+      configuration_attributes = self.getConfig()['configurationAttributes']['hbase-site'])
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-master/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'])
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'])
 
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-master/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'])
+      configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site'])
 
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-master/conf',
       configurations = self.getConfig()['configurations']['hbase-policy'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hbase-policy'])
+      configuration_attributes = self.getConfig()['configurationAttributes']['hbase-policy'])
 
     self.assertResourceCalled('File', '/usr/hdp/current/hbase-master/conf/hbase-env.sh',
       owner = 'hbase',

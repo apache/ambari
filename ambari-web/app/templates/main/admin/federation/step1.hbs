@@ -15,8 +15,37 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="wizard-footer col-md-12">
-  <div class="btn-area">
-    <button class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</button>
+<div class="wizard-content col-md-9">
+  <h4 class="step-title">{{t admin.nameNodeFederation.wizard.step1.header}}</h4>
+  <div class="step-description">
+    <p>{{t admin.nameNodeFederation.wizard.step1.body}}</p>
+    <div class="alert alert-warning">
+      {{t admin.nameNodeFederation.wizard.step1.alert}}
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div {{bindAttr class=":form-group view.showInputError:has-error :form-horizontal"}}>
+        <div class="row">
+          <div class="col-md-2">
+            <label class="control-label">{{t admin.nameNodeFederation.wizard.step1.nameserviceid}}:</label>
+          </div>
+          <div class="col-md-3">
+            {{view Ember.TextField valueBinding="content.nameServiceId" classNames="form-control"}}
+          </div>
+          <div class="col-md-7">
+            <span {{bindAttr class=":help-block :validation-block view.showInputError::hidden"}}>
+              {{t admin.nameNodeFederation.wizard.step1.nameserviceid.error}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+<div class="wizard-footer col-md-12">
+  <div class="btn-area">
+    <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action next target="controller"}}>{{t common.next}} &rarr;</a>
+  </div>
+</div>
+

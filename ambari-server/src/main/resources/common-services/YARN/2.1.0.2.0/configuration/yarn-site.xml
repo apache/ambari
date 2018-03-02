@@ -202,6 +202,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.log-dirs</name>
+    <display-name>YARN NodeManager Log directories</display-name>
     <value>/hadoop/yarn/log</value>
     <description>
       Where to store container logs. An application's localized log directory
@@ -217,6 +218,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.local-dirs</name>
+    <display-name>YARN NodeManager Local directories</display-name>
     <value>/hadoop/yarn/local</value>
     <description>
       List of directories to store localized files in. An
@@ -279,6 +281,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.remote-app-log-dir</name>
+    <display-name>YARN NodeManager Remote App Log directory</display-name>
     <value>/app-logs</value>
     <description>Location to aggregate logs to. </description>
     <property-type>NOT_MANAGED_HDFS_PATH</property-type>

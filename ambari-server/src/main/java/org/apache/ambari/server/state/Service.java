@@ -19,9 +19,11 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {
@@ -38,6 +40,8 @@ public interface Service {
       throws AmbariException;
 
   Map<String, ServiceComponent> getServiceComponents();
+
+  Set<String> getServiceHosts();
 
   void addServiceComponents(Map<String, ServiceComponent> components)
       throws AmbariException;
@@ -65,14 +69,14 @@ public interface Service {
    */
   boolean canBeRemoved();
 
-  void deleteAllComponents() throws AmbariException;
+  void deleteAllComponents(DeleteHostComponentStatusMetaData deleteMetaData);
 
-  void deleteServiceComponent(String componentName)
+  void deleteServiceComponent(String componentName, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException;
 
   boolean isClientOnlyService();
 
-  void delete() throws AmbariException;
+  void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 
   /**
    * Sets the maintenance state for the service

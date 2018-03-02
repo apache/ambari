@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.CommandUtils;
 import org.apache.ambari.server.utils.StageUtils;
@@ -79,6 +80,7 @@ public class ActionManager {
 
   public void sendActions(List<Stage> stages, String clusterHostInfo, ExecuteActionRequest actionRequest) throws AmbariException {
     Request request = requestFactory.createNewFromStages(stages, clusterHostInfo, actionRequest);
+    request.setUserName(AuthorizationHelper.getAuthenticatedName());
     sendActions(request, actionRequest);
   }
 

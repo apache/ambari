@@ -58,7 +58,7 @@ public final class HiveServiceCalculatedState extends DefaultServiceCalculatedSt
           serviceName, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =
-          managementControllerProvider.get().getHostComponents(Collections.singleton(request));
+          managementControllerProvider.get().getHostComponents(Collections.singleton(request), true);
 
         int activeHiveMetastoreComponentCount = 0;
         State nonStartedState = null;

@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -25,6 +29,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class WebSource extends Source {
 
   @SerializedName("uri")
@@ -33,6 +38,7 @@ public class WebSource extends Source {
   /**
    * @return the uri info, which may include port information
    */
+  @JsonProperty("uri")
   public AlertUri getUri() {
     return uri;
   }
@@ -42,10 +48,7 @@ public class WebSource extends Source {
    */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((uri == null) ? 0 : uri.hashCode());
-    return result;
+    return Objects.hash(super.hashCode(), uri);
   }
 
   /**
@@ -66,14 +69,6 @@ public class WebSource extends Source {
     }
 
     WebSource other = (WebSource) obj;
-    if (uri == null) {
-      if (other.uri != null) {
-        return false;
-      }
-    } else if (!uri.equals(other.uri)) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(uri, other.uri);
   }
 }

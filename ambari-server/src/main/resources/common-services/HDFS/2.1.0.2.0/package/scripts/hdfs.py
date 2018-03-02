@@ -83,7 +83,7 @@ def hdfs(name=None):
     XmlConfig("hadoop-policy.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['hadoop-policy'],
-              configuration_attributes=params.config['configuration_attributes']['hadoop-policy'],
+              configuration_attributes=params.config['configurationAttributes']['hadoop-policy'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -92,7 +92,7 @@ def hdfs(name=None):
     XmlConfig("ssl-client.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['ssl-client'],
-              configuration_attributes=params.config['configuration_attributes']['ssl-client'],
+              configuration_attributes=params.config['configurationAttributes']['ssl-client'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -107,7 +107,7 @@ def hdfs(name=None):
     XmlConfig("ssl-client.xml",
               conf_dir=params.hadoop_conf_secure_dir,
               configurations=params.config['configurations']['ssl-client'],
-              configuration_attributes=params.config['configuration_attributes']['ssl-client'],
+              configuration_attributes=params.config['configurationAttributes']['ssl-client'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -116,7 +116,7 @@ def hdfs(name=None):
     XmlConfig("ssl-server.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['ssl-server'],
-              configuration_attributes=params.config['configuration_attributes']['ssl-server'],
+              configuration_attributes=params.config['configurationAttributes']['ssl-server'],
               owner=params.hdfs_user,
               group=params.user_group
     )
@@ -124,7 +124,7 @@ def hdfs(name=None):
   XmlConfig("hdfs-site.xml",
             conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
             owner=params.hdfs_user,
             group=params.user_group
   )
@@ -132,7 +132,7 @@ def hdfs(name=None):
   XmlConfig("core-site.xml",
             conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['core-site'],
-            configuration_attributes=params.config['configuration_attributes']['core-site'],
+            configuration_attributes=params.config['configurationAttributes']['core-site'],
             owner=params.hdfs_user,
             group=params.user_group,
             mode=0644
@@ -239,7 +239,7 @@ def hdfs(component=None):
               configurations=params.config['configurations']['hadoop-policy'],
               owner=params.hdfs_user,
               mode="f",
-              configuration_attributes=params.config['configuration_attributes']['hadoop-policy']
+              configuration_attributes=params.config['configurationAttributes']['hadoop-policy']
     )
 
   XmlConfig("hdfs-site.xml",
@@ -247,5 +247,5 @@ def hdfs(component=None):
             configurations=params.config['configurations']['hdfs-site'],
             owner=params.hdfs_user,
             mode="f",
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site']
+            configuration_attributes=params.config['configurationAttributes']['hdfs-site']
   )

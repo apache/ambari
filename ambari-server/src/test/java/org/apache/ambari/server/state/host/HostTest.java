@@ -32,7 +32,6 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HeartBeatHandler;
@@ -127,11 +126,10 @@ public class HostTest {
   @Test
   public void testHostOs() throws Exception {
     Clusters clusters = mock(Clusters.class);
-    ActionQueue queue = mock(ActionQueue.class);
     ActionManager manager = mock(ActionManager.class);
     Injector injector = mock(Injector.class);
     doNothing().when(injector).injectMembers(any());
-    HeartBeatHandler handler = new HeartBeatHandler(clusters, queue, manager, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(clusters, manager, injector);
     String os = handler.getOsType("RedHat", "6.1");
     Assert.assertEquals("redhat6", os);
     os = handler.getOsType("RedHat", "6");

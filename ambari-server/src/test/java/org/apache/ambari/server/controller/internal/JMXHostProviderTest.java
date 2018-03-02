@@ -116,7 +116,7 @@ public class JMXHostProviderTest {
   }
 
   private void createService(String clusterName, String serviceName, State desiredState)
-      throws AmbariException, AuthorizationException {
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     String dStateStr = null;
 
     if (desiredState != null) {
@@ -162,7 +162,7 @@ public class JMXHostProviderTest {
     controller.createHostComponents(requests);
   }
 
-  private void createHDFSServiceConfigs(boolean version1) throws AmbariException, AuthorizationException {
+  private void createHDFSServiceConfigs(boolean version1) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     String clusterName = "c1";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
     controller.createCluster(r);
@@ -195,6 +195,8 @@ public class JMXHostProviderTest {
     clusters.getHost("h2").setHostAttributes(hostAttributes);
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
+    clusters.updateHostMappings(clusters.getHost(host1));
+    clusters.updateHostMappings(clusters.getHost(host2));
 
     createServiceComponentHost(clusterName, null, componentName1,
       host1, null);
@@ -234,7 +236,7 @@ public class JMXHostProviderTest {
     }
   }
 
-  private void createConfigs() throws AmbariException, AuthorizationException {
+  private void createConfigs() throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     String clusterName = "c1";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.6", null);
     controller.createCluster(r);
@@ -293,6 +295,8 @@ public class JMXHostProviderTest {
     clusters.getHost("h2").setHostAttributes(hostAttributes);
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
+    clusters.updateHostMappings(clusters.getHost(host1));
+    clusters.updateHostMappings(clusters.getHost(host2));
 
     createServiceComponentHost(clusterName, null, componentName1,
       host1, null);
@@ -373,7 +377,7 @@ public class JMXHostProviderTest {
       ("hdfs-site").getProperties().get(NAMENODE_PORT_V1));
   }
 
-  private void createConfigsNameNodeHa() throws AmbariException, AuthorizationException {
+  private void createConfigsNameNodeHa() throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     String clusterName = "nnha";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.6", null);
     controller.createCluster(r);
@@ -406,6 +410,8 @@ public class JMXHostProviderTest {
     clusters.getHost("h2").setHostAttributes(hostAttributes);
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
+    clusters.updateHostMappings(clusters.getHost(host1));
+    clusters.updateHostMappings(clusters.getHost(host2));
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -443,9 +449,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXPortMapInitAtServiceLevelVersion1() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
 
     createHDFSServiceConfigs(true);
 
@@ -463,9 +469,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXPortMapInitAtServiceLevelVersion2() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
 
     createHDFSServiceConfigs(false);
 
@@ -485,7 +491,7 @@ public class JMXHostProviderTest {
   public void testJMXPortMapNameNodeHa() throws
       NoSuchParentResourceException,
       ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException {
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
 
     createConfigsNameNodeHa();
 
@@ -500,9 +506,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXPortMapInitAtClusterLevel() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
 
     createConfigs();
 
@@ -547,9 +553,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXHttpsPort() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -562,9 +568,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXHistoryServerHttpsPort() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -576,9 +582,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXJournalNodeHttpsPort() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -589,9 +595,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXDataNodeHttpsPort() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -602,9 +608,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXHbaseMasterHttps() throws
-          NoSuchParentResourceException,
-          ResourceAlreadyExistsException, UnsupportedPropertyException,
-          SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -615,9 +621,9 @@ public class JMXHostProviderTest {
 
   @Test
   public void testJMXPortMapUpdate() throws
-    NoSuchParentResourceException,
-    ResourceAlreadyExistsException, UnsupportedPropertyException,
-    SystemException, AmbariException, NoSuchResourceException {
+      NoSuchParentResourceException,
+      ResourceAlreadyExistsException, UnsupportedPropertyException,
+      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
 
     createConfigs();
 

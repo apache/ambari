@@ -137,7 +137,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     }
     return showAlert;
   },
-  
+
   showPopup: function(hostComponent) {
     var missingDependentServices = this.getAllMissingDependentServices();
     var isNonWizardPage = !this.get('content.controllerName');

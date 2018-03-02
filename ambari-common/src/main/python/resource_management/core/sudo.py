@@ -28,6 +28,7 @@ import errno
 import random
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
+from ambari_commons.unicode_tolerant_fs import unicode_walk
 from ambari_commons import subprocess32
 
 from resource_management.core.utils import attr_to_bitmask
@@ -46,7 +47,7 @@ if os.geteuid() == 0:
     if uid == -1 and gid == -1:
       return
       
-    for root, dirs, files in os.walk(path, followlinks=follow_links):
+    for root, dirs, files in unicode_walk(path, followlinks=True):
       for name in files + dirs:
         if follow_links:
           os.chown(os.path.join(root, name), uid, gid)
@@ -83,7 +84,7 @@ if os.geteuid() == 0:
     dir_attrib = recursive_mode_flags["d"] if "d" in recursive_mode_flags else None
     files_attrib = recursive_mode_flags["f"] if "d" in recursive_mode_flags else None
 
-    for root, dirs, files in os.walk(path, followlinks=recursion_follow_links):
+    for root, dirs, files in unicode_walk(path, followlinks=recursion_follow_links):
       if dir_attrib is not None:
         for dir_name in dirs:
           full_dir_path = os.path.join(root, dir_name)

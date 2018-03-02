@@ -94,6 +94,7 @@
   </property>
   <property>
     <name>dfs.namenode.checkpoint.edits.dir</name>
+    <display-name>NameNode Checkpoint Edits directory</display-name>
     <value>${dfs.namenode.checkpoint.dir}</value>
     <description>Determines where on the local filesystem the DFS secondary
       name node should store the temporary edits to merge.
@@ -459,6 +460,7 @@
   </property>
   <property>
     <name>dfs.journalnode.edits.dir</name>
+    <display-name>JournalNode Edits directory</display-name>
     <value>/grid/0/hdfs/journal</value>
     <description>The path where the JournalNode daemon will store its local state. </description>
     <on-ambari-upgrade add="true"/>

@@ -387,16 +387,25 @@ describe('App.MainHostSummaryView', function() {
       $.timeago.restore();
     });
 
-    it("rawLastHeartBeatTime = null", function() {
-      mainHostSummaryView.set('content.rawLastHeartBeatTime', null);
+    it("lastHeartBeatTime = null", function() {
+      mainHostSummaryView.set('content.isNotHeartBeating', true);
+      mainHostSummaryView.set('content.lastHeartBeatTime', null);
       mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
       expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.empty;
     });
 
-    it("rawLastHeartBeatTime = 1", function() {
-      mainHostSummaryView.set('content.rawLastHeartBeatTime', '1');
+    it("lastHeartBeatTime = 1", function() {
+      mainHostSummaryView.set('content.isNotHeartBeating', true);
+      mainHostSummaryView.set('content.lastHeartBeatTime', '1');
       mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
       expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.equal('1');
+    });
+
+    it("host has heartbeat", function() {
+      mainHostSummaryView.set('content.isNotHeartBeating', false);
+      mainHostSummaryView.set('content.lastHeartBeatTime', '1');
+      mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
+      expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.equal(Em.I18n.t('common.minute.ago'));
     });
   });
 });

@@ -20,6 +20,19 @@ var App = require('app');
 
 App.NameNodeFederationWizardStep2Controller = Em.Controller.extend(App.AssignMasterComponents, {
 
-  name: "nameNodeFederationWizardStep2Controller"
+  name: "nameNodeFederationWizardStep2Controller",
+
+  useServerValidation: false,
+
+  mastersToShow: ['NAMENODE'],
+
+  mastersToAdd: ['NAMENODE', 'NAMENODE'],
+
+  showCurrentPrefix: ['NAMENODE'],
+
+  showAdditionalPrefix: ['NAMENODE'],
+
+  showInstalledMastersFirst: true
+
 });
 

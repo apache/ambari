@@ -34,8 +34,11 @@ import java.util.regex.Pattern;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -197,7 +200,13 @@ public class UpgradeHelper {
    * Used to update the configuration properties.
    */
   @Inject
-  private Provider<AmbariManagementController> m_controllerProvider;
+  private Provider<AmbariManagementControllerImpl> m_controllerProvider;
+
+  @Inject
+  private Provider<MetadataHolder> m_metadataHolder;
+
+  @Inject
+  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   /**
    * Used to get configurations by service name.
@@ -931,6 +940,7 @@ public class UpgradeHelper {
 
     Set<String> clusterConfigTypes = new HashSet<>();
     Set<String> processedClusterConfigTypes = new HashSet<>();
+    boolean configsChanged = false;
 
     // merge or revert configurations for any service that needs it
     for (String serviceName : servicesInUpgrade) {
@@ -955,6 +965,7 @@ public class UpgradeHelper {
       // downgrade is easy - just remove the new and make the old current
       if (direction == Direction.DOWNGRADE) {
         cluster.applyLatestConfigurations(targetStackId, serviceName);
+        configsChanged = true;
         continue;
       }
 
@@ -1130,7 +1141,12 @@ public class UpgradeHelper {
 
         configHelper.createConfigTypes(cluster, targetStackId, controller,
             newServiceDefaultConfigsByType, userName, serviceVersionNote);
+        configsChanged = true;
       }
+    }
+    if (configsChanged) {
+      m_metadataHolder.get().updateData(m_controllerProvider.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
     }
   }
 

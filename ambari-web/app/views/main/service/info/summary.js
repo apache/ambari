@@ -29,7 +29,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   /**
    * Contain array with list of groups of master components from <code>App.Service.hostComponets</code> which are
    * <code>App.HostComponent</code> models.
-   * @type {{title: String, isActive: Boolean, hosts: String[], components: App.HostComponent[]}[]}
+   * @type {{title: String, hosts: String[], components: App.HostComponent[]}[]}
    */
   mastersObj: [
     {
@@ -423,36 +423,29 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   hasMultipleMasterGroups: Em.computed.gt('mastersObj.length', 1),
 
-  activeMasterComponentGroup: function () {
-    const activeGroup = this.get('mastersObj').findProperty('isActive');
-    return activeGroup ? activeGroup.title : '';
-  }.property('mastersObj.@each.isActive'),
-
   getGroupedMasterComponents: function (components) {
     switch (this.get('serviceName')) {
       case 'HDFS':
-        const hostComponents = this.get('service.hostComponents'),
+        const masterComponentGroups = this.get('service.masterComponentGroups'),
+          hostComponents = this.get('service.hostComponents'),
           zkfcs = hostComponents.filterProperty('componentName', 'ZKFC'),
-          hasNameNodeFederation = App.get('hasNameNodeFederation');
+          hasNameNodeFederation = this.get('service.hasMultipleMasterComponentGroups');
         let groups = [];
         hostComponents.forEach(component => {
           if (component.get('isMaster') && component.get('componentName') !== 'JOURNALNODE') {
             const hostName = component.get('hostName'),
               zkfc = zkfcs.findProperty('hostName', hostName);
             if (hasNameNodeFederation) {
-              const title = component.get('haNameSpace'),
-                existingGroup = groups.findProperty('title', title),
-                currentGroup = existingGroup || {
-                    title,
-                    isActive: title === this.get('activeMasterComponentGroup'),
-                    components: [],
-                    hosts: [hostName]
-                  };
+              const name = component.get('haNameSpace'),
+                existingGroup = groups.findProperty('name', name),
+                currentGroup = existingGroup || Object.assign({}, masterComponentGroups.findProperty('name', name));
               if (!existingGroup) {
                 groups.push(currentGroup);
+                Em.setProperties(currentGroup, {
+                  components: []
+                });
               }
               currentGroup.components.push(component);
-              currentGroup.hosts.push(hostName);
               if (zkfc) {
                 zkfc.set('isSubComponent', true);
                 currentGroup.components.push(zkfc);
@@ -480,10 +473,5 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           }
         ];
     }
-  },
-
-  setActiveComponentGroup: function (event) {
-    const groupName = event.context;
-    this.get('mastersObj').forEach(group => Em.set(group, 'isActive', group.title === groupName));
   }
 });

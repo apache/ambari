@@ -64,7 +64,7 @@ public class AgentResource {
   /**
    * Explicitly start HH
    */
-  public static void statHeartBeatHandler() {
+  public static void startHeartBeatHandler() {
     hh.start();
   }
 

@@ -18,6 +18,7 @@
 package org.apache.ambari.server.agent;
 
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyClusterId;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
@@ -120,9 +121,9 @@ public class HeartbeatTestHelper {
     };
   }
 
-  public HeartBeatHandler getHeartBeatHandler(ActionManager am, ActionQueue aq)
+  public HeartBeatHandler getHeartBeatHandler(ActionManager am)
       throws InvalidStateTransitionException, AmbariException {
-    HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(clusters, am, injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
     hi.setHostName(DummyHostname1);
@@ -151,11 +152,11 @@ public class HeartbeatTestHelper {
       add(DummyHostname1);
     }};
 
-    return getDummyCluster(DummyCluster, new StackId(DummyStackId), DummyRepositoryVersion,
+    return getDummyCluster(DummyCluster, new Long(DummyClusterId), new StackId(DummyStackId), DummyRepositoryVersion,
         configProperties, hostNames);
   }
 
-  public Cluster getDummyCluster(String clusterName, StackId stackId, String repositoryVersion,
+  public Cluster getDummyCluster(String clusterName, Long clusterId, StackId stackId, String repositoryVersion,
       Map<String, String> configProperties, Set<String> hostNames)
       throws Exception {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
@@ -172,6 +173,7 @@ public class HeartbeatTestHelper {
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName(clusterName);
+    clusterEntity.setClusterId(clusterId);
     clusterEntity.setClusterInfo("test_cluster_info1");
     clusterEntity.setResource(resourceEntity);
     clusterEntity.setDesiredStack(stackEntity);

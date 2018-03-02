@@ -27,19 +27,13 @@ App.SummaryMasterComponentsView = Em.View.extend({
     }
   ],
 
-  activeMastersComp: function () {
-    const mastersComp = this.get('mastersComp'),
-      activeGroup = mastersComp.findProperty('isActive');
-    return activeGroup ? [activeGroup] : mastersComp;
-  }.property('mastersComp.length', 'mastersComp.@each.isActive', 'mastersComp.@each.components.length'),
-
   mastersCompWillChange: function() {
-    Em.run.next(() => this.removeTooltips());
-  }.observesBefore('mastersComp.length', 'mastersComp.@each.components.length'),
+    Em.run.next(this.removeTooltips);
+  }.observesBefore('mastersComp.length', 'mastersComp.@each.components'),
 
   mastersCompDidChange: function() {
-    Em.run.next(() => this.attachTooltip());
-  }.observes('mastersComp.length', 'mastersComp.@each.components.length'),
+    Em.run.next(this.attachTooltip);
+  }.observes('mastersComp.length', 'mastersComp.@each.components'),
 
   removeTooltips: function() {
     $('.tooltip').remove();
@@ -60,7 +54,7 @@ App.SummaryMasterComponentsView = Em.View.extend({
 });
 
 App.SummaryMasterComponentsView.reopenClass({
-  tooltipsSelector: '[rel=SummaryComponentHealthTooltip], [rel=UsageTooltip]'
+  tooltipsSelector: '[rel=SummaryComponentHealthTooltip], [rel=UsageTooltip], [rel=MasterGroupTitleTooltip]'
 });
 
 App.SummaryClientComponentsView = Em.View.extend({

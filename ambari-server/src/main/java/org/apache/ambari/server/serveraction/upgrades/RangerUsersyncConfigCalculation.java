@@ -21,12 +21,14 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 
 /**
  * Computes Ranger Usersync ldap grouphierarchylevels property. This class is only used when upgrading from
@@ -81,6 +83,7 @@ public class RangerUsersyncConfigCalculation extends AbstractUpgradeServerAction
   targetRangerEnvConfig.put("is_nested_groupsync_enabled", enableSyncNestedGroup);
   rangerEnvConfig.setProperties(targetRangerEnvConfig);
   rangerEnvConfig.save();
+  agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
   outputMsg = outputMsg + MessageFormat.format("Successfully updated {0} config type.\n", RANGER_ENV_CONFIG_TYPE);
 

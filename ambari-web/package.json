@@ -5,7 +5,7 @@
   "homepage": "http://ambari.apache.org/",
   "repository": {
     "type": "git",
-    "url": "https://git-wip-us.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
+    "url": "https://gitbox.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
   },
   "dependencies": {
     "brunch": "1.7.20",

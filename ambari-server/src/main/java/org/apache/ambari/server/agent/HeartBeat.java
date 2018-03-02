@@ -32,7 +32,13 @@ import org.codehaus.jackson.annotate.JsonProperty;
  */
 
 public class HeartBeat {
+
+  @com.fasterxml.jackson.annotation.JsonProperty("id")
   private long responseId = -1;
+
+  @com.fasterxml.jackson.annotation.JsonProperty("staleAlerts")
+  private List<StaleAlert> staleAlerts = new ArrayList<>();
+
   private long timestamp;
   private String hostname;
   List<CommandReport> reports = new ArrayList<>();
@@ -87,11 +93,13 @@ public class HeartBeat {
   }
 
   @JsonProperty("reports")
+  @com.fasterxml.jackson.annotation.JsonProperty("reports")
   public List<CommandReport> getReports() {
     return reports;
   }
 
   @JsonProperty("reports")
+  @com.fasterxml.jackson.annotation.JsonProperty("reports")
   public void setReports(List<CommandReport> reports) {
     this.reports = reports;
   }
@@ -121,21 +129,25 @@ public class HeartBeat {
   }
 
   @JsonProperty("componentStatus")
+  @com.fasterxml.jackson.annotation.JsonProperty("componentStatus")
   public List<ComponentStatus> getComponentStatus() {
     return componentStatus;
   }
 
   @JsonProperty("componentStatus")
+  @com.fasterxml.jackson.annotation.JsonProperty("componentStatus")
   public void setComponentStatus(List<ComponentStatus> componentStatus) {
     this.componentStatus = componentStatus;
   }
 
   @JsonProperty("mounts")
+  @com.fasterxml.jackson.annotation.JsonProperty("mounts")
   public List<DiskInfo> getMounts() {
     return mounts;
   }
 
   @JsonProperty("mounts")
+  @com.fasterxml.jackson.annotation.JsonProperty("mounts")
   public void setMounts(List<DiskInfo> mounts) {
     this.mounts = mounts;
   }
@@ -146,6 +158,10 @@ public class HeartBeat {
 
   public void setAlerts(List<Alert> alerts) {
     this.alerts = alerts;
+  }
+
+  public List<StaleAlert> getStaleAlerts() {
+    return staleAlerts;
   }
 
   @Override

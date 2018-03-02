@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +37,8 @@ public class DownSamplerUtils {
 
   public static final String downSamplerConfigPrefix = "timeline.metrics.downsampler.";
   public static final String downSamplerMetricPatternsConfig = "metric.patterns";
-  public static final String topNDownSampler = "topn";
+  public static final String topNDownSamplerKey = "topn";
+  public static final String eventDownSamplerKey = "event";
   private static final Log LOG = LogFactory.getLog(DownSamplerUtils.class);
 
 
@@ -108,8 +108,12 @@ public class DownSamplerUtils {
       return null;
     }
 
-    if (StringUtils.isNotEmpty(type) && type.equalsIgnoreCase(topNDownSampler)) {
+    if (StringUtils.isNotEmpty(type) && type.equalsIgnoreCase(topNDownSamplerKey)) {
       return TopNDownSampler.fromConfig(conf);
+    }
+
+    if (StringUtils.isNotEmpty(type) && type.equalsIgnoreCase(eventDownSamplerKey)) {
+      return EventMetricDownSampler.fromConfig(conf);
     }
 
     LOG.warn("Unknown downsampler requested : " + type);

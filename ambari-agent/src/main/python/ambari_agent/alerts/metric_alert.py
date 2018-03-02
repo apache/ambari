@@ -33,7 +33,7 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from ambari_commons import inet_utils
 from ambari_commons.constants import AGENT_TMP_DIR
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 
@@ -41,13 +41,13 @@ SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 DEFAULT_CONNECTION_TIMEOUT = 5.0
 
 class MetricAlert(BaseAlert):
-  
+
   def __init__(self, alert_meta, alert_source_meta, config):
     super(MetricAlert, self).__init__(alert_meta, alert_source_meta, config)
 
     connection_timeout = DEFAULT_CONNECTION_TIMEOUT
 
-    self.metric_info = None    
+    self.metric_info = None
     if 'jmx' in alert_source_meta:
       self.metric_info = JmxMetric(alert_source_meta['jmx'])
 
@@ -71,13 +71,13 @@ class MetricAlert(BaseAlert):
   def _collect(self):
     if self.metric_info is None:
       raise Exception("Could not determine result. Specific metric collector is not defined.")
-    
+
     if self.uri_property_keys is None:
       raise Exception("Could not determine result. URL(s) were not defined.")
 
     # use the URI lookup keys to get a final URI value to query
-    alert_uri = self._get_uri_from_structure(self.uri_property_keys)      
-    
+    alert_uri = self._get_uri_from_structure(self.uri_property_keys)
+
     logger.debug("[Alert][{0}] Calculated metric URI to be {1} (ssl={2})".format(
         self.get_name(), alert_uri.uri, str(alert_uri.is_ssl_enabled)))
 
@@ -86,7 +86,7 @@ class MetricAlert(BaseAlert):
       host = self.host_name
 
     port = 80 # probably not very realistic
-    try:      
+    try:
       port = int(get_port_from_url(alert_uri.uri))
     except:
       pass
@@ -105,23 +105,22 @@ class MetricAlert(BaseAlert):
         value_list.extend(jmx_property_values)
         check_value = self.metric_info.calculate(value_list)
         value_list.append(check_value)
-      
+
         collect_result = self._get_result(value_list[0] if check_value is None else check_value)
 
         if logger.isEnabledFor(logging.DEBUG):
           logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
-    
     return (collect_result, value_list)
 
-  
+
   def _get_result(self, value):
     ok_value = self.__find_threshold('ok')
     warn_value = self.__find_threshold('warning')
     crit_value = self.__find_threshold('critical')
-    
+
     # critical values are higher
     critical_direction_up = crit_value >= warn_value
-    
+
     if critical_direction_up:
       # critical values are higher
       if value >= crit_value:
@@ -151,19 +150,19 @@ class MetricAlert(BaseAlert):
         else:
           return self.RESULT_OK
 
-    
+
   def __find_threshold(self, reporting_type):
     """ find the defined thresholds for alert values """
-    
+
     if not 'reporting' in self.alert_source_meta:
       return None
-      
+
     if not reporting_type in self.alert_source_meta['reporting']:
       return None
-      
+
     if not 'value' in self.alert_source_meta['reporting'][reporting_type]:
       return None
-      
+
     return self.alert_source_meta['reporting'][reporting_type]['value']
 
 
@@ -176,10 +175,12 @@ class MetricAlert(BaseAlert):
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug(str(jmx_metric.property_map))
 
-    security_enabled = str(self._get_configuration_value(SECURITY_ENABLED_KEY)).upper() == 'TRUE'
+    configurations = self.configuration_builder.get_configuration(self.cluster_id, None, None)
+
+    security_enabled = str(self._get_configuration_value(configurations, SECURITY_ENABLED_KEY)).upper() == 'TRUE'
 
     if self.uri_property_keys.kerberos_principal is not None:
-      kerberos_principal = self._get_configuration_value(
+      kerberos_principal = self._get_configuration_value(configurations,
       self.uri_property_keys.kerberos_principal)
 
       if kerberos_principal is not None:
@@ -187,7 +188,7 @@ class MetricAlert(BaseAlert):
         kerberos_principal = kerberos_principal.replace('_HOST', self.host_name)
 
     if self.uri_property_keys.kerberos_keytab is not None:
-      kerberos_keytab = self._get_configuration_value(self.uri_property_keys.kerberos_keytab)
+      kerberos_keytab = self._get_configuration_value(configurations, self.uri_property_keys.kerberos_keytab)
 
     if "0.0.0.0" in str(host):
       host = self.host_name
@@ -206,8 +207,8 @@ class MetricAlert(BaseAlert):
           if tmp_dir is None:
             tmp_dir = gettempdir()
 
-          kerberos_executable_search_paths = self._get_configuration_value('{{kerberos-env/executable_search_paths}}')
-          smokeuser = self._get_configuration_value('{{cluster-env/smokeuser}}')
+          kerberos_executable_search_paths = self._get_configuration_value(configurations, '{{kerberos-env/executable_search_paths}}')
+          smokeuser = self._get_configuration_value(configurations, '{{cluster-env/smokeuser}}')
 
           response, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
             "metric_alert", kerberos_executable_search_paths, False, self.get_name(), smokeuser,
@@ -272,7 +273,7 @@ class MetricAlert(BaseAlert):
     '''
     return '{0}'
 
-    
+
 class JmxMetric:
   DYNAMIC_CODE_TEMPLATE = """
 # ensure that division yields a float, use // for integer division
@@ -289,18 +290,18 @@ def f(args):
 
     if 'value' in jmx_info:
       realcode = re.sub('(\{(\d+)\})', 'args[\g<2>]', jmx_info['value'])
-      
+
       self.custom_module =  imp.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_TEMPLATE.format(realcode)
       exec code in self.custom_module.__dict__
-    
+
     for p in self.property_list:
       parts = p.split('/')
       if not parts[0] in self.property_map:
         self.property_map[parts[0]] = []
       self.property_map[parts[0]].append(parts[1])
 
-      
+
   def calculate(self, args):
     if self.custom_module is not None:
       return self.custom_module.f(args)

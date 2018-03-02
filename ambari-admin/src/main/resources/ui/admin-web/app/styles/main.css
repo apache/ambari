@@ -758,11 +758,11 @@ accordion .panel-group .panel{
   padding-right: 15px;
 }
 
-.status-current {
+.status-CURRENT {
   background-color: green;
 }
 
-.status-installed {
+.status-INSTALLED {
   background-color: #999;
 }
 

@@ -27,6 +27,8 @@ from ambari_agent.alerts.ams_alert import AmsAlert
 from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.web_alert import WebAlert
 
+from ambari_agent.InitializerModule import InitializerModule
+
 from AmbariConfig import AmbariConfig
 
 from mock.mock import Mock, MagicMock, patch
@@ -49,7 +51,12 @@ class TestAlertSchedulerHandler(TestCase):
   @patch("ambari_commons.network.reconfigure_urllib2_opener")
   def test_job_context_injector(self, reconfigure_urllib2_opener_mock):
     self.config.use_system_proxy_setting = lambda: False
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     scheduler._job_context_injector(self.config)
 
     self.assertTrue(reconfigure_urllib2_opener_mock.called)
@@ -57,13 +64,22 @@ class TestAlertSchedulerHandler(TestCase):
     reconfigure_urllib2_opener_mock.reset_mock()
 
     self.config.use_system_proxy_setting = lambda: True
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     scheduler._job_context_injector(self.config)
     self.assertFalse(reconfigure_urllib2_opener_mock.called)
 
 
   def test_json_to_callable_metric(self):
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     json_definition = {
       'source': {
         'type': 'METRIC'
@@ -78,7 +94,11 @@ class TestAlertSchedulerHandler(TestCase):
     self.assertEquals(callable_result.alert_source_meta, json_definition['source'])
 
   def test_json_to_callable_ams(self):
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     json_definition = {
       'source': {
         'type': 'AMS'
@@ -99,7 +119,11 @@ class TestAlertSchedulerHandler(TestCase):
       }
     }
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
@@ -114,8 +138,11 @@ class TestAlertSchedulerHandler(TestCase):
         'type': 'WEB'
       }
     }
-
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
@@ -130,7 +157,11 @@ class TestAlertSchedulerHandler(TestCase):
       }
     }
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is None)
@@ -138,7 +169,11 @@ class TestAlertSchedulerHandler(TestCase):
   def test_execute_alert_noneScheduler(self):
     execution_commands = []
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     scheduler._AlertSchedulerHandler__scheduler = None
     alert_mock = Mock()
     scheduler._AlertSchedulerHandler__json_to_callable = Mock(return_value=alert_mock)
@@ -150,7 +185,11 @@ class TestAlertSchedulerHandler(TestCase):
   def test_execute_alert_noneCommands(self):
     execution_commands = None
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     alert_mock = Mock()
     scheduler._AlertSchedulerHandler__json_to_callable = Mock(return_value=alert_mock)
 
@@ -161,7 +200,11 @@ class TestAlertSchedulerHandler(TestCase):
   def test_execute_alert_emptyCommands(self):
     execution_commands = []
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     alert_mock = Mock()
     scheduler._AlertSchedulerHandler__json_to_callable = Mock(return_value=alert_mock)
 
@@ -181,7 +224,12 @@ class TestAlertSchedulerHandler(TestCase):
       }
     ]
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    
+    #(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     alert_mock = MagicMock()
     alert_mock.collect = Mock()
     alert_mock.set_helpers = Mock()
@@ -207,7 +255,11 @@ class TestAlertSchedulerHandler(TestCase):
       }
     ]
 
-    scheduler = AlertSchedulerHandler('wrong_path', 'wrong_path', 'wrong_path', TEST_PATH, 'wrong_path', None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #'wrong_path', 'wrong_path', 'wrong_path', TEST_PATH, 'wrong_path', None, self.config, None)
     alert_mock = MagicMock()
     alert_mock.collect = Mock()
     alert_mock.set_helpers = Mock()
@@ -220,9 +272,24 @@ class TestAlertSchedulerHandler(TestCase):
 
     scheduler._AlertSchedulerHandler__json_to_callable.assert_called_with('cluster', 'host', 'host', {'name': 'alert1'})
     self.assertTrue(alert_mock.collect.called)
-
+    
   def test_load_definitions(self):
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    definitions = {
+     'alertDefinitions':
+      [
+       {
+         'source': 
+         {
+           'type': 'PORT'
+         }
+       }
+       ]
+     }
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    initializer_module.alert_definitions_cache.rewrite_cluster_cache('0', definitions)
+    
+    scheduler = AlertSchedulerHandler(initializer_module)#(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     scheduler._AlertSchedulerHandler__config_maps = {
       'cluster': {}
     }
@@ -233,7 +300,11 @@ class TestAlertSchedulerHandler(TestCase):
     self.assertTrue(isinstance(alert_def, PortAlert))
 
   def test_load_definitions_noFile(self):
-    scheduler = AlertSchedulerHandler('wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #('wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', None, self.config, None)
     scheduler._AlertSchedulerHandler__config_maps = {
       'cluster': {}
     }
@@ -242,7 +313,7 @@ class TestAlertSchedulerHandler(TestCase):
 
     self.assertEquals(definitions, [])
 
-  def test_start(self):
+  def __test_start(self):
     execution_commands = [
       {
         'clusterName': 'cluster',
@@ -254,7 +325,11 @@ class TestAlertSchedulerHandler(TestCase):
       }
     ]
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    
+    scheduler = AlertSchedulerHandler(initializer_module)
+    #TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
     alert_mock = MagicMock()
     alert_mock.interval = Mock(return_value=5)
     alert_mock.collect = Mock()

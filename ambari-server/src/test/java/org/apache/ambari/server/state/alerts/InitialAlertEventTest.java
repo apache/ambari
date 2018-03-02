@@ -152,7 +152,7 @@ public class InitialAlertEventTest {
         definition.getServiceName(), definition.getComponentName(), null,
         AlertState.CRITICAL);
 
-    alert.setCluster(m_clusterName);
+    alert.setClusterId(m_cluster.getClusterId());
 
     AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
 

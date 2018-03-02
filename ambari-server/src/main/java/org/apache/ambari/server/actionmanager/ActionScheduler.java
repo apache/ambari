@@ -40,7 +40,6 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.CommandReport;
@@ -50,6 +49,7 @@ import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.listeners.tasks.TaskStatusListener;
+import org.apache.ambari.server.events.publishers.AgentCommandsPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -113,9 +113,6 @@ class ActionScheduler implements Runnable {
   private UnitOfWork unitOfWork;
 
   @Inject
-  private ActionQueue actionQueue;
-
-  @Inject
   private Clusters clusters;
 
   @Inject
@@ -143,6 +140,9 @@ class ActionScheduler implements Runnable {
    */
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private AgentCommandsPublisher agentCommandsPublisher;
 
   /**
    * The current thread's reference to the {@link EntityManager}.
@@ -221,7 +221,6 @@ class ActionScheduler implements Runnable {
    * @param sleepTimeMilliSec
    * @param actionTimeoutMilliSec
    * @param db
-   * @param actionQueue
    * @param fsmObject
    * @param maxAttempts
    * @param hostsMap
@@ -234,16 +233,15 @@ class ActionScheduler implements Runnable {
    * @param roleCommandOrderProvider
    */
   protected ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec, ActionDBAccessor db,
-                            ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
+                            Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
                             UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
                             Configuration configuration, Provider<EntityManager> entityManagerProvider,
                             HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory,
-                            RoleCommandOrderProvider roleCommandOrderProvider) {
+                            RoleCommandOrderProvider roleCommandOrderProvider, AgentCommandsPublisher agentCommandsPublisher) {
 
     sleepTime = sleepTimeMilliSec;
     actionTimeout = actionTimeoutMilliSec;
     this.db = db;
-    this.actionQueue = actionQueue;
     clusters = fsmObject;
     this.maxAttempts = (short) maxAttempts;
     this.hostsMap = hostsMap;
@@ -255,6 +253,7 @@ class ActionScheduler implements Runnable {
     this.hostRoleCommandFactory = hostRoleCommandFactory;
     jpaPublisher = null;
     this.roleCommandOrderProvider = roleCommandOrderProvider;
+    this.agentCommandsPublisher = agentCommandsPublisher;
 
     serverActionExecutor = new ServerActionExecutor(db, sleepTime);
     initializeCaches();
@@ -266,7 +265,6 @@ class ActionScheduler implements Runnable {
    * @param sleepTimeMilliSec
    * @param actionTimeoutMilliSec
    * @param db
-   * @param actionQueue
    * @param fsmObject
    * @param maxAttempts
    * @param hostsMap
@@ -277,14 +275,15 @@ class ActionScheduler implements Runnable {
    * @param hostRoleCommandFactory
    */
   protected ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec, ActionDBAccessor db,
-                            ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
+                            Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
                             UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
                             Configuration configuration, Provider<EntityManager> entityManagerProvider,
-                            HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory) {
+                            HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory,
+                            AgentCommandsPublisher agentCommandsPublisher) {
 
-    this(sleepTimeMilliSec, actionTimeoutMilliSec, db, actionQueue, fsmObject, maxAttempts, hostsMap, unitOfWork,
+    this(sleepTimeMilliSec, actionTimeoutMilliSec, db, fsmObject, maxAttempts, hostsMap, unitOfWork,
             ambariEventPublisher, configuration, entityManagerProvider, hostRoleCommandDAO, hostRoleCommandFactory,
-            null);
+            null, agentCommandsPublisher);
   }
 
   /**
@@ -379,7 +378,6 @@ class ActionScheduler implements Runnable {
           LOG.debug("There are no stages currently in progress.");
         }
 
-        actionQueue.updateListOfHostsWithPendingTask(null);
         return;
       }
 
@@ -398,7 +396,6 @@ class ActionScheduler implements Runnable {
           LOG.debug("There are no stages currently in progress.");
         }
 
-        actionQueue.updateListOfHostsWithPendingTask(null);
         return;
       }
 
@@ -411,8 +408,6 @@ class ActionScheduler implements Runnable {
 
       List<String> hostsWithPendingTasks = hostRoleCommandDAO.getHostsWithPendingTasks(
           iLowestRequestIdInProgress, iHighestRequestIdInProgress);
-
-      actionQueue.updateListOfHostsWithPendingTask(new HashSet<>(hostsWithPendingTasks));
 
       // filter the stages in progress down to those which can be scheduled in
       // parallel
@@ -452,7 +447,7 @@ class ActionScheduler implements Runnable {
 
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<>();
-        Multimap<String, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
+        Multimap<Long, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
 
         Map<String, RoleStats> roleStats =
           processInProgressStage(stage, commandsToSchedule, commandsToEnqueue);
@@ -555,10 +550,12 @@ class ActionScheduler implements Runnable {
           if (Role.AMBARI_SERVER_ACTION.name().equals(cmd.getRole())) {
             serverActionExecutor.awake();
           } else {
-            commandsToEnqueue.put(cmd.getHostname(), cmd);
+            commandsToEnqueue.put(clusters.getHost(cmd.getHostname()).getHostId(), cmd);
           }
         }
-        actionQueue.enqueueAll(commandsToEnqueue.asMap());
+        if (!commandsToEnqueue.isEmpty()) {
+          agentCommandsPublisher.sendAgentCommand(commandsToEnqueue);
+        }
         LOG.debug("==> Finished.");
 
         if (!configuration.getParallelStageExecution()) { // If disabled
@@ -742,7 +739,7 @@ class ActionScheduler implements Runnable {
    * whether stage has succeeded or failed
    */
   protected Map<String, RoleStats> processInProgressStage(Stage s, List<ExecutionCommand> commandsToSchedule,
-                                                          Multimap<String, AgentCommand> commandsToEnqueue) throws AmbariException {
+                                                          Multimap<Long, AgentCommand> commandsToEnqueue) throws AmbariException {
     LOG.debug("==> Collecting commands to schedule...");
     // Map to track role status
     Map<String, RoleStats> roleStats = initRoleStats(s);
@@ -873,7 +870,6 @@ class ActionScheduler implements Runnable {
 
             // Dequeue command
             LOG.info("Removing command from queue, host={}, commandId={} ", host, c.getCommandId());
-            actionQueue.dequeue(host, c.getCommandId());
           } else {
             cancelCommandOnTimeout(Collections.singletonList(s.getHostRoleCommand(host, roleStr)), commandsToEnqueue);
 
@@ -1213,7 +1209,7 @@ class ActionScheduler implements Runnable {
   /**
    * Aborts all stages that belong to requests that are being cancelled
    */
-  private void processCancelledRequestsList() {
+  private void processCancelledRequestsList() throws AmbariException {
     synchronized (requestsToBeCancelled) {
       // Now, cancel stages completely
       for (Long requestId : requestsToBeCancelled) {
@@ -1257,22 +1253,16 @@ class ActionScheduler implements Runnable {
    * @param hostRoleCommands a list of hostRoleCommands
    * @param reason why the request is being cancelled
    */
-  void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) {
+  void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) throws AmbariException {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
       // There are no server actions in actionQueue
       if (!Role.AMBARI_SERVER_ACTION.equals(hostRoleCommand.getRole())) {
-        if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED) {
-          // Dequeue all tasks that have been already scheduled for sending to agent
-          actionQueue.dequeue(hostRoleCommand.getHostName(),
-              hostRoleCommand.getExecutionCommandWrapper().
-              getExecutionCommand().getCommandId());
-        }
         if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED ||
               hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
           CancelCommand cancelCommand = new CancelCommand();
           cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
           cancelCommand.setReason(reason);
-          actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+          agentCommandsPublisher.sendAgentCommand(hostRoleCommand.getHostId(), cancelCommand);
         }
       }
 
@@ -1292,7 +1282,7 @@ class ActionScheduler implements Runnable {
     }
   }
 
-  void cancelCommandOnTimeout(Collection<HostRoleCommand> hostRoleCommands, Multimap<String, AgentCommand> commandsToEnqueue) {
+  void cancelCommandOnTimeout(Collection<HostRoleCommand> hostRoleCommands, Multimap<Long, AgentCommand> commandsToEnqueue) {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
       // There are no server actions in actionQueue
       if (!Role.AMBARI_SERVER_ACTION.equals(hostRoleCommand.getRole())) {
@@ -1301,7 +1291,7 @@ class ActionScheduler implements Runnable {
           CancelCommand cancelCommand = new CancelCommand();
           cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
           cancelCommand.setReason("Stage timeout");
-          commandsToEnqueue.put(hostRoleCommand.getHostName(), cancelCommand);
+          commandsToEnqueue.put(hostRoleCommand.getHostId(), cancelCommand);
         }
       }
     }

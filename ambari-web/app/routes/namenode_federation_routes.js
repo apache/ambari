@@ -91,6 +91,8 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('nameNodeFederationWizardController');
+      controller.saveNameServiceId(router.get('nameNodeFederationWizardStep1Controller.content.nameServiceId'));
       router.transitionTo('step2');
     }
   }),
@@ -109,6 +111,16 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      var wizardController = router.get('nameNodeFederationWizardController');
+      var stepController = router.get('nameNodeFederationWizardStep2Controller');
+      var currentNN = stepController.get('servicesMasters').filterProperty('component_name', 'NAMENODE').filterProperty('isInstalled', true);
+      var additionalNN = stepController.get('servicesMasters').filterProperty('component_name', 'NAMENODE').filterProperty('isInstalled', false);
+      var nnHost = {
+        currentNN: currentNN.mapProperty('selectedHost'),
+        additionalNN: additionalNN.mapProperty('selectedHost')
+      };
+      wizardController.saveSelectedHosts(nnHost);
+      wizardController.saveMasterComponentHosts(stepController);
       router.transitionTo('step3');
     },
     back: function (router) {
@@ -130,6 +142,9 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('nameNodeFederationWizardController');
+      var stepController = router.get('nameNodeFederationWizardStep3Controller');
+      controller.saveServiceConfigProperties(stepController);
       router.transitionTo('step4');
     },
     back: Em.Router.transitionTo('step2')

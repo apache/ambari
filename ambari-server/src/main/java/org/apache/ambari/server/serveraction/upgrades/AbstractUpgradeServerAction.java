@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
@@ -58,6 +59,9 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
    */
   @Inject
   private UpgradeContextFactory m_upgradeContextFactory;
+
+  @Inject
+  protected AgentConfigsHolder agentConfigsHolder;
 
   /**
    * Gets an initialized {@link UpgradeContext} for the in-progress upgrade.

@@ -65,6 +65,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   submitButtonClicked: false,
 
   isRecommendedLoaded: false,
+
+  /**
+   * Indicates if all stepConfig objects are created
+   */
+  stepConfigsCreated: false,
+
+  /**
+   * Define state of next button on credentials tab
+   */
+  credentialsTabNextEnabled: false,
+
   /**
    * used in services_config.js view to mark a config with security icon
    */
@@ -78,11 +89,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   overrideToAdd: null,
 
+  isInstaller: true, //todo: refactor using of this property
+
   /**
    * Is installer controller used
    * @type {bool}
    */
-  isInstaller: true,
+  isInstallWizard: function () {
+    return this.get('content.controllerName') === 'installerController';
+  }.property('content.controllerName'),
 
   /**
    * List of config groups
@@ -116,6 +131,29 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   isAppliedConfigLoaded: true,
 
+  /**
+   * Is there validation issues
+   * @type {bool}
+   */
+  hasErrors: false,
+
+  /**
+   * Total number of recommendation and validation issues
+   * @type {number}
+   */
+  issuesCounter: 0,
+
+  /**
+   * Number of ui-side validation issues
+   * @type {number}
+   */
+  validationsCounter: 0,
+
+  /**
+   * Tab objects to represent each config category tab
+   */
+  tabs: [],
+
   isConfigsLoaded: Em.computed.and('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
 
   transitionInProgress: Em.computed.alias('App.router.btnClickInProgress'),
@@ -134,7 +172,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   errorsCount: function() {
     return this.get('selectedService.configsWithErrors').filter(function(c) {
-      return Em.isNone(c.get('widget'));
+      return Em.isNone(c.get('isInDefaultTheme'));
     }).length;
   }.property('selectedService.configsWithErrors.length'),
 
@@ -146,8 +184,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (!this.get('stepConfigs.length')) return true;
     if (this.get('submitButtonClicked')) return true;
     if (App.get('router.btnClickInProgress')) return true;
-    return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible");
-  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'App.router.btnClickInProgress'),
+    return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0)
+      || this.get("miscModalVisible")
+      || !!this.get('configErrorList.criticalIssues.length');
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'App.router.btnClickInProgress', 'configErrorList.criticalIssues.length'),
 
   /**
    * List of selected to install service names
@@ -187,6 +227,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       return self.get('installedServiceNames').contains(item.get('serviceName'));
     });
   }.property('installedServiceNames.length'),
+
+  requiredChanges: function () {
+    return this.get('recommendations').filterProperty('isEditable', false);
+  }.property('recommendatios.@each.isEditable'),
 
   /**
    * List of master components
@@ -305,6 +349,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       submitButtonClicked: false,
       isSubmitDisabled: true,
       isRecommendedLoaded: false,
+      stepConfigsCreated: false,
       initialRecommendations: []
     });
     App.ServiceConfigGroup.find().filterProperty('isDefault', false).forEach(function (record) {
@@ -540,6 +585,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }
     this.set('stepConfigs', serviceConfigs);
+    this.set('stepConfigsCreated', true);
     this.checkHostOverrideInstaller();
     this.selectProperService();
     var isInstallerWizard = (this.get("content.controllerName") === 'installerController');
@@ -1693,10 +1739,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   postSubmit: function () {
     var self = this;
     this.set('submitButtonClicked', true);
-    this.serverSideValidation().done(function() {
-      self.serverSideValidationCallback();
-    })
-      .fail(function (value) {
+    if (this.get('isInstallWizard')) {
+      this.serverSideValidationCallback();
+    } else {
+      this.serverSideValidation().done(function () {
+        self.serverSideValidationCallback();
+      }).fail(function (value) {
         if ("invalid_configs" === value) {
           self.set('submitButtonClicked', false);
           App.set('router.nextBtnClickInProgress', false);
@@ -1706,6 +1754,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           self.serverSideValidationCallback();
         }
       });
+    }
   },
 
   /**
@@ -1781,6 +1830,236 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
      return this.get('stepConfigs').reduce(function (allConfigs, service) {
       return allConfigs.concat(service.get('configs').filterProperty('isSecureConfig'));
     }, []);
+  },
+
+  selectService: function (event) {
+    this.set('selectedService', event.context);
+  },
+
+  /**
+   * Set initial state for <code>tabs</code>
+   */
+  initTabs: function () {
+    var storedConfigs = this.get('content.serviceConfigProperties');
+    var tabs = [
+      Em.Object.create({
+        name: 'credentials',
+        displayName: 'Credentials',
+        icon: 'glyphicon-lock',
+        isActive: false,
+        isDisabled: false,
+        isSkipped: false,
+        tabView: App.CredentialsTabOnStep7View
+      }),
+      Em.Object.create({
+        name: 'databases',
+        displayName: 'Databases',
+        icon: 'glyphicon-align-justify',
+        isActive: false,
+        isDisabled: false,
+        isSkipped: false,
+        tabView: App.DatabasesTabOnStep7View
+      }),
+      Em.Object.create({
+        name: 'directories',
+        displayName: 'Directories',
+        icon: 'glyphicon-folder-open',
+        isActive: false,
+        isDisabled: false,
+        isSkipped: false,
+        tabView: App.DirectoriesTabOnStep7View
+      }),
+      Em.Object.create({
+        name: 'accounts',
+        displayName: 'Accounts',
+        icon: 'glyphicon-user',
+        isActive: false,
+        isDisabled: false,
+        isSkipped: false,
+        tabView: App.AccountsTabOnStep7View
+      }),
+      Em.Object.create({
+        name: 'all-configurations',
+        displayName: 'All Configurations',
+        icon: 'glyphicon-wrench',
+        isActive: false,
+        isDisabled: false,
+        isSkipped: false,
+        tabView: App.ServicesConfigView
+      })
+    ];
+
+    this.set('tabs', tabs);
+
+    this.setSkippedTabs();
+
+    if (storedConfigs && storedConfigs.length) {
+      tabs.findProperty('name', 'all-configurations').set('isActive', true);
+    } else {
+      tabs.findProperty('isDisabled', false).set('isActive', true);
+      this.disableTabs();
+    }
+
+  },
+
+  setSkippedTabs: function () {
+    var servicesWithCredentials = App.Tab.find().filterProperty('themeName', 'credentials').mapProperty('serviceName');
+    var servicesWithDatabase = App.Tab.find().filterProperty('themeName', 'database').mapProperty('serviceName');
+    var selectedServices = this.get('content.selectedServiceNames');
+    var tabs = this.get('tabs');
+    var disableCredentials = true;
+    var disableDatabases = true;
+
+    for (var i = 0; i < selectedServices.length; i++) {
+      var serviceName = selectedServices[i];
+      disableCredentials = disableCredentials && servicesWithCredentials.indexOf(serviceName) === -1;
+      disableDatabases = disableDatabases && servicesWithDatabase.indexOf(serviceName) === -1;
+      if (!disableCredentials && !disableDatabases) break;
+    }
+
+    tabs.findProperty('name', 'credentials').setProperties({
+      isDisabled: disableCredentials,
+      isSkipped: disableCredentials
+    });
+    tabs.findProperty('name', 'databases').setProperties({
+      isDisabled: disableDatabases,
+      isSkipped: disableDatabases
+    });
+  },
+
+  /**
+   * Get index of current (active) tab
+   */
+  currentTabIndex: function () {
+    return this.get('tabs').findIndex(function (tab) {
+      return tab.get('isActive');
+    });
+  }.property('tabs.@each.isActive'),
+
+  /**
+   * Get name of current (active) tab
+   */
+  currentTabName: function () {
+    var activeTab = this.get('tabs').findProperty('isActive');
+    return activeTab ? activeTab.get('name') : '';
+  }.property('tabs.@each.isActive'),
+
+  /**
+   * Make selected tab active, show tab's content
+   * @param event
+   * @returns {boolean}
+   */
+  selectTab: function (event) {
+    var tab = event.context;
+    if (!tab.get('isDisabled')) {
+      $('a[href=#' + tab.name + ']').tab('show');
+      this.get('tabs').setEach('isActive', false);
+      tab.set('isActive', true);
+    }
+    return false;
+  },
+
+  /**
+   * Get disabled state for next button
+   */
+  isNextDisabled: function () {
+    var tabName = this.get('currentTabName');
+    switch (tabName) {
+      case 'credentials':
+        return !this.get('credentialsTabNextEnabled');
+      case 'all-configurations':
+        return this.get('isSubmitDisabled');
+      default:
+        return false;
+    }
+  }.property('tabs.@each.isActive', 'isSubmitDisabled', 'credentialsTabNextEnabled'),
+
+  /**
+   * Set isDisabled state for tabs
+   */
+  disableTabs: function () {
+    this.get('tabs').rejectProperty('isSkipped').setEach('isDisabled', !this.get('tabs').findProperty('name', 'credentials').get('isDisabled') && !this.get('credentialsTabNextEnabled'));
+  }.observes('credentialsTabNextEnabled'),
+
+  /**
+   * Select specified service and put property name in filter input
+   * @param event - jQuery event
+   */
+  showConfigProperty: function (event) {
+    var serviceName = event.context.serviceName;
+    var propertyName = event.context.propertyName || event.context.name;
+    var stepConfig = this.get('stepConfigs').findProperty('serviceName', serviceName)
+      || this.get('stepConfigs').findProperty('displayName', serviceName);
+    this.set('selectedService', stepConfig);
+    this.get('filterColumns').setEach('selected', false);
+    Em.run.next(this, function () {
+      this.set('filter', propertyName);
+    });
+  },
+
+  /**
+   * Show bell animation
+   */
+  ringBell: function () {
+    $('#issues-bell').addClass('animated');
+    $('#issues-counter').addClass('animated');
+    setTimeout(function () {
+      $('#issues-bell').removeClass('animated');
+    }, 2000);
+    setTimeout(function () {
+      $('#issues-counter').removeClass('animated');
+    }, 300);
+  },
+
+  /**
+   * Set <code>issuesCounter</code> and run bell animation if needed
+   */
+  setIssues: function () {
+    var recommendations = this.get('changedProperties.length');
+    var validations = this.get('stepConfigs').mapProperty('configsWithErrors.length').reduce(Em.sum, 0);
+    var configErrorList = this.get('configErrorList');
+    this.set('issuesCounter', recommendations + validations + configErrorList.get('issues.length') + configErrorList.get('criticalIssues.length'));
+    if (validations > this.get('validationsCounter')) {
+      this.ringBell();
+    }
+    this.set('hasErrors', !!validations);
+    this.set('validationsCounter', validations);
+  }.observes('changedProperties.length', 'stepConfigs.@each.configsWithErrors.length', 'configErrorList.issues.length', 'configErrorList.criticalIssues.length'),
+
+  /**
+   * Next button action handler
+   */
+  next: function (index) {
+    var tabs = this.get('tabs');
+    var currentTabIndex = typeof(index) === 'number' ? index : this.get('currentTabIndex');
+    if (tabs.length - 1 > currentTabIndex) {
+      tabs[currentTabIndex].set('isActive', false);
+      if (tabs[currentTabIndex + 1].get('isDisabled')) {
+        this.next(++currentTabIndex);
+      } else {
+        tabs[currentTabIndex + 1].set('isActive', true);
+      }
+    } else {
+      this.submit();
+    }
+  },
+
+  /**
+   * Back button action handler
+   */
+  back: function (index) {
+    var tabs = this.get('tabs');
+    var currentTabIndex = typeof(index) === 'number' ? index : this.get('currentTabIndex');
+    if (currentTabIndex > 0) {
+      tabs[currentTabIndex].set('isActive', false);
+      if (tabs[currentTabIndex - 1].get('isDisabled')) {
+        this.back(--currentTabIndex);
+      } else {
+        tabs[currentTabIndex - 1].set('isActive', true);
+      }
+    } else {
+      App.router.send('back');
+    }
   }
 
 });

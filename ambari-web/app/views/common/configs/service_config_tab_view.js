@@ -22,10 +22,6 @@ App.ServiceConfigTab = Em.View.extend({
 
   tagName: 'li',
 
-  selectService: function (event) {
-    this.set('controller.selectedService', event.context);
-  },
-
   didInsertElement: function () {
     var serviceName = this.get('controller.selectedService.serviceName');
     this.$('a[href="#' + serviceName + '"]').tab('show');

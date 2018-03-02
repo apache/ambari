@@ -72,7 +72,7 @@ conf_dir = "/etc/oozie/conf"
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 user_group = config['configurations']['cluster-env']['user_group']
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 oozie_tmp_dir = "/var/tmp/oozie"
@@ -110,7 +110,7 @@ oozie_env_sh_template = config['configurations']['oozie-env']['content']
 
 oracle_driver_jar_name = "ojdbc6.jar"
 
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.service.JPAService.jdbc.username']
 oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
 oozie_jdbc_connection_url = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.url", "")

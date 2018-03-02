@@ -37,22 +37,32 @@ class TestHookBeforeInstall(RMFTestCase):
                        command="hook",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Repository', 'HDP-2.0._',
-        action=['create'],
-        base_url='http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0',
-        components=['HDP', 'main'],
-        mirror_list=None,
-        repo_file_name='HDP',
-        repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0'
+    self.assertResourceCalled('Repository', 'HDP-2.6-repo-1',
+        append_to_file = False,
+        base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60',
+        action = ['create'],
+        components = [u'HDP', 'main'],
+        repo_template = '[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+        repo_file_name = None,
+        mirror_list = None,
     )
-
-    self.assertResourceCalled('Repository', 'KIBANA-4.5',
-        action=['create'],
-        base_url='http://packages.elastic.co/kibana/4.5/debian',
-        components=['stable', 'com1 com2'],
-        mirror_list=None,
-        repo_file_name='KIBANA',
-        repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0'
+    self.assertResourceCalled('Repository', 'HDP-2.6-GPL-repo-1',
+        append_to_file = True,
+        base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60',
+        action = ['create'],
+        components = [u'HDP-GPL', 'main'],
+        repo_template = '[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+        repo_file_name = None,
+        mirror_list = None,
+    )
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.22-repo-1',
+        append_to_file = True,
+        base_url = 'http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6',
+        action = ['create'],
+        components = [u'HDP-UTILS', 'main'],
+        repo_template = '[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
+        repo_file_name = None,
+        mirror_list = None,
     )
 
     self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
@@ -65,7 +75,7 @@ class TestHookBeforeInstall(RMFTestCase):
     with open(config_file, "r") as f:
       command_json = json.load(f)
 
-    command_json['hostLevelParams']['repo_info'] = "[]"
+    command_json['repositoryFile']['repositories'] = []
 
     self.executeScript("before-INSTALL/scripts/hook.py",
                        classname="BeforeInstallHook",

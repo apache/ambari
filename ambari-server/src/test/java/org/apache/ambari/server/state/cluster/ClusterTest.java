@@ -55,6 +55,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -155,6 +156,7 @@ public class ClusterTest {
   public void setup() throws Exception {
     injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule()).with(new MockModule()));
     injector.getInstance(GuiceJpaInitializer.class);
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
     configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
@@ -1084,7 +1086,7 @@ public class ClusterTest {
     assertEquals(2, injector.getProvider(EntityManager.class).get().
         createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
 
-    c1.deleteService("HDFS");
+    c1.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
 
     assertEquals(1, c1.getServices().size());
     assertEquals(1, injector.getProvider(EntityManager.class).get().
@@ -1123,7 +1125,7 @@ public class ClusterTest {
       c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
 
-    c1.deleteService("HDFS");
+    c1.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
 
     Assert.assertEquals(0, c1.getServices().size());
     Assert.assertEquals(0, c1.getServiceConfigVersions().size());
@@ -2025,6 +2027,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfig1);
     clusterEntity.getClusterConfigEntities().add(clusterConfig1);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    Config config = configFactory.createExisting(cluster, clusterConfig1);
+    cluster.addConfig(config);
 
     cluster.createServiceConfigVersion(serviceName, "", "version-1", null);
 
@@ -2042,6 +2046,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfig2);
     clusterEntity.getClusterConfigEntities().add(clusterConfig2);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    config = configFactory.createExisting(cluster, clusterConfig1);
+    cluster.addConfig(config);
 
     // before creating the new service config version, we need to push the
     // service's desired repository forward
@@ -2148,6 +2154,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfigNewStack);
     clusterEntity.getClusterConfigEntities().add(clusterConfigNewStack);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    Config config = configFactory.createExisting(cluster, clusterConfigNewStack);
+    cluster.addConfig(config);
 
     // before creating the new service config version, we need to push the
     // service's desired repository forward
@@ -2288,6 +2296,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfig);
     clusterEntity.getClusterConfigEntities().add(clusterConfig);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    Config config = configFactory.createExisting(cluster, clusterConfig);
+    cluster.addConfig(config);
 
     // create the service version association
     cluster.createServiceConfigVersion(serviceName, "", "version-1", null);
@@ -2310,6 +2320,8 @@ public class ClusterTest {
     clusterDAO.createConfig(newClusterConfig);
     clusterEntity.getClusterConfigEntities().add(newClusterConfig);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    config = configFactory.createExisting(cluster, newClusterConfig);
+    cluster.addConfig(config);
 
     // before creating the new service config version, we need to push the
     // service's desired repository forward

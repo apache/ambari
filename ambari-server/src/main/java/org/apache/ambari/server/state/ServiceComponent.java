@@ -19,9 +19,11 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface ServiceComponent {
@@ -43,6 +45,8 @@ public interface ServiceComponent {
   void setRecoveryEnabled(boolean recoveryEnabled);
 
   String getServiceName();
+
+  String getDisplayName();
 
   long getClusterId();
 
@@ -73,6 +77,8 @@ public interface ServiceComponent {
 
   Map<String, ServiceComponentHost> getServiceComponentHosts();
 
+  Set<String> getServiceComponentsHosts();
+
   ServiceComponentHost getServiceComponentHost(String hostname)
       throws AmbariException;
 
@@ -94,15 +100,15 @@ public interface ServiceComponent {
 
   boolean canBeRemoved();
 
-  void deleteAllServiceComponentHosts() throws AmbariException;
+  void deleteAllServiceComponentHosts(DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException;
 
-  void deleteServiceComponentHosts(String hostname)
+  void deleteServiceComponentHosts(String hostname, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException;
 
   ServiceComponentHost addServiceComponentHost(
       String hostName) throws AmbariException;
 
-  void delete() throws AmbariException;
+  void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 
   /**
    * This method computes the state of the repository that's associated with the desired

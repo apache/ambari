@@ -693,7 +693,6 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     }
 
     App.router.get('clusterController').updateClusterData();
-    App.router.get('updateController').updateComponentConfig(Em.K);
     var popupOptions = this.getSaveConfigsPopupOptions(result);
     if (currentService) {
       App.router.get('clusterController').triggerQuickLinksUpdate();

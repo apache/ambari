@@ -35,10 +35,10 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 stack_root = Script.get_stack_root()
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
@@ -70,7 +70,7 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 pig_env_sh_template = config['configurations']['pig-env']['content']
 
 # not supporting 32 bit jdk.
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 
 pig_properties = config['configurations']['pig-properties']['content']
 

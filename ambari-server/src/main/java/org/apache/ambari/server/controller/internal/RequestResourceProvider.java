@@ -127,6 +127,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String REQUEST_PROGRESS_PERCENT_ID = REQUESTS + "/progress_percent";
   public static final String REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID = REQUESTS + "/remove_pending_host_requests";
   public static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = REQUESTS + "/pending_host_request_count";
+  public static final String REQUEST_USER_NAME = REQUESTS + "/user_name";
   public static final String COMMAND_ID = "command";
   public static final String SERVICE_ID = "service_name";
   public static final String COMPONENT_ID = "component_name";
@@ -176,7 +177,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_PROGRESS_PERCENT_ID,
     REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID,
     REQUEST_PENDING_HOST_REQUEST_COUNT_ID,
-    REQUEST_CLUSTER_HOST_INFO_ID
+    REQUEST_CLUSTER_HOST_INFO_ID,
+    REQUEST_USER_NAME
   );
 
   // ----- Constructors ----------------------------------------------------
@@ -800,7 +802,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
     }
 
-
     Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
 
     // get summaries from TopologyManager for logical requests
@@ -852,6 +853,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             hostRoleStatusCounters.get(HostRoleStatus.QUEUED), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_COMPLETED_TASK_CNT_ID,
             hostRoleStatusCounters.get(HostRoleStatus.COMPLETED), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_USER_NAME, entity.getUserName(), requestedPropertyIds);
 
     return resource;
   }

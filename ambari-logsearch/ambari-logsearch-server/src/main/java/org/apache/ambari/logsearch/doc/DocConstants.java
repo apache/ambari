@@ -95,7 +95,6 @@ public class DocConstants {
     public static final String GET_ANY_GRAPH_COUNT_DATA_OD = "Get the data generic enough to use for graph plots (yAzis is always count)";
     public static final String GET_HOST_LIST_BY_COMPONENT_OD = "Get host list of components";
     public static final String GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD = "Get service logs schema fields";
-    public static final String GET_HADOOP_SERVICE_CONFIG_JSON_OD = "Get the json having meta data of services supported by logsearch";
     public static final String GET_AFTER_BEFORE_LOGS_OD = "Preview feature data";
     public static final String REQUEST_CANCEL = "Cancel an ongoing solr request";
     public static final String GET_HOST_LOGFILES_OD = "Get the log files of the components of a host";

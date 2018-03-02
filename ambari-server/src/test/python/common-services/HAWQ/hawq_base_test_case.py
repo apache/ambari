@@ -72,7 +72,7 @@ class HawqBaseTestCase(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hdfs-client.xml',
         conf_dir = self.CONF_DIR,
         configurations = self.getConfig()['configurations']['hdfs-client'],
-        configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-client'],
+        configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-client'],
         group = self.GPADMIN,
         owner = self.GPADMIN,
         mode = 0644
@@ -81,7 +81,7 @@ class HawqBaseTestCase(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'yarn-client.xml',
         conf_dir = self.CONF_DIR,
         configurations = self.getConfig()['configurations']['yarn-client'],
-        configuration_attributes = self.getConfig()['configuration_attributes']['yarn-client'],
+        configuration_attributes = self.getConfig()['configurationAttributes']['yarn-client'],
         group = self.GPADMIN,
         owner = self.GPADMIN,
         mode = 0644
@@ -90,7 +90,7 @@ class HawqBaseTestCase(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hawq-site.xml',
         conf_dir = self.CONF_DIR,
         configurations = self.getConfig()['configurations']['hawq-site'],
-        configuration_attributes = self.getConfig()['configuration_attributes']['hawq-site'],
+        configuration_attributes = self.getConfig()['configurationAttributes']['hawq-site'],
         group = self.GPADMIN,
         owner = self.GPADMIN,
         mode = 0644

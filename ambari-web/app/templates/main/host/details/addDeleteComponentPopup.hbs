@@ -19,7 +19,7 @@
 {{#if view.lastComponent}}
   <div class="alert alert-danger">
     <div class="row row-no-pad">
-      <div class="col-md-1">{{view Ember.Checkbox checkedBinding="view.parentView.isChecked"}}</div>
+      <div class="col-md-1 checkbox-colored-background">{{view App.CheckboxView checkedBinding="view.parentView.isChecked"}}</div>
       <div class="col-md-11">{{{view.lastComponentError}}}</div>
     </div>
   </div>

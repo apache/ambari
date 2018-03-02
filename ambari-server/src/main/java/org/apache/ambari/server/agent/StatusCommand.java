@@ -34,42 +34,54 @@ public class StatusCommand extends AgentCommand {
   }
 
   @SerializedName("clusterName")
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
   private String clusterName;
 
   @SerializedName("serviceName")
+  @com.fasterxml.jackson.annotation.JsonProperty("serviceName")
   private String serviceName;
 
   @SerializedName("role")
   private String role;
 
   @SerializedName("componentName")
+  @com.fasterxml.jackson.annotation.JsonProperty("componentName")
   private String componentName;
 
   @SerializedName("configurations")
+  @com.fasterxml.jackson.annotation.JsonProperty("configurations")
   private Map<String, Map<String, String>> configurations;
 
   @SerializedName("configuration_attributes")
+  @com.fasterxml.jackson.annotation.JsonProperty("configuration_attributes")
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
   @SerializedName("commandParams")
+  @com.fasterxml.jackson.annotation.JsonProperty("commandParams")
   private Map<String, String> commandParams = new HashMap<>();
 
   @SerializedName("hostLevelParams")
+  @com.fasterxml.jackson.annotation.JsonProperty("hostLevelParams")
   private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("hostname")
+  @com.fasterxml.jackson.annotation.JsonProperty("hostname")
   private String hostname = null;
 
   @SerializedName("payloadLevel")
+  @com.fasterxml.jackson.annotation.JsonProperty("payloadLevel")
   private StatusCommandPayload payloadLevel = StatusCommandPayload.DEFAULT;
 
   @SerializedName("desiredState")
+  @com.fasterxml.jackson.annotation.JsonProperty("desiredState")
   private State desiredState;
 
   @SerializedName("hasStaleConfigs")
+  @com.fasterxml.jackson.annotation.JsonProperty("hasStaleConfigs")
   private Boolean hasStaleConfigs;
 
   @SerializedName("executionCommandDetails")
+  @com.fasterxml.jackson.annotation.JsonProperty("executionCommandDetails")
   private ExecutionCommand executionCommand;
 
   public ExecutionCommand getExecutionCommand() {

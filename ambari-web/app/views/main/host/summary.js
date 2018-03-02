@@ -224,7 +224,58 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @type {String}
    */
   timeSinceHeartBeat: function () {
-    var d = this.get('content.rawLastHeartBeatTime');
-    return d ? $.timeago(d) : '';
-  }.property('content.rawLastHeartBeatTime')
+    if (this.get('content.isNotHeartBeating')) {
+      const d = this.get('content.lastHeartBeatTime');
+      return d ? $.timeago(d) : '';
+    }
+    //when host hasn't lost heartbeat we assume that last heartbeat was a minute ago
+    return Em.I18n.t('common.minute.ago');
+  }.property('content.lastHeartBeatTime', 'content.isNotHeartBeating'),
+
+  /**
+   * Get clients with custom commands
+   */
+  clientsWithCustomCommands: function() {
+    var clients = this.get('clients').rejectProperty('componentName', 'KERBEROS_CLIENT');
+    var options = [];
+    var clientWithCommands;
+    clients.forEach(function(client) {
+      var componentName = client.get('componentName');
+      var customCommands = App.StackServiceComponent.find(componentName).get('customCommands');
+
+      if (customCommands.length) {
+        clientWithCommands = {
+          label: client.get('displayName'),
+          commands: []
+        };
+        customCommands.forEach(function(command) {
+          clientWithCommands.commands.push({
+            label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+            service: client.get('service.serviceName'),
+            hosts: client.get('hostName'),
+            component: componentName,
+            command: command
+          });
+        });
+
+        options.push(clientWithCommands);
+      }
+    });
+
+    return options;
+  }.property('controller'),
+
+  /**
+   * Call installClients method from controller for not installed client components
+   */
+  installClients: function () {
+    this.get('controller').installClients(this.get('notInstalledClientComponents'));
+  },
+
+  /**
+   * Call installClients method from controller for not install failed client components
+   */
+  reinstallClients: function () {
+    this.get('controller').installClients(this.get('installFailedClients'));
+  }
 });

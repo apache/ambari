@@ -101,6 +101,7 @@ import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-inde
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
+import {ComponentLabelPipe} from "@app/pipes/component-label";
 
 export function HttpLoaderFactory(http: Http): TranslateHttpLoader {
   // adding 'static' parameter to step over mock data request
@@ -164,7 +165,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     HistoryItemControlsComponent,
     LogIndexFilterComponent,
     TimeZoneAbbrPipe,
-    TimerSecondsPipe
+    TimerSecondsPipe,
+    ComponentLabelPipe
   ],
   imports: [
     BrowserModule,

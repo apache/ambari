@@ -295,6 +295,12 @@ public interface Host extends Comparable {
   void setState(HostState state);
 
   /**
+   * Set state of host's state machine.
+   * @param state
+   */
+  void setStateMachineState(HostState state);
+
+  /**
    * Get the prefix path of all logs
    * @return prefix
    */
@@ -408,6 +414,8 @@ public interface Host extends Comparable {
    * @see ComponentInfo#isVersionAdvertised()
    */
   boolean hasComponentsAdvertisingVersions(StackId stackId) throws AmbariException;
+
+  void calculateHostStatus(Long clusterId) throws AmbariException;
 
   /**
    * Gets whether all host components whose desired repository version matches

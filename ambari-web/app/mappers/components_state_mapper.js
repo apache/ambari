@@ -224,5 +224,18 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     }
 
     console.timeEnd('App.componentsStateMapper execution time');
+  },
+
+  updateStaleConfigsHosts: function(componentName, hosts) {
+    let staleConfigHostsMap = App.cache.staleConfigsComponentHosts;
+
+    staleConfigHostsMap[componentName] = hosts;
+    if (App.HostComponent.isMaster(componentName)) {
+      App.MasterComponent.find(componentName).set('staleConfigHosts', hosts);
+    } else if (App.HostComponent.isSlave(componentName)) {
+      App.SlaveComponent.find(componentName).set('staleConfigHosts', hosts);
+    } else if (App.HostComponent.isClient(componentName)) {
+      App.ClientComponent.find(componentName).set('staleConfigHosts', hosts);
+    }
   }
 });

@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.persist.PersistModule;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
@@ -195,5 +196,8 @@ public class AmbariJpaPersistModule extends PersistModule {
       }
     }
     return valid;
+  }
+
+  private class LocalTypeLiteral<T> extends TypeLiteral<T> {
   }
 }
