@@ -28,7 +28,7 @@ class InsertFromQueryGeneratorSpecTest extends Specification {
     setup:
     List<ColumnInfo> colInfos = Arrays.asList(new ColumnInfo("col1", "STRING"), new ColumnInfo("col2", "INT"), new ColumnInfo("col3", "VARCHAR", 255),
             new ColumnInfo("col4", "CHAR", 25))
-    InsertFromQueryInput insertFromQueryInput = new InsertFromQueryInput("d1", "t1", "d2", "t2", colInfos, false)
+    InsertFromQueryInput insertFromQueryInput = new InsertFromQueryInput("d1", "t1", "d2", "t2", Collections.emptyList(), colInfos, null, false)
     InsertFromQueryGenerator generator = new InsertFromQueryGenerator(insertFromQueryInput);
 
     when:
@@ -41,14 +41,16 @@ class InsertFromQueryGeneratorSpecTest extends Specification {
     String queryStr = query.get();
 
     then:
-    queryStr == "INSERT INTO TABLE `d2`.`t2` SELECT `col1`, `col2`, `col3`, `col4` FROM `d1.t1` ;"
+    queryStr == "set hive.exec.dynamic.partition.mode=nonstrict;\n" +
+            " FROM `d1`.`t1` tempTable INSERT INTO TABLE `d2`.`t2` SELECT tempTable.`col1`, tempTable.`col2`, tempTable.`col3`, tempTable.`col4`;"
   }
 
-  def "insert from with unhexing"() {
+  def "insert from with unhexing and partitioned columns"() {
     setup:
     List<ColumnInfo> colInfos = Arrays.asList(new ColumnInfo("col1", "STRING"), new ColumnInfo("col2", "INT"), new ColumnInfo("col3", "VARCHAR", 255),
             new ColumnInfo("col4", "CHAR", 25))
-    InsertFromQueryInput insertFromQueryInput = new InsertFromQueryInput("d1", "t1", "d2", "t2", colInfos, true)
+    List<ColumnInfo> partititionedCols = Arrays.asList(new ColumnInfo("col5", "STRING"), new ColumnInfo("col6", "INT"))
+    InsertFromQueryInput insertFromQueryInput = new InsertFromQueryInput("d1", "t1", "d2", "t2", partititionedCols, colInfos, null, true)
     InsertFromQueryGenerator generator = new InsertFromQueryGenerator(insertFromQueryInput);
 
     when:
@@ -61,6 +63,7 @@ class InsertFromQueryGeneratorSpecTest extends Specification {
     String queryStr = query.get();
 
     then:
-    queryStr == "INSERT INTO TABLE `d2`.`t2` SELECT UNHEX(`col1`), `col2`, UNHEX(`col3`), UNHEX(`col4`) FROM `d1.t1` ;"
+    queryStr ==  "set hive.exec.dynamic.partition.mode=nonstrict;\n" +
+            " FROM `d1`.`t1` tempTable INSERT INTO TABLE `d2`.`t2` PARTITION (`col5`,`col6` )  SELECT UNHEX(tempTable.`col1`), tempTable.`col2`, UNHEX(tempTable.`col3`), UNHEX(tempTable.`col4`), UNHEX(tempTable.`col5`), tempTable.`col6`;"
   }
 }
