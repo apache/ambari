@@ -1619,26 +1619,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         stackId = cx.getStackIdFromVersions(cx.getTargetVersions());
       }
 
-      List<UpgradePack.IntermediateStack> intermediateStacks = upgradePack.getIntermediateStacks();
       ConfigUpgradePack configUpgradePack = s_metaProvider.get().getConfigUpgradePack(
         stackId.getStackName(), stackId.getStackVersion());
-
-      // merge in any intermediate stacks
-      if (null != intermediateStacks) {
-
-        // start out with the source stack's config pack
-        ArrayList<ConfigUpgradePack> configPacksToMerge = Lists.newArrayList(configUpgradePack);
-
-        for (UpgradePack.IntermediateStack intermediateStack : intermediateStacks) {
-          ConfigUpgradePack intermediateConfigUpgradePack = s_metaProvider.get().getConfigUpgradePack(
-            stackId.getStackName(), intermediateStack.version);
-
-          configPacksToMerge.add(intermediateConfigUpgradePack);
-        }
-
-        // merge all together
-        configUpgradePack = ConfigUpgradePack.merge(configPacksToMerge);
-      }
 
       return configUpgradePack;
     }
