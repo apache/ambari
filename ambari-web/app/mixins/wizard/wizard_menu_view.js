@@ -65,6 +65,11 @@ App.WizardMenuMixin = Em.Mixin.create({
   isStep8Disabled: isStepDisabled("step8"),
   isStep9Disabled: isStepDisabled("step9"),
   isStep10Disabled: isStepDisabled("step10"),
+  isDownloadOptionsDisabled: isStepDisabled("downloadOptions"),
+  isSelectUpgradeOptionsDisabled: isStepDisabled('selectUpgradeOptions'),
+  isReviewConfigsDisabled: isStepDisabled('reviewConfigs'),
+  isSelectUpgradeTypeDisabled: isStepDisabled('selectUpgradeType'),
+  isUpgradeSummaryDisabled: isStepDisabled('upgradeSummary'),
 
   isStep0Completed: isStepCompleted("step0"),
   isStep1Completed: isStepCompleted("step1"),
@@ -82,6 +87,11 @@ App.WizardMenuMixin = Em.Mixin.create({
   isStep7Completed: isStepCompleted("step7"),
   isStep8Completed: isStepCompleted("step8"),
   isStep9Completed: isStepCompleted("step9"),
-  isStep10Completed: isStepCompleted("step10")
+  isStep10Completed: isStepCompleted("step10"),
+  isDownloadOptionsCompleted: isStepCompleted("downloadOptions"),
+  isSelectUpgradeOptionsCompleted: isStepCompleted("selectUpgradeOptions"),
+  isReviewConfigsCompleted: isStepCompleted("reviewConfigs"),
+  isSelectUpgradeTypeCompleted: isStepCompleted("selectUpgradeType"),
+  isUpgradeSummaryCompleted: isStepCompleted("upgradeSummary")
 
 });

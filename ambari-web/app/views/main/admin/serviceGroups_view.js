@@ -42,7 +42,7 @@ App.MainAdminServiceGroupsView = Ember.View.extend({
           },
           createUpgradePlan: function () {
             this.get('parentView').hide();
-            App.router.transitionTo();
+            App.router.transitionTo('main.admin.createUpgradePlan');
           }
         })
       });

@@ -717,7 +717,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       if(!isDisabled){
         router.transitionTo(event.context.url);
       }
-    }
+    },
+
+    createUpgradePlan: require('routes/mpack_upgrade_routes')
 
   }),
 

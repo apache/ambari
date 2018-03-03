@@ -42,6 +42,7 @@ var InitialData = {
     content: {}
   },
   'HighAvailabilityWizard': {},
+  'CreateUpgradePlanWizard': {},
   'RMHighAvailabilityWizard': {},
   'AddHawqStandbyWizard': {},
   'RemoveHawqStandbyWizard': {},

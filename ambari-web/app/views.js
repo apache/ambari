@@ -240,6 +240,14 @@ require('views/main/admin/stack_upgrade/versions_view');
 require('views/main/admin/stack_upgrade/menu_view');
 require('views/main/admin/stack_upgrade/failed_hosts_modal_view');
 require('views/main/admin/stack_and_upgrade_view');
+require('views/main/admin/mpack_upgrade_view');
+require('views/main/admin/mpack_upgrade_view');
+require('views/main/admin/mpackUpgrade/downloadOptions_view');
+require('views/main/admin/mpackUpgrade/downloadMpacks_view');
+require('views/main/admin/mpackUpgrade/selectUpgradeOptions_view');
+require('views/main/admin/mpackUpgrade/reviewConfigs_view');
+require('views/main/admin/mpackUpgrade/selectUpgradeType_view');
+require('views/main/admin/mpackUpgrade/upgradeSummary_view');
 
 require('views/main/admin/kerberos');
 require('views/main/admin/kerberos/disable_view');
