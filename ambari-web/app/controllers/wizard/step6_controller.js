@@ -661,9 +661,14 @@ App.WizardStep6Controller = App.WizardStepController.extend(App.HostComponentVal
     var bluePrintsForValidation = this.getValidationBlueprint();
     this.set('content.recommendationsHostGroups', bluePrintsForValidation);
 
+    //TODO - mpacks: Hard coded to use first mpack. Update when we are installing multiple mpacks.
+    const selectedMpacks = this.get('content.selectedMpacks');
+
     return this.validateSelectedHostComponents({
       services: services,
       hosts: hostNames,
+      stackName: selectedMpacks[0].name,
+      stackVersion: selectedMpacks[0].version,
       blueprint: bluePrintsForValidation
     });
   },

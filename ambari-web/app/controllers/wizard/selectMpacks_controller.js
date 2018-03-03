@@ -67,17 +67,16 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
                 displayed: index === 0 ? true : false, //by default, display first version
                 id: mpack.RegistryMpackInfo.mpack_name + version.RegistryMpackVersionInfo.mpack_version,
                 version: version.RegistryMpackVersionInfo.mpack_version,
-                docUrl: version.RegistryMpackVersionInfo.mpack_dock_url,
-                mpackUrl: version.RegistryMpackVersionInfo.mpack_url,
-                stackName: version.RegistryMpackVersionInfo.stack_name,
-                stackVersion: version.RegistryMpackVersionInfo.stack_version,
-                services: version.RegistryMpackVersionInfo.services ? version.RegistryMpackVersionInfo.services.map(service => {
+                mpackUrl: version.RegistryMpackVersionInfo.mpack_uri,
+                logoUrl: version.RegistryMpackVersionInfo.mpack_logo_uri,
+                docUrl: version.RegistryMpackVersionInfo.mpack_doc_uri,
+                services: version.RegistryMpackVersionInfo.modules ? version.RegistryMpackVersionInfo.modules.map(service => {
                   return Em.Object.create({
                     selected: false,
                     displayed: index === 0 ? true : false, //by default, display first version
                     id: mpack.RegistryMpackInfo.mpack_name + version.RegistryMpackVersionInfo.mpack_version + service.name,
                     name: service.name,
-                    displayName: service.displayName || service.name, //TODO: mpacks - remove fallback when display name is available
+                    displayName: service.displayName,
                     version: service.version
                   })
                 }) : []
@@ -574,10 +573,8 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
         ({
           id: service.id,
           name: service.name,
-          mpackName: service.mpackVersion.name,
-          mpackVersion: service.mpackVersion.version,
-          stackName: service.mpackVersion.stackName,
-          stackVersion: service.mpackVersion.stackVersion
+          mpackName: service.mpackVersion.mpack.name,
+          mpackVersion: service.mpackVersion.version
         })
       );
       this.set('content.selectedServices', selectedServices);

@@ -44,7 +44,7 @@
       {{/if}}
       <button class="collapse-button" type="button" data-toggle="collapse" {{bindAttr data-target="view.collapseTarget" aria-controls="view.collapseId"}} aria-expanded="false"></button>
     </div>
-    <div {{bindAttr id="view.collapseId"}} class="panel-collapse collapse">
+    <div {{bindAttr id="view.collapseId" class=":panel-collapse :collapse view.collapsed::in"}}>
       <div class="panel-body">
         {{#if view.bodyClass}}
           {{view view.bodyClass}}

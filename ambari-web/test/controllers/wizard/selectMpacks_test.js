@@ -22,361 +22,406 @@ require('controllers/wizard/selectMpacks_controller');
 
 var wizardSelectMpacksController;
 var registry = {
-  "href": "http://localhost:8080/api/v1/registries?fields=mpacks/*,mpacks/versions/RegistryMpackVersionInfo/*",
-  "items": [
+  "href" : "http://localhost:8080/api/v1/registries?fields=mpacks/*,mpacks/versions/RegistryMpackVersionInfo/*,scenarios/*",
+  "items" : [
     {
-      "href": "http://localhost:8080/api/v1/registries/1",
-      "RegistryInfo": {
-        "registry_id": 1
+      "href" : "http://localhost:8080/api/v1/registries/1",
+      "RegistryInfo" : {
+        "registry_id" : 1
       },
-      "mpacks": [
+      "mpacks" : [
         {
-          "href": "http://localhost:8080/api/v1/registries/1/mpacks/EDW",
-          "RegistryMpackInfo": {
-            "mpack_description": "Buzz word buzz word, buzz word buzz word buzz word buzz wording buzzy buzz word.",
-            "mpack_display_name": null,
-            "mpack_logo_url": "https://public-repo-1.hortonworks.com/logos/edw-logo.png",
-            "mpack_name": "EDW",
-            "registry_id": 1
+          "href" : "http://localhost:8080/api/v1/registries/1/mpacks/HDPCORE",
+          "RegistryMpackInfo" : {
+            "mpack_description" : "Hortonworks Data Platform Core",
+            "mpack_id" : "hdpcore",
+            "mpack_logo_uri" : "https://public-repo-1.hortonworks.com/logos/hdpcore-logo.png",
+            "mpack_name" : "HDPCORE",
+            "registry_id" : 1
           },
-          "versions": [
+          "versions" : [
             {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/EDW/versions/1.0.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": [
+              "href" : "http://localhost:8080/api/v1/registries/1/mpacks/HDPCORE/versions/1.0.0-b85",
+              "RegistryMpackVersionInfo" : {
+                "modules" : [
                   {
-                    "name": "HDPCore",
-                    "minVersion": "3.2.0",
-                    "maxVersion": "3.2.99"
-                  }
-                ],
-                "mpack_buildnum": "1.0.0.0-111",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/EDW1/EDW-1.0.0/index.html",
-                "mpack_name": "EDW",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/EDW/1.0.0.0-111/edw-ambari-mpack-1.0.0.0-111.tar.gz",
-                "mpack_version": "1.0.0",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "HBASE",
-                    "version": "2.0.0"
+                    "id" : "zookeeper_clients",
+                    "displayName" : "ZooKeeper Clients",
+                    "description" : "Clients for ZooKeeper",
+                    "category" : "CLIENT",
+                    "name" : "ZOOKEEPER_CLIENTS",
+                    "version" : "3.4.0.0-b29",
+                    "definition" : "zookeeper_clients-3.4.0.0-b29-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "zookeeper",
+                        "name" : "ZOOKEEPER",
+                        "dependencyType" : "RUNTIME"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "zookeeper_client",
+                        "name" : "ZOOKEEPER_CLIENT",
+                        "category" : "CLIENT",
+                        "isExternal" : false,
+                        "version" : "3.4.0.0-b29"
+                      }
+                    ]
                   },
                   {
-                    "name": "HIVE",
-                    "version": "2.0.0"
+                    "id" : "zookeeper",
+                    "displayName" : "ZooKeeper",
+                    "description" : "Centralized service which provides highly reliable distributed coordination",
+                    "category" : "SERVER",
+                    "name" : "ZOOKEEPER",
+                    "version" : "3.4.0.0-b29",
+                    "definition" : "zookeeper-3.4.0.0-b29-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "zookeeper_clients",
+                        "name" : "ZOOKEEPER_CLIENTS",
+                        "dependencyType" : "INSTALL"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "zookeeper_server",
+                        "name" : "ZOOKEEPER_SERVER",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.4.0.0-b29"
+                      }
+                    ]
+                  },
+                  {
+                    "id" : "hdfs",
+                    "displayName" : "HDFS",
+                    "description" : "Apache Hadoop Distributed File System",
+                    "category" : "SERVER",
+                    "name" : "HDFS",
+                    "version" : "3.0.0.0-b54",
+                    "definition" : "hdfs-3.0.0.0-b54-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "hadoop_clients",
+                        "name" : "HADOOP_CLIENTS",
+                        "dependencyType" : "INSTALL"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "namenode",
+                        "name" : "NAMENODE",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "datanode",
+                        "name" : "DATANODE",
+                        "category" : "SLAVE",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "journalnode",
+                        "name" : "JOURNALNODE",
+                        "category" : "SLAVE",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "secondary_namenode",
+                        "name" : "SECONDARY_NAMENODE",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "zkfc",
+                        "name" : "ZKFC",
+                        "category" : "SLAVE",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "nfs_gateway",
+                        "name" : "NFS_GATEWAY",
+                        "category" : "SLAVE",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      }
+                    ]
+                  },
+                  {
+                    "id" : "yarn",
+                    "displayName" : "YARN",
+                    "description" : "Apache Hadoop Yarn",
+                    "category" : "SERVER",
+                    "name" : "YARN",
+                    "version" : "3.0.0.0-b54",
+                    "definition" : "yarn-3.0.0.0-b54-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "hadoop_clients",
+                        "name" : "HADOOP_CLIENTS",
+                        "dependencyType" : "INSTALL"
+                      },
+                      {
+                        "id" : "hdfs",
+                        "name" : "HDFS",
+                        "dependencyType" : "RUNTIME"
+                      },
+                      {
+                        "id" : "mapreduce2",
+                        "name" : "MAPREDUCE2",
+                        "dependencyType" : "RUNTIME"
+                      },
+                      {
+                        "id" : "zookeeper",
+                        "name" : "ZOOKEEPER",
+                        "dependencyType" : "RUNTIME"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "resourcemanager",
+                        "name" : "RESOURCEMANAGER",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "nodemanager",
+                        "name" : "NODEMANAGER",
+                        "category" : "SLAVE",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "app_timeline_server",
+                        "name" : "APP_TIMELINE_SERVER",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "timeline_reader",
+                        "name" : "TIMELINE_READER",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      },
+                      {
+                        "id" : "yarn_registry_dns",
+                        "name" : "YARN_REGISTRY_DNS",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      }
+                    ]
+                  },
+                  {
+                    "id" : "mapreduce2",
+                    "displayName" : "MAPREDUCE2",
+                    "description" : "Apache Hadoop Mapreduce2",
+                    "category" : "SERVER",
+                    "name" : "MAPREDUCE2",
+                    "version" : "3.0.0.0-b54",
+                    "definition" : "mapreduce2-3.0.0.0-b54-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "hadoop_clients",
+                        "name" : "HADOOP_CLIENTS",
+                        "dependencyType" : "INSTALL"
+                      },
+                      {
+                        "id" : "yarn",
+                        "name" : "YARN",
+                        "dependencyType" : "RUNTIME"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "historyserver",
+                        "name" : "HISTORYSERVER",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      }
+                    ]
+                  },
+                  {
+                    "id" : "hadoop_clients",
+                    "displayName" : "Hadoop client",
+                    "description" : "Clients for HDFS, YARN and MAPREDUCE services",
+                    "category" : "CLIENT",
+                    "name" : "HADOOP_CLIENTS",
+                    "version" : "3.0.0.0-b54",
+                    "definition" : "hadoop_clients-3.0.0.0-b54-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "hdfs",
+                        "name" : "HDFS",
+                        "dependencyType" : "RUNTIME"
+                      },
+                      {
+                        "id" : "yarn",
+                        "name" : "YARN",
+                        "dependencyType" : "RUNTIME"
+                      },
+                      {
+                        "id" : "mapreduce2",
+                        "name" : "MAPREDUCE2",
+                        "dependencyType" : "RUNTIME"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "hadoop_client",
+                        "name" : "HADOOP_CLIENT",
+                        "category" : "CLIENT",
+                        "isExternal" : false,
+                        "version" : "3.0.0.0-b54"
+                      }
+                    ]
                   }
-                ]
+                ],
+                "mpack_dependencies" : null,
+                "mpack_description" : "Hortonworks Data Platform Core",
+                "mpack_doc_uri" : "http://docs.hortonworks.com/HDPDocuments/HDPCORE1/HDPCORE-1.0.0/index.html",
+                "mpack_id" : "hdpcore",
+                "mpack_logo_uri" : "https://public-repo-1.hortonworks.com/logos/hdpcore-logo.png",
+                "mpack_name" : "HDPCORE",
+                "mpack_uri" : "http://dev.hortonworks.com.s3.amazonaws.com/HDPCORE/centos7/1.x/BUILDS/1.0.0-b85/mpack.json",
+                "mpack_version" : "1.0.0-b85",
+                "registry_id" : 1
               }
             }
           ]
         },
         {
-          "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore",
-          "RegistryMpackInfo": {
-            "mpack_description": "The latest Hortonworks release for Hortonworks Data Platlform Core (HDFS, ZooKeeper, YARN, MapReduce 2) and Hortonworks SmartSense™.",
-            "mpack_display_name": null,
-            "mpack_logo_url": "https://public-repo-1.hortonworks.com/logos/hdpcore-logo.png",
-            "mpack_name": "HDPCore",
-            "registry_id": 1
+          "href" : "http://localhost:8080/api/v1/registries/1/mpacks/ODS",
+          "RegistryMpackInfo" : {
+            "mpack_description" : "Hortonworks Operational Data Store",
+            "mpack_id" : "ods",
+            "mpack_logo_uri" : "https://public-repo-1.hortonworks.com/logos/ods-logo.png",
+            "mpack_name" : "ODS",
+            "registry_id" : 1
           },
-          "versions": [
+          "versions" : [
             {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore/versions/3.0.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": null,
-                "mpack_buildnum": "3.0.0.0-247",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDPCore3/HDPCore-3.0.0/index.html",
-                "mpack_name": "HDPCore",
-                "mpack_url": "http://localhost:8080/resources/mpack-repo/hdp-ambari-mpack-3.0.0.0-247.tar.gz",
-                "mpack_version": "3.0.0",
-                "registry_id": 1,
-                "services": [
+              "href" : "http://localhost:8080/api/v1/registries/1/mpacks/ODS/versions/1.0.0-b27",
+              "RegistryMpackVersionInfo" : {
+                "modules" : [
                   {
-                    "name": "HDFS",
-                    "version": "3.0.0"
+                    "id" : "hbase",
+                    "displayName" : "HBase",
+                    "description" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
+                    "category" : "SERVER",
+                    "name" : "HBASE",
+                    "version" : "2.0.0.0-b23",
+                    "definition" : "hbase-2.0.0.0-b23-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "zookeeper_clients",
+                        "name" : "ZOOKEEPER_CLIENTS",
+                        "dependencyType" : "INSTALL"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "hbase_master",
+                        "name" : "HBASE_MASTER",
+                        "category" : "MASTER",
+                        "isExternal" : false,
+                        "version" : "2.0.0.0-b23"
+                      },
+                      {
+                        "id" : "hbase_regionserver",
+                        "name" : "HBASE_REGIONSERVER",
+                        "category" : "SLAVE",
+                        "isExternal" : false,
+                        "version" : "2.0.0.0-b23"
+                      }
+                    ]
                   },
                   {
-                    "name": "ZOOKEEPER",
-                    "version": "3.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore/versions/3.1.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": null,
-                "mpack_buildnum": "3.1.0.0-234",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDPCore3/HDPCore-3.1.0/index.html",
-                "mpack_name": "HDPCore",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/HDPCore/3.1.0.0-234/hdpcore-ambari-mpack-3.1.0.0-234.tar.gz",
-                "mpack_version": "3.1.0",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "HDFS",
-                    "version": "3.0.0"
-                  },
-                  {
-                    "name": "ZOOKEEPER",
-                    "version": "3.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore/versions/3.1.1",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": null,
-                "mpack_buildnum": "3.1.1.0-111",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDPCore3/HDPCore-3.1.1/index.html",
-                "mpack_name": "HDPCore",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/HDPCore/3.1.1.0-111/hdpcore-ambari-mpack-3.1.1.0-111.tar.gz",
-                "mpack_version": "3.1.1",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "HDFS",
-                    "version": "3.0.0"
-                  },
-                  {
-                    "name": "ZOOKEEPER",
-                    "version": "3.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore/versions/3.2.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": null,
-                "mpack_buildnum": "3.2.0.0-345",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDPCore3/HDPCore-3.2.0/index.html",
-                "mpack_name": "HDPCore",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/HDPCore/3.2.0.0-345/hdpcore-ambari-mpack-3.2.0.0-345.tar.gz",
-                "mpack_version": "3.2.0",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "HDFS",
-                    "version": "3.0.0"
-                  },
-                  {
-                    "name": "ZOOKEEPER",
-                    "version": "3.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore/versions/3.2.1",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": null,
-                "mpack_buildnum": "3.2.1.0-333",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDPCore3/HDPCore-3.2.1/index.html",
-                "mpack_name": "HDPCore",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/HDPCore/3.2.1.0-333/hdpcore-ambari-mpack-3.2.1.0-333.tar.gz",
-                "mpack_version": "3.2.1",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "HDFS",
-                    "version": "3.0.0"
-                  },
-                  {
-                    "name": "ZOOKEEPER",
-                    "version": "3.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore/versions/3.3.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": null,
-                "mpack_buildnum": "3.3.0.0-456",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDPCore3/HDPCore-3.3.0/index.html",
-                "mpack_name": "HDPCore",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/HDPCore/3.3.0.0-456/hdpcore-ambari-mpack-3.3.0.0-456.tar.gz",
-                "mpack_version": "3.3.0",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "HDFS",
-                    "version": "3.0.0"
-                  },
-                  {
-                    "name": "ZOOKEEPER",
-                    "version": "3.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDPCore/versions/3.4.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": null,
-                "mpack_buildnum": "3.4.0.0-567",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDPCore3/HDPCore-3.4.0/index.html",
-                "mpack_name": "HDPCore",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/HDPCore/3.4.0.0-567/hdpcore-ambari-mpack-3.4.0.0-567.tar.gz",
-                "mpack_version": "3.4.0",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "HDFS",
-                    "version": "3.0.0"
-                  },
-                  {
-                    "name": "ZOOKEEPER",
-                    "version": "3.0.0"
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDS",
-          "RegistryMpackInfo": {
-            "mpack_description": "Buzz word buzz word, buzz word buzz word buzz word buzz wording buzzy buzz word.",
-            "mpack_display_name": null,
-            "mpack_logo_url": "https://public-repo-1.hortonworks.com/logos/hds-logo.png",
-            "mpack_name": "HDS",
-            "registry_id": 1
-          },
-          "versions": [
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDS/versions/3.0.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": [
-                  {
-                    "name": "HDPCore",
-                    "minVersion": "3.1.0",
-                    "maxVersion": "3.2.99"
+                    "id" : "hbase_clients",
+                    "displayName" : "HBase",
+                    "description" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
+                    "category" : "CLIENT",
+                    "name" : "HBASE_CLIENTS",
+                    "version" : "2.0.0.0-b23",
+                    "definition" : "hbase_clients-2.0.0.0-b23-definition.tar.gz",
+                    "dependencies" : [
+                      {
+                        "id" : "zookeeper_clients",
+                        "name" : "ZOOKEEPER_CLIENTS",
+                        "dependencyType" : "INSTALL"
+                      }
+                    ],
+                    "components" : [
+                      {
+                        "id" : "hbase-client",
+                        "name" : null,
+                        "category" : null,
+                        "isExternal" : null,
+                        "version" : "2.0.0.0-b23"
+                      }
+                    ]
                   }
                 ],
-                "mpack_buildnum": "3.0.0.0-247",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDS4/HDS-4.3.0/index.html",
-                "mpack_name": "HDS",
-                "mpack_url": "http://localhost:8080/resources/mpack-repo/hds-ambari-mpack-3.0.0.0-247.tar.gz",
-                "mpack_version": "3.0.0",
-                "registry_id": 1,
-                "services": [
+                "mpack_dependencies" : [
                   {
-                    "name": "SPARK",
-                    "version": "2.0.0"
-                  },
-                  {
-                    "name": "ZEPPELIN",
-                    "version": "1.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDS/versions/4.3.0",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": [
-                  {
-                    "name": "HDPCore",
-                    "minVersion": "3.1.0",
-                    "maxVersion": "3.2.99"
+                    "id" : "hdpcore",
+                    "name" : "HDPCORE",
+                    "minVersion" : "1.0.0",
+                    "maxVersion" : "1.0.99"
                   }
                 ],
-                "mpack_buildnum": "4.3.0.0-444",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDS4/HDS-4.3.0/index.html",
-                "mpack_name": "HDS",
-                "mpack_url": "file:///var/lib/ambari-server/resources/mpack-repo/hds-ambari-mpack-4.3.0.0-444.tar.gz",
-                "mpack_version": "4.3.0",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "SPARK",
-                    "version": "2.0.0"
-                  },
-                  {
-                    "name": "ZEPPELIN",
-                    "version": "1.0.0"
-                  }
-                ]
-              }
-            },
-            {
-              "href": "http://localhost:8080/api/v1/registries/1/mpacks/HDS/versions/4.3.1",
-              "RegistryMpackVersionInfo": {
-                "compatible_mpacks": [
-                  {
-                    "name": "HDPCore",
-                    "minVersion": "3.2.0",
-                    "maxVersion": "3.3.99"
-                  }
-                ],
-                "mpack_buildnum": "4.3.1.0-555",
-                "mpack_doc_url": "http://docs.hortonworks.com/HDPDocuments/HDS4/HDS-4.3.1/index.html",
-                "mpack_name": "HDS",
-                "mpack_url": "https://public-repo-1.hortonworks.com/mpacks/HDS/4.3.1.0-555/hds-ambari-mpack-4.3.1.0-555.tar.gz",
-                "mpack_version": "4.3.1",
-                "registry_id": 1,
-                "services": [
-                  {
-                    "name": "SPARK",
-                    "version": "2.0.0"
-                  },
-                  {
-                    "name": "ZEPPELIN",
-                    "version": "1.0.0"
-                  }
-                ]
+                "mpack_description" : "Hortonworks Operational Data Store",
+                "mpack_doc_uri" : "http://docs.hortonworks.com/HDPDocuments/ODS1/ODS-1.0.0/index.html",
+                "mpack_id" : "ods",
+                "mpack_logo_uri" : "https://public-repo-1.hortonworks.com/logos/ods-logo.png",
+                "mpack_name" : "ODS",
+                "mpack_uri" : "http://dev.hortonworks.com.s3.amazonaws.com/ODS/centos7/1.x/BUILDS/1.0.0-b27/mpack.json",
+                "mpack_version" : "1.0.0-b27",
+                "registry_id" : 1
               }
             }
           ]
         }
       ],
-      "scenarios": [
+      "scenarios" : [
         {
-          "href": "http://localhost:8080/api/v1/registries/1/scenarios/DataScience",
-          "RegistryScenarioInfo": {
-            "registry_id": 1,
-            "scenario_description": "Data Science and Machine Learning",
-            "scenario_mpacks": [
+          "href" : "http://localhost:8080/api/v1/registries/1/scenarios/DataStore",
+          "RegistryScenarioInfo" : {
+            "registry_id" : 1,
+            "scenario_description" : "Operational Data Store",
+            "scenario_mpacks" : [
               {
-                "name": "HDP"
+                "name" : "HDPCORE"
               },
               {
-                "name": "HDS"
+                "name" : "ODS"
               }
             ],
-            "scenario_name": "DataScience"
+            "scenario_name" : "DataStore"
           }
         },
         {
-          "href": "http://localhost:8080/api/v1/registries/1/scenarios/EDW",
-          "RegistryScenarioInfo": {
-            "registry_id": 1,
-            "scenario_description": "EDW or SQL Analytics",
-            "scenario_mpacks": [
+          "href" : "http://localhost:8080/api/v1/registries/1/scenarios/Hadoop",
+          "RegistryScenarioInfo" : {
+            "registry_id" : 1,
+            "scenario_description" : "Hadoop Core Platform",
+            "scenario_mpacks" : [
               {
-                "name": "HDP"
-              },
-              {
-                "name": "EDW"
+                "name" : "HDPCORE"
               }
             ],
-            "scenario_name": "EDW"
-          }
-        },
-        {
-          "href": "http://localhost:8080/api/v1/registries/1/scenarios/Hadoop",
-          "RegistryScenarioInfo": {
-            "registry_id": 1,
-            "scenario_description": "Hadoop Core",
-            "scenario_mpacks": [
-              {
-                "name": "HDP"
-              }
-            ],
-            "scenario_name": "Hadoop"
+            "scenario_name" : "Hadoop"
           }
         }
       ]
@@ -449,17 +494,17 @@ describe('App.WizardSelectMpacksController', function () {
   describe('#loadStep', function () {
     it('adds previously selected services to selection', function () {
       wizardSelectMpacksController.set('content.selectedServices', [
-        { id: "HDPCore3.0.0ZOOKEEPER" },
-        { id: "HDPCore3.0.0HDFS" }
+        { id: "HDPCORE1.0.0-b85ZOOKEEPER" },
+        { id: "HDPCORE1.0.0-b85HDFS" }
       ]);
 
       wizardSelectMpacksController.loadStep();
       
-      var service = wizardSelectMpacksController.getServiceVersionById("HDPCore3.0.0ZOOKEEPER");
+      var service = wizardSelectMpacksController.getServiceVersionById("HDPCORE1.0.0-b85ZOOKEEPER");
       expect(service.get('selected')).to.be.true;
       expect(service.get('mpackVersion.selected')).to.be.true;
 
-      var service = wizardSelectMpacksController.getServiceVersionById("HDPCore3.0.0HDFS");
+      var service = wizardSelectMpacksController.getServiceVersionById("HDPCORE1.0.0-b85HDFS");
       expect(service.get('selected')).to.be.true;
       expect(service.get('mpackVersion.selected')).to.be.true;
     });
@@ -469,9 +514,8 @@ describe('App.WizardSelectMpacksController', function () {
     it('should return an array of mpacks matching the given names', function () {
       //this test assumes that mpackNames contains the names of all mpacks in the test registry data at the top of this file
       var mpackNames = [
-        'EDW',
-        'HDPCore',
-        'HDS'
+        'HDPCORE',
+        'ODS'
       ]
 
       var expected = wizardSelectMpacksController.get('content.mpacks');
@@ -962,20 +1006,18 @@ describe('App.WizardSelectMpacksController', function () {
           id: "id1",
           name: "name1",
           mpackVersion: {
+            mpack: { name: "mpackName1" },
             name: "mpackName1",
-            version: "1.0.0.0",
-            stackName: "stack1",
-            stackVersion: "1.0.0"
+            version: "1.0.0.0"
           }
         },
         {
           id: "id2",
           name: "name2",
           mpackVersion: {
+            mpack: { name: "mpackName2" },
             name: "mpackName2",
-            version: "1.0.0.0",
-            stackName: "stack1",
-            stackVersion: "1.0.0"
+            version: "1.0.0.0"
           }
         }
       ]);
@@ -1004,17 +1046,13 @@ describe('App.WizardSelectMpacksController', function () {
           id: "id1",
           name: "name1",
           mpackName: "mpackName1",
-          mpackVersion: "1.0.0.0",
-          stackName: "stack1",
-          stackVersion: "1.0.0"
+          mpackVersion: "1.0.0.0"
         },
         {
           id: "id2",
           name: "name2",
           mpackName: "mpackName2",
-          mpackVersion: "1.0.0.0",
-          stackName: "stack1",
-          stackVersion: "1.0.0"
+          mpackVersion: "1.0.0.0"
         }
       ];
 
