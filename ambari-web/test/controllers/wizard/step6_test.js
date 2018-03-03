@@ -130,6 +130,12 @@ describe('App.WizardStep6Controller', function () {
     it('should make checkbox checked', function () {
       controller.set('hosts', hostsObj);
       controller.set('content.clients', clientComponents);
+      controller.set('content.selectedMpacks', [
+        {
+          name: "mpack",
+          version: "1"
+        }
+      ]);
       controller.selectAllNodes(obj);
       expect(controller.get('hosts')).to.eql(Em.A([Em.Object.create({
         hasMaster: false,
@@ -170,6 +176,12 @@ describe('App.WizardStep6Controller', function () {
     it('should uncheck checkbox', function () {
       controller.set('hosts', hostsObj);
       controller.set('content.clients', clientComponents);
+      controller.set('content.selectedMpacks', [
+        {
+          name: "mpack",
+          version: "1"
+        }
+      ]);
       controller.deselectAllNodes(obj);
       expect(controller.get('hosts')).to.eql(Em.A([Em.Object.create({
         hasMaster: false,
@@ -1339,6 +1351,12 @@ describe('App.WizardStep6Controller', function () {
 
     beforeEach(function () {
       controller.get('content').setProperties({
+        selectedMpacks: [
+          {
+            name: "mpack",
+            version: "1"
+          }
+        ],
         recommendations: {
           blueprint: {
             host_groups: [

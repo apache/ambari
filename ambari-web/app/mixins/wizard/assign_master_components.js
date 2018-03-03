@@ -529,7 +529,12 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       if (self.get('recommendations')) {
         self.set('backFromNextStep', true);
       }
+      
+      //TODO - mpacks: Hard-coding to only ask for recommendations for first mpack. Need to change this when we are installing multiple mpacks.
+      const selectedMpacks = self.get('content.selectedMpacks');
       self.getRecommendedHosts({
+        stackName: selectedMpacks[0].name,
+        stackVersion: selectedMpacks[0].version,
         hosts: self.getHosts()
       }).then(function () {
         self.loadStepCallback(self.createComponentInstallationObjects(), self);
@@ -1167,10 +1172,14 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     }
 
     this.set('validationInProgress', true);
-
+    
+    //TODO - mpacks: Hard coded to request first mpack only. Must be changed when we are installing multiple mpacks.
+    const selectedMpacks = this.get('content.selectedMpacks');
     // load recommendations with partial request
     this.getRecommendedHosts({
       hosts: hostNames,
+      stackName: selectedMpacks[0].name,
+      stackVersion: selectedMpacks[0].version,
       components: this.getCurrentComponentHostMap()
     }).then(function() {
       self.validateSelectedHostComponents({
