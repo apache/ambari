@@ -46,6 +46,13 @@
       # Path to jsvc required by secure HDP 2.0 datanode
       export JSVC_HOME={{jsvc_path}}
 
+      # HADOOP_ROOT_LOGGER is shared by the hadoop client and the
+      # daemons. This is restrict to daemons only.
+      INVOKER="${0##*/}"
+      if [ "$INVOKER" == "hadoop-daemon.sh" ]; then
+        export HADOOP_ROOT_LOGGER=${HADOOP_ROOT_LOGGER:-{{hadoop_root_logger}}}
+      fi
+
 
       # The maximum amount of heap to use, in MB. Default is 1000.
       export HADOOP_HEAPSIZE="{{hadoop_heapsize}}"
