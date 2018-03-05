@@ -176,6 +176,7 @@
       </execute-stage>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
+        <condition xsi:type="config" type="cluster-env" property="stack_upgrade_express_skip_hbase_snapshot" comparison="not-equals" value="true"/>
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
           <function>take_snapshot</function>

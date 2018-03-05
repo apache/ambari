@@ -69,6 +69,7 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBase Backup">
+        <condition xsi:type="config" type="cluster-env" property="stack_upgrade_rolling_skip_hbase_snapshot" comparison="not-equals" value="true"/>
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
           <function>take_snapshot</function>
