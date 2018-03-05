@@ -472,8 +472,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
       </modules>
     </profile>
@@ -494,8 +492,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
       </modules>
     </profile>
     <profile>
@@ -508,8 +504,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
       </modules>
     </profile>
@@ -529,8 +523,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         </modules>
     </profile>
@@ -556,8 +548,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
         </modules>
     </profile>
     <profile>
