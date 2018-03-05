@@ -18,12 +18,25 @@ limitations under the License.
 
 """
 
+import os
 from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.libraries.functions.format import format
 
 
-def mysql_service(daemon_name=None, action='start'): 
+def get_daemon_name():
+  import status_params
+
+  for possible_daemon_name in status_params.POSSIBLE_DAEMON_NAMES:
+    daemon_path = os.path.join(status_params.SERVICES_DIR, possible_daemon_name)
+    if os.path.exists(daemon_path):
+      return possible_daemon_name
+
+  raise Fail("Could not find service daemon for mysql")
+
+def mysql_service(action='start'): 
+  daemon_name = get_daemon_name()
+  
   status_cmd = format("pgrep -l '^{process_name}$'")
   cmd = ('service', daemon_name, action)
 
