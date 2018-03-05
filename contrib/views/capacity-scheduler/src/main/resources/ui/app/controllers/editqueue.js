@@ -234,12 +234,12 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     * Returns inherited maximum applications for a queue
     */
    getInheritedMaximumApplications: function() {
-     var parentQ = this.store.getById('queue', this.get('content.parentPath').toLowerCase());
+     var parentQ = this.store.getById('queue', this.get('content.parentPath'));
      while (parentQ !== null) {
        if (parentQ.get('maximum_applications')) {
          return parentQ.get('maximum_applications');
        }
-       parentQ = this.store.getById('queue', parentQ.get('parentPath').toLowerCase());
+       parentQ = this.store.getById('queue', parentQ.get('parentPath'));
      }
      return this.get('scheduler.maximum_applications');
    },
@@ -272,12 +272,12 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     * Returns inherited maximum am resource percent for a queue
     */
    getInheritedMaxAmResourcePercent: function() {
-     var parentQ = this.store.getById('queue', this.get('content.parentPath').toLowerCase());
+     var parentQ = this.store.getById('queue', this.get('content.parentPath'));
      while (parentQ !== null) {
        if (parentQ.get('maximum_am_resource_percent')) {
          return parentQ.get('maximum_am_resource_percent');
        }
-       parentQ = this.store.getById('queue', parentQ.get('parentPath').toLowerCase());
+       parentQ = this.store.getById('queue', parentQ.get('parentPath'));
      }
      return this.get('scheduler.maximum_am_resource_percent');
    },
@@ -409,7 +409,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
         } else {
           permissions.push('*');
         }
-        currentQ = this.store.getById('queue', currentQ.get('parentPath').toLowerCase());
+        currentQ = this.store.getById('queue', currentQ.get('parentPath'));
       }
       permissions.reverse();//root permission at the 0th position.
       return permissions;
@@ -435,7 +435,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
      * @return {App.Queue}
      */
     parentQueue: function () {
-      return this.store.getById('queue', this.get('content.parentPath').toLowerCase());
+      return this.store.getById('queue', this.get('content.parentPath'));
     }.property('content.parentPath'),
 
     /*
@@ -538,7 +538,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
        };
        childrenQs.forEach(function(queue) {
          var qLabel = ctrl.store.getById('label', [queue.get('path'), labelName].join('.')),
-         parentQ = ctrl.store.getById('queue', queue.get('parentPath').toLowerCase());
+         parentQ = ctrl.store.getById('queue', queue.get('parentPath'));
          var cql = {
            label: qLabel,
            queue: queue,
@@ -597,13 +597,13 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
    getDefaultNodeLabelExpressionInherited: function() {
      var store = this.get('store'),
      currentQ = this.get('content'),
-     parentQ = store.getById('queue', currentQ.get('parentPath').toLowerCase()),
+     parentQ = store.getById('queue', currentQ.get('parentPath')),
      dnlexpr = null;
      while (parentQ !== null) {
        if (parentQ.get('default_node_label_expression') !== null) {
          return parentQ.get('default_node_label_expression');
        }
-       parentQ = store.getById('queue', parentQ.get('parentPath').toLowerCase());
+       parentQ = store.getById('queue', parentQ.get('parentPath'));
      }
      return dnlexpr;
    },
@@ -669,14 +669,14 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
    getInheritedQueuePreemption: function() {
      var store = this.get('store'),
      currentQ = this.get('content'),
-     parentQ = store.getById('queue', currentQ.get('parentPath').toLowerCase()),
+     parentQ = store.getById('queue', currentQ.get('parentPath')),
      preemption = '';
      while (parentQ !== null) {
        if (!parentQ.get('isPreemptionInherited')) {
          preemption = parentQ.get('disable_preemption');
          return (preemption==='true')?true:false;
        }
-       parentQ = store.getById('queue', parentQ.get('parentPath').toLowerCase());
+       parentQ = store.getById('queue', parentQ.get('parentPath'));
      }
      return preemption;
    },

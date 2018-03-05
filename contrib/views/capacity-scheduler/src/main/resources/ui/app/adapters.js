@@ -186,7 +186,6 @@ App.QueueAdapter = DS.Adapter.extend({
    *
    */
   find: function(store, type, id) {
-    id = id.toLowerCase();
     var record = store.getById(type,id);
     var key = type.typeKey;
     var json = {};

@@ -33,14 +33,14 @@ App.QueuesController = Ember.ArrayController.extend({
       this.set('isWaitingPath',true);
     },
     addQ:function (parentPath,name) {
-      if (!parentPath || this.get('hasNewQueue') || !this.store.hasRecordForId('queue',parentPath.toLowerCase())) {
+      if (!parentPath || this.get('hasNewQueue') || !this.store.hasRecordForId('queue',parentPath)) {
         return;
       }
       name = name || '';
       var newQueue,
           store = this.get('store'),
           existed = store.get('deletedQueues').findBy('path',[parentPath,name].join('.')),
-          leafQueueNames = store.getById('queue',parentPath.toLowerCase()).get('queuesArray'),
+          leafQueueNames = store.getById('queue',parentPath).get('queuesArray'),
           newInLeaf = Em.isEmpty(leafQueueNames),
           totalLeafCapacity,
           freeLeafCapacity;
@@ -51,7 +51,7 @@ App.QueuesController = Ember.ArrayController.extend({
 
         if (!newInLeaf) {
           totalLeafCapacity = leafQueueNames.reduce(function (capacity,queueName) {
-            return store.getById('queue', [parentPath,queueName].join('.').toLowerCase()).get('capacity') + capacity;
+            return store.getById('queue', [parentPath,queueName].join('.')).get('capacity') + capacity;
           },0);
 
           freeLeafCapacity = (totalLeafCapacity < 100) ? 100 - totalLeafCapacity : 0;
@@ -88,7 +88,7 @@ App.QueuesController = Ember.ArrayController.extend({
         this.set('newQueue',null);
       }
       if (record.isCurrent) {
-        this.transitionToRoute('queue',record.get('parentPath').toLowerCase())
+        this.transitionToRoute('queue',record.get('parentPath'))
           .then(Em.run.schedule('afterRender', function () {
             record.get('store').recurceRemoveQueue(record);
           }));
@@ -230,7 +230,7 @@ App.QueuesController = Ember.ArrayController.extend({
     newQueue.setProperties({
       name: props.name.replace(/\s/g, ''),
       path: props.parentPath+'.'+props.name,
-      id: (props.parentPath+'.'+props.name).toLowerCase()
+      id: (props.parentPath+'.'+props.name)
     });
 
   }.observes('newQueue.name'),

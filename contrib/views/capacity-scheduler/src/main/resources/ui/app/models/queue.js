@@ -99,7 +99,7 @@ App.Queue = DS.Model.extend({
 
       if (this.get('_accessAllLabels')) {
           labels.forEach(function (lb) {
-            var containsByParent = (Em.isEmpty(this.get('parentPath')))?true:this.store.getById('queue',this.get('parentPath').toLowerCase()).get('labels').findBy('name',lb.get('name'));
+            var containsByParent = (Em.isEmpty(this.get('parentPath')))?true:this.store.getById('queue',this.get('parentPath')).get('labels').findBy('name',lb.get('name'));
             if (!this.get('labels').contains(lb) && !!containsByParent) {
               this.get('labels').pushObject(lb);
             }

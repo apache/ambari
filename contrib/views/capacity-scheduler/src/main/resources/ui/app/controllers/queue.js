@@ -125,7 +125,7 @@ App.QueueController = Ember.ObjectController.extend({
     var childrenNames = queue.get('queuesArray');
 
     childrenNames.forEach(function (childName) {
-      var queueRecord = queue.store.getById('queue',[queue.get('id'),childName.toLowerCase()].join('.'));
+      var queueRecord = queue.store.getById('queue',[queue.get('id'),childName].join('.'));
 
       skeletonArray.push(queue.store.buildDeletedQueue(queueRecord));
 
@@ -203,7 +203,7 @@ App.QueueController = Ember.ObjectController.extend({
    * @return {App.Queue}
    */
   parentQueue: function () {
-    return this.store.getById('queue',this.get('content.parentPath').toLowerCase());
+    return this.store.getById('queue',this.get('content.parentPath'));
   }.property('content.parentPath'),
 
   /**
@@ -326,7 +326,7 @@ App.QueueController = Ember.ObjectController.extend({
       } else {
         permissions.push('*');
       }
-      currentQ = this.store.getById('queue', currentQ.get('parentPath').toLowerCase());
+      currentQ = this.store.getById('queue', currentQ.get('parentPath'));
     }
     permissions.reverse();//root permission at the 0th position.
     return permissions;

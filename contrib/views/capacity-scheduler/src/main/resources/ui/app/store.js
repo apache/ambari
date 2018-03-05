@@ -131,7 +131,7 @@ function _fillRmQueueStateIntoQueues(data, store) {
 function _getRmQueueStates(queueInfo, qPath, qStates) {
   var qObj = {
     name: queueInfo.queueName,
-    path: qPath.toLowerCase(),
+    path: qPath,
     state: queueInfo.state || 'RUNNING'
   };
   qStates.addObject(qObj);
@@ -222,7 +222,7 @@ App.ApplicationStore = DS.Store.extend({
       return;
     } else {
       queue.get('queuesArray').forEach(function (queueName) {
-        this.recurceRemoveQueue(this.getById('queue',[queue.get('path'),queueName].join('.').toLowerCase()));
+        this.recurceRemoveQueue(this.getById('queue',[queue.get('path'),queueName].join('.')));
       }.bind(this));
 
       if (!queue.get('isNewQueue')){
@@ -283,7 +283,7 @@ App.ApplicationStore = DS.Store.extend({
 
   createFromDeleted: function (deletedQueue) {
     var newQueue = this.createRecord('queue', {
-      id: [deletedQueue.parentPath,deletedQueue.name].join('.').toLowerCase(),
+      id: [deletedQueue.parentPath,deletedQueue.name].join('.'),
       name: deletedQueue.name,
       parentPath: deletedQueue.parentPath,
       depth: deletedQueue.parentPath.split('.').length
@@ -318,7 +318,7 @@ App.ApplicationStore = DS.Store.extend({
 
   copyFromDeleted: function (deletedQueue, parent, name) {
     var newQueue = this.createRecord('queue', {
-      id: [parent,name].join('.').toLowerCase(),
+      id: [parent,name].join('.'),
       name: name,
       path: [parent,name].join('.'),
       parentPath: parent,

@@ -61,7 +61,7 @@ App.CapschedController = Ember.Controller.extend({
     var effectCapRatio = 1;
     while (queue !== null) {
       effectCapRatio *= queue.get('capacity') / 100;
-      queue = allQueues.findBy('id', queue.get('parentPath').toLowerCase()) || null;
+      queue = allQueues.findBy('id', queue.get('parentPath')) || null;
     }
     var effectCapPercent = effectCapRatio * 100,
     absoluteCap = parseFloat(effectCapPercent).toFixed(this.get('precision'));
@@ -90,7 +90,7 @@ App.CapschedController = Ember.Controller.extend({
       if (queue.get('labels').findBy('name', labelName)) {
         var qlabel = queue.get('labels').findBy('id', [queue.get('id'), labelName].join('.'));
         effectCapRatio *= qlabel.get('capacity') / 100;
-        queue = allQueues.findBy('id', queue.get('parentPath').toLowerCase()) || null;
+        queue = allQueues.findBy('id', queue.get('parentPath')) || null;
       } else {
         return 0;
       }

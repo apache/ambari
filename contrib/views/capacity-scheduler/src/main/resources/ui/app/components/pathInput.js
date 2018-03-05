@@ -67,7 +67,7 @@ App.PathInputComponent = Em.Component.extend({
       this.$().typeahead({
           source: this.get('pathSource'),
           matcher: function (item) {
-            return ~item.toLowerCase().indexOf(this.query.toLowerCase());
+            return ~item.indexOf(this.query);
           },
           minLength:2,
           items:100,

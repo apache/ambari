@@ -86,7 +86,7 @@ App.SerializerMixin = Em.Mixin.create({
         base_path = this.PREFIX + "." + path,
         labelsPath = base_path + ".accessible-node-labels",
         q = {
-          id: path.toLowerCase(),
+          id: path,
           name: data.name,
           path: path,
           parentPath: data.parentPath,

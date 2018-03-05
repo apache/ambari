@@ -72,7 +72,7 @@ App.TotalCapacityComponent = Ember.Component.extend({
     },
     toggleLabel:function (labelName, queue) {
       var q = queue || this.get('currentQueue'),
-          labelRecord = q.store.getById('label',[q.get('path'),labelName].join('.').toLowerCase());
+          labelRecord = q.store.getById('label',[q.get('path'),labelName].join('.'));
 
       if (q.get('labels').contains(labelRecord)) {
         q.recurseRemoveLabel(labelRecord);

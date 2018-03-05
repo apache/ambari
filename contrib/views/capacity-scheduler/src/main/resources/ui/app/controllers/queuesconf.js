@@ -50,7 +50,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       parentPath = this.get('selectedQueue.path'),
       queuePath = [parentPath, queueName].join('.'),
       depth = parentPath.split('.').length,
-      leafQueueNames = store.getById('queue', parentPath.toLowerCase()).get('queuesArray'),
+      leafQueueNames = store.getById('queue', parentPath).get('queuesArray'),
       newInLeaf = Ember.isEmpty(leafQueueNames),
       totalLeafCapacity,
       freeLeafCapacity,
@@ -59,14 +59,14 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       this.send('clearCreateQueue');
       if (!newInLeaf) {
         totalLeafCapacity = leafQueueNames.reduce(function (capacity, qName) {
-          return store.getById('queue', [parentPath, qName].join('.').toLowerCase()).get('capacity') + capacity;
+          return store.getById('queue', [parentPath, qName].join('.')).get('capacity') + capacity;
         }, 0);
         freeLeafCapacity = (totalLeafCapacity < 100) ? 100 - totalLeafCapacity : 0;
       }
       var qCapacity = (newInLeaf) ? 100 : freeLeafCapacity;
       var requireRestart = (this.get('selectedQueue.isLeafQ') && !this.get('selectedQueue.isNewQueue'))? true : false;
       newQueue = store.createRecord('queue', {
-        id: queuePath.toLowerCase(),
+        id: queuePath,
         name: queueName,
         path: queuePath,
         parentPath: parentPath,
@@ -133,7 +133,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       if (delQ.get('isNew')) {
         this.set('newQueue', null);
       }
-      this.transitionToRoute('capsched.queuesconf.editqueue', delQ.get('parentPath').toLowerCase())
+      this.transitionToRoute('capsched.queuesconf.editqueue', delQ.get('parentPath'))
       .then(Em.run.schedule('afterRender', function () {
         that.get('store').recurceRemoveQueue(delQ);
       }));
@@ -302,8 +302,8 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     var allLabels = this.get('allNodeLabels'),
     store = this.get('store'),
     ctrl = this,
-    queue = store.getById('queue', queuePath.toLowerCase()),
-    parentQ = store.getById('queue', queue.get('parentPath').toLowerCase()),
+    queue = store.getById('queue', queuePath),
+    parentQ = store.getById('queue', queue.get('parentPath')),
     children = store.all('queue').filterBy('depth', queue.get('depth') + 1).filterBy('parentPath', queue.get('path'));
 
     if (Ember.isEmpty(queue.get('labels'))) {
@@ -337,7 +337,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     var allLabels = this.get('allNodeLabels'),
     store = this.get('store'),
     ctrl = this,
-    queue = store.getById('queue', queuePath.toLowerCase()),
+    queue = store.getById('queue', queuePath),
     children = store.all('queue').filterBy('depth', queue.get('depth') + 1).filterBy('parentPath', queue.get('path'));
 
     allLabels.forEach(function(lab) {
@@ -592,7 +592,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
 
    saveAndUpdateQueueSuccess: function(newQ) {
      var parentPath = newQ.get('parentPath'),
-     parentQ = this.store.getById('queue', parentPath.toLowerCase()),
+     parentQ = this.store.getById('queue', parentPath),
      pQueues = parentQ.get('queues') ? parentQ.get('queues').split(",") : [];
      pQueues.addObject(newQ.get('name'));
      pQueues.sort();
