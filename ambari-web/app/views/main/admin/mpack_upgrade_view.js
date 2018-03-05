@@ -22,19 +22,5 @@ var App = require('app');
 App.CreateUpgradePlanWizardView = Em.View.extend(App.WizardMenuMixin, {
 
   templateName: require('templates/main/admin/mpack_upgrade'),
-  
-//  isDownloadOptionsDisabled: function () isStepDisabled("downloadOptions"),
-//  isSelectUpgradeDisabled: this.isStepDisabled("selectUpgrade"),
-//  isDownloadMpacksDisabled: this.isStepDisabled("downloadMpacks"),
-//  isReviewConfigsDisabled: this.isStepDisabled("reviewConfigs"),
-//  isSelectUpgradeTypeDisabled: this.isStepDisabled("selectUpgradeType"),
-//  isUpgradeSummary: this.isStepDisabled("upgradeSummary"),
-//
-//  isDownloadOptionsCompleted: this.isStepCompleted("downloadOptions"),
-//  isSelectUpgradeCompleted: this.isStepCompleted("selectUpgrade"),
-//  isDownloadMpacksCompleted: this.isStepCompleted("downloadMpacks"),
-//  isReviewConfigsCompleted: this.isStepCompleted("reviewConfigs"),
-//  isSelectUpgradeTypeCompleted: this.isStepCompleted("selectUpgradeType"),
-//  isUpgradeSummary: this.isStepCompleted("upgradeSummary")
 
 });
