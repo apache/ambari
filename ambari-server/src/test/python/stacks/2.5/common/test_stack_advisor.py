@@ -1677,7 +1677,7 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.default.state=RUNNING\n'
                                   'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
                                   'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
-                                  'yarn.scheduler.capacity.root.default.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels.default.capacity=100\n'
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
