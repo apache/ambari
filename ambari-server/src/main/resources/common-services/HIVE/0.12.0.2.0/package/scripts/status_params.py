@@ -69,10 +69,9 @@ else:
   webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')
 
   process_name = 'mysqld'
-  if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-    daemon_name = 'mysql'
-  else:
-    daemon_name = 'mysqld'
+  SERVICES_DIR = '/etc/init.d'
+  POSSIBLE_DAEMON_NAMES = ['mysql', 'mysqld', 'mariadb']
+
 
   # Security related/required params
   hostname = config['agentLevelParams']['hostname']
