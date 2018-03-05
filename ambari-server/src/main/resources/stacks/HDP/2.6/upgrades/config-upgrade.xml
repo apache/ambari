@@ -31,14 +31,6 @@
             <type>zeppelin-config</type>
             <set key="zeppelin.server.ssl.port" value="9995"/>
           </definition>
-            <definition xsi:type="configure" id="hdp_2_6_0_0_zeppelin_notebook_storage">
-                <type>zeppelin-conf</type>
-                <set key="zeppelin.notebook.storage"
-                     value="org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo"
-                     if-type="zeppelin-conf"
-                     if-key="zeppelin.notebook.storage"
-                     if-value="org.apache.zeppelin.notebook.repo.VFSNotebookRepo"/>
-            </definition>
         </changes>
       </component>
     </service>

@@ -966,7 +966,9 @@
       <component name="ZEPPELIN_MASTER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
-          <task xsi:type="configure" id="hdp_2_6_0_0_zeppelin_notebook_storage"/>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixNotebookStorage">
+            <summary>Adjusting Zeppelin Notebook properties</summary>
+          </task>
         </pre-upgrade>
         <pre-downgrade/>
 

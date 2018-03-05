@@ -608,14 +608,6 @@
               value='export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"'
               insert-type="append" newline-before="true" newline-after="true"/>
           </definition>
-          <definition xsi:type="configure" id="hdp_2_6_0_0_zeppelin_notebook_storage">
-            <type>zeppelin-conf</type>
-            <set key="zeppelin.notebook.storage"
-                 value="org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo"
-                 if-type="zeppelin-conf"
-                 if-key="zeppelin.notebook.storage"
-                 if-value="org.apache.zeppelin.notebook.repo.VFSNotebookRepo"/>
-          </definition>
         </changes>
       </component>
     </service>
