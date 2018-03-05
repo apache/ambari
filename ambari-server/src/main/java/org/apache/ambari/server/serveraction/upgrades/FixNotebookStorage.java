@@ -64,7 +64,7 @@ public class FixNotebookStorage extends AbstractServerAction {
     Config config = cluster.getDesiredConfigByType(ZEPPELIN_CONF);
     if (config == null || VersionUtils.compareVersions(targetVersion, REC_VERSION) < 0) {
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          "zeppelin.notebook.storage change not required", "");
+          String.format("%s change not required", ZEPPELIN_NOTEBOOK_STORAGE), "");
     }
     Map<String, String> properties = config.getProperties();
     String oldContent = properties.get(ZEPPELIN_NOTEBOOK_STORAGE);
@@ -75,9 +75,10 @@ public class FixNotebookStorage extends AbstractServerAction {
       properties.put(ZEPPELIN_NOTEBOOK_STORAGE, newContent);
       config.setProperties(properties);
       config.save();
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", "set zeppelin.notebook.storage to org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo", "");
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
+          String.format("set %s to %s", ZEPPELIN_NOTEBOOK_STORAGE, ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO), "");
     }
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-        "zeppelin.notebook.storage change not required", "");
+        String.format("%s change not required", ZEPPELIN_NOTEBOOK_STORAGE), "");
   }
 }
