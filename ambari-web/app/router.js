@@ -55,6 +55,17 @@ App.WizardRoute = Em.Route.extend({
   
   gotoVerifyProducts: Em.Router.transitionTo('verifyProducts'),
 
+  gotoDownloadOptions: Em.Router.transitionTo('downloadOptions'),
+
+  gotoSelectUpgradeOptions: Em.Router.transitionTo('selectUpgradeOptions'),
+
+  gotoReviewConfigs: Em.Router.transitionTo('reviewConfigs'),
+
+  gotoSelectUpgradeType: Em.Router.transitionTo('selectUpgradeType'),
+
+  gotoUpgradeSummary: Em.Router.transitionTo('upgradeSummary'),
+
+
   isRoutable: function() {
     return typeof this.get('route') === 'string' && App.router.get('loggedIn');
   }.property('App.router.loggedIn')

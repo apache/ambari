@@ -2036,6 +2036,15 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.notActive': "Waiting to execute the next task...",
   'admin.stackUpgrade.dialog.prepareUpgrade.header': "Preparing the Upgrade...",
   'admin.stackUpgrade.dialog.skipped.failures':'There were automatically skipped failed steps.  Please resolve each failure before continuing with the upgrade.',
+
+  'admin.createUpgradePlan.wizard.header': 'Create Upgrade Plan',
+  'admin.createUpgradePlan.wizard.downloadOptions.header': 'Download Options',
+  'admin.createUpgradePlan.wizard.selectUpgradeOptions.header': 'Select Upgrade Options',
+  'admin.createUpgradePlan.wizard.downloadMpacks.header': 'Download Mpacks',
+  'admin.createUpgradePlan.wizard.reviewConfigs.header': 'Review Configs',
+  'admin.createUpgradePlan.wizard.selectUpgradeType.header': 'Select Upgrade Type',
+  'admin.createUpgradePlan.wizard.upgradeSummary.header': 'Upgrade Summary',
+
   'services.service.start':'Start',
   'services.service.stop':'Stop',
   'services.service.metrics':'Metrics',
