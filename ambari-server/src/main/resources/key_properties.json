@@ -11,7 +11,7 @@
     "ServiceGroup": "HostRoles/service_group_name",
     "Host": "HostRoles/host_name",
     "Service": "HostRoles/service_name",
-    "HostComponent": "HostRoles/component_name",
+    "HostComponent": "HostRoles/id",
     "Component": "HostRoles/component_name"
   },
   "Action": {

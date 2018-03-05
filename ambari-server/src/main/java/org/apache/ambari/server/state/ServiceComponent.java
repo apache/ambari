@@ -30,6 +30,10 @@ public interface ServiceComponent {
 
   String getName();
 
+  String getType();
+
+  Long getId();
+
   /**
    * Get a true or false value specifying
    * if auto start was enabled for this component.

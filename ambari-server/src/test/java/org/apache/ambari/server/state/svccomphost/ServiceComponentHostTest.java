@@ -202,7 +202,7 @@ public class ServiceComponentHostTest {
     try {
       sc = s.getServiceComponent(svcComponent);
     } catch (ServiceComponentNotFoundException e) {
-      sc = serviceComponentFactory.createNew(s, svcComponent);
+      sc = serviceComponentFactory.createNew(s, svcComponent, svcComponent);
       s.addServiceComponent(sc);
     }
 
@@ -1053,26 +1053,14 @@ public class ServiceComponentHostTest {
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
     ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
 
-    HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByIndex(
-      cluster.getClusterId(),
-      customServiceGroup.getServiceGroupId(),
-      sch1.getServiceId(),
-      sch1.getServiceComponentName(),
-      hostEntity.getHostId()
-    );
+    HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByIndex(sch1.getServiceComponentId());
     Assert.assertEquals(MaintenanceState.OFF, entity.getMaintenanceState());
     Assert.assertEquals(MaintenanceState.OFF, sch1.getMaintenanceState());
 
     sch1.setMaintenanceState(MaintenanceState.ON);
     Assert.assertEquals(MaintenanceState.ON, sch1.getMaintenanceState());
 
-    entity = hostComponentDesiredStateDAO.findByIndex(
-      cluster.getClusterId(),
-      customServiceGroup.getServiceGroupId(),
-      sch1.getServiceId(),
-      sch1.getServiceComponentName(),
-      hostEntity.getHostId()
-    );
+    entity = hostComponentDesiredStateDAO.findByIndex(sch1.getServiceComponentId());
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
   }
 

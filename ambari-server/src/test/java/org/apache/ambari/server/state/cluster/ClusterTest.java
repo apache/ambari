@@ -343,22 +343,22 @@ public class ClusterTest {
     cluster.addService(s3);
 
     // Add HDFS components
-    ServiceComponent sc1CompA = serviceComponentFactory.createNew(s1, "NAMENODE");
-    ServiceComponent sc1CompB = serviceComponentFactory.createNew(s1, "DATANODE");
-    ServiceComponent sc1CompC = serviceComponentFactory.createNew(s1, "HDFS_CLIENT");
+    ServiceComponent sc1CompA = serviceComponentFactory.createNew(s1, "NAMENODE", "NAMENODE");
+    ServiceComponent sc1CompB = serviceComponentFactory.createNew(s1, "DATANODE", "DATANODE");
+    ServiceComponent sc1CompC = serviceComponentFactory.createNew(s1, "HDFS_CLIENT", "HDFS_CLIENT");
     s1.addServiceComponent(sc1CompA);
     s1.addServiceComponent(sc1CompB);
     s1.addServiceComponent(sc1CompC);
 
     // Add ZK
-    ServiceComponent sc2CompA = serviceComponentFactory.createNew(s2, "ZOOKEEPER_SERVER");
-    ServiceComponent sc2CompB = serviceComponentFactory.createNew(s2, "ZOOKEEPER_CLIENT");
+    ServiceComponent sc2CompA = serviceComponentFactory.createNew(s2, "ZOOKEEPER_SERVER", "ZOOKEEPER_SERVER");
+    ServiceComponent sc2CompB = serviceComponentFactory.createNew(s2, "ZOOKEEPER_CLIENT", "ZOOKEEPER_CLIENT");
     s2.addServiceComponent(sc2CompA);
     s2.addServiceComponent(sc2CompB);
 
     // Add Ganglia
-    ServiceComponent sc3CompA = serviceComponentFactory.createNew(s3, "GANGLIA_SERVER");
-    ServiceComponent sc3CompB = serviceComponentFactory.createNew(s3, "GANGLIA_MONITOR");
+    ServiceComponent sc3CompA = serviceComponentFactory.createNew(s3, "GANGLIA_SERVER", "GANGLIA_SERVER");
+    ServiceComponent sc3CompB = serviceComponentFactory.createNew(s3, "GANGLIA_MONITOR", "GANGLIA_MONITOR");
     s3.addServiceComponent(sc3CompA);
     s3.addServiceComponent(sc3CompB);
 
@@ -633,7 +633,7 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(), "HDFS", "HDFS", repositoryVersion);
     c1.addService(s);
-    ServiceComponent sc = serviceComponentFactory.createNew(s, "NAMENODE");
+    ServiceComponent sc = serviceComponentFactory.createNew(s, "NAMENODE", "NAMENODE");
     s.addServiceComponent(sc);
 
     ServiceComponentHost sch =
@@ -651,7 +651,7 @@ public class ClusterTest {
         iterator.next();
         Service s1 = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(), "PIG", "PIG", repositoryVersion);
         c1.addService(s1);
-        ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG");
+        ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG", "PIG");
         s1.addServiceComponent(sc1);
         ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, "h1");
         sc1.addServiceComponentHost(sch1);
@@ -673,12 +673,12 @@ public class ClusterTest {
     Service s = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(), "HDFS", "HDFS", repositoryVersion);
     c1.addService(s);
 
-    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
+    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE", "NAMENODE");
     s.addServiceComponent(scNN);
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
 
-    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
+    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE", "DATANODE");
     s.addServiceComponent(scDN);
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
@@ -703,12 +703,12 @@ public class ClusterTest {
     Service s = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(), "HDFS", "HDFS", repositoryVersion);
     c1.addService(s);
 
-    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
+    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE", "NAMENODE");
     s.addServiceComponent(scNN);
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
 
-    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
+    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE", "DATANODE");
     s.addServiceComponent(scDN);
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
@@ -739,12 +739,12 @@ public class ClusterTest {
     Service s = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(),  "HDFS",  "HDFS", repositoryVersion);
     c1.addService(s);
 
-    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
+    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE", "NAMENODE");
     s.addServiceComponent(scNN);
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
 
-    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
+    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE", "DATANODE");
     s.addServiceComponent(scDN);
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
@@ -776,19 +776,19 @@ public class ClusterTest {
     Service sfMR = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(), "MAPREDUCE", "MAPREDUCE", repositoryVersion);
     c1.addService(sfMR);
 
-    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
+    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE", "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
 
-    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
+    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE", "DATANODE");
     sfHDFS.addServiceComponent(scDN);
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
 
-    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
+    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER", "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
@@ -834,19 +834,19 @@ public class ClusterTest {
     Service sfMR = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(), "MAPREDUCE", "MAPREDUCE", repositoryVersion);
     c1.addService(sfMR);
 
-    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
+    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE", "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
 
-    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
+    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE", "DATANODE");
     sfHDFS.addServiceComponent(scDN);
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
 
-    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
+    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER", "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
@@ -893,19 +893,19 @@ public class ClusterTest {
     Service sfMR = serviceFactory.createNew(c1, serviceGroup, Collections.emptyList(), "MAPREDUCE", "MAPREDUCE", repositoryVersion);
     c1.addService(sfMR);
 
-    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
+    ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE", "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
 
-    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
+    ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE", "DATANODE");
     sfHDFS.addServiceComponent(scDN);
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
 
-    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
+    ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER", "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
@@ -1076,7 +1076,7 @@ public class ClusterTest {
     c1.addService(serviceGroup, "MAPREDUCE", "MAPREDUCE", repositoryVersion);
 
     Service hdfs = c1.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
-    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE", "NAMENODE");
 
     assertEquals(2, c1.getServices().size());
     assertEquals(2, injector.getProvider(EntityManager.class).get().
@@ -1541,8 +1541,8 @@ public class ClusterTest {
     c1.addService(hdfs);
 
     // Add HDFS components
-    ServiceComponent datanode = serviceComponentFactory.createNew(hdfs, "NAMENODE");
-    ServiceComponent namenode = serviceComponentFactory.createNew(hdfs, "DATANODE");
+    ServiceComponent datanode = serviceComponentFactory.createNew(hdfs, "NAMENODE", "NAMENODE");
+    ServiceComponent namenode = serviceComponentFactory.createNew(hdfs, "DATANODE", "DATANODE");
     hdfs.addServiceComponent(datanode);
     hdfs.addServiceComponent(namenode);
 
@@ -1874,12 +1874,12 @@ public class ClusterTest {
 
     ServiceGroup serviceGroup = c1.addServiceGroup("CORE", stackId.getStackId());
     Service service = c1.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER", repositoryVersion);
-    ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
+    ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER", "ZOOKEEPER_SERVER");
     sc.addServiceComponentHost("h-1");
     sc.addServiceComponentHost("h-2");
 
     service = c1.addService(serviceGroup, "SQOOP", "SQOOP", repositoryVersion);
-    sc = service.addServiceComponent("SQOOP");
+    sc = service.addServiceComponent("SQOOP", "SQOOP");
     sc.addServiceComponentHost("h-3");
 
     HostEntity hostEntity = hostDAO.findByName("h-3");

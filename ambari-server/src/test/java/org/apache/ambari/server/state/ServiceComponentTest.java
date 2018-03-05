@@ -109,7 +109,7 @@ public class ServiceComponentTest {
   public void testCreateServiceComponent() throws AmbariException {
     String componentName = "DATANODE2";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-        componentName);
+        componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -131,7 +131,7 @@ public class ServiceComponentTest {
   public void testGetAndSetServiceComponentInfo() throws AmbariException {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-        componentName);
+        componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -155,7 +155,7 @@ public class ServiceComponentTest {
     long serviceId = 1;
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     ServiceComponent sc1 = serviceComponentFactory.createExisting(service,
         serviceComponentDesiredStateEntity);
@@ -193,7 +193,7 @@ public class ServiceComponentTest {
   @Test
   public void testAddAndGetServiceComponentHosts() throws AmbariException {
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -246,18 +246,13 @@ public class ServiceComponentTest {
 
     long serviceGroupId = 1;
     long serviceId = 1;
+    long componentId = 1;
 
     HostComponentDesiredStateEntity desiredStateEntity =
-        desiredStateDAO.findByIndex(
-          cluster.getClusterId(),
-          serviceGroupId,
-                serviceId,
-          componentName,
-          hostEntity1.getHostId()
-        );
+        desiredStateDAO.findByIndex(componentId);
 
     HostComponentStateEntity stateEntity = liveStateDAO.findByIndex(cluster.getClusterId(),
-            serviceGroupId, serviceId, componentName, hostEntity1.getHostId());
+            serviceGroupId, serviceId, componentId, hostEntity1.getHostId());
 
     ServiceComponentHost sch = serviceComponentHostFactory.createExisting(sc,
         stateEntity, desiredStateEntity);
@@ -271,7 +266,7 @@ public class ServiceComponentTest {
   @Test
   public void testConvertToResponse() throws AmbariException {
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     addHostToCluster("h1", service.getCluster().getClusterName());
@@ -332,7 +327,7 @@ public class ServiceComponentTest {
   public void testCanBeRemoved() throws Exception {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-                                                                   componentName);
+                                                                   componentName, componentName);
     addHostToCluster("h1", service.getCluster().getClusterName());
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
     component.addServiceComponentHost(sch);
@@ -360,7 +355,7 @@ public class ServiceComponentTest {
         ServiceComponentDesiredStateDAO.class);
 
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName, componentName);
     service.addServiceComponent(component);
 
     ServiceComponent sc = service.getServiceComponent(componentName);
@@ -373,7 +368,7 @@ public class ServiceComponentTest {
     long serviceId = 1;
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
@@ -413,7 +408,7 @@ public class ServiceComponentTest {
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster.getClusterId(), serviceGroupId, serviceId, componentName);
+        cluster.getClusterId(), serviceGroupId, serviceId, componentName, componentName);
 
     Assert.assertNull(serviceComponentDesiredStateEntity);
  }

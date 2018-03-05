@@ -33,7 +33,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
-import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.RootClusterSettingsResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.http.HttpStatus;
@@ -69,8 +68,6 @@ public class RootClusterSettingService extends BaseService {
   @ApiOperation(value = "Returns information for all the read only 'cluster settings'",
           response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class, responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
-          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING,
-                  paramType = PARAM_TYPE_QUERY, defaultValue = MpackResourceProvider.MPACK_RESOURCE_ID),
           @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING,
                   paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE,
