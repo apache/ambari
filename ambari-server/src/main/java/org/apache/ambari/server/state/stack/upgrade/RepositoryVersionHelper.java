@@ -35,7 +35,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.internal.OperatingSystemResourceProvider;
+import org.apache.ambari.server.controller.internal.OperatingSystemReadOnlyResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
@@ -141,11 +141,11 @@ public class RepositoryVersionHelper {
 
       final RepoOsEntity operatingSystemEntity = new RepoOsEntity();
 
-      operatingSystemEntity.setFamily(osObj.get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
+      operatingSystemEntity.setFamily(osObj.get(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
 
-      if (osObj.has(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS)) {
+      if (osObj.has(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS)) {
         operatingSystemEntity.setAmbariManaged(osObj.get(
-            OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS).getAsBoolean());
+            OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS).getAsBoolean());
       }
 
       for (JsonElement repositoryElement: osObj.get(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
@@ -195,17 +195,7 @@ public class RepositoryVersionHelper {
       RepoOsEntity operatingSystemEntity = new RepoOsEntity();
       List<RepoDefinitionEntity> repositoriesList = new ArrayList<>();
       for (RepositoryInfo repository : operatingSystem.getValue()) {
-        RepoDefinitionEntity repositoryDefinition = new RepoDefinitionEntity();
-        repositoryDefinition.setBaseUrl(repository.getBaseUrl());
-        repositoryDefinition.setRepoName(repository.getRepoName());
-        repositoryDefinition.setRepoID(repository.getRepoId());
-        repositoryDefinition.setDistribution(repository.getDistribution());
-        repositoryDefinition.setComponents(repository.getComponents());
-        repositoryDefinition.setMirrors(repository.getMirrorsList());
-        repositoryDefinition.setUnique(repository.isUnique());
-
-        repositoryDefinition.setTags(repository.getTags());
-
+        RepoDefinitionEntity repositoryDefinition = RepoDefinitionEntity.from(repository);
         repositoriesList.add(repositoryDefinition);
         operatingSystemEntity.setAmbariManaged(repository.isAmbariManagedRepositories());
       }

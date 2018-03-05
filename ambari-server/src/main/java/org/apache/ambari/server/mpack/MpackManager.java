@@ -536,8 +536,8 @@ public class MpackManager {
 
       mpackEntity.setRepositoryOperatingSystems(repositoryOperatingSystems);
 
-      Long mpackId = mpackDAO.create(mpackEntity);
-      return mpackId;
+      mpackDAO.create(mpackEntity);
+      return mpackEntity.getId();
     }
     //mpack already exists
     return null;

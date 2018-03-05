@@ -101,7 +101,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       put(Resource.Type.Stack, REPOSITORY_STACK_NAME_PROPERTY_ID);
       put(Resource.Type.StackVersion, REPOSITORY_STACK_VERSION_PROPERTY_ID);
       put(Resource.Type.ClusterStackVersion, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
-      put(Resource.Type.OperatingSystem, REPOSITORY_OS_TYPE_PROPERTY_ID);
+      put(Resource.Type.OperatingSystemReadOnly, REPOSITORY_OS_TYPE_PROPERTY_ID);
       put(Resource.Type.Repository, REPOSITORY_REPO_ID_PROPERTY_ID);
       put(Resource.Type.RepositoryVersion, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID);
       put(Resource.Type.VersionDefinition, REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);

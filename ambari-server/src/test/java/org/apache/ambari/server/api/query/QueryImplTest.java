@@ -263,7 +263,7 @@ public class QueryImplTest {
     TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
     Assert.assertEquals("OperatingSystem:1", opSystemNode.getName());
     Resource osResource = opSystemNode.getObject();
-    Assert.assertEquals(Resource.Type.OperatingSystem, opSystemNode.getObject().getType());
+    Assert.assertEquals(Resource.Type.OperatingSystemReadOnly, opSystemNode.getObject().getType());
 
     Assert.assertEquals("centos5", osResource.getPropertyValue("OperatingSystems/os_type"));
   }
@@ -470,7 +470,7 @@ public class QueryImplTest {
 
     TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
     Assert.assertEquals("OperatingSystem:1", opSystemNode.getName());
-    Assert.assertEquals(Resource.Type.OperatingSystem, opSystemNode.getObject().getType());
+    Assert.assertEquals(Resource.Type.OperatingSystemReadOnly, opSystemNode.getObject().getType());
 
     Assert.assertEquals(1, opSystemNode.getChildren().size());
     TreeNode<Resource> repositoriesNode = opSystemNode.getChild("repositories");
