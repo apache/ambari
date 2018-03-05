@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -59,7 +58,6 @@ public class RepoOsEntity {
   /**
    * The ID of the mpack that this repository entry belongs to.
    */
-  @Basic
   @Column(name = "mpack_id", updatable = false, insertable = false)
   private long mpackId;
 
@@ -183,6 +181,7 @@ public class RepoOsEntity {
    */
   public void setMpackEntity(MpackEntity mpackEntity) {
     this.mpackEntity = mpackEntity;
+    mpackId = mpackEntity.getId();
   }
 
   /**

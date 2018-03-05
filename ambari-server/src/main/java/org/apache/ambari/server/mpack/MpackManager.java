@@ -522,11 +522,12 @@ public class MpackManager {
     if (resultSet.size() == 0 && stackEntity == null) {
       LOG.info("Adding mpack {}-{} to the database", mpackName, mpackVersion);
 
-      MpackEntity mpackEntity = new MpackEntity();
+      final MpackEntity mpackEntity = new MpackEntity();
       mpackEntity.setMpackName(mpackName);
       mpackEntity.setMpackVersion(mpackVersion);
       mpackEntity.setMpackUri(mpack.getMpackUri());
       mpackEntity.setRegistryId(mpack.getRegistryId());
+      mpackDAO.create(mpackEntity);
 
       List<RepoOsEntity> repositoryOperatingSystems = repoVersionHelper.createRepoOsEntities(
           mpack.getRepositoryXml().getRepositories());
@@ -535,10 +536,9 @@ public class MpackManager {
           operatingSystem -> operatingSystem.setMpackEntity(mpackEntity));
 
       mpackEntity.setRepositoryOperatingSystems(repositoryOperatingSystems);
-
-      mpackDAO.create(mpackEntity);
-      return mpackEntity.getId();
+      return mpackDAO.merge(mpackEntity).getId();
     }
+
     //mpack already exists
     return null;
   }
