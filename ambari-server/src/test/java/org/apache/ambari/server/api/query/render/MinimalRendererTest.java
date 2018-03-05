@@ -382,7 +382,7 @@ public class MinimalRendererTest {
         Map<String, Map<String, Object>> componentProperties = componentResource.getPropertiesMap();
         assertEquals(1, componentProperties.size());
         assertEquals(1, componentProperties.get("HostRoles").size());
-        assertTrue(componentProperties.get("HostRoles").containsKey("component_name"));
+        assertTrue(componentProperties.get("HostRoles").containsKey("id"));
       }
     }
   }
@@ -450,7 +450,7 @@ public class MinimalRendererTest {
         Map<String, Map<String, Object>> componentProperties = componentResource.getPropertiesMap();
         assertEquals(1, componentProperties.size());
         assertEquals(1, componentProperties.get("HostRoles").size());
-        assertTrue(componentProperties.get("HostRoles").containsKey("component_name"));
+        assertTrue(componentProperties.get("HostRoles").containsKey("id"));
       }
     }
   }
@@ -514,21 +514,25 @@ public class MinimalRendererTest {
 
     // host 1 components
     Resource nnComponentResource = new ResourceImpl(Resource.Type.HostComponent);
+    nnComponentResource.setProperty("HostRoles/id", 1L);
     nnComponentResource.setProperty("HostRoles/component_name", "NAMENODE");
     nnComponentResource.setProperty("HostRoles/host_name", "testHost");
     nnComponentResource.setProperty("HostRoles/cluster_name", "testCluster");
 
     Resource dnComponentResource = new ResourceImpl(Resource.Type.HostComponent);
+    dnComponentResource.setProperty("HostRoles/id", 2L);
     dnComponentResource.setProperty("HostRoles/component_name", "DATANODE");
     dnComponentResource.setProperty("HostRoles/host_name", "testHost");
     dnComponentResource.setProperty("HostRoles/cluster_name", "testCluster");
 
     Resource jtComponentResource = new ResourceImpl(Resource.Type.HostComponent);
+    jtComponentResource.setProperty("HostRoles/id", 3L);
     jtComponentResource.setProperty("HostRoles/component_name", "JOBTRACKER");
     jtComponentResource.setProperty("HostRoles/host_name", "testHost");
     jtComponentResource.setProperty("HostRoles/cluster_name", "testCluster");
 
     Resource ttComponentResource = new ResourceImpl(Resource.Type.HostComponent);
+    ttComponentResource.setProperty("HostRoles/id", 4L);
     ttComponentResource.setProperty("HostRoles/component_name", "TASKTRACKER");
     jtComponentResource.setProperty("HostRoles/host_name", "testHost");
     jtComponentResource.setProperty("HostRoles/cluster_name", "testCluster");

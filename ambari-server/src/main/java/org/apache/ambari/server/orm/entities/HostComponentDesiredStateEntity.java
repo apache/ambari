@@ -66,7 +66,7 @@ import com.google.common.base.Objects;
     "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.clusterId=:clusterId AND hcds.serviceGroupId=:serviceGroupId AND hcds.serviceId=:serviceId AND hcds.componentName=:componentName AND hcds.hostEntity.hostName=:hostName"),
 
   @NamedQuery(name = "HostComponentDesiredStateEntity.findByIndex", query =
-    "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.clusterId=:clusterId AND hcds.serviceGroupId=:serviceGroupId AND hcds.serviceId=:serviceId AND hcds.componentName=:componentName AND hcds.hostId=:hostId"),
+    "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.id=:id")
 })
 public class HostComponentDesiredStateEntity {
 
@@ -91,6 +91,9 @@ public class HostComponentDesiredStateEntity {
   @Column(name = "component_name", insertable = false, updatable = false)
   private String componentName = "";
 
+  @Column(name = "component_type", insertable = false, updatable = false)
+  private String componentType = "";
+
   @Basic
   @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
@@ -105,7 +108,8 @@ public class HostComponentDesiredStateEntity {
     @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
     @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
     @JoinColumn(name = "service_id", referencedColumnName = "service_id", nullable = false),
-    @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false)})
+    @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false),
+    @JoinColumn(name = "component_type", referencedColumnName = "component_type", nullable = false) })
   private ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity;
 
   @ManyToOne
@@ -152,6 +156,14 @@ public class HostComponentDesiredStateEntity {
 
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  public String getComponentType() {
+    return defaultString(componentType);
+  }
+
+  public void setComponentType(String componentType) {
+    this.componentType = componentType;
   }
 
   public State getDesiredState() {
@@ -209,6 +221,10 @@ public class HostComponentDesiredStateEntity {
       return false;
     }
 
+    if (!Objects.equal(componentType, that.componentType)) {
+      return false;
+    }
+
     if (!Objects.equal(desiredState, that.desiredState)) {
       return false;
     }
@@ -228,6 +244,7 @@ public class HostComponentDesiredStateEntity {
     result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 31 * result + (componentType != null ? componentType.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
     return result;
   }
@@ -264,6 +281,7 @@ public class HostComponentDesiredStateEntity {
   public String toString() {
     return Objects.toStringHelper(this).add("clusterId", clusterId).add(
       "serviceGroupId", serviceGroupId).add("serviceId", serviceId).add("componentName",
-      componentName).add("hostId", hostId).add("desiredState", desiredState).toString();
+      componentName).add("componentType", componentType).add("hostId", hostId).add("desiredState",
+      desiredState).toString();
   }
 }

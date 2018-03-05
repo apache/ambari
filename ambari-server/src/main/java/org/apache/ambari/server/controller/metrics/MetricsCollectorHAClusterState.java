@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -60,11 +61,23 @@ public class MetricsCollectorHAClusterState {
     this.liveCollectorHosts = new CopyOnWriteArraySet<>();
     this.deadCollectorHosts = new CopyOnWriteArraySet<>();
     collectorDownRefreshCounter = new AtomicInteger(0);
+
+  }
+
+  private Long getComponentId(String componentName) {
+    Long componentId = null;
+    try {
+      componentId = managementController.getClusters().getCluster(clusterName).getComponentId(componentName);
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    return componentId;
   }
 
   public void addMetricsCollectorHost(String collectorHost) {
+    Long componentId = getComponentId(Role.METRICS_COLLECTOR.name());
     if (HostStatusHelper.isHostComponentLive(managementController, clusterName, collectorHost, "AMBARI_METRICS",
-      Role.METRICS_COLLECTOR.name())) {
+            componentId, Role.METRICS_COLLECTOR.name(), Role.METRICS_COLLECTOR.name())) {
       liveCollectorHosts.add(collectorHost);
       deadCollectorHosts.remove(collectorHost);
     } else {
@@ -73,9 +86,9 @@ public class MetricsCollectorHAClusterState {
     }
 
     //If there is no current collector host or the current host is down, this will be a proactive switch.
+    // TODO : Multi_Metrics_Changes. componentName=Role.METRICS_COLLECTOR.name() may or may not be unique if there are multiple instances.
     if (currentCollectorHost == null || !HostStatusHelper.isHostComponentLive(managementController, clusterName,
-      currentCollectorHost, "AMBARI_METRICS",
-      Role.METRICS_COLLECTOR.name())) {
+      currentCollectorHost, "AMBARI_METRICS", componentId, Role.METRICS_COLLECTOR.name(), Role.METRICS_COLLECTOR.name())) {
       refreshCollectorHost(currentCollectorHost);
     }
   }
@@ -142,11 +155,12 @@ public class MetricsCollectorHAClusterState {
   }
 
   private boolean isValidAliveCollectorHost(String clusterName, String collectorHost) {
-
+    Long componentId = getComponentId(Role.METRICS_COLLECTOR.name());
+    // TODO : Multi_Metrics_Changes. componentName=Role.METRICS_COLLECTOR.name() may or may not be unique if there are multiple instances.
     return ((collectorHost != null) &&
       HostStatusHelper.isHostLive(managementController, clusterName, collectorHost) &&
-      HostStatusHelper.isHostComponentLive(managementController, clusterName, collectorHost, "AMBARI_METRICS",
-        Role.METRICS_COLLECTOR.name()));
+      HostStatusHelper.isHostComponentLive(managementController, clusterName, collectorHost,
+              "AMBARI_METRICS", componentId, Role.METRICS_COLLECTOR.name(), Role.METRICS_COLLECTOR.name()));
   }
 
   /*
@@ -182,19 +196,21 @@ public class MetricsCollectorHAClusterState {
     }
 
   public boolean isCollectorComponentAlive() {
-
+    Long componentId = getComponentId(Role.METRICS_COLLECTOR.name());
     //Check in live hosts
+    // TODO : Multi_Metrics_Changes. componentName=Role.METRICS_COLLECTOR.name() may or may not be unique if there are multiple instances.
     for (String host : liveCollectorHosts) {
       if (HostStatusHelper.isHostComponentLive(managementController, clusterName, host, "AMBARI_METRICS",
-        Role.METRICS_COLLECTOR.name())) {
+              componentId, Role.METRICS_COLLECTOR.name(), Role.METRICS_COLLECTOR.name())) {
         return true;
       }
     }
 
     //Check in dead hosts. Don't update live and dead lists. Can be done on refresh call.
+    // TODO : Multi_Metrics_Changes. componentName=Role.METRICS_COLLECTOR.name() may or may not be unique if there are multiple instances.
     for (String host : deadCollectorHosts) {
       if (HostStatusHelper.isHostComponentLive(managementController, clusterName, host, "AMBARI_METRICS",
-        Role.METRICS_COLLECTOR.name())) {
+              componentId, Role.METRICS_COLLECTOR.name(), Role.METRICS_COLLECTOR.name())) {
         return true;
       }
     }

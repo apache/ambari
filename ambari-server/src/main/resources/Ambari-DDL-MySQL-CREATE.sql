@@ -302,6 +302,7 @@ CREATE TABLE repo_tags (
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
   component_name VARCHAR(100) NOT NULL,
+  component_type VARCHAR(100) NOT NULL,
   cluster_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
@@ -318,6 +319,7 @@ CREATE TABLE hostcomponentdesiredstate (
   id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(100) NOT NULL,
+  component_type VARCHAR(100) NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
@@ -333,8 +335,10 @@ CREATE TABLE hostcomponentdesiredstate (
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
+  host_component_desired_state_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(100) NOT NULL,
+  component_type VARCHAR(100) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
@@ -342,7 +346,9 @@ CREATE TABLE hostcomponentstate (
   service_id BIGINT NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
+  CONSTRAINT UQ_hostcomponentstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_component_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_id, cluster_id);

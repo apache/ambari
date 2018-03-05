@@ -1177,6 +1177,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     }, this);
     selectedMasterComponents.mapProperty('component').uniq().forEach(function (component) {
       var hostNames = [];
+      let serviceName = App.StackServiceComponent.find().findProperty('componentName', component).get('serviceName');
       if (masterOnAllHosts.length > 0) {
         var compOnAllHosts = false;
         for (var i=0; i < masterOnAllHosts.length; i++) {
@@ -1187,11 +1188,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         }
         if (!compOnAllHosts) {
           hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
-          this.registerHostsToComponent(hostNames, component);
+          this.registerHostsToComponent(hostNames, component, serviceName);
         }
       } else {
         hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
-        this.registerHostsToComponent(hostNames, component);
+        this.registerHostsToComponent(hostNames, component, serviceName);
       }
     }, this);
   },
@@ -1253,6 +1254,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       var hostNames = [];
       var compOnAllHosts;
       if (_slave.componentName !== 'CLIENT') {
+        let serviceName = App.StackServiceComponent.find().findProperty('componentName', _slave.componentName).get('serviceName');
         if (slaveOnAllHosts.length > 0) {
           compOnAllHosts = false;
           for (var i=0; i < slaveOnAllHosts.length; i++) {
@@ -1265,16 +1267,19 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           }
           if (!compOnAllHosts) {
             hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
-            this.registerHostsToComponent(hostNames, _slave.componentName);
+            this.registerHostsToComponent(hostNames, _slave.componentName, serviceName);
           }
         } else {
           hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
-          this.registerHostsToComponent(hostNames, _slave.componentName);
+          this.registerHostsToComponent(hostNames, _slave.componentName, serviceName);
         }
       }
       else {
         clients.forEach(function (_client) {
           hostNames = _slave.hosts.mapProperty('hostName');
+          let compName = _client.component_name
+          let serviceName = App.StackServiceComponent.find().findProperty('componentName', compName).get('serviceName')
+
           // The below logic to install clients to existing/New master hosts should not be applied to Add Host wizard.
           // This is with the presumption that Add Host controller does not add any new Master component to the cluster
           if (!this.get('isAddHost')) {
@@ -1305,11 +1310,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
             }
             if (!compOnAllHosts) {
               hostNames = hostNames.uniq();
-              this.registerHostsToComponent(hostNames, _client.component_name);
+              this.registerHostsToComponent(hostNames, _client.component_name, serviceName);
             }
           } else {
             hostNames = hostNames.uniq();
-            this.registerHostsToComponent(hostNames, _client.component_name);
+            this.registerHostsToComponent(hostNames, _client.component_name, serviceName);
           }
         }, this);
       }
@@ -1366,7 +1371,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           // If a dependency for being co-hosted is derived between existing client and selected new master but that
           // dependency is already satisfied in the cluster then disregard the derived dependency
           this.removeClientsFromList(_clientName, hostNames);
-          this.registerHostsToComponent(hostNames, _clientName);
+          let serviceName = App.StackServiceComponent.find().findProperty('componentName', _clientName).get('serviceName')
+          this.registerHostsToComponent(hostNames, _clientName, serviceName);
           if(hostNames.length > 0) {
             this.get('content.additionalClients').pushObject({hostNames: hostNames, componentName: _clientName});
           }
@@ -1415,9 +1421,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.get('content.services').filterProperty('isSelected').forEach(function (service) {
       service.get('serviceComponents').filterProperty('isRequiredOnAllHosts').forEach(function (component) {
         if (service.get('isInstalled') && notInstalledHosts.length) {
-          this.registerHostsToComponent(notInstalledHosts.mapProperty('hostName'), component.get('componentName'));
+          this.registerHostsToComponent(notInstalledHosts.mapProperty('hostName'), component.get('componentName'), component.get('serviceName'));
         } else if (!service.get('isInstalled') && registeredHosts.length) {
-          this.registerHostsToComponent(registeredHosts.mapProperty('hostName'), component.get('componentName'));
+          this.registerHostsToComponent(registeredHosts.mapProperty('hostName'), component.get('componentName'), component.get('serviceName'));
         }
       }, this);
     }, this);
@@ -1427,9 +1433,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (hiveService) {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
       if (hiveDb.value === "New MySQL Database") {
-        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
+        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER', 'HIVE');
       } else if (hiveDb.value === "New PostgreSQL Database") {
-        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'POSTGRESQL_SERVER');
+        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'POSTGRESQL_SERVER', 'HIVE');
       }
     }
   },
@@ -1441,7 +1447,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @param {String} componentName
    * @method registerHostsToComponent
    */
-  registerHostsToComponent: function (hostNames, componentName) {
+  registerHostsToComponent: function (hostNames, componentName, serviceName) {
     if (!hostNames.length) return;
 
     var queryStr = '';
@@ -1459,7 +1465,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         "host_components": [
           {
             "HostRoles": {
-              "component_name": componentName
+              "component_name": componentName,
+              "service_group_name": App.get('defaultServiceGroupName'),
+              "service_name": serviceName
             }
           }
         ]

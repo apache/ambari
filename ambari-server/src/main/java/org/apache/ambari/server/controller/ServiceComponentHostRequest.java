@@ -26,7 +26,9 @@ public class ServiceComponentHostRequest {
   private String clusterName; // REF
   private String serviceGroupName;
   private String serviceName;
+  private Long componentId;
   private String componentName;
+  private String componentType;
   private String hostname;
   private String publicHostname;
   private String state;
@@ -39,15 +41,29 @@ public class ServiceComponentHostRequest {
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceGroupName,
                                      String serviceName,
+                                     Long componentId,
                                      String componentName,
+                                     String componentType,
                                      String hostname,
                                      String desiredState) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
+    this.componentId = componentId;
     this.componentName = componentName;
+    this.componentType = componentType;
     this.hostname = hostname;
     this.desiredState = desiredState;
+  }
+
+  public ServiceComponentHostRequest(String clusterName,
+                                     String serviceGroupName,
+                                     String serviceName,
+                                     String componentName,
+                                     String componentType,
+                                     String hostname,
+                                     String desiredState) {
+    this(clusterName, serviceGroupName, serviceName, null, componentName, componentType, hostname, desiredState);
   }
 
   /**
@@ -75,6 +91,13 @@ public class ServiceComponentHostRequest {
   }
 
   /**
+   * @return the componentd
+   */
+  public Long getComponentId() {
+    return componentId;
+  }
+
+  /**
    * @return the componentName
    */
   public String getComponentName() {
@@ -88,6 +111,22 @@ public class ServiceComponentHostRequest {
     this.componentName = componentName;
   }
 
+  /**
+   * @param componentId the componentId to set
+   */
+  public void setComponentId(Long componentId) {
+    this.componentId = componentId;
+  }
+
+  /**
+   * @return the componentType
+   */
+  public String getComponentType() { return componentType; }
+
+  /**
+   * @param componentType the componenType to set
+   */
+  public void setComponentType(String componentType) { this.componentType = componentType; }
   /**
    * @return the hostname
    */
@@ -162,7 +201,9 @@ public class ServiceComponentHostRequest {
     sb.append("{" + " clusterName=").append(clusterName)
       .append(", serviceGroupName=").append(serviceGroupName)
       .append(", serviceName=").append(serviceName)
+      .append(", componentId=").append(componentId)
       .append(", componentName=").append(componentName)
+      .append(", componentType=").append(componentType)
       .append(", hostname=").append(hostname)
       .append(", publicHostname=").append(publicHostname)
       .append(", desiredState=").append(desiredState)
@@ -203,7 +244,9 @@ public class ServiceComponentHostRequest {
     return Objects.equals(clusterName, other.clusterName) &&
       Objects.equals(serviceGroupName, other.serviceGroupName) &&
       Objects.equals(serviceName, other.serviceName) &&
+      Objects.equals(componentId, other.componentId) &&
       Objects.equals(componentName, other.componentName) &&
+      Objects.equals(componentType, other.componentType) &&
       Objects.equals(hostname, other.hostname) &&
       Objects.equals(publicHostname, other.publicHostname) &&
       Objects.equals(desiredState, other.desiredState) &&
@@ -216,7 +259,7 @@ public class ServiceComponentHostRequest {
 
   @Override
   public int hashCode() {
-    return Objects.hash(clusterName, serviceGroupName, serviceName, componentName, hostname, publicHostname,
-      desiredState, state, desiredStackId, staleConfig, adminState, maintenanceState);
+    return Objects.hash(clusterName, serviceGroupName, serviceName, componentId, componentName, componentType, hostname,
+      publicHostname, desiredState, state, desiredStackId, staleConfig, adminState, maintenanceState);
   }
 }

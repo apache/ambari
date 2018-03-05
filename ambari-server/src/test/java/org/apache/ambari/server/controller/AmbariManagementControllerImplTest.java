@@ -73,9 +73,13 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
@@ -136,6 +140,10 @@ public class AmbariManagementControllerImplTest {
   private static final Users users = createMock(Users.class);
   private static final AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
   private static final RegistryManager registryManager = createNiceMock(RegistryManager.class);
+  private static final HostComponentStateEntity hostComponentStateEntity = createMock(HostComponentStateEntity.class);
+  private static final HostComponentStateDAO hostComponentStateDAO = createMock(HostComponentStateDAO.class);
+  private static final ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = createMock(ServiceComponentDesiredStateEntity.class);
+  private static final ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = createMock(ServiceComponentDesiredStateDAO.class);
 
   @BeforeClass
   public static void setupAuthentication() {
@@ -147,7 +155,8 @@ public class AmbariManagementControllerImplTest {
 
   @Before
   public void before() throws Exception {
-    reset(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, sessionManager);
+    reset(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, sessionManager,
+            hostComponentStateEntity, hostComponentStateDAO, serviceComponentDesiredStateEntity, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -161,6 +170,9 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
 
     //replay
     replay(injector);
@@ -247,8 +259,11 @@ public class AmbariManagementControllerImplTest {
     CredentialStoreService credentialStoreService = createNiceMock(CredentialStoreService.class);
     expect(credentialStoreService.isInitialized(anyObject(CredentialStoreType.class))).andReturn(true).anyTimes();
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
-    replay(injector, clusters, cluster, response, credentialStoreService);
+    replay(injector, clusters, cluster, response, credentialStoreService, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -263,7 +278,7 @@ public class AmbariManagementControllerImplTest {
     assertEquals(1, setResponses.size());
     assertTrue(setResponses.contains(response));
 
-    verify(injector, clusters, cluster, response, credentialStoreService);
+    verify(injector, clusters, cluster, response, credentialStoreService, hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -291,8 +306,11 @@ public class AmbariManagementControllerImplTest {
     // getCluster
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
-    replay(injector, clusters);
+    replay(injector, clusters, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -305,7 +323,7 @@ public class AmbariManagementControllerImplTest {
       // expected
     }
 
-    verify(injector, clusters);
+    verify(injector, clusters, hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -354,8 +372,12 @@ public class AmbariManagementControllerImplTest {
     CredentialStoreService credentialStoreService = createNiceMock(CredentialStoreService.class);
     expect(credentialStoreService.isInitialized(anyObject(CredentialStoreType.class))).andReturn(true).anyTimes();
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
-    replay(injector, clusters, cluster, cluster2, response, response2, credentialStoreService);
+    replay(injector, clusters, cluster, cluster2, response, response2, credentialStoreService,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -372,7 +394,8 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response));
     assertTrue(setResponses.contains(response2));
 
-    verify(injector, clusters, cluster, cluster2, response, response2, credentialStoreService);
+    verify(injector, clusters, cluster, cluster2, response, response2, credentialStoreService,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -409,6 +432,9 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     cluster.setClusterName("clusterNew");
     expectLastCall();
 
@@ -416,7 +442,8 @@ public class AmbariManagementControllerImplTest {
     expectLastCall();
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -424,7 +451,8 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, configurationRequest,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -457,6 +485,9 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").anyTimes();
     expect(clusterRequest.getClusterId()).andReturn(1L).anyTimes();
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     ConfigurationRequest configReq = new ConfigurationRequest();
     final Map<String, String> configReqProps = Maps.newHashMap();
     configReqProps.put("p1", null);
@@ -479,7 +510,8 @@ public class AmbariManagementControllerImplTest {
     expectLastCall();
 
     // replay mocks
-    replay(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager);
+    replay(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -487,7 +519,8 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager);
+    verify(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -516,8 +549,12 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -525,7 +562,8 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -557,6 +595,9 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
         .andReturn(false)
         .once();
@@ -566,7 +607,8 @@ public class AmbariManagementControllerImplTest {
     // Note: kerberosHelper.toggleKerberos is not called
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -574,7 +616,8 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
   /**
    * Ensure that when the cluster security type updated from NONE to KERBEROS, KerberosHandler.toggleKerberos
@@ -604,6 +647,9 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
         .andReturn(false)
         .once();
@@ -617,8 +663,12 @@ public class AmbariManagementControllerImplTest {
         .andReturn(null)
         .once();
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -626,7 +676,8 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -684,6 +735,9 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
@@ -761,8 +815,12 @@ public class AmbariManagementControllerImplTest {
         .andThrow(new IllegalArgumentException("bad args!"))
         .once();
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -776,7 +834,8 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   /**
@@ -804,11 +863,15 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     cluster.setClusterName("clusterNew");
     expectLastCall().andThrow(new RollbackException());
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -820,7 +883,8 @@ public class AmbariManagementControllerImplTest {
     }
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -842,7 +906,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", 1L, "component1", "component1", "host1", null);
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
@@ -854,6 +918,19 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(hostComponentStateDAO.findById(1L)).andReturn(hostComponentStateEntity).anyTimes();
+    expect(hostComponentStateEntity.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getComponentName()).andReturn("component1").anyTimes();
+    expect(hostComponentStateEntity.getComponentType()).andReturn("component1").anyTimes();
+
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component1", "component1")).andReturn(serviceComponentDesiredStateEntity).anyTimes();
+    expect(serviceComponentDesiredStateEntity.getId()).andReturn(1L).times(2);
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -867,7 +944,7 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getName()).andReturn("service1").anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(component.getName()).andReturn("component1");
+    expect(component.getId()).andReturn(1L).times(2);
     expect(component.getServiceComponentHosts()).andReturn(
         new HashMap<String, ServiceComponentHost>() {{
           put("host1", componentHost);
@@ -878,7 +955,8 @@ public class AmbariManagementControllerImplTest {
 
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, response, stack,
-        ambariMetaInfo, service, component, componentHost);
+        ambariMetaInfo, service, component, componentHost, hostComponentStateDAO, hostComponentStateEntity,
+        serviceComponentDesiredStateDAO, serviceComponentDesiredStateEntity);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -891,7 +969,9 @@ public class AmbariManagementControllerImplTest {
     assertEquals(1, setResponses.size());
     assertTrue(setResponses.contains(response));
 
-    verify(injector, clusters, cluster, host, response, stack, ambariMetaInfo, service, component, componentHost);
+    verify(injector, clusters, cluster, host, response, stack, ambariMetaInfo, service, component, componentHost,
+            hostComponentStateDAO, hostComponentStateEntity, serviceComponentDesiredStateDAO,
+            serviceComponentDesiredStateEntity);
   }
 
   @Test
@@ -909,7 +989,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", 1L, "component1", "component1", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -934,12 +1014,26 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getService("service1")).andReturn(service);
     expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(component.getName()).andReturn("component1").anyTimes();
+    expect(component.getId()).andReturn(1L).anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(null);
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(hostComponentStateDAO.findById(1L)).andReturn(hostComponentStateEntity).anyTimes();
+    expect(hostComponentStateEntity.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getComponentName()).andReturn("component1").anyTimes();
+    expect(hostComponentStateEntity.getComponentType()).andReturn("component1").anyTimes();
+
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component1", "component1")).andReturn(serviceComponentDesiredStateEntity).anyTimes();
+    expect(serviceComponentDesiredStateEntity.getId()).andReturn(1L).anyTimes();
 
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
-        service, component);
+        service, component, hostComponentStateDAO, hostComponentStateEntity, serviceComponentDesiredStateDAO,
+            serviceComponentDesiredStateEntity);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -954,7 +1048,9 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component);
+    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component,
+            hostComponentStateDAO, hostComponentStateEntity, serviceComponentDesiredStateDAO,
+            serviceComponentDesiredStateEntity);
   }
 
   @Test
@@ -974,7 +1070,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
     request1.setState("INSTALLED");
 
 
@@ -1018,9 +1114,12 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
-        service, component, componentHost1, response1);
+        service, component, componentHost1, response1, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1031,7 +1130,8 @@ public class AmbariManagementControllerImplTest {
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
     assertTrue(responses.size() == 1);
-    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component, componentHost1, response1);
+    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component, componentHost1, response1,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -1051,7 +1151,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
     request1.setMaintenanceState("ON");
 
 
@@ -1089,9 +1189,12 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
-        service, component, componentHost1, response1);
+        service, component, componentHost1, response1, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1102,7 +1205,8 @@ public class AmbariManagementControllerImplTest {
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
     assertTrue(responses.size() == 1);
-    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component, componentHost1, response1);
+    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component, componentHost1, response1,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -1135,13 +1239,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", 1L, "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host1", null);
+        "cluster1", "CORE", "service1", 2L, "component2", "component2","host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", 3L, "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1165,7 +1269,6 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component1);
     expect(service.getName()).andReturn("service1").anyTimes();
-    expect(component1.getName()).andReturn("component1");
     expect(component1.getServiceComponentHosts()).andReturn(
         new HashMap<String, ServiceComponentHost>() {{
           put("host1", componentHost1);
@@ -1175,23 +1278,60 @@ public class AmbariManagementControllerImplTest {
 
     expect(cluster.getServiceByComponentName("component2")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component2")).andReturn(component2);
-    expect(component2.getName()).andReturn("component2");
     expect(component2.getServiceComponentHosts()).andReturn(null);
     expect(componentHost2.getHostName()).andReturn("host1");
 
     expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
-    expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(
         new HashMap<String, ServiceComponentHost>() {{
           put("host1", componentHost2);
         }});
     expect(componentHost2.convertToResponse(null)).andReturn(response2);
 
+    HostComponentStateEntity hostComponentStateEntity2 = createNiceMock(HostComponentStateEntity.class);
+    HostComponentStateEntity hostComponentStateEntity3 = createNiceMock(HostComponentStateEntity.class);
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(hostComponentStateDAO.findById(1L)).andReturn(hostComponentStateEntity).anyTimes();
+    expect(hostComponentStateDAO.findById(2L)).andReturn(hostComponentStateEntity2).anyTimes();
+    expect(hostComponentStateDAO.findById(3L)).andReturn(hostComponentStateEntity3).anyTimes();
+
+    expect(hostComponentStateEntity.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getComponentName()).andReturn("component1").anyTimes();
+    expect(hostComponentStateEntity.getComponentType()).andReturn("component1").anyTimes();
+
+    expect(hostComponentStateEntity2.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getComponentName()).andReturn("component2").anyTimes();
+    expect(hostComponentStateEntity2.getComponentType()).andReturn("component2").anyTimes();
+
+    expect(hostComponentStateEntity3.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getComponentName()).andReturn("component3").anyTimes();
+    expect(hostComponentStateEntity3.getComponentType()).andReturn("component3").anyTimes();
+
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component1", "component1")).andReturn(serviceComponentDesiredStateEntity).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity2 = createMock(ServiceComponentDesiredStateEntity.class);
+
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component2", "component2")).andReturn(serviceComponentDesiredStateEntity2).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity3 = createMock(ServiceComponentDesiredStateEntity.class);
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component3", "component3")).andReturn(serviceComponentDesiredStateEntity3).anyTimes();
+    expect(serviceComponentDesiredStateEntity.getId()).andReturn(1L).times(2);
+
     // replay mocks
     replay(stateHelper, injector, clusters, cluster, host, stack,
         ambariMetaInfo, service, component1, component2, component3, componentHost1,
-        componentHost2, response1, response2);
+        componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1206,7 +1346,8 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response2));
 
     verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component1, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+        componentHost1, componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
   }
 
   @Test
@@ -1234,13 +1375,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", 1L, "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service2", "component2", "host1", null);
+        "cluster1", "CORE", "service2", 2L, "component2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", 3L, "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1270,7 +1411,6 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getService("service1")).andReturn(service);
     expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component1);
-    expect(component1.getName()).andReturn("component1");
     expect(component1.getServiceComponentHosts()).andReturn(new
                                                                HashMap<String, ServiceComponentHost>() {{
                                                                  put("host1", componentHost1);
@@ -1284,7 +1424,6 @@ public class AmbariManagementControllerImplTest {
     expect(service.getName()).andReturn("service1").anyTimes();
     expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
-    expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(new
                                                                 HashMap<String, ServiceComponentHost>() {{
                                                                   put("host1", componentHost2);
@@ -1292,10 +1431,49 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost2.convertToResponse(null)).andReturn(response2);
     expect(componentHost2.getHostName()).andReturn("host1");
 
+    HostComponentStateEntity hostComponentStateEntity2 = createNiceMock(HostComponentStateEntity.class);
+    HostComponentStateEntity hostComponentStateEntity3 = createNiceMock(HostComponentStateEntity.class);
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(hostComponentStateDAO.findById(1L)).andReturn(hostComponentStateEntity).anyTimes();
+    expect(hostComponentStateDAO.findById(2L)).andReturn(hostComponentStateEntity2).anyTimes();
+    expect(hostComponentStateDAO.findById(3L)).andReturn(hostComponentStateEntity3).anyTimes();
+
+    expect(hostComponentStateEntity.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getComponentName()).andReturn("component1").anyTimes();
+    expect(hostComponentStateEntity.getComponentType()).andReturn("component1").anyTimes();
+
+    expect(hostComponentStateEntity2.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getComponentName()).andReturn("component2").anyTimes();
+    expect(hostComponentStateEntity2.getComponentType()).andReturn("component2").anyTimes();
+
+    expect(hostComponentStateEntity3.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getComponentName()).andReturn("component3").anyTimes();
+    expect(hostComponentStateEntity3.getComponentType()).andReturn("component3").anyTimes();
+
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component1", "component1")).andReturn(serviceComponentDesiredStateEntity).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity2 = createMock(ServiceComponentDesiredStateEntity.class);
+
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component2", "component2")).andReturn(serviceComponentDesiredStateEntity2).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity3 = createMock(ServiceComponentDesiredStateEntity.class);
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component3", "component3")).andReturn(serviceComponentDesiredStateEntity3).anyTimes();
+    expect(serviceComponentDesiredStateEntity.getId()).andReturn(1L).times(2);
+
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
         service, component1, component2, component3, componentHost1,
-        componentHost2, response1, response2);
+        componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1310,7 +1488,8 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response2));
 
     verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component1, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+        componentHost1, componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
   }
 
   @Test
@@ -1340,13 +1519,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", 1L, "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service2", "component2", "host1", null);
+        "cluster1", "CORE", "service2", 2L, "component2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", 3L, "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1376,7 +1555,6 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getService("service1")).andReturn(service);
     expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(component.getName()).andReturn("component1");
     expect(component.getServiceComponentHosts()).andReturn(ImmutableMap.<String, ServiceComponentHost>builder()
         .put("host1", componentHost1)
         .build());
@@ -1394,17 +1572,55 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
 
-    expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(ImmutableMap.<String, ServiceComponentHost>builder()
         .put("host1", componentHost2)
         .build());
     expect(componentHost2.convertToResponse(null)).andReturn(response2);
     expect(componentHost2.getHostName()).andReturn("host1");
 
+    HostComponentStateEntity hostComponentStateEntity2 = createNiceMock(HostComponentStateEntity.class);
+    HostComponentStateEntity hostComponentStateEntity3 = createNiceMock(HostComponentStateEntity.class);
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(hostComponentStateDAO.findById(1L)).andReturn(hostComponentStateEntity).anyTimes();
+    expect(hostComponentStateDAO.findById(2L)).andReturn(hostComponentStateEntity2).anyTimes();
+    expect(hostComponentStateDAO.findById(3L)).andReturn(hostComponentStateEntity3).anyTimes();
+
+    expect(hostComponentStateEntity.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getComponentName()).andReturn("component1").anyTimes();
+    expect(hostComponentStateEntity.getComponentType()).andReturn("component1").anyTimes();
+
+    expect(hostComponentStateEntity2.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getComponentName()).andReturn("component2").anyTimes();
+    expect(hostComponentStateEntity2.getComponentType()).andReturn("component2").anyTimes();
+
+    expect(hostComponentStateEntity3.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getComponentName()).andReturn("component3").anyTimes();
+    expect(hostComponentStateEntity3.getComponentType()).andReturn("component3").anyTimes();
+
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component1", "component1")).andReturn(serviceComponentDesiredStateEntity).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity2 = createMock(ServiceComponentDesiredStateEntity.class);
+
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component2", "component2")).andReturn(serviceComponentDesiredStateEntity2).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity3 = createMock(ServiceComponentDesiredStateEntity.class);
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component3", "component3")).andReturn(serviceComponentDesiredStateEntity3).anyTimes();
+    expect(serviceComponentDesiredStateEntity.getId()).andReturn(1L).times(2);
+
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
         service, service2, component, component2, component3, componentHost1,
-        componentHost2, response1, response2);
+        componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1419,7 +1635,8 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response2));
 
     verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, service2, component, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+        componentHost1, componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
   }
 
   @Test
@@ -1448,13 +1665,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", null, null);
+        "cluster1", "CORE", "service1", 1L, "component1", "component1", null, null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host2", null);
+        "cluster1", "CORE", "service1", 2L, "component2", "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", null, null);
+        "cluster1", "CORE", "service1", 3L, "component3", "component3", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1484,7 +1701,6 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
     expect(service.getName()).andReturn("service1").anyTimes();
-    expect(component.getName()).andReturn("component1");
     expect(component.getServiceComponentHosts()).andReturn(Collections.singletonMap("foo", componentHost1));
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
@@ -1494,15 +1710,53 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getService("service1")).andReturn(service);
     expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
-    expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(Collections.singletonMap("foo", componentHost2));
     expect(componentHost2.convertToResponse(null)).andReturn(response2);
     expect(componentHost2.getHostName()).andReturn("host1");
 
+    HostComponentStateEntity hostComponentStateEntity2 = createNiceMock(HostComponentStateEntity.class);
+    HostComponentStateEntity hostComponentStateEntity3 = createNiceMock(HostComponentStateEntity.class);
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(hostComponentStateDAO.findById(1L)).andReturn(hostComponentStateEntity).anyTimes();
+    expect(hostComponentStateDAO.findById(2L)).andReturn(hostComponentStateEntity2).anyTimes();
+    expect(hostComponentStateDAO.findById(3L)).andReturn(hostComponentStateEntity3).anyTimes();
+
+    expect(hostComponentStateEntity.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity.getComponentName()).andReturn("component1").anyTimes();
+    expect(hostComponentStateEntity.getComponentType()).andReturn("component1").anyTimes();
+
+    expect(hostComponentStateEntity2.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity2.getComponentName()).andReturn("component2").anyTimes();
+    expect(hostComponentStateEntity2.getComponentType()).andReturn("component2").anyTimes();
+
+    expect(hostComponentStateEntity3.getClusterId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getServiceId()).andReturn(1L).anyTimes();
+    expect(hostComponentStateEntity3.getComponentName()).andReturn("component3").anyTimes();
+    expect(hostComponentStateEntity3.getComponentType()).andReturn("component3").anyTimes();
+
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component1", "component1")).andReturn(serviceComponentDesiredStateEntity).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity2 = createMock(ServiceComponentDesiredStateEntity.class);
+
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component2", "component2")).andReturn(serviceComponentDesiredStateEntity2).anyTimes();
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity3 = createMock(ServiceComponentDesiredStateEntity.class);
+    expect(serviceComponentDesiredStateDAO.findByName(1L, 1L, 1L,
+            "component3", "component3")).andReturn(serviceComponentDesiredStateEntity3).anyTimes();
+    expect(serviceComponentDesiredStateEntity.getId()).andReturn(1L).times(2);
+
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
         service, service2, component, component2, component3, componentHost1,
-        componentHost2, response1, response2);
+        componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1518,7 +1772,8 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response2));
 
     verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, service2, component, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+        componentHost1, componentHost2, response1, response2, hostComponentStateDAO, serviceComponentDesiredStateDAO,
+            hostComponentStateEntity, hostComponentStateEntity2, hostComponentStateEntity3);
   }
 
   @Test
@@ -1533,13 +1788,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host1", null);
+        "cluster1", "CORE", "service1", "component2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1554,12 +1809,15 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(clusters.getClustersForHost("host1")).andThrow(new HostNotFoundException("host1"));
 
     // replay mocks
-    replay(maintHelper, injector, clusters, cluster, stack, ambariMetaInfo);
+    replay(maintHelper, injector, clusters, cluster, stack, ambariMetaInfo, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1575,7 +1833,7 @@ public class AmbariManagementControllerImplTest {
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
 
-    verify(injector, clusters, cluster, stack, ambariMetaInfo);
+    verify(injector, clusters, cluster, stack, ambariMetaInfo, hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -1588,13 +1846,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", "host1", null);
+        "cluster1", "CORE", "service1", "component1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component2", "host2", null);
+        "cluster1", "CORE", "service1", "component2", "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component3", "host1", null);
+        "cluster1", "CORE", "service1", "component3", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1611,6 +1869,9 @@ public class AmbariManagementControllerImplTest {
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
 
     // replay mocks
     replay(maintHelper, injector, clusters, stack, ambariMetaInfo);
@@ -1653,7 +1914,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", "service1", "component1", null, null);
+        "cluster1", "CORE", "service1", "component1", "component1", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1689,9 +1950,13 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost1.getHostName()).andReturn("host1");
     expect(componentHost2.getHostName()).andReturn("host1");
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, response1, response2,
-        stack, ambariMetaInfo, service, component, componentHost1, componentHost2);
+        stack, ambariMetaInfo, service, component, componentHost1, componentHost2,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1705,7 +1970,8 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response1));
     assertTrue(setResponses.contains(response2));
 
-    verify(injector, clusters, cluster, response1, response2, stack, ambariMetaInfo, service, component, componentHost1, componentHost2);
+    verify(injector, clusters, cluster, response1, response2, stack, ambariMetaInfo, service, component, componentHost1,
+            componentHost2, hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -1733,7 +1999,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", "CORE", null, null, null, null);
+        "cluster1", "CORE", null, null, null, null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1776,13 +2042,16 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost2.getHostName()).andReturn("host1");
     expect(componentHost3.getHostName()).andReturn("host1");
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     expect(component2.getServiceComponentHosts()).andReturn(Collections.singletonMap("foobar", componentHost3));
     expect(componentHost3.convertToResponse(null)).andReturn(response3);
 
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, response1, response2,
         response3, stack, ambariMetaInfo, service1, service2, component1, component2,
-        componentHost1, componentHost2, componentHost3);
+        componentHost1, componentHost2, componentHost3, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -1798,7 +2067,7 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response3));
 
     verify(injector, clusters, cluster, response1, response2, response3, stack, ambariMetaInfo, service1, service2,
-        component1, component2, componentHost1, componentHost2, componentHost3);
+        component1, component2, componentHost1, componentHost2, componentHost3, hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -1845,15 +2114,19 @@ public class AmbariManagementControllerImplTest {
 
     expect(serviceInfo.getOsSpecifics()).andReturn(osSpecificsService);
     expect(stackInfo.getOsSpecifics()).andReturn(osSpecificsStack);
+
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
     EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
-    replay(maintHelper, injector, clusters, stackInfo, serviceInfo, osFamilyMock);
+    replay(maintHelper, injector, clusters, stackInfo, serviceInfo, osFamilyMock, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     AmbariManagementControllerImplTest.NestedTestClass nestedTestClass = this.new NestedTestClass(null, clusters,
         injector, osFamilyMock);
@@ -2000,7 +2273,8 @@ public class AmbariManagementControllerImplTest {
     expectLastCall().anyTimes();
 
     //replay
-    replay(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, ldapBatchDto);
+    replay(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, ldapBatchDto,
+            hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     AmbariManagementControllerImpl controller = injector.getInstance(AmbariManagementControllerImpl.class);
 
@@ -2019,7 +2293,7 @@ public class AmbariManagementControllerImplTest {
 
     controller.synchronizeLdapUsersAndGroups(userRequest, groupRequest);
 
-    verify(ldapDataPopulator, clusters, users, ldapBatchDto);
+    verify(ldapDataPopulator, clusters, users, ldapBatchDto, hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   private void setAmbariMetaInfo(AmbariMetaInfo metaInfo, AmbariManagementController controller) throws NoSuchFieldException, IllegalAccessException {
@@ -2041,6 +2315,10 @@ public class AmbariManagementControllerImplTest {
       binder.bind(Users.class).toInstance(users);
       binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
       binder.bind(RegistryManager.class).toInstance(registryManager);
+      binder.bind(HostComponentStateEntity.class).toInstance(hostComponentStateEntity);
+      binder.bind(HostComponentStateDAO.class).toInstance(hostComponentStateDAO);
+      binder.bind(ServiceComponentDesiredStateEntity.class).toInstance(serviceComponentDesiredStateEntity);
+      binder.bind(ServiceComponentDesiredStateDAO.class).toInstance(serviceComponentDesiredStateDAO);
     }
   }
 
@@ -2071,12 +2349,15 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
+
     Configuration configuration = createNiceMock(Configuration.class);
     String[] suffices = {"/repodata/repomd.xml"};
     expect(configuration.getRepoValidationSuffixes("redhat6")).andReturn(suffices);
 
     // replay mocks
-    replay(injector, clusters, ambariMetaInfo, configuration);
+    replay(injector, clusters, ambariMetaInfo, configuration, hostComponentStateDAO, serviceComponentDesiredStateDAO);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -2101,7 +2382,7 @@ public class AmbariManagementControllerImplTest {
       Assert.assertEquals("Could not access base url . file:///some/repo/repodata/repomd.xml . ", e.getMessage());
     }
 
-    verify(injector, clusters, ambariMetaInfo, configuration);
+    verify(injector, clusters, ambariMetaInfo, configuration, hostComponentStateDAO, serviceComponentDesiredStateDAO);
   }
 
   @Test
@@ -2121,6 +2402,9 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
 
     RepositoryInfo dummyRepoInfo = new RepositoryInfo();
     dummyRepoInfo.setRepoName("repo_name");
@@ -2253,6 +2537,8 @@ public class AmbariManagementControllerImplTest {
     samplePacklet.setDefinition("nifi.tar.gz");
     packletArrayList.add(samplePacklet);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
+    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
+    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
     expect(ambariMetaInfo.getModules(mpackId)).andReturn(packletArrayList).atLeastOnce();
     replay(ambariMetaInfo,injector);
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
