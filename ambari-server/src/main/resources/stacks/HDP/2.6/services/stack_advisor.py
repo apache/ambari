@@ -124,8 +124,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       full_stack_version = cluster_env["recommendations_full_stack_version"]
       if compare_versions(full_stack_version, '2.6.3.0') >= 0:
         zeppelin_config = self.getServicesSiteProperties(services, "zeppelin-config")
-        if zeppelin_config and 'zeppelin.notebook.storage' in zeppelin_config \
-            and zeppelin_config['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.VFSNotebookRepo':
+        if zeppelin_config and zeppelin_config.get('zeppelin.notebook.storage', None) == 'org.apache.zeppelin.notebook.repo.VFSNotebookRepo':
           putZeppelinConfigProperty = self.putProperty(configurations, 'zeppelin-config', services)
           putZeppelinConfigProperty('zeppelin.notebook.storage', 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo')
 
