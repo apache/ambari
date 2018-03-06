@@ -268,8 +268,7 @@ class BSRunner extends Thread {
           requestIdDir + " user=" + user + " sshPort=" + sshPort + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
           " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs=" + userRunAs +
-          " timeout=" + bootstrapTimeout / 1000 +
-          " validation=" + validationInstance);
+          " timeout=" + bootstrapTimeout / 1000 + " validation=" + validationInstance);
 
       envVariables.put("AMBARI_PASSPHRASE", agentSetupPassword);
       if (this.verbose)
