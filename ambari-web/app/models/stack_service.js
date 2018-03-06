@@ -340,7 +340,7 @@ App.StackService.componentsOrderForService = {
 
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {
-  'YARN': ['MAPREDUCE2']
+
 };
 
 
