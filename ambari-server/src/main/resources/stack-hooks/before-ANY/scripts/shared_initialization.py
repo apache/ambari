@@ -189,6 +189,9 @@ def setup_hadoop_env():
     # create /etc/hadoop
     Directory(params.hadoop_dir, mode=0755)
 
+    #Write out the conf directory
+    #TODO: Change with instance manager
+    Directory(params.hadoop_conf_dir, mode=0755)
     # write out hadoop-env.sh, but only if the directory exists
     if os.path.exists(params.hadoop_conf_dir):
       File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'), owner=tc_owner,
