@@ -109,7 +109,7 @@ public class ProvisionClusterRequestTest {
     replay(hostResourceProvider);
     Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
 
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -160,7 +160,7 @@ public class ProvisionClusterRequestTest {
     replay(hostResourceProvider);
     Map<String, Object> properties = createBlueprintRequestPropertiesCountOnly(CLUSTER_NAME, BLUEPRINT_NAME);
 
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -211,7 +211,7 @@ public class ProvisionClusterRequestTest {
   @Test
   public void testMultipleGroups() throws Exception {
     Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -286,7 +286,7 @@ public class ProvisionClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
     // should result in an exception
-    new ProvisionClusterRequest(properties, null);
+    new ProvisionClusterRequest(null, properties, null);
   }
 
   @Test
@@ -301,7 +301,7 @@ public class ProvisionClusterRequestTest {
     credentialsSet.add(credentialHashMap);
     properties.put("credentials", credentialsSet);
 
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
 
     assertEquals(provisionClusterRequest.getCredentialsMap().get("testAlias").getAlias(), "testAlias");
     assertEquals(provisionClusterRequest.getCredentialsMap().get("testAlias").getPrincipal(), "testPrincipal");
@@ -326,7 +326,7 @@ public class ProvisionClusterRequestTest {
     credentialsSet.add(credentialHashMap);
     properties.put("credentials", credentialsSet);
 
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
   }
 
   @Test(expected= InvalidTopologyTemplateException.class)
@@ -338,7 +338,7 @@ public class ProvisionClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
     // should result in an exception
-    new ProvisionClusterRequest(properties, null);
+    new ProvisionClusterRequest(null, properties, null);
   }
 
   @Test(expected= InvalidTopologyTemplateException.class)
@@ -350,7 +350,7 @@ public class ProvisionClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
     // should result in an exception
-    new ProvisionClusterRequest(properties, null);
+    new ProvisionClusterRequest(null, properties, null);
   }
 
   @Test(expected = InvalidTopologyTemplateException.class)
@@ -370,7 +370,7 @@ public class ProvisionClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
     // should result in an exception
-    new ProvisionClusterRequest(properties, null);
+    new ProvisionClusterRequest(null, properties, null);
   }
 
 
@@ -383,7 +383,7 @@ public class ProvisionClusterRequestTest {
     replay(hostResourceProvider);
 
     // should result in an exception due to invalid property in host predicate
-    new ProvisionClusterRequest(createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME), null);
+    new ProvisionClusterRequest(null, createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME), null);
   }
 
   @Test(expected = InvalidTopologyTemplateException.class)
@@ -395,7 +395,7 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
     ((Map) ((List) properties.get("host_groups")).iterator().next()).put("host_count", "5");
     // should result in an exception due to both host name and host count being specified
-    new ProvisionClusterRequest(properties, null);
+    new ProvisionClusterRequest(null, properties, null);
   }
 
   @Test(expected = InvalidTopologyTemplateException.class)
@@ -407,13 +407,13 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
     ((Map) ((List) properties.get("host_groups")).iterator().next()).put("host_predicate", "Hosts/host_name=myTestHost");
     // should result in an exception due to both host name and host count being specified
-    new ProvisionClusterRequest(properties, null);
+    new ProvisionClusterRequest(null, properties, null);
   }
 
   @Test
   public void testQuickLinksProfile_NoDataInRequest() throws Exception {
     Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
     assertNull("No quick links profile is expected", request.getQuickLinksProfileJson());
   }
 
@@ -424,7 +424,7 @@ public class ProvisionClusterRequestTest {
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_FILTERS_PROPERTY,
         Sets.newHashSet(QuickLinksProfileBuilderTest.filter(null, null, true)));
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
     assertEquals("Quick links profile doesn't match expected",
         "{\"filters\":[{\"visible\":true}],\"services\":[]}",
         request.getQuickLinksProfileJson());
@@ -439,7 +439,7 @@ public class ProvisionClusterRequestTest {
     Set<Map<String, Object>> services = Sets.newHashSet(hdfs);
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, services);
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
     assertEquals("Quick links profile doesn't match expected",
         "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
         request.getQuickLinksProfileJson());
@@ -457,7 +457,7 @@ public class ProvisionClusterRequestTest {
     Set<Map<String, Object>> services = Sets.newHashSet(hdfs);
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, services);
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
     System.out.println(request.getQuickLinksProfileJson());
     assertEquals("Quick links profile doesn't match expected",
         "{\"filters\":[{\"visible\":true}],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
@@ -470,7 +470,7 @@ public class ProvisionClusterRequestTest {
 
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, "Hello World!");
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
   }
 
   public static Map<String, Object> createBlueprintRequestProperties(String clusterName, String blueprintName) {

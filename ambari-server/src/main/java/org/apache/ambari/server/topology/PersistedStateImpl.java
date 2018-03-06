@@ -23,7 +23,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
@@ -50,12 +52,12 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
 /**
@@ -90,9 +92,6 @@ public class PersistedStateImpl implements PersistedState {
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
-
-  @Inject
-  private HostRoleCommandDAO physicalTaskDAO;
 
   @Inject
   private BlueprintFactory blueprintFactory;
@@ -255,6 +254,8 @@ public class PersistedStateImpl implements PersistedState {
   private TopologyRequestEntity toEntity(BaseClusterRequest request) {
     TopologyRequestEntity entity = new TopologyRequestEntity();
 
+    entity.setRawRequestBody(request.getRawRequestBody());
+
     //todo: this isn't set for a scaling operation because we had intended to allow multiple
     //todo: bp's to be used to scale a cluster although this isn't currently supported by
     //todo: new topology infrastructure
@@ -330,7 +331,7 @@ public class PersistedStateImpl implements PersistedState {
           logicalTaskEntity.setTopologyHostTaskEntity(topologyTaskEntity);
           Long physicalId = request.getPhysicalTaskId(logicalTaskId);
           if (physicalId != null) {
-            logicalTaskEntity.setHostRoleCommandEntity(physicalTaskDAO.findByPK(physicalId));
+            logicalTaskEntity.setHostRoleCommandEntity(hostRoleCommandDAO.findByPK(physicalId));
           }
           logicalTaskEntity.setTopologyHostTaskEntity(topologyTaskEntity);
         }
@@ -391,12 +392,15 @@ public class PersistedStateImpl implements PersistedState {
     private final Configuration configuration;
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
     private final ProvisionAction provisionAction;
+    private final Set<StackId> stackIds;
 
     public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
       clusterId = entity.getClusterId();
       type = Type.valueOf(entity.getAction());
       description = entity.getDescription();
       provisionAction = entity.getProvisionAction();
+
+      stackIds = TopologyRequestUtil.getStackIdsFromRequest(entity.getRawRequestBody());
 
       try {
         blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());
@@ -407,6 +411,11 @@ public class PersistedStateImpl implements PersistedState {
       configuration.setParentConfiguration(blueprint.getConfiguration());
 
       parseHostGroupInfo(entity);
+    }
+
+    @Override
+    public Set<StackId> getStackIds() {
+      return stackIds;
     }
 
     @Override
