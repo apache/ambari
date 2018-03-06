@@ -69,7 +69,7 @@ public class BootStrapResource {
   @POST @ApiIgnore // until documented
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public BSResponse bootStrap(SshHostInfo sshInfo, @PathParam("validations") String validations,
+  public BSResponse bootStrap(SshHostInfo sshInfo,
                               @Context UriInfo uriInfo) {
     
     normalizeHosts(sshInfo);
@@ -92,8 +92,8 @@ public class BootStrapResource {
   @Path("/validations")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public BSResponse bootStrap(SshHostInfo sshInfo,
-                              @Context UriInfo uriInfo) {
+  public BSResponse hostValidate(SshHostInfo sshInfo,
+                                 @Context UriInfo uriInfo) {
 
     normalizeHosts(sshInfo);
 

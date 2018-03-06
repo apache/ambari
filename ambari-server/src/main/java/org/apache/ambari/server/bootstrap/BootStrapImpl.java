@@ -101,6 +101,12 @@ public class BootStrapImpl {
     }
   }
 
+  /**
+   * Start Bsrunner thread to run bootstrap script
+   * @param info credential info needed to connect hosts
+   * @param validate if it is true, bootstrap script will only validate reachability of hosts, not run actual bootstrap
+   * @return
+   */
   public  synchronized BSResponse runBootStrap(SshHostInfo info, boolean validate) {
     BSResponse response = new BSResponse();
     /* Run some checks for ssh host */

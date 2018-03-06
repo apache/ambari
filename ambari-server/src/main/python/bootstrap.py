@@ -809,7 +809,7 @@ class ValidateHost(Bootstrap):
   def login(self):
     params = self.shared_state
     self.host_log.write("==========================\n")
-    self.host_log.write("Running login to the host {0} ...".format(self.host))
+    self.host_log.write("Running login to host {0} ...".format(self.host))
     ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, "exit",
               params.bootdir, self.host_log) #login and exit immediately
     retcode = ssh.run()
@@ -824,7 +824,7 @@ class ValidateHost(Bootstrap):
     err_msg = ret["errormsg"]
     std_out = ret["log"]
     if retcode != 0:
-      message = "ERROR: Validation of host {0} fails because it finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(self.host, retcode, err_msg, std_out)
+      message = "WARNING: Validation of host {0} fails because it finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(self.host, retcode, err_msg, std_out)
       self.host_log.write(message)
       logging.error(message)
     self.createDoneFile(retcode)

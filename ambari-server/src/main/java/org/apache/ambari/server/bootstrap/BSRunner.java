@@ -44,6 +44,8 @@ class BSRunner extends Thread {
 
   private static final String DEFAULT_USER = "root";
   private static final String DEFAULT_SSHPORT = "22";
+  private static final String VALIDATION_OPERATION = "Validation";
+  private static final String BOOTSTRAP_OPERATION = "Bootstrap";
 
   private  boolean finished = false;
   private SshHostInfo sshHostInfo;
@@ -86,6 +88,7 @@ class BSRunner extends Thread {
     status.setLog("RUNNING");
     status.setStatus(BSStat.RUNNING);
     bsImpl.updateStatus(requestId, status);
+    // If validationInstance is true, BSRunner is to validate host reachability only
     this.validationInstance = validationInstance;
   }
 
@@ -179,8 +182,12 @@ class BSRunner extends Thread {
     return Math.max(HOST_BS_TIMEOUT, HOST_BS_TIMEOUT * hostCount / PARALLEL_BS_COUNT);
   }
 
-  private String isValidateHostOperation() {
-    return validationInstance ? "Validation" : "Bootstrap";
+  /**
+   * Get operation name which this runner is for
+   * @return operation name
+   */
+  private String getBsOperationType() {
+    return validationInstance ? VALIDATION_OPERATION : BOOTSTRAP_OPERATION;
   }
 
   public synchronized void finished() {
@@ -268,8 +275,7 @@ class BSRunner extends Thread {
           requestIdDir + " user=" + user + " sshPort=" + sshPort + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
           " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs=" + userRunAs +
-          " timeout=" + bootstrapTimeout / 1000 +
-          " validation=" + validationInstance);
+          " timeout=" + bootstrapTimeout / 1000 + " validation=" + validationInstance);
 
       envVariables.put("AMBARI_PASSPHRASE", agentSetupPassword);
       if (this.verbose)
@@ -290,7 +296,7 @@ class BSRunner extends Thread {
 
       Process process = pb.start();
 
-      StringBuilder logInfoMessage = new StringBuilder(isValidateHostOperation());
+      StringBuilder logInfoMessage = new StringBuilder(getBsOperationType());
       try {
         logInfoMessage.append(" output, log=").append(bootStrapErrorFilePath).append(" ").append(bootStrapOutputFilePath).append(" at ").append(ambariHostname);
         LOG.info(logInfoMessage.toString());
@@ -315,7 +321,7 @@ class BSRunner extends Thread {
         }
         scriptlog.append(outMesg).append("\n\n").append(errMesg);
         if (timedOut) {
-          scriptlog.append("\n\n ").append(isValidateHostOperation()).append(" process timed out. It was destroyed.");
+          scriptlog.append("\n\n ").append(getBsOperationType()).append(" process timed out. It was destroyed.");
         }
         LOG.info("Script log Mesg " + scriptlog.toString());
         if (exitCode != 0) {

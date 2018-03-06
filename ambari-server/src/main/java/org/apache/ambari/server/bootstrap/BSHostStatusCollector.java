@@ -99,8 +99,8 @@ class BSHostStatusCollector {
             if (line.startsWith("tcgetattr:") || line.startsWith("tput:"))
               continue;
             if (line.startsWith("ERROR MESSAGE:") && !status.getStatusCode().equals("0")) {
-              // Remove "ERROR MESSAGE:" string
-              status.setError(line.substring((new String("ERROR MESSAGE: ")).length()));
+              // Remove "ERROR MESSAGE: " string whose length is 15
+              status.setError(line.substring(15));
             }
 
             if (0 != sb.length() || 0 == line.length())
