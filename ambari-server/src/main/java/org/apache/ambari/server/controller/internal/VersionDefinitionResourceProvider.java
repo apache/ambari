@@ -59,8 +59,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.stack.RepoUtil;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -81,7 +79,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -617,15 +614,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     entity.setStack(stackEntity);
 
-    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories();
-
-    // Add service repositories (these are not contained by the VDF but are there in the stack model)
-    ListMultimap<String, RepositoryInfo> stackReposByOs =
-        s_metaInfo.get().getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
-    repos.addAll(RepoUtil.getServiceRepos(repos, stackReposByOs));
-
-
-    entity.addRepoOsEntities(mpackEntity.getRepositoryOperatingSystems());
+    List<RepoOsEntity> repositoryOperatingSystems = mpackEntity.getRepositoryOperatingSystems();
+    entity.addRepoOsEntities(repositoryOperatingSystems);
 
     entity.setVersion(holder.xml.release.getFullVersion());
     entity.setDisplayName(stackId, holder.xml.release);

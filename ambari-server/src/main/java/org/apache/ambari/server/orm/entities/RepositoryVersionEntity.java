@@ -119,7 +119,7 @@ public class RepositoryVersionEntity {
   /**
    * one-to-many association to {@link RepoOsEntity}
    */
-  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
+  @OneToMany(fetch = FetchType.EAGER, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
   private List<RepoOsEntity> repoOsEntities = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")

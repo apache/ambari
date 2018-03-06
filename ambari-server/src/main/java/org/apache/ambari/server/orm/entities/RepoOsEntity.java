@@ -35,6 +35,7 @@ import javax.persistence.TableGenerator;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.google.common.base.Objects;
 
@@ -214,5 +215,17 @@ public class RepoOsEntity {
         && Objects.equal(ambariManaged, that.ambariManaged)
         && Objects.equal(family, that.family)
         && Objects.equal(repoDefinitionEntities, that.repoDefinitionEntities);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return new ToStringBuilder(null)
+        .append("mpackId", mpackId)
+        .append("family", family)
+        .append("isManagedByAmbari", ambariManaged)
+        .toString();
   }
 }
