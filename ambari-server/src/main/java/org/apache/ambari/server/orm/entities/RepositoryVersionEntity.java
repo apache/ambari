@@ -363,7 +363,7 @@ public class RepositoryVersionEntity {
    */
   @Override
   public int hashCode() {
-    return java.util.Objects.hash(stack, version, displayName, repoOsEntities);
+    return java.util.Objects.hash(stack, version, displayName);
   }
 
   /**
@@ -385,8 +385,7 @@ public class RepositoryVersionEntity {
 
     RepositoryVersionEntity that = (RepositoryVersionEntity) object;
     return Objects.equal(stack, that.stack) && Objects.equal(version, that.version)
-        && Objects.equal(displayName, that.displayName)
-        && Objects.equal(repoOsEntities, that.repoOsEntities);
+        && Objects.equal(displayName, that.displayName);
   }
 
   /**
