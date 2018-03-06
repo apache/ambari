@@ -61,7 +61,6 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
-from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
 from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
   get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
 
@@ -795,6 +794,8 @@ class Script(object):
       self.available_packages_in_repos = []
 
   def create_component_instance(self):
+    # should be used only when mpack-instance-manager is available
+    from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
     config = self.get_config()
     mpack_name = get_mpack_name(config)
     mpack_version = get_mpack_version(config)
