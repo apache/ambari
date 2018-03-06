@@ -1376,3 +1376,9 @@ th.entity-actions {
   left: 2px;
   box-shadow: -2px -2px 10px -3px rgba(0, 0, 0, 0.5);
 }
+
+a.disabled i:before,
+a[disabled] i:before {
+  color: #ccc;
+  cursor: not-allowed;
+}
