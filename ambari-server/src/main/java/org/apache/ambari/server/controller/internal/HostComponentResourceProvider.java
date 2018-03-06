@@ -730,13 +730,13 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @return the component request object
    */
   private ServiceComponentHostRequest getRequest(Map<String, Object> properties) {
-    ServiceComponentHostRequest serviceComponentHostRequest = null;
+    Long hostComponentId = null;
     if (properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID) != null) {
-      Long hostComponentId = properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID) instanceof String ?
+      hostComponentId = properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID) instanceof String ?
               Long.parseLong((String) properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID)) :
               (Long) properties.get(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID);
-
-      serviceComponentHostRequest = new ServiceComponentHostRequest(
+    }
+    ServiceComponentHostRequest  serviceComponentHostRequest = new ServiceComponentHostRequest(
               (String) properties.get(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID),
               (String) properties.get(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
               (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
@@ -745,7 +745,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               (String) properties.get(HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID),
               (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
               (String) properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
-    }
 
     serviceComponentHostRequest.setState((String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
     if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
