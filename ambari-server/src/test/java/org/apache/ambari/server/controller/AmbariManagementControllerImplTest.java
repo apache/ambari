@@ -24,7 +24,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERS
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -59,7 +58,6 @@ import java.util.Set;
 
 import javax.persistence.RollbackException;
 
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -67,7 +65,6 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
@@ -107,7 +104,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.OsFamily;
-
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -1934,8 +1930,6 @@ public class AmbariManagementControllerImplTest {
             .addMockedMethod("getRcaParameters")
             .withConstructor(manager, clusters, injector).createNiceMock();
 
-    expect(ambariManagementControllerImpl.
-        getRcaParameters()).andReturn(new HashMap<>());
     replay(ambariManagementControllerImpl);
 
     // Inject configuration manually
@@ -2054,7 +2048,7 @@ public class AmbariManagementControllerImplTest {
 
     public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector, OsFamily osFamilyMock) throws Exception {
       super(actionManager, clusters, injector);
-      this.osFamily = osFamilyMock;
+      osFamily = osFamilyMock;
     }
 
 //    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,

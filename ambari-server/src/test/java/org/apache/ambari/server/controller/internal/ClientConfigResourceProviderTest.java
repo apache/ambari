@@ -323,9 +323,6 @@ public class ClientConfigResourceProviderTest {
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
     expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
-    HashMap<String, String> rcaParams = new HashMap<>();
-    rcaParams.put("key","value");
-    expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
@@ -583,7 +580,6 @@ public class ClientConfigResourceProviderTest {
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
-    expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();

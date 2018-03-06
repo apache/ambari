@@ -18,10 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
@@ -31,11 +27,8 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIS
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
@@ -90,7 +83,6 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
@@ -109,7 +101,6 @@ import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -188,6 +179,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -2394,7 +2386,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 Map<String, String> commandParamsInp,
                                 ServiceComponentHostEvent event,
                                 boolean skipFailure,
-                                RepositoryVersionEntity repoVersion,
                                 boolean isUpgradeSuspended,
                                 DatabaseType databaseType,
                                 Map<String, DesiredConfig> clusterDesiredConfigs
@@ -2561,34 +2552,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
-    String repoInfo;
-    try {
-      repoInfo = repoVersionHelper.getRepoInfo(cluster, component, host);
-    } catch (SystemException e) {
-      throw new AmbariException("", e);
-    }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Sending repo information to agent, hostname={}, clusterName={}, stackInfo={}, repoInfo={}",
-        scHost.getHostName(), clusterName, stackId.getStackId(), repoInfo);
-    }
-
     Map<String, String> hostParams = new TreeMap<>();
-    hostParams.put(REPO_INFO, repoInfo);
-    hostParams.putAll(getRcaParameters());
-
-    if (null != repoVersion) {
-      try {
-        VersionDefinitionXml xml = repoVersion.getRepositoryXml();
-        if (null != xml && !StringUtils.isBlank(xml.getPackageVersion(osFamily))) {
-          hostParams.put(PACKAGE_VERSION, xml.getPackageVersion(osFamily));
-        }
-      } catch (Exception e) {
-        throw new AmbariException(String.format("Could not load version xml from repo version %s",
-            repoVersion.getVersion()), e);
-      }
-
-      hostParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
-    }
 
     List<OsSpecific.Package> packages =
         getPackagesForStackServiceHost(ambariMetaInfo.getStack(stackId), serviceInfo, hostParams, osFamily);
@@ -2680,11 +2644,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   /**
    * Computes os-dependent packages for osSpecificMap. Does not take into
-   * account package dependencies for ANY_OS. Instead of this method
-   * you should use getPackagesForStackServiceHost()
-   * because it takes into account both os-dependent and os-independent lists
-   * of packages for stack service.
-   * @param hostParams may be modified (appended SERVICE_REPO_INFO)
+   * account package dependencies for ANY_OS. Instead of this method you should
+   * use getPackagesForStackServiceHost() because it takes into account both
+   * os-dependent and os-independent lists of packages for stack service.
+   *
+   * @param hostParams
    * @return a list of os-dependent packages for host
    */
   protected OsSpecific populatePackagesInfo(Map<String, OsSpecific> osSpecificMap, Map<String, String> hostParams,
@@ -2695,18 +2659,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       for (OsSpecific osSpecific : foundOSSpecifics) {
         hostOs.addPackages(osSpecific.getPackages());
       }
-
-      //TODO this looks deprecated. Need to investigate if it's actually used
-      // Choose repo that is relevant for host
-      OsSpecific.Repo repos = hostOs.getRepo();
-      if (repos != null) {
-        String serviceRepoInfo = gson.toJson(repos);
-        hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
-      }
     }
+
     return hostOs;
   }
 
+  @Override
   public List<OsSpecific.Package> getPackagesForStackServiceHost(StackInfo stackInfo, ServiceInfo serviceInfo, Map<String, String> hostParams, String osFamily) {
     List<OsSpecific.Package> packages = new ArrayList<>();
     //add all packages for ANY_OS
@@ -2949,11 +2907,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             Service service = cluster.getService(scHost.getServiceName());
             ServiceComponent serviceComponent = service.getServiceComponent(compName);
+            StackId stackId = cluster.getServiceGroup(scHost.getServiceGroupId()).getStackId();
 
             if (StringUtils.isBlank(stage.getHostParamsStage())) {
-              RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
               stage.setHostParamsStage(StageUtils.getGson().toJson(
-                  customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
+                  customCommandExecutionHelper.createDefaultHostParams(cluster, stackId)));
             }
 
 
@@ -3023,7 +2981,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 }
                 break;
               case STARTED:
-                StackId stackId = serviceComponent.getDesiredStackId();
                 ComponentInfo compInfo = ambariMetaInfo.getComponent(
                     stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceType(),
                     scHost.getServiceComponentName());
@@ -3170,10 +3127,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             } else {
               // !!! can never be null
-              RepositoryVersionEntity repoVersion = serviceComponent.getDesiredRepositoryVersion();
-
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                roleCommand, requestParameters, event, skipFailure, repoVersion, isUpgradeSuspended,
+                  roleCommand, requestParameters, event, skipFailure, isUpgradeSuspended,
                 databaseType, clusterDesiredConfigs);
             }
 
@@ -3189,9 +3144,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               calculateServiceComponentHostForServiceCheck(cluster, service);
 
           if (StringUtils.isBlank(stage.getHostParamsStage())) {
-            RepositoryVersionEntity repositoryVersion = componentForServiceCheck.getServiceComponent().getDesiredRepositoryVersion();
+            long serviceGroupId = componentForServiceCheck.getServiceGroupId();
+            ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupId);
+            StackId stackId = serviceGroup.getStackId();
+
             stage.setHostParamsStage(StageUtils.getGson().toJson(
-                customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
+                customCommandExecutionHelper.createDefaultHostParams(cluster, stackId)));
           }
 
           customCommandExecutionHelper.addServiceCheckAction(stage, componentForServiceCheck.getHostName(), smokeTestRole,
@@ -3318,19 +3276,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         configurationAttributes =
         new TreeMap<>();
 
-    RepositoryVersionEntity repoVersion = null;
-    if (null != scHost.getServiceComponent().getDesiredRepositoryVersion()) {
-      repoVersion = scHost.getServiceComponent().getDesiredRepositoryVersion();
-    } else {
-      Service service = cluster.getService(scHost.getServiceName());
-      repoVersion = service.getDesiredRepositoryVersion();
-    }
-
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
     DatabaseType databaseType = configs.getDatabaseType();
     Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null, false, repoVersion, isUpgradeSuspended, databaseType,
+                     roleCommand, null, null, false, isUpgradeSuspended, databaseType,
                      clusterDesiredConfigs);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
@@ -5079,28 +5029,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Map<String, String> getRcaParameters() {
-
-    String hostName = StageUtils.getHostName();
-
-    String url = configs.getRcaDatabaseUrl();
-    if (url.contains(Configuration.HOSTNAME_MACRO)) {
-      url =
-          url.replace(Configuration.HOSTNAME_MACRO,
-              hostsMap.getHostMap(hostName));
-    }
-
-    Map<String, String> rcaParameters = new HashMap<>();
-
-    rcaParameters.put(AMBARI_DB_RCA_URL, url);
-    rcaParameters.put(AMBARI_DB_RCA_DRIVER, configs.getRcaDatabaseDriver());
-    rcaParameters.put(AMBARI_DB_RCA_USERNAME, configs.getRcaDatabaseUser());
-    rcaParameters.put(AMBARI_DB_RCA_PASSWORD, configs.getRcaDatabasePassword());
-
-    return rcaParameters;
-  }
-
-  @Override
   public boolean checkLdapConfigured() {
     return ldapDataPopulator.isLdapEnabled();
   }
@@ -5804,7 +5732,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           if (!configs.isEmpty()) {
-            Map<String, Config> existingConfigTypeToConfig = new HashMap<String, Config>();
+            Map<String, Config> existingConfigTypeToConfig = new HashMap<>();
             for (Config config : configs) {
               Config existingConfig = cluster.getDesiredConfigByType(config.getType());
               existingConfigTypeToConfig.put(config.getType(), existingConfig);
