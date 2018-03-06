@@ -35,7 +35,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.google.common.base.Objects;
 
@@ -209,4 +211,35 @@ public class RepoDefinitionEntity {
         && Objects.equal(distribution, that.distribution)
         && Objects.equal(components, that.components);
   }
-}
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return new ToStringBuilder(null)
+      .append("id", repoID)
+      .append("name", repoName)
+      .append("tags", repoTags)
+      .toString();
+  }  
+
+  /**
+   * Builds a {@link RepoDefinitionEntity} from a {@link RepositoryInfo} instance.
+   *
+   * @param repositoryInfo  the repository to build from.
+   * @return  a newly created {@link RepoDefinitionEntity} which is not yet persisted.
+   */
+  public static RepoDefinitionEntity from(RepositoryInfo repositoryInfo) {
+      RepoDefinitionEntity repositoryDefinition = new RepoDefinitionEntity();
+      repositoryDefinition.setBaseUrl(repositoryInfo.getBaseUrl());
+      repositoryDefinition.setRepoName(repositoryInfo.getRepoName());
+      repositoryDefinition.setRepoID(repositoryInfo.getRepoId());
+      repositoryDefinition.setDistribution(repositoryInfo.getDistribution());
+      repositoryDefinition.setComponents(repositoryInfo.getComponents());
+      repositoryDefinition.setMirrors(repositoryInfo.getMirrorsList());
+      repositoryDefinition.setUnique(repositoryInfo.isUnique());
+      repositoryDefinition.setTags(repositoryInfo.getTags());
+      return repositoryDefinition;
+    }
+  }

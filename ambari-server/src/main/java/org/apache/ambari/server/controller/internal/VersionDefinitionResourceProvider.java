@@ -34,7 +34,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
+import org.apache.ambari.server.api.resources.OperatingSystemReadOnlyResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -59,8 +59,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.stack.RepoUtil;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -81,7 +79,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -127,7 +124,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
   public static final String DIRECTIVE_SKIP_URL_CHECK = "skip_url_check";
 
-  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemResourceDefinition().getPluralName();
+  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemReadOnlyResourceDefinition().getPluralName();
 
   @Inject
   private static RepositoryVersionDAO s_repoVersionDAO;
@@ -617,15 +614,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     entity.setStack(stackEntity);
 
-    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories();
-
-    // Add service repositories (these are not contained by the VDF but are there in the stack model)
-    ListMultimap<String, RepositoryInfo> stackReposByOs =
-        s_metaInfo.get().getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
-    repos.addAll(RepoUtil.getServiceRepos(repos, stackReposByOs));
-
-
-    entity.addRepoOsEntities(mpackEntity.getRepositoryOperatingSystems());
+    List<RepoOsEntity> repositoryOperatingSystems = mpackEntity.getRepositoryOperatingSystems();
+    entity.addRepoOsEntities(repositoryOperatingSystems);
 
     entity.setVersion(holder.xml.release.getFullVersion());
     entity.setDisplayName(stackId, holder.xml.release);
@@ -759,17 +749,17 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       ObjectNode osBase = factory.objectNode();
 
       ObjectNode osElement = factory.objectNode();
-      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
           os.isAmbariManaged());
-      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID),
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID),
           os.getFamily());
 
-      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID),
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID),
           entity.getStackName());
-      osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID),
+      osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID),
           entity.getStackVersion());
 
-      osBase.put(PropertyHelper.getPropertyCategory(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
+      osBase.put(PropertyHelper.getPropertyCategory(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
           osElement);
 
       ArrayNode reposArray = factory.arrayNode();
@@ -813,7 +803,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       subs.add(osBase);
     }
 
-    res.setProperty(new OperatingSystemResourceDefinition().getPluralName(), subs);
+    res.setProperty(new OperatingSystemReadOnlyResourceDefinition().getPluralName(), subs);
   }
 
 

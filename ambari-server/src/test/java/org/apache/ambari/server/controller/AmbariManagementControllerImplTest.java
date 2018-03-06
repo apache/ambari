@@ -2198,10 +2198,9 @@ public class AmbariManagementControllerImplTest {
 
     replay(manager, clusters, cluster, injector, stackId, configuration, repositoryVersionEntity, configHelper);
 
-    AmbariManagementControllerImpl ambariManagementControllerImpl =
-        createMockBuilder(AmbariManagementControllerImpl.class)
-            .addMockedMethod("getRcaParameters")
-            .withConstructor(manager, clusters, injector).createNiceMock();
+    AmbariManagementControllerImpl ambariManagementControllerImpl = createMockBuilder(
+        AmbariManagementControllerImpl.class).withConstructor(manager, clusters,
+            injector).createNiceMock();
 
     replay(ambariManagementControllerImpl);
 
