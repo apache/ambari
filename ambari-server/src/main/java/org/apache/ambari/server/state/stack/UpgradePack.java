@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
+import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -225,7 +226,7 @@ public class UpgradePack {
    *          the direction to return the ordered groups
    * @return the list of groups
    */
-  public List<Grouping> getGroups(Lifecycle.LifecycleType type, Direction direction) {
+  public List<Grouping> getGroups(LifecycleType type, Direction direction) {
 
     // !!! lifecycles are bound to be only one per-type per-Upgrade Pack, so findFirst() is ok here
     Optional<Lifecycle> optional = lifecycles.stream().filter(l -> l.type == type).findFirst();

@@ -822,6 +822,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       if(!itemEntities.isEmpty()) {
         UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
+        groupEntity.setLifecycle(group.lifecycle);
         groupEntity.setName(group.name);
         groupEntity.setTitle(group.title);
         groupEntity.setItems(itemEntities);
