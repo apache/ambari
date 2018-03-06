@@ -281,6 +281,11 @@
       <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply external depedency config 3">
         <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
       </execute-stage>
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply zeppelin.notebook.storage config">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixNotebookStorage">
+          <summary>Adjusting Zeppelin Notebook properties</summary>
+        </task>
+      </execute-stage>
 
       <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs NameNode">
