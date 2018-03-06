@@ -691,6 +691,7 @@ public class AmbariServer {
       apiConnector = new ServerConnector(server, acceptors, -1,
         new SslConnectionFactory(contextFactoryApi, HttpVersion.HTTP_1_1.toString()),
         new HttpConnectionFactory(https_config));
+      apiConnector.setPort(configs.getClientSSLApiPort());
     } else  {
       apiConnector = new ServerConnector(server, acceptors, -1, new HttpConnectionFactory(http_config));
       apiConnector.setPort(configs.getClientApiPort());
