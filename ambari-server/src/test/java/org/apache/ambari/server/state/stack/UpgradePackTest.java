@@ -31,8 +31,9 @@ import org.apache.ambari.server.stack.ModuleFileUnmarshaller;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
-import org.apache.ambari.server.state.stack.upgrade.Lifecycle.LifecycleType;
+import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.util.CollectionUtils;
 
@@ -72,8 +73,13 @@ public class UpgradePackTest {
     assertFalse(startLifecycle.isPresent());
 
     List<Grouping> groups = upgradeLifecycle.get().groups;
-
     assertEquals(29, groups.size());
+    assertEquals(LifecycleType.UPGRADE, groups.get(0).lifecycle);
+
+    Optional<Grouping> optional = groups.stream().filter(g -> "Kafka".equals(g.title)).findFirst();
+    assertTrue(optional.isPresent());
+    Assert.assertNull(optional.get().name);
+
     assertEquals(12, upgradepack.getPrerequisiteChecks().size());
 
     PrerequisiteCheckConfig checkConfig = upgradepack.getPrerequisiteCheckConfig();

@@ -150,8 +150,7 @@
         </service>
       </group>
   
-  
-      <group name="KAFKA" title="Kafka">
+      <group title="Kafka">
         <skippable>true</skippable>
         <service name="KAFKA">
           <component>KAFKA_BROKER</component>

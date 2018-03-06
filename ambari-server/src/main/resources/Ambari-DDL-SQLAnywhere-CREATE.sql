@@ -1006,6 +1006,7 @@ CREATE TABLE upgrade (
 CREATE TABLE upgrade_group (
   upgrade_group_id NUMERIC(19) NOT NULL,
   upgrade_id NUMERIC(19) NOT NULL,
+  lifecycle VARCHAR(64) DEFAULT 'UPGRADE' NOT NULL,
   group_name VARCHAR(255) DEFAULT '' NOT NULL,
   group_title VARCHAR(1024) DEFAULT '' NOT NULL,
   CONSTRAINT PK_upgrade_group PRIMARY KEY (upgrade_group_id),
