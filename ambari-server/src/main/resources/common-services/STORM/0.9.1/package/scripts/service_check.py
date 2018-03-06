@@ -60,9 +60,9 @@ class ServiceCheckDefault(ServiceCheck):
     if params.nimbus_seeds_supported:
       # Because this command is guaranteed to run on one of the hosts with storm client, there is no need
       # to specify "-c nimbus.seeds={nimbus_seeds}"
-      cmd = format("storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique}")
+      cmd = format("storm jar /tmp/wordCount.jar org.apache.storm.starter.WordCountTopology WordCount{unique}")
     elif params.nimbus_host is not None:
-      cmd = format("storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
+      cmd = format("storm jar /tmp/wordCount.jar org.apache.storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
 
     Execute(cmd,
             logoutput=True,
