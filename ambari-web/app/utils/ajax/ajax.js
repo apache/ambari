@@ -3115,6 +3115,65 @@ var urls = {
   'service.components.load': {
     real: '/clusters/{clusterName}/services?fields=components&minimal_response=true',
     mock: '/data/services/components.json'
+  },
+
+  'nameNode.federation.formatNameNode': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "FORMAT", "context" : "Format NameNode"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "NAMENODE",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+
+  'nameNode.federation.formatZKFC': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "FORMAT", "context" : "Format ZKFC"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "ZKFC",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+  'nameNode.federation.bootstrapNameNode': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "BOOTSTRAP", "context" : "Bootstrap NameNode"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "NAMENODE",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
   }
 };
 /**
