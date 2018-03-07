@@ -1089,9 +1089,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   setInstalledServiceConfigs: function (configs, configsByTags, installedServiceNames) {
     var configsMap = {};
+    var finalAttrMap = {};
+    var passwordAttrMap = {};
 
     configsByTags.forEach(function (configSite) {
       configsMap[configSite.type] = configSite.properties || {};
+      finalAttrMap[configSite.type] = configSite.properties_attributes && configSite.properties_attributes.final || {};
+      passwordAttrMap[configSite.type] = configSite.properties_attributes && configSite.properties_attributes.password || {};
     });
     var allConfigs = configs.filter(function (_config) {
       // filter out alert_notification configs on add service //TODO find better place for this!
@@ -1118,9 +1122,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     Em.keys(configsMap).forEach(function (filename) {
       Em.keys(configsMap[filename]).forEach(function (propertyName) {
         allConfigs.push(App.config.createDefaultConfig(propertyName, App.config.getOriginalFileName(filename), false, {
-            value: configsMap[filename][propertyName],
-            savedValue: configsMap[filename][propertyName],
-            hasInitialValue: true
+          value: configsMap[filename][propertyName],
+          savedValue: configsMap[filename][propertyName],
+          propertyType: passwordAttrMap[filename][propertyName] === 'true' ? ['PASSWORD'] : null,
+          isFinal: finalAttrMap[filename][propertyName] === 'true',
+          hasInitialValue: true
         }));
       });
     });

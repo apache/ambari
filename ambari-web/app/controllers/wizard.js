@@ -919,7 +919,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           _configProperties.get('filename'),
           // need to invert boolean because this argument will be inverted in method body
           !_configProperties.get('isUserProperty'),
-          _configProperties.getProperties('value', 'isRequired', 'errorMessage', 'warnMessage')
+          _configProperties.getProperties('value', 'isRequired', 'errorMessage', 'warnMessage', 'propertyType')
         );
         configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, [], ['name', 'filename', 'isUserProperty', 'value']);
 
