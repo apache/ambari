@@ -255,19 +255,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return findResources(request, predicate, requests);
   }
 
-  private Set<Resource> getResourcesForUpdate(Request request, Predicate predicate)
-    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-
-    final Set<ServiceComponentHostRequest> requests = new HashSet<>();
-
-    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      requests.add(getRequest(propertyMap));
-    }
-
-    return findResources(request, predicate, requests);
-  }
-
-
   private Set<Resource> findResources(Request request, final Predicate predicate,
                                       final Set<ServiceComponentHostRequest> requests)
           throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
@@ -846,7 +833,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Request queryRequest = PropertyHelper.getReadRequest(queryIds);
     // will take care of 404 exception
 
-    Set<Resource> matchingResources = getResourcesForUpdate(queryRequest, predicate);
+    Set<Resource> matchingResources = getResources(queryRequest, predicate);
 
     for (Resource queryResource : matchingResources) {
       //todo: predicate evaluation was removed for BUG-28737 and the removal of this breaks
