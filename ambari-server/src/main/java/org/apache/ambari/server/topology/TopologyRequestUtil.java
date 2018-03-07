@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -28,14 +29,14 @@ import java.util.Set;
 
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+/**
+ * Utility functions for topology requests.
+ */
 public class TopologyRequestUtil {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TopologyRequestUtil.class);
   public static final String NAME = "name";
   public static final String VERSION = "version";
 
@@ -54,15 +55,13 @@ public class TopologyRequestUtil {
    * @return a Set of stack id's contained in the request
    */
   public static Set<StackId> getStackIdsFromRequest(Map<String, Object> rawRequestMap) {
-    return rawRequestMap.entrySet().stream().
-      filter(e -> "mpack_instances".equals(e.getKey())).
-      flatMap(e -> ((List<Map<String, String>>) e.getValue()).stream()).
-      map(m -> {
-        checkArgument(m.containsKey(NAME), "Missing mpack name");
-        checkArgument(m.containsKey(VERSION), "Missing mpack version");
-        return new StackId(m.get(NAME), m.get(VERSION));
-      }).
-      collect(toSet());
+    List<Map<String, String>> mpackInstances = (List<Map<String, String>>)
+      rawRequestMap.getOrDefault("mpack_instances", emptyList());
+    return mpackInstances.stream().map(m -> {
+      checkArgument(m.containsKey(NAME), "Missing mpack name");
+      checkArgument(m.containsKey(VERSION), "Missing mpack version");
+      return new StackId(m.get(NAME), m.get(VERSION));
+    }).collect(toSet());
   }
 
   /**

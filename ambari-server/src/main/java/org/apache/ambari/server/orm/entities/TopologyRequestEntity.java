@@ -76,7 +76,7 @@ public class TopologyRequestEntity {
   private String description;
 
   @Lob
-  @Column(name = "raw_request_body", length = 30000, nullable = false)
+  @Column(name = "raw_request_body", length = 100000, nullable = false)
   private String rawRequestBody;
 
   @OneToMany(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
