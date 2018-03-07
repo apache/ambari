@@ -28,3 +28,5 @@ RUN yum install -y java-1.7.0-openjdk-devel
 
 #Install expect to help us sign RPMs without interactive prompts
 RUN yum install -y expect
+#For publishing RPM repos
+RUN yum install -y createrepo
