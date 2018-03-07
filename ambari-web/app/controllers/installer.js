@@ -223,7 +223,9 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
     var stacks = this.get('content.stacks');
     var dfd = $.Deferred();
     if (stacks && stacks.get('length')) {
-      App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+      var selectedStack = App.Stack.find().findProperty('isSelected');
+      App.set('currentStackVersion', selectedStack.get('stackNameVersion'));
+      App.set('fullStackVersion', selectedStack.get('repositoryVersion'));
       dfd.resolve(true);
     } else {
       App.ajax.send({
@@ -340,7 +342,9 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       stacks.sortProperty('id').set('lastObject.isSelected', true);
     }
     this.set('content.stacks', App.Stack.find());
-    App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
+    var selectedStack = App.Stack.find().findProperty('isSelected');
+    App.set('currentStackVersion', selectedStack.get('stackNameVersion'));
+    App.set('fullStackVersion', selectedStack.get('repositoryVersion'));
   },
 
   /**

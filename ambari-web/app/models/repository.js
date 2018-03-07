@@ -65,7 +65,7 @@ App.Repository = DS.Model.extend({
    * @type {boolean}
    */
   isGPL: function () {
-    return this.get('tags').contains('GPL');    
+    return this.get('tags') && this.get('tags').contains('GPL');
   }.property('tags'),
 
   /**
