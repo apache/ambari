@@ -23,7 +23,7 @@ var App = require('app');
  *
  * @return {*}
  */
-App.showConfigValidationPopup = function (configErrors, primary, secondary) {
+App.showConfigValidationPopup = function (configErrors, primary, secondary, controller) {
   return App.ModalPopup.show({
     header: Em.I18n.t('installer.step7.popup.validation.warning.header'),
     classNames: ['common-modal-wrapper','modal-full-width'],
@@ -45,6 +45,7 @@ App.showConfigValidationPopup = function (configErrors, primary, secondary) {
     },
     disablePrimary: !!configErrors.get('criticalIssues.length'),
     bodyClass: App.ValidationsView.extend({
+      controller: controller,
       configErrors: configErrors
     })
   });
