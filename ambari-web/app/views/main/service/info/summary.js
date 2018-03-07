@@ -78,6 +78,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {
       HBASE: App.MainDashboardServiceHbaseView,
       HDFS: App.MainDashboardServiceHdfsView,
+      ONEFS: App.MainDashboardServiceHdfsView,
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       RANGER: App.MainDashboardServiceRangerView,

@@ -76,6 +76,23 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     nfs_gateways_installed: 'nfs_gateways_installed',
     nfs_gateways_total: 'nfs_gateways_total'
   },
+  onefsConfig: {
+    metrics_not_available: 'metrics_not_available',
+    name_node_start_time: 'metrics.runtime.StartTime',
+    capacity_used: 'metrics.dfs.FSNamesystem.CapacityUsed',
+    capacity_total: 'metrics.dfs.FSNamesystem.CapacityTotal',
+    capacity_remaining: 'metrics.dfs.FSNamesystem.CapacityRemaining',
+    dfs_corrupt_blocks: 'metrics.dfs.FSNamesystem.CorruptBlocks',
+    dfs_under_replicated_blocks: 'metrics.dfs.FSNamesystem.UnderReplicatedBlocks',
+    dfs_missing_blocks: 'metrics.dfs.FSNamesystem.MissingBlocks',
+    live_data_nodes: 'live_data_nodes',
+    dead_data_nodes: 'dead_data_nodes',
+    decommission_data_nodes: 'decommission_data_nodes',
+    dfs_total_files: 'metrics.dfs.namenode.TotalFiles',
+    jvm_memory_heap_used: 'metrics.jvm.memHeapUsedM',
+    jvm_memory_heap_max: 'metrics.jvm.memHeapCommittedM',
+    upgrade_status: 'metrics.dfs.namenode.UpgradeFinalized'
+  },
   yarnConfig: {
     resource_manager_start_time: 'resourceManagerComponent.host_components[0].metrics.runtime.StartTime',
     jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
@@ -295,6 +312,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       finalJson = this.hdfsMapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoad(App.HDFSService, finalJson);
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "ONEFS") {
+      finalJson = this.onefsMapper(item);
+      finalJson.rand = Math.random();
+      App.store.safeLoad(App.ONEFSService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
       finalJson = this.hbaseMapper(item);
       finalJson.rand = Math.random();
@@ -416,6 +437,34 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     };
     if (quickLinks[item.ServiceInfo.service_name])
       finalJson.quick_links = quickLinks[item.ServiceInfo.service_name];
+  },
+
+  onefsMapper: function (item) {
+    var finalConfig = jQuery.extend({}, this.config);
+    item.components.forEach(function (component) {
+      if (this.isHostComponentPresent(component, 'ONEFS_CLIENT')) {
+        item.metrics = component.metrics;
+        item.decommission_data_nodes = [];
+        item.dead_data_nodes = [];
+        item.live_data_nodes = [];
+        if (component.metrics && component.metrics.dfs && component.metrics.dfs.namenode) {
+          item.metrics_not_available = false;
+          for (var host in App.parseJSON(component.metrics.dfs.namenode.DecomNodes)) {
+            item.decommission_data_nodes.push('DATANODE' + '_' + host);
+          }
+          for (var host in App.parseJSON(component.metrics.dfs.namenode.DeadNodes)) {
+            item.dead_data_nodes.push('DATANODE' + '_' + host);
+          }
+          for (var host in App.parseJSON(component.metrics.dfs.namenode.LiveNodes)) {
+            item.live_data_nodes.push('DATANODE' + '_' + host);
+          }
+        } else {
+          item.metrics_not_available = true;
+        }
+        finalConfig = jQuery.extend(finalConfig, this.onefsConfig);
+      }
+    }, this);
+    return this.parseIt(item, finalConfig);
   },
 
   hdfsMapper: function (item) {

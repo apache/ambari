@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link AlertUri} class is used to represent a complex URI structure where
+ * The {@link MetricsUri} class is used to represent a complex URI structure where
  * there can be both a plaintext and SSL URI. This is used in cases where the
  * alert definition needs a way to expose which URL (http or https) should be
  * used to gather data. Currently, only {@link MetricSource} uses this, but it
@@ -37,7 +37,7 @@ import com.google.gson.annotations.SerializedName;
  * URI.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class AlertUri {
+public class MetricsUri {
   /**
    * The HTTP URI to use.
    */
@@ -374,7 +374,7 @@ public class AlertUri {
       return false;
     }
 
-    AlertUri other = (AlertUri) obj;
+    MetricsUri other = (MetricsUri) obj;
     if (m_httpUri == null) {
       if (other.m_httpUri != null) {
         return false;
