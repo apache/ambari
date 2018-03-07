@@ -49,6 +49,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
@@ -65,6 +66,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
@@ -143,6 +145,9 @@ public class OrmTestHelper {
 
   @Inject
   private StackDAO stackDAO;
+
+  @Inject
+  MpackDAO mpackDAO;
 
   private static final StackId HDP_206 = new StackId("HDP", "2.0.6");
   public static final StackId STACK_ID = new StackId("HDP", "2.2.0");
@@ -327,13 +332,32 @@ public class OrmTestHelper {
   }
 
   @Transactional
+  public MpackEntity createMpack(StackId stackId) throws AmbariException {
+    List<MpackEntity> mpackEntities =
+      mpackDAO.findByNameVersion(stackId.getStackName(), stackId.getStackVersion());
+    MpackEntity mpackEntity = !mpackEntities.isEmpty() ? mpackEntities.get(0) : null;
+    if (mpackEntities.isEmpty()) {
+      mpackEntity = new MpackEntity();
+      mpackEntity.setMpackName(stackId.getStackName());
+      mpackEntity.setMpackVersion(stackId.getStackVersion());
+      mpackEntity.setMpackUri("http://mpacks.org/" + stackId.toString() + ".json");
+      mpackDAO.create(mpackEntity);
+    }
+    return mpackEntity;
+  }
+
+  @Transactional
   public StackEntity createStack(StackId stackId) throws AmbariException {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-
     if (null == stackEntity) {
       stackEntity = new StackEntity();
       stackEntity.setStackName(stackId.getStackName());
       stackEntity.setStackVersion(stackId.getStackVersion());
+      List<MpackEntity> mpackEntities =
+        mpackDAO.findByNameVersion(stackId.getStackName(), stackId.getStackVersion());
+      if (!mpackEntities.isEmpty()) {
+        stackEntity.setMpackId(mpackEntities.get(0).getId());
+      }
       stackDAO.create(stackEntity);
     }
 
@@ -669,6 +693,7 @@ public class OrmTestHelper {
       String version) {
     StackEntity stackEntity = null;
     try {
+      createMpack(stackId); // creating mpack before stack makes sure stack will be linked to mpack
       stackEntity = createStack(stackId);
     } catch (Exception e) {
       LOG.error("Expected successful repository", e);
@@ -695,8 +720,8 @@ public class OrmTestHelper {
         repoOsEntity.setAmbariManaged(true);
         repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
         repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+        repoOsEntity.setMpackEntity(createMpack(stackId));
         operatingSystems.add(repoOsEntity);
-
 
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
