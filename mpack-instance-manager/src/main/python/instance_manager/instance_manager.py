@@ -495,16 +495,18 @@ class ModuleInstance(Instance):
           if ((not components_filter and not components_name_filter_map) or
                 (components_filter and (components_filter == '*' or folder_name in components_filter)) or
                 (components_name_filter_map and folder_name in components_name_filter_map)):
-            components_map = ComponentInstance(name=DEFAULT_COMPONENT_INSTANCE_NAME,
-                                               component_path=os.path.join(path, folder_name),
-                                               path_exec=os.readlink(
-                                                 os.path.join(path, folder_name, CURRENT_SOFTLINK_NAME)))
+            components_map = \
+              {folder_name:
+                {DEFAULT_COMPONENT_INSTANCE_NAME:
+                   ComponentInstance(name=DEFAULT_COMPONENT_INSTANCE_NAME,
+                                     component_path=os.path.join(path, folder_name),
+                                     path_exec=os.readlink(os.path.join(path, folder_name, CURRENT_SOFTLINK_NAME)))}}
         else:
           components_map = ComponentInstance.parse_into_components_dict(os.path.join(path, folder_name),
                                                                         components_filter,
                                                                         components_name_filter_map)
         if components_map:
-          result[folder_name] = ModuleInstance(folder_name, components_map, module_category)
+          result[module_name] = ModuleInstance(module_name, components_map, module_category)
     return result
 
   @staticmethod
@@ -530,28 +532,19 @@ class ModuleInstance(Instance):
                                                       is_client_module)
 
   def set_new_version(self, mpack_name, mpack_version):
-    if self.category == CLIENT_CATEGORY:
-      component_instance = self.components_map
-      print("\nSetting new version for component : " + component_instance.component_path)
-      component_instance.set_new_version(mpack_name, mpack_version, self.module_name)
-    else:
-      for component_type in self.components_map:
-        for component_name in self.components_map[component_type]:
-          component_instance = self.components_map[component_type][component_name]
-          print("\nSetting new version for component : " + component_instance.component_path)
-          component_instance.set_new_version(mpack_name, mpack_version, component_type)
+    for component_type in self.components_map:
+      for component_name in self.components_map[component_type]:
+        component_instance = self.components_map[component_type][component_name]
+        print("\nSetting new version for component : " + component_instance.component_path)
+        component_instance.set_new_version(mpack_name, mpack_version, component_type)
 
   def build_json_output(self, output_conf_dir, output_path):
     result = {}
-    if self.category == CLIENT_CATEGORY:
-      result['component_instances'] = {'default': self.components_map.build_json_output(output_conf_dir, output_path)}
-    else:
-      for component_type in self.components_map.keys():
-        result[component_type] = build_json_output_from_instances_dict(self.components_map[component_type],
-                                                                       ComponentInstance.plural_name,
-                                                                       output_conf_dir, output_path)
-      result = {'components': result}
-
+    for component_type in self.components_map.keys():
+      result[component_type] = build_json_output_from_instances_dict(self.components_map[component_type],
+                                                                     ComponentInstance.plural_name,
+                                                                     output_conf_dir, output_path)
+    result = {'components': result}
     result['category'] = self.category
     result['name'] = self.module_name
     return result

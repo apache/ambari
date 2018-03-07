@@ -189,15 +189,19 @@ class TestInstanceManager(TestCase):
                         }
                       }
                     },
-                    "hdfs_client": {
+                    "hdfs-clients": {
                       "category": "CLIENT",
-                      "component_instances": {
-                        "default": {
-                          "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf",
-                          "name": "default"
+                      "components": {
+                        "hdfs_client": {
+                          "component-instances": {
+                            "default": {
+                              "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf",
+                              "name": "default"
+                            }
+                          }
                         }
                       },
-                      "name": "hdfs_client"
+                      "name": "hdfs-clients"
                     }
                   }
                 }
@@ -239,15 +243,19 @@ class TestInstanceManager(TestCase):
                         }
                       }
                     },
-                    "hdfs_client": {
+                    "hdfs-clients": {
                       "category": "CLIENT",
-                      "component_instances": {
-                        "default": {
-                          "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_client",
-                          "name": "default"
+                      "components": {
+                        "hdfs_client": {
+                          "component-instances": {
+                            "default": {
+                              "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_client",
+                              "name": "default"
+                            }
+                           }
                         }
                       },
-                      "name": "hdfs_client"
+                      "name": "hdfs-clients"
                     }
                   }
                 }
@@ -261,6 +269,7 @@ class TestInstanceManager(TestCase):
 
   def test_granularity(self):
     create_mpack_with_defaults()
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME)
 
     full_conf_dir_json = instance_manager.get_conf_dir()
     self.assertTrue('mpacks' in full_conf_dir_json)
@@ -278,6 +287,10 @@ class TestInstanceManager(TestCase):
 
     module_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
                                                          subgroup_name=SUBGROUP_NAME, module_name=SERVER_MODULE_NAME)
+    self.assertTrue('components' in module_conf_dir_json)
+
+    module_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
+                                                         subgroup_name=SUBGROUP_NAME, module_name=CLIENT_MODULE_NAME)
     self.assertTrue('components' in module_conf_dir_json)
 
     # The mpack level filter not specified
