@@ -722,7 +722,7 @@
   </property>
   <property>
     <name>timeline.metrics.downsampler.event.metric.patterns</name>
-    <value></value>
+    <value>topology\.%</value>
     <description>
       Commas separated list of metric name regular expressions that are like events. No interpolation will be done for such
       metrics, and the downsampling SUM aggregators will sum the values across time instead of averaging them out.
