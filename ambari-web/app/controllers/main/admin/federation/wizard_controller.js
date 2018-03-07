@@ -54,7 +54,6 @@ App.NameNodeFederationWizardController = App.WizardController.extend({
         callback: function () {
           var self = this,
             dfd = $.Deferred();
-          this.loadSelectedHosts();
           this.loadServicesFromServer();
           this.loadMasterComponentHosts().done(function () {
             self.loadConfirmedHosts();
@@ -111,23 +110,6 @@ App.NameNodeFederationWizardController = App.WizardController.extend({
   loadNameServiceId: function () {
     var nameServiceId = this.getDBProperty('nameServiceId');
     this.set('content.nameServiceId', nameServiceId);
-  },
-
-  /**
-   * Save hosts for users selected hosts to local db and <code>controller.content</code>
-   * @param selectedHosts
-   */
-  saveSelectedHosts: function (selectedHosts) {
-    this.set('content.selectedHosts', selectedHosts);
-    this.setDBProperty('selectedHosts', selectedHosts);
-  },
-
-  /**
-   * Load hosts for user selected components from local db to <code>controller.content</code>
-   */
-  loadSelectedHosts: function() {
-    var selectedHosts = this.getDBProperty('selectedHosts');
-    this.set('content.selectedHosts', selectedHosts);
   },
 
   saveServiceConfigProperties: function (stepController) {

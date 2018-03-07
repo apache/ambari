@@ -113,13 +113,6 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var wizardController = router.get('nameNodeFederationWizardController');
       var stepController = router.get('nameNodeFederationWizardStep2Controller');
-      var currentNN = stepController.get('servicesMasters').filterProperty('component_name', 'NAMENODE').filterProperty('isInstalled', true);
-      var additionalNN = stepController.get('servicesMasters').filterProperty('component_name', 'NAMENODE').filterProperty('isInstalled', false);
-      var nnHost = {
-        currentNN: currentNN.mapProperty('selectedHost'),
-        additionalNN: additionalNN.mapProperty('selectedHost')
-      };
-      wizardController.saveSelectedHosts(nnHost);
       wizardController.saveMasterComponentHosts(stepController);
       router.transitionTo('step3');
     },
