@@ -217,10 +217,10 @@ public class RepoDefinitionEntity {
    */
   @Override
   public String toString() {
-    return new ToStringBuilder(null)
-      .append("id", repoID)
-      .append("name", repoName)
-      .append("tags", repoTags)
+    return Objects.toStringHelper(this)
+      .add("id", repoID)
+      .add("name", repoName)
+      .add("tags", repoTags)
       .toString();
   }  
 

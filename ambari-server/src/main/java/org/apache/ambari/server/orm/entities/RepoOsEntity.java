@@ -35,7 +35,6 @@ import javax.persistence.TableGenerator;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.google.common.base.Objects;
 
@@ -139,16 +138,6 @@ public class RepoOsEntity {
     return mpackId;
   }
 
-  /**
-   * Sets the management pack ID.
-   *
-   * @param mpackId
-   *          the ID of the management pack which owns this repository.
-   */
-  public void setMpackId(long mpackId) {
-    this.mpackId = mpackId;
-  }
-
   public String getFamily() {
     return family;
   }
@@ -182,7 +171,6 @@ public class RepoOsEntity {
    */
   public void setMpackEntity(MpackEntity mpackEntity) {
     this.mpackEntity = mpackEntity;
-    mpackId = mpackEntity.getId();
   }
 
   /**
@@ -190,7 +178,8 @@ public class RepoOsEntity {
    */
   @Override
   public int hashCode() {
-    return java.util.Objects.hash(mpackId, family, ambariManaged, repoDefinitionEntities);
+    return java.util.Objects.hash(mpackId, mpackEntity, family, ambariManaged,
+        repoDefinitionEntities);
   }
 
   /**
@@ -212,6 +201,7 @@ public class RepoOsEntity {
 
     RepoOsEntity that = (RepoOsEntity) object;
     return Objects.equal(mpackId, that.mpackId)
+        && Objects.equal(mpackEntity, that.mpackEntity)
         && Objects.equal(ambariManaged, that.ambariManaged)
         && Objects.equal(family, that.family)
         && Objects.equal(repoDefinitionEntities, that.repoDefinitionEntities);
@@ -222,10 +212,10 @@ public class RepoOsEntity {
    */
   @Override
   public String toString() {
-    return new ToStringBuilder(null)
-        .append("mpackId", mpackId)
-        .append("family", family)
-        .append("isManagedByAmbari", ambariManaged)
+    return Objects.toStringHelper(this)
+        .add("mpackId", mpackId)
+        .add("family", family)
+        .add("isManagedByAmbari", ambariManaged)
         .toString();
   }
 }
