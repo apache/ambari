@@ -787,7 +787,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
       if (serviceConfigProperty.get('displayType') === 'password') {
         serviceConfigProperty.set('retypedPassword', savedValue);
       }
+      serviceConfigProperty.set('changedViaUndoValue', true);
       serviceConfigProperty.set('value', savedValue);
+      serviceConfigProperty.set('changedViaUndoValue', false);
     }
     if (supportsFinal) {
       serviceConfigProperty.set('isFinal', savedIsFinal);
