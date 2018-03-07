@@ -274,6 +274,10 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     // We always need host_name for sch
     requestedIds.add(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+    requestedIds.add(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    requestedIds.add(HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID);
+    requestedIds.add(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
+    requestedIds.add(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
 
     Set<ServiceComponentHostResponse> responses = getResources(new Command<Set<ServiceComponentHostResponse>>() {
       @Override
@@ -840,7 +844,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     final boolean runSmokeTest = "true".equals(getQueryParameterValue(
         QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate));
 
-    Set<String> queryIds = Collections.singleton(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    Set<String> queryIds = Collections.singleton(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID);
 
     Request queryRequest = PropertyHelper.getReadRequest(queryIds);
     // will take care of 404 exception
