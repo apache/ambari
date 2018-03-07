@@ -910,6 +910,7 @@ CREATE TABLE topology_request (
   action VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
+  raw_request_body LONGTEXT NOT NULL,
   cluster_properties LONGTEXT,
   cluster_attributes LONGTEXT,
   description VARCHAR(1024),

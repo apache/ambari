@@ -174,8 +174,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
    * @param properties  request properties
    * @param securityConfiguration  security config related properties
    */
-  public ProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
+  public ProvisionClusterRequest(String rawRequestBody, Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
     InvalidTopologyTemplateException {
+    this.rawRequestBody = rawRequestBody;
+
     setClusterName(String.valueOf(properties.get(
       ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
 

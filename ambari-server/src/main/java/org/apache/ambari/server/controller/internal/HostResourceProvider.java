@@ -1087,7 +1087,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private RequestStatusResponse submitHostRequests(Request request) throws SystemException {
     ScaleClusterRequest requestRequest;
     try {
-      requestRequest = new ScaleClusterRequest(request.getProperties());
+      requestRequest = new ScaleClusterRequest(
+        request.getRequestInfoProperties().get(Request.REQUEST_INFO_BODY_PROPERTY),
+        request.getProperties());
     } catch (InvalidTopologyTemplateException e) {
       throw new IllegalArgumentException("Invalid Add Hosts Template: " + e, e);
     }

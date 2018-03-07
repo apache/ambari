@@ -136,7 +136,8 @@ CREATE TABLE servicegroups (
   stack_id NUMBER(19) NOT NULL,
   CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id));
+  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id),
+  CONSTRAINT UQ_TEMP_UNTIL_REAL_PK UNIQUE(id));
 
 CREATE TABLE servicegroupdependencies (
   id NUMBER(19) NOT NULL,
@@ -208,8 +209,7 @@ CREATE TABLE serviceconfig (
   CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
   CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_serviceconfig_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
-  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version),
-  CONSTRAINT UQ_TEMP_UNTIL_REAL_PK UNIQUE(id));
+  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version)  );
 
 CREATE TABLE serviceconfighosts (
   service_config_id NUMBER(19) NOT NULL,
@@ -888,6 +888,7 @@ CREATE TABLE topology_request (
   action VARCHAR(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
+  raw_request_body CLOB NOT NULL,
   cluster_properties CLOB,
   cluster_attributes CLOB,
   description VARCHAR(1024),

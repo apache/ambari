@@ -893,6 +893,7 @@ CREATE TABLE topology_request (
   action VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
+  raw_request_body CLOB NOT NULL,
   cluster_properties VARCHAR(3000),
   cluster_attributes VARCHAR(3000),
   description VARCHAR(1024),
