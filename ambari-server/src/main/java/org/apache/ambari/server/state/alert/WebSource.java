@@ -33,13 +33,13 @@ import com.google.gson.annotations.SerializedName;
 public class WebSource extends Source {
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private MetricsUri uri = null;
 
   /**
    * @return the uri info, which may include port information
    */
   @JsonProperty("uri")
-  public AlertUri getUri() {
+  public MetricsUri getUri() {
     return uri;
   }
 

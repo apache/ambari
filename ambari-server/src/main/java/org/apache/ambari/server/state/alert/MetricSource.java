@@ -43,7 +43,7 @@ import com.google.gson.annotations.SerializedName;
 public class MetricSource extends Source {
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private MetricsUri uri = null;
 
   @SerializedName("jmx")
   private JmxInfo jmxInfo = null;
@@ -71,7 +71,7 @@ public class MetricSource extends Source {
    * @return the uri info, which may include port information
    */
   @JsonProperty("uri")
-  public AlertUri getUri() {
+  public MetricsUri getUri() {
     return uri;
   }
 

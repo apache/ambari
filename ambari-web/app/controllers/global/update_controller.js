@@ -478,7 +478,7 @@ App.UpdateController = Em.Controller.extend({
       atsHandlerParam = isATSInstalled ? 'ServiceComponentInfo/component_name=APP_TIMELINE_SERVER|' : '',
       haComponents = App.get('isHaEnabled') ? 'ServiceComponentInfo/component_name=JOURNALNODE|ServiceComponentInfo/component_name=ZKFC|' : '',
       realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam + haComponents +
-        'ServiceComponentInfo/category=MASTER&fields=' +
+        'ServiceComponentInfo/category.in(MASTER,CLIENT)&fields=' +
         'ServiceComponentInfo/service_name,' +
         'host_components/HostRoles/display_name,' +
         'host_components/HostRoles/host_name,' +
@@ -523,6 +523,7 @@ App.UpdateController = Em.Controller.extend({
     } else if (/^2.2/.test(App.get('currentStackVersionNumber'))) {
       serviceSpecificParams.STORM = 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary';
     }
+    serviceSpecificParams.ONEFS = 'metrics/dfs/*,';
 
     App.cache.services.forEach(function (service) {
       var urlParams = serviceSpecificParams[service.ServiceInfo.service_name];

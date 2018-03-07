@@ -26,17 +26,17 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
-public class AlertUriTest {
+public class MetricsUriTest {
   @Test
   public void testChoosesHttpByDefault() throws Exception {
-    AlertUri uri = new AlertUri();
+    MetricsUri uri = new MetricsUri();
     uri.setHttpUri("${config1/http-host}/path");
     assertThat(resolved(uri), is("http://http-host/path"));
   }
 
   @Test
   public void testChoosesHttpsBasedOnProperties() throws Exception {
-    AlertUri uri = new AlertUri();
+    MetricsUri uri = new MetricsUri();
     uri.setHttpUri("${config1/http-host}/path");
     uri.setHttpsUri("${config1/https-host}/path");
     uri.setHttpsProperty("${config1/use-http}");
@@ -54,7 +54,7 @@ public class AlertUriTest {
       }};
   }
 
-  private String resolved(AlertUri uri) throws AmbariException {
+  private String resolved(MetricsUri uri) throws AmbariException {
     return uri.resolve(config()).toString();
   }
 }
