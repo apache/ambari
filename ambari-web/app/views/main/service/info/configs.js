@@ -98,24 +98,6 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   rollingRestartActionName : function() {
     var componentName = this.get('rollingRestartSlaveComponentName');
     return componentName ? Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName, false)) : '';
-  }.property('rollingRestartSlaveComponentName'),
-
-  /**
-   * When some config has dependencies and `.dependencies-info-bar` should be shown and should be placed sticky to top
-   * @method onHasChangedDependenciesUpdated
-   */
-  onHasChangedDependenciesUpdated: function () {
-    if (this.get('controller.hasChangedDependencies')) {
-      Em.run.next(function () {
-        $(".dependencies-info-bar-wrapper").stick_in_parent({parent: '#serviceConfig', offset_top: 74});
-        Em.run.next(function () {
-          $(".dependencies-info-bar-wrapper").trigger("sticky_kit:recalc"); // '.dependencies-info-bar-wrapper' position should be recalculated
-        });
-      });
-    }
-    else {
-      $(".dependencies-info-bar-wrapper").trigger("sticky_kit:detach");
-    }
-  }.observes('controller.hasChangedDependencies')
+  }.property('rollingRestartSlaveComponentName')
 
 });

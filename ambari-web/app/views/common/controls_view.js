@@ -168,7 +168,7 @@ App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 
   onValueUpdate: function () {
     if (!this.get('isVisible')) return;
-    if (this.get('selected')) {
+    if (this.get('selected') || this.get('serviceConfig.changedViaUndoValue')) {
       var self = this, config = this.get('serviceConfig'),
         controller = this.get('controller');
       delay(function(){
