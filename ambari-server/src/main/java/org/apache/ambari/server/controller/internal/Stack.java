@@ -44,6 +44,8 @@ import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -54,6 +56,8 @@ import com.google.common.collect.ImmutableSet;
  */
 // TODO move to topology package
 public class Stack implements StackDefinition {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Stack.class);
 
   /**
    * Stack info
@@ -143,6 +147,11 @@ public class Stack implements StackDefinition {
     if (!stackInfo.getServices().isEmpty()) {
       registerConditionalDependencies();
     }
+
+    String stackId = new StackId(stackInfo.getName(), stackInfo.getVersion()).getStackId();
+    LOG.info("Loaded stack {}", stackId);
+    LOG.debug("Services in stack {}: {}", stackId, serviceComponents);
+    LOG.debug("Components in stack {}: {}", stackId, componentService);
   }
 
   /**
@@ -216,6 +225,8 @@ public class Stack implements StackDefinition {
       if (serviceInfo != null) {
         return serviceInfo.getComponentByName(component);
       }
+    } else {
+      LOG.warn("No service found for component {}.  Known components: {}", component, componentService.keySet());
     }
     return null;
   }
