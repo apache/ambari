@@ -206,8 +206,7 @@ App.StackService = DS.Model.extend({
   }.property('coSelectedServices', 'serviceName'),
 
   isHiddenOnSelectServicePage: function () {
-    //var hiddenServices = ['MAPREDUCE2'];
-      var hiddenServices = [];
+    var hiddenServices = ['MAPREDUCE2'];
     return hiddenServices.contains(this.get('serviceName')) || !this.get('isInstallable') || this.get('doNotShowAndInstall');
   }.property('serviceName', 'isInstallable'),
 
@@ -341,7 +340,7 @@ App.StackService.componentsOrderForService = {
 
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {
-//    'YARN': ['MAPREDUCE2']
+  'YARN': ['MAPREDUCE2']
 };
 
 
