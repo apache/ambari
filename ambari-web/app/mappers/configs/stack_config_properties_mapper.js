@@ -64,29 +64,43 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
 
   map: function (json) {
     console.time('App.stackConfigPropertiesMapper execution time');
-    if (json && json.Versions) {
-      //hack for cluster versions
-      json = {items: [json]};
-      var clusterConfigs = true;
-    }
     if (json && json.items) {
-      var configs = [];
-      json.items.forEach(function(stackItem) {
-        var configTypeInfo = clusterConfigs ? Em.get(stackItem, 'Versions.config_types') : Em.get(stackItem, 'StackServices.config_types');
+      //check if we are working with cluster settings
+      let clusterConfigs = false;
+      if (json.items[0].ClusterSettingsInfo) {
+        //change layout to match service configs so we can use same code to process
+        json = {
+          items: [
+            { configurations: json.items }
+          ]
+        }
 
-        stackItem.configurations.forEach(function(config) {
+        clusterConfigs = true;
+      }
+
+      var configs = [];
+      json.items.forEach(function (stackItem) {
+        if (!clusterConfigs) {
+          var configTypeInfo = Em.get(stackItem, 'StackServices.config_types');
+        }
+
+        stackItem.configurations.forEach(function (config) {
           if (clusterConfigs) {
-            config.StackConfigurations = config.StackLevelConfigurations;
+            config.StackConfigurations = config.ClusterSettingsInfo;
           }
           var configType = App.config.getConfigTagFromFileName(config.StackConfigurations.type);
           config.id = App.config.configId(config.StackConfigurations.property_name, configType);
           config.recommended_is_final = config.StackConfigurations.final === "true";
-          config.supports_final = !!configTypeInfo[configType] && configTypeInfo[configType].supports.final === "true";
+          if (!clusterConfigs) {
+            config.supports_final = !!configTypeInfo[configType] && configTypeInfo[configType].supports.final === "true";
+          } else {
+            config.supports_final = false;
+          }
 
           var attributes = config.StackConfigurations.property_value_attributes;
           if (attributes) {
             config.is_required = this._isRequired(attributes.empty_value_valid, config.StackConfigurations.property_value);
-            config.is_reconfigurable = !(attributes.editable_only_at_install || config.StackConfigurations.type === 'cluster-env.xml');
+            config.is_reconfigurable = !(attributes.editable_only_at_install || config.StackConfigurations.type === 'cluster-settings.xml');
             config.is_editable = !attributes.read_only;
             config.is_required_by_agent = !attributes.ui_only_property;
           }

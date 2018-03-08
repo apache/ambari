@@ -1994,7 +1994,7 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#startDeploy', function () {
 
-    var stubbedNames = ['createCluster', 'createServiceGroups', 'createSelectedServices', 'createConfigurations',
+    var stubbedNames = ['createCluster', 'createServiceGroups', 'createSelectedServices', 'configureCluster', 'createServiceConfigurations',
         'applyConfigurationsToCluster', 'createComponents', 'registerHostsToCluster', 'createConfigurationGroups',
         'createMasterHostComponents', 'createSlaveAndClientsHostComponents', 'createAdditionalClientComponents',
         'createAdditionalHostComponents'],
@@ -2007,7 +2007,7 @@ describe('App.WizardStep8Controller', function () {
         },
         {
           controllerName: 'addHostController',
-          notExecuted: ['createConfigurations', 'applyConfigurationsToCluster', 'createAdditionalClientComponents'],
+          notExecuted: ['configureCluster', 'createServiceConfigurations', 'applyConfigurationsToCluster', 'createAdditionalClientComponents'],
           title: 'Add Host Wizard'
         },
         {

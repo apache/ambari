@@ -1601,9 +1601,6 @@ describe('App.config', function() {
       var args = testHelpers.findAjaxRequest('name', 'configs.stack_configs.load.cluster_configs');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(App.config);
-      expect(args[0].data).to.be.eql({
-        stackVersionUrl: App.get('stackVersionURL')
-      });
     });
   });
 

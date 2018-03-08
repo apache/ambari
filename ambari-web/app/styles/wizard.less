@@ -47,9 +47,7 @@
       border: 1px solid #ddd;
     }
     .panel.panel-default.panel-internal.install-retry-panel {
-      border-top: none;
-      border-left: none;
-      border-right: none;
+      border: none;
     }
     padding: 30px;
     background-color: #fff;
@@ -374,6 +372,16 @@
     }
   }
   #deploy {
+    #overall-progress {
+      .progress {
+        margin-bottom: 0;
+      }
+
+      .progress-message {
+        vertical-align: middle;
+      }
+    }
+
     .page-bar {
       border: none;
     }
