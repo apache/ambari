@@ -20,7 +20,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static edu.emory.mathcs.backport.java.util.Collections.singleton;
+import static java.util.Collections.singleton;
 
 import java.net.URI;
 import java.util.Map;
