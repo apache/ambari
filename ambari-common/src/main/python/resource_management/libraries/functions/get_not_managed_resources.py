@@ -25,7 +25,7 @@ import json
 from resource_management.libraries.script import Script
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.cluster_settings import *
+from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value, get_cluster_setting
 
 def get_not_managed_resources():
   """
