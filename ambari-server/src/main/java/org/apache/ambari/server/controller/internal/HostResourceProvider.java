@@ -155,7 +155,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Host, HOST_HOST_NAME_PROPERTY_ID)
       .put(Resource.Type.Cluster, HOST_CLUSTER_NAME_PROPERTY_ID)
-      .put(Resource.Type.HostComponent, HOST_OS_TYPE_PROPERTY_ID)
       .build();
 
   /**
@@ -958,7 +957,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(cluster.getClusterName(),
                                                                              sch.getServiceGroupName(),
                                                                              sch.getServiceName(),
+                                                                             sch.getHostComponentId(),
                                                                              sch.getServiceComponentName(),
+                                                                             sch.getServiceComponentType(),
                                                                              sch.getHostName(),
                                                                              null);
           schrs.add(schr);

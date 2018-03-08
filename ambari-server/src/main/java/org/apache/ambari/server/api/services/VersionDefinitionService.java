@@ -70,10 +70,10 @@ public class VersionDefinitionService extends BaseService {
    * @return operating systems service
    */
   @Path("{versionNumber}/operating_systems")
-  public OperatingSystemService getOperatingSystemsHandler(@PathParam("versionNumber") String versionNumber) {
+  public OperatingSystemReadOnlyService getOperatingSystemsHandler(@PathParam("versionNumber") String versionNumber) {
     final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.VersionDefinition, versionNumber);
-    return new OperatingSystemService(mapIds);
+    return new OperatingSystemReadOnlyService(mapIds);
   }
 
   @POST @ApiIgnore // until documented

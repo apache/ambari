@@ -110,7 +110,9 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
@@ -118,11 +120,13 @@ import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
@@ -327,6 +331,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private ClusterServiceDAO clusterServiceDAO;
+
+  @Inject
+  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
+
+  @Inject
+  private HostComponentStateDAO hostComponentStateDAO;
+
   @Inject
   private ExtensionDAO extensionDAO;
   @Inject
@@ -388,6 +399,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
     maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
     kerberosHelper = injector.getInstance(KerberosHelper.class);
+    hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+
     if(configs != null)
     {
       if (configs.getApiSSLAuthentication()) {
@@ -616,6 +630,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
+      // TODO: Multi_Component_Instance. When we go into multiple component instance mode, we will need make
+      // component_type as manadatory field. As of now, we are just copying component_name into component_type,
+      // if not provided. Further, need to add validation check too.
+      if(StringUtils.isBlank(request.getComponentType())) {
+        request.setComponentType(request.getComponentName());
+      }
+
       Cluster cluster;
       try {
         cluster = clusters.getCluster(request.getClusterName());
@@ -639,8 +660,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createHostComponent request, clusterName={}, serviceGroupName={}, serviceName={}, componentName={}, hostname={}, request={}",
-          request.getClusterName(), request.getServiceGroupName(), request.getServiceName(), request.getComponentName(), request.getHostname(), request);
+        LOG.debug("Received a createHostComponent request, clusterName={}, serviceGroupName={}, serviceName={}, " +
+                  "componentName={}, componentType={}, hostname={}, request={}", request.getClusterName(),
+                  request.getServiceGroupName(), request.getServiceName(), request.getComponentName(),
+                  request.getComponentType(), request.getHostname(), request);
       }
 
       if (!hostComponentNames.containsKey(request.getClusterName())) {
@@ -1259,7 +1282,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
 
         if (StringUtils.isBlank(serviceName)) {
-          LOG.error("Unable to find service for component {}", request.getComponentName());
+          LOG.error("Unable to find service for componentName : {}", request.getComponentName());
           throw new ServiceComponentHostNotFoundException(
               cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
         }
@@ -1310,6 +1333,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
 
+    /*
+     This is a core step in retrieving a given component instance in multi-host component instances world.
+     We fetch the 'HostComponentStateEntity' based on the 'host component Id' passed-in in the request. if it exists,
+     we use the service group Id, service Id, componentName and componentType to query the unique ServiceComponentEntity
+     associated with it.
+     */
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = null;
+    HostComponentStateEntity hostComponentStateEntity = null;
+    if (request.getComponentId() != null) {
+      hostComponentStateEntity = hostComponentStateDAO.findById(request.getComponentId());
+      if (hostComponentStateEntity == null) {
+        throw new AmbariException("Could not find Host Component resource for"
+                + " componentId = "+ request.getComponentId());
+      }
+      serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(hostComponentStateEntity.getClusterId(),
+              hostComponentStateEntity.getServiceGroupId(), hostComponentStateEntity.getServiceId(),
+              hostComponentStateEntity.getComponentName(), hostComponentStateEntity.getComponentType());
+      if (serviceComponentDesiredStateEntity == null) {
+        throw new AmbariException("Could not find Service Component resource for"
+                + " componentId = " + request.getComponentId() + ", serviceGroupId = " + hostComponentStateEntity.getServiceGroupId()
+                + ", serviceId = " + hostComponentStateEntity.getServiceId() + ", componentName = " + hostComponentStateEntity.getComponentName()
+                + ", componntType = " + hostComponentStateEntity.getComponentType());
+        }
+    }
+
     for (Service s : services) {
       // filter on component name if provided
       Set<ServiceComponent> components = new HashSet<>();
@@ -1318,9 +1366,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       } else {
         components.addAll(s.getServiceComponents().values());
       }
+
       for (ServiceComponent sc : components) {
-        if (request.getComponentName() != null) {
-          if (!sc.getName().equals(request.getComponentName())) {
+        if (serviceComponentDesiredStateEntity != null &&
+                serviceComponentDesiredStateEntity.getId() != null &&
+                sc.getId() != null) {
+          if (!sc.getId().equals(serviceComponentDesiredStateEntity.getId())) {
             continue;
           }
         }
@@ -1380,7 +1431,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
-            if (request.getServiceName() == null || request.getComponentName() == null) {
+            if (request.getServiceName() == null || request.getComponentId() == null) {
               // Ignore the exception if either the service name or component name are not specified.
               // This is an artifact of how we get host_components and can happen in the case where
               // we get all host_components for a host, for example.
@@ -1392,7 +1443,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               // condition.
               LOG.debug("ServiceComponentHost not found ", e);
               throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
-                  request.getServiceName(), request.getComponentName(), request.getHostname());
+                  request.getServiceName(), request.getComponentId(), request.getHostname());
             }
           }
         } else {
@@ -3512,10 +3563,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         || request.getClusterName().isEmpty()
         || request.getComponentName() == null
         || request.getComponentName().isEmpty()
+        || request.getServiceName() == null
+        || request.getServiceName().isEmpty()
+        || request.getServiceGroupName() == null
+        || request.getServiceGroupName().isEmpty()
         || request.getHostname() == null
         || request.getHostname().isEmpty()) {
       throw new IllegalArgumentException("Invalid arguments"
-          + ", cluster name, component name and host name should be"
+          + ", cluster name, component name, service name, service group name and host name should be"
           + " provided");
     }
 
@@ -3543,6 +3598,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public String findService(Cluster cluster, String componentName) throws AmbariException {
     return cluster.getServiceByComponentName(componentName).getName();
+  }
+
+  @Override
+  public String findService(Cluster cluster, Long componentId) throws AmbariException {
+    return cluster.getServiceByComponentId(componentId).getName();
   }
 
   @Override
@@ -3585,8 +3645,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(request.getHostname())) {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(request.getClusterName(),
-                  request.getServiceGroupName(), sch.getServiceName(), sch.getServiceComponentName(),
-                  sch.getHostName(), null);
+                  sch.getServiceGroupName(), sch.getServiceName(), sch.getServiceComponentId(), sch.getServiceComponentName(),
+                  sch.getServiceComponentType(), sch.getHostName(), null);
           expanded.add(schr);
         }
       }
@@ -3612,6 +3672,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         + ", clusterName=" + request.getClusterName()
         + ", serviceName=" + request.getServiceName()
         + ", componentName=" + request.getComponentName()
+        + ", componentType=" + request.getComponentType()
         + ", hostname=" + request.getHostname()
         + ", request=" + request);
 

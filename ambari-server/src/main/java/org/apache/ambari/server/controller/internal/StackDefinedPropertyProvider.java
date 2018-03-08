@@ -166,17 +166,23 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         Cluster cluster = clusters.getCluster(clusterName);
         Service service = null;
 
+        Long componentId = null;
+        String componentType = null;
         try {
-          service = cluster.getServiceByComponentName(componentName);
+          // TODO : Multi_Metrics_Changes. Querying by component name is incorrect. We need to pass-in
+          // SG name and and Service name also.
+          componentId = cluster.getComponentId(componentName);
+          componentType = cluster.getComponentType(componentId);
+          service = cluster.getServiceByComponentId(componentId);
         } catch (ServiceNotFoundException e) {
-          LOG.debug("Could not load component {}", componentName);
+          LOG.debug("Could not load componentName {}", componentName);
           continue;
         }
 
         StackId stack = service.getDesiredStackId();
 
         List<MetricDefinition> defs = metaInfo.getMetrics(
-            stack.getStackName(), stack.getStackVersion(), service.getServiceType(), componentName, type.name());
+            stack.getStackName(), stack.getStackVersion(), service.getServiceType(), componentType, type.name());
 
         if (null == defs || 0 == defs.size()) {
           continue;
@@ -345,6 +351,8 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
       // use a Factory for the REST provider
       if (clz.equals(RestMetricsPropertyProvider.class)) {
+        // TODO : Multi_Metrics_Changes. We need to pass UniqueComponentName like :
+        // {SG_instance_name}_{service_instance_name}_component_name instead of just 'componentName'.
         return metricPropertyProviderFactory.createRESTMetricsPropertyProvider(
             definition.getProperties(), componentMetrics, streamProvider, metricsHostProvider,
             clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId, statePropertyId,
@@ -359,6 +367,8 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         Constructor<?> ct = clz.getConstructor(Map.class,
             Map.class, StreamProvider.class, MetricHostProvider.class,
             String.class, String.class, String.class, String.class, String.class);
+        // TODO : Multi_Metrics_Changes. Check if we need to pass UniqueComponentName like :
+        // {SG_instance_name}_{service_instance_name}_component_name instead of just 'componentId'.
         Object o = ct.newInstance(
             injector,
             definition.getProperties(), componentMetrics,

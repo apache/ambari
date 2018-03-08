@@ -162,6 +162,22 @@ public interface Cluster {
   Service getServiceByComponentName(String componentName) throws AmbariException;
 
   /**
+   * Gets a service from the given component Id.
+   *
+   * @param componentId
+   * @return
+   * @throws AmbariException
+   */
+
+  Service getServiceByComponentId(Long componentId) throws AmbariException;
+
+  Long getComponentId(String componentName) throws AmbariException;
+
+  String getComponentName(Long componentId) throws AmbariException;
+
+  String getComponentType(Long componentId) throws AmbariException;
+
+  /**
    * Get all services
    *
    * @return

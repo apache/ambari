@@ -24,6 +24,7 @@ import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -73,7 +74,11 @@ public class MpackEntity {
    * organized by operating system. A single operating system can have multiple
    * repo URLs defined for it for a given management pack.
    */
-  @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, mappedBy = "mpackEntity")
+  @OneToMany(
+      orphanRemoval = true,
+      fetch = FetchType.EAGER,
+      cascade = { CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE },
+      mappedBy = "mpackEntity")
   private List<RepoOsEntity> repositoryOperatingSystems = new ArrayList<>();
 
   public Long getId() {
@@ -134,6 +139,10 @@ public class MpackEntity {
    */
   public void setRepositoryOperatingSystems(List<RepoOsEntity> repositoryOperatingSystems) {
     this.repositoryOperatingSystems = repositoryOperatingSystems;
+    for (RepoOsEntity repositoryOperatingSystem : repositoryOperatingSystems) {
+      repositoryOperatingSystem.setMpackEntity(this);
+      repositoryOperatingSystem.setMpackId(id);
+    }
   }
 
   public MpackEntity() {

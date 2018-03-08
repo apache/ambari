@@ -177,11 +177,11 @@ public class UpgradeSummaryResourceProviderTest {
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service service = cluster.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER", repoVersionEntity);
 
-    ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
+    ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER", "ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.2.0.0");
 
-    component = service.addServiceComponent("ZOOKEEPER_CLIENT");
+    component = service.addServiceComponent("ZOOKEEPER_CLIENT", "ZOOKEEPER_CLIENT");
     sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.2.0.0");
   }

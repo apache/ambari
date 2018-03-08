@@ -41,7 +41,7 @@ public class FlumeServiceCalculatedStateTest extends GeneralServiceCalculatedSta
 
   @Override
   protected void createComponentsAndHosts() throws Exception {
-    ServiceComponent masterComponent = service.addServiceComponent("FLUME_HANDLER");
+    ServiceComponent masterComponent = service.addServiceComponent("FLUME_HANDLER", "FLUME_HANDLER");
 
 
     for (String hostName: hosts){

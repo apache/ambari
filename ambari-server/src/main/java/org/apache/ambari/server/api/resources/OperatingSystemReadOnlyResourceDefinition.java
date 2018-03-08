@@ -18,17 +18,24 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.Collections;
+import java.util.Set;
+
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class OperatingSystemResourceDefinition extends BaseResourceDefinition {
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
+public class OperatingSystemReadOnlyResourceDefinition extends BaseResourceDefinition {
 
-  public OperatingSystemResourceDefinition(Type resourceType) {
+  public OperatingSystemReadOnlyResourceDefinition(Type resourceType) {
     super(resourceType);
   }
 
-  public OperatingSystemResourceDefinition() {
-    super(Resource.Type.OperatingSystem);
+  public OperatingSystemReadOnlyResourceDefinition() {
+    super(Resource.Type.OperatingSystemReadOnly);
   }
 
   @Override
@@ -40,4 +47,10 @@ public class OperatingSystemResourceDefinition extends BaseResourceDefinition {
   public String getSingularName() {
     return "operating_system";
   }
+
+  @Override
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.singleton(new SubResourceDefinition(Resource.Type.Repository));
+  }
+
 }

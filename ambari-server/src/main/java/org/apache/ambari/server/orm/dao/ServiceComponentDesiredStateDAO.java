@@ -82,7 +82,7 @@ public class ServiceComponentDesiredStateDAO {
    */
   @RequiresSession
   public ServiceComponentDesiredStateEntity findByName(long clusterId, long serviceGroupId, long serviceId,
-       String componentName) {
+       String componentName, String componentType) {
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<ServiceComponentDesiredStateEntity> query = entityManager.createNamedQuery(
         "ServiceComponentDesiredStateEntity.findByName", ServiceComponentDesiredStateEntity.class);
@@ -91,6 +91,38 @@ public class ServiceComponentDesiredStateDAO {
     query.setParameter("serviceGroupId", serviceGroupId);
     query.setParameter("serviceId", serviceId);
     query.setParameter("componentName", componentName);
+    query.setParameter("componentType", componentType);
+
+    ServiceComponentDesiredStateEntity entity = null;
+    List<ServiceComponentDesiredStateEntity> entities = daoUtils.selectList(query);
+    if (null != entities && !entities.isEmpty()) {
+      entity = entities.get(0);
+    }
+
+    return entity;
+  }
+
+  /**
+   * Finds a {@link ServiceComponentDesiredStateEntity} by a combination of
+   * cluster, service, and component.
+   *
+   * @param clusterId
+   *          the cluster ID
+   * @param serviceGroupId
+   *          the service group ID
+   * @param serviceId
+   *          the service ID
+   * @param componentId
+   *          the component id (not {@code null})
+   */
+  @RequiresSession
+  public ServiceComponentDesiredStateEntity findById(long clusterId, long serviceGroupId, long serviceId,
+                                                       Long componentId) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<ServiceComponentDesiredStateEntity> query = entityManager.createNamedQuery(
+            "ServiceComponentDesiredStateEntity.findById", ServiceComponentDesiredStateEntity.class);
+
+    query.setParameter("id", componentId);
 
     ServiceComponentDesiredStateEntity entity = null;
     List<ServiceComponentDesiredStateEntity> entities = daoUtils.selectList(query);
@@ -122,8 +154,8 @@ public class ServiceComponentDesiredStateDAO {
   }
 
   @Transactional
-  public void removeByName(long clusterId, long serviceGroupId, long serviceId, String componentName) {
-    ServiceComponentDesiredStateEntity entity = findByName(clusterId, serviceGroupId, serviceId, componentName);
+  public void removeByName(long clusterId, long serviceGroupId, long serviceId, String componentName, String componentType) {
+    ServiceComponentDesiredStateEntity entity = findByName(clusterId, serviceGroupId, serviceId, componentName, componentType);
     if (null != entity) {
       entityManagerProvider.get().remove(entity);
     }

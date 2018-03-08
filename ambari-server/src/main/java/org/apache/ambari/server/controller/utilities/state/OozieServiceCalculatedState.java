@@ -54,7 +54,7 @@ public final class OozieServiceCalculatedState extends DefaultServiceCalculatedS
         StackId stackId = service.getDesiredStackId();
 
         ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName, service.getServiceGroupName(),
-          serviceName, null, null, null);
+          serviceName, null, null, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =
           managementControllerProvider.get().getHostComponents(Collections.singleton(request));

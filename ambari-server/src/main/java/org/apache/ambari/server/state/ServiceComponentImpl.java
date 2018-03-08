@@ -66,6 +66,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final Service service;
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private final String componentName;
+  private final String componentType;
   private String displayName;
   private boolean isClientComponent;
   private boolean isMasterComponent;
@@ -98,8 +99,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   private MaintenanceStateHelper maintenanceStateHelper;
 
   @AssistedInject
-  public ServiceComponentImpl(@Assisted Service service, @Assisted String componentName,
-      AmbariMetaInfo ambariMetaInfo,
+  public ServiceComponentImpl(@Assisted Service service, @Assisted("componentName") String componentName,
+      @Assisted("componentType") String componentType, AmbariMetaInfo ambariMetaInfo,
       ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO,
       ClusterServiceDAO clusterServiceDAO, ServiceComponentHostFactory serviceComponentHostFactory,
       AmbariEventPublisher eventPublisher)
@@ -108,6 +109,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.ambariMetaInfo = ambariMetaInfo;
     this.service = service;
     this.componentName = componentName;
+    this.componentType = componentType;
     this.serviceComponentDesiredStateDAO = serviceComponentDesiredStateDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceComponentHostFactory = serviceComponentHostFactory;
@@ -115,6 +117,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     ServiceComponentDesiredStateEntity desiredStateEntity = new ServiceComponentDesiredStateEntity();
     desiredStateEntity.setComponentName(componentName);
+    desiredStateEntity.setComponentType(componentType);
     desiredStateEntity.setDesiredState(State.INIT);
     desiredStateEntity.setServiceGroupId(service.getServiceGroupId());
     desiredStateEntity.setServiceId(service.getServiceId());
@@ -133,7 +136,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     StackId stackId = service.getDesiredStackId();
     try {
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-          stackId.getStackVersion(), service.getServiceType(), componentName);
+          stackId.getStackVersion(), service.getServiceType(), componentType);
       isClientComponent = compInfo.isClient();
       isMasterComponent = compInfo.isMaster();
       isVersionAdvertised = compInfo.isVersionAdvertised();
@@ -144,6 +147,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", serviceName=" + service.getServiceType()
           + ", componentName=" + componentName
+          + ", componentType=" + componentType
           + ", stackInfo=" + stackId.getStackId());
     }
   }
@@ -167,18 +171,14 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     desiredStateEntityId = serviceComponentDesiredStateEntity.getId();
     componentName = serviceComponentDesiredStateEntity.getComponentName();
+    componentType = serviceComponentDesiredStateEntity.getComponentType();
 
     updateComponentInfo();
 
     for (HostComponentStateEntity hostComponentStateEntity : serviceComponentDesiredStateEntity.getHostComponentStateEntities()) {
 
       HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByIndex(
-        hostComponentStateEntity.getClusterId(),
-        hostComponentStateEntity.getServiceGroupId(),
-        hostComponentStateEntity.getServiceId(),
-        hostComponentStateEntity.getComponentName(),
-        hostComponentStateEntity.getHostId()
-      );
+        hostComponentStateEntity.getHostComponentDesiredStateId());
 
       try {
         hostComponents.put(hostComponentStateEntity.getHostName(),
@@ -186,9 +186,11 @@ public class ServiceComponentImpl implements ServiceComponent {
             hostComponentStateEntity, hostComponentDesiredStateEntity));
       } catch(ProvisionException ex) {
         StackId currentStackId = getDesiredStackId();
-        LOG.error(String.format("Can not get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, hostname=%s",
-          currentStackId.getStackName(), currentStackId.getStackVersion(),
-          service.getName(),serviceComponentDesiredStateEntity.getComponentName(), hostComponentStateEntity.getHostName()));
+        LOG.error(String.format("Cannot get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, " +
+                        "componentType=%s, hostname=%s",
+          currentStackId.getStackName(), currentStackId.getStackVersion(), service.getName(),
+          serviceComponentDesiredStateEntity.getComponentName(), serviceComponentDesiredStateEntity.getComponentType(),
+          hostComponentStateEntity.getHostName()));
         ex.printStackTrace();
       }
     }
@@ -197,6 +199,16 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public String getName() {
     return componentName;
+  }
+
+  @Override
+  public String getType() {
+    return componentType;
+  }
+
+  @Override
+  public Long getId() {
+    return desiredStateEntityId;
   }
 
   /**
@@ -214,7 +226,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     } else {
       LOG.warn("Trying to fetch a member from an entity object that may " +
               "have been previously deleted, serviceName = " + service.getName() + ", " +
-              "componentName = " + componentName);
+              "componentName = " + componentName + ", componentType = " + componentType);
     }
     return false;
   }
@@ -227,8 +239,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public void setRecoveryEnabled(boolean recoveryEnabled) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting RecoveryEnabled of Component, clusterName={}, clusterId={}, serviceName={}, componentName={}, oldRecoveryEnabled={}, newRecoveryEnabled={}",
-        service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), isRecoveryEnabled(), recoveryEnabled);
+      LOG.debug("Setting RecoveryEnabled of Component, clusterName={}, clusterId={}, serviceName={}, componentName={}, componentType={}, oldRecoveryEnabled={}, newRecoveryEnabled={}",
+        service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), getType(), isRecoveryEnabled(), recoveryEnabled);
     }
 
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
@@ -341,7 +353,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       } else {
         LOG.warn("Trying to fetch a member from an entity object that may " +
           "have been previously deleted, serviceName = " + getServiceName() + ", " +
-          "componentName = " + componentName);
+          "componentName = " + componentName + ", componentType = " + componentType);
       }
 
     return null;
@@ -445,7 +457,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), sg.getServiceGroupId(), sg.getServiceGroupName(), service.getServiceId(),
-        serviceName, service.getServiceType(), componentName, sg.getStackId(), getDesiredState().toString(),
+        serviceName, service.getServiceType(), getId(), getName(), getType(), sg.getStackId(), getDesiredState().toString(),
         getServiceComponentStateCount(), isRecoveryEnabled(), displayName, moduleComponent.getVersion(),
         getRepositoryState());
 
@@ -520,7 +532,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       if (!sch.canBeRemoved()) {
         LOG.warn("Found non removable hostcomponent when trying to" + " delete service component"
             + ", clusterName=" + getClusterName() + ", serviceName=" + getServiceName()
-            + ", componentName=" + getName() + ", state=" + sch.getState() + ", hostname="
+            + ", componentName=" + getName() + ", componentType=" + getType() + ", state=" + sch.getState() + ", hostname="
             + sch.getHostName());
         return false;
       }
@@ -535,12 +547,12 @@ public class ServiceComponentImpl implements ServiceComponent {
     try {
       LOG.info("Deleting all servicecomponenthosts for component" + ", clusterName="
           + getClusterName() + ", serviceName=" + getServiceName() + ", componentName=" + getName()
-          + ", recoveryEnabled=" + isRecoveryEnabled());
+          + ", componentType=" + getType() + ", recoveryEnabled=" + isRecoveryEnabled());
       for (ServiceComponentHost sch : hostComponents.values()) {
         if (!sch.canBeRemoved()) {
           throw new AmbariException("Found non removable hostcomponent " + " when trying to delete"
               + " all hostcomponents from servicecomponent" + ", clusterName=" + getClusterName()
-              + ", serviceName=" + getServiceName() + ", componentName=" + getName()
+              + ", serviceName=" + getServiceName() + ", componentName=" + getName() + ", componentType=" + getType()
               + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName());
         }
       }
@@ -561,13 +573,14 @@ public class ServiceComponentImpl implements ServiceComponent {
     try {
       ServiceComponentHost sch = getServiceComponentHost(hostname);
       LOG.info("Deleting servicecomponenthost for cluster" + ", clusterName=" + getClusterName()
-          + ", serviceName=" + getServiceName() + ", componentName=" + getName()
+          + ", serviceName=" + getServiceName() + ", componentName=" + getName() + ", componentType=" + getType()
           + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName());
       if (!sch.canBeRemoved()) {
         throw new AmbariException("Could not delete hostcomponent from cluster"
             + ", clusterName=" + getClusterName()
             + ", serviceName=" + getServiceName()
             + ", componentName=" + getName()
+            + ", componentType=" + getType()
             + ", recoveryEnabled=" + isRecoveryEnabled()
             + ", hostname=" + sch.getHostName());
       }

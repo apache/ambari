@@ -245,7 +245,7 @@ public class ClientConfigResourceProviderTest {
     serviceOsSpecificHashMap.put("key", osSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
-        componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
+        componentName, componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
         null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
@@ -499,7 +499,7 @@ public class ClientConfigResourceProviderTest {
     serviceOsSpecificHashMap.put("key", osSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
-        componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
+        componentName, componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
         null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();

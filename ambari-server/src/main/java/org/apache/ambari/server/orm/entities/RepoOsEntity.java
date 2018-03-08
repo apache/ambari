@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -59,7 +58,6 @@ public class RepoOsEntity {
   /**
    * The ID of the mpack that this repository entry belongs to.
    */
-  @Basic
   @Column(name = "mpack_id", updatable = false, insertable = false)
   private long mpackId;
 
@@ -136,7 +134,7 @@ public class RepoOsEntity {
    *
    * @return the management pack ID.
    */
-  public long getMpackId() {
+  public Long getMpackId() {
     return mpackId;
   }
 
@@ -144,9 +142,9 @@ public class RepoOsEntity {
    * Sets the management pack ID.
    *
    * @param mpackId
-   *          the ID of the management pack which owns this repository.
+   *          the management pack ID.
    */
-  public void setMpackId(long mpackId) {
+  public void setMpackId(Long mpackId) {
     this.mpackId = mpackId;
   }
 
@@ -190,7 +188,8 @@ public class RepoOsEntity {
    */
   @Override
   public int hashCode() {
-    return java.util.Objects.hash(mpackId, family, ambariManaged, repoDefinitionEntities);
+    return java.util.Objects.hash(mpackId, mpackEntity, family, ambariManaged,
+        repoDefinitionEntities);
   }
 
   /**
@@ -212,8 +211,21 @@ public class RepoOsEntity {
 
     RepoOsEntity that = (RepoOsEntity) object;
     return Objects.equal(mpackId, that.mpackId)
+        && Objects.equal(mpackEntity, that.mpackEntity)
         && Objects.equal(ambariManaged, that.ambariManaged)
         && Objects.equal(family, that.family)
         && Objects.equal(repoDefinitionEntities, that.repoDefinitionEntities);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("mpackId", mpackId)
+        .add("family", family)
+        .add("isManagedByAmbari", ambariManaged)
+        .toString();
   }
 }
