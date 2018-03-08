@@ -70,6 +70,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -254,19 +255,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return findResources(request, predicate, requests);
   }
 
-  private Set<Resource> getResourcesForUpdate(Request request, Predicate predicate)
-    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-
-    final Set<ServiceComponentHostRequest> requests = new HashSet<>();
-
-    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      requests.add(getRequest(propertyMap));
-    }
-
-    return findResources(request, predicate, requests);
-  }
-
-
   private Set<Resource> findResources(Request request, final Predicate predicate,
                                       final Set<ServiceComponentHostRequest> requests)
           throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
@@ -274,10 +262,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     // We always need host_name for sch
     requestedIds.add(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
-    requestedIds.add(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
-    requestedIds.add(HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID);
-    requestedIds.add(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-    requestedIds.add(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
 
     Set<ServiceComponentHostResponse> responses = getResources(new Command<Set<ServiceComponentHostResponse>>() {
       @Override
@@ -844,12 +828,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     final boolean runSmokeTest = "true".equals(getQueryParameterValue(
         QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate));
 
-    Set<String> queryIds = Collections.singleton(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID);
+    Set<String> queryIds = ImmutableSet.copyOf(keyPropertyIds.values());
 
     Request queryRequest = PropertyHelper.getReadRequest(queryIds);
     // will take care of 404 exception
 
-    Set<Resource> matchingResources = getResourcesForUpdate(queryRequest, predicate);
+    Set<Resource> matchingResources = getResources(queryRequest, predicate);
 
     for (Resource queryResource : matchingResources) {
       //todo: predicate evaluation was removed for BUG-28737 and the removal of this breaks
