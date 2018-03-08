@@ -28,6 +28,7 @@ import static org.easymock.EasyMock.newCapture;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +75,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
