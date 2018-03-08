@@ -17,17 +17,33 @@
  */
 
 import Ember from 'ember';
-import constants from 'hive/utils/constants';
+import { test } from 'ember-qunit';
+import startApp from '../helpers/start-app';
+import api from '../helpers/api-mock';
 
-export default Ember.Controller.extend({
-  notifyService: Ember.inject.service(constants.namingConventions.notify),
+var App;
+var server;
 
-  notifications: Ember.computed.alias('notifyService.notifications'),
-  isQueryMenuShown: false,
-  hideQueryMenu: function () {
-    this.set('isQueryMenuShown', false);
+module('Integration: Tez UI', {
+  setup: function() {
+    App = startApp();
+    /* global Pretender: true */
+    server = new Pretender(api);
   },
-  showQueryMenu: function () {
-    this.set('isQueryMenuShown', true);
+
+  teardown: function() {
+    Ember.run(App, App.destroy);
+    server.shutdown();
   }
+});
+
+test('An error is show when there is no dag', function() {
+  expect(1);
+
+  visit("/");
+  click('#tez-icon');
+
+  andThen(function() {
+    ok(find('.panel .alert .alert-danger'), 'Error is visible');
+  });
 });

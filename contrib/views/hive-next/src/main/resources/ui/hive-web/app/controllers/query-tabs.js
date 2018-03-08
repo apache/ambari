@@ -32,23 +32,24 @@ export default Ember.Controller.extend({
       iconClass: 'text-icon',
       id: 'query-icon',
       text: 'SQL',
-      action: 'setDefaultActive',
+      action: 'showIndexTab',
       name: constants.namingConventions.index,
-      tooltip: Ember.I18n.t('tooltips.query')
+      tooltip: Ember.I18n.t('tooltips.query'),
     }),
     Ember.Object.create({
       iconClass: 'fa-gear',
       id: 'settings-icon',
-      action: 'toggleOverlay',
-      template: 'settings',
+      action: 'showSettingsTab',
+      template: 'open-queries',
       outlet: 'overlay',
       into: 'open-queries',
-      tooltip: Ember.I18n.t('tooltips.settings')
+      tooltip: Ember.I18n.t('tooltips.settings'),
+      onTabOpen:'showSettingTab'
     }),
     Ember.Object.create({
       iconClass: 'fa-area-chart',
       id: 'visualization-icon',
-      action: 'toggleOverlay',
+      action: 'showVisualizationRoute',
       tooltip: Ember.I18n.t('tooltips.visualization'),
       into: 'index',
       outlet: 'overlay',
@@ -58,7 +59,7 @@ export default Ember.Controller.extend({
     Ember.Object.create({
       iconClass: 'fa-link',
       id: 'visual-explain-icon',
-      action: 'toggleOverlay',
+      action: 'showVisualExplainRoute',
       template: 'visual-explain',
       outlet: 'overlay',
       into: 'index',
@@ -69,7 +70,7 @@ export default Ember.Controller.extend({
       iconClass: 'text-icon',
       id: 'tez-icon',
       text: 'TEZ',
-      action: 'toggleOverlay',
+      action: 'showTezRoute',
       template: 'tez-ui',
       outlet: 'overlay',
       into: 'index',
@@ -78,7 +79,7 @@ export default Ember.Controller.extend({
     Ember.Object.create({
       iconClass: 'fa-envelope',
       id: 'notifications-icon',
-      action: 'toggleOverlay',
+      action: 'showMessagesRoute',
       template: 'messages',
       outlet: 'overlay',
       into: 'index',
@@ -125,10 +126,6 @@ export default Ember.Controller.extend({
     });
   },
 
-  closeActiveOverlay: function () {
-    this.send('closeOverlay', this.get('activeTab'));
-  },
-
   onTabOpen: function (tab) {
     if (!tab.onTabOpen) {
       return;
@@ -139,13 +136,12 @@ export default Ember.Controller.extend({
   },
 
   openOverlay: function (tab) {
-    this.closeActiveOverlay();
     this.set('activeTab.active', false);
     tab.set('active', true);
     this.set('activeTab', tab);
 
     this.onTabOpen(tab);
-    this.send('openOverlay', tab);
+    this.controllerFor('application').showQueryMenu();
   },
 
   setDefaultActive: function () {
@@ -153,24 +149,41 @@ export default Ember.Controller.extend({
     var defaultTab = this.get('default');
 
     if (activeTab !== defaultTab) {
-      this.closeActiveOverlay();
       defaultTab.set('active', true);
       activeTab.set('active', false);
       this.set('activeTab', defaultTab);
+      var controller = this.container.lookup('controller:open-queries');
+      controller.send('showQueryTab', controller);
     }
   },
 
   actions: {
-    toggleOverlay: function (tab) {
-      if (tab !== this.get('default') && tab.get('active')) {
-        this.setDefaultActive();
-      } else {
-        this.openOverlay(tab);
-      }
+    showMessagesRoute:function (tab) {
+      this.transitionToRoute('messages');
+      this.openOverlay(tab);
     },
-
-    setDefaultActive: function () {
+    showVisualExplainRoute:function (tab) {
+      this.transitionToRoute('visual-explain');
+      this.openOverlay(tab);
+    },
+    showVisualizationRoute:function (tab) {
+      this.transitionToRoute('visualization-ui');
+      this.openOverlay(tab);
+    },
+    showTezRoute:function (tab) {
+      this.transitionToRoute('tez-ui');
+      this.openOverlay(tab);
+    },
+    showSettingsTab:function (tab) {
+      this.transitionToRoute('index');
+      this.openOverlay(tab);
+    },
+    showIndexTab:function (tab) {
       this.setDefaultActive();
-    }
+      this.transitionToRoute('index');
+      this.onTabOpen(tab);
+      var controller = this.container.lookup('controller:open-queries');
+      controller.send('showQueryTab', controller);
+    },
   }
 });
