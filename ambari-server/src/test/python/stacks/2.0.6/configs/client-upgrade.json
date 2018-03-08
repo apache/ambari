@@ -493,7 +493,10 @@
             "yarn_user": "yarn", 
             "resourcemanager_heapsize": "1024", 
             "yarn_log_dir_prefix": "/var/log/hadoop-yarn"
-        }, 
+        },
+        "container-executor": {
+            "content": "yarn.nodemanager.local-dirs=/hadoop/yarn/local\nyarn.nodemanager.log-dirs=/hadoop/yarn/log\nyarn.nodemanager.linux-container-executor.group=hadoop\nbanned.users=hdfs,yarn,mapred,bin\nmin.user.id=500"
+        },
         "hadoop-env": {
             "dtnode_heapsize": "1024m", 
             "namenode_opt_maxnewsize": "200m", 

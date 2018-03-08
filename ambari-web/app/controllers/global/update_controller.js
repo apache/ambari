@@ -190,7 +190,6 @@ App.UpdateController = Em.Controller.extend({
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
       App.updater.run(this, 'updateHostsMetrics', 'isWorking', App.contentUpdateInterval, '\/main\/(hosts).*');
       App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
-      App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services|hosts).*');
       App.updater.run(this, 'graphsUpdate', 'isWorking');
 
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
@@ -618,7 +617,7 @@ App.UpdateController = Em.Controller.extend({
   },
 
   makeCallForClusterEnv: function(event) {
-    if (event.configs.someProperty('type', 'cluster-env')) {
+    if (event.configs && event.configs.someProperty('type', 'cluster-env')) {
       this.updateClusterEnv();
     }
   },

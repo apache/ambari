@@ -195,7 +195,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('content.serviceName'),
 
   /**
-   * Load all config tags for loading configs
+   * Load configurations for implicit usage for service actions
+   * not related to configs displayed on Configs page
    */
   loadConfigs: function(){
     this.set('isServiceConfigsLoaded', false);

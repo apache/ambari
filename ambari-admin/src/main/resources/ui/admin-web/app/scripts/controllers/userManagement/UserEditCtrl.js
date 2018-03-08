@@ -251,7 +251,7 @@ function($scope, $rootScope, $routeParams, Cluster, User, View, $modal, $locatio
           });
         }
         User.delete($scope.user.user_name).then(function () {
-          $location.path('/userManagement?tab=users');
+          $location.url('/userManagement?tab=users');
           if (clusterPrivilegesIds.length) {
             Cluster.deleteMultiplePrivileges($rootScope.cluster.Clusters.cluster_name, clusterPrivilegesIds);
           }

@@ -401,7 +401,6 @@
       "dfs.support.append": "true",
       "dfs.datanode.address": "0.0.0.0:${ambari.dfs.datanode.port}",
       "nfs.file.dump.dir": "/tmp/.hdfs-nfs",
-      "dfs.datanode.address": "0.0.0.0:${ambari.dfs.datanode.port}",
       "dfs.cluster.administrators": "test_user1,test_user2 hdfs,test_group",
       "dfs.replication": "3",
       "ambari.dfs.datanode.http.port": "50075",
@@ -705,6 +704,9 @@
       "min_user_id": "1000",
       "is_supported_yarn_ranger": "false",
       "service_check.queue.name": "default"
+    },
+    "container-executor": {
+      "content": "yarn.nodemanager.local-dirs=/hadoop/yarn/local\nyarn.nodemanager.log-dirs=/hadoop/yarn/log\nyarn.nodemanager.linux-container-executor.group=hadoop\nbanned.users=hdfs,yarn,mapred,bin\nmin.user.id=500"
     },
     "hadoop-env": {
       "hdfs_tmp_dir": "/tmp",
