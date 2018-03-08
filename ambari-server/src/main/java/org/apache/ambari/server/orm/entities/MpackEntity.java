@@ -139,6 +139,10 @@ public class MpackEntity {
    */
   public void setRepositoryOperatingSystems(List<RepoOsEntity> repositoryOperatingSystems) {
     this.repositoryOperatingSystems = repositoryOperatingSystems;
+    for (RepoOsEntity repositoryOperatingSystem : repositoryOperatingSystems) {
+      repositoryOperatingSystem.setMpackEntity(this);
+      repositoryOperatingSystem.setMpackId(id);
+    }
   }
 
   public MpackEntity() {
