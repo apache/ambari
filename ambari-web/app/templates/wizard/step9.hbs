@@ -22,18 +22,18 @@
   <div class="panel panel-default">
     <div class="panel-body">
       <p class="step-description">{{t installer.step9.body}}</p>
-      <div class="row" {{QAAttr "overall-progress"}}>
+      <div class="row" id="overall-progress" {{QAAttr "overall-progress"}}>
         <div class="col-md-10">
           <div class="progress" {{QAAttr "progress-{status}"}}>
             <div {{bindAttr class="view.isStepCompleted::progress-bar-striped view.isStepCompleted::active view.barColor :progress-bar"}} {{bindAttr style="view.barWidth"}} {{QAAttr "progress-bar-{progress}"}}>
             </div>
           </div>
         </div>
-        <div class="col-md-2" {{QAAttr "progress-message"}}>{{view.progressMessage}}</div>
+        <div class="col-md-2 progress-message" {{QAAttr "progress-message"}}>{{view.progressMessage}}</div>
       </div>
 
-      <div class="panel panel-default panel-internal install-retry-panel">
-        <div class="panel-heading">
+      <div class="row">
+        <div class="col-xs-12">
           <div class="pull-right">
             {{#if controller.showRetry}}
               <button class="btn btn-default" href="#" {{action retry}} {{QAAttr "retry-button"}}>
@@ -60,7 +60,9 @@
           </div>
           <div class="clearfix"></div>
         </div>
-        <div class="panel-body pre-scrollable">
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
           <table id="deploy-status-by-host" class="table table-hover" {{QAAttr "hosts-table"}}>
             <thead>
             <tr>
@@ -111,6 +113,7 @@
           </table>
         </div>
       </div>
+      
       {{#if view.resultMsg}}
         <p {{bindAttr class="view.resultMsgColor :alert :alert-warning"}} {{QAAttr "deploy-result-{status}"}}>{{view.resultMsg}}
           {{#if view.isHostHeartbeatLost}}

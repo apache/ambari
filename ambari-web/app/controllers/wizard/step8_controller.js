@@ -935,7 +935,8 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           this.applyConfigurationsToCluster(this.generateDesiredConfigsJSON(this.get('configs'), fileNamesToUpdate));
         }
       }
-      this.createConfigurations();
+      this.configureCluster();
+      this.createServiceConfigurations();
       this.applyConfigurationsToCluster(this.get('serviceConfigTags'));
     }
     this.createComponents();
@@ -1495,15 +1496,34 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   },
 
   /**
-   * Create config objects for cluster and services
-   * @method createConfigurations
+   * Configure cluster settings
    */
-  createConfigurations: function () {
-    if (this.get('isInstaller')) {
-      /** add cluster-env **/
-      this.get('serviceConfigTags').pushObject(this.createDesiredConfig('cluster-env', this.get('configs').filterProperty('filename', 'cluster-env.xml')));
-    }
+  configureCluster: function () {
+    const clusterSettings = this.get('configs').filterProperty('filename', 'cluster-settings.xml');
+    const data = [];
+    clusterSettings.forEach(setting => {
+      data.push({
+        "ClusterSettingInfo": {
+          "cluster_setting_name": setting.name,
+          "cluster_setting_value": setting.value
+        }
+      })
+    });
 
+    this.addRequestToAjaxQueue({
+      name: 'common.cluster.settings',
+      data: {
+        clusterName: this.get('clusterName'),
+        data: data
+      }
+    });
+  },
+
+  /**
+   * Create config objects for services
+   * @method createServiceConfigurations
+   */
+  createServiceConfigurations: function () {
     this.get('selectedServices').forEach(function (service) {
       Object.keys(service.get('configTypes')).forEach(function (type) {
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
@@ -1563,14 +1583,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         }));
       }
     }, this);
-    var clusterConfig = serviceConfigTags.findProperty('type', 'cluster-env');
-    if (clusterConfig) {
-      allConfigData.pushObject(JSON.stringify({
-        Clusters: {
-          desired_config: [clusterConfig]
-        }
-      }));
-    }
 
     this.addRequestToAjaxQueue({
       name: 'common.across.services.configurations',
@@ -1906,7 +1918,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     //service configurations
     var totalConf = [];
     //Add cluster-env
-    var clusterEnv = this.get('configs').filterProperty('filename', 'cluster-env.xml');
+    var clusterEnv = this.get('configs').filterProperty('filename', 'cluster-settings.xml');
     var configurations = {};
     configurations["cluster-env"] = self.getConfigurationDetailsForConfigType(clusterEnv);
     totalConf.push(configurations);

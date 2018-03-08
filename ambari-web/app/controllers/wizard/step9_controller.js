@@ -109,7 +109,7 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    var validStates = ['STARTED', 'START FAILED', 'START_SKIPPED'];
+    var validStates = ['INSTALLED', 'STARTED', 'START FAILED', 'START_SKIPPED'];
     var controllerName = this.get('content.controllerName');
     if (controllerName == 'addHostController' || controllerName == 'addServiceController') {
       validStates.push('INSTALL FAILED');
@@ -119,7 +119,7 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
       || !validStates.contains(this.get('content.cluster.status'));
   }.property('content.cluster.status'),
 
-  isNextButtonDisabled: Em.computed.or('App.router.nextBtnClickInProgress', 'isSubmitDisabled', 'wizardController.errors'),
+  isNextButtonDisabled: Em.computed.or('App.router.nextBtnClickInProgress', 'isSubmitDisabled', 'wizardController.errors.length'),
 
   /**
    * Observer function: Enables previous steps link if install task failed in installer wizard.
@@ -141,7 +141,17 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
    * Computed property to determine if the Retry button should be made visible on the page.
    * @type {bool}
    */
-  showRetry: Em.computed.equal('content.cluster.status', 'INSTALL FAILED'),
+  showRetry: function () {
+    const status = this.get('content.cluster.status');
+    switch (status) {
+      case 'INSTALL FAILED':
+      case 'INSTALLED':
+      case 'START FAILED':
+        return true;  
+    }
+
+    return false;
+  }.property('content.cluster.status'),
 
   /**
    * Observer function: Calls {hostStatusUpdates} function once with change in a host status from any registered hosts.

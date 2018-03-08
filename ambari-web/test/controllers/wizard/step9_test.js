@@ -85,18 +85,18 @@ describe('App.InstallerStep9Controller', function () {
       {controllerName: 'addHostController', state: 'START FAILED', e: false},
       {controllerName: 'addHostController', state: 'INSTALL FAILED', e: false},
       {controllerName: 'addHostController', state: 'PENDING', e: true},
-      {controllerName: 'addHostController', state: 'INSTALLED', e: true},
+      {controllerName: 'addHostController', state: 'INSTALLED', e: false},
       {controllerName: 'addServiceController', state: 'STARTED', e: false},
       {controllerName: 'addServiceController', state: 'START_SKIPPED', e: false},
       {controllerName: 'addServiceController', state: 'START FAILED', e: false},
       {controllerName: 'addServiceController', state: 'INSTALL FAILED', e: false},
       {controllerName: 'addServiceController', state: 'PENDING', e: true},
-      {controllerName: 'addServiceController', state: 'INSTALLED', e: true},
+      {controllerName: 'addServiceController', state: 'INSTALLED', e: false},
       {controllerName: 'installerController', state: 'STARTED', e: false},
       {controllerName: 'installerController', state: 'START_SKIPPED', e: false},
       {controllerName: 'installerController', state: 'START FAILED', e: false},
       {controllerName: 'installerController', state: 'INSTALL FAILED', e: true},
-      {controllerName: 'installerController', state: 'INSTALLED', e: true},
+      {controllerName: 'installerController', state: 'INSTALLED', e: false},
       {controllerName: 'installerController', state: 'PENDING', e: true}
     ]);
     tests.forEach(function (test) {

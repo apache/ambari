@@ -553,7 +553,7 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
     if (isRangerServiceAbsent) {
       var isExternalRangerSetup;
       if (isInstallerWizard) {
-        isExternalRangerSetup = configs.filterProperty('fileName','cluster-env.xml').findProperty('name','enable_external_ranger');
+        isExternalRangerSetup = configs.filterProperty('fileName','cluster-settings.xml').findProperty('name','enable_external_ranger');
         if (Em.isNone(isExternalRangerSetup) || isExternalRangerSetup.value !== "true") {
           App.config.removeRangerConfigs(this.get('stepConfigs'));
         }

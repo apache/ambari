@@ -42,6 +42,16 @@ var urls = {
     }
   },
 
+  'common.cluster.settings' : {
+    'type': 'POST',
+    'real': '/clusters/{clusterName}/settings',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.data)
+      };
+    }
+  },
+
   'common.services.update' : {
     'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',
@@ -738,7 +748,7 @@ var urls = {
   /*************************STACK CONFIGS**************************************/
 
   'configs.stack_configs.load.cluster_configs': {
-    'real': '{stackVersionUrl}?fields=configurations/*,Versions/config_types/*',
+    'real': '/cluster_settings?fields=*',
     'mock': '/data/stacks/HDP-2.2/configurations.json'
   },
 

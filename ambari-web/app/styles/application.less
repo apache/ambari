@@ -2637,8 +2637,11 @@ td .no-data {
   display: table; 
 }
 .row.same-col-heights [class*="col-"]{
-  display: table-cell;
-  float: none;
+  &.wizard-nav,
+  &.wizard-content {
+    display: table-cell;
+    float: none;
+  }
   &.wizard-content {
     width: 9999999999px;
   }

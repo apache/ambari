@@ -1037,9 +1037,6 @@ App.config = Em.Object.create({
     return App.ajax.send({
       name: 'configs.stack_configs.load.cluster_configs',
       sender: this,
-      data: {
-        stackVersionUrl: App.get('stackVersionURL')
-      },
       success: 'saveConfigsToModel'
     });
   },
