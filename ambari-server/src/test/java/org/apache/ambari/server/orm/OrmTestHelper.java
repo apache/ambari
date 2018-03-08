@@ -85,6 +85,9 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.ModuleComponent;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -98,11 +101,13 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -342,6 +347,33 @@ public class OrmTestHelper {
       mpackEntity.setMpackVersion(stackId.getStackVersion());
       mpackEntity.setMpackUri("http://mpacks.org/" + stackId.toString() + ".json");
       mpackDAO.create(mpackEntity);
+
+      AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+
+      ArrayList<Module> packletArrayList = new ArrayList<>();
+      ModuleComponent sampleComponent = EasyMock.createNiceMock(ModuleComponent.class);
+      EasyMock.expect(sampleComponent.getName()).andReturn("FOO_COMPONENT").anyTimes();
+      EasyMock.expect(sampleComponent.getVersion()).andReturn("1.0.0-b1").anyTimes();
+
+      Module samplePacklet = EasyMock.createNiceMock(Module.class);
+      EasyMock.expect(samplePacklet.getVersion()).andReturn("1.0.0-b1").anyTimes();
+      EasyMock.expect(samplePacklet.getName()).andReturn("FOO").anyTimes();
+      EasyMock.expect(samplePacklet.getDefinition()).andReturn("foo.tar.gz").anyTimes();
+      EasyMock.expect(samplePacklet.getComponents()).andReturn(Lists.newArrayList(sampleComponent)).anyTimes();
+      EasyMock.expect(samplePacklet.getModuleComponent(EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
+
+      packletArrayList.add(samplePacklet);
+
+      Map<Long, Mpack> mpackMap = ambariMetaInfo.getMpackManager().getMpackMap();
+      Mpack mpack = EasyMock.createNiceMock(Mpack.class);
+      EasyMock.expect(mpack.getMpackId()).andReturn(stackId.getStackName()).anyTimes();
+      EasyMock.expect(mpack.getResourceId()).andReturn(mpackEntity.getId()).anyTimes();
+      EasyMock.expect(mpack.getModules()).andReturn(packletArrayList).anyTimes();
+      EasyMock.expect(mpack.getModule(EasyMock.anyString())).andReturn(samplePacklet).anyTimes();
+      EasyMock.expect(mpack.getModuleComponent(EasyMock.anyString(), EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
+
+      EasyMock.replay(mpack, samplePacklet, sampleComponent);
+      mpackMap.put(mpackEntity.getId(), mpack);
     }
     return mpackEntity;
   }
@@ -353,13 +385,20 @@ public class OrmTestHelper {
       stackEntity = new StackEntity();
       stackEntity.setStackName(stackId.getStackName());
       stackEntity.setStackVersion(stackId.getStackVersion());
+      stackDAO.create(stackEntity);
+    }
+
+    if (null == stackEntity.getMpackId()) {
       List<MpackEntity> mpackEntities =
-        mpackDAO.findByNameVersion(stackId.getStackName(), stackId.getStackVersion());
+          mpackDAO.findByNameVersion(stackId.getStackName(), stackId.getStackVersion());
+
       if (!mpackEntities.isEmpty()) {
         stackEntity.setMpackId(mpackEntities.get(0).getId());
       }
-      stackDAO.create(stackEntity);
+
+      stackEntity = stackDAO.merge(stackEntity);
     }
+
 
     return stackEntity;
   }
@@ -691,9 +730,13 @@ public class OrmTestHelper {
    */
   public RepositoryVersionEntity getOrCreateRepositoryVersion(StackId stackId,
       String version) {
+    MpackEntity mpackEntity = null;
     StackEntity stackEntity = null;
     try {
-      createMpack(stackId); // creating mpack before stack makes sure stack will be linked to mpack
+      // creating mpack before stack makes
+      mpackEntity = createMpack(stackId);
+
+      // sure stack will be linked to mpack
       stackEntity = createStack(stackId);
     } catch (Exception e) {
       LOG.error("Expected successful repository", e);
@@ -722,6 +765,11 @@ public class OrmTestHelper {
         repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
         repoOsEntity.setMpackEntity(createMpack(stackId));
         operatingSystems.add(repoOsEntity);
+
+        mpackEntity.setRepositoryOperatingSystems(operatingSystems);
+        mpackEntity = mpackDAO.merge(mpackEntity);
+
+        operatingSystems = mpackEntity.getRepositoryOperatingSystems();
 
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
