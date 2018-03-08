@@ -17,12 +17,11 @@
 }}
 
 {{#tabs-widget tabs=queryTabs removeClicked="removeQueryTab" canRemove=true onActiveTitleClick="changeTabTitle"}}
-
-  {{#if showQueryEditor}}
-    {{query-editor tables=selectedTables query=currentQuery.fileContent editor=view.editor
-                   highlightedText=highlightedText
-                   columnsNeeded="getColumnsForAutocomplete"}}
-  {{else}}
-    {{query-settings}}
-  {{/if}}
+    {{#if showQueryEditor}}
+      {{query-editor tables=selectedTables query=currentQuery.fileContent editor=view.editor
+                     highlightedText=highlightedText
+                     columnsNeeded="getColumnsForAutocomplete"}}
+    {{else}}
+      {{query-settings}}
+    {{/if}}
 {{/tabs-widget}}

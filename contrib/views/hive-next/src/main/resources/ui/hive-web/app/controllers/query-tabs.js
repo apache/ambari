@@ -126,10 +126,6 @@ export default Ember.Controller.extend({
     });
   },
 
-  closeActiveOverlay: function () {
-    this.send('closeOverlay', this.get('activeTab'));
-  },
-
   onTabOpen: function (tab) {
     if (!tab.onTabOpen) {
       return;
@@ -140,7 +136,6 @@ export default Ember.Controller.extend({
   },
 
   openOverlay: function (tab) {
-    this.closeActiveOverlay();
     this.set('activeTab.active', false);
     tab.set('active', true);
     this.set('activeTab', tab);
@@ -154,7 +149,6 @@ export default Ember.Controller.extend({
     var defaultTab = this.get('default');
 
     if (activeTab !== defaultTab) {
-      this.closeActiveOverlay();
       defaultTab.set('active', true);
       activeTab.set('active', false);
       this.set('activeTab', defaultTab);

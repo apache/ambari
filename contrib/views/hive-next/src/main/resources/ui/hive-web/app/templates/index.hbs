@@ -45,8 +45,9 @@
 
     <div {{bind-attr class="isDatabaseExplorerVisible:col-md-9:col-md-12 :col-xs-9 :query-container"}}>
       {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel" iconActions=queryPanelActions}}
-        {{render 'open-queries'}}
-
+        <div class="query-content">
+          {{render 'open-queries'}}
+        </div>
         <div class="toolbox">
           {{#if canExecute}}
             <button type="button" class="btn btn-sm btn-success execute-query" {{action "executeQuery"}}>
