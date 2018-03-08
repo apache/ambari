@@ -134,8 +134,18 @@ public class RepoOsEntity {
    *
    * @return the management pack ID.
    */
-  public long getMpackId() {
+  public Long getMpackId() {
     return mpackId;
+  }
+
+  /**
+   * Sets the management pack ID.
+   *
+   * @param mpackId
+   *          the management pack ID.
+   */
+  public void setMpackId(Long mpackId) {
+    this.mpackId = mpackId;
   }
 
   public String getFamily() {
