@@ -44,10 +44,10 @@
       <table class="table table-hover">
         <thead>
         <tr>
-          <th class="col-sm-3">{{t common.operations}}</th>
+          <th class="col-sm-5">{{t common.operations}}</th>
           <th class="col-sm-3">{{t common.status}}</th>
-          <th class="col-sm-2">{{t common.user}}</th>
-          <th class="col-sm-3">{{t common.startTime}}</th>
+          <th class="col-sm-1">{{t common.user}}</th>
+          <th class="col-sm-2">{{t common.startTime}}</th>
           <th class="col-sm-2" colspan="2">{{t common.duration}}</th>
         </tr>
         </thead>
@@ -61,7 +61,7 @@
         {{else}}
           {{#each servicesInfo in view.services}}
           <tr {{action onOpClick servicesInfo}} {{bindAttr class="servicesInfo.isVisible::hidden :pointer"}}>
-            <td class="col-sm-3">
+            <td class="col-sm-5">
               {{view statusIcon servicesInfoBinding="servicesInfo"}}
               <a href="#">
                 {{servicesInfo.name}}
@@ -76,8 +76,8 @@
               <div class="progress-percentage col-sm-2">{{servicesInfo.progress}}%</div>
             </td>
             {{!-- Hardcoding this for now. Will change it once BE returns this value --}}
-            <td class="col-sm-2">{{servicesInfo.userName}}</td>
-            <td class="col-sm-3">{{servicesInfo.startTime}}</td>
+            <td class="col-sm-1">{{servicesInfo.userName}}</td>
+            <td class="col-sm-2">{{servicesInfo.startTime}}</td>
             <td class="col-sm-2">{{servicesInfo.duration}}</td>
             <td class="col-sm-1 text-right">
               {{#if servicesInfo.isAbortable}}
