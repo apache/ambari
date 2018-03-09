@@ -1077,7 +1077,9 @@ public class AmbariServer {
 
       setupProxyAuth();
 
-      injector.getInstance(GuiceJpaInitializer.class);
+      // Start and Initialize JPA
+      GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
+      jpaInitializer.setInitialized(); // This must be called to alert Ambari that JPA is initialized.
 
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 
