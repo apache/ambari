@@ -158,8 +158,8 @@ if security_enabled:
   infra_solr_logsearch_service_users = []
   logsearch_kerberos_service_user = get_name_from_principal(default('configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
   infra_solr_logsearch_service_users.append(logsearch_kerberos_service_user)
-  logsearch_kerberos_service_users_str = default('configurations/logsearch-env/logsearch_kerberos_service_users', '')
-  if not logsearch_kerberos_service_users_str:
+  logsearch_kerberos_service_users_str = str(default('configurations/logsearch-env/logsearch_kerberos_service_users', ''))
+  if logsearch_kerberos_service_users_str and logsearch_kerberos_service_users_str.strip():
     logsearch_kerberos_service_users = logsearch_kerberos_service_users_str.split(',')
     infra_solr_logsearch_service_users.extend(logsearch_kerberos_service_users)
 
