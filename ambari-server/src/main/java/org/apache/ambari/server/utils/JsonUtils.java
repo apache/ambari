@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -39,6 +40,9 @@ public class JsonUtils {
   public static JsonParser jsonParser = new JsonParser();
 
   private static final ObjectMapper JSON_SERIALIZER = new ObjectMapper();
+  static {
+    JSON_SERIALIZER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+  }
   private static final ObjectWriter JSON_WRITER = JSON_SERIALIZER.writer();
 
   /**
@@ -69,6 +73,18 @@ public class JsonUtils {
       throw new UncheckedIOException(ex);
     }
   }
+
+  public static <T> T fromJson(String json, Class<?> valueType) {
+    if (null == json) {
+      return  null;
+    }
+    try {
+      return JSON_SERIALIZER.reader(valueType).readValue(json);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
 
   public static String toJson(Object object) {
     try {

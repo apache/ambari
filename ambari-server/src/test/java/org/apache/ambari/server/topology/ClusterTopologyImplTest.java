@@ -31,10 +31,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Unit tests for ClusterTopologyImpl.
@@ -97,6 +100,7 @@ public class ClusterTopologyImplTest {
     group4Info.setPredicate(predicate);
 
     expect(blueprint.getConfiguration()).andReturn(bpconfiguration).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(new StackId("HDP", "2.6"))).anyTimes();
 
     hostGroupMap.put("group1", group1);
     hostGroupMap.put("group2", group2);

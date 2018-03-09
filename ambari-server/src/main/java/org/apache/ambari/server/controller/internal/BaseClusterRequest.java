@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,7 +31,9 @@ import org.apache.ambari.server.api.predicate.Token;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.Configuration;
@@ -37,7 +41,7 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.TopologyRequestUtil;
+import org.apache.ambari.server.utils.JsonUtils;
 
 /**
  * Provides common cluster request functionality.
@@ -54,11 +58,6 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   protected final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
   protected ProvisionAction provisionAction;
-
-  /**
-   * The raw request body. We would like to persist it.
-   */
-  protected String rawRequestBody;
 
   /**
    * cluster id
@@ -123,19 +122,6 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   @Override
   public Map<String, HostGroupInfo> getHostGroupInfo() {
     return hostGroupInfoMap;
-  }
-
-  /**
-   * @return the raw request body in JSON string
-   */
-  public String getRawRequestBody() {
-    return rawRequestBody;
-  }
-
-  @Override
-  public Set<StackId> getStackIds() {
-    return TopologyRequestUtil.getStackIdsFromRequest(
-      TopologyRequestUtil.getPropertyMap(rawRequestBody));
   }
 
   /**
@@ -223,5 +209,74 @@ public abstract class BaseClusterRequest implements TopologyRequest {
 
   public void setProvisionAction(ProvisionAction provisionAction) {
     this.provisionAction = provisionAction;
+  }
+
+  /**
+   * @return the request converted to a {@link TopologyRequestEntity}
+   */
+  public TopologyRequestEntity toEntity() {
+    TopologyRequestEntity entity = new TopologyRequestEntity();
+
+    //todo: this isn't set for a scaling operation because we had intended to allow multiple
+    //todo: bp's to be used to scale a cluster although this isn't currently supported by
+    //todo: new topology infrastructure
+    entity.setAction(getType().name());
+    if (getBlueprint() != null) {
+      entity.setBlueprintName(getBlueprint().getName());
+    }
+
+    entity.setClusterAttributes(JsonUtils.toJson(getConfiguration().getAttributes()));
+    entity.setClusterId(getClusterId());
+    entity.setClusterProperties(JsonUtils.toJson(getConfiguration().getProperties()));
+    entity.setDescription(getDescription());
+
+    if (getProvisionAction() != null) {
+      entity.setProvisionAction(getProvisionAction());
+    }
+
+    // host groups
+    Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<>();
+    for (HostGroupInfo groupInfo : getHostGroupInfo().values())  {
+      hostGroupEntities.add(toHostGroupEntity(groupInfo, entity));
+    }
+    entity.setTopologyHostGroupEntities(hostGroupEntities);
+
+    return entity;
+  }
+
+  private TopologyHostGroupEntity toHostGroupEntity(HostGroupInfo groupInfo, TopologyRequestEntity topologyRequestEntity) {
+    TopologyHostGroupEntity entity = new TopologyHostGroupEntity();
+    entity.setGroupAttributes(JsonUtils.toJson(groupInfo.getConfiguration().getAttributes()));
+    entity.setGroupProperties(JsonUtils.toJson(groupInfo.getConfiguration().getProperties()));
+    entity.setName(groupInfo.getHostGroupName());
+    entity.setTopologyRequestEntity(topologyRequestEntity);
+
+    // host info
+    Collection<TopologyHostInfoEntity> hostInfoEntities = new ArrayList<>();
+    entity.setTopologyHostInfoEntities(hostInfoEntities);
+
+    Collection<String> hosts = groupInfo.getHostNames();
+    if (hosts.isEmpty()) {
+      TopologyHostInfoEntity hostInfoEntity = new TopologyHostInfoEntity();
+      hostInfoEntity.setTopologyHostGroupEntity(entity);
+      hostInfoEntity.setHostCount(groupInfo.getRequestedHostCount());
+      if (groupInfo.getPredicate() != null) {
+        hostInfoEntity.setPredicate(groupInfo.getPredicateString());
+      }
+      hostInfoEntities.add(hostInfoEntity);
+    } else {
+      for (String hostName : hosts) {
+        TopologyHostInfoEntity hostInfoEntity = new TopologyHostInfoEntity();
+        hostInfoEntity.setTopologyHostGroupEntity(entity);
+        if (groupInfo.getPredicate() != null) {
+          hostInfoEntity.setPredicate(groupInfo.getPredicateString());
+        }
+        hostInfoEntity.setFqdn(hostName);
+        hostInfoEntity.setRackInfo(groupInfo.getHostRackInfo().get(hostName));
+        hostInfoEntity.setHostCount(0);
+        hostInfoEntities.add(hostInfoEntity);
+      }
+    }
+    return entity;
   }
 }

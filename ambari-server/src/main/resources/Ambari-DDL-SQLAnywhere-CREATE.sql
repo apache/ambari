@@ -888,7 +888,7 @@ CREATE TABLE topology_request (
   action VARCHAR(255) NOT NULL,
   cluster_id NUMERIC(19) NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
-  raw_request_body TEXT NOT NULL,
+  mpack_instances TEXT NOT NULL,
   cluster_properties TEXT,
   cluster_attributes TEXT,
   description VARCHAR(1024),

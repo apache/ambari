@@ -76,8 +76,8 @@ public class TopologyRequestEntity {
   private String description;
 
   @Lob
-  @Column(name = "raw_request_body", length = 100000, nullable = false)
-  private String rawRequestBody;
+  @Column(name = "mpack_instances", length = 100000, nullable = false)
+  private String mpackInstances;
 
   @OneToMany(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
   private Collection<TopologyHostGroupEntity> topologyHostGroupEntities;
@@ -146,17 +146,17 @@ public class TopologyRequestEntity {
   }
 
   /**
-   * @return the raw request body in JSON
+   * @return the mpack instance definitions (mpack name, version, uri, nested configurations) as JSON
    */
-  public String getRawRequestBody() {
-    return rawRequestBody;
+  public String getMpackInstances() {
+    return mpackInstances;
   }
 
   /**
-   * @param rawRequestBody the raw request body in JSON
+   * @param mpackInstances mpack instance definitions (mpack name, version, uri, nested configurations) as JSON
    */
-  public void setRawRequestBody(String rawRequestBody) {
-    this.rawRequestBody = rawRequestBody;
+  public void setMpackInstances(String mpackInstances) {
+    this.mpackInstances = mpackInstances;
   }
 
   public Collection<TopologyHostGroupEntity> getTopologyHostGroupEntities() {
