@@ -72,11 +72,4 @@ public interface ServiceGroup {
    * @return updated service group entity
    */
   ServiceGroupEntity deleteServiceGroupDependency(Long dependencyServiceGroupId) throws AmbariException;
-
-  /**
-   * Gets the management pack associated with this service group.
-   *
-   * @return the management pack.
-   */
-  Long getMpackId();
 }

@@ -49,7 +49,7 @@ public class VersionDefinitionResourceDefinition extends BaseResourceDefinition 
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.singleton(new SubResourceDefinition(Type.OperatingSystemReadOnly));
+    return Collections.singleton(new SubResourceDefinition(Type.OperatingSystem));
   }
 
   @Override

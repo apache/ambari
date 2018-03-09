@@ -1156,6 +1156,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @return the child upgrade pack
    */
   private UpgradePack parseServiceUpgradePack(UpgradePack parent, UpgradePack child) {
+    parent.mergePrerequisiteChecks(child);
     parent.mergeProcessing(child);
 
     return child;

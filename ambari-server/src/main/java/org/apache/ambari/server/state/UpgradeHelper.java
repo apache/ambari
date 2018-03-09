@@ -61,7 +61,7 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
-import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
+import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
@@ -302,7 +302,7 @@ public class UpgradeHelper {
     List<UpgradeGroupHolder> groups = new ArrayList<>();
 
     UpgradeGroupHolder previousGroupHolder = null;
-    for (Grouping group : upgradePack.getGroups(LifecycleType.UPGRADE, context.getDirection())) {
+    for (Grouping group : upgradePack.getGroups(Lifecycle.LifecycleType.UPGRADE, context.getDirection())) {
 
       // !!! grouping is not scoped to context
       if (!context.isScoped(group.scope)) {
@@ -318,7 +318,6 @@ public class UpgradeHelper {
 
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
-      groupHolder.lifecycle = group.lifecycle;
       groupHolder.title = group.title;
       groupHolder.groupClass = group.getClass();
       groupHolder.skippable = group.skippable;
@@ -701,22 +700,15 @@ public class UpgradeHelper {
    * Short-lived objects that hold information about upgrade groups
    */
   public static class UpgradeGroupHolder {
-
-    /**
-     * The lifecycle
-     */
-    public LifecycleType lifecycle;
-
     /**
      *
      */
     private boolean processingGroup;
 
     /**
-     * The title
+     * The name
      */
     public String name;
-
     /**
      * The title
      */

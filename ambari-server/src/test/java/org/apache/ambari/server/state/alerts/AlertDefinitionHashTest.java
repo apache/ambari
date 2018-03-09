@@ -103,7 +103,6 @@ public class AlertDefinitionHashTest extends TestCase {
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     ServiceComponentHost sch = EasyMock.createNiceMock(ServiceComponentHost.class);
     expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
-    expect(sch.getServiceType()).andReturn("HDFS").anyTimes();
     expect(sch.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
     expect(sch.getHostName()).andReturn(HOSTNAME).anyTimes();
     EasyMock.replay(sch);
@@ -112,7 +111,6 @@ public class AlertDefinitionHashTest extends TestCase {
     // add HDFS/DN
     sch = EasyMock.createNiceMock(ServiceComponentHost.class);
     expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
-    expect(sch.getServiceType()).andReturn("HDFS").anyTimes();
     expect(sch.getServiceComponentName()).andReturn("DATANODE").anyTimes();
     expect(sch.getHostName()).andReturn(HOSTNAME).anyTimes();
     EasyMock.replay(sch);

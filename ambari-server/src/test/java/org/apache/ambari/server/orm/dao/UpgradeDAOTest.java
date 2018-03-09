@@ -43,7 +43,6 @@ import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
@@ -106,8 +105,8 @@ public class UpgradeDAOTest {
     entity.setDowngradeAllowed(true);
 
     UpgradeGroupEntity group = new UpgradeGroupEntity();
+    group.setName("group_name");
     group.setTitle("group title");
-    group.setLifecycle(LifecycleType.UPGRADE);
 
     // create 2 items
     List<UpgradeItemEntity> items = new ArrayList<>();
@@ -153,7 +152,7 @@ public class UpgradeDAOTest {
 
     assertNotNull(group);
     Assert.assertNotSame(entity.getUpgradeGroups().get(0), group);
-    Assert.assertNull(group.getName());
+    assertEquals("group_name", group.getName());
     assertEquals("group title", group.getTitle());
   }
 

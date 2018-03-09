@@ -28,7 +28,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.api.resources.OperatingSystemReadOnlyResourceDefinition;
+import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -78,7 +78,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
   public static final String REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID            = "CompatibleRepositoryVersions/upgrade_types";
   public static final String REPOSITORY_VERSION_SERVICES                       = "CompatibleRepositoryVersions/services";
   public static final String REPOSITORY_VERSION_STACK_SERVICES                 = "CompatibleRepositoryVersions/stack_services";
-  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemReadOnlyResourceDefinition().getPluralName();
+  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   private static final String REPOSITORY_STACK_VALUE                           = "stack_value";
 
   private static Set<String> pkPropertyIds = Collections.singleton(REPOSITORY_VERSION_ID_PROPERTY_ID);

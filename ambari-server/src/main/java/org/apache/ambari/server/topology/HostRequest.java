@@ -98,7 +98,7 @@ public class HostRequest implements Comparable<HostRequest> {
     this.hostGroup = hostGroup;
     hostgroupName = hostGroup.getName();
     this.predicate = predicate;
-    containsMaster = topology.containsMasterComponent(hostgroupName);
+    containsMaster = hostGroup.containsMasterComponent();
     this.topology = topology;
     this.skipFailure = skipFailure;
     createTasks(this.skipFailure);
@@ -121,14 +121,14 @@ public class HostRequest implements Comparable<HostRequest> {
     this.requestId = requestId;
     this.id = id;
     clusterId = topology.getClusterId();
-    blueprint = topology.getBlueprintName();
+    blueprint = topology.getBlueprint().getName();
     hostgroupName = entity.getTopologyHostGroupEntity().getName();
     hostGroup = topology.getBlueprint().getHostGroup(hostgroupName);
     hostname = entity.getHostName();
     setStatus(entity.getStatus());
     statusMessage = entity.getStatusMessage();
     this.predicate = toPredicate(predicate);
-    containsMaster = topology.containsMasterComponent(hostgroupName);
+    containsMaster = hostGroup.containsMasterComponent();
     this.topology = topology;
     this.skipFailure = skipFailure;
 
@@ -257,7 +257,7 @@ public class HostRequest implements Comparable<HostRequest> {
           "PENDING HOST ASSIGNMENT : HOSTGROUP=" + getHostgroupName();
 
       AmbariContext context = topology.getAmbariContext();
-      StackDefinition stack = topology.getStack();
+      StackDefinition stack = hostGroup.getStack();
 
       // Skip INSTALL task in case server component is marked as START_ONLY, or the cluster provision_action is
       // START_ONLY, unless component is marked with INSTALL_ONLY or INSTALL_AND_START.

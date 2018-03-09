@@ -16,33 +16,16 @@ package org.apache.ambari.server.topology.validators;
 
 import java.util.List;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.topology.TopologyValidator;
 
 import com.google.common.collect.ImmutableList;
 
 public class TopologyValidatorFactory {
+  List<TopologyValidator> validators;
 
-  private final List<TopologyValidator> validators;
-
-  @Inject
-  public TopologyValidatorFactory(Provider<AmbariMetaInfo> metaInfo, Configuration config) {
-    validators = ImmutableList.<TopologyValidator>builder()
-      .add(new RejectUnknownStacks(metaInfo))
-      .add(new RejectUnknownComponents())
-      .add(new DependencyAndCardinalityValidator())
-      .add(new StackConfigTypeValidator())
-      .add(new GplPropertiesValidator(config))
-      .add(new SecretReferenceValidator())
-      .add(new RequiredConfigPropertiesValidator())
-      .add(new RequiredPasswordValidator())
-      .add(new HiveServiceValidator())
-      .add(new NameNodeHighAvailabilityValidator())
-      .add(new UnitValidator(UnitValidatedProperty.ALL))
-      .build();
+  public TopologyValidatorFactory() {
+    validators = ImmutableList.of(new RequiredConfigPropertiesValidator(), new RequiredPasswordValidator(), new HiveServiceValidator(),
+      new StackConfigTypeValidator(), new UnitValidator(UnitValidatedProperty.ALL));
   }
 
   public TopologyValidator createConfigurationValidatorChain() {

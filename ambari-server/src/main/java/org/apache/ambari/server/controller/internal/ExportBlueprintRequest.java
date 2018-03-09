@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -83,7 +83,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
 
     Collection<ExportedHostGroup> exportedHostGroups = processHostGroups(clusterNode.getChild("hosts"));
     createHostGroupInfo(exportedHostGroups);
-    createBlueprint(exportedHostGroups, createStack(parseStack(clusterResource)));
+    createBlueprint(exportedHostGroups, parseStack(clusterResource));
   }
 
   public String getClusterName() {
@@ -135,11 +135,11 @@ public class ExportBlueprintRequest implements TopologyRequest {
         componentList.add(new Component(component));
       }
 
-      hostGroups.add(new HostGroupImpl(exportedHostGroup.getName(), componentList,
+      hostGroups.add(new HostGroupImpl(exportedHostGroup.getName(), bpName, stack, componentList,
           exportedHostGroup.getConfiguration(), String.valueOf(exportedHostGroup.getCardinality())));
     }
     ImmutableSet<StackId> stackIds = ImmutableSet.of(stack.getStackId());
-    blueprint = new BlueprintImpl(bpName, hostGroups, stackIds, Collections.emptySet(), configuration, null, null);
+    blueprint = new BlueprintImpl(bpName, hostGroups, stack, stackIds, Collections.emptySet(), configuration, null, null);
   }
 
   private void createHostGroupInfo(Collection<ExportedHostGroup> exportedHostGroups) {
@@ -153,15 +153,15 @@ public class ExportBlueprintRequest implements TopologyRequest {
   }
 
 
-  private StackId parseStack(Resource clusterResource) {
-    return new StackId(String.valueOf(clusterResource.getPropertyValue(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID)));
-  }
+  private Stack parseStack(Resource clusterResource) throws InvalidTopologyTemplateException {
+    String[] stackTokens = String.valueOf(clusterResource.getPropertyValue(
+        ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID)).split("-");
 
-  private Stack createStack(StackId stackId) throws InvalidTopologyTemplateException {
     try {
-      return new Stack(stackId, controller.getAmbariMetaInfo());
-    } catch (StackAccessException e) {
-      throw new InvalidTopologyTemplateException(String.format("The specified stack doesn't exist: %s", stackId));
+      return new Stack(stackTokens[0], stackTokens[1], controller);
+    } catch (AmbariException e) {
+      throw new InvalidTopologyTemplateException(String.format(
+          "The specified stack doesn't exist: name=%s version=%s", stackTokens[0], stackTokens[1]));
     }
   }
 

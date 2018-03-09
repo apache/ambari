@@ -30,7 +30,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.api.resources.OperatingSystemReadOnlyResourceDefinition;
+import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -88,7 +88,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
   public static final String REPOSITORY_VERSION_HIDDEN_PROPERTY_ID             = PropertyHelper.getPropertyId("RepositoryVersions", "hidden");
   public static final String REPOSITORY_VERSION_RESOLVED_PROPERTY_ID           = PropertyHelper.getPropertyId("RepositoryVersions", "resolved");
-  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemReadOnlyResourceDefinition().getPluralName();
+  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
   public static final String REPOSITORY_VERSION_TYPE_PROPERTY_ID               = "RepositoryVersions/type";

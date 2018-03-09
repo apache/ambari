@@ -51,8 +51,8 @@ def create_mpack(mpack_name, mpack_version, mpack_instance, subgroup_name=DEFAUL
   OR
   list of 'components_instances_name' to be created. (default) OR '*' for all components
   """
-  mpack_name, module_name, components, components_map = normalize_parameters(
-    mpack_name, module_name, components, components_map)
+  mpack_name = mpack_name.lower()
+  module_name = module_name.lower()
 
   validate_mpack_for_creation_or_changing(mpack_name, mpack_version, module_name, components, components_map)
 
@@ -71,17 +71,14 @@ def set_mpack_instance(mpack, mpack_version, mpack_instance, subgroup_name=DEFAU
   OR
   list of 'components_instances_name' to be created. (default) OR '*' for all components
   """
-  mpack, module_name, components, components_map = normalize_parameters(
-    mpack, module_name, components, components_map)
+  mpack = mpack.lower()
+  module_name = module_name.lower()
 
   instances = MpackInstance.parse_instances_with_filtering(os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME), mpack,
                                                            mpack_instance, subgroup_name, module_name,
                                                            components, components_map)
   if not instances:
-    raise ValueError("Found no instances for the given filters: mpack_name:{0}, instance_name:{1},"
-                     " subgroup_name:{2}, module_name:{3}, components:{4}, components_map:{5}".
-                     format(mpack, mpack_instance, subgroup_name, module_name,
-                            components, components_map))
+    raise ValueError("Found no instances for the given filters.")
 
   validate_mpack_for_creation_or_changing(mpack, mpack_version, module_name, components, components_map)
 
@@ -145,8 +142,11 @@ def build_granular_json_with_filtering(mpack_name_filter, instance_name_filter, 
 
   The output_conf_dir or output_path for each component instance will be included in json depending on given parameters.
   """
-  mpack_name_filter, module_name_filter, skipped, components_name_filter_map = normalize_parameters(
-    mpack_name_filter, module_name_filter, [], components_name_filter_map)
+
+  if mpack_name_filter:
+    mpack_name_filter = mpack_name_filter.lower()
+  if module_name_filter:
+    module_name_filter = module_name_filter.lower()
 
   instances = MpackInstance.parse_instances_with_filtering(os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME),
                                                            mpack_name_filter,
@@ -155,10 +155,7 @@ def build_granular_json_with_filtering(mpack_name_filter, instance_name_filter, 
                                                            None,
                                                            components_name_filter_map)
   if not instances:
-    raise ValueError("Found no instances for the given filters: mpack_name:{0}, instance_name:{1},"
-                     " subgroup_name:{2}, module_name:{3}, components_name_map:{4}".
-                     format(mpack_name_filter, instance_name_filter, subgroup_name_filter,
-                            module_name_filter, components_name_filter_map))
+    raise ValueError("Found no instances for the given filters.")
 
   full_json_output = build_json_output(instances, output_conf_dir=output_conf_dir, output_path=output_path)
 
@@ -230,22 +227,6 @@ def build_json_output(instances, output_conf_dir=False, output_path=False):
     result[mpack_name] = build_json_output_from_instances_dict(instances[mpack_name], MpackInstance.plural_name,
                                                                output_conf_dir, output_path)
   return {'mpacks': result}
-
-
-def normalize_parameters(mpack_name, module_name, components, components_map):
-  """
-  normalize parameters to be lowercase, for components_map dictionary only keys are normalized
-  """
-  if mpack_name:
-    mpack_name = mpack_name.lower()
-  if module_name:
-    module_name = module_name.lower()
-  if components and components != "*":
-    components = [component.lower() for component in components]
-  if components_map:
-    components_map = dict((k.lower(), v) for k, v in components_map.iteritems())
-
-  return mpack_name, module_name, components, components_map
 
 
 def validate_mpack_for_creation_or_changing(mpack_name, mpack_version, module_name, components, components_map):
@@ -495,18 +476,16 @@ class ModuleInstance(Instance):
           if ((not components_filter and not components_name_filter_map) or
                 (components_filter and (components_filter == '*' or folder_name in components_filter)) or
                 (components_name_filter_map and folder_name in components_name_filter_map)):
-            components_map = \
-              {folder_name:
-                {DEFAULT_COMPONENT_INSTANCE_NAME:
-                   ComponentInstance(name=DEFAULT_COMPONENT_INSTANCE_NAME,
-                                     component_path=os.path.join(path, folder_name),
-                                     path_exec=os.readlink(os.path.join(path, folder_name, CURRENT_SOFTLINK_NAME)))}}
+            components_map = ComponentInstance(name=DEFAULT_COMPONENT_INSTANCE_NAME,
+                                               component_path=os.path.join(path, folder_name),
+                                               path_exec=os.path.realpath(
+                                                 os.path.join(path, folder_name, CURRENT_SOFTLINK_NAME)))
         else:
           components_map = ComponentInstance.parse_into_components_dict(os.path.join(path, folder_name),
                                                                         components_filter,
                                                                         components_name_filter_map)
         if components_map:
-          result[module_name] = ModuleInstance(module_name, components_map, module_category)
+          result[folder_name] = ModuleInstance(folder_name, components_map, module_category)
     return result
 
   @staticmethod
@@ -532,19 +511,28 @@ class ModuleInstance(Instance):
                                                       is_client_module)
 
   def set_new_version(self, mpack_name, mpack_version):
-    for component_type in self.components_map:
-      for component_name in self.components_map[component_type]:
-        component_instance = self.components_map[component_type][component_name]
-        print("\nSetting new version for component : " + component_instance.component_path)
-        component_instance.set_new_version(mpack_name, mpack_version, component_type)
+    if self.category == CLIENT_CATEGORY:
+      component_instance = self.components_map
+      print("\nSetting new version for component : " + component_instance.component_path)
+      component_instance.set_new_version(mpack_name, mpack_version, self.module_name)
+    else:
+      for component_type in self.components_map:
+        for component_name in self.components_map[component_type]:
+          component_instance = self.components_map[component_type][component_name]
+          print("\nSetting new version for component : " + component_instance.component_path)
+          component_instance.set_new_version(mpack_name, mpack_version, component_type)
 
   def build_json_output(self, output_conf_dir, output_path):
     result = {}
-    for component_type in self.components_map.keys():
-      result[component_type] = build_json_output_from_instances_dict(self.components_map[component_type],
-                                                                     ComponentInstance.plural_name,
-                                                                     output_conf_dir, output_path)
-    result = {'components': result}
+    if self.category == CLIENT_CATEGORY:
+      result['component_instances'] = {'default': self.components_map.build_json_output(output_conf_dir, output_path)}
+    else:
+      for component_type in self.components_map.keys():
+        result[component_type] = build_json_output_from_instances_dict(self.components_map[component_type],
+                                                                       ComponentInstance.plural_name,
+                                                                       output_conf_dir, output_path)
+      result = {'components': result}
+
     result['category'] = self.category
     result['name'] = self.module_name
     return result
@@ -578,7 +566,7 @@ class ComponentInstance(Instance):
       if not component_names_filter or component_instance_name in component_names_filter:
         result[component_instance_name] = ComponentInstance(name=component_instance_name,
                                                             component_path=os.path.join(path, component_instance_name),
-                                                            path_exec=os.readlink(
+                                                            path_exec=os.path.realpath(
                                                               os.path.join(path, component_instance_name,
                                                                            CURRENT_SOFTLINK_NAME)))
     return result

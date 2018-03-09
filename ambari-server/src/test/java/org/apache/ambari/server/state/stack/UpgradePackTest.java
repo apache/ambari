@@ -24,18 +24,14 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.apache.ambari.server.stack.ModuleFileUnmarshaller;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
-import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
+import org.apache.ambari.server.state.stack.upgrade.Lifecycle.LifecycleType;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Tests for the upgrade pack
@@ -73,26 +69,8 @@ public class UpgradePackTest {
     assertFalse(startLifecycle.isPresent());
 
     List<Grouping> groups = upgradeLifecycle.get().groups;
+
     assertEquals(29, groups.size());
-    assertEquals(LifecycleType.UPGRADE, groups.get(0).lifecycle);
-
-    Optional<Grouping> optional = groups.stream().filter(g -> "Kafka".equals(g.title)).findFirst();
-    assertTrue(optional.isPresent());
-    Assert.assertNull(optional.get().name);
-
-    assertEquals(12, upgradepack.getPrerequisiteChecks().size());
-
-    PrerequisiteCheckConfig checkConfig = upgradepack.getPrerequisiteCheckConfig();
-    Map<String, String> map = checkConfig.getCheckProperties("abc");
-    assertTrue(CollectionUtils.isEmpty(map));
-
-    map = checkConfig.getCheckProperties("org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck");
-    assertFalse(CollectionUtils.isEmpty(map));
-    assertTrue(map.containsKey("min-failure-stack-version"));
-    assertTrue(map.containsKey("my-property"));
-    assertFalse(map.containsKey("random-key"));
-    assertEquals("HDP-2.3.0.0", map.get("min-failure-stack-version"));
-    assertEquals("my-value", map.get("my-property"));
   }
 
 }

@@ -32,18 +32,19 @@ import java.util.List;
 
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Topology validator wrapper implementation. Executes a set of validations by calling a preconfigured set of validator implementations.
+ * Topology validator wrapper implementation. Executes a set of validations by calling a preconfgured set of validator implementations.
  */
 public class ChainedTopologyValidator implements TopologyValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChainedTopologyValidator.class);
-  private final List<TopologyValidator> validators;
+  private List<TopologyValidator> validators;
 
-  ChainedTopologyValidator(List<TopologyValidator> validators) {
+  public ChainedTopologyValidator(List<TopologyValidator> validators) {
     this.validators = validators;
   }
 

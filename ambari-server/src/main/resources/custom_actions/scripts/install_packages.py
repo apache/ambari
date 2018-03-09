@@ -114,7 +114,7 @@ class InstallPackages(Script):
     # Build structured output with initial values
     self.structured_output = {
       'package_installation_result': 'FAIL',
-      'mpack_id': command_repository.mpack_id
+      'repository_version_id': command_repository.version_id
     }
 
     self.put_structured_out(self.structured_output)

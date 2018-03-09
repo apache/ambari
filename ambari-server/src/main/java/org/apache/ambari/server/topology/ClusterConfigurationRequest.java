@@ -18,10 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toSet;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,7 +75,8 @@ public class ClusterConfigurationRequest {
                                      StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor) {
     this.ambariContext = ambariContext;
     this.clusterTopology = clusterTopology;
-    this.stack = clusterTopology.getStack();
+    Blueprint blueprint = clusterTopology.getBlueprint();
+    this.stack = blueprint.getStack();
     // set initial configuration (not topology resolved)
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology);
     this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
@@ -93,9 +90,11 @@ public class ClusterConfigurationRequest {
    * Remove config-types from the given configuration if there is no any services related to them (except cluster-env and global).
    */
   private void removeOrphanConfigTypes(Configuration configuration) {
+    Blueprint blueprint = clusterTopology.getBlueprint();
+
     Collection<String> configTypes = configuration.getAllConfigTypes();
     for (String configType : configTypes) {
-      if (!clusterTopology.isValidConfigType(configType)) {
+      if (!blueprint.isValidConfigType(configType)) {
         configuration.removeConfigType(configType);
         LOG.info("Removing config type '{}' as related service is not present in either Blueprint or cluster creation template.", configType);
       }
@@ -165,24 +164,24 @@ public class ClusterConfigurationRequest {
     Cluster cluster = getCluster();
     Blueprint blueprint = clusterTopology.getBlueprint();
 
-    Configuration stackDefaults = clusterTopology.getStack().getConfiguration(clusterTopology.getServices());
+    Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
 
     // add clusterHostInfo containing components to hosts map, based on Topology, to use this one instead of
     // StageUtils.getClusterInfo()
-    Map<String, String> componentHostsMap = createComponentHostMap();
+    Map<String, String> componentHostsMap = createComponentHostMap(blueprint);
     existingConfigurations.put("clusterHostInfo", componentHostsMap);
 
     try {
       // generate principals & keytabs for headless identities
       AmbariContext.getController().getKerberosHelper()
         .ensureHeadlessIdentities(cluster, existingConfigurations,
-          new HashSet<>(clusterTopology.getServices()));
+          new HashSet<>(blueprint.getServices()));
 
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
-            createServiceComponentMap(), null, null, true, false);
+            createServiceComponentMap(blueprint), null, null, true, false);
 
       // ******************************************************************************************
       // Since Kerberos is being enabled, make sure the cluster-env/security_enabled property is
@@ -199,7 +198,7 @@ public class ClusterConfigurationRequest {
 
       for (String configType : updatedConfigs.keySet()) {
         // apply only if config type has related services in Blueprint
-        if (clusterTopology.isValidConfigType(configType)) {
+        if (blueprint.isValidConfigType(configType)) {
           Map<String, String> propertyMap = updatedConfigs.get(configType);
           Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
           Map<String, String> stackDefaultConfigProperties = stackDefaultProps.get(configType);
@@ -229,12 +228,24 @@ public class ClusterConfigurationRequest {
   /**
    * Create a map of services and the relevant components that are specified in the Blueprint
    *
+   * @param blueprint the blueprint
    * @return a map of service names to component names
    */
-  private Map<String, Set<String>> createServiceComponentMap() {
-    return clusterTopology.getComponents()
-      .collect(groupingBy(ResolvedComponent::effectiveServiceName,
-        mapping(ResolvedComponent::componentName, toSet())));
+  private Map<String, Set<String>> createServiceComponentMap(Blueprint blueprint) {
+    Map<String, Set<String>> serviceComponents = new HashMap<>();
+    Collection<String> services = blueprint.getServices();
+
+    if(services != null) {
+      for (String service : services) {
+        Collection<String> components = blueprint.getComponentNames(service);
+        serviceComponents.put(service,
+            (components == null)
+                ? Collections.emptySet()
+                : new HashSet<>(blueprint.getComponentNames(service)));
+      }
+    }
+
+    return serviceComponents;
   }
 
   /**
@@ -267,17 +278,19 @@ public class ClusterConfigurationRequest {
     return propertyHasCustomValue;
   }
 
-  private Map<String, String> createComponentHostMap() {
+  private Map<String, String> createComponentHostMap(Blueprint blueprint) {
     Map<String, String> componentHostsMap = new HashMap<>();
-    for (ResolvedComponent component : clusterTopology.getComponents().collect(toSet())) {
-      String componentName = component.componentName();
-      Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(componentName);
-      // retrieve corresponding clusterInfoKey for component using StageUtils
-      String clusterInfoKey = StageUtils.getComponentToClusterInfoKeyMap().get(componentName);
-      if (clusterInfoKey == null) {
-        clusterInfoKey = componentName.toLowerCase() + "_hosts";
+    for (String service : blueprint.getServices()) {
+      Collection<String> components = blueprint.getComponentNames(service);
+      for (String component : components) {
+        Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(component);
+        // retrieve corresponding clusterInfoKey for component using StageUtils
+        String clusterInfoKey = StageUtils.getComponentToClusterInfoKeyMap().get(component);
+        if (clusterInfoKey == null) {
+          clusterInfoKey = component.toLowerCase() + "_hosts";
+        }
+        componentHostsMap.put(clusterInfoKey, StringUtils.join(componentHost, ","));
       }
-      componentHostsMap.put(clusterInfoKey, StringUtils.join(componentHost, ","));
     }
     return componentHostsMap;
   }
@@ -287,6 +300,7 @@ public class ClusterConfigurationRequest {
 
     try {
       Cluster cluster = getCluster();
+      Blueprint blueprint = clusterTopology.getBlueprint();
 
       Configuration clusterConfiguration = clusterTopology.getConfiguration();
       Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
@@ -295,7 +309,7 @@ public class ClusterConfigurationRequest {
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
-          createServiceComponentMap(), null, null, true, false);
+          createServiceComponentMap(blueprint), null, null, true, false);
 
       // retrieve hostgroup for component names extracted from variables like "{clusterHostInfo.(component_name)
       // _host}"
@@ -338,9 +352,10 @@ public class ClusterConfigurationRequest {
     //todo: also handle setting of host group scoped configuration which is updated by config processor
     List<BlueprintServiceConfigRequest> configurationRequests = new LinkedList<>();
 
+    Blueprint blueprint = clusterTopology.getBlueprint();
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
 
-    for (String service : clusterTopology.getServices()) {
+    for (String service : blueprint.getServices()) {
       //todo: remove intermediate request type
       // one bp config request per service
       BlueprintServiceConfigRequest blueprintConfigRequest = new BlueprintServiceConfigRequest(service);

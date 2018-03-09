@@ -51,11 +51,5 @@ public enum ExperimentalFeature {
    * For code that is for upgrading Mpacks.  Use this to mark code that may ultimately
    * be removed.
    */
-  MPACK_UPGRADES,
-
-  /**
-   * Used to mark code that is required for successful removal and refactoring
-   * when repo versions are dropped.
-   */
-  REPO_VERSION_REMOVAL;
+  MPACK_UPGRADES
 }

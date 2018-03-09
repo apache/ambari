@@ -112,7 +112,7 @@ public class HostComponentResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    ServiceComponentHostRequest request = new ServiceComponentHostRequest("Cluster100", SERVICE_GROUP_NAME, "Service100", "Component100", "Component100", "Host100", null);
+    ServiceComponentHostRequest request = new ServiceComponentHostRequest("Cluster100", SERVICE_GROUP_NAME, "Service100", "Component100", "Host100", null);
     Set<ServiceComponentHostRequest> expectedRequests = Collections.singleton(request);
     expect(managementController.createHostComponents(eq(expectedRequests))).andReturn(null).once();
 
@@ -141,7 +141,6 @@ public class HostComponentResourceProviderTest {
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID, "Component100");
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
 
     propertySet.add(properties);
@@ -184,17 +183,17 @@ public class HostComponentResourceProviderTest {
     String repositoryVersion2 = "0.2-1234";
 
     allResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component101", "Component 101", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component 101", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component102", "Component 102", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
@@ -351,7 +350,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster102", 1L, "ServiceGroup100", 1L, "Service100", "", 1L, "Component100", "Component100","Component 100", "Host100", "Host100",
+        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
         "INSTALLED", "", "", "", "", null));
 
     // set expectations
@@ -379,7 +378,7 @@ public class HostComponentResourceProviderTest {
     changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
 
     expect(managementController.addStages(null, cluster, mapRequestProps, null, null, null, changedHosts,
-        Collections.emptyList(), false, false)).andReturn(stageContainer).anyTimes();
+        Collections.emptyList(), false, false)).andReturn(stageContainer).once();
 
     stageContainer.persist();
     expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
@@ -412,9 +411,7 @@ public class HostComponentResourceProviderTest {
     Predicate predicate = new PredicateBuilder().property(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").and().
         property(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID).equals("INSTALLED").and().
-            property(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID).equals("ServiceGroup100").and().
-            property(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID).equals("Service100").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID).equals(100L).toPredicate();
+        property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").toPredicate();
     RequestStatus requestStatus = provider.updateResources(request, predicate);
     Resource responseResource = requestStatus.getRequestResource();
     assertEquals("response msg", responseResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "message")));
@@ -453,7 +450,7 @@ public class HostComponentResourceProviderTest {
         new HostComponentResourceProvider(managementController, injector);
 
     // set expectations
-    ServiceComponentHostRequest request = new ServiceComponentHostRequest(null, null, null, 1L, "Component100", "Component100", "Host100", null);
+    ServiceComponentHostRequest request = new ServiceComponentHostRequest(null, null, null, "Component100", "Host100", null);
     expect(managementController.deleteHostComponents(Collections.singleton(request))).andReturn(deleteStatusMetaData);
 
     // replay
@@ -466,9 +463,7 @@ public class HostComponentResourceProviderTest {
     provider.addObserver(observer);
 
     Predicate predicate = new PredicateBuilder().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID).equals(1L).and().
         property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_TYPE_PROPERTY_ID).equals("Component100").and().
         property(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
     provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
@@ -540,7 +535,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
         "INSTALLED", "", "", "", "", null));
 
     // set expectations
@@ -593,7 +588,7 @@ public class HostComponentResourceProviderTest {
     Predicate predicate = new PredicateBuilder().property(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").and().
         property(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID).equals("INSTALLED").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID).equals(100L).toPredicate();
+        property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").toPredicate();
 
 
     try {

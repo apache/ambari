@@ -26,10 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
-
-import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -43,7 +41,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
-import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -75,6 +72,12 @@ public class Stack implements StackDefinition {
    * Map of component to dependencies
    */
   private Map<String, Collection<DependencyInfo>> dependencies =
+    new HashMap<>();
+
+  /**
+   * Map of dependency to conditional service
+   */
+  private Map<DependencyInfo, String> dependencyConditionalServiceMap =
     new HashMap<>();
 
   /**
@@ -124,8 +127,8 @@ public class Stack implements StackDefinition {
   private Map<String, Set<String>> excludedConfigurationTypes =
     new HashMap<>();
 
-  public Stack(StackId stackId, AmbariMetaInfo metaInfo) throws StackAccessException {
-    this(metaInfo.getStack(stackId));
+  public Stack(String name, String version, AmbariManagementController ctrl) throws AmbariException { // FIXME remove or at least change to use metainfo directly
+    this(ctrl.getAmbariMetaInfo().getStack(name, version));
   }
 
   public Stack(StackInfo stackInfo) {
@@ -165,6 +168,10 @@ public class Stack implements StackDefinition {
 
   public StackId getStackId() {
     return new StackId(getName(), getVersion());
+  }
+
+  Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
+    return dependencyConditionalServiceMap;
   }
 
   @Override
@@ -373,12 +380,13 @@ public class Stack implements StackDefinition {
   }
 
   @Override
-  @Nonnull
-  public Stream<Pair<StackId, String>> getServicesForComponent(String component) {
-    String service = getServiceForComponent(component);
-    return service != null
-      ? Stream.of(Pair.of(getStackId(), service))
-      : Stream.empty();
+  public Collection<String> getServicesForComponents(Collection<String> components) {
+    Set<String> services = new HashSet<>();
+    for (String component : components) {
+      services.add(getServiceForComponent(component));
+    }
+
+    return services;
   }
 
   @Override
@@ -412,6 +420,11 @@ public class Stack implements StackDefinition {
   public Collection<DependencyInfo> getDependenciesForComponent(String component) {
     return dependencies.containsKey(component) ? dependencies.get(component) :
         Collections.emptySet();
+  }
+
+  @Override
+  public String getConditionalServiceForDependency(DependencyInfo dependency) {
+    return dependencyConditionalServiceMap.get(dependency);
   }
 
   @Override
@@ -597,8 +610,11 @@ public class Stack implements StackDefinition {
     excludedConfigurationTypes.put(stackServiceResponse.getName(), stackServiceResponse.getExcludedConfigTypes());
   }
 
+  /**
+   * Register conditional dependencies.
+   */
   //todo: This information should be specified in the stack definition.
-  private void registerConditionalDependencies() {
+  void registerConditionalDependencies() {
     dbDependencyInfo.put("MYSQL_SERVER", "global/hive_database");
   }
 

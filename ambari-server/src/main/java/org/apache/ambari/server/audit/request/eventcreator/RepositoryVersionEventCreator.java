@@ -33,7 +33,7 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddRepositoryVersionRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.ChangeRepositoryVersionRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteRepositoryVersionRequestAuditEvent;
-import org.apache.ambari.server.controller.internal.OperatingSystemReadOnlyResourceProvider;
+import org.apache.ambari.server.controller.internal.OperatingSystemResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -160,7 +160,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
     for (Object entry : set) {
       if (entry instanceof Map) {
         Map<?, ?> map = (Map<?, ?>) entry;
-        String osType = (String) map.get(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
+        String osType = (String) map.get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
         if (!result.containsKey(osType)) {
           result.put(osType, new LinkedList<>());
         }

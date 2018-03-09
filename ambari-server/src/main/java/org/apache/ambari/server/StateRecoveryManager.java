@@ -20,10 +20,10 @@ package org.apache.ambari.server;
 
 import java.util.List;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.orm.dao.MpackHostStateDAO;
-import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
-import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,41 +39,48 @@ public class StateRecoveryManager {
   private static final Logger LOG = LoggerFactory.getLogger(StateRecoveryManager.class);
 
   @Inject
-  private MpackHostStateDAO mpackHostStateDAO;
+  private HostVersionDAO hostVersionDAO;
 
-  /**
-   * Used for looking up {@link Mpack} instances by IDs.
-   */
   @Inject
-  private AmbariMetaInfo ambariMetaInfo;
+  private ServiceComponentDesiredStateDAO serviceComponentDAO;
 
   public void doWork() {
-    updateManagementPackInstallationState();
+    checkHostAndClusterVersions();
   }
 
-  /**
-   * Resets any management pack installation states from
-   * {@link RepositoryVersionState#INSTALLING} to
-   * {@link RepositoryVersionState#INSTALL_FAILED}.
-   */
-  void updateManagementPackInstallationState() {
-    List<MpackHostStateEntity> mpackHostStates = mpackHostStateDAO.findAll();
-    for (MpackHostStateEntity mpackHostState : mpackHostStates) {
-      if (mpackHostState.getState() == RepositoryVersionState.INSTALLING) {
-        mpackHostState.setState(RepositoryVersionState.INSTALL_FAILED);
-
-        Mpack mpack = ambariMetaInfo.getMpack(mpackHostState.getMpackId());
-
+  void checkHostAndClusterVersions() {
+    List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
+    for (HostVersionEntity hostVersion : hostVersions) {
+      if (hostVersion.getState().equals(RepositoryVersionState.INSTALLING)) {
+        hostVersion.setState(RepositoryVersionState.INSTALL_FAILED);
         String msg = String.format(
-                "The installation state of management pack %s on host %s was set from %s to %s",
-            mpack.getName(),
-                mpackHostState.getHostName(),
+                "Recovered state of host version %s on host %s from %s to %s",
+                hostVersion.getRepositoryVersion().getDisplayName(),
+                hostVersion.getHostName(),
                 RepositoryVersionState.INSTALLING,
                 RepositoryVersionState.INSTALL_FAILED);
         LOG.warn(msg);
+        hostVersionDAO.merge(hostVersion);
+      }
+    }
 
-        mpackHostStateDAO.merge(mpackHostState);
+    List<ServiceComponentDesiredStateEntity> components = serviceComponentDAO.findAll();
+    for (ServiceComponentDesiredStateEntity component : components) {
+      if (RepositoryVersionState.INSTALLING == component.getRepositoryState()) {
+        component.setRepositoryState(RepositoryVersionState.INSTALL_FAILED);
+        serviceComponentDAO.merge(component);
+        String msg = String.format(
+            "Recovered state of cluster %s of component %s/%s for version %s from %s to %s",
+            component.getClusterId(),
+            component.getServiceId(),
+            component.getComponentName(),
+            component.getDesiredRepositoryVersion().getDisplayName(),
+            RepositoryVersionState.INSTALLING,
+            RepositoryVersionState.INSTALL_FAILED);
+        LOG.warn(msg);
       }
     }
   }
+
+
 }

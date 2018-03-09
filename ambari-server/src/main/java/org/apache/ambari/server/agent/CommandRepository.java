@@ -40,14 +40,14 @@ public class CommandRepository {
   @SerializedName("repositories")
   private List<Repository> m_repositories = new ArrayList<>();
 
-  @SerializedName("mpackId")
-  private long m_mpackId;
+  @SerializedName("repoVersion")
+  private String m_repoVersion;
 
-  @SerializedName("mpackName")
-  private String m_mpackName;
+  @SerializedName("repoVersionId")
+  private long m_repoVersionId;
 
-  @SerializedName("mpackVersion")
-  private String m_mpackVersion;
+  @SerializedName("stackName")
+  private String m_stackName;
 
   @SerializedName("repoFileName")
   private String m_repoFileName;
@@ -69,30 +69,27 @@ public class CommandRepository {
    * version after distribution.
    */
   @SerializedName("resolved")
-  private final boolean m_resolved = true;
+  private boolean m_resolved;
 
   /**
-   * @param id
-   *          the mpack id
+   * @param version the repo version
    */
-  public void setMpackId(long id) {
-    m_mpackId = id;
+  public void setRepositoryVersion(String version) {
+    m_repoVersion = version;
   }
 
   /**
-   * @param name
-   *          the mpack name
+   * @param id the repository id
    */
-  public void setMpackName(String name) {
-    m_mpackName = name;
+  public void setRepositoryVersionId(long id) {
+    m_repoVersionId = id;
   }
 
   /**
-   * @param version
-   *          the mpack version
+   * @param name the stack name
    */
-  public void setMpackVersion(String mpackVersion) {
-    m_mpackVersion = mpackVersion;
+  public void setStackName(String name) {
+    m_stackName = name;
   }
 
   /**
@@ -159,6 +156,16 @@ public class CommandRepository {
   }
 
   /**
+   * Gets whether this repository has had its version resolved.
+   *
+   * @param resolved
+   *          {@code true} to mark this repository as being resolved.
+   */
+  public void setResolved(boolean resolved) {
+    m_resolved = resolved;
+  }
+
+  /**
    * Update repository id to be consistent with old format
    *
    * @param repoVersion
@@ -180,7 +187,7 @@ public class CommandRepository {
   @Deprecated
   @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
   public void setLegacyRepoFileName(String stackName, String repoVersion) {
-    m_repoFileName = String.format("%s-%s", stackName, repoVersion);
+    this.m_repoFileName = String.format("%s-%s", stackName, repoVersion);
   }
 
   /**
@@ -190,7 +197,7 @@ public class CommandRepository {
    * @param repoVersionId repository version id
    */
   public void setRepoFileName(String stackName, Long repoVersionId) {
-    m_repoFileName = String.format("ambari-%s-%s", stackName.toLowerCase(), repoVersionId.toString());
+    this.m_repoFileName = String.format("ambari-%s-%s", stackName.toLowerCase(), repoVersionId.toString());
   }
 
   /**
@@ -213,11 +220,11 @@ public class CommandRepository {
     private boolean m_isScoped = true;
 
     public void setIsScoped(boolean isScoped){
-      m_isScoped = isScoped;
+      this.m_isScoped = isScoped;
     }
 
     public void setPreInstalled(String isPreInstalled) {
-      m_isPreInstalled = isPreInstalled.equalsIgnoreCase("true");
+      this.m_isPreInstalled = isPreInstalled.equalsIgnoreCase("true");
     }
 
   }

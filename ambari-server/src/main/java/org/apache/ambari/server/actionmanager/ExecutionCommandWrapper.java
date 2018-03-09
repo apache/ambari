@@ -34,22 +34,18 @@ import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.MpackDAO;
-import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
-import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
-import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.ModuleComponent;
-import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -100,19 +96,6 @@ public class ExecutionCommandWrapper {
   @Inject
   private Configuration configuration;
 
-  /**
-   * Used to get service groups (and from them mpacks) so that we can set the
-   * right information on the command.
-   */
-  @Inject
-  private ServiceGroupDAO serviceGroupDAO;
-
-  /**
-   * Used for retrieving mpack entities by their ID.
-   */
-  @Inject
-  private MpackDAO mpackDAO;
-
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
     this.jsonExecutionCommand = jsonExecutionCommand;
@@ -141,7 +124,7 @@ public class ExecutionCommandWrapper {
       return executionCommand;
     }
 
-    if (null == jsonExecutionCommand) {
+    if( null == jsonExecutionCommand ){
       throw new RuntimeException(
           "Invalid ExecutionCommandWrapper, both object and string representations are null");
     }
@@ -249,18 +232,28 @@ public class ExecutionCommandWrapper {
 
       // setting repositoryFile
       final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
+      final String serviceName = executionCommand.getServiceName(); // can be null on executing special RU tasks
 
-      if (null == executionCommand.getRepositoryFile() && null != host) {
+      if (null == executionCommand.getRepositoryFile() && null != host && null != serviceName) {
         final CommandRepository commandRepository;
+        final Service service = cluster.getService(serviceName);
+        final String componentName = executionCommand.getComponentName();
 
-        ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(clusterId, executionCommand.getServiceGroupName());
-        long mpackId = serviceGroupEntity.getStack().getMpackId();
-        Mpack mpack = ambariMetaInfo.getMpack(mpackId);
-        MpackEntity mpackEntity = mpackDAO.findById(mpackId);
+        try {
 
-        RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(mpackEntity, host);
-        commandRepository = repoVersionHelper.getCommandRepository(mpack, osEntity);
-        executionCommand.setRepositoryFile(commandRepository);
+          if (null != componentName) {
+            ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+            commandRepository = repoVersionHelper.getCommandRepository(null, serviceComponent, host);
+          } else {
+            RepositoryVersionEntity repoVersion = service.getDesiredRepositoryVersion();
+            RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
+            commandRepository = repoVersionHelper.getCommandRepository(repoVersion, osEntity);
+          }
+          executionCommand.setRepositoryFile(commandRepository);
+
+        } catch (SystemException e) {
+          throw new RuntimeException(e);
+        }
       }
 
     } catch (ClusterNotFoundException cnfe) {
@@ -271,7 +264,7 @@ public class ExecutionCommandWrapper {
           cnfe.getMessage());
 
       return executionCommand;
-    } catch (Exception e) {
+    } catch (AmbariException e) {
       throw new RuntimeException(e);
     }
 
@@ -279,45 +272,44 @@ public class ExecutionCommandWrapper {
   }
 
   public void setVersions(Cluster cluster) {
-    String serviceGroupName = executionCommand.getServiceGroupName();
+    // set the repository version for the component this command is for -
+    // always use the current desired version
     String serviceName = executionCommand.getServiceName();
-    String componentName = executionCommand.getComponentName();
-
     String serviceType = null;
-
     try {
-      Mpack mpack = null;
-      StackEntity stackEntity = null;
+      RepositoryVersionEntity repositoryVersion = null;
+      if (!StringUtils.isEmpty(serviceName)) {
+        Service service = cluster.getService(serviceName);
+        if (null != service) {
+          serviceType = service.getServiceType();
+          repositoryVersion = service.getDesiredRepositoryVersion();
 
-      if (StringUtils.isNotBlank(serviceGroupName)) {
-        ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(cluster.getClusterId(), serviceGroupName);
-        stackEntity = serviceGroupEntity.getStack();
-        mpack = ambariMetaInfo.getMpack(stackEntity.getMpackId());
-      }
-
-      Service service = cluster.getService(serviceGroupName, serviceName);
-      if (null != service) {
-        serviceType = service.getServiceType();
-      }
-
-      ModuleComponent moduleComponent = null;
-      Map<String, String> commandParams = executionCommand.getCommandParams();
-      if (null != mpack && StringUtils.isNotBlank(serviceName) && StringUtils.isNotBlank(componentName)) {
-        // only set the version if it's not set and this is NOT an install
-        // command
-
-        moduleComponent = mpack.getModuleComponent(serviceName, componentName);
-      }
-
-      if (null != moduleComponent) {
-        if (!commandParams.containsKey(VERSION)
-            && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
-          commandParams.put(VERSION, moduleComponent.getVersion());
+          String componentName = executionCommand.getComponentName();
+          if (!StringUtils.isEmpty(componentName)) {
+            ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+            if (null != serviceComponent) {
+              repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+            }
+          }
         }
       }
 
-      if (null != stackEntity) {
-        StackId stackId = new StackId(stackEntity);
+      Map<String, String> commandParams = executionCommand.getCommandParams();
+
+      if (null != repositoryVersion) {
+        // only set the version if it's not set and this is NOT an install
+        // command
+        // Some stack scripts use version for path purposes.  Sending unresolved version first (for
+        // blueprints) and then resolved one would result in various issues: duplicate directories
+        // (/hdp/apps/2.6.3.0 + /hdp/apps/2.6.3.0-235), parent directory not found, and file not
+        // found, etc.  Hence requiring repositoryVersion to be resolved.
+        if (!commandParams.containsKey(VERSION)
+          && repositoryVersion.isResolved()
+          && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
+          commandParams.put(VERSION, repositoryVersion.getVersion());
+        }
+
+        StackId stackId = repositoryVersion.getStackId();
         StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
           stackId.getStackVersion());
 
@@ -334,7 +326,6 @@ public class ExecutionCommandWrapper {
           }
         }
       }
-
 
       // set the desired versions of versionable components.  This is safe even during an upgrade because
       // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.

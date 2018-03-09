@@ -86,15 +86,24 @@ public class HostComponentDesiredStateDAO {
   /**
    * Retrieve the single Host Component Desired State for the given unique cluster, service, component, and host.
    *
-   * @param componentId Component Id
+   * @param clusterId Cluster ID
+   * @param serviceGroupId Service Group ID
+   * @param serviceId Service ID
+   * @param componentName Component Name
+   * @param hostId Host ID
    * @return Return the Host Component Desired State entity that match the criteria.
    */
   @RequiresSession
-  public HostComponentDesiredStateEntity findByIndex(Long componentId) {
+  public HostComponentDesiredStateEntity findByIndex(Long clusterId, Long serviceGroupId, Long serviceId,
+                                                     String componentName, Long hostId) {
     final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
       .createNamedQuery("HostComponentDesiredStateEntity.findByIndex", HostComponentDesiredStateEntity.class);
 
-    query.setParameter("id", componentId);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("serviceId", serviceId);
+    query.setParameter("componentName", componentName);
+    query.setParameter("hostId", hostId);
 
     return daoUtils.selectSingle(query);
   }

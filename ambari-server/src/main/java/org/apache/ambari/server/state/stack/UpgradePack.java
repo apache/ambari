@@ -19,13 +19,13 @@ package org.apache.ambari.server.state.stack;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -39,13 +39,13 @@ import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Lifecycle;
-import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -76,9 +76,8 @@ public class UpgradePack {
   @XmlElement(name="lifecycle")
   public List<Lifecycle> lifecycles;
 
-  @XmlElementWrapper(name="prerequisite-checks")
-  @XmlElement(name="check")
-  private List<PrerequisiteCheckDefinition> prerequisiteChecks;
+  @XmlElement(name="prerequisite-checks")
+  private PrerequisiteChecks prerequisiteChecks;
 
   /**
    * In the case of a rolling upgrade, will specify processing logic for a particular component.
@@ -125,6 +124,10 @@ public class UpgradePack {
   @XmlElement(name="type", defaultValue="rolling")
   private UpgradeType type;
 
+  @XmlElementWrapper(name="upgrade-path")
+  @XmlElement(name="intermediate-stack")
+  private List<IntermediateStack> intermediateStacks;
+
   public String getName() {
     return name;
   }
@@ -153,18 +156,76 @@ public class UpgradePack {
     if (prerequisiteChecks == null) {
       return new ArrayList<>();
     }
-
-    return prerequisiteChecks.stream().map(c -> c.className).collect(Collectors.toList());
+    return new ArrayList<>(prerequisiteChecks.checks);
   }
 
   /**
-   * Merges the processing section of the upgrade xml with
-   * the processing section from a service's upgrade xml.
-   * These are added to the end of the current list of services.
+   *
+   * @return the prerequisite check configuration
+   */
+  public PrerequisiteCheckConfig getPrerequisiteCheckConfig() {
+    if (prerequisiteChecks == null) {
+      return new PrerequisiteCheckConfig();
+    }
+    return prerequisiteChecks.configuration;
+  }
+
+  /**
+   * Merges the prerequisite checks section of the upgrade xml with
+   * the prerequisite checks from a service's upgrade xml.
+   * These are added to the end of the current list of checks.
    *
    * @param pack
    *              the service's upgrade pack
    */
+  public void mergePrerequisiteChecks(UpgradePack pack) {
+    PrerequisiteChecks newPrereqChecks = pack.prerequisiteChecks;
+    if (prerequisiteChecks == null) {
+      prerequisiteChecks = newPrereqChecks;
+      return;
+    }
+
+    if (newPrereqChecks == null) {
+      return;
+    }
+
+    if (prerequisiteChecks.checks == null) {
+      prerequisiteChecks.checks = new ArrayList<>();
+    }
+    if (newPrereqChecks.checks != null) {
+      prerequisiteChecks.checks.addAll(newPrereqChecks.checks);
+    }
+
+    if (newPrereqChecks.configuration == null) {
+      return;
+    }
+
+    if (prerequisiteChecks.configuration == null) {
+      prerequisiteChecks.configuration = newPrereqChecks.configuration;
+      return;
+    }
+    if (prerequisiteChecks.configuration.globalProperties == null) {
+      prerequisiteChecks.configuration.globalProperties = new ArrayList<>();
+    }
+    if (prerequisiteChecks.configuration.prerequisiteCheckProperties == null) {
+      prerequisiteChecks.configuration.prerequisiteCheckProperties = new ArrayList<>();
+    }
+    if (newPrereqChecks.configuration.globalProperties != null) {
+      prerequisiteChecks.configuration.globalProperties.addAll(newPrereqChecks.configuration.globalProperties);
+    }
+    if (newPrereqChecks.configuration.prerequisiteCheckProperties != null) {
+      prerequisiteChecks.configuration.prerequisiteCheckProperties.addAll(newPrereqChecks.configuration.prerequisiteCheckProperties);
+    }
+  }
+
+/**
+ * Merges the processing section of the upgrade xml with
+ * the processing section from a service's upgrade xml.
+ * These are added to the end of the current list of services.
+ *
+ * @param pack
+ *              the service's upgrade pack
+ */
   public void mergeProcessing(UpgradePack pack) {
     List<ProcessingService> list = pack.processing;
     if (list == null) {
@@ -178,6 +239,22 @@ public class UpgradePack {
 
     // new processing has been created, so rebuild the mappings
     initializeProcessingComponentMappings();
+  }
+
+  /**
+   * Gets a list of stacks which are between the current stack version and the
+   * target stack version inclusive. For example, if upgrading from HDP-2.2 to
+   * HDP-2.4, this should include HDP-2.3 and HDP-2.4.
+   * <p/>
+   * This method is used to combine the correct configuration packs for a
+   * specific upgrade from
+   * {@link AmbariMetaInfo#getConfigUpgradePack(String, String)}.
+   *
+   * @return a list of intermediate stacks (target stack inclusive) or
+   *         {@code null} if none.
+   */
+  public List<IntermediateStack> getIntermediateStacks() {
+    return intermediateStacks;
   }
 
   /**
@@ -226,7 +303,7 @@ public class UpgradePack {
    *          the direction to return the ordered groups
    * @return the list of groups
    */
-  public List<Grouping> getGroups(LifecycleType type, Direction direction) {
+  public List<Grouping> getGroups(Lifecycle.LifecycleType type, Direction direction) {
 
     // !!! lifecycles are bound to be only one per-type per-Upgrade Pack, so findFirst() is ok here
     Optional<Lifecycle> optional = lifecycles.stream().filter(l -> l.type == type).findFirst();
@@ -553,51 +630,113 @@ public class UpgradePack {
   }
 
   /**
-   * @return
+   * An intermediate stack definition in
+   * upgrade/upgrade-path/intermediate-stack path
    */
-  public PrerequisiteCheckConfig getPrerequisiteCheckConfig() {
-    return new PrerequisiteCheckConfig(prerequisiteChecks);
+  public static class IntermediateStack {
+
+    @XmlAttribute
+    public String version;
   }
 
   /**
-   * Holds the config properties for all the checks defined for an Upgrade Pack.
+   * Container class to specify list of additional prerequisite checks to run in addition to the
+   * required prerequisite checks and configuration properties for all prerequisite checks
+   */
+  public static class PrerequisiteChecks {
+    /**
+     * List of additional prerequisite checks to run in addition to required prerequisite checks
+     */
+    @XmlElement(name="check", type=String.class)
+    public List<String> checks = new ArrayList<>();
+
+    /**
+     * Prerequisite checks configuration
+     */
+    @XmlElement(name="configuration")
+    public PrerequisiteCheckConfig configuration;
+  }
+
+  /**
+   * Prerequisite checks configuration
    */
   public static class PrerequisiteCheckConfig {
-    private List<PrerequisiteCheckDefinition> m_checks;
-    private PrerequisiteCheckConfig(List<PrerequisiteCheckDefinition> checks) {
-      m_checks = checks;
+    /**
+     * Global config properties common to all prereq checks
+     */
+    @XmlElement(name="property")
+    public List<PrerequisiteProperty> globalProperties;
+
+    /**
+     * Config properties for individual prerequisite checks
+     */
+    @XmlElement(name="check-properties")
+    public List<PrerequisiteCheckProperties> prerequisiteCheckProperties;
+
+    /**
+     * Get global config properties as a map
+     * @return Map of global config properties
+     */
+    public Map<String, String> getGlobalProperties() {
+      if(globalProperties == null) {
+        return null;
+      }
+      Map<String, String> result = new HashMap<>();
+      for (PrerequisiteProperty property : globalProperties) {
+        result.put(property.name, property.value);
+      }
+      return result;
     }
 
+    /**
+     * Get config properties for a given prerequisite check as a map
+     * @param checkName The prerequisite check name
+     * @return Map of config properties for the prerequisite check
+     */
     public Map<String, String> getCheckProperties(String checkName) {
-      if (null == m_checks) {
-        return Collections.emptyMap();
+      if(prerequisiteCheckProperties == null) {
+        return null;
       }
-
-      Optional<PrerequisiteCheckDefinition> optional = m_checks.stream()
-          .filter(c -> c.className.equals(checkName)).findFirst();
-
-      if (!optional.isPresent()) {
-        return Collections.emptyMap();
+      for(PrerequisiteCheckProperties checkProperties : prerequisiteCheckProperties) {
+        if(checkProperties.name.equalsIgnoreCase(checkName)) {
+          return checkProperties.getProperties();
+        }
       }
-
-      PrerequisiteCheckDefinition checks = optional.get();
-
-      Map<String, String> map = checks.properties.stream().collect(Collectors.toMap(
-          c -> c.name, c -> c.value));
-
-      return map;
+      return null;
     }
   }
 
   /**
-   * The definition for each check in the Upgrade Pack.
+   * Config properties for a specific prerequisite check.
    */
-  public static class PrerequisiteCheckDefinition {
-    @XmlAttribute(name="class")
-    public String className;
+  public static class PrerequisiteCheckProperties {
+    /**
+     * Prereq check name
+     */
+    @XmlAttribute
+    public String name;
 
+    /**
+     * Config properties for the prerequisite check
+     */
     @XmlElement(name="property")
-    public List<PrerequisiteProperty> properties = new ArrayList<>();
+    public List<PrerequisiteProperty> properties;
+
+    /**
+     * Get config properties as a map
+     * @return Map of config properties
+     */
+    public Map<String, String> getProperties() {
+      if(properties == null) {
+        return null;
+      }
+
+      Map<String, String> result = new HashMap<>();
+      for (PrerequisiteProperty property : properties) {
+        result.put(property.name, property.value);
+      }
+      return result;
+    }
   }
 
   /**
@@ -622,6 +761,5 @@ public class UpgradePack {
     @XmlElement(name="task")
     private List<Task> tasks = new ArrayList<>();
   }
-
 
 }

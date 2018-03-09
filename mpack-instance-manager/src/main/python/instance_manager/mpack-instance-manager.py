@@ -56,14 +56,8 @@ def check_required_options(options, action, parser):
     if not options.module_name:
       missing_options.append("module-name")
 
-    if missing_options:
-      parser.error("Missing following required command options: {0}".format(missing_options))
-
-    if not options.components_map and not options.components:
-      parser.error("Either components or components-map option must be specified.")
-
-    if options.components_map and options.components:
-      parser.error("Only components or components-map option could be specified. Can't use both.")
+  if missing_options:
+    parser.error("Missing following required command options: {0}".format(missing_options))
 
 
 def init_create_parser_options(parser):
@@ -123,11 +117,8 @@ def main(options, args):
   parsed_components = None
   parsed_components_map = None
   try:
-    if hasattr(options, 'components') and options.components:
-      if options.components == '*':
-        parsed_components = '*'
-      else:
-        parsed_components = ast.literal_eval(options.components)
+    if hasattr(options, 'components') and options.components and options.components != '*':
+      parsed_components = ast.literal_eval(options.components)
     if options.components_map:
       parsed_components_map = ast.literal_eval(options.components_map)
   except ValueError:

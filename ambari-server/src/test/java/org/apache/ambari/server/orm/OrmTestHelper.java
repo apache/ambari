@@ -49,7 +49,6 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
@@ -66,7 +65,6 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
@@ -85,9 +83,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.Module;
-import org.apache.ambari.server.state.ModuleComponent;
-import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -101,13 +96,11 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -151,10 +144,6 @@ public class OrmTestHelper {
   @Inject
   private StackDAO stackDAO;
 
-  @Inject
-  MpackDAO mpackDAO;
-
-  private static final StackId HDP_206 = new StackId("HDP", "2.0.6");
   public static final StackId STACK_ID = new StackId("HDP", "2.2.0");
   public static final String CLUSTER_NAME = "test_cluster1";
   public static final String SERVICE_GROUP_NAME = "CORE";
@@ -337,68 +326,15 @@ public class OrmTestHelper {
   }
 
   @Transactional
-  public MpackEntity createMpack(StackId stackId) throws AmbariException {
-    List<MpackEntity> mpackEntities =
-      mpackDAO.findByNameVersion(stackId.getStackName(), stackId.getStackVersion());
-    MpackEntity mpackEntity = !mpackEntities.isEmpty() ? mpackEntities.get(0) : null;
-    if (mpackEntities.isEmpty()) {
-      mpackEntity = new MpackEntity();
-      mpackEntity.setMpackName(stackId.getStackName());
-      mpackEntity.setMpackVersion(stackId.getStackVersion());
-      mpackEntity.setMpackUri("http://mpacks.org/" + stackId.toString() + ".json");
-      mpackDAO.create(mpackEntity);
-
-      AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-
-      ArrayList<Module> packletArrayList = new ArrayList<>();
-      ModuleComponent sampleComponent = EasyMock.createNiceMock(ModuleComponent.class);
-      EasyMock.expect(sampleComponent.getName()).andReturn("FOO_COMPONENT").anyTimes();
-      EasyMock.expect(sampleComponent.getVersion()).andReturn("1.0.0-b1").anyTimes();
-
-      Module samplePacklet = EasyMock.createNiceMock(Module.class);
-      EasyMock.expect(samplePacklet.getVersion()).andReturn("1.0.0-b1").anyTimes();
-      EasyMock.expect(samplePacklet.getName()).andReturn("FOO").anyTimes();
-      EasyMock.expect(samplePacklet.getDefinition()).andReturn("foo.tar.gz").anyTimes();
-      EasyMock.expect(samplePacklet.getComponents()).andReturn(Lists.newArrayList(sampleComponent)).anyTimes();
-      EasyMock.expect(samplePacklet.getModuleComponent(EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
-
-      packletArrayList.add(samplePacklet);
-
-      Map<Long, Mpack> mpackMap = ambariMetaInfo.getMpackManager().getMpackMap();
-      Mpack mpack = EasyMock.createNiceMock(Mpack.class);
-      EasyMock.expect(mpack.getMpackId()).andReturn(stackId.getStackName()).anyTimes();
-      EasyMock.expect(mpack.getResourceId()).andReturn(mpackEntity.getId()).anyTimes();
-      EasyMock.expect(mpack.getModules()).andReturn(packletArrayList).anyTimes();
-      EasyMock.expect(mpack.getModule(EasyMock.anyString())).andReturn(samplePacklet).anyTimes();
-      EasyMock.expect(mpack.getModuleComponent(EasyMock.anyString(), EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
-
-      EasyMock.replay(mpack, samplePacklet, sampleComponent);
-      mpackMap.put(mpackEntity.getId(), mpack);
-    }
-    return mpackEntity;
-  }
-
-  @Transactional
   public StackEntity createStack(StackId stackId) throws AmbariException {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+
     if (null == stackEntity) {
       stackEntity = new StackEntity();
       stackEntity.setStackName(stackId.getStackName());
       stackEntity.setStackVersion(stackId.getStackVersion());
       stackDAO.create(stackEntity);
     }
-
-    if (null == stackEntity.getMpackId()) {
-      List<MpackEntity> mpackEntities =
-          mpackDAO.findByNameVersion(stackId.getStackName(), stackId.getStackVersion());
-
-      if (!mpackEntities.isEmpty()) {
-        stackEntity.setMpackId(mpackEntities.get(0).getId());
-      }
-
-      stackEntity = stackDAO.merge(stackEntity);
-    }
-
 
     return stackEntity;
   }
@@ -436,7 +372,7 @@ public class OrmTestHelper {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
 
-    StackEntity stackEntity = stackDAO.find(HDP_206);
+    StackEntity stackEntity = stackDAO.find("HDP", "2.0.6");
     assertNotNull(stackEntity);
 
     ClusterEntity clusterEntity = new ClusterEntity();
@@ -474,12 +410,13 @@ public class OrmTestHelper {
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String clusterName = "cluster-" + System.currentTimeMillis();
+    StackId stackId = new StackId("HDP", "2.0.6");
 
-    createStack(HDP_206);
+    createStack(stackId);
 
-    clusters.addCluster(clusterName, HDP_206);
+    clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME, HDP_206.getStackId());
+    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME, stackId.getStackId());
     cluster = initializeClusterWithStack(cluster);
 
     addHost(clusters, cluster, hostName);
@@ -490,8 +427,9 @@ public class OrmTestHelper {
   }
 
   public Cluster initializeClusterWithStack(Cluster cluster) throws Exception {
-    cluster.setDesiredStackVersion(HDP_206);
-    getOrCreateRepositoryVersion(HDP_206, HDP_206.getStackVersion());
+    StackId stackId = new StackId("HDP", "2.0.6");
+    cluster.setDesiredStackVersion(stackId);
+    getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     return cluster;
   }
 
@@ -531,7 +469,7 @@ public class OrmTestHelper {
     Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
-    ServiceComponent datanode = componentFactory.createNew(service, "DATANODE", "DATANODE");
+    ServiceComponent datanode = componentFactory.createNew(service, "DATANODE");
 
     service.addServiceComponent(datanode);
     datanode.setDesiredState(State.INSTALLED);
@@ -542,7 +480,7 @@ public class OrmTestHelper {
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
 
-    ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE", "NAMENODE");
+    ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE");
 
     service.addServiceComponent(namenode);
     namenode.setDesiredState(State.INSTALLED);
@@ -566,7 +504,7 @@ public class OrmTestHelper {
     assertNotNull(service);
 
     ServiceComponent resourceManager = componentFactory.createNew(service,
-        "RESOURCEMANAGER", "RESOURCEMANAGER");
+        "RESOURCEMANAGER");
 
     service.addServiceComponent(resourceManager);
     resourceManager.setDesiredState(State.INSTALLED);
@@ -730,13 +668,8 @@ public class OrmTestHelper {
    */
   public RepositoryVersionEntity getOrCreateRepositoryVersion(StackId stackId,
       String version) {
-    MpackEntity mpackEntity = null;
     StackEntity stackEntity = null;
     try {
-      // creating mpack before stack makes
-      mpackEntity = createMpack(stackId);
-
-      // sure stack will be linked to mpack
       stackEntity = createStack(stackId);
     } catch (Exception e) {
       LOG.error("Expected successful repository", e);
@@ -763,13 +696,8 @@ public class OrmTestHelper {
         repoOsEntity.setAmbariManaged(true);
         repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
         repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
-        repoOsEntity.setMpackEntity(createMpack(stackId));
         operatingSystems.add(repoOsEntity);
 
-        mpackEntity.setRepositoryOperatingSystems(operatingSystems);
-        mpackEntity = mpackDAO.merge(mpackEntity);
-
-        operatingSystems = mpackEntity.getRepositoryOperatingSystems();
 
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);

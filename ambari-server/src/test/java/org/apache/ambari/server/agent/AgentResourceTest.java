@@ -80,14 +80,8 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
-import org.apache.ambari.server.topology.ComponentResolver;
-import org.apache.ambari.server.topology.DefaultStackFactory;
 import org.apache.ambari.server.topology.PersistedState;
-import org.apache.ambari.server.topology.StackComponentResolver;
-import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
-import org.apache.ambari.server.topology.validators.BasicBlueprintValidator;
-import org.apache.ambari.server.topology.validators.BlueprintValidator;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.easymock.EasyMock;
@@ -341,9 +335,6 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
       bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
       bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
-      bind(ComponentResolver.class).to(StackComponentResolver.class);
-      bind(BlueprintValidator.class).to(BasicBlueprintValidator.class);
-      bind(StackFactory.class).to(DefaultStackFactory.class);
     }
 
     private void installDependencies() {

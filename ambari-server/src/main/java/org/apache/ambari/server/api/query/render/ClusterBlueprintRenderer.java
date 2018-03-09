@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.api.query.render;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,12 +26,10 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.QueryInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
@@ -46,7 +42,6 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
-import org.apache.ambari.server.controller.internal.ClusterSettingResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
@@ -73,7 +68,7 @@ import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 
 /**
  * Renderer which renders a cluster resource as a blueprint.
@@ -84,12 +79,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * Management Controller used to get stack information.
    */
   private AmbariManagementController controller = AmbariServer.getController();
-
-
-  /**
-   * MetaInfo used to get stack and mpack information.
-   */
-  private AmbariMetaInfo metaInfo = controller.getAmbariMetaInfo();
 
 //  /**
 //   * Map of configuration type to configuration properties which are required that a user
@@ -112,37 +101,47 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     copyPropertiesToResult(queryProperties, resultTree);
 
-    ensureChild(resultTree, Resource.Type.Configuration, "properties");
+    String configType = Resource.Type.Configuration.name();
+    if (resultTree.getChild(configType) == null) {
+      resultTree.addChild(new HashSet<>(), configType);
+    }
 
-    ensureChild(resultTree, Resource.Type.ClusterSetting);
+    String serviceType = Resource.Type.Service.name();
+    if (resultTree.getChild(serviceType) == null) {
+      resultTree.addChild(new HashSet<>(), serviceType);
+    }
+    TreeNode<Set<String>> serviceNode = resultTree.getChild(serviceType);
+    if (serviceNode == null) {
+      serviceNode = resultTree.addChild(new HashSet<>(), serviceType);
+    }
+    String serviceComponentType = Resource.Type.Component.name();
+    TreeNode<Set<String>> serviceComponentNode = resultTree.getChild(
+      serviceType + "/" + serviceComponentType);
+    if (serviceComponentNode == null) {
+      serviceComponentNode = serviceNode.addChild(new HashSet<>(), serviceComponentType);
+    }
+    serviceComponentNode.getObject().add("ServiceComponentInfo/cluster_name");
+    serviceComponentNode.getObject().add("ServiceComponentInfo/service_name");
+    serviceComponentNode.getObject().add("ServiceComponentInfo/component_name");
+    serviceComponentNode.getObject().add("ServiceComponentInfo/recovery_enabled");
 
-    TreeNode<Set<String>> serviceGroupNode = ensureChild(resultTree, Resource.Type.ServiceGroup);
-    TreeNode<Set<String>> serviceNode = ensureChild(serviceGroupNode, Resource.Type.Service);
-    ensureChild(serviceNode, Resource.Type.Component,
-      "ServiceComponentInfo/cluster_name",
-      "ServiceComponentInfo/service_name",
-      "ServiceComponentInfo/component_name",
-      "ServiceComponentInfo/recovery_enabled");
+    String hostType = Resource.Type.Host.name();
+    String hostComponentType = Resource.Type.HostComponent.name();
+    TreeNode<Set<String>> hostComponentNode = resultTree.getChild(
+        hostType + "/" + hostComponentType);
 
-    TreeNode<Set<String>> hostNode = ensureChild(resultTree, Resource.Type.Host);
-    ensureChild(hostNode, Resource.Type.HostComponent, "HostRoles/component_name");
+    if (hostComponentNode == null) {
+      TreeNode<Set<String>> hostNode = resultTree.getChild(hostType);
+      if (hostNode == null) {
+        hostNode = resultTree.addChild(new HashSet<>(), hostType);
+      }
+      hostComponentNode = hostNode.addChild(new HashSet<>(), hostComponentType);
+    }
+    resultTree.getChild(configType).getObject().add("properties");
+    hostComponentNode.getObject().add("HostRoles/component_name");
 
     return resultTree;
   }
-
-  private TreeNode<Set<String>> ensureChild(TreeNode<Set<String>> parent,
-                                            Resource.Type resourceType,
-                                            String... properties) {
-    TreeNode<Set<String>> child = parent.getChild(resourceType.name());
-    if (null == child) {
-      child = parent.addChild(new HashSet<>(), resourceType.name());
-    }
-    for (String property: properties) {
-      child.getObject().add(property);
-    }
-    return child;
-  }
-
 
   @Override
   public Result finalizeResult(Result queryResult) {
@@ -198,11 +197,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    Set<StackId> stackIds = topology.getStackIds();
-    // TODO: mpacks should come from service groups once https://github.com/apache/ambari/pull/234 will be committed
-    Collection<Map<String, String>> mpackInstances = stackIds.stream().
-      map( stackId -> ImmutableMap.of("name", stackId.getStackName(), "version", stackId.getStackVersion())).collect(toList());
-    blueprintResource.setProperty(BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID, mpackInstances);
+    Set<StackId> stackIds = topology.getBlueprint().getStackIds();
+    if (stackIds.size() == 1) {
+      StackId stackId = Iterables.getOnlyElement(stackIds);
+      blueprintResource.setProperty("Blueprints/stack_name", stackId.getStackName());
+      blueprintResource.setProperty("Blueprints/stack_version", stackId.getStackVersion());
+    }
 
     if (topology.isClusterKerberosEnabled()) {
       Map<String, Object> securityConfigMap = new LinkedHashMap<>();
@@ -210,7 +210,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       try {
         String clusterName = topology.getAmbariContext().getClusterName(topology.getClusterId());
-        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(AmbariContext.getClusterController(), clusterName);
+        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(topology.getAmbariContext()
+          .getClusterController(), clusterName);
         if (kerberosDescriptor != null) {
           securityConfigMap.put(SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, kerberosDescriptor);
         }
@@ -237,7 +238,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
   /***
    * Constructs the Settings object of the following form:
    * "settings": [   {
-   "cluster_settings": [
+   "recovery_settings": [
    {
    "recovery_enabled": "true"
    }   ]   },
@@ -261,8 +262,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    "recovery_enabled": "true"
    }   ]   }   ]
    *
-   * <b>NOTE:</b> As of 3.0 global recovery settings will move under a new section called cluster_settings.
-   *
    * @param clusterNode
    * @return A Collection<Map<String, Object>> which represents the Setting Object
    */
@@ -272,27 +271,25 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     //Initialize collections to create appropriate json structure
     Collection<Map<String, Object>> blueprintSetting = new ArrayList<>();
 
+    Set<Map<String, String>> recoverySettingValue = new HashSet<>();
     Set<Map<String, String>> serviceSettingValue = new HashSet<>();
     Set<Map<String, String>> componentSettingValue = new HashSet<>();
 
-    //Fetch the services, to obtain ServiceInfo and ServiceComponents
-    // TODO: set mpack instance if needed (multi-mpack case)
-    Collection<TreeNode<Resource>> serviceChildren =
-      clusterNode.getChild("servicegroups").
-        getChildren().stream().flatMap(
-          node -> node.getChild("services").getChildren().stream()).
-        collect(toList());
+    HashMap<String, String> property = new HashMap<>();
+    HashMap<String, String> componentProperty = new HashMap<>();
+    Boolean globalRecoveryEnabled = false;
 
-    HashMap<String, String> serviceProperty;
+    //Fetch the services, to obtain ServiceInfo and ServiceComponents
+    Collection<TreeNode<Resource>> serviceChildren = clusterNode.getChild("services").getChildren();
     for (TreeNode serviceNode : serviceChildren) {
       ResourceImpl service = (ResourceImpl) serviceNode.getObject();
       Map<String, Object> ServiceInfoMap = service.getPropertiesMap().get("ServiceInfo");
 
       //service_settings population
-      serviceProperty = new HashMap<>();
+      property = new HashMap<>();
       if (ServiceInfoMap.get("credential_store_enabled").equals("true")) {
-        serviceProperty.put("name", ServiceInfoMap.get("service_name").toString());
-        serviceProperty.put("credential_store_enabled", "true");
+        property.put("name", ServiceInfoMap.get("service_name").toString());
+        property.put("credential_store_enabled", "true");
       }
 
       //Fetch the service Components to obtain ServiceComponentInfo
@@ -302,36 +299,34 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
         Map<String, Object> ServiceComponentInfoMap = component.getPropertiesMap().get("ServiceComponentInfo");
 
         if (ServiceComponentInfoMap.get("recovery_enabled").equals("true")) {
-          serviceProperty.put("name", ServiceInfoMap.get("service_name").toString());
-          serviceProperty.put("recovery_enabled", "true");
+          globalRecoveryEnabled = true;
+          property.put("name", ServiceInfoMap.get("service_name").toString());
+          property.put("recovery_enabled", "true");
 
           //component_settings population
-          HashMap<String, String> componentProperty = new HashMap<>();
+          componentProperty = new HashMap<>();
           componentProperty.put("name", ServiceComponentInfoMap.get("component_name").toString());
           componentProperty.put("recovery_enabled", "true");
-          componentSettingValue.add(componentProperty);
         }
       }
 
-      if (!serviceProperty.isEmpty())
-        serviceSettingValue.add(serviceProperty);
+      if (!property.isEmpty())
+        serviceSettingValue.add(property);
+      if (!componentProperty.isEmpty())
+        componentSettingValue.add(componentProperty);
     }
-
-    // Add cluster settings
-    Set<Map<String, String>> clusterSettings = new HashSet<>();
-    TreeNode<Resource> settingsNode = clusterNode.getChild("settings");
-    if (null != settingsNode) {
-      for (TreeNode<Resource> clusterSettingNode: settingsNode.getChildren()) {
-        Map<String, Object> nodeProperties = clusterSettingNode.getObject().getPropertiesMap().get(ClusterSettingResourceProvider.RESPONSE_KEY);
-        String key = Objects.toString(nodeProperties.get(ClusterSettingResourceProvider.CLUSTER_SETTING_NAME_PROPERTY_ID));
-        String value = Objects.toString(nodeProperties.get(ClusterSettingResourceProvider.CLUSTER_SETTING_VALUE_PROPERTY_ID));
-        clusterSettings.add(ImmutableMap.of(key, value));
-      }
+    //recovery_settings population
+    property = new HashMap<>();
+    if (globalRecoveryEnabled) {
+      property.put("recovery_enabled", "true");
+    } else {
+      property.put("recovery_enabled", "false");
     }
+    recoverySettingValue.add(property);
 
     //Add all the different setting values.
     Map<String, Object> settingMap = new HashMap<>();
-    settingMap.put("cluster_settings", clusterSettings);
+    settingMap.put("recovery_settings", recoverySettingValue);
     blueprintSetting.add(settingMap);
 
     settingMap = new HashMap<>();

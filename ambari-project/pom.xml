@@ -485,13 +485,6 @@
         <artifactId>swagger-maven-plugin</artifactId>
         <version>${swagger.maven.plugin.version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.inferred</groupId>
-        <artifactId>freebuilder</artifactId>
-        <version>1.14.8</version>
-        <optional>true</optional>
-        <scope>provided</scope>
-      </dependency>
     </dependencies>
   </dependencyManagement>
   <build>
@@ -515,10 +508,7 @@
             <encoding>UTF-8</encoding>
             <consoleOutput>true</consoleOutput>
             <failsOnError>true</failsOnError>
-            <sourceDirectories>
-              <sourceDirectory>src/main/java</sourceDirectory>
-              <sourceDirectory>src/test/java</sourceDirectory>
-            </sourceDirectories>
+            <includeTestSourceDirectory>true</includeTestSourceDirectory>
             <linkXRef>false</linkXRef>
           </configuration>
           <executions>

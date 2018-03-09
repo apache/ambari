@@ -95,7 +95,7 @@ public class ServiceGroupImpl implements ServiceGroup {
       this.serviceGroupDependencies = serviceGroupDependencies;
     }
 
-    serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
+    this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
 
     persist(serviceGroupEntity);
   }
@@ -115,13 +115,13 @@ public class ServiceGroupImpl implements ServiceGroup {
     this.serviceGroupDAO = serviceGroupDAO;
     this.eventPublisher = eventPublisher;
 
-    serviceGroupId = serviceGroupEntity.getServiceGroupId();
-    serviceGroupName = serviceGroupEntity.getServiceGroupName();
+    this.serviceGroupId = serviceGroupEntity.getServiceGroupId();
+    this.serviceGroupName = serviceGroupEntity.getServiceGroupName();
     StackEntity stack = serviceGroupEntity.getStack();
-    stackId = new StackId(stack.getStackName(), stack.getStackVersion());
-    serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
+    this.stackId = new StackId(stack.getStackName(), stack.getStackVersion());
+    this.serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
-    serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
+    this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
   }
 
   @Override
@@ -160,15 +160,6 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   public void setServiceGroupDependencies(Set<ServiceGroupKey> serviceGroupDependencies) {
     this.serviceGroupDependencies = serviceGroupDependencies;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Long getMpackId() {
-    ServiceGroupEntity serviceGroupEntity = getServiceGroupEntity();
-    return serviceGroupEntity.getStack().getMpackId();
   }
 
   @Override

@@ -75,10 +75,11 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintValidator;
+import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.Setting;
-import org.apache.ambari.server.topology.validators.BlueprintValidator;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -89,6 +90,7 @@ import org.junit.rules.ExpectedException;
 /**
  * BlueprintResourceProvider unit tests.
  */
+@SuppressWarnings("unchecked")
 public class BlueprintResourceProviderTest {
 
   private static String BLUEPRINT_NAME = "test-blueprint";
@@ -113,7 +115,7 @@ public class BlueprintResourceProviderTest {
     replay(resourceProviderFactory);
   }
 
-  private Map<String, Set<Map<String, String>>> getSettingProperties() {
+  private Map<String, Set<HashMap<String, String>>> getSettingProperties() {
     return new HashMap<>();
   }
 
@@ -131,12 +133,13 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
-    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
     expect(securityFactory.createSecurityConfigurationFromRequest(null, true)).andReturn(null).anyTimes();
-    blueprintValidator.validate(blueprint);
+    blueprintValidator.validateRequiredProperties(blueprint);
+    blueprintValidator.validateTopology(blueprint);
     expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
@@ -205,13 +208,14 @@ public class BlueprintResourceProviderTest {
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);
 
-    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
     requestInfoProperties.put("validate_topology", "false");
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
+    blueprintValidator.validateRequiredProperties(blueprint);
     expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
@@ -243,7 +247,7 @@ public class BlueprintResourceProviderTest {
     verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCreateResources_TopologyValidationFails() throws Exception {
 
     Request request = createMock(Request.class);
@@ -253,8 +257,9 @@ public class BlueprintResourceProviderTest {
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
-    blueprintValidator.validate(blueprint);
-    expectLastCall().andThrow(new IllegalArgumentException("test")).once();
+    blueprintValidator.validateRequiredProperties(blueprint);
+    blueprintValidator.validateTopology(blueprint);
+    expectLastCall().andThrow(new InvalidTopologyException("test")).once();
 
     expect(request.getProperties()).andReturn(setProperties);
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
@@ -270,7 +275,14 @@ public class BlueprintResourceProviderTest {
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
 
-    provider.createResources(request);
+    try {
+      provider.createResources(request);
+      fail("Expected exception due to topology validation error");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request);
   }
 
 
@@ -283,11 +295,12 @@ public class BlueprintResourceProviderTest {
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);
-    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
-    blueprintValidator.validate(blueprint);
+    blueprintValidator.validateRequiredProperties(blueprint);
+    blueprintValidator.validateTopology(blueprint);
     expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
@@ -319,8 +332,9 @@ public class BlueprintResourceProviderTest {
     verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request, managementController);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testCreateResource_BlueprintFactoryThrowsException() throws Exception {
+  @Test
+  public void testCreateResource_BlueprintFactoryThrowsException() throws Exception
+  {
     Request request = createMock(Request.class);
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
@@ -338,7 +352,13 @@ public class BlueprintResourceProviderTest {
     replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, blueprintValidator, request);
     // end expectations
 
-    provider.createResources(request);
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    verify(dao, entity, blueprintFactory, blueprint, blueprintValidator, metaInfo, request);
   }
 
   @Test
@@ -349,14 +369,15 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
-    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
 
     // set expectations
     expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), securityConfiguration)).andReturn(blueprint).once();
-    blueprintValidator.validate(blueprint);
+    blueprintValidator.validateRequiredProperties(blueprint);
+    blueprintValidator.validateTopology(blueprint);
     expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
@@ -474,14 +495,15 @@ public class BlueprintResourceProviderTest {
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Map<String, String> requestInfoProperties = new HashMap<>();
-    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[]}");
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
-    blueprintValidator.validate(blueprint);
+    blueprintValidator.validateRequiredProperties(blueprint);
+    blueprintValidator.validateTopology(blueprint);
     expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
@@ -520,14 +542,15 @@ public class BlueprintResourceProviderTest {
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Map<String, String> requestInfoProperties = new HashMap<>();
-    Map<String, Set<Map<String, String>>> settingProperties = getSettingProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[{\"configuration-type\":{\"properties\":{\"property\":\"value\"}}}]}");
     Request request = createMock(Request.class);
     Setting setting = createStrictMock(Setting.class);
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
-    blueprintValidator.validate(blueprint);
+    blueprintValidator.validateRequiredProperties(blueprint);
+    blueprintValidator.validateTopology(blueprint);
     expect(blueprint.getSetting()).andReturn(setting).anyTimes();
     expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);

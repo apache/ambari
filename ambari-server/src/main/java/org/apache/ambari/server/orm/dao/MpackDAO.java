@@ -24,6 +24,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.MpackEntity;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +35,7 @@ import com.google.inject.persist.Transactional;
 
 
 @Singleton
-public class MpackDAO extends CrudDAO<MpackEntity, Long> {
-
-  /**
-   * Constructor.
-   */
-  public MpackDAO() {
-    super(MpackEntity.class);
-  }
-
+public class MpackDAO {
   protected final static Logger LOG = LoggerFactory.getLogger(MpackDAO.class);
 
   /**
@@ -56,6 +49,15 @@ public class MpackDAO extends CrudDAO<MpackEntity, Long> {
    */
   @Inject
   private DaoUtils m_daoUtils;
+
+  /**
+   * Persists a new mpack
+   */
+  @Transactional
+  public Long create(MpackEntity mpackEntity) {
+    m_entityManagerProvider.get().persist(mpackEntity);
+    return mpackEntity.getId();
+  }
 
   /**
    * Gets an mpack with the specified ID.
@@ -81,6 +83,18 @@ public class MpackDAO extends CrudDAO<MpackEntity, Long> {
     TypedQuery<MpackEntity> query = m_entityManagerProvider.get().createNamedQuery("MpackEntity.findByNameVersion", MpackEntity.class);
     query.setParameter("mpackName", mpackName);
     query.setParameter("mpackVersion", mpackVersion);
+    return m_daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all mpacks stored in the database across all clusters.
+   *
+   * @return all mpacks or an empty list if none exist (never {@code null}).
+   */
+  @RequiresSession
+  public List<MpackEntity> findAll() {
+    TypedQuery<MpackEntity> query = m_entityManagerProvider.get().createNamedQuery(
+            "MpackEntity.findAll", MpackEntity.class);
     return m_daoUtils.selectList(query);
   }
 

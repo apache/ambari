@@ -208,6 +208,8 @@ public class StackVersionListener {
         setUpgradeStateAndRecalculateHostVersions(sch, UpgradeState.VERSION_MISMATCH);
       }
     }
+
+    sc.updateRepositoryState(newVersion);
   }
 
   /**

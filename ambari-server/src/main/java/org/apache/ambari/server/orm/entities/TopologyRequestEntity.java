@@ -75,10 +75,6 @@ public class TopologyRequestEntity {
   @Column(name = "description", length = 1024, nullable = false)
   private String description;
 
-  @Lob
-  @Column(name = "raw_request_body", length = 100000, nullable = false)
-  private String rawRequestBody;
-
   @OneToMany(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
   private Collection<TopologyHostGroupEntity> topologyHostGroupEntities;
 
@@ -143,20 +139,6 @@ public class TopologyRequestEntity {
 
   public void setDescription(String description) {
     this.description = description;
-  }
-
-  /**
-   * @return the raw request body in JSON
-   */
-  public String getRawRequestBody() {
-    return rawRequestBody;
-  }
-
-  /**
-   * @param rawRequestBody the raw request body in JSON
-   */
-  public void setRawRequestBody(String rawRequestBody) {
-    this.rawRequestBody = rawRequestBody;
   }
 
   public Collection<TopologyHostGroupEntity> getTopologyHostGroupEntities() {

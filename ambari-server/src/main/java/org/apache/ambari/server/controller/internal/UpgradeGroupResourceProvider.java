@@ -57,7 +57,6 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   protected static final String UPGRADE_CLUSTER_NAME = "UpgradeGroup/cluster_name";
   protected static final String UPGRADE_GROUP_NAME = "UpgradeGroup/name";
   protected static final String UPGRADE_GROUP_TITLE = "UpgradeGroup/title";
-  protected static final String UPGRADE_GROUP_LIFECYCLE = "UpgradeGroup/lifecycle";
   protected static final String UPGRADE_GROUP_PROGRESS_PERCENT = "UpgradeGroup/progress_percent";
   protected static final String UPGRADE_GROUP_STATUS = "UpgradeGroup/status";
   protected static final String UPGRADE_GROUP_DISPLAY_STATUS = "UpgradeGroup/display_status";
@@ -69,7 +68,6 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
     Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_GROUP_ID));
-
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
@@ -92,7 +90,6 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
     PROPERTY_IDS.add(UPGRADE_GROUP_TOTAL_TASKS);
     PROPERTY_IDS.add(UPGRADE_GROUP_IN_PROGRESS_TASKS);
     PROPERTY_IDS.add(UPGRADE_GROUP_COMPLETED_TASKS);
-    PROPERTY_IDS.add(UPGRADE_GROUP_LIFECYCLE);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.UpgradeGroup, UPGRADE_GROUP_ID);
@@ -186,7 +183,6 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
     setResourceProperty(resource, UPGRADE_GROUP_ID, group.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_GROUP_NAME, group.getName(), requestedIds);
     setResourceProperty(resource, UPGRADE_GROUP_TITLE, group.getTitle(), requestedIds);
-    setResourceProperty(resource, UPGRADE_GROUP_LIFECYCLE, group.getLifecycle(), requestedIds);
 
     return resource;
   }

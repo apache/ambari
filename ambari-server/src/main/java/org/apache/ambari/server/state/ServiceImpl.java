@@ -30,8 +30,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -80,8 +78,7 @@ public class ServiceImpl implements Service {
 
   private final Cluster cluster;
   private final ServiceGroup serviceGroup;
-  private final ConcurrentMap<String, ServiceComponent> componentsByName = new ConcurrentHashMap<>();
-  private final ConcurrentMap<Long, ServiceComponent> componentsById = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
   private List<ServiceKey> serviceDependencies = new ArrayList<>();
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
@@ -213,11 +210,11 @@ public class ServiceImpl implements Service {
     this.serviceDesiredStateDAO = serviceDesiredStateDAO;
     this.serviceComponentFactory = serviceComponentFactory;
     this.eventPublisher = eventPublisher;
-    serviceId = serviceEntity.getServiceId();
-    serviceName = serviceEntity.getServiceName();
-    serviceType = serviceEntity.getServiceType();
+    this.serviceId = serviceEntity.getServiceId();
+    this.serviceName = serviceEntity.getServiceName();
+    this.serviceType = serviceEntity.getServiceType();
     this.ambariMetaInfo = ambariMetaInfo;
-    serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
+    this.serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
@@ -227,12 +224,10 @@ public class ServiceImpl implements Service {
       for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity
           : serviceEntity.getServiceComponentDesiredStateEntities()) {
         try {
-            ServiceComponent svcComponent = serviceComponentFactory.createExisting(this,
-                    serviceComponentDesiredStateEntity);
-            componentsByName.put(serviceComponentDesiredStateEntity.getComponentName(), svcComponent);
-            componentsById.put(serviceComponentDesiredStateEntity.getId(), svcComponent);
-
-        } catch(ProvisionException ex) {
+            components.put(serviceComponentDesiredStateEntity.getComponentName(),
+                serviceComponentFactory.createExisting(this,
+                    serviceComponentDesiredStateEntity));
+          } catch(ProvisionException ex) {
             StackId stackId = new StackId(serviceComponentDesiredStateEntity.getDesiredStack());
             LOG.error(String.format("Can not get component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s",
               stackId.getStackName(), stackId.getStackVersion(),
@@ -307,13 +302,13 @@ public class ServiceImpl implements Service {
 
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
-    return new HashMap<>(componentsByName);
+    return new HashMap<>(components);
   }
 
   @Override
   public void addServiceComponents(
-      Map<String, ServiceComponent> componentsByName) throws AmbariException {
-    for (ServiceComponent sc : componentsByName.values()) {
+      Map<String, ServiceComponent> components) throws AmbariException {
+    for (ServiceComponent sc : components.values()) {
       addServiceComponent(sc);
     }
   }
@@ -329,7 +324,7 @@ public class ServiceImpl implements Service {
 
   @Override
   public void addServiceComponent(ServiceComponent component) throws AmbariException {
-    if (componentsByName.containsKey(component.getName())) {
+    if (components.containsKey(component.getName())) {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
@@ -338,13 +333,13 @@ public class ServiceImpl implements Service {
           + ", serviceComponentName=" + component.getName());
     }
 
-    componentsByName.put(component.getName(), component);
+    components.put(component.getName(), component);
   }
 
   @Override
-  public ServiceComponent addServiceComponent(String serviceComponentName, String serviceComponentType)
+  public ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException {
-    ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName, serviceComponentType);
+    ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
     addServiceComponent(component);
     return component;
   }
@@ -352,7 +347,7 @@ public class ServiceImpl implements Service {
   @Override
   public ServiceComponent getServiceComponent(String componentName)
       throws AmbariException {
-    ServiceComponent serviceComponent = componentsByName.get(componentName);
+    ServiceComponent serviceComponent = components.get(componentName);
     if (null == serviceComponent) {
       throw new ServiceComponentNotFoundException(cluster.getClusterName(),
           getName(), getServiceType(), serviceGroup.getServiceGroupName(), componentName);
@@ -452,8 +447,6 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionEntity getDesiredRepositoryVersion() {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     return serviceDesiredStateEntity.getDesiredRepositoryVersion();
@@ -464,15 +457,13 @@ public class ServiceImpl implements Service {
    */
   @Override
   @Transactional
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     serviceDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
     serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
 
-    Collection<ServiceComponent> componentsByName = getServiceComponents().values();
-    for (ServiceComponent component : componentsByName) {
+    Collection<ServiceComponent> components = getServiceComponents().values();
+    for (ServiceComponent component : components) {
       component.setDesiredRepositoryVersion(repositoryVersionEntity);
     }
   }
@@ -481,15 +472,13 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionState getRepositoryState() {
-    if (componentsByName.isEmpty()) {
+    if (components.isEmpty()) {
       return RepositoryVersionState.NOT_REQUIRED;
     }
 
     List<RepositoryVersionState> states = new ArrayList<>();
-    for( ServiceComponent component : componentsByName.values() ){
+    for( ServiceComponent component : components.values() ){
       states.add(component.getRepositoryState());
     }
 
@@ -499,12 +488,11 @@ public class ServiceImpl implements Service {
   @Override
   public ServiceResponse convertToResponse() {
     RepositoryVersionEntity desiredRespositoryVersion = getDesiredRepositoryVersion();
-    Mpack mpack = ambariMetaInfo.getMpack(serviceGroup.getMpackId());
-    Module module = mpack.getModule(getName());
+    StackId desiredStackId = desiredRespositoryVersion.getStackId();
 
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
-        getServiceId(), getName(), getServiceType(), serviceGroup.getStackId(), module.getVersion(),
+        getServiceId(), getName(), getServiceType(), desiredStackId, desiredRespositoryVersion.getVersion(),
         getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
@@ -661,9 +649,9 @@ public class ServiceImpl implements Service {
       .append(", clusterId=").append(cluster.getClusterId())
       .append(", desiredStackVersion=").append(getDesiredStackId())
       .append(", desiredState=").append(getDesiredState())
-      .append(", componentsByName=[ ");
+      .append(", components=[ ");
     boolean first = true;
-    for (ServiceComponent sc : componentsByName.values()) {
+    for (ServiceComponent sc : components.values()) {
       if (!first) {
         sb.append(" , ");
       }
@@ -714,11 +702,11 @@ public class ServiceImpl implements Service {
   @Override
   public boolean canBeRemoved() {
     //
-    // A service can be deleted if all it's componentsByName
+    // A service can be deleted if all it's components
     // can be removed, irrespective of the state of
     // the service itself.
     //
-    for (ServiceComponent sc : componentsByName.values()) {
+    for (ServiceComponent sc : components.values()) {
       if (!sc.canBeRemoved()) {
         LOG.warn("Found non-removable component when trying to delete service" + ", clusterName="
             + cluster.getClusterName() + ", serviceName=" + getName() + ", serviceType="
@@ -760,22 +748,22 @@ public class ServiceImpl implements Service {
   public void deleteAllComponents() throws AmbariException {
     lock.lock();
     try {
-      LOG.info("Deleting all componentsByName for service" + ", clusterName=" + cluster.getClusterName()
+      LOG.info("Deleting all components for service" + ", clusterName=" + cluster.getClusterName()
           + ", serviceName=" + getName());
       // FIXME check dependencies from meta layer
-      for (ServiceComponent component : componentsByName.values()) {
+      for (ServiceComponent component : components.values()) {
         if (!component.canBeRemoved()) {
           throw new AmbariException("Found non removable component when trying to"
-              + " delete all componentsByName from service" + ", clusterName=" + cluster.getClusterName()
+              + " delete all components from service" + ", clusterName=" + cluster.getClusterName()
               + ", serviceName=" + getName() + ", componentName=" + component.getName());
         }
       }
 
-      for (ServiceComponent serviceComponent : componentsByName.values()) {
+      for (ServiceComponent serviceComponent : components.values()) {
         serviceComponent.delete();
       }
 
-      componentsByName.clear();
+      components.clear();
     } finally {
       lock.unlock();
     }
@@ -798,7 +786,7 @@ public class ServiceImpl implements Service {
       }
 
       component.delete();
-      componentsByName.remove(componentName);
+      components.remove(componentName);
     } finally {
       lock.unlock();
     }
@@ -812,7 +800,7 @@ public class ServiceImpl implements Service {
   @Override
   @Transactional
   public void delete() throws AmbariException {
-    List<Component> componentsByName = getComponents(); // XXX temporal coupling, need to call this BEFORE deletingAllComponents
+    List<Component> components = getComponents(); // XXX temporal coupling, need to call this BEFORE deletingAllComponents
     deleteAllComponents();
     deleteAllServiceConfigs();
 
@@ -827,7 +815,7 @@ public class ServiceImpl implements Service {
 
     ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(), stackId.getStackName(), stackId.getStackVersion(),
                                                         getName(), getServiceType(),
-                                                        serviceGroup.getServiceGroupName(), componentsByName);
+                                                        serviceGroup.getServiceGroupName(), components);
 
     eventPublisher.publish(event);
   }

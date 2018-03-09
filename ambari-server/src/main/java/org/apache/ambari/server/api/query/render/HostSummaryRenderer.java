@@ -22,9 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -65,13 +63,6 @@ public class HostSummaryRenderer extends DefaultRenderer {
   }
 
   @Override
-  public TreeNode<Set<String>> finalizeProperties(TreeNode<QueryInfo> queryTree, boolean isCollection) {
-    TreeNode<Set<String>> propertiesNode = super.finalizeProperties(queryTree, isCollection);
-    propertiesNode.getObject().add(HostResourceProvider.HOST_OS_TYPE_PROPERTY_ID);
-    return propertiesNode;
-  }
-
-  @Override
   public Result finalizeResult(Result queryResult) {
     TreeNode<Resource> queryResultTree = queryResult.getResultTree();
     // Iterate over all returned flattened hosts and build the summary info
@@ -92,7 +83,7 @@ public class HostSummaryRenderer extends DefaultRenderer {
       Resource resource = node.getObject();
       String osType = (String) resource.getPropertyValue(HostResourceProvider.HOST_OS_TYPE_PROPERTY_ID);
       if (StringUtils.isNotBlank(osType)) {
-        osTypeCount.merge(osType, 1, Integer::sum);
+        osTypeCount.put(osType, osTypeCount.getOrDefault(osTypeCount, 0) + 1);
       }
     }
   }
@@ -105,5 +96,4 @@ public class HostSummaryRenderer extends DefaultRenderer {
     resource.setProperty(HostResourceProvider.SUMMARY_PROPERTY_ID, summary);
     return result;
   }
-
 }

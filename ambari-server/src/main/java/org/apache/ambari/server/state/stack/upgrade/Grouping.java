@@ -29,7 +29,6 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
@@ -85,9 +84,6 @@ public class Grouping {
 
   @XmlElement(name="scope")
   public UpgradeScope scope = UpgradeScope.ANY;
-
-  @XmlTransient
-  public LifecycleType lifecycle;
 
   /**
    * A condition element with can prevent this entire group from being scheduled
@@ -415,10 +411,6 @@ public class Grouping {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("name", name)
-        .add("title", title)
-        .toString();
-
+    return Objects.toStringHelper(this).add("name", name).toString();
   }
 }
