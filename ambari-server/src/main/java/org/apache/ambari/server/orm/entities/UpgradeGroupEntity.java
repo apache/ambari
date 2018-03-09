@@ -23,6 +23,8 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -31,6 +33,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+
+import org.apache.ambari.server.state.stack.upgrade.LifecycleType;
 
 /**
  * Models a single upgrade group as part of an entire {@link UpgradeEntity}.
@@ -57,8 +61,12 @@ public class UpgradeGroupEntity {
   @Column(name = "upgrade_id", nullable = false, insertable = false, updatable = false)
   private Long upgradeId;
 
+  @Column(name = "lifecycle", length=255, nullable = false)
+  @Enumerated(value = EnumType.STRING)
+  private LifecycleType lifecycle;
+
   @Basic
-  @Column(name = "group_name", length=255, nullable = false)
+  @Column(name = "group_name", length=255, nullable = true)
   private String groupName;
 
   @Basic
@@ -134,6 +142,20 @@ public class UpgradeGroupEntity {
       item.setGroupEntity(this);
     }
     upgradeItems = items;
+  }
+
+  /**
+   * @return the lifecycle for the group
+   */
+  public LifecycleType getLifecycle() {
+    return lifecycle;
+  }
+
+  /**
+   * @param type the lifecycle for the group
+   */
+  public void setLifecycle(LifecycleType type) {
+    lifecycle = type;
   }
 
   /**

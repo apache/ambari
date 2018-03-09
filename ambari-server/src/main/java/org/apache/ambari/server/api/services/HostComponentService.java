@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,20 +35,34 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.http.HttpStatus;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 /**
  * Service responsible for host_components resource requests.
  */
+@Api(value = "HostComponents", description = "Endpoint for host component specific operations")
 public class HostComponentService extends BaseService {
+  private static final String HOST_COMPONENT_REQUEST_TYPE = "org.apache.ambari.server.controller.ServiceComponentHostRequestSwagger";
+
+
   /**
    * Parent cluster id.
    */
@@ -71,19 +85,33 @@ public class HostComponentService extends BaseService {
   }
 
   /**
-   * Handles GET /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
+   * Handles GET /clusters/{clusterName}/hosts/{hostID}/host_components/{hostComponentID}
    * Get a specific host_component.
    *
    * @param headers           http headers
    * @param ui                uri info
-   * @param hostComponentName host_component id
-   * @return host_component resource representation
+   * @param hostComponentId   host_component id
+   * @return host_component   resource representation
    */
-  @GET @ApiIgnore // until documented
-  @Path("{hostComponentName}")
+  @GET
+  @Path("{hostComponentId}")
   @Produces("text/plain")
+  @ApiOperation(value = "Get the details of a given Host Component",
+          nickname = "HostComponentService#getHostComponent",
+          notes = "Returns the details of a hostComponent",
+          response = ServiceComponentHostResponse.ServiceComponentHostResponseSwagger.class,
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "HostRoles/*",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
   public Response getHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName, @QueryParam("format") String format) {
+                                   @PathParam("hostComponentId") String hostComponentId, @QueryParam("format") String format) {
 
     //todo: needs to be refactored when properly handling exceptions
     if (m_hostName == null) {
@@ -93,11 +121,11 @@ public class HostComponentService extends BaseService {
     }
 
     if (format != null && format.equals("client_config_tar")) {
-      return createClientConfigResource(body, headers, ui, hostComponentName);
+      return createClientConfigResource(body, headers, ui, hostComponentId);
     }
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentId));
   }
 
   /**
@@ -108,8 +136,30 @@ public class HostComponentService extends BaseService {
    * @param ui      uri info
    * @return host_component collection resource representation
    */
-  @GET @ApiIgnore // until documented
-  @Produces("text/plain")
+  @GET
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all Host Components",
+          nickname = "HostComponentService#getHostComponents",
+          notes = "Returns all Host Components.",
+          response = ServiceComponentHostResponse.ServiceComponentHostResponseSwagger.class,
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
+                  defaultValue = "HostRoles/cluster_name, HostRoles/component_name, HostRoles/host_name, HostRoles/id, " +
+                          "HostRoles/service_group_name, HostRoles/service_name",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
+                  defaultValue = "HostRoles/cluster_name.asc, HostRoles/component_name.asc, HostRoles/host_name.asc, " +
+                          "HostRoles/service_group_name.asc, HostRoles/service_name.asc",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
   public Response getHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui, @QueryParam("format") String format) {
     if (format != null && format.equals("client_config_tar")) {
       return createClientConfigResource(body, headers, ui, null);
@@ -129,33 +179,28 @@ public class HostComponentService extends BaseService {
    *
    * @return status code only, 201 if successful
    */
-  @POST @ApiIgnore // until documented
-  @Produces("text/plain")
+  @POST
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Creates a Host Component",
+          nickname = "HostComponentService#createHostComponents"
+  )
+  @ApiImplicitParams({
+          @ApiImplicitParam(dataType = HOST_COMPONENT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+          @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response createHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
         createHostComponentResource(m_clusterName, m_hostName, null));
-  }
-
-  /**
-   * Handles POST /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
-   * Create a specific host_component.
-   *
-   * @param body              http body
-   * @param headers           http headers
-   * @param ui                uri info
-   * @param hostComponentName host_component id
-   *
-   * @return host_component resource representation
-   */
-  @POST @ApiIgnore // until documented
-  @Path("{hostComponentName}")
-  @Produces("text/plain")
-  public Response createHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName) {
-
-    return handleRequest(headers, body, ui, Request.Type.POST,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
 
   /**
@@ -165,18 +210,33 @@ public class HostComponentService extends BaseService {
    * @param body              http body
    * @param headers           http headers
    * @param ui                uri info
-   * @param hostComponentName host_component id
+   * @param hostComponentId   host_component id
    *
    * @return information regarding updated host_component
    */
-  @PUT @ApiIgnore // until documented
-  @Path("{hostComponentName}")
-  @Produces("text/plain")
+  @PUT
+  @Path("{hostComponentId}")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Updates a given Host Component",
+          nickname = "HostComponentService#updateHostComponent"
+  )
+  @ApiImplicitParams({
+          @ApiImplicitParam(dataType = HOST_COMPONENT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+          @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updateHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                      @PathParam("hostComponentName") String hostComponentName) {
+                                      @PathParam("hostComponentId") String hostComponentId) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentId));
   }
 
   /**
@@ -189,8 +249,23 @@ public class HostComponentService extends BaseService {
    *
    * @return information regarding updated host_component resources
    */
-  @PUT @ApiIgnore // until documented
-  @Produces("text/plain")
+  @PUT
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Updates multiple Host Components",
+          nickname = "HostComponentService#updateHostComponents"
+  )
+  @ApiImplicitParams({
+          @ApiImplicitParam(dataType = HOST_COMPONENT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+          @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updateHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
@@ -203,18 +278,28 @@ public class HostComponentService extends BaseService {
    *
    * @param headers           http headers
    * @param ui                uri info
-   * @param hostComponentName host_component id
+   * @param hostComponentId   host_component id
    *
    * @return host_component resource representation
    */
   @DELETE @ApiIgnore // until documented
-  @Path("{hostComponentName}")
-  @Produces("text/plain")
+  @Path("{hostComponentId}")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes a hostComponent",
+          nickname = "HostComponentService#deleteHostComponent"
+  )
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response deleteHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName) {
+                                   @PathParam("hostComponentId") String hostComponentId) {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE,
-        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentId));
   }
 
   /**
@@ -227,22 +312,45 @@ public class HostComponentService extends BaseService {
    * @return host_component resource representation
    */
   @DELETE @ApiIgnore // until documented
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes multiple hostComponents",
+          nickname = "HostComponentService#deleteHostComponents"
+  )
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response deleteHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.DELETE,
         createHostComponentResource(m_clusterName, m_hostName, null));
   }
 
-  @GET @ApiIgnore // until documented
-  @Path("{hostComponentName}/processes")
-  @Produces("text/plain")
+  @GET
+  @Produces(MediaType.TEXT_PLAIN)
+  @Path("{hostComponentId}/processes")
+  @ApiOperation(value = "Get details of processes.",
+          nickname = "HostComponentService#getProcesses",
+          notes = "Returns the details of a host component processes.",
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "HostRoles/*",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
   public Response getProcesses(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("hostComponentName") String hostComponentName) {
+      @PathParam("hostComponentId") String hostComponentId) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Host, m_hostName);
-    mapIds.put(Resource.Type.HostComponent, hostComponentName);
+    mapIds.put(Resource.Type.HostComponent, hostComponentId);
 
     ResourceInstance ri = createResource(Resource.Type.HostComponentProcess, mapIds);
 
@@ -254,25 +362,25 @@ public class HostComponentService extends BaseService {
    *
    * @param clusterName       cluster name
    * @param hostName          host name
-   * @param hostComponentName host_component name
+   * @param hostComponentId   host_component id
    *
    * @return a host resource instance
    */
-  ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentName) {
+  ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentId) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Host, hostName);
-    mapIds.put(Resource.Type.HostComponent, hostComponentName);
+    mapIds.put(Resource.Type.HostComponent, hostComponentId);
 
     return createResource(Resource.Type.HostComponent, mapIds);
   }
 
   private Response createClientConfigResource(String body, HttpHeaders headers, UriInfo ui,
-                                              String hostComponentName) {
+                                              String hostComponentId) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Host, m_hostName);
-    mapIds.put(Resource.Type.Component, hostComponentName);
+    mapIds.put(Resource.Type.Component, hostComponentId);
 
     Response response = handleRequest(headers, body, ui, Request.Type.GET,
             createResource(Resource.Type.ClientConfig, mapIds));
@@ -284,10 +392,10 @@ public class HostComponentService extends BaseService {
 
     String filePrefixName;
 
-    if (StringUtils.isEmpty(hostComponentName)) {
+    if (StringUtils.isEmpty(hostComponentId)) {
       filePrefixName = m_hostName + "(" + Resource.InternalType.Host.toString().toUpperCase()+")";
     } else {
-      filePrefixName = hostComponentName;
+      filePrefixName = hostComponentId;
     }
 
     Validate.notNull(filePrefixName, "compressed config file name should not be null");

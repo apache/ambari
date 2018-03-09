@@ -18,22 +18,22 @@
 
 ------create tables---------
 CREATE TABLE registries (
- id NUMBER(19) NOT NULL,
- registry_name VARCHAR(255) NOT NULL,
- registry_type VARCHAR(255) NOT NULL,
- registry_uri VARCHAR(255) NOT NULL,
- CONSTRAINT PK_registries PRIMARY KEY (id),
- CONSTRAINT UQ_registry_name UNIQUE (registry_name));
+  id NUMBER(19) NOT NULL,
+  registry_name VARCHAR(255) NOT NULL,
+  registry_type VARCHAR(255) NOT NULL,
+  registry_uri VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_registries PRIMARY KEY (id),
+  CONSTRAINT UQ_registry_name UNIQUE (registry_name));
 
 CREATE TABLE mpacks (
- id NUMBER(19) NOT NULL,
- mpack_name VARCHAR(255) NOT NULL,
- mpack_version VARCHAR(255) NOT NULL,
- mpack_uri VARCHAR(255),
- registry_id NUMBER(19),
- CONSTRAINT PK_mpacks PRIMARY KEY (id),
- CONSTRAINT UQ_mpack_name_version UNIQUE(mpack_name, mpack_version),
- CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
+  id NUMBER(19) NOT NULL,
+  mpack_name VARCHAR(255) NOT NULL,
+  mpack_version VARCHAR(255) NOT NULL,
+  mpack_uri VARCHAR(255),
+  registry_id NUMBER(19),
+  CONSTRAINT PK_mpacks PRIMARY KEY (id),
+  CONSTRAINT UQ_mpack_name_version UNIQUE(mpack_name, mpack_version),
+  CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id));
 
 CREATE TABLE stack (
   stack_id NUMBER(19) NOT NULL,
@@ -43,6 +43,16 @@ CREATE TABLE stack (
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
   CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
+
+CREATE TABLE mpack_host_state (
+  id NUMBER(19) NOT NULL,
+  host_id NUMBER(19) NOT NULL,
+  mpack_id NUMBER(19) NOT NULL,
+  state VARCHAR2(32) NOT NULL,
+  CONSTRAINT PK_mpack_host_state PRIMARY KEY (id),
+  CONSTRAINT FK_mhs_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT FK_mhs_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id),
+  CONSTRAINT UQ_mpack_host_state UNIQUE(host_id, mpack_id));
 
 CREATE TABLE extension(
   extension_id NUMERIC(19) NOT NULL,
@@ -126,7 +136,8 @@ CREATE TABLE servicegroups (
   stack_id NUMBER(19) NOT NULL,
   CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id));
+  CONSTRAINT FK_servicegroups_stack_id FOREIGN KEY (stack_id) REFERENCES stack (stack_id),
+  CONSTRAINT UQ_TEMP_UNTIL_REAL_PK UNIQUE(id));
 
 CREATE TABLE servicegroupdependencies (
   id NUMBER(19) NOT NULL,
@@ -198,7 +209,7 @@ CREATE TABLE serviceconfig (
   CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
   CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_serviceconfig_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
-  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version));
+  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version)  );
 
 CREATE TABLE serviceconfighosts (
   service_config_id NUMBER(19) NOT NULL,
@@ -242,11 +253,13 @@ CREATE TABLE repo_version (
 
 CREATE TABLE repo_os (
   id NUMBER(19) NOT NULL,
-  repo_version_id NUMBER(19) NOT NULL,
+  repo_version_id NUMBER(19),
+  mpack_id NUMBER(19) NOT NULL,
   family VARCHAR(255) DEFAULT '' NOT NULL,
   ambari_managed NUMBER(1) DEFAULT 1,
   CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
-  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
+  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT FK_repo_os_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id));
 
 CREATE TABLE repo_definition (
   id NUMBER(19) NOT NULL,
@@ -269,6 +282,7 @@ CREATE TABLE repo_tags (
 CREATE TABLE servicecomponentdesiredstate (
   id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
+  component_type VARCHAR2(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   service_group_id NUMBER(19) NOT NULL,
   service_id NUMBER(19) NOT NULL,
@@ -285,6 +299,7 @@ CREATE TABLE hostcomponentdesiredstate (
   id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
+  component_type VARCHAR2(255) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
   service_group_id NUMBER(19) NOT NULL,
@@ -293,14 +308,16 @@ CREATE TABLE hostcomponentdesiredstate (
   maintenance_state VARCHAR2(32) NOT NULL,
   restart_required NUMBER(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
-  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_id, host_id, service_group_id, host_id, cluster_id),
+  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE TABLE hostcomponentstate (
   id NUMBER(19) NOT NULL,
+  host_component_desired_state_id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
+  component_type VARCHAR2(255) NOT NULL,
   version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
   current_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
@@ -308,7 +325,9 @@ CREATE TABLE hostcomponentstate (
   service_id NUMBER(19) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
+  CONSTRAINT UQ_hostcomponentstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_component_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
@@ -869,6 +888,7 @@ CREATE TABLE topology_request (
   action VARCHAR(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
+  raw_request_body CLOB NOT NULL,
   cluster_properties CLOB,
   cluster_attributes CLOB,
   description VARCHAR(1024),
@@ -987,6 +1007,7 @@ CREATE TABLE upgrade (
 CREATE TABLE upgrade_group (
   upgrade_group_id NUMBER(19) NOT NULL,
   upgrade_id NUMBER(19) NOT NULL,
+  lifecycle VARCHAR(64) DEFAULT 'UPGRADE' NOT NULL,
   group_name VARCHAR2(255) DEFAULT '' NOT NULL,
   group_title VARCHAR2(1024) DEFAULT '' NOT NULL,
   CONSTRAINT PK_upgrade_group PRIMARY KEY (upgrade_group_id),
@@ -1012,22 +1033,18 @@ CREATE TABLE upgrade_history(
   component_name VARCHAR2(255) NOT NULL,
   from_repo_version_id NUMBER(19) NOT NULL,
   target_repo_version_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  source_mpack_id NUMBER(19) NOT NULL,
+  target_mpack_id NUMBER(19) NOT NULL,
   CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
   CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
   CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT FK_upgrade_hist_target_repo FOREIGN KEY (target_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name)
-);
-
-CREATE TABLE servicecomponent_version(
-  id NUMBER(19) NOT NULL,
-  component_id NUMBER(19) NOT NULL,
-  repo_version_id NUMBER(19) NOT NULL,
-  state VARCHAR2(32) NOT NULL,
-  user_name VARCHAR2(255) NOT NULL,
-  CONSTRAINT PK_sc_version PRIMARY KEY (id),
-  CONSTRAINT FK_scv_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_scv_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id)
+  CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name),
+  CONSTRAINT FK_upgrade_hist_svc_grp_id FOREIGN KEY (service_group_id) REFERENCES servicegroups (id),
+  CONSTRAINT FK_upgrade_hist_src_mpack_id FOREIGN KEY (source_mpack_id) REFERENCES mpacks (id),
+  CONSTRAINT FK_upgrade_hist_tgt_mpack_id FOREIGN KEY (target_mpack_id) REFERENCES mpacks (id),
+  CONSTRAINT UQ_upgrade_hist_srvc_grp UNIQUE (upgrade_id, service_group_id)
 );
 
 CREATE TABLE ambari_operation_history(
@@ -1249,6 +1266,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('permission_
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('privilege_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('config_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_version_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('mpack_host_state_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_config_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_definition_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_group_id_seq', 0);
@@ -1284,7 +1302,6 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_s
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('ambari_operation_history_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_cluster_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_cluster_service_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_version_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentdesiredstate_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_service_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_mpack_instance_id_seq', 0);

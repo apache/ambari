@@ -52,7 +52,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
@@ -91,10 +90,6 @@ public class AmbariActionExecutionHelper {
 
   @Inject
   private Configuration configs;
-
-  @Inject
-  private RepositoryVersionHelper repoVersionHelper;
-
 
   /**
    * Validates the request to execute an action.
@@ -470,15 +465,6 @@ public class AmbariActionExecutionHelper {
       for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
         hostLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
       }
-
-      if (StringUtils.isNotBlank(serviceName)) {
-        Service service = cluster.getService(serviceName);
-        repoVersionHelper.addRepoInfoToHostLevelParams(cluster, actionContext, service.getDesiredRepositoryVersion(),
-            hostLevelParams, hostName);
-      } else {
-        repoVersionHelper.addRepoInfoToHostLevelParams(cluster, actionContext, null, hostLevelParams, hostName);
-      }
-
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {

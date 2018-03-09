@@ -23,23 +23,60 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.state.stack.RepoTag;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.gson.annotations.SerializedName;
 
 public class RepositoryInfo {
+  @JsonProperty("base_url")
+  @SerializedName("base_url")
   private String baseUrl;
+
+  @JsonProperty("os_type")
+  @SerializedName("os_type")
   private String osType;
+
+  @JsonProperty("repo_id")
+  @SerializedName("repo_id")
   private String repoId;
+
+  @JsonProperty("repo_name")
+  @SerializedName("repo_name")
   private String repoName;
+
+  @JsonProperty("distribution")
+  @SerializedName("distribution")
   private String distribution;
+
+  @JsonProperty("components")
+  @SerializedName("components")
   private String components;
+
+  @JsonProperty("mirrors_list")
+  @SerializedName("mirrors_list")
   private String mirrorsList;
+
+  @JsonProperty("default_base_url")
+  @SerializedName("default_base_url")
   private String defaultBaseUrl;
+
+  @JsonIgnore
   private boolean repoSaved = false;
+
+  @JsonProperty("unique")
+  @SerializedName("unique")
   private boolean unique = false;
+
+  @JsonProperty("ambari_managed")
+  @SerializedName("ambari_managed")
   private boolean ambariManagedRepositories = true;
+
+  @JsonProperty("tags")
+  @SerializedName("tags")
   private Set<RepoTag> tags = new HashSet<>();
 
   /**
@@ -187,8 +224,12 @@ public class RepositoryInfo {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     RepositoryInfo that = (RepositoryInfo) o;
     return repoSaved == that.repoSaved &&
         unique == that.unique &&

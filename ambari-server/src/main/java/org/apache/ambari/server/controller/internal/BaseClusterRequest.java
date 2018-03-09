@@ -29,6 +29,7 @@ import org.apache.ambari.server.api.predicate.Token;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.Configuration;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.topology.TopologyRequestUtil;
 
 /**
  * Provides common cluster request functionality.
@@ -52,6 +54,11 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   protected final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
   protected ProvisionAction provisionAction;
+
+  /**
+   * The raw request body. We would like to persist it.
+   */
+  protected String rawRequestBody;
 
   /**
    * cluster id
@@ -119,6 +126,19 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   }
 
   /**
+   * @return the raw request body in JSON string
+   */
+  public String getRawRequestBody() {
+    return rawRequestBody;
+  }
+
+  @Override
+  public Set<StackId> getStackIds() {
+    return TopologyRequestUtil.getStackIdsFromRequest(
+      TopologyRequestUtil.getPropertyMap(rawRequestBody));
+  }
+
+  /**
    * Validate that all properties specified in the predicate are valid for the Host resource.
    *
    * @param predicate  predicate to validate
@@ -179,6 +199,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   public SecurityConfiguration getSecurityConfiguration() {
     return securityConfiguration;
   }
+
 
   /**
    * Get the host resource provider instance.

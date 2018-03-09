@@ -183,7 +183,7 @@ public class BackgroundCustomCommandExecutionTest {
 
     clusters.getCluster(clusterName);
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, STACK_ID.getStackId());
     createService(clusterName, serviceGroupName, "HDFS", null);
 
     createServiceComponent(clusterName, serviceGroupName, "HDFS","NAMENODE", State.INIT);
@@ -224,13 +224,13 @@ public class BackgroundCustomCommandExecutionTest {
   private void createServiceComponent(String clusterName, String serviceGroupName,
       String serviceName, String componentName, State desiredState)
       throws AmbariException, AuthorizationException {
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, componentName, desiredState != null ? desiredState.name() : null);
     ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
   private void createServiceComponentHost(String clusterName, String serviceGroupName, String serviceName, String componentName, String hostname, State desiredState)
       throws AmbariException, AuthorizationException {
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, componentName, hostname, desiredState != null ? desiredState.name() : null);
     controller.createHostComponents(Collections.singleton(r));
   }
 
