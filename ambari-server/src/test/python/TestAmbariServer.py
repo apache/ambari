@@ -136,7 +136,7 @@ CURR_AMBARI_VERSION = "2.0.0"
 @patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir", new = MagicMock(return_value = "/var/lib/pgsql/data"))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_running_status", new = MagicMock(return_value = "running"))
-class TestAmbariServer:#(TestCase):
+class TestAmbariServer(TestCase):
   def setUp(self):
     out = StringIO.StringIO()
     sys.stdout = out
@@ -3171,7 +3171,7 @@ class TestAmbariServer:#(TestCase):
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   def test_check_ambari_java_version_is_valid(self, popenMock):
     # case 1:  jdk7 is picked for stacks
     properties = Properties()
