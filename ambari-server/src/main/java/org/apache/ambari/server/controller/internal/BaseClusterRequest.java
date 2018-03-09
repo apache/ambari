@@ -244,6 +244,12 @@ public abstract class BaseClusterRequest implements TopologyRequest {
     return entity;
   }
 
+  /**
+   * Converts a {@link HostGroupInfo} to a {@link TopologyHostGroupEntity}
+   * @param groupInfo the {@link HostGroupInfo} to convert
+   * @param topologyRequestEntity the base entity to add the host group to
+   * @return the resulting {@link TopologyHostGroupEntity}
+   */
   private TopologyHostGroupEntity toHostGroupEntity(HostGroupInfo groupInfo, TopologyRequestEntity topologyRequestEntity) {
     TopologyHostGroupEntity entity = new TopologyHostGroupEntity();
     entity.setGroupAttributes(JsonUtils.toJson(groupInfo.getConfiguration().getAttributes()));
@@ -268,9 +274,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
       for (String hostName : hosts) {
         TopologyHostInfoEntity hostInfoEntity = new TopologyHostInfoEntity();
         hostInfoEntity.setTopologyHostGroupEntity(entity);
-        if (groupInfo.getPredicate() != null) {
-          hostInfoEntity.setPredicate(groupInfo.getPredicateString());
-        }
+        hostInfoEntity.setPredicate(groupInfo.getPredicateString());
         hostInfoEntity.setFqdn(hostName);
         hostInfoEntity.setRackInfo(groupInfo.getHostRackInfo().get(hostName));
         hostInfoEntity.setHostCount(0);
