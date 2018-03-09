@@ -138,6 +138,14 @@ if security_enabled:
   zk_principal_user = zk_principal_name.split('/')[0]
   zk_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client')
 
+  logsearch_solr_service_users = []
+  logsearch_kerberos_service_user = get_name_from_principal(logsearch_kerberos_principal)
+  logsearch_solr_service_users.append(logsearch_kerberos_service_user)
+  logsearch_kerberos_service_users_str = default('configurations/logsearch-env/logsearch_kerberos_service_users', '')
+  if not logsearch_kerberos_service_users_str:
+    logsearch_kerberos_service_users = logsearch_kerberos_service_users_str.split(',')
+    logsearch_solr_service_users.extend(logsearch_kerberos_service_users)
+
 logsearch_spnego_host = config['configurations']['logsearch-properties']['logsearch.spnego.kerberos.host'].replace('_HOST', _hostname_lowercase)
 
 #####################################

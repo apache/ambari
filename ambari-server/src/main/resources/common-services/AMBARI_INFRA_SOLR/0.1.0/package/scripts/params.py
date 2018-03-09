@@ -155,6 +155,14 @@ if security_enabled:
   ranger_audit_names_from_principals = [ get_name_from_principal(x) for x in ranger_audit_principals ]
   default_ranger_audit_users = ','.join(ranger_audit_names_from_principals)
 
+  infra_solr_logsearch_service_users = []
+  logsearch_kerberos_service_user = get_name_from_principal(default('configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
+  infra_solr_logsearch_service_users.append(logsearch_kerberos_service_user)
+  logsearch_kerberos_service_users_str = default('configurations/logsearch-env/logsearch_kerberos_service_users', '')
+  if not logsearch_kerberos_service_users_str:
+    logsearch_kerberos_service_users = logsearch_kerberos_service_users_str.split(',')
+    infra_solr_logsearch_service_users.extend(logsearch_kerberos_service_users)
+
 infra_solr_ranger_audit_service_users = format(config['configurations']['infra-solr-security-json']['infra_solr_ranger_audit_service_users']).split(',')
 infra_solr_security_json_content = config['configurations']['infra-solr-security-json']['content']
 
@@ -177,7 +185,6 @@ logsearch_audit_logs_collection = default('configurations/logsearch-properties/l
 
 ranger_admin_kerberos_service_user = get_name_from_principal(default('configurations/ranger-admin-site/ranger.admin.kerberos.principal', 'rangeradmin'))
 atlas_kerberos_service_user = get_name_from_principal(default('configurations/application-properties/atlas.authentication.principal', 'atlas'))
-logsearch_kerberos_service_user = get_name_from_principal(default('configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
 logfeeder_kerberos_service_user = get_name_from_principal(default('configurations/logfeeder-env/logfeeder_kerberos_principal', 'logfeeder'))
 infra_solr_kerberos_service_user = get_name_from_principal(default('configurations/infra-solr-env/infra_solr_kerberos_principal', 'infra-solr'))
 
