@@ -19,6 +19,7 @@
 package org.apache.ambari.server.bootstrap;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -68,7 +69,8 @@ public class BootStrapResourceTest extends JerseyTest {
     protected void configure() {
       BootStrapImpl bsImpl = mock(BootStrapImpl.class);
       when(bsImpl.getStatus(0)).thenReturn(generateDummyBSStatus());
-      when(bsImpl.runBootStrap(any(SshHostInfo.class))).thenReturn(generateBSResponse());
+      when(bsImpl.runBootStrap(any(SshHostInfo.class), eq(false))).thenReturn(generateBSResponse());
+      when(bsImpl.runBootStrap(any(SshHostInfo.class), eq(true))).thenReturn(generateBSResponse());
       bind(BootStrapImpl.class).toInstance(bsImpl);
       requestStaticInjection(BootStrapResource.class);
     }
@@ -129,6 +131,15 @@ public class BootStrapResourceTest extends JerseyTest {
   public void bootStrapPost() throws UniformInterfaceException, JSONException {
     WebResource webResource = resource();
     JSONObject object = webResource.path("/bootstrap").type(
+        MediaType.APPLICATION_JSON).post(JSONObject.class, createDummySshInfo());
+
+    Assert.assertEquals("OK", object.get("status"));
+  }
+
+  @Test
+  public void bootStrapValidationPost() throws UniformInterfaceException, JSONException {
+    WebResource webResource = resource();
+    JSONObject object = webResource.path("/bootstrap/validations").type(
         MediaType.APPLICATION_JSON).post(JSONObject.class, createDummySshInfo());
 
     Assert.assertEquals("OK", object.get("status"));
