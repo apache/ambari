@@ -37,6 +37,7 @@ import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
+
 import com.google.common.base.Objects;
 
 /**
