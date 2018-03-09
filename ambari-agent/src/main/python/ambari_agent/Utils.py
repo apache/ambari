@@ -217,11 +217,11 @@ def lazy_property(undecorated):
 
   return decorated
 
-def execute_with_retries(tries, try_sleep, rety_exception_class, func, *args, **kwargs):
+def execute_with_retries(tries, try_sleep, retry_exception_class, func, *args, **kwargs):
   for i in range(tries):
     try:
       func(*args, **kwargs)
-    except rety_exception_class:
+    except retry_exception_class:
       if i==tries-1:
         raise
       time.sleep(try_sleep)
