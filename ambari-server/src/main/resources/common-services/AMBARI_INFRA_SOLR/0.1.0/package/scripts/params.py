@@ -156,9 +156,9 @@ if security_enabled:
   default_ranger_audit_users = ','.join(ranger_audit_names_from_principals)
 
   infra_solr_logsearch_service_users = []
-  logsearch_kerberos_service_user = get_name_from_principal(default('configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
+  logsearch_kerberos_service_user = get_name_from_principal(default('/configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
   infra_solr_logsearch_service_users.append(logsearch_kerberos_service_user)
-  logsearch_kerberos_service_users_str = str(default('configurations/logsearch-env/logsearch_kerberos_service_users', ''))
+  logsearch_kerberos_service_users_str = str(default('/configurations/logsearch-env/logsearch_kerberos_service_users', ''))
   if logsearch_kerberos_service_users_str and logsearch_kerberos_service_users_str.strip():
     logsearch_kerberos_service_users = logsearch_kerberos_service_users_str.split(',')
     infra_solr_logsearch_service_users.extend(logsearch_kerberos_service_users)
