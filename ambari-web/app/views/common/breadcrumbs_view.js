@@ -204,6 +204,9 @@ App.BreadcrumbsView = Em.View.extend({
           if (!route && !disabled) {
             currentState.breadcrumbs.route = currentState.absoluteRoute(App.router).replace('/main/', '');
           }
+          if (typeof label === "function") {
+            currentState.breadcrumbs.label = label();
+          }
           items.pushObject(currentState.breadcrumbs);
         }
       }

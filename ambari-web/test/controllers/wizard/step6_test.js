@@ -65,6 +65,7 @@ function getController() {
     m.push(obj);
   });
 
+  c.set('wizardController', App.InstallerController.create());
   c.set('content.hosts', h);
   c.set('content.masterComponentHosts', m);
   c.set('isMasters', false);
@@ -100,8 +101,8 @@ describe('App.WizardStep6Controller', function () {
       }
       controller.showValidationIssuesAcceptBox(callback);
       jQuery.when(deffer.promise()).then(function(data) {
-        expect(data).to.equal(true);    
-      }); 
+        expect(data).to.equal(true);
+      });
     });
   });
 
@@ -129,6 +130,12 @@ describe('App.WizardStep6Controller', function () {
     it('should make checkbox checked', function () {
       controller.set('hosts', hostsObj);
       controller.set('content.clients', clientComponents);
+      controller.set('content.selectedMpacks', [
+        {
+          name: "mpack",
+          version: "1"
+        }
+      ]);
       controller.selectAllNodes(obj);
       expect(controller.get('hosts')).to.eql(Em.A([Em.Object.create({
         hasMaster: false,
@@ -169,6 +176,12 @@ describe('App.WizardStep6Controller', function () {
     it('should uncheck checkbox', function () {
       controller.set('hosts', hostsObj);
       controller.set('content.clients', clientComponents);
+      controller.set('content.selectedMpacks', [
+        {
+          name: "mpack",
+          version: "1"
+        }
+      ]);
       controller.deselectAllNodes(obj);
       expect(controller.get('hosts')).to.eql(Em.A([Em.Object.create({
         hasMaster: false,
@@ -1338,6 +1351,12 @@ describe('App.WizardStep6Controller', function () {
 
     beforeEach(function () {
       controller.get('content').setProperties({
+        selectedMpacks: [
+          {
+            name: "mpack",
+            version: "1"
+          }
+        ],
         recommendations: {
           blueprint: {
             host_groups: [
@@ -1856,7 +1875,7 @@ describe('App.WizardStep6Controller', function () {
     });
 
   });
-   
+
   describe('#anyHostErrors', function () {
 
     var tests = [
@@ -1880,11 +1899,11 @@ describe('App.WizardStep6Controller', function () {
         controller.set('hosts', test.host);
         expect(controller.get('anyHostErrors')).to.equal(test.result);
       })
-    });   
+    });
   });
 
 
-   
+
   describe('#anyHostWarnings', function () {
 
     var tests = [
@@ -1908,7 +1927,7 @@ describe('App.WizardStep6Controller', function () {
         controller.set('hosts', test.host);
         expect(controller.get('anyHostWarnings')).to.equal(test.result);
       })
-    });   
+    });
   });
 
   describe('#enableCheckboxesForDependentComponents', function () {

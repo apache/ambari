@@ -19,6 +19,7 @@
 //load all mappers
 require('mappers/server_data_mapper');
 require('mappers/stack_service_mapper');
+require('mappers/mpack_service_mapper');
 require('mappers/stack_mapper');
 require('mappers/stack_version_mapper');
 require('mappers/configs/themes_mapper');

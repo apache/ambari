@@ -22,7 +22,7 @@ App.stackMapper = App.QuickDataMapper.create({
   modelOS: App.OperatingSystem,
   modelRepo: App.Repository,
   modelServices: App.ServiceSimple,
-  
+
   configStack: {
     id: 'id',
     stack_name: 'stack_name',
@@ -51,7 +51,7 @@ App.stackMapper = App.QuickDataMapper.create({
       item: 'id'
     }
   },
-  
+
   configOS: {
     id: 'id',
     os_type: 'os_type',
@@ -72,11 +72,11 @@ App.stackMapper = App.QuickDataMapper.create({
     display_name: 'display_name',
     latest_version: 'latest_version'
   },
-  
+
   configRepository: {
     id: 'id',
     base_url: 'base_url',
-    base_url_init: 'base_url',
+    base_url_init: 'public_url',
     default_base_url: 'default_base_url',
     latest_base_url: 'latest_base_url',
     mirrors_list: 'mirrors_list',
@@ -88,9 +88,10 @@ App.stackMapper = App.QuickDataMapper.create({
     operating_system_id: 'os_id',
     components: 'components',
     distribution: 'distribution',
+    unique: 'unique',
     tags: 'tags'
   },
-  
+
   map: function(json) {
     var modelStack = this.get('modelStack');
     var modelOS = this.get('modelOS');
@@ -105,6 +106,7 @@ App.stackMapper = App.QuickDataMapper.create({
     if (!stack.id) {
       stack.id = stack.stack_name + '-' + stack.stack_version + '-' + stack.repository_version; //HDP-2.5-2.5.0.0
     }
+
     var operatingSystemsArray = [];
     var servicesArray = [];
 
@@ -126,7 +128,7 @@ App.stackMapper = App.QuickDataMapper.create({
       operatingSystems.is_selected = ops.isSelected == true || ops.isSelected == undefined;
       resultOS.push(this.parseIt(operatingSystems, this.get('configOS')));
       operatingSystemsArray.pushObject(operatingSystems);
-        
+
     }, this);
 
     stack.stack_services.forEach(function(service) {

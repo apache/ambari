@@ -22,6 +22,7 @@
 
 require('templates/main/service/info/summary/base');
 require('templates/common/progress');
+require('templates/common/mpackComparison');
 require('templates/main/alerts/alert_instance/status');
 require("templates/main/service/widgets/create/step2_number");
 require("templates/main/service/widgets/create/step2_template");

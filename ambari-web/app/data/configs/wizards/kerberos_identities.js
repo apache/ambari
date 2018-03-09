@@ -24,21 +24,21 @@ module.exports = {
       "name": "smokeuser_principal_name",
       "displayName": "Smoke user principal",
       "category": "Ambari Principals",
-      "filename": "cluster-env.xml",
+      "filename": "cluster-settings.xml",
       "index": 1
     },
     {
       "name": "smokeuser_keytab",
       "displayName": "Smoke user keytab",
       "category": "Ambari Principals",
-      "filename": "cluster-env.xml",
+      "filename": "cluster-settings.xml",
       "index": 2
     },
     {
       "name": "ambari-server_keytab",
       "displayName": "Ambari Keytab",
       "category": "Ambari Principals",
-      "filename": "cluster-env.xml",
+      "filename": "cluster-settings.xml",
       "index": 3
     },
     {

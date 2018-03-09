@@ -34,8 +34,6 @@ App.Stack = DS.Model.extend({
   operatingSystems: DS.hasMany('App.OperatingSystem'),
   isSelected: DS.attr('boolean', {defaultValue: false}),
 
-  versionInfoId: null,
-
   stackNameVersion: Em.computed.concat('-', 'stackName', 'stackVersion'),
 
   isPatch: Em.computed.equal('type', 'PATCH'),

@@ -48,18 +48,33 @@ module.exports = {
    * Convert timestamp to date-string
    * default format - 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES'
    *
-   * @param {number} timestamp
-   * @param {bool} format
+   * @param {number or object} timestamp
+   * @param {string} format
    * @return {*} date
    * @method dateFormat
    */
   dateFormat: function (timestamp, format) {
-    if (!validator.isValidInt(timestamp)) {
-      return timestamp;
+    let dateToFormat;
+    
+    if (typeof timestamp === "number") {
+      //integer timestamp provided
+      if (validator.isValidInt(timestamp)) {
+        dateToFormat = new Date(timestamp);
+      } else {
+        return timestamp;
+      }
+    } else {
+      //Date object provided
+      if (typeof timestamp === "object" && timestamp instanceof Date) {
+        dateToFormat = timestamp;
+      } else {
+        return timestamp;
+      }
     }
+
     format = format || 'ddd, MMM DD, YYYY HH:mm';
 
-    return moment((new Date(timestamp))).format(format);
+    return moment((dateToFormat)).format(format);
   },
 
   /**

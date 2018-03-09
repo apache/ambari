@@ -74,7 +74,7 @@ describe('App.WizardStep2Controller', function () {
 
   App.TestAliases.testAsComputedAlias(getController(), 'agentUser', 'content.installOptions.agentUser', 'string');
 
-  App.TestAliases.testAsComputedOr(getController(), 'isSubmitDisabled', ['hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError', 'App.router.btnClickInProgress']);
+  App.TestAliases.testAsComputedOr(getController(), 'isSubmitDisabled', ['hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError', 'App.router.btnClickInProgress', 'preRegisteredHostsError']);
 
   describe('#hostNames', function() {
     it('should be equal to content.installOptions.hostNames', function() {
@@ -391,15 +391,6 @@ describe('App.WizardStep2Controller', function () {
       });
       expect(controller.evaluateStep()).to.equal(false);
     });
-
-    it('should return false if isPattern is true', function () {
-      var controller = App.WizardStep2Controller.create({
-        hostNames: 'apache.ambari',
-        isPattern: true,
-        parseHostNamesAsPatternExpression: Em.K
-      });
-      expect(controller.evaluateStep()).to.equal(false);
-    })
   });
 
   describe('#parseHostNamesAsPatternExpression()', function () {
@@ -454,13 +445,11 @@ describe('App.WizardStep2Controller', function () {
 
     beforeEach(function () {
       sinon.stub(c, 'warningPopup', Em.K);
-      sinon.stub(c, 'manualInstallPopup', Em.K);
       sinon.stub(App.router, 'send', Em.K);
     });
 
     afterEach(function () {
       c.warningPopup.restore();
-      c.manualInstallPopup.restore();
       App.router.send.restore();
     });
 
@@ -473,16 +462,6 @@ describe('App.WizardStep2Controller', function () {
       var r = c.proceedNext(false);
       expect(r).to.equal(false);
       expect(c.warningPopup.calledOnce).to.equal(true);
-    });
-
-    it('should call manualInstallPopup if manualInstall is true', function () {
-      c.reopen({
-        hostNames: '',
-        manualInstall: true
-      });
-      var r = c.proceedNext(true);
-      expect(r).to.equal(false);
-      expect(c.manualInstallPopup.calledOnce).to.equal(true);
     });
 
     it ('should save hosts and proceed next if manualInstall is false', function() {
@@ -542,66 +521,6 @@ describe('App.WizardStep2Controller', function () {
     });
   });
 
-  describe('#hostNamePatternPopup', function() {
-    beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
-      sinon.stub(c, 'proceedNext', Em.K);
-    });
-    afterEach(function() {
-      App.ModalPopup.show.restore();
-      c.proceedNext.restore();
-    });
-    it('should call App.ModalPopup.show', function() {
-      c.hostNamePatternPopup();
-      expect(App.ModalPopup.show.calledOnce).to.equal(true);
-    });
-    it('should proceed next on primary', function() {
-      c.hostNamePatternPopup().onPrimary();
-      expect(c.proceedNext.calledOnce).to.equal(true);
-    });
-  });
-
-  describe('#manualInstallPopup', function() {
-    beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
-      sinon.stub(App.router, 'send', Em.K);
-      sinon.stub(c, 'saveHosts', Em.K);
-    });
-    afterEach(function() {
-      App.ModalPopup.show.restore();
-      App.router.send.restore();
-      c.saveHosts.restore();
-    });
-    it('should call App.ModalPopup.show', function() {
-      c.manualInstallPopup();
-      expect(App.ModalPopup.show.calledOnce).to.equal(true);
-    });
-    it('should save hosts and go next on primary', function() {
-      c.manualInstallPopup().onPrimary();
-      expect(c.saveHosts.calledOnce).to.equal(true);
-      expect(App.router.send.calledWith('next')).to.equal(true);
-    });
-  });
-
-  describe('#manualInstallWarningPopup', function() {
-    beforeEach(function() {
-      sinon.spy(App.ModalPopup, 'show');
-    });
-    afterEach(function() {
-      App.ModalPopup.show.restore();
-    });
-    it('should call App.ModalPopup.show if content.installOptions.useSsh is false', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {useSsh: false}}});
-      controller.manualInstallWarningPopup();
-      expect(App.ModalPopup.show.calledOnce).to.equal(true);
-    });
-    it('shouldn\'t call App.ModalPopup.show if content.installOptions.useSsh is true', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {useSsh: true}}});
-      controller.manualInstallWarningPopup();
-      expect(App.ModalPopup.show.called).to.equal(false);
-    });
-  });
-
   describe('#setAmbariJavaHome', function() {
 
     it('should do ajax-request', function() {
@@ -651,5 +570,39 @@ describe('App.WizardStep2Controller', function () {
       expect(Em.keys(c.get('content.hosts'))).to.eql(['h1']);
     });
   });
+
+  describe('#useSshRegistration()', function() {
+
+    var controller = App.WizardStep2Controller.create();
+
+    it('should set manualInstall to false', function() {
+      controller.set('content', {'installOptions': {'hostNames': 'h1', 'manualInstall': true, 'useSsh': false }});
+      controller.useSshRegistration();
+      expect(controller.content.installOptions.manualInstall).to.equal(false);
+    });
+
+    it('should set useSsh to true', function() {
+      controller.set('content', {'installOptions': {'hostNames': 'h1', 'manualInstall': true, 'useSsh': false }});
+      controller.useSshRegistration();
+      expect(controller.content.installOptions.useSsh).to.equal(true);
+    });
+  });
+
+  describe('#useManualInstall()', function() {
+
+      var controller = App.WizardStep2Controller.create();
+
+      it('should set manualInstall to true', function() {
+        controller.set('content', {'installOptions': {'hostNames': 'h1', 'manualInstall': false, 'useSsh': true }});
+        controller.useManualInstall();
+        expect(controller.content.installOptions.manualInstall).to.equal(true);
+      });
+
+      it('should set useSsh to false', function() {
+        controller.set('content', {'installOptions': {'hostNames': 'h1', 'manualInstall': false, 'useSsh': true }});
+        controller.useManualInstall();
+        expect(controller.content.installOptions.useSsh).to.equal(false);
+      });
+    });
 
 });

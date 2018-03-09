@@ -95,7 +95,7 @@ App.WizardStep3View = App.TableView.extend({
       this.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.installing'), hostsBootStatus: 'RUNNING'}),
       this.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.registering'), hostsBootStatus: 'REGISTERING'}),
       this.categoryObject.create({value: Em.I18n.t('common.success'), hostsBootStatus: 'REGISTERED' }),
-      this.categoryObject.create({value: Em.I18n.t('common.fail'), hostsBootStatus: 'FAILED', last: true })
+      this.categoryObject.create({value: Em.I18n.t('common.failed'), hostsBootStatus: 'FAILED', last: true })
     ];
   }.property(),
 
@@ -160,6 +160,19 @@ App.WizardStep3View = App.TableView.extend({
     });
     this.set('noHostsSelected', noHostsSelected);
     this.set('selectedHostsCount', selectedHostsCount);
+  },
+
+  /**
+   * Remove selected hosts (click-handler)
+   * @return App.ModalPopup
+   * @method removeSelectedHosts
+   */
+  removeSelectedHosts: function () {
+    if(!this.get('noHostsSelected')) {
+      var selectedHosts = this.get('content').filterProperty('isChecked', true);
+      return this.get('controller').removeHosts(selectedHosts);
+    }
+    return false;
   },
 
   /**
