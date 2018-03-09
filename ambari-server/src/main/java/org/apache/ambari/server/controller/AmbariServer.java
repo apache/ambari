@@ -386,6 +386,7 @@ public class AmbariServer {
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
+      rootServlet.setInitParameter("precompressed", "gzip=.gz");
       rootServlet.setInitOrder(1);
 
       /* Configure default servlet for agent server */
