@@ -40,7 +40,7 @@ class TestStormServiceCheck(TestStormBase):
       content = StaticFile('wordCount.jar'),
       owner="storm"
     )
-    self.assertResourceCalled('Execute', 'storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount',
+    self.assertResourceCalled('Execute', 'storm jar /tmp/wordCount.jar org.apache.storm.starter.WordCountTopology WordCount',
       logoutput = True,
       path = ['/usr/hdp/current/storm-client/bin'],
       user = 'storm'
