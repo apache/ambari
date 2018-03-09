@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 
@@ -191,8 +193,12 @@ public class ServiceResponse {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceResponse that = (ServiceResponse) o;
 
@@ -302,12 +308,16 @@ public class ServiceResponse {
   /**
    * @param id
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersionId(Long id) {
     desiredRepositoryVersionId = id;
   }
 
   /**
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public Long getDesiredRepositoryVersionId() {
     return desiredRepositoryVersionId;
   }

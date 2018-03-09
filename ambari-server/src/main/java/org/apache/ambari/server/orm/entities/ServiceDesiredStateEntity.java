@@ -29,6 +29,8 @@ import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 
@@ -38,7 +40,7 @@ import org.apache.ambari.server.state.State;
 public class ServiceDesiredStateEntity {
 
   @Id
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)  
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 
   @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
@@ -54,7 +56,7 @@ public class ServiceDesiredStateEntity {
   private State desiredState = State.INIT;
 
   @Basic
-  @Column(name = "desired_host_role_mapping", nullable = false, insertable = true, updatable = true, length = 10)  
+  @Column(name = "desired_host_role_mapping", nullable = false, insertable = true, updatable = true, length = 10)
   private int desiredHostRoleMapping = 0;
 
   @Column(name = "maintenance_state", nullable = false, insertable = true, updatable = true)
@@ -76,6 +78,8 @@ public class ServiceDesiredStateEntity {
   /**
    * The desired repository that the service should be on.
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   @ManyToOne
   @JoinColumn(name = "desired_repo_version_id", unique = false, nullable = false, insertable = true, updatable = true)
   private RepositoryVersionEntity desiredRepositoryVersion;
@@ -120,6 +124,8 @@ public class ServiceDesiredStateEntity {
     this.desiredHostRoleMapping = desiredHostRoleMapping;
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public StackEntity getDesiredStack() {
     return desiredRepositoryVersion.getStack();
   }
@@ -215,6 +221,8 @@ public class ServiceDesiredStateEntity {
    *
    * @return the desired repository (never {@code null}).
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionEntity getDesiredRepositoryVersion() {
     return desiredRepositoryVersion;
   }
@@ -225,6 +233,8 @@ public class ServiceDesiredStateEntity {
    * @param desiredRepositoryVersion
    *          the desired repository (not {@code null}).
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
     this.desiredRepositoryVersion = desiredRepositoryVersion;
   }

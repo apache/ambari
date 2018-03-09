@@ -49,7 +49,7 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
                                        String origValue,
                                        Map<String, Map<String, String>> properties,
                                        ClusterTopology topology) {
-      PropertyUnit stackUnit = PropertyUnit.of(topology.getBlueprint().getStack(), serviceName, configType, propertyName);
+      PropertyUnit stackUnit = PropertyUnit.of(topology.getStack(), serviceName, configType, propertyName);
       PropertyValue value = PropertyValue.of(propertyName, origValue);
       if (value.hasUnit(stackUnit)) {
         return value.toString();

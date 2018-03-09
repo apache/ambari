@@ -42,9 +42,9 @@ public class YarnServiceCalculatedStateTest extends GeneralServiceCalculatedStat
 
   @Override
   protected void createComponentsAndHosts() throws Exception {
-    ServiceComponent masterComponent = service.addServiceComponent("RESOURCEMANAGER");
-    ServiceComponent secondMasterComponent = service.addServiceComponent("NODEMANAGER");
-    ServiceComponent clientComponent = service.addServiceComponent("YARN_CLIENT");
+    ServiceComponent masterComponent = service.addServiceComponent("RESOURCEMANAGER", "RESOURCEMANAGER");
+    ServiceComponent secondMasterComponent = service.addServiceComponent("NODEMANAGER", "NODEMANAGER");
+    ServiceComponent clientComponent = service.addServiceComponent("YARN_CLIENT", "YARN_CLIENT");
 
     for (String hostName: hosts){
       clusters.addHost(hostName);

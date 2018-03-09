@@ -41,6 +41,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -150,6 +151,19 @@ public class MpacksService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.GET,
             createMpackResource(id));
   }
+
+  /**
+   * Handles ANY {id}/operating_systems request
+   *
+   * @return operating system service
+   */
+  // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
+  @Path("{id}/operating_systems")
+  public OperatingSystemService getOperatingSystemsHandler(
+      @ApiParam @PathParam("id") String mpackId) {
+    return new OperatingSystemService(mpackId);
+  }
+
 
   @DELETE
   @Path("{id}")

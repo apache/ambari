@@ -90,12 +90,12 @@ public class CompatibleRepositoryVersionService extends BaseService {
    * @return operating systems service
    */
   @Path("{repositoryVersionId}/operating_systems")
-  public OperatingSystemService getOperatingSystemsHandler(@PathParam("repositoryVersionId") String repositoryVersionId) {
+  public OperatingSystemReadOnlyService getOperatingSystemsHandler(@PathParam("repositoryVersionId") String repositoryVersionId) {
     Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.CompatibleRepositoryVersion, repositoryVersionId);
 
-    return new OperatingSystemService(mapIds);
+    return new OperatingSystemReadOnlyService(mapIds);
   }
 
   /**

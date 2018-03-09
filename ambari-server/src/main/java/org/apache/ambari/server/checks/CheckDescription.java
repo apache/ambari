@@ -88,65 +88,12 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following hosts must have version {{version}} installed: {{fails}}.").build());
 
-  public static CheckDescription SECONDARY_NAMENODE_MUST_BE_DELETED = new CheckDescription("SECONDARY_NAMENODE_MUST_BE_DELETED",
-    PrereqCheckType.HOST,
-    "The SNameNode component must be deleted from all hosts",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: %s.").build());
-
-  public static CheckDescription SERVICES_HIVE_MULTIPLE_METASTORES = new CheckDescription("SERVICES_HIVE_MULTIPLE_METASTORES",
-    PrereqCheckType.SERVICE,
-    "Hive Metastore Availability",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "Multiple Hive Metastore instances are recommended for Rolling Upgrade. This ensures that there is at least one Metastore running during the upgrade process.").build());
-
   public static CheckDescription SERVICES_MAINTENANCE_MODE = new CheckDescription("SERVICES_MAINTENANCE_MODE",
     PrereqCheckType.SERVICE,
     "No services can be in Maintenance Mode",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following Services must not be in Maintenance Mode: {{fails}}.").build());
-
-  public static CheckDescription SERVICES_MR_DISTRIBUTED_CACHE = new CheckDescription("SERVICES_MR_DISTRIBUTED_CACHE",
-    PrereqCheckType.SERVICE,
-    "MapReduce should reference Hadoop libraries from the distributed cache in HDFS",
-    new ImmutableMap.Builder<String, String>()
-      .put(ServicesMapReduceDistributedCacheCheck.KEY_APP_CLASSPATH,
-          "The mapred-site.xml property mapreduce.application.classpath should be set.")
-      .put(ServicesMapReduceDistributedCacheCheck.KEY_FRAMEWORK_PATH,
-          "The mapred-site.xml property mapreduce.application.framework.path should be set.")
-      .put(ServicesMapReduceDistributedCacheCheck.KEY_NOT_DFS,
-          "The mapred-site.xml property mapreduce.application.framework.path or the core-site.xml property fs.defaultFS should point to *dfs:/ url.").build());
-
-  public static CheckDescription SERVICES_NAMENODE_HA = new CheckDescription("SERVICES_NAMENODE_HA",
-    PrereqCheckType.SERVICE,
-    "NameNode High Availability must be enabled",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "NameNode High Availability is not enabled. Verify that dfs.internal.nameservices property is present in hdfs-site.xml.").build());
-
-  public static CheckDescription SERVICES_NAMENODE_TRUNCATE = new CheckDescription("SERVICES_NAMENODE_TRUNCATE",
-    PrereqCheckType.SERVICE,
-    "NameNode Truncate must not be allowed",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "NameNode Truncate is allowed. Verify that dfs.allow.truncate is set to 'false' in hdfs-site.xml.").build());
-
-  public static CheckDescription SERVICES_TEZ_DISTRIBUTED_CACHE = new CheckDescription("SERVICES_TEZ_DISTRIBUTED_CACHE",
-    PrereqCheckType.SERVICE,
-    "Tez should reference Hadoop libraries from the distributed cache in HDFS",
-    new ImmutableMap.Builder<String, String>()
-      .put(ServicesTezDistributedCacheCheck.KEY_LIB_URI_MISSING,
-          "The tez-site.xml property tez.lib.uris should be set.")
-      .put(ServicesTezDistributedCacheCheck.KEY_USE_HADOOP_LIBS,
-          "The tez-site.xml property tez.use.cluster-hadoop-libs should be set.")
-      .put(ServicesTezDistributedCacheCheck.KEY_LIB_NOT_DFS,
-          "The tez-site.xml property tez.lib.uris or the core-site.xml property fs.defaultFS should point to *dfs:/ url.")
-      .put(ServicesTezDistributedCacheCheck.KEY_LIB_NOT_TARGZ,
-          "The tez-site.xml property tez.lib.uris should point to tar.gz file.")
-      .put(ServicesTezDistributedCacheCheck.KEY_USE_HADOOP_LIBS_FALSE,
-          "The tez-site.xml property tez.use.cluster.hadoop-libs should be set to false.").build());
 
   public static CheckDescription SERVICES_UP = new CheckDescription("SERVICES_UP",
     PrereqCheckType.SERVICE,
@@ -176,49 +123,6 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "Re-run Install Packages before starting upgrade").build());
 
-  public static CheckDescription SERVICES_YARN_WP = new CheckDescription("SERVICES_YARN_WP",
-    PrereqCheckType.SERVICE,
-    "YARN work preserving restart should be enabled",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "YARN should have work preserving restart enabled. The yarn-site.xml property yarn.resourcemanager.work-preserving-recovery.enabled property should be set to true.").build());
-
-  public static CheckDescription SERVICES_YARN_RM_HA = new CheckDescription("SERVICES_YARN_RM_HA",
-    PrereqCheckType.SERVICE,
-    "YARN ResourceManager High Availability is not enabled.",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "YARN ResourceManager HA should be enabled to prevent a disruption in service during the upgrade").build());
-
-  public static CheckDescription SERVICES_YARN_TIMELINE_ST = new CheckDescription("SERVICES_YARN_TIMELINE_ST",
-    PrereqCheckType.SERVICE,
-    "YARN Timeline state preserving restart should be enabled",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "YARN should have state preserving restart enabled for the Timeline server. The yarn-site.xml property yarn.timeline-service.recovery.enabled should be set to true.").build());
-
-  public static CheckDescription SERVICES_MR2_JOBHISTORY_ST = new CheckDescription("SERVICES_MR2_JOBHISTORY_ST",
-    PrereqCheckType.SERVICE,
-    "MapReduce2 JobHistory recovery should be enabled",
-    new ImmutableMap.Builder<String, String>()
-      .put(MapReduce2JobHistoryStatePreservingCheck.MAPREDUCE2_JOBHISTORY_RECOVERY_ENABLE_KEY,
-          "MapReduce2 should have recovery enabled for the JobHistory server. The mapred-site.xml property mapreduce.jobhistory.recovery.enable should be set to true.")
-      .put(MapReduce2JobHistoryStatePreservingCheck.MAPREDUCE2_JOBHISTORY_RECOVERY_STORE_KEY,
-          "MapReduce2 should have recovery enabled for the JobHistory server. The mapred-site.xml property mapreduce.jobhistory.recovery.store.class should be set to org.apache.hadoop.mapreduce.v2.hs.HistoryServerLeveldbStateStoreService.")
-      .put(MapReduce2JobHistoryStatePreservingCheck.MAPREDUCE2_JOBHISTORY_RECOVERY_STORE_LEVELDB_PATH_KEY,
-          "MapReduce2 should have recovery enabled for the JobHistory server. The mapred-site.xml property mapreduce.jobhistory.recovery.store.leveldb.path should be set. Please note that \"mapreduce.jobhistory.recovery.store.leveldb.path\" should be on a mount with ~3 GB of free space.").build());
-
-  public static CheckDescription SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY = new CheckDescription("SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY",
-    PrereqCheckType.SERVICE,
-    "Hive Dynamic Service Discovery",
-    new ImmutableMap.Builder<String, String>()
-      .put(HiveDynamicServiceDiscoveryCheck.HIVE_DYNAMIC_SERVICE_DISCOVERY_ENABLED_KEY,
-          "The hive-site.xml property hive.server2.support.dynamic.service.discovery should be set to true.")
-      .put(HiveDynamicServiceDiscoveryCheck.HIVE_DYNAMIC_SERVICE_ZK_QUORUM_KEY,
-          "The hive-site.xml property hive.zookeeper.quorum should be set to a comma-separate list of ZooKeeper hosts:port pairs.")
-      .put(HiveDynamicServiceDiscoveryCheck.HIVE_DYNAMIC_SERVICE_ZK_NAMESPACE_KEY,
-          "The hive-site.xml property hive.server2.zookeeper.namespace should be set to the value for the root namespace on ZooKeeper.").build());
-
   public static CheckDescription CONFIG_MERGE = new CheckDescription("CONFIG_MERGE",
     PrereqCheckType.CLUSTER,
     "Configuration Merge Check",
@@ -241,34 +145,6 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "There are components which are not reporting the expected stack version: \n%s").build());
 
-  public static CheckDescription SERVICES_RANGER_PASSWORD_VERIFY = new CheckDescription("SERVICES_RANGER_PASSWORD_VERIFY",
-    PrereqCheckType.SERVICE,
-    "Verify Ambari and Ranger Password Synchronization",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "There was a problem verifying Ranger and Ambari users")
-      .put(RangerPasswordCheck.KEY_RANGER_PASSWORD_MISMATCH,
-          "Credentials for user '%s' in Ambari do not match Ranger.")
-      .put(RangerPasswordCheck.KEY_RANGER_UNKNOWN_RESPONSE,
-          "Could not verify credentials for user '%s'.  Response code %s received from %s")
-      .put(RangerPasswordCheck.KEY_RANGER_COULD_NOT_ACCESS,
-          "Could not access Ranger to verify user '%s' against %s. %s")
-      .put(RangerPasswordCheck.KEY_RANGER_USERS_ELEMENT_MISSING,
-          "The response from Ranger received, but there is no users element.  Request: %s")
-      .put(RangerPasswordCheck.KEY_RANGER_OTHER_ISSUE,
-          "The response from Ranger was malformed. %s. Request: %s")
-      .put(RangerPasswordCheck.KEY_RANGER_CONFIG_MISSING,
-          "Could not check credentials.  Missing property %s/%s").build());
-
-  public static CheckDescription ATLAS_SERVICE_PRESENCE_CHECK = new CheckDescription("ATLAS_SERVICE_PRESENCE_CHECK",
-    PrereqCheckType.SERVICE,
-    "Atlas Is Not Supported For Upgrades",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "The Atlas service is currently installed on the cluster. " +
-          "This service does not support upgrades and must be removed before the upgrade can continue. " +
-          "After upgrading, Atlas can be reinstalled").build());
-
   public static CheckDescription SERVICE_PRESENCE_CHECK = new CheckDescription("SERVICE_PRESENCE_CHECK",
     PrereqCheckType.SERVICE,
     "Service Is Not Supported For Upgrades",
@@ -282,35 +158,6 @@ public class CheckDescription {
           "This service is removed from the new release and must be removed before the upgrade can continue. " +
           "After upgrading, %s can be installed").build());
 
-  public static CheckDescription RANGER_SERVICE_AUDIT_DB_CHECK = new CheckDescription("RANGER_SERVICE_AUDIT_DB_CHECK",
-    PrereqCheckType.SERVICE,
-    "Remove the Ranger Audit to Database Capability",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "After upgrading, Ranger will no longer support the Audit to Database feature. Instead, Ranger will audit to Solr. " +
-          "To migrate the existing audit logs to Solr, follow the steps in Apache Ranger documention for 0.6 release.").build());
-
-  public static CheckDescription KAFKA_KERBEROS_CHECK = new CheckDescription("KAFKA_KERBEROS_CHECK",
-    PrereqCheckType.SERVICE,
-    "Kafka upgrade on Kerberized cluster",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "Kafka is currently not Kerberized, but your cluster is. After upgrading, Kafka will automatically be Kerberized for you.").build());
-
-  public static CheckDescription SERVICES_HIVE_ROLLING_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_WARNING",
-    PrereqCheckType.SERVICE,
-    "HiveServer2 Downtime",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "HiveServer2 does not currently support rolling upgrades. HiveServer2 will be upgraded, however existing queries which have not completed will fail and need to be resubmitted after HiveServer2 has been upgraded.").build());
-
-  public static CheckDescription SERVICES_STORM_ROLLING_WARNING = new CheckDescription("SERVICES_STORM_ROLLING_WARNING",
-    PrereqCheckType.SERVICE,
-    "Storm Downtime During Upgrade",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "Storm does not support rolling upgrades on this version of the stack. If you proceed, you will be required to stop all running topologies before Storm is restarted.").build());
-
   public static CheckDescription AUTO_START_DISABLED = new CheckDescription("AUTO_START_DISABLED",
     PrereqCheckType.CLUSTER,
     "Auto-Start Disabled Check",
@@ -319,13 +166,6 @@ public class CheckDescription {
         "Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to " +
           "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.").build());
 
-  public static CheckDescription RANGER_SSL_CONFIG_CHECK = new CheckDescription("RANGER_SSL_CONFIG_CHECK",
-    PrereqCheckType.SERVICE,
-    "Change Ranger SSL configuration path for Keystore and Truststore.",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-        "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
-        "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
 
   public static CheckDescription LZO_CONFIG_CHECK = new CheckDescription("LZO_CONFIG_CHECK",
       PrereqCheckType.CLUSTER,
@@ -350,25 +190,13 @@ public class CheckDescription {
         .put(AbstractCheckDescriptor.DEFAULT, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
           .build());
 
-  public static CheckDescription DRUID_HA_WARNING = new CheckDescription(
-      "DRUID_HA",
-      PrereqCheckType.SERVICE,
-      "Druid Downtime During Upgrade",
-      new ImmutableMap.Builder<String, String>()
-          .put(
-              AbstractCheckDescriptor.DEFAULT,
-              "High Availability is not enabled for Druid. Druid Service may have some downtime during upgrade. Deploy multiple instances of %s in the Cluster to avoid any downtime."
-          )
-          .build()
-  );
-  
   public static CheckDescription VALID_SERVICES_INCLUDED_IN_REPOSITORY = new CheckDescription("VALID_SERVICES_INCLUDED_IN_REPOSITORY",
       PrereqCheckType.CLUSTER,
       "The repository is missing services which are required",
       new ImmutableMap.Builder<String, String>()
         .put(AbstractCheckDescriptor.DEFAULT,
             "The following services are included in the upgrade but the repository is missing their dependencies:\n%s").build());
-  
+
 
   private String m_name;
   private PrereqCheckType m_type;

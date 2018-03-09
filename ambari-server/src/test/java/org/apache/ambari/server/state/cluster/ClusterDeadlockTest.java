@@ -143,7 +143,7 @@ public class ClusterDeadlockTest {
       clusters.mapHostToCluster(hostName, "c1");
     }
 
-    serviceGroup = cluster.addServiceGroup("CORE", "HDP-1.0");
+    serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service service = installService("HDFS", serviceGroup);
     addServiceComponent(service, "NAMENODE");
     addServiceComponent(service, "DATANODE");
@@ -595,7 +595,7 @@ public class ClusterDeadlockTest {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {
       serviceComponent = serviceComponentFactory.createNew(service,
-          componentName);
+          componentName, componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
     }

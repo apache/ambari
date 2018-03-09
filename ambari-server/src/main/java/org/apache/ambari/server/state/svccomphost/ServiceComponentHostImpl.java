@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +70,6 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
@@ -790,6 +788,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setServiceGroupId(serviceComponent.getServiceGroupId());
     stateEntity.setServiceId(serviceComponent.getServiceId());
     stateEntity.setComponentName(serviceComponent.getName());
+    stateEntity.setComponentType(serviceComponent.getType());
     stateEntity.setVersion(State.UNKNOWN.toString());
     stateEntity.setHostEntity(hostEntity);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
@@ -798,6 +797,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
     desiredStateEntity.setClusterId(serviceComponent.getClusterId());
     desiredStateEntity.setComponentName(serviceComponent.getName());
+    desiredStateEntity.setComponentType(serviceComponent.getType());
+    desiredStateEntity.setServiceGroupId(serviceComponent.getServiceGroupId());
     desiredStateEntity.setServiceId(serviceComponent.getServiceId());
     desiredStateEntity.setHostEntity(hostEntity);
     desiredStateEntity.setDesiredState(State.INIT);
@@ -996,8 +997,18 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public Long getServiceComponentId() {
+    return serviceComponent.getId();
+  }
+
+  @Override
   public String getServiceComponentName() {
     return serviceComponent.getName();
+  }
+
+  @Override
+  public String getServiceComponentType() {
+    return serviceComponent.getType();
   }
 
   @Override
@@ -1185,6 +1196,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       e.printStackTrace();
     }
     String serviceComponentName = serviceComponent.getName();
+    String serviceComponentType = serviceComponent.getType();
+
     Long hostComponentId = getHostComponentId();
     String hostName = getHostName();
     String publicHostName = hostEntity.getPublicHostName();
@@ -1212,8 +1225,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterId, clusterName, service.getServiceGroupId(),
             service.getServiceGroupName(), service.getServiceId(), service.getName(), service.getServiceType(),
-            hostComponentId, serviceComponentName, displayName, hostName, publicHostName, state, getVersion(),
-            desiredState, desiredStackId, desiredRepositoryVersion, componentAdminState);
+            hostComponentId, serviceComponentName, serviceComponentType, displayName, hostName, publicHostName, state,
+            getVersion(), desiredState, desiredStackId, desiredRepositoryVersion, componentAdminState);
 
     r.setActualConfigs(actualConfigs);
     r.setUpgradeState(upgradeState);
@@ -1246,6 +1259,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     sb.append("ServiceComponentHost={ hostname=").append(getHostName())
     .append(", serviceComponentName=")
     .append(serviceComponent.getName())
+    .append(", serviceComponentType=")
+    .append(serviceComponent.getType())
     .append(", clusterName=")
     .append(serviceComponent.getClusterName())
     .append(", serviceName=")
@@ -1264,9 +1279,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Transactional
   void persistEntities(HostEntity hostEntity, HostComponentStateEntity stateEntity,
       HostComponentDesiredStateEntity desiredStateEntity) {
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        serviceComponent.getClusterId(), serviceComponent.getServiceGroupId(), serviceComponent.getServiceId(),
-        serviceComponent.getName());
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = null;
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+            serviceComponent.getClusterId(), serviceComponent.getServiceGroupId(), serviceComponent.getServiceId(),
+            serviceComponent.getName(), serviceComponent.getType());
 
     desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     desiredStateEntity.setHostEntity(hostEntity);
@@ -1274,8 +1290,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     stateEntity.setHostEntity(hostEntity);
 
-    hostComponentStateDAO.create(stateEntity);
     hostComponentDesiredStateDAO.create(desiredStateEntity);
+    stateEntity.setHostComponentDesiredStateEntity(desiredStateEntity);
+    hostComponentStateDAO.create(stateEntity);
+
+    serviceComponentDesiredStateEntity.getHostComponentStateEntities().add(
+            stateEntity);
 
     serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(
         desiredStateEntity);
@@ -1463,28 +1483,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
           + getServiceComponentName() + ", hostName = " + getHostName());
     }
-  }
-
-  @Transactional
-  RepositoryVersionEntity createRepositoryVersion(String version, final StackId stackId, final StackInfo stackInfo) throws AmbariException {
-    // During an Ambari Upgrade from 1.7.0 -> 2.0.0, the Repo Version will not exist, so bootstrap it.
-    LOG.info("Creating new repository version " + stackId.getStackName() + "-" + version);
-
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-      stackId.getStackVersion());
-
-    // Ensure that the version provided is part of the Stack.
-    // E.g., version 2.3.0.0 is part of HDP 2.3, so is 2.3.0.0-1234
-    if (null == version) {
-      throw new AmbariException(MessageFormat.format("Cannot create Repository Version for Stack {0}-{1} if the version is empty",
-          stackId.getStackName(), stackId.getStackVersion()));
-    }
-
-    return repositoryVersionDAO.create(
-        stackEntity,
-        version,
-        stackId.getStackName() + "-" + version,
-        repositoryVersionHelper.createRepoOsEntities(stackInfo.getRepositories()));
   }
 
   /**

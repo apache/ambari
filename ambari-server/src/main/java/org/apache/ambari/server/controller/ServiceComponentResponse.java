@@ -33,7 +33,9 @@ public class ServiceComponentResponse {
   private Long serviceId; // REF
   private String serviceName;
   private String serviceType;
+  private Long componentId;
   private String componentName;
+  private String componentType;
   private String displayName;
   private String desiredStackId;
   private String desiredState;
@@ -44,10 +46,10 @@ public class ServiceComponentResponse {
   private RepositoryVersionState repoState;
 
   public ServiceComponentResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
-                                  Long serviceId, String serviceName, String serviceType, String componentName,
-                                  StackId desiredStackId, String desiredState, Map<String, Integer> serviceComponentStateCount,
-                                  boolean recoveryEnabled, String displayName, String desiredVersion,
-                                  RepositoryVersionState repoState) {
+                                  Long serviceId, String serviceName, String serviceType, Long componentId, String componentName,
+                                  String componentType, StackId desiredStackId, String desiredState,
+                                  Map<String, Integer> serviceComponentStateCount, boolean recoveryEnabled,
+                                  String displayName, String desiredVersion, RepositoryVersionState repoState) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceGroupId = serviceGroupId;
@@ -55,7 +57,9 @@ public class ServiceComponentResponse {
     this.serviceId = serviceId;
     this.serviceName = serviceName;
     this.serviceType = serviceType;
+    this.componentId = componentId;
     this.componentName = componentName;
+    this.componentType = componentType;
     this.displayName = displayName;
     this.desiredStackId = desiredStackId.getStackId();
     this.desiredState = desiredState;
@@ -131,6 +135,34 @@ public class ServiceComponentResponse {
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  /**
+   * @param componentId the componentId to set
+   */
+  public void setComponentName(Long componentId) {
+    this.componentId = componentId;
+  }
+
+  /**
+   * @return the componentType
+   */
+  public String getComponentType() {
+    return componentType;
+  }
+
+  /**
+   * @param componentType the componentType to set
+   */
+  public void setComponentType(String componentType) {
+    this.componentType = componentType;
+  }
+
+  /**
+   * @return the componentId
+   */
+  public Long getComponentId() {
+    return componentId;
   }
 
   /**
@@ -293,8 +325,18 @@ public class ServiceComponentResponse {
       return false;
     }
 
+    if (componentId != null ?
+            !componentId.equals(that.componentId) : that.componentId != null) {
+      return false;
+    }
+
     if (componentName != null ?
         !componentName.equals(that.componentName) : that.componentName != null){
+      return false;
+    }
+
+    if (componentType != null ?
+            !componentType.equals(that.componentType) : that.componentType != null){
       return false;
     }
 
@@ -315,7 +357,9 @@ public class ServiceComponentResponse {
     result = 71 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 71 * result + (serviceType != null ? serviceType.hashCode() : 0);
+    result = 71 * result + (componentId != null ? componentId.hashCode() : 0);
     result = 71 * result + (componentName != null ? componentName.hashCode():0);
+    result = 71 * result + (componentType != null ? componentType.hashCode():0);
     result = 71 * result + (displayName != null ? displayName.hashCode():0);
     return result;
   }
