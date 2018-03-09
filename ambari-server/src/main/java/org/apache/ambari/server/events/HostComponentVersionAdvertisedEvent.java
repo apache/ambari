@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.events;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
 
@@ -26,8 +24,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
  * The {@link HostComponentVersionAdvertisedEvent}
  * occurs when a Host Component advertises it's current version value.
  */
-@Deprecated
-@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class HostComponentVersionAdvertisedEvent extends ClusterEvent {
 
   protected Cluster cluster;

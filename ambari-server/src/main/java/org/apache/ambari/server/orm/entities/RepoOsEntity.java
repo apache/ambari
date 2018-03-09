@@ -33,9 +33,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
-
 import com.google.common.base.Objects;
 
 /**
@@ -55,12 +52,6 @@ public class RepoOsEntity {
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "repo_os_id_generator")
   private Long id;
 
-  /**
-   * The ID of the mpack that this repository entry belongs to.
-   */
-  @Column(name = "mpack_id", updatable = false, insertable = false)
-  private long mpackId;
-
   @Column(name = "family")
   private String family;
 
@@ -76,15 +67,9 @@ public class RepoOsEntity {
   /**
    * many-to-one association to {@link RepositoryVersionEntity}
    */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "repo_version_id", nullable = true)
+  @JoinColumn(name = "repo_version_id", nullable = false)
   private RepositoryVersionEntity repositoryVersionEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "mpack_id", referencedColumnName = "id", nullable = false)
-  private MpackEntity mpackEntity;
 
   /**
    * @return repoDefinitionEntities
@@ -110,13 +95,14 @@ public class RepoOsEntity {
    * @param repoDefinition many-to-one entity
    */
   public void addRepoDefinition(RepoDefinitionEntity repoDefinition) {
-    repoDefinitionEntities.add(repoDefinition);
+    this.repoDefinitionEntities.add(repoDefinition);
     repoDefinition.setRepoOs(this);
   }
 
+  public RepositoryVersionEntity getRepositoryVersionEntity() {
+    return repositoryVersionEntity;
+  }
 
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setRepositoryVersionEntity(RepositoryVersionEntity repositoryVersionEntity) {
     this.repositoryVersionEntity = repositoryVersionEntity;
   }
@@ -127,25 +113,6 @@ public class RepoOsEntity {
 
   public void setId(Long id) {
     this.id = id;
-  }
-
-  /**
-   * Gets the management pack ID.
-   *
-   * @return the management pack ID.
-   */
-  public Long getMpackId() {
-    return mpackId;
-  }
-
-  /**
-   * Sets the management pack ID.
-   *
-   * @param mpackId
-   *          the management pack ID.
-   */
-  public void setMpackId(Long mpackId) {
-    this.mpackId = mpackId;
   }
 
   public String getFamily() {
@@ -165,31 +132,11 @@ public class RepoOsEntity {
   }
 
   /**
-   * Gets the Mpack which is associated with this repository operating system.
-   *
-   * @return the Mpack
-   */
-  public MpackEntity getMpackEntity() {
-    return mpackEntity;
-  }
-
-  /**
-   * Sets the Mpack which is associated with this repository operating system.
-   *
-   * @param mpackEntity
-   *          the Mpack
-   */
-  public void setMpackEntity(MpackEntity mpackEntity) {
-    this.mpackEntity = mpackEntity;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
   public int hashCode() {
-    return java.util.Objects.hash(mpackId, mpackEntity, family, ambariManaged,
-        repoDefinitionEntities);
+    return java.util.Objects.hash(family, ambariManaged, repoDefinitionEntities);
   }
 
   /**
@@ -210,22 +157,8 @@ public class RepoOsEntity {
     }
 
     RepoOsEntity that = (RepoOsEntity) object;
-    return Objects.equal(mpackId, that.mpackId)
-        && Objects.equal(mpackEntity, that.mpackEntity)
-        && Objects.equal(ambariManaged, that.ambariManaged)
+    return Objects.equal(ambariManaged, that.ambariManaged)
         && Objects.equal(family, that.family)
         && Objects.equal(repoDefinitionEntities, that.repoDefinitionEntities);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("mpackId", mpackId)
-        .add("family", family)
-        .add("isManagedByAmbari", ambariManaged)
-        .toString();
   }
 }

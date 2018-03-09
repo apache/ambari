@@ -112,7 +112,7 @@ public class ScaleClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
 
-    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest("{}", Collections.singleton(props));
+    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(Collections.singleton(props));
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "1"),
@@ -150,7 +150,7 @@ public class ScaleClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
 
-    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest("{}", propertySet);
+    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(propertySet);
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "2"),
@@ -177,7 +177,7 @@ public class ScaleClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
 
-    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest("{}", Collections.singleton(
+    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(Collections.singleton(
         createScaleClusterPropertiesGroup1_HostCount(CLUSTER_NAME, BLUEPRINT_NAME)));
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
@@ -203,7 +203,7 @@ public class ScaleClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
 
-    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest("{}", Collections.singleton(
+    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(Collections.singleton(
         createScaleClusterPropertiesGroup1_HostCount2(CLUSTER_NAME, BLUEPRINT_NAME)));
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
@@ -225,7 +225,7 @@ public class ScaleClusterRequestTest {
 
   @Test
   public void test_basic_hostCountAndPredicate() throws Exception {
-    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest("{}", Collections.singleton(
+    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(Collections.singleton(
         createScaleClusterPropertiesGroup1_HostCountAndPredicate(CLUSTER_NAME, BLUEPRINT_NAME)));
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
@@ -252,7 +252,7 @@ public class ScaleClusterRequestTest {
     propertySet.add(createScaleClusterPropertiesGroup1_HostCount(CLUSTER_NAME, BLUEPRINT_NAME));
     propertySet.add(createScaleClusterPropertiesGroup1_HostName(CLUSTER_NAME, BLUEPRINT_NAME));
 
-    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest("{}", propertySet);
+    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(propertySet);
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "3"),
@@ -300,7 +300,7 @@ public class ScaleClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
     // should result in an exception
-    new ScaleClusterRequest("{}", Collections.singleton(properties));
+    new ScaleClusterRequest(Collections.singleton(properties));
   }
 
   @Test(expected = InvalidTopologyTemplateException.class)
@@ -313,7 +313,7 @@ public class ScaleClusterRequestTest {
     reset(hostResourceProvider);
     replay(hostResourceProvider);
     // should result in an exception because neither host name or host count are specified
-    new ScaleClusterRequest("{}", Collections.singleton(properties));
+    new ScaleClusterRequest(Collections.singleton(properties));
   }
 
 
@@ -326,7 +326,7 @@ public class ScaleClusterRequestTest {
     replay(hostResourceProvider);
 
     // should result in an exception due to invalid property in host predicate
-    new ScaleClusterRequest("{}", Collections.singleton(
+    new ScaleClusterRequest(Collections.singleton(
         createScaleClusterPropertiesGroup1_HostCountAndPredicate(CLUSTER_NAME, BLUEPRINT_NAME)));
   }
 
@@ -340,7 +340,7 @@ public class ScaleClusterRequestTest {
     propertySet.add(createScaleClusterPropertiesGroup1_HostName2(CLUSTER_NAME, "OTHER_BLUEPRINT"));
 
     // should result in an exception due to different blueprints being specified
-    new ScaleClusterRequest("{}", propertySet);
+    new ScaleClusterRequest(propertySet);
   }
 
   public static Map<String, Object> createScaleClusterPropertiesGroup1_HostName(String clusterName, String blueprintName) {

@@ -102,8 +102,6 @@ import com.google.inject.persist.Transactional;
  * Resource provider for cluster stack versions resources.
  */
 @StaticallyInject
-@Deprecated
-@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class ClusterStackVersionResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(ClusterStackVersionResourceProvider.class);
@@ -700,7 +698,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
-    RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(repoVersion.getRepoOsEntities(), host);
+    RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
 
     if (CollectionUtils.isEmpty(osEntity.getRepoDefinitionEntities())) {
       throw new SystemException(String.format("Repositories for os type %s are not defined for version %s of Stack %s.",

@@ -245,7 +245,7 @@ public class ClientConfigResourceProviderTest {
     serviceOsSpecificHashMap.put("key", osSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
-        componentName, componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
+        componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
         null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
@@ -323,6 +323,9 @@ public class ClientConfigResourceProviderTest {
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
     expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
+    HashMap<String, String> rcaParams = new HashMap<>();
+    rcaParams.put("key","value");
+    expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
@@ -499,7 +502,7 @@ public class ClientConfigResourceProviderTest {
     serviceOsSpecificHashMap.put("key", osSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
-        componentName, componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
+        componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
         null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
@@ -580,6 +583,7 @@ public class ClientConfigResourceProviderTest {
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
+    expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();

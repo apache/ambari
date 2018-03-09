@@ -44,15 +44,11 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
-import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OsSpecific;
-import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -83,20 +79,20 @@ public class MpackManager {
   private MpackDAO mpackDAO;
   private StackDAO stackDAO;
   private File stackRoot;
-  private RepositoryVersionHelper repoVersionHelper;
-
 
   @AssistedInject
-  public MpackManager(@Assisted("mpacksv2Staging") File mpacksStagingLocation,
-      @Assisted("stackRoot") File stackRootDir, MpackDAO mpackDAOObj, StackDAO stackDAOObj,
-      RepositoryVersionHelper repoVersionHelper) {
+  public MpackManager(
+    @Assisted("mpacksv2Staging") File mpacksStagingLocation,
+    @Assisted("stackRoot") File stackRootDir,
+    MpackDAO mpackDAOObj,
+    StackDAO stackDAOObj) {
     mpacksStaging = mpacksStagingLocation;
     mpackDAO = mpackDAOObj;
     stackRoot = stackRootDir;
     stackDAO = stackDAOObj;
-    this.repoVersionHelper = repoVersionHelper;
 
     parseMpackDirectories();
+
   }
 
   /**
@@ -203,7 +199,6 @@ public class MpackManager {
         mpackDirectory = mpacksStaging + File.separator + mpack.getName() + File.separator + mpack.getVersion();
       }
     }
-
     extractMpackTar(mpack, mpackTarPath, mpackDirectory);
     mpack.setMpackUri(mpackRequest.getMpackUri());
     mpackResourceId = populateDB(mpack);
@@ -314,14 +309,6 @@ public class MpackManager {
     if (!metainfoFile.exists()) {
       generateMetainfo(metainfoFile, mpack);
     }
-
-    RepositoryXml repositoryXml = RepoUtil.getRepositoryXml(extractedMpackDirectory.toFile());
-    if (null == repositoryXml) {
-      throw new IOException("The repository file " + RepoUtil.REPOSITORY_FILE_NAME
-          + " must exist in the management pack");
-    }
-
-    mpack.setRepositoryXml(repositoryXml);
 
     createSymLinks(mpack);
   }
@@ -522,23 +509,14 @@ public class MpackManager {
     if (resultSet.size() == 0 && stackEntity == null) {
       LOG.info("Adding mpack {}-{} to the database", mpackName, mpackVersion);
 
-      final MpackEntity mpackEntity = new MpackEntity();
+      MpackEntity mpackEntity = new MpackEntity();
       mpackEntity.setMpackName(mpackName);
       mpackEntity.setMpackVersion(mpackVersion);
       mpackEntity.setMpackUri(mpack.getMpackUri());
       mpackEntity.setRegistryId(mpack.getRegistryId());
-      mpackDAO.create(mpackEntity);
-
-      List<RepoOsEntity> repositoryOperatingSystems = repoVersionHelper.createRepoOsEntities(
-          mpack.getRepositoryXml().getRepositories());
-
-      repositoryOperatingSystems.stream().forEach(
-          operatingSystem -> operatingSystem.setMpackEntity(mpackEntity));
-
-      mpackEntity.setRepositoryOperatingSystems(repositoryOperatingSystems);
-      return mpackDAO.merge(mpackEntity).getId();
+      Long mpackId = mpackDAO.create(mpackEntity);
+      return mpackId;
     }
-
     //mpack already exists
     return null;
   }
@@ -608,9 +586,8 @@ public class MpackManager {
     if (stackEntity != null) {
       Path stackPath = Paths.get(stackRoot + "/" + stackEntity.getStackName() + "/" + stackEntity.getStackVersion());
       File stackDirectory = new File(stackRoot + "/" + stackEntity.getStackName());
-      if (!Files.exists(stackPath)) {
+      if (!Files.exists(stackPath))
         Files.delete(stackPath);
-      }
       if (stackDirectory.isDirectory()) {
         if (stackDirectory.list().length == 0) {
           Files.delete(stackDirectory.toPath());

@@ -56,7 +56,6 @@ public class BootStrapResource {
   public static void init(BootStrapImpl instance) {
     bsImpl = instance;
   }
-
   /**
    * Run bootstrap on a list of hosts.
    * @response.representation.200.doc
@@ -69,35 +68,11 @@ public class BootStrapResource {
   @POST @ApiIgnore // until documented
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public BSResponse bootStrap(SshHostInfo sshInfo,
-                              @Context UriInfo uriInfo) {
+  public BSResponse bootStrap(SshHostInfo sshInfo, @Context UriInfo uriInfo) {
     
     normalizeHosts(sshInfo);
 
-    BSResponse resp = bsImpl.runBootStrap(sshInfo, false);
-
-    return resp;
-  }
-
-  /**
-   * Run host reachability validation on a list of hosts.
-   * @response.representation.200.doc
-   *
-   * @response.representation.200.mediaType application/json
-   * @response.representation.406.doc Error in format
-   * @response.representation.408.doc Request Timed out
-   * @throws Exception
-   */
-  @POST @ApiIgnore // until documented
-  @Path("/validations")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public BSResponse hostValidate(SshHostInfo sshInfo,
-                                 @Context UriInfo uriInfo) {
-
-    normalizeHosts(sshInfo);
-
-    BSResponse resp = bsImpl.runBootStrap(sshInfo, true);
+    BSResponse resp = bsImpl.runBootStrap(sshInfo);
 
     return resp;
   }

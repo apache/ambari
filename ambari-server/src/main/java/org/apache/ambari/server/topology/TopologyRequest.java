@@ -18,12 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.Collections.emptySet;
-
 import java.util.Map;
-import java.util.Set;
-
-import org.apache.ambari.server.state.StackId;
 
 /**
  * A request which is used to create or modify a cluster topology.
@@ -47,6 +42,10 @@ public interface TopologyRequest {
    * @return the type of request
    */
   Type getType();
+
+  //todo: only a single BP may be specified so all host groups have the same bp.
+  //todo: BP really needs to be associated with the HostGroupInfo, even for create which will have a single BP
+  //todo: for all HG's.
 
   /**
    * Get the blueprint instance associated with the request.
@@ -75,11 +74,4 @@ public interface TopologyRequest {
    * @return string description of the request
    */
   String getDescription();
-
-  /**
-   * @return a set of stack id's if supported by the TopologyRequest.
-   */
-  default Set<StackId> getStackIds() {
-    return emptySet();
-  }
 }

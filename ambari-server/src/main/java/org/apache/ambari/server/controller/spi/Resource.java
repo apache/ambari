@@ -109,7 +109,6 @@ public interface Resource {
     Extension,
     ExtensionVersion,
     OperatingSystem,
-    OperatingSystemReadOnly,
     Repository,
     StackService,
     StackConfiguration,
@@ -246,7 +245,6 @@ public interface Resource {
     public static final Type Extension = InternalType.Extension.getType();
     public static final Type ExtensionVersion = InternalType.ExtensionVersion.getType();
     public static final Type OperatingSystem = InternalType.OperatingSystem.getType();
-    public static final Type OperatingSystemReadOnly = InternalType.OperatingSystemReadOnly.getType();
     public static final Type Repository = InternalType.Repository.getType();
     public static final Type StackService = InternalType.StackService.getType();
     public static final Type StackConfiguration = InternalType.StackConfiguration.getType();

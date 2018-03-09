@@ -444,7 +444,7 @@ public class LogicalRequest extends Request {
   private void createHostRequests(TopologyRequest request, ClusterTopology topology) {
     Map<String, HostGroupInfo> hostGroupInfoMap = request.getHostGroupInfo();
     Blueprint blueprint = topology.getBlueprint();
-    boolean skipFailure = topology.getSetting().shouldSkipFailure();
+    boolean skipFailure = topology.getBlueprint().shouldSkipFailure();
     for (HostGroupInfo hostGroupInfo : hostGroupInfoMap.values()) {
       String groupName = hostGroupInfo.getHostGroupName();
       int hostCardinality = hostGroupInfo.getRequestedHostCount();
@@ -455,14 +455,14 @@ public class LogicalRequest extends Request {
           // host names are specified
           String hostname = hostnames.get(i);
           HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterId(),
-              hostname, topology.getBlueprintName(), blueprint.getHostGroup(groupName), null, topology, skipFailure);
+              hostname, blueprint.getName(), blueprint.getHostGroup(groupName), null, topology, skipFailure);
           synchronized (requestsWithReservedHosts) {
             requestsWithReservedHosts.put(hostname, hostRequest);
           }
         } else {
           // host count is specified
           HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterId(),
-              null, topology.getBlueprintName(), blueprint.getHostGroup(groupName), hostGroupInfo.getPredicate(), topology, skipFailure);
+              null, blueprint.getName(), blueprint.getHostGroup(groupName), hostGroupInfo.getPredicate(), topology, skipFailure);
           outstandingHostRequests.add(hostRequest);
         }
       }
@@ -495,7 +495,7 @@ public class LogicalRequest extends Request {
       }
     }
 
-    boolean skipFailure = topology.getSetting().shouldSkipFailure();
+    boolean skipFailure = topology.getBlueprint().shouldSkipFailure();
     for (TopologyHostRequestEntity hostRequestEntity : requestEntity.getTopologyHostRequestEntities()) {
       Long hostRequestId = hostRequestEntity.getId();
       synchronized (hostIdCounter) {

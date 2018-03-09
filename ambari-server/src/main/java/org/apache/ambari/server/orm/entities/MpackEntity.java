@@ -17,20 +17,15 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -68,18 +63,6 @@ public class MpackEntity {
 
   @Column(name = "mpack_uri", nullable = false)
   private String mpackUri;
-
-  /**
-   * The list of repositories for this management pack. Each repository is
-   * organized by operating system. A single operating system can have multiple
-   * repo URLs defined for it for a given management pack.
-   */
-  @OneToMany(
-      orphanRemoval = true,
-      fetch = FetchType.EAGER,
-      cascade = { CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE },
-      mappedBy = "mpackEntity")
-  private List<RepoOsEntity> repositoryOperatingSystems = new ArrayList<>();
 
   public Long getId() {
     return id;
@@ -119,30 +102,6 @@ public class MpackEntity {
 
   public void setMpackUri(String mpackUri) {
     this.mpackUri = mpackUri;
-  }
-
-  /**
-   * Gets the list of repositories by OS that are associated with this
-   * management pack.
-   *
-   * @return the repositories for this mpack by operating system.
-   */
-  public List<RepoOsEntity> getRepositoryOperatingSystems() {
-    return repositoryOperatingSystems;
-  }
-
-  /**
-   * Sets the repositories associated with this management pack.
-   *
-   * @param repositoryOperatingSystems
-   *          each operating system repo grouping.
-   */
-  public void setRepositoryOperatingSystems(List<RepoOsEntity> repositoryOperatingSystems) {
-    this.repositoryOperatingSystems = repositoryOperatingSystems;
-    for (RepoOsEntity repositoryOperatingSystem : repositoryOperatingSystems) {
-      repositoryOperatingSystem.setMpackEntity(this);
-      repositoryOperatingSystem.setMpackId(id);
-    }
   }
 
   public MpackEntity() {

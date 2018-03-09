@@ -17,7 +17,13 @@
  */
 package org.apache.ambari.server.topology.tasks;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +47,16 @@ public class PersistHostResourcesTask extends TopologyHostTask  {
 
   @Override
   public void runTask() {
-    String hostName = hostRequest.getHostName();
-    LOG.info("HostRequest: Executing RESOURCE_CREATION task for host: {}", hostName);
-    long clusterId = hostRequest.getClusterId();
-    clusterTopology.getAmbariContext().createAmbariHostResources(clusterId, hostName, clusterTopology.getComponentsInHostGroup(hostRequest.getHostgroupName()));
-    LOG.info("HostRequest: Exiting RESOURCE_CREATION task for host: {}", hostName);
+    LOG.info("HostRequest: Executing RESOURCE_CREATION task for host: {}", hostRequest.getHostName());
+
+    HostGroup group = hostRequest.getHostGroup();
+    Map<String, Collection<String>> serviceComponents = new HashMap<>();
+    for (String service : group.getServices()) {
+      serviceComponents.put(service, new HashSet<>(group.getComponentNames(service)));
+    }
+    clusterTopology.getAmbariContext().createAmbariHostResources(hostRequest.getClusterId(),
+      hostRequest.getHostName(), serviceComponents);
+
+    LOG.info("HostRequest: Exiting RESOURCE_CREATION task for host: {}", hostRequest.getHostName());
   }
 }

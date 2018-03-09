@@ -27,6 +27,7 @@ import org.apache.ambari.server.controller.internal.UnitUpdater.PropertyUnit;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.TopologyValidator;
 
 /**
  * I validate the unit of properties by checking if it matches to the stack defined unit.
@@ -41,7 +42,7 @@ public class UnitValidator implements TopologyValidator {
 
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
-    StackDefinition stack = topology.getStack();
+    StackDefinition stack = topology.getBlueprint().getStack();
     validateConfig(topology.getConfiguration().getFullProperties(), stack);
     for (HostGroupInfo hostGroup : topology.getHostGroupInfo().values()) {
       validateConfig(hostGroup.getConfiguration().getFullProperties(), stack);

@@ -258,10 +258,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new OperatingSystemResourceDefinition();
         break;
 
-      case OperatingSystemReadOnly:
-        resourceDefinition = new OperatingSystemReadOnlyResourceDefinition();
-        break;
-
       case Repository:
         resourceDefinition = new RepositoryResourceDefinition();
         break;
@@ -422,7 +418,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case CompatibleRepositoryVersion:
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.CompatibleRepositoryVersion,
             "compatible_repository_version", "compatible_repository_versions",
-            Resource.Type.OperatingSystemReadOnly);
+            Resource.Type.OperatingSystem);
         break;
 
       case HostStackVersion:

@@ -44,8 +44,6 @@ class BSRunner extends Thread {
 
   private static final String DEFAULT_USER = "root";
   private static final String DEFAULT_SSHPORT = "22";
-  private static final String VALIDATION_OPERATION = "Validation";
-  private static final String BOOTSTRAP_OPERATION = "Bootstrap";
 
   private  boolean finished = false;
   private SshHostInfo sshHostInfo;
@@ -63,12 +61,11 @@ class BSRunner extends Thread {
   private final String clusterOsFamily;
   private String projectVersion;
   private int serverPort;
-  private boolean validationInstance;
 
   public BSRunner(BootStrapImpl impl, SshHostInfo sshHostInfo, String bootDir,
       String bsScript, String agentSetupScript, String agentSetupPassword,
       int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsFamily,
-      String projectVersion, int serverPort, boolean validationInstance)
+      String projectVersion, int serverPort)
   {
     this.requestId = requestId;
     this.sshHostInfo = sshHostInfo;
@@ -88,8 +85,6 @@ class BSRunner extends Thread {
     status.setLog("RUNNING");
     status.setStatus(BSStat.RUNNING);
     bsImpl.updateStatus(requestId, status);
-    // If validationInstance is true, BSRunner is to validate host reachability only
-    this.validationInstance = validationInstance;
   }
 
   /**
@@ -182,14 +177,6 @@ class BSRunner extends Thread {
     return Math.max(HOST_BS_TIMEOUT, HOST_BS_TIMEOUT * hostCount / PARALLEL_BS_COUNT);
   }
 
-  /**
-   * Get operation name which this runner is for
-   * @return operation name
-   */
-  private String getBsOperationType() {
-    return validationInstance ? VALIDATION_OPERATION : BOOTSTRAP_OPERATION;
-  }
-
   public synchronized void finished() {
     this.finished = true;
   }
@@ -215,9 +202,9 @@ class BSRunner extends Thread {
        sshPort = DEFAULT_SSHPORT;
     }
 
-    String command[] = new String[14];
+    String command[] = new String[13];
     BSStat stat = BSStat.RUNNING;
-    StringBuilder scriptlog = new StringBuilder();
+    String scriptlog = "";
     try {
       createRunDir();
       handle = scheduler.scheduleWithFixedDelay(statusCollector,
@@ -255,7 +242,6 @@ class BSRunner extends Thread {
       command[10] = this.serverPort+"";
       command[11] = userRunAs;
       command[12] = (this.passwordFile==null) ? "null" : this.passwordFile.toString();
-      command[13] = String.valueOf(this.validationInstance);
 
       Map<String, String> envVariables = new HashMap<>();
 
@@ -275,7 +261,7 @@ class BSRunner extends Thread {
           requestIdDir + " user=" + user + " sshPort=" + sshPort + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
           " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs=" + userRunAs +
-          " timeout=" + bootstrapTimeout / 1000 + " validation=" + validationInstance);
+          " timeout=" + bootstrapTimeout / 1000);
 
       envVariables.put("AMBARI_PASSPHRASE", agentSetupPassword);
       if (this.verbose)
@@ -296,17 +282,17 @@ class BSRunner extends Thread {
 
       Process process = pb.start();
 
-      StringBuilder logInfoMessage = new StringBuilder(getBsOperationType());
       try {
-        logInfoMessage.append(" output, log=").append(bootStrapErrorFilePath).append(" ").append(bootStrapOutputFilePath).append(" at ").append(ambariHostname);
-        LOG.info(logInfoMessage.toString());
+        String logInfoMessage = "Bootstrap output, log="
+              + bootStrapErrorFilePath + " " + bootStrapOutputFilePath + " at " + this.ambariHostname;
+        LOG.info(logInfoMessage);
 
         int exitCode = 1;
         boolean timedOut = false;
         if (waitForProcessTermination(process, bootstrapTimeout)){
           exitCode = process.exitValue();
         } else {
-          LOG.warn(logInfoMessage.append(" process timed out. It will be destroyed.").toString());
+          LOG.warn("Bootstrap process timed out. It will be destroyed.");
           process.destroy();
           timedOut = true;
         }
@@ -319,14 +305,14 @@ class BSRunner extends Thread {
         } catch(IOException io) {
           LOG.info("Error in reading files ", io);
         }
-        scriptlog.append(outMesg).append("\n\n").append(errMesg);
+        scriptlog = outMesg + "\n\n" + errMesg;
         if (timedOut) {
-          scriptlog.append("\n\n ").append(getBsOperationType()).append(" process timed out. It was destroyed.");
+          scriptlog += "\n\n Bootstrap process timed out. It was destroyed.";
         }
-        LOG.info("Script log Mesg " + scriptlog.toString());
+        LOG.info("Script log Mesg " + scriptlog);
         if (exitCode != 0) {
           stat = BSStat.ERROR;
-          interuptSetupAgent(99, scriptlog.toString());
+          interuptSetupAgent(99, scriptlog);
         } else {
           stat = BSStat.SUCCESS;
         }
@@ -373,10 +359,8 @@ class BSRunner extends Thread {
         if (handle != null) {
           handle.cancel(true);
         }
-        if (!validationInstance) {
-          /* schedule a last update */
-          scheduler.schedule(new BSStatusCollector(), 0, TimeUnit.SECONDS);
-        }
+        /* schedule a last update */
+        scheduler.schedule(new BSStatusCollector(), 0, TimeUnit.SECONDS);
         scheduler.shutdownNow();
         try {
           scheduler.awaitTermination(10, TimeUnit.SECONDS);
@@ -408,7 +392,7 @@ class BSRunner extends Thread {
       // creating new status instance to avoid modifying exposed object
       BootStrapStatus newStat = new BootStrapStatus();
       newStat.setHostsStatus(hostStatusList);
-      newStat.setLog(scriptlog.toString());
+      newStat.setLog(scriptlog);
       newStat.setStatus(stat);
 
       // Remove private ssh key after bootstrap is complete

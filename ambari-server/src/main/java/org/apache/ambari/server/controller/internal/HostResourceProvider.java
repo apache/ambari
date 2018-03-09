@@ -155,6 +155,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.Host, HOST_HOST_NAME_PROPERTY_ID)
       .put(Resource.Type.Cluster, HOST_CLUSTER_NAME_PROPERTY_ID)
+      .put(Resource.Type.HostComponent, HOST_OS_TYPE_PROPERTY_ID)
       .build();
 
   /**
@@ -957,9 +958,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(cluster.getClusterName(),
                                                                              sch.getServiceGroupName(),
                                                                              sch.getServiceName(),
-                                                                             sch.getHostComponentId(),
                                                                              sch.getServiceComponentName(),
-                                                                             sch.getServiceComponentType(),
                                                                              sch.getHostName(),
                                                                              null);
           schrs.add(schr);
@@ -1087,9 +1086,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private RequestStatusResponse submitHostRequests(Request request) throws SystemException {
     ScaleClusterRequest requestRequest;
     try {
-      requestRequest = new ScaleClusterRequest(
-        request.getRequestInfoProperties().get(Request.REQUEST_INFO_BODY_PROPERTY),
-        request.getProperties());
+      requestRequest = new ScaleClusterRequest(request.getProperties());
     } catch (InvalidTopologyTemplateException e) {
       throw new IllegalArgumentException("Invalid Add Hosts Template: " + e, e);
     }

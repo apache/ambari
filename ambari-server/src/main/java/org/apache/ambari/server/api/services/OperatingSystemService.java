@@ -20,10 +20,7 @@ package org.apache.ambari.server.api.services;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -37,135 +34,77 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * The {@link OperatingSystemService} is a sub resource off of
- * {@link MpacksService} which provides the ability to expose and update
- * repositories which ship with management packs.
+ * Service responsible for operating systems requests.
  */
 public class OperatingSystemService extends BaseService {
 
   /**
-   * The parent of each OS resource.
+   * Extra properties to be inserted into created resource.
    */
-  private final String m_mpackId;
+  private Map<Resource.Type, String> parentKeyProperties;
 
   /**
    * Constructor.
    *
-   * @param parentKeyProperties
-   *          extra properties to be inserted into created resource
+   * @param parentKeyProperties extra properties to be inserted into created resource
    */
-  public OperatingSystemService(String mpackId) {
-    m_mpackId = mpackId;
+  public OperatingSystemService(Map<Resource.Type, String> parentKeyProperties) {
+    this.parentKeyProperties = parentKeyProperties;
   }
 
   /**
-   * Gets all operating systems. Handles: GET /operating_systems requests.
+   * Gets all operating systems.
+   * Handles: GET /operating_systems requests.
    *
-   * @param headers
-   *          http headers
-   * @param ui
-   *          uri info
+   * @param headers http headers
+   * @param ui      uri info
    */
-  @GET
-  @ApiIgnore
+  @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getOperatingSystems(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
   }
 
   /**
-   * Gets a single operating system. Handles: GET /operating_systems/{osType}
-   * requests.
+   * Gets a single operating system.
+   * Handles: GET /operating_systems/{osType} requests.
    *
-   * @param headers
-   *          http headers
-   * @param ui
-   *          uri info
-   * @param osType
-   *          os type
+   * @param headers http headers
+   * @param ui      uri info
+   * @param osType  os type
    * @return information regarding the specified operating system
    */
-  @GET
-  @ApiIgnore
+  @GET @ApiIgnore // until documented
   @Path("{osType}")
   @Produces("text/plain")
-  public Response getOperatingSystem(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("osType") String osType) {
+  public Response getOperatingSystem(@Context HttpHeaders headers, @Context UriInfo ui, @PathParam("osType") String osType) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(osType));
   }
 
   /**
-   * Creates the repositories and properties of a specified operating system.
+   * Handles ANY /{osType}/repositories requests.
    *
-   * @param headers
-   *          http headers
-   * @param ui
-   *          uri info
-   * @param osType
-   *          os type
-   * @return information regarding the specified operating system
+   * @param osType the os type
+   * @return repositories service
    */
-  @POST
-  @ApiIgnore
-  @Path("{osType}")
-  @Produces("text/plain")
-  public Response createOperatingSystem(String body, @Context HttpHeaders headers,
-      @Context UriInfo ui, @PathParam("osType") String osType) {
-    return handleRequest(headers, body, ui, Request.Type.POST, createResource(osType));
-  }
-
-  /**
-   * Updates the repositories and properties of a specified operating system.
-   *
-   * @param headers
-   *          http headers
-   * @param ui
-   *          uri info
-   * @param osType
-   *          os type
-   * @return information regarding the specified operating system
-   */
-  @PUT
-  @ApiIgnore
-  @Path("{osType}")
-  @Produces("text/plain")
-  public Response updateOperatingSystem(String body, @Context HttpHeaders headers,
-      @Context UriInfo ui,
-      @PathParam("osType") String osType) {
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(osType));
-  }
-
-  /**
-   * Removes the specified operating system.
-   *
-   * @param headers
-   *          http headers
-   * @param ui
-   *          uri info
-   * @param osType
-   *          os type
-   * @return the delete request status
-   */
-  @DELETE
-  @ApiIgnore
-  @Path("{osType}")
-  @Produces("text/plain")
-  public Response deleteOperatingSystem(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("osType") String osType) {
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(osType));
+  @Path("{osType}/repositories")
+  public RepositoryService getOperatingSystemsHandler(@PathParam("osType") String osType) {
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.putAll(parentKeyProperties);
+    mapIds.put(Resource.Type.OperatingSystem, osType);
+    return new RepositoryService(mapIds);
   }
 
   /**
    * Create an operating system resource instance.
    *
-   * @param osType
-   *          os type
+   * @param osType os type
    *
    * @return an operating system instance
    */
   private ResourceInstance createResource(String osType) {
     final Map<Resource.Type, String> mapIds = new HashMap<>();
-    mapIds.put(Resource.Type.Mpack, m_mpackId);
+    mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.OperatingSystem, osType);
     return createResource(Resource.Type.OperatingSystem, mapIds);
   }

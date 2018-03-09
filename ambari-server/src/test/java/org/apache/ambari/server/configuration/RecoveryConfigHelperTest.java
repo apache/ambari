@@ -148,10 +148,10 @@ public class RecoveryConfigHelperTest {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion());
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.6.0.0");
     Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
 
-    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
@@ -159,7 +159,7 @@ public class RecoveryConfigHelperTest {
     assertEquals(recoveryConfig.getEnabledComponents(), "DATANODE");
 
     // Install HDFS::NAMENODE to trigger a component installed event
-    hdfs.addServiceComponent(NAMENODE, NAMENODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
     // Verify that the config is stale now
@@ -183,13 +183,13 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.6.0.0");
     Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
 
-    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
-    hdfs.addServiceComponent(NAMENODE, NAMENODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
@@ -220,10 +220,10 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.6.0.0");
     Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
 
-    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setDesiredState(State.INSTALLED);
 
@@ -261,13 +261,13 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.6.0.0");
     Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
 
-    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
-    hdfs.addServiceComponent(NAMENODE, NAMENODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
@@ -297,10 +297,10 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.6.0.0");
     Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
 
-    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
@@ -341,10 +341,10 @@ public class RecoveryConfigHelperTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
 
     // Add HDFS service with DATANODE component to the cluster
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", "HDP-2.6.0.0");
     Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
 
-    hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
+    hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
 
     // Add SCH to Host1 and Host2
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost("Host1");

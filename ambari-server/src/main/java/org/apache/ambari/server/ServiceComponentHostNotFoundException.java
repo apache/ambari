@@ -31,13 +31,4 @@ public class ServiceComponentHostNotFoundException
         + ", hostName=" + hostName);
   }
 
-  public ServiceComponentHostNotFoundException(String clusterName,
-      String serviceName, Long serviceComponentId, String hostName) {
-    super("ServiceComponentHost not found"
-            + ", clusterName=" + clusterName
-            + ", serviceName=" + serviceName
-            + ", serviceComponentId=" + serviceComponentId
-            + ", hostName=" + hostName);
-  }
-
 }

@@ -84,7 +84,7 @@ class TestInstanceManager(TestCase):
                                                 instance_manager.DEFAULT_MPACK_INSTANCE_NAME)))
 
   def test_create_mpack_server_module_with_multiple_component_instances(self):
-    create_mpack_with_defaults(components=None, components_map={SERVER_COMPONENT_NAME.upper(): ['server1', 'server2']})
+    create_mpack_with_defaults(components=None, components_map={SERVER_COMPONENT_NAME: ['server1', 'server2']})
 
     current_link_1 = os.path.join(TMP_ROOT_FOLDER, instance_manager.INSTANCES_FOLDER_NAME, MPACK_NAME,
                                   INSTANCE_NAME_1, SUBGROUP_NAME, SERVER_MODULE_NAME, SERVER_COMPONENT_NAME,
@@ -121,12 +121,12 @@ class TestInstanceManager(TestCase):
                                   MPACK_VERSION_2, SERVER_COMPONENT_NAME))
 
   def test_set_version_client_module_asterisk(self):
-    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME)
 
     build_rpm_structure(mpack_version=MPACK_VERSION_2, remove_old_content=False, create_modules=False)
 
-    instance_manager.set_mpack_instance(MPACK_NAME.upper(), MPACK_VERSION_2, INSTANCE_NAME_1, SUBGROUP_NAME,
-                                        CLIENT_MODULE_NAME.upper(), '*')
+    instance_manager.set_mpack_instance(MPACK_NAME, MPACK_VERSION_2, INSTANCE_NAME_1, SUBGROUP_NAME,
+                                        CLIENT_MODULE_NAME, '*')
 
     current_link = os.path.join(TMP_ROOT_FOLDER, instance_manager.INSTANCES_FOLDER_NAME, MPACK_NAME,
                                 INSTANCE_NAME_1, SUBGROUP_NAME, CLIENT_COMPONENT_NAME,
@@ -160,9 +160,9 @@ class TestInstanceManager(TestCase):
                                   MPACK_VERSION_2, SERVER_COMPONENT_NAME))
 
   def test_get_conf_dir_all(self):
-    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
-    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
-                               components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME)
+    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME, components=None,
+                               components_map={SERVER_COMPONENT_NAME: ['server1']})
 
     conf_dir_json = instance_manager.get_conf_dir()
 
@@ -189,19 +189,15 @@ class TestInstanceManager(TestCase):
                         }
                       }
                     },
-                    "hdfs-clients": {
+                    "hdfs_client": {
                       "category": "CLIENT",
-                      "components": {
-                        "hdfs_client": {
-                          "component-instances": {
-                            "default": {
-                              "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf",
-                              "name": "default"
-                            }
-                          }
+                      "component_instances": {
+                        "default": {
+                          "config_dir": "/tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs_client/conf",
+                          "name": "default"
                         }
                       },
-                      "name": "hdfs-clients"
+                      "name": "hdfs_client"
                     }
                   }
                 }
@@ -214,9 +210,9 @@ class TestInstanceManager(TestCase):
     self.assertEqual(conf_dir_json, expected_json)
 
   def test_list_instances_all(self):
-    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME.upper())
-    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME.upper(), components=None,
-                               components_map={SERVER_COMPONENT_NAME.upper(): ['server1']})
+    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME)
+    create_mpack_with_defaults(module_name=SERVER_MODULE_NAME, components=None,
+                               components_map={SERVER_COMPONENT_NAME: ['server1']})
 
     conf_dir_json = instance_manager.list_instances()
 
@@ -236,26 +232,22 @@ class TestInstanceManager(TestCase):
                         "hdfs_server": {
                           "component-instances": {
                             "server1": {
-                              "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_server",
+                              "path": "/tmp/instance_manager_test/modules/hdfs/3.1.0.0-b1",
                               "name": "server1"
                             }
                           }
                         }
                       }
                     },
-                    "hdfs-clients": {
+                    "hdfs_client": {
                       "category": "CLIENT",
-                      "components": {
-                        "hdfs_client": {
-                          "component-instances": {
-                            "default": {
-                              "path": "/tmp/instance_manager_test/mpacks/hdpcore/1.0.0-b1/hdfs_client",
-                              "name": "default"
-                            }
-                           }
+                      "component_instances": {
+                        "default": {
+                          "path": "/tmp/instance_manager_test/modules/hdfs-clients/3.1.0.0-b1",
+                          "name": "default"
                         }
                       },
-                      "name": "hdfs-clients"
+                      "name": "hdfs_client"
                     }
                   }
                 }
@@ -269,7 +261,6 @@ class TestInstanceManager(TestCase):
 
   def test_granularity(self):
     create_mpack_with_defaults()
-    create_mpack_with_defaults(module_name=CLIENT_MODULE_NAME)
 
     full_conf_dir_json = instance_manager.get_conf_dir()
     self.assertTrue('mpacks' in full_conf_dir_json)
@@ -287,10 +278,6 @@ class TestInstanceManager(TestCase):
 
     module_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
                                                          subgroup_name=SUBGROUP_NAME, module_name=SERVER_MODULE_NAME)
-    self.assertTrue('components' in module_conf_dir_json)
-
-    module_conf_dir_json = instance_manager.get_conf_dir(mpack=MPACK_NAME, mpack_instance=INSTANCE_NAME_1,
-                                                         subgroup_name=SUBGROUP_NAME, module_name=CLIENT_MODULE_NAME)
     self.assertTrue('components' in module_conf_dir_json)
 
     # The mpack level filter not specified
@@ -330,7 +317,7 @@ class TestInstanceManager(TestCase):
     expected_filter_result = {'mpacks': {'edw': {'mpack-instances': {'eCommerce': {'name': 'eCommerce', 'subgroups': {
       'default': {'modules': {'hdfs': {'category': 'SERVER', 'name': 'hdfs', 'components': {'hdfs_server': {
         'component-instances': {
-          'server2': {'path': '/tmp/instance_manager_test/mpacks/edw/1.0.0-b1/hdfs_server', 'name': 'server2'}}}}}}}}}}}}}
+          'server2': {'path': '/tmp/instance_manager_test/modules/hdfs/3.1.0.0-b1', 'name': 'server2'}}}}}}}}}}}}}
     self.assertEquals(expected_filter_result, filter_by_component_instance_name_json)
 
   def test_validation(self):
@@ -376,19 +363,6 @@ class TestInstanceManager(TestCase):
                         "The instance /tmp/instance_manager_test/instances/hdpcore/Production/default/hdfs/"
                         "hdfs_server/default already exist. To change the version use set-mpack-instance command")
 
-  def test_normalize_parameters(self):
-    mpack_name = MPACK_NAME.upper()
-    module_name = SERVER_MODULE_NAME.upper()
-    components = [SERVER_COMPONENT_NAME.upper()]
-    components_map = {SERVER_COMPONENT_NAME.upper(): ["DEFAULT"]}
-    mpack_name, module_name, components, components_map = instance_manager.normalize_parameters(
-      mpack_name, module_name, components, components_map)
-
-    self.assertEquals(mpack_name, MPACK_NAME.lower())
-    self.assertEquals(module_name, SERVER_MODULE_NAME.lower())
-    self.assertEquals(components, [SERVER_COMPONENT_NAME.lower()])
-    self.assertEquals(components_map, {SERVER_COMPONENT_NAME.lower(): ["DEFAULT"]})
-
   def test_set_non_existing_instance(self):
     try:
       instance_manager.set_mpack_instance(mpack=MPACK_NAME, mpack_version=MPACK_VERSION_1,
@@ -409,9 +383,7 @@ class TestInstanceManager(TestCase):
       raise AssertionError("The previous call should have thrown exception")
     except ValueError as e:
       self.assertEquals(e.message,
-                        "Found no instances for the given filters: mpack_name:hdpcore, instance_name:Production,"
-                        " subgroup_name:default, module_name:hdfs, components:None,"
-                        " components_map:{'hdfs_server': ['non-existing-instance']}")
+                        "Found no instances for the given filters.")
 
 
 def create_mpack_with_defaults(mpack_name=MPACK_NAME, mpack_version=MPACK_VERSION_1, mpack_instance=INSTANCE_NAME_1,

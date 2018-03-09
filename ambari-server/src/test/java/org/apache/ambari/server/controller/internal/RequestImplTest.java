@@ -214,7 +214,7 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("Versions/stack_version"));
     Assert.assertTrue(validPropertyIds.contains("Versions/min_upgrade_version"));
 
-    request = PropertyHelper.getReadRequest(OperatingSystemReadOnlyResourceProvider.propertyIds);
+    request = PropertyHelper.getReadRequest(OperatingSystemResourceProvider.propertyIds);
     validPropertyIds = request.getPropertyIds();
 
     //OperatingSystem resource properties

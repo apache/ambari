@@ -33,6 +33,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCAT
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.state.Cluster;
@@ -413,6 +415,12 @@ public class AmbariCustomCommandExecutionHelper {
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
 
+      // Set parameters required for re-installing clients on restart
+      try {
+        hostLevelParams.put(REPO_INFO, repoVersionHelper.getRepoInfo(cluster, component, host));
+      } catch (SystemException e) {
+        throw new AmbariException("", e);
+      }
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
@@ -1434,6 +1442,7 @@ public class AmbariCustomCommandExecutionHelper {
     hostLevelParams.put(MYSQL_JDBC_URL, managementController.getMysqljdbcUrl());
     hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
     hostLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
+    hostLevelParams.putAll(managementController.getRcaParameters());
     hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
     hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
     hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());

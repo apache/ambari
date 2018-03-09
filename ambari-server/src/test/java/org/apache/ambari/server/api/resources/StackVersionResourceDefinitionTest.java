@@ -54,7 +54,7 @@ public class StackVersionResourceDefinitionTest {
 
     for (SubResourceDefinition subResource : subResources) {
       Resource.Type type = subResource.getType();
-      if (type.equals(Resource.Type.OperatingSystemReadOnly)) {
+      if (type.equals(Resource.Type.OperatingSystem)) {
         operatingSystemFound = true;
       } else if (type.equals(Resource.Type.StackService)) {
         serviceFound = true;

@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
-
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
@@ -32,8 +30,6 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.validators.DependencyAndCardinalityValidator;
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Encapsulates stack information.
@@ -204,10 +200,13 @@ public interface StackDefinition {
   String getServiceForComponent(String component);
 
   /**
-   * Get (stackID, service) pairs which contain the specified component in this stack.
+   * Get the names of the services which contains the specified components.
+   *
+   * @param components collection of components
+   *
+   * @return collection of services which contain the specified components
    */
-  @Nonnull
-  Stream<Pair<StackId, String>> getServicesForComponent(String component);
+  Collection<String> getServicesForComponents(Collection<String> components);
 
   /**
    * Obtain the service name which corresponds to the specified configuration.
@@ -234,6 +233,16 @@ public interface StackDefinition {
   Collection<DependencyInfo> getDependenciesForComponent(String component);
 
   /**
+   * Get the service, if any, that a component dependency is conditional on.
+   *
+   * @param dependency  dependency to get conditional service for
+   *
+   * @return conditional service for provided component or null if dependency
+   *         is not conditional on a service
+   */
+  String getConditionalServiceForDependency(DependencyInfo dependency);
+
+  /**
    * Get the custom "descriptor" that is used to decide whether component
    * is a managed or non-managed dependency.  The descriptor is formatted as:
    * "config_type/property_name".  Currently it is only used for Hive Metastore's
@@ -241,7 +250,7 @@ public interface StackDefinition {
    *
    * @param component component to get dependency information for
    * @return the descriptor of form "config_type/property_name"
-   * @see DependencyAndCardinalityValidator#isDependencyManaged
+   * @see org.apache.ambari.server.topology.BlueprintValidatorImpl#isDependencyManaged
    */
   String getExternalComponentConfig(String component);
 

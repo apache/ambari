@@ -511,7 +511,7 @@ public class ComponentVersionCheckActionTest {
     try {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {
-      serviceComponent = serviceComponentFactory.createNew(service, componentName, componentName);
+      serviceComponent = serviceComponentFactory.createNew(service, componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
     }

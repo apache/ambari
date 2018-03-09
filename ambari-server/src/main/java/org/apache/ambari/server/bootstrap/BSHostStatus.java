@@ -38,8 +38,6 @@ public class BSHostStatus {
   @XmlElement
   private String statusCode;
   @XmlElement
-  private String error;
-  @XmlElement
   private String statusAction;
   @XmlElement
   private String log;
@@ -75,14 +73,6 @@ public class BSHostStatus {
   
   public void setStatusCode(String code) {
     statusCode = code;
-  }
-
-  public String getError() {
-    return this.error;
-  }
-
-  public void setError(String error) {
-    this.error = error;
   }
   
   public String getStatusAction() {

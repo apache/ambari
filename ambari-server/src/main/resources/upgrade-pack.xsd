@@ -111,7 +111,8 @@
   
   <xs:complexType name="prerequisite-check-type">
     <xs:sequence>
-      <xs:element name="check" minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="check" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="configuration" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="property" minOccurs="0" maxOccurs="unbounded">
@@ -123,11 +124,27 @@
                 </xs:simpleContent>
               </xs:complexType>
             </xs:element>
+            <xs:element name="check-properties" type="check-properties-type" minOccurs="0" maxOccurs="unbounded"/>
           </xs:sequence>
-          <xs:attribute name="class" type="xs:string" use="required"/>
+          <xs:attribute name="name" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="check-properties-type">
+    <xs:sequence>
+      <xs:element name="property" minOccurs="1" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="xs:string">
+              <xs:attribute name="name" type="xs:string"/>
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
   </xs:complexType>
   
   <xs:complexType name="abstract-group-type" abstract="true">
@@ -159,10 +176,10 @@
         </xs:complexType>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="optional" />
+    <xs:attribute name="name" type="xs:string" use="required" />
     <xs:attribute name="title" type="xs:string" use="required" />
   </xs:complexType>
-
+  
   <xs:complexType name="cluster">
     <xs:complexContent>
       <xs:extension base="abstract-group-type">
@@ -425,7 +442,15 @@
         <xs:element name="lifecycle" minOccurs="1" maxOccurs="unbounded">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="order" type="order-type" />
+              <xs:element name="order" type="order-type">
+                <xs:unique name="unique-by-group">
+                  <xs:annotation>
+                    <xs:documentation>Ensures that the element "processing" does not have duplicate services</xs:documentation>
+                  </xs:annotation>
+                  <xs:selector xpath="lifecycle/group" />
+                  <xs:field xpath="@name" />
+                </xs:unique>
+              </xs:element>
             </xs:sequence>
             <xs:attribute name="type" type="lifecycle-type" use="required" />
           </xs:complexType>
@@ -455,4 +480,7 @@
     </xs:unique>
 
   </xs:element>
+  
+
+
 </xs:schema>

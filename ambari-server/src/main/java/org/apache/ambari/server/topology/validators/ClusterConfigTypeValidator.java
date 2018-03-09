@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
     // config types in from the request / configuration is always set in the request instance
-    Set<String> topologyClusterConfigTypes = new HashSet<>(topology.getConfiguration().getAllConfigTypes());
+    Set<String> topologyClusterConfigTypes = new HashSet(topology.getConfiguration().getAllConfigTypes());
     LOGGER.debug("Cluster config types: {}", topologyClusterConfigTypes);
 
     if (topologyClusterConfigTypes.isEmpty()) {
@@ -43,8 +44,8 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
 
     // collecting all config types for services in the blueprint (from the related stack)
     Set<String> stackServiceConfigTypes = new HashSet<>();
-    for (String serviceName : topology.getServices()) {
-      stackServiceConfigTypes.addAll(topology.getStack().getConfigurationTypes(serviceName));
+    for (String serviceName : topology.getBlueprint().getServices()) {
+      stackServiceConfigTypes.addAll(topology.getBlueprint().getStack().getConfigurationTypes(serviceName));
     }
 
     // identifying invalid config types

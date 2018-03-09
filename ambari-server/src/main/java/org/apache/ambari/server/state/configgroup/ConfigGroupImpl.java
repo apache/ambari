@@ -101,8 +101,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   @AssistedInject
   public ConfigGroupImpl(@Assisted("cluster") Cluster cluster,
                          @Assisted("serviceGroupId") @Nullable Long serviceGroupId,
-                         @Assisted("serviceId") @Nullable Long serviceId,
-                         @Assisted("name") String name,
+                         @Assisted("serviceId") @Nullable Long serviceId, @Assisted("name") String name,
                          @Assisted("tag") String tag, @Assisted("description") String description,
                          @Assisted("configs") Map<String, Config> configurations,
                          @Assisted("hosts") Map<Long, Host> hosts, Clusters clusters, ConfigFactory configFactory,

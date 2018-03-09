@@ -60,6 +60,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
    */
   static final Map<String, List<String>> GANGLIA_CLUSTER_NAME_MAP = new HashMap<>();
 
+  
   static {
     GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           Collections.singletonList("HDPNameNode"));
     GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           Arrays.asList("HDPDataNode", "HDPSlaves"));
