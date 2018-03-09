@@ -273,7 +273,6 @@ public class ClustersImpl implements Clusters {
    * {@link Clusters} instance, we must do this after the object has been
    * instantiated and injected.
    */
-  @Transactional
   private void loadClustersAndHosts() {
     LOG.info("Initializing cluster and host data.");
 
