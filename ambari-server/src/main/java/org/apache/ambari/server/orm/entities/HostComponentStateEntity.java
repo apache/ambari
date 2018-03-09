@@ -30,8 +30,11 @@ import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+
+import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
@@ -39,7 +42,11 @@ import org.apache.ambari.server.state.UpgradeState;
 import com.google.common.base.Objects;
 
 @Entity
-@Table(name = "hostcomponentstate")
+@Table(
+    name = "hostcomponentstate",
+    uniqueConstraints = @UniqueConstraint(
+                name = "UQ_hostcomponentstate_name",
+                columnNames = { "component_name", "service_id" , "host_id", "service_group_id", "cluster_id" }) )
 @TableGenerator(
     name = "hostcomponentstate_id_generator",
     table = "ambari_sequences",
@@ -76,15 +83,16 @@ import com.google.common.base.Objects;
                 "AND hcs.version != :version"),
     @NamedQuery(
         name = "HostComponentStateEntity.findByIndex",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId " +
-                "AND hcs.serviceGroupId=:serviceGroupId AND hcs.serviceId=:serviceId AND hcs.componentName=:componentName AND hcs.hostId=:hostId") })
-
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.id=:id") })
 public class HostComponentStateEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "hostcomponentstate_id_generator")
   @Column(name = "id", nullable = false, insertable = true, updatable = false)
   private Long id;
+
+  @Column(name = "host_component_desired_state_id", nullable = false, insertable = false, updatable = false)
+  private Long hostComponentDesiredStateId;
 
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
@@ -100,6 +108,9 @@ public class HostComponentStateEntity {
 
   @Column(name = "component_name", nullable = false, insertable = false, updatable = false)
   private String componentName;
+
+  @Column(name = "component_type", nullable = false, insertable = false, updatable = false)
+  private String componentType;
 
   /**
    * Version reported by host component during last status update.
@@ -120,12 +131,17 @@ public class HostComponentStateEntity {
     @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
     @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
     @JoinColumn(name = "service_id", referencedColumnName = "service_id", nullable = false),
-    @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false) })
+    @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false),
+    @JoinColumn(name = "component_type", referencedColumnName = "component_type", nullable = false) })
   private ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity;
 
   @ManyToOne
   @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
   private HostEntity hostEntity;
+
+  @OneToOne
+  @JoinColumn(name = "host_component_desired_state_id", referencedColumnName = "id", nullable = false)
+  private HostComponentDesiredStateEntity hostComponentDesiredStateEntity;
 
   public Long getId() {
     return id;
@@ -169,6 +185,26 @@ public class HostComponentStateEntity {
 
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  public Long getHostComponentDesiredStateId() {
+    return hostComponentDesiredStateEntity != null ? hostComponentDesiredStateEntity.getId() : null;
+  }
+
+  public void setComponentId(Long componentId) {
+    this.id = componentId;
+  }
+
+  public Long getComponentId() {
+    return id;
+  }
+
+  public void setComponentType(String componentType) {
+    this.componentType = componentType;
+  }
+
+  public String getComponentType() {
+    return componentType;
   }
 
   public State getCurrentState() {
@@ -228,6 +264,11 @@ public class HostComponentStateEntity {
       return false;
     }
 
+    if (componentType != null ? !componentType.equals(that.componentType)
+            : that.componentType != null) {
+      return false;
+    }
+
     if (currentState != null ? !currentState.equals(that.currentState)
         : that.currentState != null) {
       return false;
@@ -239,6 +280,10 @@ public class HostComponentStateEntity {
     }
 
     if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) {
+      return false;
+    }
+
+    if (hostComponentDesiredStateEntity != null ? !hostComponentDesiredStateEntity.equals(that.hostComponentDesiredStateEntity) : that.hostComponentDesiredStateEntity != null) {
       return false;
     }
 
@@ -256,7 +301,9 @@ public class HostComponentStateEntity {
     result = 31 * result + (serviceGroupId != null ? serviceGroupId.intValue() : 0);
     result = 31 * result + (serviceId != null ? serviceId.intValue() : 0);
     result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
+    result = 31 * result + (hostComponentDesiredStateEntity != null ? hostComponentDesiredStateEntity.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 31 * result + (componentType != null ? componentType.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
@@ -267,8 +314,7 @@ public class HostComponentStateEntity {
     return serviceComponentDesiredStateEntity;
   }
 
-  public void setServiceComponentDesiredStateEntity(
-      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
+  public void setServiceComponentDesiredStateEntity(ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
     this.serviceComponentDesiredStateEntity = serviceComponentDesiredStateEntity;
   }
 
@@ -280,14 +326,22 @@ public class HostComponentStateEntity {
     this.hostEntity = hostEntity;
   }
 
+  public HostComponentDesiredStateEntity getHostComponentDesiredStateEntity() {
+    return hostComponentDesiredStateEntity;
+  }
+
+  public void setHostComponentDesiredStateEntity(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
+    this.hostComponentDesiredStateEntity = hostComponentDesiredStateEntity;
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("clusterId", clusterId).add("serviceGroupId", serviceGroupId).add(
-      "serviceId", serviceId).add("componentName", componentName).add(
-      "hostId", hostId).add("state", currentState).toString();
+      "serviceId", serviceId).add("componentId", id).add("componentName", componentName).add
+            ("componentType", componentType).add("hostId", hostId).add("state", currentState).toString();
   }
 
 }

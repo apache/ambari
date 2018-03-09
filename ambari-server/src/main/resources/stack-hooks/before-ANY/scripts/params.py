@@ -63,7 +63,8 @@ sudo = AMBARI_SUDO_BINARY
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
-stack_version_formatted = format_stack_version(stack_version_unformatted)
+stack_version_formatted = config['hostLevelParams']['stack_version']
+#stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
 version = default("/commandParams/version", None)
@@ -109,7 +110,10 @@ def is_secure_port(port):
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 hadoop_home = stack_select.get_hadoop_dir("home")
-hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = stack_name.lower()
+component_directory = "namenode"
+hadoop_libexec_dir = format("/usr/hwx/mpacks/{stack_name}/{stack_version_formatted}/{component_directory}/libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 hadoop_dir = "/etc/hadoop"

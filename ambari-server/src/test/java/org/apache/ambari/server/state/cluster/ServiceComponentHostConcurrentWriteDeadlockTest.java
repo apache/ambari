@@ -139,7 +139,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     clusters.mapHostToCluster(hostName, "c1");
 
     Service service = installService("HDFS");
-    addServiceComponent(service, "NAMENODE");
+    addServiceComponent(service, "NAMENODE", "NAMENODE");
   }
 
   @After
@@ -151,8 +151,8 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
    */
   @Test()
   public void testConcurrentWriteDeadlock() throws Exception {
-    ServiceComponentHost nameNodeSCH = createNewServiceComponentHost("HDFS", "NAMENODE", "c6401");
-    ServiceComponentHost dataNodeSCH = createNewServiceComponentHost("HDFS", "DATANODE", "c6401");
+    ServiceComponentHost nameNodeSCH = createNewServiceComponentHost("HDFS", "NAMENODE", "NAMENODE", "c6401");
+    ServiceComponentHost dataNodeSCH = createNewServiceComponentHost("HDFS", "DATANODE", "DATANODE", "c6401");
 
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     serviceComponentHosts.add(nameNodeSCH);
@@ -229,10 +229,10 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
   }
 
   private ServiceComponentHost createNewServiceComponentHost(String svc,
-      String svcComponent, String hostName) throws AmbariException {
+      String svcComponentName, String svcComponentType, String hostName) throws AmbariException {
     Assert.assertNotNull(cluster.getConfigGroups());
     Service s = installService(svc);
-    ServiceComponent sc = addServiceComponent(s, svcComponent);
+    ServiceComponent sc = addServiceComponent(s, svcComponentName, svcComponentType);
 
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc, hostName);
 
@@ -258,13 +258,13 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
   }
 
   private ServiceComponent addServiceComponent(Service service,
-      String componentName) throws AmbariException {
+      String componentName, String svcComponentType) throws AmbariException {
     ServiceComponent serviceComponent = null;
     try {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {
       serviceComponent = serviceComponentFactory.createNew(service,
-          componentName);
+          componentName, svcComponentType);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
     }

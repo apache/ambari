@@ -18,10 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -40,6 +38,8 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
 
@@ -62,7 +62,13 @@ import org.apache.ambari.server.state.State;
     query = "SELECT scds FROM ServiceComponentDesiredStateEntity scds WHERE scds.clusterId = :clusterId " +
       "AND scds.serviceGroupId = :serviceGroupId " +
       "AND scds.serviceId = :serviceId " +
-      "AND scds.componentName = :componentName") })
+      "AND scds.componentName = :componentName " +
+      "AND scds.componentType = :componentType" ),
+  @NamedQuery(
+    name = "ServiceComponentDesiredStateEntity.findById",
+    query = "SELECT scds FROM ServiceComponentDesiredStateEntity scds WHERE scds.id = :id" )
+})
+
 public class ServiceComponentDesiredStateEntity {
 
   @Id
@@ -74,6 +80,9 @@ public class ServiceComponentDesiredStateEntity {
 
   @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
   private String componentName;
+
+  @Column(name = "component_type", nullable = false, insertable = true, updatable = true)
+  private String componentType;
 
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
@@ -91,6 +100,8 @@ public class ServiceComponentDesiredStateEntity {
   @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
   private Integer recoveryEnabled = 0;
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   @Column(name = "repo_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(EnumType.STRING)
   private RepositoryVersionState repoState = RepositoryVersionState.NOT_REQUIRED;
@@ -98,6 +109,8 @@ public class ServiceComponentDesiredStateEntity {
   /**
    * Unidirectional one-to-one association to {@link RepositoryVersionEntity}
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   @OneToOne
   @JoinColumn(
       name = "desired_repo_version_id",
@@ -121,11 +134,6 @@ public class ServiceComponentDesiredStateEntity {
 
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
-
-  @OneToMany(
-    mappedBy = "m_serviceComponentDesiredStateEntity",
-    cascade = {CascadeType.ALL})
-  private Collection<ServiceComponentVersionEntity> serviceComponentVersions;
 
   public Long getId() {
     return id;
@@ -155,6 +163,14 @@ public class ServiceComponentDesiredStateEntity {
     this.componentName = componentName;
   }
 
+  public String getComponentType() {
+    return componentType;
+  }
+
+  public void setComponentType(String componentType) {
+    this.componentType = componentType;
+  }
+
   public State getDesiredState() {
     return desiredState;
   }
@@ -163,41 +179,29 @@ public class ServiceComponentDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionEntity getDesiredRepositoryVersion() {
     return desiredRepositoryVersion;
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
     this.desiredRepositoryVersion = desiredRepositoryVersion;
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public StackEntity getDesiredStack() {
     return desiredRepositoryVersion.getStack();
   }
 
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public String getDesiredVersion() {
     return desiredRepositoryVersion.getVersion();
   }
-
-  /**
-   * @param versionEntity the version to add
-   */
-  public void addVersion(ServiceComponentVersionEntity versionEntity) {
-    if (null == serviceComponentVersions) {
-      serviceComponentVersions = new ArrayList<>();
-    }
-
-    serviceComponentVersions.add(versionEntity);
-    versionEntity.setServiceComponentDesiredState(this);
-  }
-
-  /**
-   * @return the collection of versions for the component
-   */
-  public Collection<ServiceComponentVersionEntity> getVersions() {
-    return serviceComponentVersions;
-  }
-
 
   public boolean isRecoveryEnabled() {
     return recoveryEnabled != 0;
@@ -237,6 +241,9 @@ public class ServiceComponentDesiredStateEntity {
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) {
       return false;
     }
+    if (componentType != null ? !componentType.equals(that.componentType) : that.componentType != null) {
+      return false;
+    }
     if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
       return false;
     }
@@ -254,6 +261,7 @@ public class ServiceComponentDesiredStateEntity {
     result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
     result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 31 * result + (componentType != null ? componentType.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
     result = 31 * result + (desiredRepositoryVersion != null ? desiredRepositoryVersion.hashCode() : 0);
 
@@ -287,6 +295,8 @@ public class ServiceComponentDesiredStateEntity {
   /**
    * @param state the repository state for {@link #getDesiredVersion()}
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setRepositoryState(RepositoryVersionState state) {
     repoState = state;
   }
@@ -294,6 +304,8 @@ public class ServiceComponentDesiredStateEntity {
   /**
    * @return the state of the repository for {@link #getDesiredVersion()}
    */
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public RepositoryVersionState getRepositoryState() {
     return repoState;
   }

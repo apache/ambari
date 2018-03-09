@@ -101,7 +101,13 @@ public class BootStrapImpl {
     }
   }
 
-  public  synchronized BSResponse runBootStrap(SshHostInfo info) {
+  /**
+   * Start Bsrunner thread to run bootstrap script
+   * @param info credential info needed to connect hosts
+   * @param validate if it is true, bootstrap script will only validate reachability of hosts, not run actual bootstrap
+   * @return
+   */
+  public  synchronized BSResponse runBootStrap(SshHostInfo info, boolean validate) {
     BSResponse response = new BSResponse();
     /* Run some checks for ssh host */
     LOG.info("BootStrapping hosts " + info.hostListAsString());
@@ -127,7 +133,7 @@ public class BootStrapImpl {
     } else {
       bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
           bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-          this.masterHostname, info.isVerbose(), this.clusterOsFamily, this.projectVersion, this.serverPort);
+          this.masterHostname, info.isVerbose(), this.clusterOsFamily, this.projectVersion, this.serverPort, validate);
       bsRunner.start();
       response.setStatus(BSRunStat.OK);
       response.setLog("Running Bootstrap now.");

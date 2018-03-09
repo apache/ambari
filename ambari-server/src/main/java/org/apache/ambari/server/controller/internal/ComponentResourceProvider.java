@@ -94,7 +94,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
   protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
   protected static final String COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
+  protected static final String COMPONENT_COMPONENT_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
+  protected static final String COMPONENT_COMPONENT_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_type";
   protected static final String COMPONENT_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "display_name";
   protected static final String COMPONENT_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
   protected static final String COMPONENT_CATEGORY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "category";
@@ -120,7 +122,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           COMPONENT_CLUSTER_NAME_PROPERTY_ID,
           COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID,
           COMPONENT_SERVICE_NAME_PROPERTY_ID,
-          COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+          COMPONENT_COMPONENT_ID_PROPERTY_ID,
+          COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+          COMPONENT_COMPONENT_TYPE_PROPERTY_ID);
 
   /**
    * The property ids for an servce resource.
@@ -141,7 +145,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     PROPERTY_IDS.add(COMPONENT_SERVICE_ID_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_SERVICE_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_SERVICE_TYPE_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_COMPONENT_ID_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_COMPONENT_TYPE_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_DISPLAY_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_STATE_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_CATEGORY_PROPERTY_ID);
@@ -223,7 +229,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         resource.setProperty(COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId());
         resource.setProperty(COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
         resource.setProperty(COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType());
+        resource.setProperty(COMPONENT_COMPONENT_ID_PROPERTY_ID, response.getComponentId());
         resource.setProperty(COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName());
+        resource.setProperty(COMPONENT_COMPONENT_TYPE_PROPERTY_ID, response.getComponentType());
         resource.setProperty(COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName());
         resource.setProperty(COMPONENT_STATE_PROPERTY_ID, response.getDesiredState());
         resource.setProperty(COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory());
@@ -270,7 +278,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId(), requestedIds);
       setResourceProperty(resource, COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
       setResourceProperty(resource, COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType(), requestedIds);
+      setResourceProperty(resource, COMPONENT_COMPONENT_ID_PROPERTY_ID, response.getComponentId(), requestedIds);
       setResourceProperty(resource, COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
+      setResourceProperty(resource, COMPONENT_COMPONENT_TYPE_PROPERTY_ID, response.getComponentType(), requestedIds);
       setResourceProperty(resource, COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName(), requestedIds);
       setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
       setResourceProperty(resource, COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory(), requestedIds);
@@ -363,6 +373,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         (String) properties.get(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
+        (String) properties.get(COMPONENT_COMPONENT_TYPE_PROPERTY_ID),
         (String) properties.get(COMPONENT_STATE_PROPERTY_ID),
         (String) properties.get(COMPONENT_RECOVERY_ENABLED_ID),
         (String) properties.get(COMPONENT_CATEGORY_PROPERTY_ID));
@@ -391,6 +402,13 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Validate.notEmpty(request.getServiceGroupName(), "service group name should be non-empty");
       Validate.notEmpty(request.getServiceName(), "service name should be non-empty");
       Cluster cluster = getClusterForRequest(request, clusters);
+
+      // TODO: Multi_Component_Instance. When we go into multiple component instance mode, we will need make
+      // component_type as manadatory field. As of now, we are just copying component_name into component_type,
+      // if not provided. Further, need to add validation check too.
+      if(StringUtils.isBlank(request.getComponentType())) {
+        request.setComponentType(request.getComponentName());
+      }
 
       isAuthorized(cluster, getRequiredCreateAuthorizations());
 
@@ -454,7 +472,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     for (ServiceComponentRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
-      ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName());
+      ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName(), request.getComponentType());
       sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
@@ -475,10 +493,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       } else {
         StackId stackId = s.getDesiredStackId();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-                stackId.getStackVersion(), s.getServiceType(), request.getComponentName());
+                stackId.getStackVersion(), s.getServiceType(), request.getComponentType());
         if (componentInfo == null) {
             throw new AmbariException("Could not get component information from stack definition: Stack=" +
-              stackId + ", Service=" + s.getServiceType() + ", Component=" + request.getComponentName());
+              stackId + ", Service=" + s.getServiceType() + ", Component type =" + request.getComponentType());
         }
         sc.setRecoveryEnabled(componentInfo.isRecoveryEnabled());
         LOG.info("Component: {}, recovery_enabled from stack definition:{}", componentInfo.getName(),
@@ -631,6 +649,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final String serviceGroupName = request.getServiceGroupName();
       final String serviceName = request.getServiceName();
       final String componentName = request.getComponentName();
+      final String componentType = request.getComponentType();
 
       LOG.info("Received a updateComponent request: {}", request);
 
@@ -659,7 +678,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       State newState = getValidDesiredState(request);
 
       if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, s)) {
-        LOG.info("Operations cannot be applied to component " + componentName
+        LOG.info("Operations cannot be applied to component name : " + componentName + " with type : " + componentType
                 + " because service " + serviceName +
                 " is in the maintenance state of " + s.getMaintenanceState());
         continue;
@@ -674,8 +693,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
         boolean newRecoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
         boolean oldRecoveryEnabled = sc.isRecoveryEnabled();
-        LOG.info("Component: {}, oldRecoveryEnabled: {}, newRecoveryEnabled {}",
-                componentName, oldRecoveryEnabled, newRecoveryEnabled);
+        LOG.info("ComponentName: {}, componentType: {}, oldRecoveryEnabled: {}, newRecoveryEnabled {}",
+                componentName, componentType, oldRecoveryEnabled, newRecoveryEnabled);
         if (newRecoveryEnabled != oldRecoveryEnabled) {
           if (newRecoveryEnabled) {
             recoveryEnabledComponents.add(sc);
@@ -712,6 +731,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", serviceGroupName=" + serviceGroupName
               + ", serviceName=" + sc.getServiceName()
               + ", componentName=" + sc.getName()
+              + ", componentType=" + sc.getType()
               + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
@@ -725,6 +745,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", serviceGroupName=" + serviceGroupName
               + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
+              + ", componentType=" + sc.getType()
               + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
@@ -740,6 +761,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 + ", serviceGroupName=" + serviceGroupName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
+                + ", componentType=" + sc.getType()
                 + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
@@ -754,6 +776,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 + ", serviceGroupName=" + serviceGroupName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
+                + ", componentType=" + sc.getType()
                 + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
@@ -769,6 +792,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 + ", serviceGroupName=" + serviceGroupName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
+                + ", componentType=" + sc.getType()
                 + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName());
 
@@ -784,6 +808,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", serviceGroupName=" + serviceGroupName
               + ", serviceName=" + sch.getServiceName()
               + ", componentName=" + sch.getServiceComponentName()
+              + ", componentType=" + sch.getServiceComponentType()
               + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
@@ -801,6 +826,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", serviceGroupName=" + serviceGroupName
               + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
+              + ", componentType=" + sc.getType()
               + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
@@ -914,14 +940,16 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     if (StringUtils.isEmpty(request.getServiceName())) {
 
       String componentName = request.getComponentName();
+      String componentType = request.getComponentType();
 
-      String serviceName = getManagementController().findService(cluster, componentName);
+      String serviceName = getManagementController().findService(cluster, componentType);
 
-      debug("Looking up service name for component, componentName={}, serviceName={}", componentName, serviceName);
+      debug("Looking up service name for component, componentType={}, serviceName={}", componentType, serviceName);
 
       if (StringUtils.isEmpty(serviceName)) {
-        throw new AmbariException("Could not find service for component"
-                + ", componentName=" + request.getComponentName()
+        throw new AmbariException("Could not find service for component."
+                + " componentName=" + request.getComponentName()
+                + " componentType=" + request.getComponentType()
                 + ", clusterName=" + cluster.getClusterName());
       }
       request.setServiceName(serviceName);
