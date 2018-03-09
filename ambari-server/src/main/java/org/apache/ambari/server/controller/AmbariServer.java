@@ -81,7 +81,6 @@ import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -114,7 +113,6 @@ import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
-import org.apache.ambari.server.stack.UpdateActiveRepoVersionOnStartup;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.BlueprintFactory;
@@ -948,7 +946,6 @@ public class AmbariServer {
         injector.getInstance(TopologyRequestFactoryImpl.class), injector.getInstance(SecurityConfigurationFactory
             .class), injector.getInstance(Gson.class));
     HostResourceProvider.setTopologyManager(injector.getInstance(TopologyManager.class));
-    BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
     BaseClusterRequest.init(injector.getInstance(BlueprintFactory.class));
     AmbariContext.init(injector.getInstance(HostRoleCommandFactory.class));
 
@@ -1077,7 +1074,7 @@ public class AmbariServer {
       HandlerCollection handlers = new HandlerCollection();
       Handler[] handler = serverForAgent.getHandlers();
       if(handler != null ) {
-        handlers.setHandlers((Handler[])handler);
+        handlers.setHandlers(handler);
         handlers.addHandler(requestLogHandler);
         serverForAgent.setHandler(handlers);
       }
@@ -1108,7 +1105,6 @@ public class AmbariServer {
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 
       server = injector.getInstance(AmbariServer.class);
-      injector.getInstance(UpdateActiveRepoVersionOnStartup.class).process();
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
       KerberosChecker.checkJaasConfiguration();

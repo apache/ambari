@@ -1187,6 +1187,58 @@ public class ClusterImpl implements Cluster {
     throw new ServiceNotFoundException(getClusterName(), "component: " + componentName);
   }
 
+  @Override
+  public Service getServiceByComponentId(Long componentId) throws AmbariException {
+    for (Service service : services.values()) {
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (component.getId().equals(componentId)) {
+          return service;
+        }
+      }
+    }
+
+    throw new ServiceNotFoundException(getClusterName(), "component Id: " + componentId);
+  }
+
+  @Override
+  public String getComponentName(Long componentId) throws AmbariException {
+    for (Service service : services.values()) {
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (component.getId().equals(componentId)) {
+          return component.getName();
+        }
+      }
+    }
+
+    throw new ServiceNotFoundException(getClusterName(), "component Id: " + componentId);
+  }
+
+
+  @Override
+  public String getComponentType(Long componentId) throws AmbariException {
+    for (Service service : services.values()) {
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (component.getId().equals(componentId)) {
+          return component.getType();
+        }
+      }
+    }
+
+    throw new ServiceNotFoundException(getClusterName(), "component Id: " + componentId);
+  }
+
+  @Override
+  public Long getComponentId(String componentName) throws AmbariException {
+    for (Service service : services.values()) {
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (component.getName().equals(componentName)) {
+          return component.getId();
+        }
+      }
+    }
+
+    throw new ServiceNotFoundException(getClusterName(), "component Name: " + componentName);
+  }
 
   @Override
   public ServiceGroup getServiceGroup(String serviceGroupName) throws ServiceGroupNotFoundException {

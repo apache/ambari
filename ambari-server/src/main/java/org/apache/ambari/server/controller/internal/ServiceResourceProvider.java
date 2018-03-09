@@ -668,6 +668,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       LOG.info("Received a updateService request"
           + ", clusterName=" + request.getClusterName()
+          + ", serviceGroupName=" + request.getServiceGroupName()
           + ", serviceName=" + request.getServiceName()
           + ", request=" + request);
 

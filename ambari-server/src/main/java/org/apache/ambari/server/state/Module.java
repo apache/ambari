@@ -20,6 +20,8 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.gson.annotations.SerializedName;
 
 public class Module {
@@ -127,11 +129,24 @@ public class Module {
     this.components = components;
   }
 
+  public ModuleComponent getModuleComponent(String moduleComponentName) {
+    for (ModuleComponent moduleComponent : components) {
+      if (StringUtils.equals(moduleComponentName, moduleComponent.getName())) {
+        return moduleComponent;
+      }
+    }
+
+    return null;
+  }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Module module = (Module) o;
 

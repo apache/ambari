@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.easymock.Capture;
@@ -82,6 +83,8 @@ import com.google.inject.util.Modules;
 
 public class ConfigGroupResourceProviderTest {
 
+  public static final String SERVICE_GROUP_NAME = "default";
+  public static final String SERVICE_NAME = "ZOOKEEPER";
   private HostDAO hostDAO = null;
 
   @Before
@@ -154,6 +157,7 @@ public class ConfigGroupResourceProviderTest {
     HostEntity hostEntity2 = createMock(HostEntity.class);
     ConfigGroupFactory configGroupFactory = createNiceMock(ConfigGroupFactory.class);
     ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
+    Service service = createNiceMock(Service.class);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -161,6 +165,8 @@ public class ConfigGroupResourceProviderTest {
     expect(clusters.getHost("h2")).andReturn(h2);
     expect(cluster.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(cluster.isConfigTypeExists(anyString())).andReturn(true).anyTimes();
+    expect(cluster.getService(SERVICE_GROUP_NAME, SERVICE_NAME)).andReturn(service);
+    expect(service.getServiceId()).andReturn(1L);
     expect(managementController.getConfigGroupFactory()).andReturn(configGroupFactory);
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(hostDAO.findByName("h1")).andReturn(hostEntity1).atLeastOnce();
@@ -172,7 +178,6 @@ public class ConfigGroupResourceProviderTest {
     Capture<String> serviceName = newCapture();
     Capture<Long> servcieId = newCapture();
     Capture<Long> servcieGroupId = newCapture();
-    Capture<String> captureName = newCapture();
     Capture<String> captureDesc = newCapture();
     Capture<String> captureTag = newCapture();
     Capture<Map<String, Config>> captureConfigs = newCapture();
@@ -182,7 +187,7 @@ public class ConfigGroupResourceProviderTest {
         capture(captureTag), capture(captureDesc),
         capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
 
-    replay(managementController, clusters, cluster, configGroupFactory,
+    replay(managementController, clusters, cluster, service, configGroupFactory,
         configGroup, response, hostDAO, hostEntity1, hostEntity2);
 
     ResourceProvider provider = getConfigGroupResourceProvider
@@ -218,6 +223,8 @@ public class ConfigGroupResourceProviderTest {
         hostSet);
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_CONFIGS_PROPERTY_ID,
         configSet);
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_SERVICEGROUPNAME_PROPERTY_ID, SERVICE_GROUP_NAME);
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_SERVICENAME_PROPERTY_ID, SERVICE_NAME);
 
     propertySet.add(properties);
 

@@ -500,10 +500,10 @@ public class HeartbeatProcessor extends AbstractService{
               }
 
               String newVersion = structuredOutput == null ? null : structuredOutput.version;
-              Long repoVersionId = structuredOutput == null ? null : structuredOutput.repositoryVersionId;
+              Long mpackId = structuredOutput == null ? null : structuredOutput.mpackId;
 
               HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(
-                  cl, scHost, newVersion, repoVersionId);
+                  cl, scHost, newVersion);
 
               versionEventPublisher.publish(event);
             }
@@ -764,8 +764,8 @@ public class HeartbeatProcessor extends AbstractService{
     @SerializedName("direction")
     private Direction upgradeDirection = null;
 
-    @SerializedName(KeyNames.REPO_VERSION_ID)
-    private Long repositoryVersionId;
+    @SerializedName(KeyNames.MPACK_ID)
+    private Long mpackId;
 
   }
 }

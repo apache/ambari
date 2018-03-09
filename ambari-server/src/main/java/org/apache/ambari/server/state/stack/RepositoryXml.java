@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Represents the repository file <code>$STACK_VERSION/repos/repoinfo.xml</code>.
@@ -43,6 +44,7 @@ public class RepositoryXml implements Validable{
 
   @XmlElement(name="latest")
   private String latestUri;
+
   @XmlElement(name="os")
   private List<Os> oses = new ArrayList<>();
 
@@ -82,7 +84,7 @@ public class RepositoryXml implements Validable{
 
   @Override
   public void addErrors(Collection<String> errors) {
-    this.errorSet.addAll(errors);
+    errorSet.addAll(errors);
   }
 
   /**
@@ -105,6 +107,7 @@ public class RepositoryXml implements Validable{
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Os {
     @XmlAttribute(name="family")
+    @JsonProperty("os_type")
     private String family;
 
     @XmlElement(name="package-version")
@@ -143,16 +146,30 @@ public class RepositoryXml implements Validable{
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Repo {
+    @JsonProperty("base_url")
     private String baseurl = null;
+
+    @JsonProperty("mirrors_list")
     private String mirrorslist = null;
+
+    @JsonProperty("repo_id")
     private String repoid = null;
+
+    @JsonProperty("repo_name")
     private String reponame = null;
+
+    @JsonProperty("distribution")
     private String distribution = null;
+
+    @JsonProperty("components")
     private String components = null;
+
+    @JsonProperty("unique")
     private boolean unique = false;
 
     @XmlElementWrapper(name="tags")
     @XmlElement(name="tag")
+    @JsonProperty("tags")
     private Set<RepoTag> tags = new HashSet<>();
 
     private Repo() {

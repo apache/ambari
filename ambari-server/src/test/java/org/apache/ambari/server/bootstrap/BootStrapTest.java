@@ -94,7 +94,7 @@ public class BootStrapTest extends TestCase {
     info.setHosts(hosts);
     info.setUser("user");
     info.setPassword("passwd");
-    BSResponse response = impl.runBootStrap(info);
+    BSResponse response = impl.runBootStrap(info, false);
     LOG.info("Response id from bootstrap " + response.getRequestId());
     /* do a query */
     BootStrapStatus status = impl.getStatus(response.getRequestId());
@@ -172,7 +172,7 @@ public class BootStrapTest extends TestCase {
     info.setUser("user");
     info.setUserRunAs("root");
     info.setPassword("passwd");
-    BSResponse response = impl.runBootStrap(info);
+    BSResponse response = impl.runBootStrap(info, false);
     long requestId = response.getRequestId();
     LOG.info("Response id from bootstrap " + requestId);
       /* create failed done file for host2 */

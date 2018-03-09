@@ -869,12 +869,12 @@ public class StacksService extends BaseService {
    */
   // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
   @Path("{stackName}/versions/{stackVersion}/operating_systems")
-  public OperatingSystemService getOperatingSystemsHandler(@ApiParam @PathParam("stackName") String stackName,
+  public OperatingSystemReadOnlyService getOperatingSystemsHandler(@ApiParam @PathParam("stackName") String stackName,
                                                            @ApiParam @PathParam("stackVersion") String stackVersion) {
     final Map<Resource.Type, String> stackProperties = new HashMap<>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
-    return new OperatingSystemService(stackProperties);
+    return new OperatingSystemReadOnlyService(stackProperties);
   }
 
   /**

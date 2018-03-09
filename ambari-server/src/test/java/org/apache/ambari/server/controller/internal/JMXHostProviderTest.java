@@ -123,14 +123,14 @@ public class JMXHostProviderTest {
   private void createServiceComponent(String clusterName, String serviceGroupName,
                                       String serviceName, String componentName, State desiredState)
       throws AmbariException, AuthorizationException {
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, componentName, desiredState != null ? desiredState.name() : null);
     ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
   private void createServiceComponentHost(String clusterName, String serviceGroupName,
                                           String serviceName, String componentName, String hostname,
                                           State desiredState) throws AmbariException, AuthorizationException {
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, componentName, hostname, desiredState != null ? desiredState.name() : null);
     controller.createHostComponents(Collections.singleton(r));
   }
 
@@ -141,7 +141,7 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, r.getStackVersion());
     String serviceName = "HDFS";
     createService(clusterName, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -207,7 +207,7 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, r.getStackVersion());
     String serviceName = "HDFS";
     String serviceName2 = "YARN";
     String serviceName3 = "MAPREDUCE2";
@@ -327,7 +327,7 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, r.getStackVersion());
     String serviceName = "HDFS";
     createService(clusterName, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
