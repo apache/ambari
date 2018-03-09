@@ -133,11 +133,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   private final static String REPOSITORY_FOLDER_NAME = "repos";
 
   /**
-   * repository file name
-   */
-  private final static String REPOSITORY_FILE_NAME = "repoinfo.xml";
-
-  /**
    * metainfo file name
    */
   private static final String STACK_METAINFO_FILE_NAME = "metainfo.xml";

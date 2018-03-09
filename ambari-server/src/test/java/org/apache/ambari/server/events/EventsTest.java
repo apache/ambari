@@ -366,7 +366,7 @@ public class EventsTest {
     Service service = m_cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
-    ServiceComponent component = m_componentFactory.createNew(service, "DATANODE");
+    ServiceComponent component = m_componentFactory.createNew(service, "DATANODE", "DATANODE");
     service.addServiceComponent(component);
     component.setDesiredState(State.INSTALLED);
 

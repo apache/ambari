@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
@@ -38,6 +40,8 @@ import com.google.inject.persist.Transactional;
  *
  */
 @Singleton
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long> {
   /**
    * Constructor.
@@ -153,7 +157,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     query.setParameter("type", type);
     return daoUtils.selectList(query);
   }
-  
+
   /**
    * Validates and creates an object.
    * The version must be unique within this stack name (e.g., HDP, HDPWIN, BIGTOP).

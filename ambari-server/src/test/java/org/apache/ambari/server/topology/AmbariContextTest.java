@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -35,7 +36,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
@@ -108,6 +109,7 @@ public class AmbariContextTest {
 
   private static final AmbariContext context = new AmbariContext();
   private static final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+  private static final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
   private static final ClusterController clusterController = createStrictMock(ClusterController.class);
   private static final HostResourceProvider hostResourceProvider = createStrictMock(HostResourceProvider.class);
   private static final ServiceGroupResourceProvider serviceGroupResourceProvider = createStrictMock(ServiceGroupResourceProvider.class);
@@ -137,10 +139,11 @@ public class AmbariContextTest {
   private static final Collection<String> group1Hosts = Arrays.asList(HOST1, HOST2);
 
   private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = EasyMock.newCapture();
+  private Setting setting = createNiceMock(Setting.class);
 
   @Before
   public void setUp() throws Exception {
-    reset(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
+    reset(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
       hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
       cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
 
@@ -239,18 +242,21 @@ public class AmbariContextTest {
 
     expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprintName()).andReturn(BP_NAME).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.singletonMap(HOST_GROUP_1, group1Info)).anyTimes();
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
-    expect(blueprint.getServices()).andReturn(blueprintServices).anyTimes();
-    expect(blueprint.getComponentNames("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();
-    expect(blueprint.getComponentNames("service2")).andReturn(Collections.singleton("s2Component1")).anyTimes();
-    expect(blueprint.getStackIdsForService("service1")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
-    expect(blueprint.getStackIdsForService("service2")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
-    expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
-    expect(blueprint.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
+    expect(topology.getServices()).andReturn(blueprintServices).anyTimes();
+    expect(topology.getComponents()).andAnswer(() -> Stream.of(
+      ResolvedComponent.builder(new Component("s1Component1")).stackId(STACK_ID).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("s1Component2")).stackId(STACK_ID).serviceType("service1").buildPartial(),
+      ResolvedComponent.builder(new Component("s2Component1")).stackId(STACK_ID).serviceType("service2").buildPartial()
+    )).anyTimes();
+    expect(topology.getConfiguration()).andReturn(bpConfiguration).anyTimes();
+    expect(topology.getSetting()).andReturn(setting).anyTimes();
+    expect(setting.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
@@ -261,6 +267,8 @@ public class AmbariContextTest {
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.getConfigHelper()).andReturn(configHelper).anyTimes();
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+    expect(metaInfo.getClusterProperties()).andReturn(emptySet()).anyTimes();
 
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(clusters.getClusterById(CLUSTER_ID)).andReturn(cluster).anyTimes();
@@ -286,14 +294,14 @@ public class AmbariContextTest {
 
   @After
   public void tearDown() throws Exception {
-    verify(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
-        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
+    verify(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
+        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
         cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   private void replayAll() {
-    replay(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
-      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
+    replay(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider, metaInfo,
+      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, setting, stack, clusters,
       cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
@@ -336,7 +344,7 @@ public class AmbariContextTest {
     assertEquals(String.format("%s-%s", STACK_NAME, STACK_VERSION), clusterRequest.getStackVersion());
 
     Set<ServiceGroupRequest> serviceGroupRequests = serviceGroupRequestCapture.getValue();
-    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), AmbariContext.DEFAULT_SERVICE_GROUP_NAME, clusterRequest.getStackVersion()));
+    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), STACK_NAME, clusterRequest.getStackVersion()));
     assertEquals(expectedServiceGroupRequests, serviceGroupRequests);
 
     Collection<ServiceRequest> serviceRequests = serviceRequestCapture.getValue();
@@ -398,8 +406,6 @@ public class AmbariContextTest {
 
     hostResourceProvider.createHosts(anyObject(Request.class));
     expectLastCall().once();
-    expect(cluster.getService("service1")).andReturn(mockService1).times(2);
-    expect(cluster.getService("service2")).andReturn(mockService1).once();
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
     expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
@@ -407,47 +413,14 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    Map<String, Collection<String>> componentsMap = new HashMap<>();
-    Collection<String> components = new ArrayList<>();
-    components.add("component1");
-    components.add("component2");
-    componentsMap.put("service1", components);
-    components = new ArrayList<>();
-    components.add("component3");
-    componentsMap.put("service2", components);
-
-    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
+    Stream<ResolvedComponent> components = Stream.of(
+      ResolvedComponent.builder(new Component("component1", "mpack", "service1", null)).buildPartial(),
+      ResolvedComponent.builder(new Component("component2", "mpack", "service1", null)).buildPartial(),
+      ResolvedComponent.builder(new Component("component3", "mpack", "service2", null)).buildPartial()
+    );
+    context.createAmbariHostResources(CLUSTER_ID, "host1", components);
 
     assertEquals(requestsCapture.getValue().size(), 3);
-  }
-
-  @Test
-  public void testCreateAmbariHostResourcesWithMissingService() throws Exception {
-    // expectations
-    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
-
-    hostResourceProvider.createHosts(anyObject(Request.class));
-    expectLastCall().once();
-    expect(cluster.getService("service1")).andReturn(mockService1).times(2);
-    Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
-
-    expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
-
-    replayAll();
-
-    // test
-    Map<String, Collection<String>> componentsMap = new HashMap<>();
-    Collection<String> components = new ArrayList<>();
-    components.add("component1");
-    components.add("component2");
-    componentsMap.put("service1", components);
-    components = new ArrayList<>();
-    components.add("component3");
-    componentsMap.put("service2", components);
-
-    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
-
-    assertEquals(requestsCapture.getValue().size(), 2);
   }
 
   @Test

@@ -46,7 +46,7 @@ public class RepositoryVersionResourceDefinitionTest {
     final RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
     final Set<SubResourceDefinition> subResourceDefinitions = resourceDefinition.getSubResourceDefinitions ();
     final Iterator<SubResourceDefinition> iterator = subResourceDefinitions.iterator();
-    Assert.assertEquals(Resource.Type.OperatingSystem, iterator.next().getType());
+    Assert.assertEquals(Resource.Type.OperatingSystemReadOnly, iterator.next().getType());
     Assert.assertEquals(1, subResourceDefinitions.size());
   }
 }

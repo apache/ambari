@@ -42,9 +42,9 @@ public class HDFSServiceCalculatedStateTest extends GeneralServiceCalculatedStat
 
   @Override
   protected void createComponentsAndHosts() throws Exception {
-    ServiceComponent masterComponent = service.addServiceComponent("NAMENODE");
-    ServiceComponent masterComponent1 = service.addServiceComponent("SECONDARY_NAMENODE");
-    ServiceComponent clientComponent = service.addServiceComponent("HDFS_CLIENT");
+    ServiceComponent masterComponent = service.addServiceComponent("NAMENODE", "NAMENODE");
+    ServiceComponent masterComponent1 = service.addServiceComponent("SECONDARY_NAMENODE", "SECONDARY_NAMENODE");
+    ServiceComponent clientComponent = service.addServiceComponent("HDFS_CLIENT", "HDFS_CLIENT");
 
     for (String hostName: hosts){
       clusters.addHost(hostName);

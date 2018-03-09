@@ -31,7 +31,7 @@ import org.apache.ambari.server.audit.event.request.AddRepositoryVersionRequestA
 import org.apache.ambari.server.audit.event.request.ChangeRepositoryVersionRequestAuditEvent;
 import org.apache.ambari.server.audit.event.request.DeleteRepositoryVersionRequestAuditEvent;
 import org.apache.ambari.server.audit.request.eventcreator.RepositoryVersionEventCreator;
-import org.apache.ambari.server.controller.internal.OperatingSystemResourceProvider;
+import org.apache.ambari.server.controller.internal.OperatingSystemReadOnlyResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -128,7 +128,7 @@ public class RepositoryVersionEventCreatorTest extends AuditEventCreatorTestBase
 
     // ***
     Map<String, Object> operatingSystem = new HashMap<>();
-    operatingSystem.put(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, "redhat7");
+    operatingSystem.put(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, "redhat7");
 
     Set<Map<String,String>> repositories = new HashSet<>();
 
@@ -143,7 +143,7 @@ public class RepositoryVersionEventCreatorTest extends AuditEventCreatorTestBase
     operatingSystem.put("repositories", repositories);
     // ***
     Map<String, Object> operatingSystem2 = new HashMap<>();
-    operatingSystem2.put(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, "redhat6");
+    operatingSystem2.put(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, "redhat6");
 
     Set<Map<String,String>> repositories2 = new HashSet<>();
 

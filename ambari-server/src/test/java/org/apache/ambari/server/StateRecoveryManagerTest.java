@@ -111,7 +111,7 @@ public class StateRecoveryManagerTest {
 
     replay(hostVersionDAOMock, serviceComponentDesiredStateDAOMock);
 
-    stateRecoveryManager.checkHostAndClusterVersions();
+    stateRecoveryManager.doWork();
 
     // Checking that only invalid host version states have been changed
     assertFalse(installFailedHostVersionCapture.hasCaptured());

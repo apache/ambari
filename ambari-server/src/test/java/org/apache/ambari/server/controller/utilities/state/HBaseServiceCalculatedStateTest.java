@@ -41,9 +41,9 @@ public class HBaseServiceCalculatedStateTest extends GeneralServiceCalculatedSta
 
   @Override
   protected void createComponentsAndHosts() throws Exception {
-    ServiceComponent masterComponent = service.addServiceComponent("HBASE_MASTER");
-    ServiceComponent secondMasterComponent = service.addServiceComponent("HBASE_REGIONSERVER");
-    ServiceComponent clientComponent = service.addServiceComponent("HBASE_CLIENT");
+    ServiceComponent masterComponent = service.addServiceComponent("HBASE_MASTER", "HBASE_MASTER");
+    ServiceComponent secondMasterComponent = service.addServiceComponent("HBASE_REGIONSERVER", "HBASE_REGIONSERVER");
+    ServiceComponent clientComponent = service.addServiceComponent("HBASE_CLIENT", "HBASE_CLIENT");
 
     for (String hostName: hosts){
       clusters.addHost(hostName);

@@ -41,8 +41,8 @@ public class HostStatusHelper {
     LoggerFactory.getLogger(HostStatusHelper.class);
 
   public static boolean isHostComponentLive(AmbariManagementController managementController,
-                                             String clusterName, String hostName,
-                                      String serviceName, String componentName) {
+                                            String clusterName, String hostName, String serviceName,
+                                            Long componentId, String componentName, String componentType) {
     if (clusterName == null) {
       return false;
     }
@@ -54,8 +54,8 @@ public class HostStatusHelper {
       Cluster cluster = clusters.getCluster(clusterName);
       Service s = cluster.getService(serviceName);
       ServiceComponentHostRequest componentRequest =
-        new ServiceComponentHostRequest(clusterName, s.getServiceGroupName(), serviceName, componentName, hostName,
-                null);
+        new ServiceComponentHostRequest(clusterName, s.getServiceGroupName(), serviceName, componentId, componentName, componentType,
+              hostName, null);
 
       Set<ServiceComponentHostResponse> hostComponents =
         managementController.getHostComponents(Collections.singleton(componentRequest));

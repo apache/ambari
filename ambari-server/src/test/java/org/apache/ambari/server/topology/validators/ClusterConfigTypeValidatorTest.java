@@ -63,7 +63,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
 
     EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
-    EasyMock.expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
+    EasyMock.expect(clusterTopologyMock.getStack()).andReturn(stackMock).anyTimes();
   }
 
   @After
@@ -94,7 +94,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     clusterRequestConfigTypes = new HashSet<>(Arrays.asList("core-site", "yarn-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(clusterTopologyMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
@@ -117,7 +117,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     clusterRequestConfigTypes = new HashSet<>(Arrays.asList("oozie-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(clusterTopologyMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
 
@@ -138,7 +138,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     clusterRequestConfigTypes = new HashSet<>(Arrays.asList("core-site", "yarn-site", "oozie-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(clusterTopologyMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));

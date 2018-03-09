@@ -51,13 +51,13 @@ class RepositoryUtil:
     Creates repositories in a consistent manner for all types
     :return: a dictionary with repo ID => repo file name mapping
     """
-    if self.command_repository.version_id is None:
+    if self.command_repository.mpack_id is None:
       raise Fail("The command repository was not parsed correctly")
 
     if 0 == len(self.command_repository.items):
       Logger.warning(
         "Repository for {0}/{1} has no repositories.  Ambari may not be managing this version.".format(
-          self.command_repository.stack_name, self.command_repository.version_string))
+          self.command_repository.mpack_name, self.command_repository.version_string))
       return {}
 
     append_to_file = False  # initialize to False to create the file anew.
@@ -73,7 +73,7 @@ class RepositoryUtil:
       if not repository.ambari_managed:
         Logger.warning(
           "Repository for {0}/{1}/{2} is not managed by Ambari".format(
-            self.command_repository.stack_name, self.command_repository.version_string, repository.repo_id))
+            self.command_repository.mpack_name, self.command_repository.version_string, repository.repo_id))
       else:
         Repository(repository.repo_id,
                    action="create",
@@ -133,10 +133,9 @@ class CommandRepository(object):
     else:
       raise Fail("Cannot deserialize command repository {0}".format(str(repo_object)))
 
-    # version_id is the primary id of the repo_version table in the database
-    self.version_id = _find_value(json_dict, 'repoVersionId')
-    self.stack_name = _find_value(json_dict, 'stackName')
-    self.version_string = _find_value(json_dict, 'repoVersion')
+    self.mpack_id = _find_value(json_dict, 'mpackId')
+    self.mpack_name = _find_value(json_dict, 'mpackName')
+    self.version_string = _find_value(json_dict, 'mpackVersion')
     self.repo_filename = _find_value(json_dict, 'repoFileName')
     self.feat = CommandRepositoryFeature(_find_value(json_dict, "feature", default={}))
     self.items = []
