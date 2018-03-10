@@ -192,7 +192,7 @@ def get_packages(scope, service_name = None, component_name = None):
   # TODO : Removed the below if of reading from cluster_env, once we have removed stack_packages from there
   # and have started using /stackSettings as source of truth.
   if stack_packages_setting is None:
-    Logger.info("Couldn't retrieve 'stack_packages' from /stackSettings. Retrieving from cluster_env now.")
+    Logger.debug("Couldn't retrieve 'stack_packages' from /stackSettings. Retrieving from cluster_env now.")
     stack_packages_setting = default("/configurations/cluster-env/"+stack_settings.STACK_PACKAGES_SETTING, None)
 
   if stack_packages_setting is None:
