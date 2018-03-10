@@ -83,6 +83,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -106,6 +111,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String COMPONENT_LAST_STATE_COLUMN = "last_live_state";
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
   protected static final String SECURITY_STATE_COLUMN = "security_state";
+
+  protected static final String AMBARI_SEQUENCES_TABLE = "ambari_sequences";
+  protected static final String AMBARI_SEQUENCES_SEQUENCE_NAME_COLUMN = "sequence_name";
+  protected static final String AMBARI_SEQUENCES_SEQUENCE_VALUE_COLUMN = "sequence_value";
 
   protected static final String AMBARI_CONFIGURATION_TABLE = "ambari_configuration";
   protected static final String AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN = "category_name";
@@ -178,6 +187,36 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
   protected static final String HOST_ID_COLUMN = "host_id";
 
+  protected static final String REPO_OS_TABLE = "repo_os";
+  protected static final String REPO_OS_ID_COLUMN = "id";
+  protected static final String REPO_OS_REPO_VERSION_ID_COLUMN = "repo_version_id";
+  protected static final String REPO_OS_FAMILY_COLUMN = "family";
+  protected static final String REPO_OS_AMBARI_MANAGED_COLUMN = "ambari_managed";
+  protected static final String REPO_OS_PRIMARY_KEY = "PK_repo_os_id";
+  protected static final String REPO_OS_FOREIGN_KEY = "FK_repo_os_id_repo_version_id";
+
+  protected static final String REPO_DEFINITION_TABLE = "repo_definition";
+  protected static final String REPO_DEFINITION_ID_COLUMN = "id";
+  protected static final String REPO_DEFINITION_REPO_OS_ID_COLUMN = "repo_os_id";
+  protected static final String REPO_DEFINITION_REPO_NAME_COLUMN = "repo_name";
+  protected static final String REPO_DEFINITION_REPO_ID_COLUMN = "repo_id";
+  protected static final String REPO_DEFINITION_BASE_URL_COLUMN = "base_url";
+  protected static final String REPO_DEFINITION_DISTRIBUTION_COLUMN = "distribution";
+  protected static final String REPO_DEFINITION_COMPONENTS_COLUMN = "components";
+  protected static final String REPO_DEFINITION_UNIQUE_REPO_COLUMN = "unique_repo";
+  protected static final String REPO_DEFINITION_MIRRORS_COLUMN = "mirrors";
+  protected static final String REPO_DEFINITION_PRIMARY_KEY = "PK_repo_definition_id";
+  protected static final String REPO_DEFINITION_FOREIGN_KEY = "FK_repo_definition_repo_os_id";
+
+  protected static final String REPO_TAGS_TABLE = "repo_tags";
+  protected static final String REPO_TAGS_REPO_DEFINITION_ID_COLUMN = "repo_definition_id";
+  protected static final String REPO_TAGS_TAG_COLUMN = "tag";
+  protected static final String REPO_TAGS_FOREIGN_KEY = "FK_repo_tag_definition_id";
+
+  protected static final String REPO_VERSION_TABLE = "repo_version";
+  protected static final String REPO_VERSION_REPO_VERSION_ID_COLUMN = "repo_version_id";
+  protected static final String REPO_VERSION_REPOSITORIES_COLUMN = "repositories";
+
   protected static final String CLUSTER_ID_COLUMN = "cluster_id";
   public static final String[] COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {COMPONENT_NAME_COLUMN, SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
   public static final String[] SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
@@ -240,6 +279,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     addHostComponentLastStateTable();
     upgradeUserTables();
     upgradeKerberosTables();
+    upgradeRepoTables();
   }
 
   /**
@@ -264,6 +304,200 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     updateGroupMembershipRecords();
     updateAdminPrivilegeRecords();
     updateUsersTable();
+  }
+
+  protected void upgradeRepoTables() throws SQLException {
+    createRepoOsTable();
+    createRepoDefinitionTable();
+    createRepoTagsTable();
+    migrateRepoData();
+    updateRepoVersionTable();
+  }
+
+  /**
+   * Adds the repo_os table to the Ambari database.
+   * <pre>
+   * CREATE TABLE repo_os (
+   *   id BIGINT NOT NULL,
+   *   repo_version_id BIGINT NOT NULL,
+   *   family VARCHAR(255) NOT NULL DEFAULT '',
+   *   ambari_managed SMALLINT DEFAULT 1,
+   *   CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
+   *   CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
+   * </pre>
+   *
+   * @throws SQLException
+   */
+  private void createRepoOsTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(REPO_OS_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_OS_REPO_VERSION_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_OS_FAMILY_COLUMN, String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_OS_AMBARI_MANAGED_COLUMN, Integer.class, null, 1, true));
+
+    dbAccessor.createTable(REPO_OS_TABLE, columns);
+    dbAccessor.addPKConstraint(REPO_OS_TABLE, REPO_OS_PRIMARY_KEY, REPO_OS_ID_COLUMN);
+    dbAccessor.addFKConstraint(REPO_OS_TABLE, REPO_OS_FOREIGN_KEY, REPO_OS_REPO_VERSION_ID_COLUMN, REPO_VERSION_TABLE, REPO_VERSION_REPO_VERSION_ID_COLUMN, false);
+  }
+
+  /**
+   * Adds the repo_definition table to the Ambari database.
+   * <pre>
+   *   CREATE TABLE repo_definition (
+   *     id BIGINT NOT NULL,
+   *     repo_os_id BIGINT,
+   *     repo_name VARCHAR(255) NOT NULL,
+   *     repo_id VARCHAR(255) NOT NULL,
+   *     base_url VARCHAR(2048) NOT NULL,
+   *     distribution VARCHAR(2048),
+   *     components VARCHAR(2048),
+   *     unique_repo SMALLINT DEFAULT 1,
+   *     mirrors VARCHAR(2048),
+   *     CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
+   *     CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
+   * </pre>
+   *
+   * @throws SQLException
+   */
+  private void createRepoDefinitionTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_REPO_OS_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_REPO_NAME_COLUMN, String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_REPO_ID_COLUMN, String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_BASE_URL_COLUMN, String.class, 2048, null, true));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_DISTRIBUTION_COLUMN, String.class, 2048, null, true));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_COMPONENTS_COLUMN, String.class, 2048, null, true));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_UNIQUE_REPO_COLUMN, Integer.class, 1, 1, true));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_DEFINITION_MIRRORS_COLUMN, String.class, 2048, null, true));
+
+    dbAccessor.createTable(REPO_DEFINITION_TABLE, columns);
+    dbAccessor.addPKConstraint(REPO_DEFINITION_TABLE, REPO_DEFINITION_PRIMARY_KEY, REPO_DEFINITION_ID_COLUMN);
+    dbAccessor.addFKConstraint(REPO_DEFINITION_TABLE, REPO_DEFINITION_FOREIGN_KEY, REPO_DEFINITION_REPO_OS_ID_COLUMN, REPO_OS_TABLE, REPO_OS_ID_COLUMN, false);
+  }
+
+  /**
+   * Adds the repo_tags table to the Ambari database.
+   * <pre>
+   *   CREATE TABLE repo_tags (
+   *     repo_definition_id BIGINT NOT NULL,
+   *     tag VARCHAR(255) NOT NULL,
+   *     CONSTRAINT FK_repo_tag_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+   * </pre>
+   *
+   * @throws SQLException
+   */
+  private void createRepoTagsTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(REPO_TAGS_REPO_DEFINITION_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(REPO_TAGS_TAG_COLUMN, String.class, 255, null, false));
+
+    dbAccessor.createTable(REPO_TAGS_TABLE, columns);
+    dbAccessor.addFKConstraint(REPO_TAGS_TABLE, REPO_TAGS_FOREIGN_KEY, REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
+  }
+
+  /**
+   * Perform steps to move data from the old repo_version.repositories structure into new tables -
+   * repo_os, repo_definition, repo_tags
+   *
+   * @throws SQLException
+   */
+  private void migrateRepoData() throws SQLException {
+    if(dbAccessor.tableHasColumn(REPO_VERSION_TABLE, REPO_VERSION_REPOSITORIES_COLUMN)) {
+      int repoOsId = 0;
+      int repoDefinitionId = 0;
+
+      // Get a map of repo_version.id to repo_version.repositories
+      Map<Long, String> repoVersionData = dbAccessor.getKeyToStringColumnMap(REPO_VERSION_TABLE,
+          REPO_VERSION_REPO_VERSION_ID_COLUMN, REPO_VERSION_REPOSITORIES_COLUMN, null, null, true);
+
+      if (repoVersionData != null) {
+        // For each entry in the map, parse the repo_version.repositories data and created records in the new
+        // repo_os, repo_definition, and repo_tabs tables...
+        for (Map.Entry<Long, String> entry : repoVersionData.entrySet()) {
+          Long repoVersionId = entry.getKey();
+          String repositoriesJson = entry.getValue();
+
+          if (!StringUtils.isEmpty(repositoriesJson)) {
+            JsonArray rootJson = new JsonParser().parse(repositoriesJson).getAsJsonArray();
+
+            if (rootJson != null) {
+              for (JsonElement rootElement : rootJson) {
+                // process each OS element
+                JsonObject rootObject = rootElement.getAsJsonObject();
+
+                if (rootObject != null) {
+                  JsonPrimitive osType = rootObject.getAsJsonPrimitive("OperatingSystems/os_type");
+                  JsonPrimitive ambariManaged = rootObject.getAsJsonPrimitive("OperatingSystems/ambari_managed_repositories");
+                  JsonArray repositories = rootObject.getAsJsonArray("repositories");
+                  String isAmbariManaged = ambariManaged.getAsBoolean() ? "1" : "0";
+
+                  dbAccessor.insertRowIfMissing(REPO_OS_TABLE,
+                      new String[]{REPO_OS_ID_COLUMN, REPO_OS_REPO_VERSION_ID_COLUMN, REPO_OS_AMBARI_MANAGED_COLUMN, REPO_OS_FAMILY_COLUMN},
+                      new String[]{String.valueOf(++repoOsId), String.valueOf(repoVersionId), isAmbariManaged, String.format("'%s'", osType.getAsString())},
+                      false);
+
+                  if (repositories != null) {
+                    for (JsonElement repositoryElement : repositories) {
+                      JsonObject repositoryObject = repositoryElement.getAsJsonObject();
+
+                      if (repositoryObject != null) {
+                        JsonPrimitive repoId = repositoryObject.getAsJsonPrimitive("Repositories/repo_id");
+                        JsonPrimitive repoName = repositoryObject.getAsJsonPrimitive("Repositories/repo_name");
+                        JsonPrimitive baseUrl = repositoryObject.getAsJsonPrimitive("Repositories/base_url");
+                        JsonArray tags = repositoryObject.getAsJsonArray("Repositories/tags");
+
+                        dbAccessor.insertRowIfMissing(REPO_DEFINITION_TABLE,
+                            new String[]{REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_REPO_OS_ID_COLUMN,
+                                REPO_DEFINITION_REPO_NAME_COLUMN, REPO_DEFINITION_REPO_ID_COLUMN, REPO_DEFINITION_BASE_URL_COLUMN},
+                            new String[]{String.valueOf(++repoDefinitionId), String.valueOf(repoOsId),
+                                String.format("'%s'", repoName.getAsString()), String.format("'%s'", repoId.getAsString()),
+                                String.format("'%s'", baseUrl.getAsString())},
+                            false);
+
+                        if (tags != null) {
+                          for (JsonElement tagsElement : tags) {
+                            JsonPrimitive tag = tagsElement.getAsJsonPrimitive();
+
+                            if (tag != null) {
+                              dbAccessor.insertRowIfMissing(REPO_TAGS_TABLE,
+                                  new String[]{REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_TAGS_TAG_COLUMN},
+                                  new String[]{String.valueOf(repoDefinitionId), String.format("'%s'", tag.getAsString())},
+                                  false);
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Add the relevant records in the ambari_sequence table
+      // - repo_os_id_seq
+      // - repo_definition_id_seq
+      dbAccessor.insertRowIfMissing(AMBARI_SEQUENCES_TABLE,
+          new String[]{AMBARI_SEQUENCES_SEQUENCE_NAME_COLUMN, AMBARI_SEQUENCES_SEQUENCE_VALUE_COLUMN},
+          new String[]{"'repo_os_id_seq'", String.valueOf(++repoOsId)},
+          false);
+      dbAccessor.insertRowIfMissing(AMBARI_SEQUENCES_TABLE,
+          new String[]{AMBARI_SEQUENCES_SEQUENCE_NAME_COLUMN, AMBARI_SEQUENCES_SEQUENCE_VALUE_COLUMN},
+          new String[]{"'repo_definition_id_seq'", String.valueOf(++repoDefinitionId)},
+          false);
+    }
+  }
+
+  /**
+   * Updates the repo_version table by removing old columns
+   *
+   * @throws SQLException
+   */
+  private void updateRepoVersionTable() throws SQLException {
+    dbAccessor.dropColumn(REPO_VERSION_TABLE, REPO_VERSION_REPOSITORIES_COLUMN);
   }
 
   /**

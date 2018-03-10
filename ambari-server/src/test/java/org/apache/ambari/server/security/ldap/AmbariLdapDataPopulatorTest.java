@@ -236,7 +236,6 @@ public class AmbariLdapDataPopulatorTest {
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(configurationProvider.get()).andReturn(configuration).anyTimes();
     expect(configuration.ldapEnabled()).andReturn(false);
-    expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties);
     replay(ldapTemplate, ldapServerProperties, configurationProvider, configuration);
 
     final AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configurationProvider, users);
