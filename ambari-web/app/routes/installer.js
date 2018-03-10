@@ -91,12 +91,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step0: Em.Route.extend({
     route: '/step0',
+    breadcrumbs: { label: Em.I18n.translations['installer.step0.header'] },
     connectOutlets: function (router) {
       console.time('step0 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
+      var wizardStep0Controller = router.get('wizardStep0Controller');
+      wizardStep0Controller.set('wizardController', controller);
       controller.setCurrentStep('step0');
       controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
         controller.connectOutlet('wizardStep0', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step0 connectOutlets');
@@ -105,97 +109,46 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     next: function (router) {
       console.time('step0 next');
-      var installerController = router.get('installerController');
-      installerController.save('cluster');
+      var controller = router.get('installerController');
+      controller.save('cluster');
       App.db.setStacks(undefined);
       App.db.setRepos(undefined);
       App.db.setLocalRepoVDFData(undefined);
       App.Stack.find().clear();
 
-      installerController.set('content.stacks',undefined);
+      controller.set('content.stacks',undefined);
       router.transitionTo('step2');
       console.timeEnd('step0 next');
     }
   }),
 
-  step1: Em.Route.extend({
-    route: '/step1',
-    connectOutlets: function (router) {
-      console.time('step1 connectOutlets');
-      var self = this;
-      var controller = router.get('installerController');
-      var wizardStep1Controller = router.get('wizardStep1Controller');
-      wizardStep1Controller.set('skipValidationChecked', false);
-      wizardStep1Controller.set('optionsToSelect', {
-        'usePublicRepo': {
-          index: 0,
-          isSelected: true
-        },
-        'useLocalRepo': {
-          index: 1,
-          isSelected: false,
-          'uploadFile': {
-            index: 0,
-            name: 'uploadFile',
-            file: '',
-            hasError: false,
-            isSelected: true
-          },
-          'enterUrl': {
-            index: 1,
-            name: 'enterUrl',
-            url: '',
-            placeholder: Em.I18n.t('installer.step1.useLocalRepo.enterUrl.placeholder'),
-            hasError: false,
-            isSelected: false
-          }
-        }
-      });
-      controller.setCurrentStep('step1');
-      controller.loadAllPriorSteps().done(function () {
-        wizardStep1Controller.set('wizardController', controller);
-        controller.connectOutlet('wizardStep1', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('step1 connectOutlets');
-      });
-    },
-    back: Em.Router.transitionTo('step3'),
-    next: function (router) {
-      console.time('step1 next');
-      if(router.get('btnClickInProgress')) {
-        return;
-      }
-      var wizardStep1Controller = router.get('wizardStep1Controller');
-      var installerController = router.get('installerController');
-      installerController.validateJDKVersion(function() {
-        installerController.checkRepoURL(wizardStep1Controller).done(function () {
-          App.set('router.nextBtnClickInProgress', true);
-          installerController.setDBProperty('service', undefined);
-          installerController.setStacks();
-          router.transitionTo('step4');
-          console.timeEnd('step1 next');
-        });
-      }, function() {});
-    }
-  }),
-
   step2: Em.Route.extend({
     route: '/step2',
+    breadcrumbs: { label: Em.I18n.translations['installer.step2.header'] },
     connectOutlets: function (router, context) {
       console.time('step2 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
+      var wizardStep2Controller = router.get('wizardStep2Controller');
+      wizardStep2Controller.set('wizardController', controller);
       var newStepIndex = controller.getStepIndex('step2');
       router.setNavigationFlow(newStepIndex);
-      controller.clearInstallOptions();
+      //controller.clearInstallOptions();
       controller.setCurrentStep('step2');
       controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
         self.scrollTop();
         controller.connectOutlet('wizardStep2', controller.get('content'));
         console.timeEnd('step2 connectOutlets');
       });
     },
-    back: Em.Router.transitionTo('step0'),
+    
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step0');
+    },
+    
     next: function (router) {
       console.time('step2 next');
       if (!router.get('btnClickInProgress')) {
@@ -204,6 +157,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.save('installOptions');
         //hosts was saved to content.hosts inside wizardStep2Controller
         controller.save('hosts');
+        controller.setStepSaved('step2');
         router.transitionTo('step3');
       }
       console.timeEnd('step2 next');
@@ -212,14 +166,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step3: App.StepRoute.extend({
     route: '/step3',
+    breadcrumbs: { label: Em.I18n.translations['installer.step3.header'] },
     connectOutlets: function (router) {
       console.time('step3 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
+      var wizardStep3Controller = router.get('wizardStep3Controller');
+      wizardStep3Controller.set('wizardController', controller);
       controller.setCurrentStep('step3');
       controller.loadAllPriorSteps().done(function () {
-        var wizardStep3Controller = router.get('wizardStep3Controller');
-        wizardStep3Controller.set('wizardController', controller);
+        controller.setStepsEnable();
         controller.connectOutlet('wizardStep3', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step3 connectOutlets');
@@ -227,6 +183,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('step2');
     },
 
@@ -234,15 +192,26 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step3 next');
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
-        var installerController = router.get('installerController');
+        var controller = router.get('installerController');
         var wizardStep3Controller = router.get('wizardStep3Controller');
-        installerController.saveConfirmedHosts(wizardStep3Controller);
-        installerController.setDBProperties({
-          bootStatus: true,
-          selectedServiceNames: undefined,
-          installedServiceNames: undefined
-        });
-        router.transitionTo('step1');
+        controller.saveConfirmedHosts(wizardStep3Controller);
+        if (!wizardStep3Controller.get('isSaved')) {
+          var wizardSelectMpacksController = App.router.get('wizardSelectMpacksController');
+          wizardSelectMpacksController.set('wizardController', controller);
+          wizardSelectMpacksController.clearSelection();
+          controller.set('content.selectedServices', undefined);
+          controller.set('content.selectedServiceNames', undefined);
+          controller.set('content.selectedMpacks', undefined);
+          controller.setDBProperties({
+            bootStatus: true,
+            selectedServices: undefined,
+            selectedServiceNames: undefined,
+            installedServiceNames: undefined,
+            selectedMpack: undefined
+          });
+        }
+        controller.setStepSaved('step3');
+        router.transitionTo('configureDownload');
         console.timeEnd('step3 next');
       }
     },
@@ -261,18 +230,304 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }
   }),
 
+  configureDownload: Em.Route.extend({
+    route: '/configureDownload',
+    breadcrumbs: { label: Em.I18n.translations['installer.configureDownload.header'] },
+    connectOutlets: function (router) {
+      console.time('configureDownload connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      var configureDownloadController = router.get('wizardConfigureDownloadController');
+      configureDownloadController.set('wizardController', controller);
+      var newStepIndex = controller.getStepIndex('configureDownload');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('configureDownload');
+      controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
+        controller.connectOutlet('wizardConfigureDownload', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('configureDownload connectOutlets');
+      });
+    },
+    
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step3');
+    },
+    
+    next: function (router) {
+      console.time('configureDownload next');
+      if(router.get('btnClickInProgress')) {
+        return;
+      }
+      App.set('router.nextBtnClickInProgress', true);
+      var controller = router.get('installerController');
+      controller.save('downloadConfig');
+      controller.setDBProperty('service', undefined);
+      router.transitionTo('selectMpacks');
+      console.timeEnd('configureDownload next');
+    }
+  }),
+
+  selectMpacks: App.StepRoute.extend({
+    route: '/selectMpacks',
+    breadcrumbs: { label: Em.I18n.translations['installer.selectMpacks.header'] },
+    connectOutlets: function (router) {
+      console.time('selectMpacks connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      controller.setCurrentStep('selectMpacks');
+      var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
+      wizardSelectMpacksController.set('wizardController', controller);
+      controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
+        controller.connectOutlet('wizardSelectMpacks', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('selectMpacks connectOutlets');
+      });
+    },
+
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('configureDownload');
+    },
+
+    next: function (router, context) {
+      console.time('selectMpacks next');
+      if (!router.get('btnClickInProgress')) {
+        App.set('router.nextBtnClickInProgress', true);
+        var controller = router.get('installerController');
+        controller.save('selectedServiceNames');
+        controller.save('selectedServices');
+        controller.save('selectedMpacks');
+        controller.save('advancedMode');
+        var wizardStep6Controller = router.get('wizardStep6Controller');
+        // Clear subsequent settings if user changed service selections
+        if (!wizardStep6Controller.get('isSaved')) {
+          router.get('wizardStep5Controller').clearRecommendations();
+          controller.setDBProperty('recommendations', undefined);
+          controller.set('content.masterComponentHosts', undefined);
+          controller.setDBProperty('masterComponentHosts', undefined);
+          controller.clearEnhancedConfigs();
+          controller.setDBProperty('slaveComponentHosts', undefined);
+          wizardStep6Controller.set('isClientsSet', false);
+        }
+        controller.setStepSaved('selectMpacks');
+        const downloadConfig = controller.get('content.downloadConfig');
+        if (downloadConfig && downloadConfig.useCustomRepo) {
+          router.transitionTo('customMpackRepos');
+        } else {
+          router.transitionTo('downloadMpacks');
+        }  
+        console.timeEnd('selectMpacks next');
+      }
+    },
+  }),
+
+  customMpackRepos: App.StepRoute.extend({
+    route: '/customMpackRepos',
+    breadcrumbs: { label: Em.I18n.translations['installer.customMpackRepos.header'] },
+    connectOutlets: function (router) {
+      console.time('customMpackRepos connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      const downloadConfig = controller.get('content.downloadConfig');
+      
+      //do not allow navigation to this step unless we are using custom repos
+      if (downloadConfig && !downloadConfig.useCustomRepo) {
+        Em.run.next(function () {
+          router.transitionTo('downloadMpacks');
+        });
+      }  
+
+      var customMpackReposController = router.get('wizardCustomMpackReposController');
+      customMpackReposController.set('wizardController', controller);
+      var newStepIndex = controller.getStepIndex('customMpackRepos');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('customMpackRepos');
+      controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
+        controller.connectOutlet('wizardCustomMpackRepos', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('customMpackRepos connectOutlets');
+      });
+    },
+
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('selectMpacks');
+    },
+
+    next: function (router) {
+      console.time('customMpackRepos next');
+      if (!router.get('btnClickInProgress')) {
+        App.set('router.nextBtnClickInProgress', true);
+        const controller = router.get('installerController');
+        controller.save('selectedMpacks');
+        controller.setStepSaved('customMpackRepos');
+        router.transitionTo('downloadMpacks');
+        console.timeEnd('customMpackRepos next');
+      }  
+    }
+  }),
+  
+  downloadMpacks: App.StepRoute.extend({
+    route: '/downloadMpacks',
+    breadcrumbs: { label: Em.I18n.translations['installer.downloadMpacks.header'] },
+    connectOutlets: function (router) {
+      console.time('downloadMpacks connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      var downloadMpacksController = router.get('wizardDownloadMpacksController');
+      downloadMpacksController.set('wizardController', controller);
+      var newStepIndex = controller.getStepIndex('downloadMpacks');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('downloadMpacks');
+      controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
+        controller.connectOutlet('wizardDownloadMpacks', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('downloadMpacks connectOutlets');
+      });
+    },
+
+    backTransition: function (router) {
+      const controller = router.get('installerController');
+      controller.clearErrors();
+      const downloadConfig = controller.get('content.downloadConfig');
+      if (downloadConfig && downloadConfig.useCustomRepo) {
+        router.transitionTo('customMpackRepos');
+      } else {
+        router.transitionTo('selectMpacks');
+      }
+    },
+
+    next: function (router) {
+      console.time('downloadMpacks next');
+      if(router.get('btnClickInProgress')) {
+        return;
+      }
+      App.set('router.nextBtnClickInProgress', true);
+      const controller = router.get('installerController');
+      const downloadConfig = controller.get('content.downloadConfig');
+      if (downloadConfig && downloadConfig.useCustomRepo) {
+        router.transitionTo('customProductRepos');
+      } else {
+        router.transitionTo('step5');
+      }  
+      console.timeEnd('downloadMpacks next');
+    }
+  }),
+
+  customProductRepos: App.StepRoute.extend({
+    route: '/customProductRepos',
+    breadcrumbs: { label: Em.I18n.translations['installer.customProductRepos.header'] },
+    connectOutlets: function (router) {
+      console.time('customProductRepos connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      const downloadConfig = controller.get('content.downloadConfig');
+      
+      //disable navigation to this step unless we are using custom repos
+      if (downloadConfig && !downloadConfig.useCustomRepo) {
+        Em.run.next(function () {
+          router.transitionTo('verifyProducts');
+        });
+      }  
+      
+      var customMpackReposController = router.get('wizardCustomMpackReposController');
+      customMpackReposController.set('wizardController', controller);
+      var newStepIndex = controller.getStepIndex('customProductRepos');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('customProductRepos');
+      controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
+        controller.connectOutlet('wizardCustomProductRepos', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('customProductRepos connectOutlets');
+      });
+    },
+
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('downloadMpacks');
+    },
+
+    next: function (router) {
+      console.time('customProductRepos next');
+      if (!router.get('btnClickInProgress')) {
+        App.set('router.nextBtnClickInProgress', true);
+        const controller = router.get('installerController');
+        controller.clearErrors();
+        controller.save('selectedMpacks');
+        controller.setStepSaved('customProductRepos');
+        router.transitionTo('verifyProducts');
+        console.timeEnd('customProductRepos next');
+      }
+    }
+  }),
+
+  verifyProducts: App.StepRoute.extend({
+    route: '/verifyProducts',
+    breadcrumbs: { label: Em.I18n.translations['installer.verifyProducts.header'] },
+    connectOutlets: function (router) {
+      console.time('verifyProducts connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      var verifyProductsController = router.get('wizardVerifyProductsController');
+      verifyProductsController.set('wizardController', controller);
+      var newStepIndex = controller.getStepIndex('verifyProducts');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('verifyProducts');
+      controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
+        controller.connectOutlet('wizardVerifyProducts', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('verifyProducts connectOutlets');
+      });
+    },
+
+    backTransition: function (router) {
+      const controller = router.get('installerController');
+      controller.clearErrors();
+      const downloadConfig = controller.get('content.downloadConfig');
+      if (downloadConfig && downloadConfig.useCustomRepo) {
+        router.transitionTo('customProductRepos');
+      } else {
+        router.transitionTo('downloadMpacks');
+      }
+    },
+
+    next: function (router) {
+      console.time('verifyProducts next');
+      if (router.get('btnClickInProgress')) {
+        return;
+      }
+      App.set('router.nextBtnClickInProgress', true);
+      const controller = router.get('installerController');
+      router.transitionTo(controller.getNextStepName());
+      console.timeEnd('verifyProducts next');
+    }
+  }),
+
   step4: App.StepRoute.extend({
     route: '/step4',
+    breadcrumbs: { label: Em.I18n.translations['installer.step4.header'] },
     connectOutlets: function (router, context) {
       console.time('step4 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
+      var wizardStep4Controller = router.get('wizardStep4Controller');
+      wizardStep4Controller.set('wizardController', controller);
       var newStepIndex = controller.getStepIndex('step4');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('step4');
       controller.loadAllPriorSteps().done(function () {
-        var wizardStep4Controller = router.get('wizardStep4Controller');
-        wizardStep4Controller.set('wizardController', controller);
+        controller.setStepsEnable();
         controller.connectOutlet('wizardStep4', App.StackService.find().filterProperty('isInstallable', true));
         self.scrollTop();
         console.timeEnd('step4 connectOutlets');
@@ -280,6 +535,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function(router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('step1');
     },
 
@@ -305,41 +562,54 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step5: App.StepRoute.extend({
     route: '/step5',
+    breadcrumbs: { label: Em.I18n.translations['installer.step5.header'] },
     connectOutlets: function (router, context) {
       console.time('step5 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
+      var wizardStep5Controller = router.get('wizardStep5Controller');
+      wizardStep5Controller.set('wizardController', controller);
       var newStepIndex = controller.getStepIndex('step5');
       router.setNavigationFlow(newStepIndex);
-      var wizardStep5Controller = router.get('wizardStep5Controller');
       wizardStep5Controller.setProperties({
         servicesMasters: [],
         isInitialLayout: true
       });
       controller.setCurrentStep('step5');
       controller.loadAllPriorSteps().done(function () {
-        wizardStep5Controller.set('wizardController', controller);
+        controller.setStepsEnable();
         controller.connectOutlet('wizardStep5', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step5 connectOutlets');
       });
     },
-    backTransition: function(router) {
-      router.transitionTo('step4');
+    
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      const downloadConfig = controller.get('content.downloadConfig');
+      if (downloadConfig && downloadConfig.useCustomRepo) {
+        router.transitionTo('verifyProducts');
+      } else {
+        router.transitionTo('downloadMpacks');
+      }
     },
+    
     next: function (router) {
       console.time('step5 next');
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
         var controller = router.get('installerController');
         var wizardStep5Controller = router.get('wizardStep5Controller');
-        var wizardStep6Controller = router.get('wizardStep6Controller');
         controller.saveMasterComponentHosts(wizardStep5Controller);
-        controller.setDBProperties({
-          slaveComponentHosts: undefined,
-          recommendations: wizardStep5Controller.get('content.recommendations')
-        });
-        wizardStep6Controller.set('isClientsSet', false);
+        controller.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations') || wizardStep5Controller.get('recommendations'));
+        // Clear subsequent steps if user made changes
+        if (!wizardStep5Controller.get('isSaved')) {
+          controller.setDBProperty('slaveComponentHosts', undefined);
+          var wizardStep6Controller = router.get('wizardStep6Controller');
+          wizardStep6Controller.set('isClientsSet', false);
+        }
+        controller.setStepSaved('step5');
         router.transitionTo('step6');
       }
       console.timeEnd('step5 next');
@@ -348,21 +618,28 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step6: App.StepRoute.extend({
     route: '/step6',
+    breadcrumbs: { label: Em.I18n.translations['installer.step6.header'] },
     connectOutlets: function (router, context) {
       console.time('step6 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
+      var wizardStep6Controller = router.get('wizardStep6Controller');
+      wizardStep6Controller.set('wizardController', controller);
       var newStepIndex = controller.getStepIndex('step6');
       router.setNavigationFlow(newStepIndex);
-      router.get('wizardStep6Controller').set('hosts', []);
       controller.setCurrentStep('step6');
+      wizardStep6Controller.set('hosts', []);
       controller.loadAllPriorSteps().done(function () {
+        controller.setStepsEnable();
         controller.connectOutlet('wizardStep6', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step6 connectOutlets');
       });
     },
+    
     backTransition: function(router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('step5');
     },
 
@@ -377,13 +654,17 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             controller.saveSlaveComponentHosts(wizardStep6Controller);
             controller.get('content').set('serviceConfigProperties', null);
             controller.get('content').set('componentsFromConfigs', []);
-            controller.setDBProperties({
-              serviceConfigGroups: null,
-              recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
-              recommendationsConfigs: null,
-              componentsFromConfigs: []
-            });
-            controller.clearServiceConfigProperties();
+            // Clear subsequent steps if user made changes
+            if (!wizardStep6Controller.get('isSaved')) {
+              controller.setDBProperties({
+                serviceConfigGroups: null,
+                recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+                recommendationsConfigs: null,
+                componentsFromConfigs: []
+              });
+              controller.clearServiceConfigProperties();
+            }
+            controller.setStepSaved('step6');
             router.transitionTo('step7');
             console.timeEnd('step6 next');
           }
@@ -394,22 +675,19 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step7: App.StepRoute.extend({
     route: '/step7',
-
-    enter: function (router) {
-      console.time('step7 enter');
-      var controller = router.get('installerController');
-      controller.setCurrentStep('step7');
-      console.timeEnd('step7 enter');
-    },
-
+    breadcrumbs: { label: Em.I18n.translations['installer.step7.header'] },
     connectOutlets: function (router, context) {
       console.time('step7 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
-      router.get('preInstallChecksController').loadStep();
       var wizardStep7Controller = router.get('wizardStep7Controller');
+      wizardStep7Controller.set('wizardController', controller);
+      var newStepIndex = controller.getStepIndex('step7');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('step7');     
+      router.get('preInstallChecksController').loadStep();
       controller.loadAllPriorSteps().done(function () {
-        wizardStep7Controller.set('wizardController', controller);
+        controller.setStepsEnable();
         controller.connectOutlet('wizardStep7', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step7 connectOutlets');
@@ -418,6 +696,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     backTransition: function (router) {
       console.time('step7 back');
+      var controller = router.get('installerController');
+      controller.clearErrors();
+
       var step = router.get('installerController.content.skipSlavesStep') ? 'step5' : 'step6';
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
@@ -432,6 +713,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
       console.timeEnd('step7 back');
     },
+
     next: function (router) {
       console.time('step7 next');
       if (!router.get('btnClickInProgress')) {
@@ -455,35 +737,44 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step8: App.StepRoute.extend({
     route: '/step8',
+    breadcrumbs: { label: Em.I18n.translations['installer.step8.header'] },
     connectOutlets: function (router, context) {
       console.time('step8 connectOutlets');
-      var controller = router.get('installerController');
       var self = this;
+      var controller = router.get('installerController');
+      var wizardStep8Controller = router.get('wizardStep8Controller');
+      wizardStep8Controller.set('wizardController', controller);
+      var newStepIndex = controller.getStepIndex('step8');
+      router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('step8');
       controller.loadAllPriorSteps().done(function () {
-        var wizardStep8Controller = router.get('wizardStep8Controller');
-        wizardStep8Controller.set('wizardController', controller);
+        controller.setStepsEnable();
         controller.connectOutlet('wizardStep8', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step8 connectOutlets');
       });
     },
+    
     backTransition: function (router) {
-      if(router.get('wizardStep8Controller.isBackBtnDisabled') == false) {
+      if (router.get('wizardStep8Controller.isBackBtnDisabled') == false) {
+        var controller = router.get('installerController');
+        controller.clearErrors();
+
         router.transitionTo('step7');
       }
     },
+    
     next: function (router) {
       console.time('step8 next');
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
-        var installerController = router.get('installerController');
+        var controller = router.get('installerController');
         var wizardStep8Controller = router.get('wizardStep8Controller');
         // invoke API call to install selected services
-        installerController.installServices(false, function () {
-          installerController.setInfoForStep9();
+        controller.installServices(false, function () {
+          controller.setInfoForStep9();
           // We need to do recovery based on whether we are in Add Host or Installer wizard
-          installerController.saveClusterState('CLUSTER_INSTALLING_3');
+          controller.saveClusterState('CLUSTER_INSTALLING_3');
           wizardStep8Controller.set('servicesInstalled', true);
           router.transitionTo('step9');
           console.timeEnd('step8 next');
@@ -494,37 +785,47 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step9: Em.Route.extend({
     route: '/step9',
+    breadcrumbs: { label: Em.I18n.translations['installer.step9.header'] },
     connectOutlets: function (router, context) {
       console.time('step9 connectOutlets');
       var self = this;
-      var controller = router.get('installerController'),
-          wizardStep9Controller = router.get('wizardStep9Controller');
+      var controller = router.get('installerController');
+      var wizardStep9Controller = router.get('wizardStep9Controller');
+      wizardStep9Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
         wizardStep9Controller.loadDoServiceChecksFlag().done(function () {
+          var newStepIndex = controller.getStepIndex('step7');
+          router.setNavigationFlow(newStepIndex);
           controller.setCurrentStep('step9');
+          controller.setStepsEnable();
           if (!App.get('testMode')) {
             controller.setLowerStepsDisable(9);
           }
-          wizardStep9Controller.set('wizardController', controller);
           controller.connectOutlet('wizardStep9', controller.get('content'));
           self.scrollTop();
           console.timeEnd('step9 connectOutlets');
         });
       });
     },
-    back: Em.Router.transitionTo('step8'),
+
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step8');
+    },
+
     retry: function (router) {
       console.time('step9 retry');
-      var installerController = router.get('installerController');
+      var controller = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (wizardStep9Controller.get('showRetry')) {
         if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
           var isRetry = true;
-          installerController.installServices(isRetry, function () {
-            installerController.setInfoForStep9();
+          controller.installServices(isRetry, function () {
+            controller.setInfoForStep9();
             wizardStep9Controller.resetHostsForRetry();
             // We need to do recovery based on whether we are in Add Host or Installer wizard
-            installerController.saveClusterState('CLUSTER_INSTALLING_3');
+            controller.saveClusterState('CLUSTER_INSTALLING_3');
             wizardStep9Controller.navigateStep();
           });
         } else {
@@ -533,6 +834,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step9 retry');
       }
     },
+
     unroutePath: function (router, context) {
       // exclusion for transition to Admin view or Views view
       if (context === '/adminView' ||
@@ -542,14 +844,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         return false;
       }
     },
+
     next: function (router) {
       console.time('step9 next');
       if(!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
-        var installerController = router.get('installerController');
+        var controller = router.get('installerController');
         var wizardStep9Controller = router.get('wizardStep9Controller');
-        installerController.saveInstalledHosts(wizardStep9Controller);
-        installerController.saveClusterState('CLUSTER_INSTALLED_4');
+        controller.saveInstalledHosts(wizardStep9Controller);
+        controller.saveClusterState('CLUSTER_INSTALLED_4');
         router.transitionTo('step10');
         console.timeEnd('step9 next');
       }
@@ -558,19 +861,31 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step10: Em.Route.extend({
     route: '/step10',
+    breadcrumbs: { label: Em.I18n.translations['installer.step10.header'] },
     connectOutlets: function (router, context) {
       var self = this;
       var controller = router.get('installerController');
+      var wizardStep10Controller = router.get('wizardStep10Controller');
+      wizardStep10Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
         if (!App.get('testMode')) {
+          var newStepIndex = controller.getStepIndex('step10');
+          router.setNavigationFlow(newStepIndex);
           controller.setCurrentStep('step10');
+          controller.setStepsEnable();
           controller.setLowerStepsDisable(10);
         }
         controller.connectOutlet('wizardStep10', controller.get('content'));
         self.scrollTop();
       });
     },
-    back: Em.Router.transitionTo('step9'),
+    
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step9');
+    },
+    
     complete: function (router, context) {
       var controller = router.get('installerController');
       controller.finish();
@@ -604,6 +919,18 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   gotoStep9: Em.Router.transitionTo('step9'),
 
-  gotoStep10: Em.Router.transitionTo('step10')
+  gotoStep10: Em.Router.transitionTo('step10'),
+
+  gotoConfigureDownload: Em.Router.transitionTo('configureDownload'),
+
+  gotoSelectMpacks: Em.Router.transitionTo('selectMpacks'),
+
+  gotoCustomMpackRepos: Em.Router.transitionTo('customMpackRepos'),
+
+  gotoDownloadMpacks: Em.Router.transitionTo('downloadMpacks'),
+
+  gotoCustomProductRepos: Em.Router.transitionTo('customProductRepos'),
+
+  gotoVerifyProducts: Em.Router.transitionTo('verifyProducts')
 
 });

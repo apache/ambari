@@ -84,16 +84,16 @@ describe('App.RouterRedirections', function () {
 
     it('CLUSTER_NOT_CREATED_1. user is on installer', function () {
       currentClusterStatus.clusterState = 'CLUSTER_NOT_CREATED_1';
-      installerController.setCurrentStep('step4');
+      installerController.setCurrentStep('selectMpacks');
       router.redirectToInstaller(router, currentClusterStatus, true);
-      expect(router.transitionTo.calledWith('step4')).to.be.true;
+      expect(router.transitionTo.calledWith('selectMpacks')).to.be.true;
     });
 
     it('CLUSTER_NOT_CREATED_1. user is not on installer', function () {
       currentClusterStatus.clusterState = 'CLUSTER_NOT_CREATED_1';
-      installerController.setCurrentStep('step4');
+      installerController.setCurrentStep('selectMpacks');
       router.redirectToInstaller(router, currentClusterStatus, false);
-      expect(router.transitionTo.calledWith('installer.step4')).to.be.true;
+      expect(router.transitionTo.calledWith('installer.selectMpacks')).to.be.true;
     });
 
     it('CLUSTER_DEPLOY_PREP_2. user is on installer', function () {

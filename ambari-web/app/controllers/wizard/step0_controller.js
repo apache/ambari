@@ -17,10 +17,13 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
-App.WizardStep0Controller = Em.Controller.extend({
+App.WizardStep0Controller = App.WizardStepController.extend({
 
   name: 'wizardStep0Controller',
+
+  stepName: 'step0',
 
   /**
    * Is step submitted

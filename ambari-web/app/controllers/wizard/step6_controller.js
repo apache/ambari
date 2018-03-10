@@ -19,6 +19,7 @@
 var App = require('app');
 var blueprintUtils = require('utils/blueprint');
 var validationUtils = require('utils/validator');
+require('./wizardStep_controller');
 
 /**
  * By Step 6, we have the following information stored in App.db and set on this
@@ -32,9 +33,11 @@ var validationUtils = require('utils/validator');
  *   slaveComponentHosts: App.db.slaveComponentHosts (slave-components-to-hosts mapping the user selected in Step 6)
  *
  */
-App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixin, App.HostComponentRecommendationMixin, {
+App.WizardStep6Controller = App.WizardStepController.extend(App.HostComponentValidationMixin, App.HostComponentRecommendationMixin, {
 
   name: 'wizardStep6Controller',
+
+  stepName: 'step6',
 
   /**
    * List of hosts
@@ -94,6 +97,18 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
    * @type {bool}
    */
   isInstallerWizard: Em.computed.equal('content.controllerName', 'installerController'),
+
+  isSaved: function () {
+    const wizardController = this.get('wizardController');
+    if (wizardController) {
+      return wizardController.getStepSavedState('step6');
+    }
+    return false;
+  }.property('wizardController.content.stepsSavedState'),
+
+  hostsChanged: function () {
+    this.get('wizardController').setStepUnsaved('step6');
+  },
 
   isAllCheckboxesEmpty: function() {
     var hosts = this.get('hosts');
@@ -255,6 +270,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       });
     });
     this.checkCallback(component);
+    this.hostsChanged();
   },
 
   /**
@@ -289,6 +305,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
    */
   loadStep: function () {
     this.clearStep();
+
     var parentController = App.router.get(this.get('content.controllerName'));
     if (parentController && parentController.get('content.componentsFromConfigs')) {
       parentController.clearConfigActionComponents();
@@ -644,9 +661,14 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     var bluePrintsForValidation = this.getValidationBlueprint();
     this.set('content.recommendationsHostGroups', bluePrintsForValidation);
 
+    //TODO - mpacks: Hard coded to use first mpack. Update when we are installing multiple mpacks.
+    const selectedMpacks = this.get('content.selectedMpacks');
+
     return this.validateSelectedHostComponents({
       services: services,
       hosts: hostNames,
+      stackName: selectedMpacks[0].name,
+      stackVersion: selectedMpacks[0].version,
       blueprint: bluePrintsForValidation
     });
   },

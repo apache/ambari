@@ -17,10 +17,13 @@
  */
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+require('./wizardStep_controller');
 
-App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
+App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin, {
 
   name: 'wizardStep9Controller',
+
+  stepName: 'step9',
 
   /**
    *  Array of host Objects that are successfully registered on "Confirm Host Options" page
@@ -106,15 +109,17 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    var validStates = ['STARTED', 'START FAILED', 'START_SKIPPED'];
+    var validStates = ['INSTALLED', 'STARTED', 'START FAILED', 'START_SKIPPED'];
     var controllerName = this.get('content.controllerName');
     if (controllerName == 'addHostController' || controllerName == 'addServiceController') {
       validStates.push('INSTALL FAILED');
     }
-    return !validStates.contains(this.get('content.cluster.status')) || App.get('router.btnClickInProgress');
+    return App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+      || !validStates.contains(this.get('content.cluster.status'));
   }.property('content.cluster.status'),
 
-  isNextButtonDisabled: Em.computed.or('App.router.nextBtnClickInProgress', 'isSubmitDisabled'),
+  isNextButtonDisabled: Em.computed.or('App.router.nextBtnClickInProgress', 'isSubmitDisabled', 'wizardController.errors.length'),
 
   /**
    * Observer function: Enables previous steps link if install task failed in installer wizard.
@@ -136,7 +141,17 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * Computed property to determine if the Retry button should be made visible on the page.
    * @type {bool}
    */
-  showRetry: Em.computed.equal('content.cluster.status', 'INSTALL FAILED'),
+  showRetry: function () {
+    const status = this.get('content.cluster.status');
+    switch (status) {
+      case 'INSTALL FAILED':
+      case 'INSTALLED':
+      case 'START FAILED':
+        return true;  
+    }
+
+    return false;
+  }.property('content.cluster.status'),
 
   /**
    * Observer function: Calls {hostStatusUpdates} function once with change in a host status from any registered hosts.

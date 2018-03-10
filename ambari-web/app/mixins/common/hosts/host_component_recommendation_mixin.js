@@ -91,6 +91,20 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
   },
 
   /**
+   * Get the url to use to request the correct stack version from stack advisor.
+   * Falls back to using the old global config value if necessary.
+   * 
+   * @param {object} options Should include stackName and stackVersion properties, which should refer to the mpack being installed. 
+   */
+  getStackVersionUrl(options) {
+    if (options.stackName && options.stackVersion) {
+      return '/stacks/' + options.stackName + '/versions/' + options.stackVersion;
+    }
+
+    return App.get('stackVersionURL');
+  },
+
+  /**
    * Returns request data for recommendation request
    * @param {HostComponentRecommendationOptions} options
    * @return {HostRecommendationRequestData}
@@ -99,7 +113,7 @@ App.HostComponentRecommendationMixin = Em.Mixin.create(App.BlueprintMixin, {
   getRecommendationRequestData: function(options) {
     return {
       recommend: 'host_groups',
-      stackVersionUrl: App.get('stackVersionURL'),
+      stackVersionUrl: this.getStackVersionUrl(options),
       hosts: options.hosts,
       services: options.services,
       recommendations: options.blueprint || this.getComponentsBlueprint(options.components)

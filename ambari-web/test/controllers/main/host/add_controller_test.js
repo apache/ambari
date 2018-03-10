@@ -671,7 +671,7 @@ describe('App.AddHostController', function () {
       )).to.be.true;
     });
     it('setDBProperty called with valid arguments', function () {
-      expect(controller.setDBProperty.calledWith('clientInfo', ['client'])).to.be.true;
+      expect(controller.setDBProperty.calledWith('clients', ['client'])).to.be.true;
     });
     it('content.clients are valid', function () {
       expect(controller.get('content.clients')).to.be.eql(['client']);

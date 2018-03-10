@@ -31,6 +31,38 @@ describe('date', function () {
     {m: 'empty function', t: function(){}}
   ]);
 
+  describe('#dateFormat', function () {
+    it('Should format dates passed as timestamp integers', function () {
+      //This test may seem circular, but we have to test this way because 
+      //dateFormat() uses "new Date(timestamp)" to convert the timestamp integer
+      //into a Date object.The Date constructor automatically uses the timezone 
+      //of the local system to produce a date representation from the timestamp,
+      //and this cannot be changed. Therefore, to test the formatted string output,
+      //we parse it back into a timestamp and check that it equals the original integer.
+      
+      var expected = 0;
+      var dateString = date.dateFormat(expected);
+      var actual = Date.parse(dateString);
+
+      expect(actual).to.equal(expected);
+    });
+
+    it('Should format dates passed as Date objects', function () {
+      var input = new Date(1970, 0, 1);
+      var expected = "Thu, Jan 01, 1970 00:00";
+      var actual = date.dateFormat(input);
+
+      expect(actual).to.equal(expected);
+    });
+
+    it('Should pass through any other type of data', function () {
+      var expected = "Hello World";
+      var actual = date.dateFormat(expected);
+
+      expect(actual).to.equal(expected);
+    });
+  }),
+
   describe('#dateFormatZeroFirst()', function() {
     var tests = [
       {

@@ -1,0 +1,92 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+<div id="configure-download" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
+  <h4 class="step-title">{{t installer.configureDownload.header}}</h4>
+
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{#if App.router.nextBtnClickInProgress}}
+      {{view App.SpinnerView}}
+      {{else}}
+      <p class="step-description">{{t installer.configureDownload.body.description}}</p>
+      <div class="row radio-group">
+        {{! Public Repo radio button }}
+        <div {{bindAttr class=":radio :big-radio controller.content.downloadConfig.usePublicRepo:repo-selected:repo-not-selected"}} {{action usePublicRepo target="controller"}}>
+          {{view App.RadioButtonView selectionBinding="controller.content.downloadConfig.useCustomRepo" valueBinding="App.False"}}
+          <div class="description">{{t installer.configureDownload.publicRepo.description}}</div>
+          <i class="icon icon-cloud-download" aria-hidden="true"></i>
+          <div class="big-radio-label">{{t installer.configureDownload.publicRepo}}</div>
+        </div>
+        {{! Custom Repo radio button }}
+        <div {{bindAttr class=":radio :big-radio controller.content.downloadConfig.usePublicRepo:repo-not-selected:repo-selected"}} {{action useCustomRepo target="controller"}}>
+          {{view App.RadioButtonView selectionBinding="controller.content.downloadConfig.useCustomRepo" valueBinding="App.True"}}
+          <div class="description">{{t installer.configureDownload.customRepo.description}}</div>
+          <i class="icon icon-tasks" aria-hidden="true"></i>
+          <div class="big-radio-label">{{t installer.configureDownload.customRepo}}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="checkbox">
+          {{! Red Hat Satellite checkbox }}
+          {{#if controller.content.downloadConfig.useCustomRepo}}
+          {{view App.CheckboxView id="useRedHat" checkedBinding="controller.content.downloadConfig.useRedHatSatellite" labelTranslate="installer.configureDownload.useRedHatSatellite" changeBinding="view.useRedHatSatelliteChanged"}}
+          {{/if}}
+        </div>
+        <div class="checkbox">
+          {{! Use Proxy checkbox }}
+          {{#unless controller.content.downloadConfig.useRedHatSatellite}}
+          {{view App.CheckboxView id="useProxy" checkedBinding="controller.content.downloadConfig.useProxy" labelTranslate="installer.configureDownload.useProxy" changeBinding="view.useProxyChanged"}}
+        </div>
+      </div>
+      {{#if controller.content.downloadConfig.useProxy}}
+      <form class="col-md-6">
+        <div class="form-group">
+          <label for="proxyUrl" class="control-label required">{{t installer.configureDownload.proxyUrl}}</label>
+          {{view Em.TextField id="proxyUrl" class="form-control" placeholderBinding="view.proxyUrlPlaceholder" valueBinding="controller.content.downloadConfig.proxyUrl" changeBinding="view.proxyUrlChanged"}}
+        </div>
+        <div class="form-group">
+          <label for="proxyAuth">{{t installer.configureDownload.proxyAuth}}</label>
+          <select id="proxyAuth" class="form-control" {{action proxyAuthChanged on="change" target="view"}}>
+            {{#each option in view.proxyAuthOptions}}
+            <option {{bindAttr value="option.value" selected="option.selected"}}>{{option.label}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <button type="button" id="proxyTest" class="btn btn-secondary" {{bindAttr disabled="controller.content.downloadConfig.proxyTestPassed"}} {{action proxyTest target="controller"}}>Test Connection</button>
+      </form>
+      {{/if}}
+      {{/unless}}
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+<div class="wizard-footer col-md-12">
+  <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action backTransition}} {{QAAttr "wizard-back"}}>
+    &larr; {{t common.back}}
+    {{#if App.router.backBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+  </button>
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
+    {{#if App.router.nextBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+    {{t common.next}} &rarr;
+  </button>
+</div>
