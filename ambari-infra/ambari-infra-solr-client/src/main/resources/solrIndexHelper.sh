@@ -68,6 +68,11 @@ function upgrade_core() {
     verbose="-verbose"
   fi
 
+  if [[ -f "$INDEX_DIR/write.lock" ]]; then
+    echo "Deleting $INDEX_DIR/write.lock file..."
+    rm "$INDEX_DIR/write.lock"
+  fi
+
   for coll in $SOLR_CORE_FILTER_ARR; do
     if [[ "$1" == *"$coll"* ]]; then
       echo "$core_str '$1' dir name contains $coll (core filter)'";

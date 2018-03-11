@@ -42,6 +42,41 @@
               <primary>true</primary>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>BACKUP</name>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>RESTORE</name>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>MIGRATE</name>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>36000</timeout>
+                <background>true</background>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>DELETE</name>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <dependencies>
             <dependency>
               <name>AMBARI_INFRA_SOLR/INFRA_SOLR_CLIENT</name>
