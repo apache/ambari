@@ -171,6 +171,9 @@ App.WizardStep1View = Em.View.extend({
    */
   invalidFormatUrlExist: function () {
     var allRepositories = this.get('allRepositories');
+    if (!allRepositories) {
+      return false;
+    }
     if (this.get('controller.selectedStack.useRedhatSatellite')) {
       allRepositories = allRepositories.filter(this.isRedhat);
     }
