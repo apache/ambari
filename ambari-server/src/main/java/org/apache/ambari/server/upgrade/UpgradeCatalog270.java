@@ -516,10 +516,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   private void createUserAuthenticationTable() throws SQLException {
     if (!usersTableUpgraded()) {
       final String temporaryTable = USER_AUTHENTICATION_TABLE + "_tmp";
-
       List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN, Long.class, null, null, false));
-      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_ID_COLUMN, Long.class, null, null, false));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_ID_COLUMN, Integer.class, null, null, false));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN, String.class, 50, null, false));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN, Clob.class, null, null, true));
       columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Timestamp.class, null, null, true));
