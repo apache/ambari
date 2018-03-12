@@ -720,8 +720,9 @@ def setup_ldap(options):
   if not enforce_ldap:
     current_client_security = get_value_from_properties(properties,CLIENT_SECURITY,"no auth method")
     if current_client_security != 'ldap':
-      query = "Currently '" + current_client_security + "' is configured, do you wish to use LDAP instead [y/n] (n)? "
-      if get_YN_input(query, False):
+      query = "Currently '" + current_client_security + "' is configured, do you wish to use LDAP instead [y/n] ({0})? "
+      ldap_setup_default = 'y' if current_client_security == "no auth method" else 'n'
+      if get_YN_input(query.format(ldap_setup_default), True if ldap_setup_default == 'y' else False):
         pass
       else:
         err = "Currently '" + current_client_security + "' configured. Can not setup LDAP."
