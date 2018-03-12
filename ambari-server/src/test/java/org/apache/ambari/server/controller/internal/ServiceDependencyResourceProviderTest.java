@@ -256,7 +256,7 @@ public class ServiceDependencyResourceProviderTest {
       dStateStr = desiredState.toString();
     }
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName,
-            serviceName, componentName, dStateStr);
+            serviceName, componentName, componentName, dStateStr);
     ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
@@ -269,7 +269,7 @@ public class ServiceDependencyResourceProviderTest {
       dStateStr = desiredState.toString();
     }
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName,
-            serviceName, componentName, hostname, dStateStr);
+            serviceName, componentName, componentName, hostname, dStateStr);
     controller.createHostComponents(Collections.singleton(r));
   }
 
@@ -341,16 +341,17 @@ public class ServiceDependencyResourceProviderTest {
     final String host2 = "b" + getUniqueName();
     final String host3 = "c" + getUniqueName();
 
-    setupClusterWithHosts(clusterName, "HDP-2.0.6", Arrays.asList(host1, host2, host3), "centos6");
+    String stackId = "HDP-2.0.6";
+    setupClusterWithHosts(clusterName, stackId, Arrays.asList(host1, host2, host3), "centos6");
 
     Cluster cluster = clusters.getCluster(clusterName);
-    cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    cluster.setCurrentStackVersion(new StackId("HDP-2.0.6"));
+    cluster.setDesiredStackVersion(new StackId(stackId));
+    cluster.setCurrentStackVersion(new StackId(stackId));
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion206;
 
-    ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE, "HDP-1.0");
-    ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST, "HDP-1.0");
+    ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE, stackId);
+    ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST, stackId);
 
     Service hdfs = cluster.addService(serviceGroupCore, SERVICE_NAME_HDFS, SERVICE_NAME_HDFS, repositoryVersion);
     Service yarn = cluster.addService(serviceGroupCore, SERVICE_NAME_YARN, SERVICE_NAME_YARN, repositoryVersion);

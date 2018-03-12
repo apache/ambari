@@ -19,10 +19,8 @@
 package org.apache.ambari.server.api.query.render;
 
 import static java.util.stream.Collectors.toList;
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -63,10 +61,14 @@ import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.DesiredConfig;
@@ -102,6 +104,7 @@ import com.google.common.collect.ImmutableSet;
 public class ClusterBlueprintRendererTest {
 
   private static final ClusterTopology topology = createNiceMock(ClusterTopology.class);
+  private static final ClusterTopology topologyWithKerberos = createNiceMock(ClusterTopology.class);
   private static final ClusterController clusterController = createNiceMock(ClusterControllerImpl.class);
 
   private static final AmbariContext ambariContext = createNiceMock(AmbariContext.class);
@@ -124,9 +127,14 @@ public class ClusterBlueprintRendererTest {
 
   private static final Configuration clusterConfig = new Configuration(clusterProps, clusterAttributes);
   public static final StackId STACK_ID = new StackId("HDP", "1.3.3");
+  private static final ResourceProvider artifactResourceProvider = createNiceMock(ResourceProvider.class);
+  private static final Resource artifactResource = createNiceMock(Resource.class);
 
   @Before
   public void setup() throws Exception {
+    PowerMock.mockStatic(AmbariContext.class);
+    expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
+    expect(AmbariContext.getController()).andReturn(controller).anyTimes();
 
     Map<String, String> clusterTypeProps = new HashMap<>();
     clusterProps.put("test-type-one", clusterTypeProps);
@@ -163,11 +171,10 @@ public class ClusterBlueprintRendererTest {
     groupInfoMap.put("host_group_1", group1Info);
     groupInfoMap.put("host_group_2", group2Info);
 
-    expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
-    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
-    expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    setupTopology(topology, groupInfoMap);
+    expect(topology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
+    setupTopology(topologyWithKerberos, groupInfoMap);
+    expect(topologyWithKerberos.isClusterKerberosEnabled()).andReturn(true).anyTimes();
     expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getHostGroup("host_group_1")).andReturn(group1).anyTimes();
@@ -182,11 +189,6 @@ public class ClusterBlueprintRendererTest {
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
 
-    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
-    expect(topology.getClusterId()).andReturn(1L).anyTimes();
-    PowerMock.mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
-    PowerMock.replay(AmbariServer.class);
     expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -195,64 +197,40 @@ public class ClusterBlueprintRendererTest {
     properties.add("core-site/hadoop.security.auth_to_local");
     expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();
     expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
-    replay(topology, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor);
+
+    setupKerberosDescriptorArtifact();
+
+    PowerMock.replay(AmbariContext.class);
+    replay(topology, topologyWithKerberos, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor, clusterController, artifactResource, artifactResourceProvider);
   }
 
-  private void setupMocksForKerberosEnabledCluster() throws Exception {
+  @After
+  public void tearDown() {
+    verify(topology, topologyWithKerberos, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor, clusterController, artifactResource, artifactResourceProvider);
+    reset(topology, topologyWithKerberos, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor, clusterController, artifactResource, artifactResourceProvider);
+    PowerMock.reset(AmbariContext.class);
+  }
 
-    AmbariContext ambariContext = createNiceMock(AmbariContext.class);
-    expect(ambariContext.getClusterName(anyLong())).andReturn("clusterName").anyTimes();
-
-    PowerMock.mockStatic(AmbariContext.class);
-    expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
-    expect(AmbariContext.getController()).andReturn(controller).anyTimes();
-
-    reset(topology);
-
-    HostGroupInfo group1Info = new HostGroupInfo("host_group_1");
-    group1Info.addHost("host1");
-    group1Info.setConfiguration(emptyConfiguration);
-    HostGroupInfo group2Info = new HostGroupInfo("host_group_2");
-    Map<String, HostGroupInfo> groupInfoMap = new HashMap<>();
-    group2Info.addHosts(Arrays.asList("host2", "host3"));
-    group2Info.setConfiguration(emptyConfiguration);
-    groupInfoMap.put("host_group_1", group1Info);
-    groupInfoMap.put("host_group_2", group2Info);
-
-    expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
-    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
-    expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-    expect(topology.getClusterId()).andReturn(new Long(1)).anyTimes();
-    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
-    expect(topology.isClusterKerberosEnabled()).andReturn(true).anyTimes();
-
-    ResourceProvider resourceProvider = createStrictMock(ResourceProvider.class);
-    expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(resourceProvider).once();
-
-    Resource resource = createStrictMock(Resource.class);
-    Set<Resource> result = Collections.singleton(resource);
-
-    expect(resourceProvider.getResources((Request) anyObject(Request.class),
-      (Predicate) anyObject(Predicate.class))).andReturn(result).once();
-
+  private void setupKerberosDescriptorArtifact() throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     Map<String, Map<String, Object>> resourcePropertiesMap = new HashMap<>();
     resourcePropertiesMap.put(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY, Collections.emptyMap());
     Map<String, Object> propertiesMap = new HashMap<>();
     propertiesMap.put("testProperty", "testValue");
     resourcePropertiesMap.put(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties", propertiesMap);
 
-    expect(resource.getPropertiesMap()).andReturn(resourcePropertiesMap).once();
-
-    PowerMock.replay(AmbariContext.class);
-    replay(ambariContext, topology, clusterController, resource, resourceProvider);
+    expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(artifactResourceProvider).anyTimes();
+    expect(artifactResourceProvider.getResources(anyObject(Request.class), anyObject(Predicate.class))).andReturn(Collections.singleton(artifactResource)).anyTimes();
+    expect(artifactResource.getPropertiesMap()).andReturn(resourcePropertiesMap).anyTimes();
   }
 
-
-  @After
-  public void tearDown() {
-    verify(topology, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor);
-    reset(topology, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor);
+  private void setupTopology(ClusterTopology topology, Map<String, HostGroupInfo> groupInfoMap) {
+    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
+    expect(topology.getStack()).andReturn(stack).anyTimes();
+    expect(topology.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
+    expect(topology.getClusterId()).andReturn(1L).anyTimes();
   }
 
   @Test
@@ -288,7 +266,23 @@ public class ClusterBlueprintRendererTest {
 
     TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
 
-    TreeNode<Resource> servicesTree = clusterTree.addChild(null, "services");
+    // Add global recovery_enabled as cluster setting
+    TreeNode<Resource> settingsNode = clusterTree.addChild(null, "settings");
+    Resource clusterSettingResource = new ResourceImpl(Resource.Type.ClusterSetting);
+    clusterSettingResource.setProperty("ClusterSettingInfo/cluster_setting_name", "recovery_enabled");
+    clusterSettingResource.setProperty("ClusterSettingInfo/cluster_setting_value", "true");
+    settingsNode.addChild(clusterSettingResource, "ClusterSetting:1");
+
+    TreeNode<Resource> serviceGroupsTree = clusterTree.addChild(null, "servicegroups");
+    Resource serviceGroupResource = new ResourceImpl(Resource.Type.ServiceGroup);
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
+    clusterTree.addChild(serviceGroupsTree);
+
+    TreeNode<Resource> servicesTree = serviceGroup1Tree.addChild(null, "services");
     servicesTree.setProperty("isCollection", "true");
 
     //Scenario 1 : Service with Credential Store enabled, Recovery enabled for Component:1 and not for Component:2
@@ -381,15 +375,15 @@ public class ClusterBlueprintRendererTest {
     assertTrue(children.containsKey("settings"));
 
     List<Map<String,Object>> settingValues = (ArrayList)children.get("settings");
-    Boolean isRecoverySettings = false;
+    Boolean isClusterSettings = false;
     Boolean isComponentSettings = false;
     Boolean isServiceSettings = false;
 
     //Verify actual values
     for(Map<String,Object> settingProp : settingValues){
-      if(settingProp.containsKey("recovery_settings")){
-        isRecoverySettings = true;
-        HashSet<Map<String,String>> checkPropSize = (HashSet)settingProp.get("recovery_settings");
+      if(settingProp.containsKey("cluster_settings")){
+        isClusterSettings = true;
+        HashSet<Map<String,String>> checkPropSize = (HashSet)settingProp.get("cluster_settings");
         assertEquals(1,checkPropSize.size());
         assertEquals("true",checkPropSize.iterator().next().get("recovery_enabled"));
 
@@ -416,7 +410,7 @@ public class ClusterBlueprintRendererTest {
       }
     }
     //Verify if required information is present in actual result
-    assertTrue(isRecoverySettings);
+    assertTrue(isClusterSettings);
     assertTrue(isComponentSettings);
     assertTrue(isServiceSettings);
 
@@ -443,13 +437,10 @@ public class ClusterBlueprintRendererTest {
 
   @Test
   public void testFinalizeResult_kerberos() throws Exception{
-
-    setupMocksForKerberosEnabledCluster();
-
     Result result = new ResultImpl(true);
     createClusterResultTree(result.getResultTree());
 
-    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topologyWithKerberos);
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
@@ -461,10 +452,10 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
-    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
+    checkMpackInstance(properties);
 
     Map<String, Object> securityProperties = (Map<String, Object>) properties.get("Blueprints").get("security");
+    assertNotNull(securityProperties);
     assertEquals("KERBEROS", securityProperties.get("type"));
     assertNotNull(((Map<String, Object>) securityProperties.get("kerberos_descriptor")).get("properties"));
   }
@@ -487,8 +478,7 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
-    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
+    checkMpackInstance(properties);
 
     Collection<Map<String, Object>> host_groups = (Collection<Map<String, Object>>) properties.get("").get("host_groups");
     assertEquals(2, host_groups.size());
@@ -566,8 +556,7 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals(STACK_ID.getStackName(), properties.get("Blueprints").get("stack_name"));
-    assertEquals(STACK_ID.getStackVersion(), properties.get("Blueprints").get("stack_version"));
+    checkMpackInstance(properties);
 
     Collection<Map<String, Object>> host_groups = (Collection<Map<String, Object>>) properties.get("").get("host_groups");
     assertEquals(2, host_groups.size());
@@ -702,9 +691,18 @@ public class ClusterBlueprintRendererTest {
 
     TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
 
-    // add empty services resource for basic unit testing
-    Resource servicesResource = new ResourceImpl(Resource.Type.Service);
-    clusterTree.addChild(servicesResource, "services");
+    // add a service group and empty services resource for basic unit testing
+    TreeNode<Resource> serviceGroupsTree = clusterTree.addChild(null, "servicegroups");
+    Resource serviceGroupResource = new ResourceImpl(Resource.Type.ServiceGroup);
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/cluster_name", "c1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_id", "1");
+    serviceGroupResource.setProperty("ServiceGroupInfo/service_group_name", "core");
+    TreeNode<Resource> serviceGroup1Tree = serviceGroupsTree.addChild(serviceGroupResource, "ServiceGroup:1");
+    clusterTree.addChild(serviceGroupsTree);
+
+    TreeNode<Resource> servicesTree = serviceGroup1Tree.addChild(null, "services");
+    servicesTree.setProperty("isCollection", "true");
 
 
     Resource configurationsResource = new ResourceImpl(Resource.Type.Configuration);
@@ -802,6 +800,13 @@ public class ClusterBlueprintRendererTest {
     // host 3 components
     host3ComponentsTree.addChild(dnComponentResource, "HostComponent:1");
     host3ComponentsTree.addChild(ttComponentResource, "HostComponent:2");
+  }
+
+  private void checkMpackInstance(Map<String, Map<String, Object>> blueprintProperties) {
+    Map<String, Object> mpackInstanceProperties =
+      ((List<Map<String, Object>>)blueprintProperties.get("").get("mpack_instances")).get(0);
+    assertEquals(STACK_ID.getStackName(), mpackInstanceProperties.get("name"));
+    assertEquals(STACK_ID.getStackVersion(), mpackInstanceProperties.get("version"));
   }
 
   private String getLocalHostName() throws UnknownHostException {

@@ -533,15 +533,10 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     ProvisionClusterRequest createClusterRequest;
     try {
-      createClusterRequest = topologyRequestFactory.createProvisionClusterRequest(properties, securityConfiguration);
+      createClusterRequest =
+        topologyRequestFactory.createProvisionClusterRequest(rawRequestBody, properties, securityConfiguration);
     } catch (InvalidTopologyTemplateException e) {
       throw new IllegalArgumentException("Invalid Cluster Creation Template: " + e, e);
-    }
-
-    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.NONE &&
-        createClusterRequest.getBlueprint().getSecurity() != null && createClusterRequest.getBlueprint().getSecurity()
-        .getType() == SecurityType.KERBEROS) {
-      throw new IllegalArgumentException("Setting security to NONE is not allowed as security type in blueprint is set to KERBEROS!");
     }
 
     try {

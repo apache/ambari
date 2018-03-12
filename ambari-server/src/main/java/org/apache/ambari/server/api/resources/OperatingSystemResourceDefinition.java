@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.api.resources;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
@@ -43,10 +40,4 @@ public class OperatingSystemResourceDefinition extends BaseResourceDefinition {
   public String getSingularName() {
     return "operating_system";
   }
-  
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.singleton(new SubResourceDefinition(Resource.Type.Repository));
-  }
-
 }

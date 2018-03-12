@@ -28,16 +28,11 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Resource Definition for Mpack Resource types.
  */
 public class MpackResourceDefinition extends BaseResourceDefinition {
-
-  private final static Logger LOG =
-          LoggerFactory.getLogger(MpackResourceDefinition.class);
 
   public MpackResourceDefinition(Type resourceType) {
     super(Resource.Type.Mpack);
@@ -61,6 +56,7 @@ public class MpackResourceDefinition extends BaseResourceDefinition {
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
     Set<SubResourceDefinition> setChildren = new HashSet<>();
     setChildren.add(new SubResourceDefinition(Resource.Type.StackVersion, null, false));
+    setChildren.add(new SubResourceDefinition(Resource.Type.OperatingSystem, null, true));
     return setChildren;
   }
 
