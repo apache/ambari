@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.ambari.server.state.alert.MetricsUri;
+import org.apache.ambari.server.state.alert.UriInfo;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -39,7 +39,7 @@ public class MetricDefinition {
   private Map<String, String> properties = null;
   private Map<String, Map<String, Metric>> metrics = null;
   @SerializedName("jmx_source_uri")
-  private MetricsUri jmxSourceUri;
+  private UriInfo jmxSourceUri;
 
   public MetricDefinition(String type, Map<String, String> properties, Map<String, Map<String, Metric>> metrics) {
     this.type = type;
@@ -88,7 +88,7 @@ public class MetricDefinition {
       : Optional.ofNullable(properties.get(OVERRIDDEN_HOST_PROP));
   }
 
-  public Optional<MetricsUri> getJmxSourceUri() {
+  public Optional<UriInfo> getJmxSourceUri() {
     return !"jmx".equalsIgnoreCase(type) ? Optional.empty() : Optional.ofNullable(jmxSourceUri);
   }
 }

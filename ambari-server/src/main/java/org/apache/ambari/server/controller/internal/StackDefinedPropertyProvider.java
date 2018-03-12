@@ -50,7 +50,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.alert.MetricsUri;
+import org.apache.ambari.server.state.alert.UriInfo;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.slf4j.Logger;
@@ -158,7 +158,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
     List<PropertyProvider> additional = new ArrayList<>();
     Map<String, String> overriddenHosts = new HashMap<>();
-    Map<String, MetricsUri> overriddenJmxUris = new HashMap<>();
+    Map<String, UriInfo> overriddenJmxUris = new HashMap<>();
 
     try {
       for (Resource r : resources) {
@@ -250,7 +250,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     return resources;
   }
 
-  private JMXHostProvider jmxHostProvider(Map<String, MetricsUri> overriddenJmxUris, JMXHostProvider defaultProvider, ConfigHelper configHelper) {
+  private JMXHostProvider jmxHostProvider(Map<String, UriInfo> overriddenJmxUris, JMXHostProvider defaultProvider, ConfigHelper configHelper) {
     return overriddenJmxUris.isEmpty() ? defaultProvider : new ConfigBasedJmxHostProvider(overriddenJmxUris, defaultProvider, configHelper);
   }
 

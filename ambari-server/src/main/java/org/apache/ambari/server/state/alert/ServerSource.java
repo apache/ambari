@@ -34,7 +34,7 @@ public class ServerSource extends ParameterizedSource {
   private String m_class;
 
   @SerializedName("uri")
-  private MetricsUri uri = null;
+  private UriInfo uri = null;
 
   @SerializedName("jmx")
   private MetricSource.JmxInfo jmxInfo = null;
@@ -52,7 +52,7 @@ public class ServerSource extends ParameterizedSource {
     return jmxInfo;
   }
 
-  public MetricsUri getUri() {
+  public UriInfo getUri() {
     return uri;
   }
 
