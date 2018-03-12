@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.containsString;
 
 import java.io.ByteArrayInputStream;
@@ -785,4 +786,73 @@ public class DBAccessorImplTest {
     assertFalse(column1.equals(notEqualsColumn1DefaultValueEmptyString));
     assertFalse(column1.equals(notEqualsColumn1Nullable));
   }
+
+  @Test
+  public void testBuildQuery() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    assertEquals(String.format("SELECT id FROM %s WHERE name='value1'", tableName),
+    dbAccessor.buildQuery(tableName, new String[] {"id"}, new String[] {"name"}, new String[] {"value1"}));
+
+    assertEquals(String.format("SELECT id FROM %s WHERE name='value1' AND time='100'", tableName),
+    dbAccessor.buildQuery(tableName, new String[] {"id"}, new String[] {"name", "time"}, new String[] {"value1", "100"}));
+
+    assertEquals(String.format("SELECT id, name FROM %s WHERE time='100'", tableName),
+    dbAccessor.buildQuery(tableName, new String[] {"id", "name"}, new String[] {"time"}, new String[] {"100"}));
+
+    assertEquals(String.format("SELECT id, name FROM %s", tableName),
+    dbAccessor.buildQuery(tableName, new String[] {"id", "name"}, null, null));
+
+    try {
+      dbAccessor.buildQuery("invalid_table_name", new String[] {"id", "name"}, new String[] {"time"}, new String[] {"100"});
+      fail("Expected IllegalArgumentException due to bad table name");
+    }
+    catch (IllegalArgumentException e) {
+      // This is expected
+    }
+
+    try {
+      dbAccessor.buildQuery(tableName, new String[] {"invalid_column_name"}, new String[] {"time"}, new String[] {"100"});
+      fail("Expected IllegalArgumentException due to bad column name");
+    }
+    catch (IllegalArgumentException e) {
+      // This is expected
+    }
+
+    try {
+      dbAccessor.buildQuery(tableName, new String[] {"id"}, new String[] {"invalid_column_name"}, new String[] {"100"});
+      fail("Expected IllegalArgumentException due to bad column name");
+    }
+    catch (IllegalArgumentException e) {
+      // This is expected
+    }
+
+    try {
+      dbAccessor.buildQuery(tableName, new String[] {}, new String[] {"name"}, new String[] {"100"});
+      fail("Expected IllegalArgumentException due missing select columns");
+    }
+    catch (IllegalArgumentException e) {
+      // This is expected
+    }
+
+    try {
+      dbAccessor.buildQuery(tableName, null, new String[] {"name"}, new String[] {"100"});
+      fail("Expected IllegalArgumentException due missing select columns");
+    }
+    catch (IllegalArgumentException e) {
+      // This is expected
+    }
+
+    try {
+      dbAccessor.buildQuery(tableName, new String[] {"id"}, new String[] {"name", "time"}, new String[] {"100"});
+      fail("Expected IllegalArgumentException due mismatch condition column and value arrays");
+    }
+    catch (IllegalArgumentException e) {
+      // This is expected
+    }
+  }
+
 }

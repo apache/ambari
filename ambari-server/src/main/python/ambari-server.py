@@ -500,6 +500,15 @@ def init_setup_parser_options(parser):
   parser.add_option_group(other_group)
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_reset_parser_options(parser):
+  other_group = optparse.OptionGroup(parser, 'Other options')
+
+  # the --master-key option is needed in the event passwords in the ambari.properties file are encrypted
+  other_group.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
+
+  parser.add_option_group(other_group)
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_start_parser_options(parser):
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
@@ -823,7 +832,7 @@ def init_action_parser(action, parser):
     START_ACTION: init_start_parser_options,
     STOP_ACTION: init_empty_parser_options,
     RESTART_ACTION: init_start_parser_options,
-    RESET_ACTION: init_empty_parser_options,
+    RESET_ACTION: init_reset_parser_options,
     STATUS_ACTION: init_empty_parser_options,
     UPGRADE_ACTION: init_empty_parser_options,
     LDAP_SETUP_ACTION: init_ldap_setup_parser_options,

@@ -28,6 +28,9 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGUR
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_CONFIGURATION_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_NEW_NAME;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_INFRA_OLD_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_SEQUENCES_SEQUENCE_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_SEQUENCES_SEQUENCE_VALUE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.AMBARI_SEQUENCES_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.COMPONENT_STATE_TABLE;
@@ -52,6 +55,32 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KERBEROS_KEY
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KKP;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PK_KKP_MAPPING_SERVICE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.PRINCIPAL_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_BASE_URL_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_COMPONENTS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_DISTRIBUTION_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_FOREIGN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_MIRRORS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_PRIMARY_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_REPO_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_REPO_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_REPO_OS_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_DEFINITION_UNIQUE_REPO_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_OS_AMBARI_MANAGED_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_OS_FAMILY_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_OS_FOREIGN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_OS_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_OS_PRIMARY_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_OS_REPO_VERSION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_OS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_TAGS_FOREIGN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_TAGS_REPO_DEFINITION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_TAGS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_TAGS_TAG_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_VERSION_REPOSITORIES_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_VERSION_REPO_VERSION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REPO_VERSION_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_DISPLAY_STATUS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.REQUEST_USER_NAME_COLUMN;
@@ -381,6 +410,12 @@ public class UpgradeCatalog270Test {
     Capture<DBAccessor.DBColumnInfo> updateUserTableCaptures = newCapture(CaptureType.ALL);
     Capture<DBAccessor.DBColumnInfo> alterUserTableCaptures = newCapture(CaptureType.ALL);
 
+    Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns = newCapture(CaptureType.ALL);
+    Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns = newCapture(CaptureType.ALL);
+    Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns = newCapture(CaptureType.ALL);
+    Capture<String[]> insertAmbariSequencesRowColumns = newCapture(CaptureType.ALL);
+    Capture<String[]> insertAmbariSequencesRowValues = newCapture(CaptureType.ALL);
+
     // Any return value will work here as long as a SQLException is not thrown.
     expect(dbAccessor.getColumnType(USERS_TABLE, USERS_USER_TYPE_COLUMN)).andReturn(0).anyTimes();
 
@@ -388,6 +423,9 @@ public class UpgradeCatalog270Test {
     prepareUpdateGroupMembershipRecords(dbAccessor, createMembersTableCaptures);
     prepareUpdateAdminPrivilegeRecords(dbAccessor, createAdminPrincipalTableCaptures);
     prepareUpdateUsersTable(dbAccessor, updateUserTableCaptures, alterUserTableCaptures);
+    prepareUpdateRepoTables(dbAccessor, addRepoOsTableCapturedColumns, addRepoDefinitionTableCapturedColumns, addRepoTagsTableCapturedColumns,
+        insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
+
     // upgradeKerberosTables
     Capture<List<DBAccessor.DBColumnInfo>> kerberosKeytabColumnsCapture = newCapture();
     dbAccessor.createTable(eq(KERBEROS_KEYTAB_TABLE), capture(kerberosKeytabColumnsCapture));
@@ -497,6 +535,8 @@ public class UpgradeCatalog270Test {
     validateUpdateGroupMembershipRecords(createMembersTableCaptures);
     validateUpdateAdminPrivilegeRecords(createAdminPrincipalTableCaptures);
     validateUpdateUsersTable(updateUserTableCaptures, alterUserTableCaptures);
+    validateCreateRepoOsTable(addRepoOsTableCapturedColumns, addRepoDefinitionTableCapturedColumns, addRepoTagsTableCapturedColumns,
+        insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
 
     verify(dbAccessor);
   }
@@ -678,6 +718,52 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
   }
 
+  private void prepareUpdateRepoTables(DBAccessor dbAccessor,
+                                       Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns,
+                                       Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns,
+                                       Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns,
+                                       Capture<String[]> insertAmbariSequencesRowColumns,
+                                       Capture<String[]> insertAmbariSequencesRowValues)
+      throws SQLException {
+
+    dbAccessor.createTable(eq(REPO_OS_TABLE), capture(addRepoOsTableCapturedColumns));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(REPO_OS_TABLE, REPO_OS_PRIMARY_KEY, REPO_OS_ID_COLUMN);
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(REPO_OS_TABLE, REPO_OS_FOREIGN_KEY, REPO_OS_REPO_VERSION_ID_COLUMN, REPO_VERSION_TABLE, REPO_VERSION_REPO_VERSION_ID_COLUMN, false);
+    expectLastCall().once();
+
+    dbAccessor.createTable(eq(REPO_DEFINITION_TABLE), capture(addRepoDefinitionTableCapturedColumns));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(REPO_DEFINITION_TABLE, REPO_DEFINITION_PRIMARY_KEY, REPO_DEFINITION_ID_COLUMN);
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(REPO_DEFINITION_TABLE, REPO_DEFINITION_FOREIGN_KEY, REPO_DEFINITION_REPO_OS_ID_COLUMN, REPO_OS_TABLE, REPO_OS_ID_COLUMN, false);
+    expectLastCall().once();
+
+    dbAccessor.createTable(eq(REPO_TAGS_TABLE), capture(addRepoTagsTableCapturedColumns));
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(REPO_TAGS_TABLE, REPO_TAGS_FOREIGN_KEY, REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_TABLE, REPO_DEFINITION_ID_COLUMN, false);
+    expectLastCall().once();
+
+    expect(dbAccessor.tableHasColumn(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPOSITORIES_COLUMN))).andReturn(true).once();
+
+    expect(dbAccessor.getKeyToStringColumnMap(REPO_VERSION_TABLE, REPO_VERSION_REPO_VERSION_ID_COLUMN, REPO_VERSION_REPOSITORIES_COLUMN, null, null, true))
+        .andReturn(Collections.emptyMap())
+        .once();
+
+    expect(dbAccessor.insertRowIfMissing(eq(AMBARI_SEQUENCES_TABLE),
+        capture(insertAmbariSequencesRowColumns),
+        capture(insertAmbariSequencesRowValues),
+        eq(false))).andReturn(true).once();
+    expect(dbAccessor.insertRowIfMissing(eq(AMBARI_SEQUENCES_TABLE),
+        capture(insertAmbariSequencesRowColumns),
+        capture(insertAmbariSequencesRowValues),
+        eq(false))).andReturn(true).once();
+
+    dbAccessor.dropColumn(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPOSITORIES_COLUMN));
+    expectLastCall().once();
+  }
+
   private void validateUpdateUsersTable(Capture<DBAccessor.DBColumnInfo> updateUserTableCaptures, Capture<DBAccessor.DBColumnInfo> alterUserTableCaptures) {
     Assert.assertTrue(updateUserTableCaptures.hasCaptured());
     validateColumns(updateUserTableCaptures.getValues(),
@@ -696,6 +782,59 @@ public class UpgradeCatalog270Test {
             new DBAccessor.DBColumnInfo(USERS_LOCAL_USERNAME_COLUMN, String.class, 255, null, false)
         )
     );
+  }
+
+  private void validateCreateRepoOsTable(Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns,
+                                         Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns,
+                                         Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns, Capture<String[]> insertAmbariSequencesRowColumns, Capture<String[]> insertAmbariSequencesRowValues) {
+    Assert.assertTrue(addRepoOsTableCapturedColumns.hasCaptured());
+    validateColumns(addRepoOsTableCapturedColumns.getValue(),
+        Arrays.asList(
+            new DBAccessor.DBColumnInfo(REPO_OS_ID_COLUMN, Long.class, null, null, false),
+            new DBAccessor.DBColumnInfo(REPO_OS_REPO_VERSION_ID_COLUMN, Long.class, null, null, false),
+            new DBAccessor.DBColumnInfo(REPO_OS_FAMILY_COLUMN, String.class, 255, null, false),
+            new DBAccessor.DBColumnInfo(REPO_OS_AMBARI_MANAGED_COLUMN, Integer.class, null, 1, true)
+        )
+    );
+
+    Assert.assertTrue(addRepoDefinitionTableCapturedColumns.hasCaptured());
+    validateColumns(addRepoDefinitionTableCapturedColumns.getValue(),
+        Arrays.asList(
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_ID_COLUMN, Long.class, null, null, false),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_REPO_OS_ID_COLUMN, Long.class, null, null, false),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_REPO_NAME_COLUMN, String.class, 255, null, false),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_REPO_ID_COLUMN, String.class, 255, null, false),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_BASE_URL_COLUMN, String.class, 2048, null, true),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_DISTRIBUTION_COLUMN, String.class, 2048, null, true),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_COMPONENTS_COLUMN, String.class, 2048, null, true),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_UNIQUE_REPO_COLUMN, Integer.class, 1, 1, true),
+            new DBAccessor.DBColumnInfo(REPO_DEFINITION_MIRRORS_COLUMN, String.class, 2048, null, true)
+        )
+    );
+
+    Assert.assertTrue(addRepoTagsTableCapturedColumns.hasCaptured());
+    validateColumns(addRepoTagsTableCapturedColumns.getValue(),
+        Arrays.asList(
+            new DBAccessor.DBColumnInfo(REPO_TAGS_REPO_DEFINITION_ID_COLUMN, Long.class, null, null, false),
+            new DBAccessor.DBColumnInfo(REPO_TAGS_TAG_COLUMN, String.class, 255, null, false)
+        )
+    );
+
+    List<String[]> values;
+
+    Assert.assertTrue(insertAmbariSequencesRowColumns.hasCaptured());
+    values = insertAmbariSequencesRowColumns.getValues();
+    Assert.assertEquals(2, values.size());
+    Assert.assertArrayEquals(new String[]{AMBARI_SEQUENCES_SEQUENCE_NAME_COLUMN, AMBARI_SEQUENCES_SEQUENCE_VALUE_COLUMN}, values.get(0));
+    Assert.assertArrayEquals(new String[]{AMBARI_SEQUENCES_SEQUENCE_NAME_COLUMN, AMBARI_SEQUENCES_SEQUENCE_VALUE_COLUMN}, values.get(1));
+
+    Assert.assertTrue(insertAmbariSequencesRowValues.hasCaptured());
+    values = insertAmbariSequencesRowValues.getValues();
+    Assert.assertEquals(2, values.size());
+    Assert.assertArrayEquals(new String[]{"'repo_os_id_seq'", "1"}, values.get(0));
+    Assert.assertArrayEquals(new String[]{"'repo_definition_id_seq'", "1"}, values.get(1));
+
+
   }
 
   private void validateColumns(List<DBAccessor.DBColumnInfo> capturedColumns, List<DBAccessor.DBColumnInfo> expectedColumns) {

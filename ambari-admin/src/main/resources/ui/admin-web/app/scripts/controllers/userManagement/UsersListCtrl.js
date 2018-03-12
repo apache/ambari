@@ -138,6 +138,9 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
   };
 
   $scope.deleteUser = function (user) {
+    if (!user.isDeletable) {
+      return false;
+    }
     ConfirmationModal.show(
       $t('common.delete', {
         term: $t('common.user')

@@ -38,6 +38,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
@@ -403,6 +404,11 @@ public class SchemaUpgradeHelper {
       }
 
       Injector injector = Guice.createInjector(new UpgradeHelperModule(), new AuditLoggerModule(), new LdapModule());
+
+      // Startup the JPA infrastructure, but do not indicate it is initialized since the underlying
+      // database schema may not be updated to meet the expectations of the Entity instances.
+      GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
+
       SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
       //Fail if MySQL database has tables with MyISAM engine
@@ -441,7 +447,9 @@ public class SchemaUpgradeHelper {
 
       schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
 
-      schemaUpgradeHelper.startPersistenceService();
+      // The DDL is expected to be updated, now send the JPA initialized event so Entity
+      // implementations can be created.
+      jpaInitializer.setInitialized();
 
       schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 
@@ -457,6 +465,9 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.cleanUpRCATables();
 
       schemaUpgradeHelper.stopPersistenceService();
+
+      // Signal all threads that we are ready to exit...
+      System.exit(0);
     } catch (Throwable e) {
       if (e instanceof AmbariException) {
         LOG.error("Exception occurred during upgrade, failed", e);

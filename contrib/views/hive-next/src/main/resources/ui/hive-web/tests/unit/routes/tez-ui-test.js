@@ -16,20 +16,34 @@
  * limitations under the License.
  */
 
-var App = require('app');
+import Ember from 'ember';
+import { test } from 'ember-qunit';
+import startApp from '../helpers/start-app';
+import api from '../helpers/api-mock';
 
-App.NameNodeFederationWizardStep4View = App.HighAvailabilityProgressPageView.extend({
+var App;
+var server;
 
-  templateName: require('templates/main/admin/federation/step4'),
+module('Integration: Tez UI', {
+  setup: function() {
+    App = startApp();
+    /* global Pretender: true */
+    server = new Pretender(api);
+  },
 
-  headerTitle: Em.I18n.t('admin.nameNodeFederation.wizard.step4.header'),
+  teardown: function() {
+    Ember.run(App, App.destroy);
+    server.shutdown();
+  }
+});
 
-  noticeInProgress: Em.I18n.t('admin.nameNodeFederation.wizard.step4.notice.inProgress'),
+test('An error is show when there is no dag', function() {
+  expect(1);
 
-  noticeCompleted: Em.I18n.t('admin.nameNodeFederation.wizard.step4.notice.completed'),
+  visit("/");
+  click('#tez-icon');
 
-  submitButtonText: Em.I18n.t('common.complete'),
-
-  labelWidth: 'col-md-5'
-
+  andThen(function() {
+    ok(find('.panel .alert .alert-danger'), 'Error is visible');
+  });
 });

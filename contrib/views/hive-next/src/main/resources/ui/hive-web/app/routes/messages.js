@@ -16,20 +16,7 @@
  * limitations under the License.
  */
 
-var App = require('app');
+import Ember from 'ember';
 
-App.NameNodeFederationWizardStep4View = App.HighAvailabilityProgressPageView.extend({
-
-  templateName: require('templates/main/admin/federation/step4'),
-
-  headerTitle: Em.I18n.t('admin.nameNodeFederation.wizard.step4.header'),
-
-  noticeInProgress: Em.I18n.t('admin.nameNodeFederation.wizard.step4.notice.inProgress'),
-
-  noticeCompleted: Em.I18n.t('admin.nameNodeFederation.wizard.step4.notice.completed'),
-
-  submitButtonText: Em.I18n.t('common.complete'),
-
-  labelWidth: 'col-md-5'
-
+export default Ember.Route.extend({
 });
