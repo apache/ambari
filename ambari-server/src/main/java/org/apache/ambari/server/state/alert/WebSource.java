@@ -19,6 +19,8 @@ package org.apache.ambari.server.state.alert;
 
 import java.util.Objects;
 
+import org.apache.ambari.server.state.UriInfo;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;

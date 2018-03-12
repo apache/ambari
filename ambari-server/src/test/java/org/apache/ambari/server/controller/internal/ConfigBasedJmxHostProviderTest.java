@@ -32,7 +32,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.alert.UriInfo;
+import org.apache.ambari.server.state.UriInfo;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
