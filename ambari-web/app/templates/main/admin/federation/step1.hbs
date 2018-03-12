@@ -28,6 +28,14 @@
       <div {{bindAttr class=":form-group view.showInputError:has-error :form-horizontal"}}>
         <div class="row">
           <div class="col-md-2">
+            <label>{{t admin.nameNodeFederation.wizard.step1.nameserviceid.existing}}:</label>
+          </div>
+          <div class="col-md-10">
+            {{controller.existingNameServices}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2">
             <label class="control-label">{{t admin.nameNodeFederation.wizard.step1.nameserviceid}}:</label>
           </div>
           <div class="col-md-3">
