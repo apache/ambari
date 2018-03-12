@@ -32,7 +32,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.alert.MetricsUri;
+import org.apache.ambari.server.state.alert.UriInfo;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -75,10 +75,10 @@ public class ConfigBasedJmxHostProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  private Map<String, MetricsUri> overrideHosts() {
-    MetricsUri uri = new MetricsUri();
+  private Map<String, UriInfo> overrideHosts() {
+    UriInfo uri = new UriInfo();
     uri.setHttpUri("${hdfs-site/dfs.namenode.http-address}");
-    return new HashMap<String, MetricsUri>() {{
+    return new HashMap<String, UriInfo>() {{
       put(COMPONENT_WITH_OVERRIDDEN_HOST, uri);
     }};
   }

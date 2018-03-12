@@ -30,17 +30,17 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.alert.MetricsUri;
+import org.apache.ambari.server.state.alert.UriInfo;
 
 /**
  * I'm a special {@link JMXHostProvider} that resolves JMX URIs based on cluster configuration.
  */
 public class ConfigBasedJmxHostProvider implements JMXHostProvider {
-  private final Map<String, MetricsUri> overriddenJmxUris;
+  private final Map<String, UriInfo> overriddenJmxUris;
   private final JMXHostProvider defaultProvider;
   private final ConfigHelper configHelper;
 
-  public ConfigBasedJmxHostProvider(Map<String, MetricsUri> overriddenJmxUris, JMXHostProvider defaultProvider, ConfigHelper configHelper) {
+  public ConfigBasedJmxHostProvider(Map<String, UriInfo> overriddenJmxUris, JMXHostProvider defaultProvider, ConfigHelper configHelper) {
     this.overriddenJmxUris = overriddenJmxUris;
     this.defaultProvider = defaultProvider;
     this.configHelper = configHelper;
@@ -58,7 +58,7 @@ public class ConfigBasedJmxHostProvider implements JMXHostProvider {
       .orElseGet(() -> defaultProvider.getHostNames(clusterName, componentName));
   }
 
-  private URI resolve(MetricsUri uri, String clusterName) {
+  private URI resolve(UriInfo uri, String clusterName) {
     try {
       return uri.resolve(config(clusterName));
     } catch (AmbariException e) {
@@ -85,7 +85,7 @@ public class ConfigBasedJmxHostProvider implements JMXHostProvider {
     return defaultProvider.getJMXRpcMetricTag(clusterName, componentName, port);
   }
 
-  private Optional<MetricsUri> overridenJmxUri(String component) {
+  private Optional<UriInfo> overridenJmxUri(String component) {
     return Optional.ofNullable(overriddenJmxUris.get(component));
   }
 
