@@ -1,7 +1,7 @@
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
+distributed with this work for additional informationldap_force_setup
 regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
@@ -7637,7 +7637,7 @@ class TestAmbariServer(TestCase):
     urlopen_method.return_value = response
 
     options = self._create_empty_options_mock()
-    options.ldap_enforcement = 'true'
+    options.ldap_force_setup = True
 
     setup_ldap(options)
 
@@ -8730,7 +8730,7 @@ class TestAmbariServer(TestCase):
     options.ldap_save_settings = None
     options.ldap_referral = None
     options.ldap_bind_anonym = None
-    options.ldap_enforcement = None
+    options.ldap_force_setup = None
     options.ambari_admin_username = None
     options.ambari_admin_password = None
     options.ldap_sync_admin_name = None

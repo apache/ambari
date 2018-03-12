@@ -716,7 +716,7 @@ def setup_ldap(options):
     err = 'Ambari Server is not running.'
     raise FatalException(1, err)
 
-  enforce_ldap = True if options.ldap_enforcement is not None and options.ldap_enforcement == 'true' else False
+  enforce_ldap = options.ldap_force_setup if options.ldap_force_setup is not None else False
   if not enforce_ldap:
     current_client_security = get_value_from_properties(properties,CLIENT_SECURITY,"no auth method")
     if current_client_security != 'ldap':
