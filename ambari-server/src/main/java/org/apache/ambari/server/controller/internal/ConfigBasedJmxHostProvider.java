@@ -30,10 +30,10 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.alert.UriInfo;
+import org.apache.ambari.server.state.UriInfo;
 
 /**
- * I'm a special {@link JMXHostProvider} that resolves JMX URIs based on cluster configuration.
+ * A special {@link JMXHostProvider} that resolves JMX URIs based on cluster configuration.
  */
 public class ConfigBasedJmxHostProvider implements JMXHostProvider {
   private final Map<String, UriInfo> overriddenJmxUris;
