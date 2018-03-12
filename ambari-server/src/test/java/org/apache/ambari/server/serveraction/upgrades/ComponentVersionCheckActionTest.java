@@ -19,7 +19,6 @@ package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,13 +39,10 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -58,7 +54,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -102,9 +97,6 @@ public class ComponentVersionCheckActionTest {
 
   @Inject
   private RepositoryVersionDAO repoVersionDAO;
-
-  @Inject
-  private HostVersionDAO hostVersionDAO;
 
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
@@ -190,14 +182,6 @@ public class ComponentVersionCheckActionTest {
     // Start upgrading the newer repo
     c.setCurrentStackVersion(targetStack);
 
-    HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
-
-    HostVersionEntity entity = new HostVersionEntity();
-    entity.setHostEntity(hostDAO.findByName(hostName));
-    entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(targetStack, targetRepo));
-    entity.setState(RepositoryVersionState.INSTALLED);
-    hostVersionDAO.create(entity);
-
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setClusterId(c.getClusterId());
     requestEntity.setRequestId(1L);
@@ -282,22 +266,6 @@ public class ComponentVersionCheckActionTest {
     c.setUpgradeEntity(upgradeEntity);
   }
 
-  /**
-   * Creates a new {@link HostVersionEntity} instance in the
-   * {@link RepositoryVersionState#INSTALLED} for the specified host.
-   */
-  private void installRepositoryOnHost(String hostName, RepositoryVersionEntity repositoryVersion)
-      throws AmbariException {
-    // Start upgrading the newer repo
-    HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
-
-    HostVersionEntity entity = new HostVersionEntity();
-    entity.setHostEntity(hostDAO.findByName(hostName));
-    entity.setRepositoryVersion(repositoryVersion);
-    entity.setState(RepositoryVersionState.INSTALLED);
-    hostVersionDAO.create(entity);
-  }
-
   @Test
   public void testMatchingVersions() throws Exception {
     StackId sourceStack = HDP_21_STACK;
@@ -354,9 +322,6 @@ public class ComponentVersionCheckActionTest {
     // create some configs
     createConfigs(cluster);
 
-    // install the target repo
-    installRepositoryOnHost(hostName, targetRepoVersion);
-
     // setup the cluster for the upgrade across stacks
     cluster.setCurrentStackVersion(sourceStack);
     cluster.setDesiredStackVersion(targetStack);
@@ -386,15 +351,6 @@ public class ComponentVersionCheckActionTest {
     // set the SCH versions to the new stack so that the finalize action is
     // happy - don't update DATANODE - we want to make the action complain
     cluster.getServiceComponentHosts("HDFS", "NAMENODE").get(0).setVersion(targetVersion);
-
-    // verify the conditions for the test are met properly
-    List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion("c1",
-        HDP_22_STACK, targetVersion);
-
-    assertTrue(hostVersions.size() > 0);
-    for (HostVersionEntity hostVersion : hostVersions) {
-      assertEquals(RepositoryVersionState.INSTALLED, hostVersion.getState());
-    }
 
     // now finalize and ensure we can transition from UPGRADING to UPGRADED
     // automatically before CURRENT

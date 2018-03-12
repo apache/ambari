@@ -31,7 +31,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
+import org.apache.ambari.server.events.listeners.upgrade.MpackInstallStateListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -410,8 +410,8 @@ public class ClustersDeadlockTest {
     public void configure(Binder binder) {
       // this listener gets in the way of actually testing the concurrency
       // between the threads; it slows them down too much, so mock it out
-      binder.bind(HostVersionOutOfSyncListener.class).toInstance(
-          EasyMock.createNiceMock(HostVersionOutOfSyncListener.class));
+      binder.bind(MpackInstallStateListener.class).toInstance(
+          EasyMock.createNiceMock(MpackInstallStateListener.class));
     }
   }
 }

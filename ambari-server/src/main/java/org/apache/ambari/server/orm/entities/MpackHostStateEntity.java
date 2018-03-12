@@ -34,7 +34,7 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.MpackInstallState;
 
 /**
  * The {@link MpackHostStateEntity} is used to track the installation state of a
@@ -101,11 +101,11 @@ public class MpackHostStateEntity {
   private MpackEntity mpackEntity;
 
   /**
-   * The state of the
+   * The installation state of a management pack on a given host.
    */
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
-  private RepositoryVersionState state;
+  private MpackInstallState state;
 
   /**
    * Constructor.
@@ -121,7 +121,7 @@ public class MpackHostStateEntity {
    * @param state
    */
   public MpackHostStateEntity(MpackEntity mpackEntity, HostEntity hostEntity,
-      RepositoryVersionState state) {
+      MpackInstallState state) {
     this.mpackEntity = mpackEntity;
     this.hostEntity = hostEntity;
     this.state = state;
@@ -163,11 +163,11 @@ public class MpackHostStateEntity {
     this.hostEntity = hostEntity;
   }
 
-  public RepositoryVersionState getState() {
+  public MpackInstallState getState() {
     return state;
   }
 
-  public void setState(RepositoryVersionState state) {
+  public void setState(MpackInstallState state) {
     this.state = state;
   }
 

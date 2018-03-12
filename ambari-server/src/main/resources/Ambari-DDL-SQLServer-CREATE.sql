@@ -854,16 +854,6 @@ CREATE TABLE adminprivilege (
   CONSTRAINT FK_privilege_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
   CONSTRAINT FK_privilege_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id));
 
-CREATE TABLE host_version (
-  id BIGINT NOT NULL,
-  repo_version_id BIGINT NOT NULL,
-  host_id BIGINT NOT NULL,
-  STATE VARCHAR(32) NOT NULL,
-  CONSTRAINT PK_host_version PRIMARY KEY CLUSTERED (id),
-  CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id));
-
 CREATE TABLE artifact (
   artifact_name VARCHAR(255) NOT NULL,
   artifact_data TEXT NOT NULL,
@@ -1302,7 +1292,6 @@ BEGIN TRANSACTION
     ('repo_version_id_seq', 0),
     ('repo_os_id_seq', 0),
     ('repo_definition_id_seq', 0),
-    ('host_version_id_seq', 0),
     ('mpack_host_state_id_seq', 0),
     ('service_config_id_seq', 1),
     ('upgrade_id_seq', 0),

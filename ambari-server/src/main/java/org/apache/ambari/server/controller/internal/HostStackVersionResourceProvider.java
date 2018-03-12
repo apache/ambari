@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -49,14 +51,15 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.MpackHostStateDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.MpackInstallState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -76,6 +79,8 @@ import com.google.inject.Provider;
  * Resource provider for host stack versions resources.
  */
 @StaticallyInject
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class HostStackVersionResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(HostStackVersionResourceProvider.class);
@@ -141,7 +146,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   };
 
   @Inject
-  private static HostVersionDAO hostVersionDAO;
+  private static MpackHostStateDAO mpackHostStateDAO;
 
   @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
@@ -183,20 +188,16 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
         clusterName = propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).toString();
       }
       final Long id;
-      List<HostVersionEntity> requestedEntities;
+      List<MpackHostStateEntity> requestedEntities;
       if (propertyMap.get(HOST_STACK_VERSION_ID_PROPERTY_ID) == null) {
-        if (clusterName == null) {
-          requestedEntities = hostVersionDAO.findByHost(hostName);
-        } else {
-          requestedEntities = hostVersionDAO.findByClusterAndHost(clusterName, hostName);
-        }
+        requestedEntities = mpackHostStateDAO.findByHost(hostName);
       } else {
         try {
           id = Long.parseLong(propertyMap.get(HOST_STACK_VERSION_ID_PROPERTY_ID).toString());
         } catch (Exception ex) {
           throw new SystemException("Stack version should have numerical id");
         }
-        final HostVersionEntity entity = hostVersionDAO.findByPK(id);
+        final MpackHostStateEntity entity = mpackHostStateDAO.findByPK(id);
         if (entity == null) {
           throw new NoSuchResourceException("There is no stack version with id " + id);
         } else {
@@ -220,17 +221,14 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
    * @param clusterName name of cluster or null if no any
    */
   public void addRequestedEntities(Set<Resource> resources,
-                                   List<HostVersionEntity> requestedEntities,
+      List<MpackHostStateEntity> requestedEntities,
                                    Set<String> requestedIds,
                                    String clusterName) {
-    for (HostVersionEntity entity: requestedEntities) {
-      StackId stackId = new StackId(entity.getRepositoryVersion().getStack());
-
-      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(
-          stackId, entity.getRepositoryVersion().getVersion());
-
+    for (MpackHostStateEntity entity : requestedEntities) {
       final Resource resource = new ResourceImpl(Resource.Type.HostStackVersion);
 
+      MpackEntity mpackEntity = entity.getMpack();
+      StackId stackId = new StackId(mpackEntity.getMpackName(), mpackEntity.getMpackVersion());
       setResourceProperty(resource, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, entity.getHostName(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_STACK_PROPERTY_ID, stackId.getStackName(), requestedIds);
@@ -239,11 +237,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
       if (clusterName != null) {
         setResourceProperty(resource, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
-      }
-
-      if (repoVerEntity != null) {
-        Long repoVersionId = repoVerEntity.getId();
-        setResourceProperty(resource, HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID, repoVersionId, requestedIds);
       }
 
       resources.add(resource);
@@ -366,20 +359,25 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
               desiredRepoVersion, stackId));
     }
 
-    HostVersionEntity hostVersEntity = hostVersionDAO.findByClusterStackVersionAndHost(clName, stackId,
-            desiredRepoVersion, hostName);
+    MpackHostStateEntity mpackInstallState = null;
+    List<MpackHostStateEntity> mpackStates = mpackHostStateDAO.findByHost(hostName);
+
+    if (!mpackStates.isEmpty()) {
+      mpackInstallState = mpackStates.iterator().next();
+    }
+
     if (!forceInstallOnNonMemberHost) {
-      if (hostVersEntity == null) {
+      if (mpackInstallState == null) {
         throw new IllegalArgumentException(String.format(
           "Repo version %s for stack %s is not available for host %s",
           desiredRepoVersion, stackId, hostName));
       }
-      if (hostVersEntity.getState() != RepositoryVersionState.INSTALLED &&
-        hostVersEntity.getState() != RepositoryVersionState.INSTALL_FAILED &&
-        hostVersEntity.getState() != RepositoryVersionState.OUT_OF_SYNC) {
+      if (mpackInstallState.getState() != MpackInstallState.INSTALLED &&
+        mpackInstallState.getState() != MpackInstallState.INSTALL_FAILED &&
+        mpackInstallState.getState() != MpackInstallState.NOT_INSTALLED) {
         throw new UnsupportedOperationException(String.format("Repo version %s for stack %s " +
             "for host %s is in %s state. Can not transition to INSTALLING state",
-          desiredRepoVersion, stackId, hostName, hostVersEntity.getState().toString()));
+          desiredRepoVersion, stackId, hostName, mpackInstallState.getState().toString()));
       }
     }
 
@@ -494,8 +492,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     try {
       if (!forceInstallOnNonMemberHost) {
-        hostVersEntity.setState(RepositoryVersionState.INSTALLING);
-        hostVersionDAO.merge(hostVersEntity);
+        mpackInstallState.setState(MpackInstallState.INSTALLING);
+        mpackHostStateDAO.merge(mpackInstallState);
       }
       req.persist();
     } catch (AmbariException e) {

@@ -129,8 +129,12 @@ public class HostEntity implements Comparable<HostEntity> {
   @OneToMany(mappedBy = "hostEntity")
   private Collection<HostComponentStateEntity> hostComponentStateEntities;
 
-  @OneToMany(mappedBy = "hostEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-  private Collection<HostVersionEntity> hostVersionEntities;
+  @OneToMany(
+      mappedBy = "hostEntity",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.LAZY,
+      orphanRemoval = true)
+  private Collection<MpackHostStateEntity> mpackHostInstallStates;
 
   @ManyToMany
   @JoinTable(name = "ClusterHostMapping",
@@ -392,11 +396,11 @@ public class HostEntity implements Comparable<HostEntity> {
     this.hostRoleCommandEntities = hostRoleCommandEntities;
   }
 
-  public Collection<HostVersionEntity> getHostVersionEntities() {
-    return hostVersionEntities;
+  public Collection<MpackHostStateEntity> getMpackInstallStates() {
+    return mpackHostInstallStates;
   }
 
-  public void setHostVersionEntities(Collection<HostVersionEntity> hostVersionEntities) {
-    this.hostVersionEntities = hostVersionEntities;
+  public void setMpackInstallStates(Collection<MpackHostStateEntity> mpackHostInstallStates) {
+    this.mpackHostInstallStates = mpackHostInstallStates;
   }
 }

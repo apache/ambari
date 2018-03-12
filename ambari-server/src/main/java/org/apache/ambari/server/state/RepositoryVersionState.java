@@ -20,6 +20,9 @@ package org.apache.ambari.server.state;
 
 import java.util.List;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
+
 /**
  * The {@link RepositoryVersionState} represents the state of a repository on a
  * particular host. Because hosts can contain a mixture of components from
@@ -71,6 +74,8 @@ import java.util.List;
  * CURRENT -> INSTALLED
  * </pre>
  */
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public enum RepositoryVersionState {
   /**
    * Repository version is not required

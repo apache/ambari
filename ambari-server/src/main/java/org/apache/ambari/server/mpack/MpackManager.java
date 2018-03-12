@@ -41,6 +41,8 @@ import javax.xml.bind.Marshaller;
 import org.apache.ambari.server.controller.MpackRequest;
 import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.events.MpackRegisteredEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
@@ -84,17 +86,19 @@ public class MpackManager {
   private StackDAO stackDAO;
   private File stackRoot;
   private RepositoryVersionHelper repoVersionHelper;
+  private AmbariEventPublisher eventPublisher;
 
 
   @AssistedInject
   public MpackManager(@Assisted("mpacksv2Staging") File mpacksStagingLocation,
       @Assisted("stackRoot") File stackRootDir, MpackDAO mpackDAOObj, StackDAO stackDAOObj,
-      RepositoryVersionHelper repoVersionHelper) {
+      RepositoryVersionHelper repoVersionHelper, AmbariEventPublisher eventPublisher) {
     mpacksStaging = mpacksStagingLocation;
     mpackDAO = mpackDAOObj;
     stackRoot = stackRootDir;
     stackDAO = stackDAOObj;
     this.repoVersionHelper = repoVersionHelper;
+    this.eventPublisher = eventPublisher;
 
     parseMpackDirectories();
   }
@@ -208,16 +212,20 @@ public class MpackManager {
     mpack.setMpackUri(mpackRequest.getMpackUri());
     mpackResourceId = populateDB(mpack);
 
-    if (mpackResourceId != null) {
-      mpackMap.put(mpackResourceId, mpack);
-      mpack.setResourceId(mpackResourceId);
-      populateStackDB(mpack);
-      return new MpackResponse(mpack);
+    if (null == mpackResourceId) {
+      String message = "Mpack :" + mpackRequest.getMpackName() + " version: "
+          + mpackRequest.getMpackVersion() + " already exists in server";
+      throw new ResourceAlreadyExistsException(message);
     }
-    String message = "Mpack :" + mpackRequest.getMpackName() + " version: " + mpackRequest.getMpackVersion()
-      + " already exists in server";
-    throw new ResourceAlreadyExistsException(message);
 
+    mpackMap.put(mpackResourceId, mpack);
+    mpack.setResourceId(mpackResourceId);
+    populateStackDB(mpack);
+
+    MpackRegisteredEvent mpackEvent = new MpackRegisteredEvent(mpackResourceId);
+    eventPublisher.publish(mpackEvent);
+
+    return new MpackResponse(mpack);
   }
 
   /***
