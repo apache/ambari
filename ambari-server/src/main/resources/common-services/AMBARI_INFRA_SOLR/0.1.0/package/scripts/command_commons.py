@@ -17,9 +17,15 @@ limitations under the License.
 
 """
 import fnmatch
+import json
 import os
 import params
+import time
+import traceback
 
+from resource_management.core.exceptions import ExecutionFailed
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 
@@ -56,6 +62,12 @@ collection = default("/commandParams/solr_collection", "ranger_audits")
 # it will be used in the snapshot name, if it's ranger, the snapshot folder will be snapshot.ranger
 backup_name = default("/commandParams/solr_backup_name", "ranger")
 
+request_async = default("/commandParams/solr_request_async", False)
+request_tries = int(default("/commandParams/solr_request_tries", 30))
+request_time_interval = int(default("/commandParams/solr_request_time_interval", 5))
+
+check_hosts = default("/commandParams/solr_check_hosts", True)
+
 solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
 solr_base_url = format("{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr")
 
@@ -78,7 +90,131 @@ def get_files_by_pattern(directory, pattern):
       if matched:
         yield os.path.join(root, basename)
 
-def create_solr_api_request_command(request_path):
+def create_solr_api_request_command(request_path, output=None):
   solr_url = format("{solr_base_url}/{request_path}")
-  api_cmd = format("kinit -kt {keytab} {principal} && curl -k --negotiate -u : '{solr_url}'") if params.security_enabled else format("curl -k '{solr_url}'")
+  grep_cmd = " | grep 'solr_rs_status: 200'"
+  api_cmd = format("kinit -kt {keytab} {principal} && curl -w'solr_rs_status: %{{http_code}}' -k --negotiate -u : '{solr_url}'") \
+    if params.security_enabled else format("curl -k '{solr_url}'")
+  if output is not None:
+    api_cmd+=format(" -o {output}")
+  api_cmd+=grep_cmd
   return api_cmd
+
+def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, log_output=True, tries=30, time_interval=5):
+  """
+  Check BACKUP/RESTORE status until the response status will be successful or failed.
+
+  :param request_cmd: backup or restore api path
+  :param json_output: json file which will store the response output
+  :param snapshot_name: snapshot name, it will be used to check the proper status in the status response (backup: <snapshot_name>, restore: snapshot.<snapshot_name>)
+  :param backup: this flag is true if the check is against backup, otherwise it will be restore
+  :param log_output: print the output of the downloaded json file (backup/restore response)
+  :param tries: number of tries of the requests - it stops after the response status is successful for backup/restore
+  :param time_interval: time to wait in seconds between retries
+  """
+  failed = True
+  num_tries = 0
+  for i in range(tries):
+    try:
+      num_tries+=1
+      if (num_tries > 1):
+        Logger.info(format("Number of tries: {num_tries} ..."))
+      Execute(request_cmd, user=params.infra_solr_user)
+      with open(json_output) as json_file:
+        json_data = json.load(json_file)
+        if backup:
+          details = json_data['details']
+          backup_list = details['backup']
+          if log_output:
+            Logger.info(str(backup_list))
+
+          if type(backup_list) == type(list()): # support map and list format as well
+            backup_data = dict(backup_list[i:i+2] for i in range(0, len(backup_list), 2))
+          else:
+            backup_data = backup_list
+
+          if backup_data['snapshotName'] != snapshot_name:
+            snapshot = backup_data['snapshotName']
+            Logger.info(format("Snapshot name: {snapshot}, wait until {snapshot_name} will be available."))
+            time.sleep(time_interval)
+            continue
+
+          if backup_data['status'] == 'success':
+            Logger.info("Backup command status: success.")
+            failed = False
+          elif backup_data['status'] == 'failed':
+            Logger.info("Backup command status: failed.")
+          else:
+            Logger.info(format("Backup command is in progress... Sleep for {time_interval} seconds."))
+            time.sleep(time_interval)
+            continue
+
+        else:
+          restorestatus_data = json_data['restorestatus']
+          if log_output:
+            Logger.info(str(restorestatus_data))
+
+          if restorestatus_data['snapshotName'] != format("snapshot.{snapshot_name}"):
+            snapshot = restorestatus_data['snapshotName']
+            Logger.info(format("Snapshot name: {snapshot}, wait until snapshot.{snapshot_name} will be available."))
+            time.sleep(time_interval)
+            continue
+
+          if restorestatus_data['status'] == 'success':
+            Logger.info("Restore command successfully finished.")
+            failed = False
+          elif restorestatus_data['status'] == 'failed':
+            Logger.info("Restore command failed.")
+          else:
+            Logger.info(format("Restore command is in progress... Sleep for {time_interval} seconds."))
+            time.sleep(time_interval)
+            continue
+
+    except Exception:
+      traceback.print_exc()
+      time.sleep(time_interval)
+      continue
+    break
+
+  if failed:
+    raise Exception("Status Command failed.")
+  else:
+    Logger.info("Status command finished successfully.")
+
+def __get_domain_name(url):
+  spltAr = url.split("://")
+  i = (0,1)[len(spltAr) > 1]
+  dm = spltAr[i].split('/')[0].split(':')[0].lower()
+  return dm
+
+def __read_hosts_from_clusterstate_json(json_path):
+  hosts = set()
+  with open(json_path) as json_file:
+    json_data = json.load(json_file)
+    znode = json_data['znode']
+    data = json.loads(znode['data'])
+    collection_data = data[collection]
+    shards = collection_data['shards']
+
+    for shard in shards:
+      Logger.info(format("Found shard: {shard}"))
+      replicas = shards[shard]['replicas']
+      for replica in replicas:
+        core_data = replicas[replica]
+        core = core_data['core']
+        base_url = core_data['base_url']
+        domain = __get_domain_name(base_url)
+        hosts.add(domain)
+        Logger.info(format("Found replica: {replica} (core '{core}') in {shard} on {domain}"))
+    return hosts
+
+def __get_hosts_for_collection():
+  request_path = 'admin/zookeeper?wt=json&detail=true&path=%2Fclusterstate.json&view=graph'
+  json_path = format("{index_location}/zk_state.json")
+  api_request = create_solr_api_request_command(request_path, output=json_path)
+  Execute(api_request, user=params.infra_solr_user)
+  return __read_hosts_from_clusterstate_json(json_path)
+
+def is_collection_available_on_host():
+  hosts_set = __get_hosts_for_collection()
+  return params.hostname in hosts_set
