@@ -32,7 +32,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.AlertTargetResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.AlertTargetSwagger;
@@ -68,8 +67,24 @@ public class AlertTargetService extends BaseService {
    * @param ui      uri info
    * @return alert target resource representation
    */
-  @GET @ApiIgnore // documented below
+  @GET
   @Produces("text/plain")
+  @ApiOperation(value = "Returns all alert targets", response = AlertTargetSwagger.class, responseContainer = "List")
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "AlertTarget/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+          @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getTargets(@Context HttpHeaders headers,
       @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
@@ -88,7 +103,7 @@ public class AlertTargetService extends BaseService {
   @GET
   @Path("{targetId}")
   @Produces("text/plain")
-  @ApiOperation(value = "Returns a single alert target", response = AlertTargetSwagger.class, responseContainer = "List")
+  @ApiOperation(value = "Returns a single alert target", response = AlertTargetSwagger.class, nickname = "getTarget")
   @ApiImplicitParams({
           @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "AlertTarget/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),

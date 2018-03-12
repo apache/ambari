@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.AlertGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -32,45 +33,52 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public interface AlertTargetSwagger extends ApiModel {
 
-    @ApiModelProperty(name = AlertTargetResourceProvider.ID_PROPERTY_ID)
-    Long getId();
+    @ApiModelProperty(name = AlertTargetResourceProvider.ALERT_TARGET)
+    AlertTargetInfo getAlertTargetInfo();
 
-    @ApiModelProperty(name = AlertTargetResourceProvider.NAME_PROPERTY_ID)
-    String getName();
+    interface AlertTargetInfo {
 
-    @ApiModelProperty(name = AlertTargetResourceProvider.DESCRIPTION_PROPERTY_ID)
-    String getDescription();
-
-    @ApiModelProperty(name = AlertTargetResourceProvider.NOTIFICATION_TYPE_PROPERTY_ID)
-    String getNotificationType();
-
-    @ApiModelProperty(name = AlertTargetResourceProvider.ENABLED_PROPERTY_ID)
-    Boolean isEnabled();
-
-    @ApiModelProperty(name = AlertTargetResourceProvider.PROPERTIES_PROPERTY_ID)
-    Map<String, String> getProperties();
-
-    // it should be Set<AlertState> but Swagger doesn't support list of enums
-    @ApiModelProperty(name = AlertTargetResourceProvider.STATES_PROPERTY_ID)
-    List<String> getAlertStates();
-
-    @ApiModelProperty(name = AlertTargetResourceProvider.GLOBAL_PROPERTY_ID)
-    Boolean isGlobal();
-
-    @ApiModelProperty(name = AlertTargetResourceProvider.GROUPS_PROPERTY_ID)
-    List<AlertGroup> getAlertGroups();
-
-    interface AlertGroup {
-        @ApiModelProperty(name = AlertGroupResourceProvider.ID_PROPERTY_ID)
+        @ApiModelProperty(name = AlertTargetResourceProvider.ID_PROPERTY_ID)
         Long getId();
 
-        @ApiModelProperty(name = "cluster_id")
-        Long getClusterId();
+        @ApiModelProperty(name = AlertTargetResourceProvider.NAME_PROPERTY_ID)
+        String getName();
 
-        @ApiModelProperty(name = AlertGroupResourceProvider.NAME_PROPERTY_ID)
-        String getGroupName();
+        @ApiModelProperty(name = AlertTargetResourceProvider.DESCRIPTION_PROPERTY_ID)
+        String getDescription();
 
-        @ApiModelProperty(name = AlertGroupResourceProvider.DEFAULT_PROPERTY_ID)
-        Boolean isDefault();
+        @ApiModelProperty(name = AlertTargetResourceProvider.NOTIFICATION_TYPE_PROPERTY_ID)
+        String getNotificationType();
+
+        @ApiModelProperty(name = AlertTargetResourceProvider.ENABLED_PROPERTY_ID)
+        Boolean isEnabled();
+
+        @ApiModelProperty(name = AlertTargetResourceProvider.PROPERTIES_PROPERTY_ID)
+        Map<String, String> getProperties();
+
+        // it should be Set<AlertState> but Swagger doesn't support list of enums
+        @ApiModelProperty(name = AlertTargetResourceProvider.STATES_PROPERTY_ID)
+        List<String> getAlertStates();
+
+        @ApiModelProperty(name = AlertTargetResourceProvider.GLOBAL_PROPERTY_ID)
+        Boolean isGlobal();
+
+        @ApiModelProperty(name = AlertTargetResourceProvider.GROUPS_PROPERTY_ID)
+        List<AlertGroup> getAlertGroups();
+
+        interface AlertGroup {
+
+            @ApiModelProperty(name = AlertGroupResourceProvider.ID_PROPERTY_ID)
+            Long getId();
+
+            @ApiModelProperty(name = ClusterResourceProvider.CLUSTER_ID)
+            Long getClusterId();
+
+            @ApiModelProperty(name = AlertGroupResourceProvider.NAME_PROPERTY_ID)
+            String getGroupName();
+
+            @ApiModelProperty(name = AlertGroupResourceProvider.DEFAULT_PROPERTY_ID)
+            Boolean isDefault();
+        }
     }
 }
