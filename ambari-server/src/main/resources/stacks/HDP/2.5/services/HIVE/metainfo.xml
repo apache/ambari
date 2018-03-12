@@ -179,12 +179,7 @@
           <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>mysql-community-release</name>
-              <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_mysql</condition>
-            </package>
-            <package>
-              <name>mysql-community-server</name>
+              <name>mariadb-server</name>
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_mysql</condition>
             </package>

@@ -163,7 +163,7 @@ def yarn(name=None, config_dir=None):
   File(os.path.join(config_dir, "container-executor.cfg"),
       group=params.user_group,
       mode=0644,
-      content=Template('container-executor.cfg.j2')
+      content=InlineTemplate(params.container_executor_cfg_template)
   )
 
   Directory(params.cgroups_dir,

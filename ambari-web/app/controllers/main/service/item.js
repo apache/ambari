@@ -88,6 +88,10 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
   isRecommendationInProgress: false,
 
+  nameNodesWithOldCheckpoints: [],
+
+  isNameNodeCheckpointUnavailable: false,
+
   isClientsOnlyService: function() {
     return App.get('services.clientOnly').contains(this.get('content.serviceName'));
   }.property('content.serviceName'),
@@ -191,7 +195,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('content.serviceName'),
 
   /**
-   * Load all config tags for loading configs
+   * Load configurations for implicit usage for service actions
+   * not related to configs displayed on Configs page
    */
   loadConfigs: function(){
     this.set('isServiceConfigsLoaded', false);
@@ -352,7 +357,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       this.checkNnLastCheckpointTime(() => App.showConfirmationFeedBackPopup((query, runMmOperation) => {
         this.set('isPending', true);
         this.startStopWithMmode(serviceHealth, query, runMmOperation, components, hosts, label);
-      }, bodyMessage));
+      }, bodyMessage), label);
     } else {
       return App.showConfirmationFeedBackPopup((query, runMmOperation) => {
         this.set('isPending', true);
@@ -365,23 +370,46 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * this function will be called from :1) stop HDFS 2) restart all for HDFS 3) restart all affected for HDFS
    * @param callback - callback function to continue next operation
+   * @param [groupName] - id of HA namespace for enabled NameNode federation
    */
-  checkNnLastCheckpointTime: function(callback) {
-    var self = this;
-    this.pullNnCheckPointTime().complete(function () {
-      var isNNCheckpointTooOld = self.get('isNNCheckpointTooOld');
-      self.set('isNNCheckpointTooOld', null);
-      if (isNNCheckpointTooOld) {
+  checkNnLastCheckpointTime: function (callback, groupName) {
+    this.pullNnCheckPointTime(groupName).complete(() => {
+      const nameNodesWithOldCheckpoints = this.get('nameNodesWithOldCheckpoints').slice(),
+        isNameNodeCheckpointUnavailable = this.get('isNameNodeCheckpointUnavailable');
+      this.get('nameNodesWithOldCheckpoints').clear();
+      this.set('isNameNodeCheckpointUnavailable', false);
+      if (nameNodesWithOldCheckpoints.length) {
         // too old
-        self.getHdfsUser().done(function() {
-          var msg = Em.Object.create({
-            confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(App.nnCheckpointAgeAlertThreshold) +
-              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('hdfsUser')),
-            confirmButton: Em.I18n.t('common.next')
-          });
+        this.getHdfsUser().done(() => {
+          const maxAge = App.nnCheckpointAgeAlertThreshold,
+            hdfsUser = this.get('hdfsUser'),
+            confirmButton =Em.I18n.t('common.next');
+          let msg;
+          if (App.get('hasNameNodeFederation') && !groupName) {
+            const oldCheckpointNameSpacesList = nameNodesWithOldCheckpoints.map(nn => `<li>${nn.haNameSpace}</li>`),
+              nameSpacesString = `<ul>${oldCheckpointNameSpacesList.join('')}</ul>`,
+              hostNamesList = nameNodesWithOldCheckpoints.map(nn => `<b>${nn.hostName}</b>`).join(', ');
+            msg = Em.Object.create({
+              confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.nameSpaces.checkPointTooOld').format(maxAge) +
+                nameSpacesString +
+                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
+                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.multipleHosts.login').format(hostNamesList) +
+                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(hdfsUser),
+              confirmButton
+            })
+          } else {
+            const hostName = nameNodesWithOldCheckpoints[0].hostName;
+            msg = Em.Object.create({
+              confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(maxAge) +
+                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
+                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login').format(hostName) +
+                Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(hdfsUser),
+              confirmButton
+            })
+          }
           return App.showConfirmationFeedBackPopup(callback, msg);
         });
-      } else if (isNNCheckpointTooOld == null) {
+      } else if (isNameNodeCheckpointUnavailable) {
         // not available
         return App.showConfirmationPopup(
           callback, Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointNA'), null,
@@ -394,56 +422,80 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
 
-  pullNnCheckPointTime: function () {
+  pullNnCheckPointTime: function (haNameSpace) {
     return App.ajax.send({
       name: 'common.service.hdfs.getNnCheckPointTime',
       sender: this,
+      data: {
+        haNameSpace
+      },
       success: 'parseNnCheckPointTime'
     });
   },
 
-  parseNnCheckPointTime: function (data) {
-    var nameNodesStatus = [];
-    var lastCheckpointTime, hostName;
-    if (data.host_components.length <= 1) {
-      lastCheckpointTime = Em.get(data.host_components[0], 'metrics.dfs.FSNamesystem.LastCheckpointTime');
-      hostName = Em.get(data.host_components[0], 'HostRoles.host_name');
+  parseNnCheckPointTime: function (data, opt, params) {
+    let nameNodesStatus = {},
+      nameNodesWithCheckpoints = [],
+      hostComponents = params.haNameSpace ?
+        data.host_components.filterProperty('metrics.dfs.namenode.ClusterId', params.haNameSpace) : data.host_components;
+    if (hostComponents.length <= 1) {
+      nameNodesWithCheckpoints.push({
+        lastCheckpointTime: Em.get(hostComponents[0], 'metrics.dfs.FSNamesystem.LastCheckpointTime'),
+        hostName: Em.get(hostComponents[0], 'HostRoles.host_name')
+      });
     } else {
-      // HA enabled
-      data.host_components.forEach(function(namenode) {
-        nameNodesStatus.pushObject( Em.Object.create({
+      // HA or federation enabled
+      const hostComponents = data.host_components;
+      hostComponents.forEach(namenode => {
+        const haNameSpace = Em.get(namenode, 'metrics.dfs.namenode.ClusterId'),
+          existingArray = nameNodesStatus[haNameSpace],
+          currentArray = existingArray || [];
+        if (!existingArray) {
+          nameNodesStatus[haNameSpace] = currentArray;
+        }
+        currentArray.pushObject(Em.Object.create({
           LastCheckpointTime: Em.get(namenode, 'metrics.dfs.FSNamesystem.LastCheckpointTime'),
           HAState: Em.get(namenode, 'metrics.dfs.FSNamesystem.HAState'),
           hostName: Em.get(namenode, 'HostRoles.host_name')
         }));
       });
-      if (nameNodesStatus.someProperty('HAState', 'active')) {
-        if (nameNodesStatus.findProperty('HAState', 'active').get('LastCheckpointTime')) {
-          lastCheckpointTime = nameNodesStatus.findProperty('HAState', 'active').get('LastCheckpointTime');
-          hostName = nameNodesStatus.findProperty('HAState', 'active').get('hostName');
-        } else if (nameNodesStatus.someProperty('LastCheckpointTime')) {
-          lastCheckpointTime = nameNodesStatus.findProperty('LastCheckpointTime').get('LastCheckpointTime');
-          hostName = nameNodesStatus.findProperty('LastCheckpointTime').get('hostName');
+      Object.keys(nameNodesStatus).forEach(key => {
+        const nameSpace = nameNodesStatus[key],
+          activeNameNode = nameSpace.findProperty('HAState', 'active'),
+          standbyNameNode = nameSpace.findProperty('HAState', 'standby');
+        if (activeNameNode) {
+          const lastActiveNameNodeCheckpointTime = activeNameNode.get('LastCheckpointTime'),
+            nameNodeWithCheckpoint = nameSpace.findProperty('LastCheckpointTime');
+          if (lastActiveNameNodeCheckpointTime) {
+            nameNodesWithCheckpoints.push({
+              lastCheckpointTime: lastActiveNameNodeCheckpointTime,
+              hostName: activeNameNode.get('hostName'),
+              haNameSpace: key
+            });
+          } else if (nameNodeWithCheckpoint) {
+            nameNodesWithCheckpoints.push({
+              lastCheckpointTime: nameNodeWithCheckpoint.get('LastCheckpointTime'),
+              hostName: nameNodeWithCheckpoint.get('hostName'),
+              haNameSpace: key
+            });
+          }
+        } else if (standbyNameNode) {
+          nameNodesWithCheckpoints.push({
+            lastCheckpointTime: standbyNameNode.get('LastCheckpointTime'),
+            hostName: standbyNameNode.get('hostName'),
+            haNameSpace: key
+          });
         }
-      } else if (nameNodesStatus.someProperty('HAState', 'standby')) {
-        lastCheckpointTime = nameNodesStatus.findProperty('HAState', 'standby').get('LastCheckpointTime');
-        hostName = nameNodesStatus.findProperty('HAState', 'standby').get('hostName')
-      }
+      });
     }
+    const timeCriteria = App.nnCheckpointAgeAlertThreshold, // time in hours to define how many hours ago is too old
+      timeAgo = (Math.round(App.dateTime() / 1000) - (timeCriteria * 3600)) * 1000,
+      nameNodesWithOldCheckpoints = nameNodesWithCheckpoints.filter(nameNode => nameNode.lastCheckpointTime <= timeAgo);
 
-    if (!lastCheckpointTime) {
-      this.set("isNNCheckpointTooOld", null);
-    } else {
-      var time_criteria = App.nnCheckpointAgeAlertThreshold; // time in hours to define how many hours ago is too old
-      var time_ago = (Math.round(App.dateTime() / 1000) - (time_criteria * 3600)) *1000;
-      if (lastCheckpointTime <= time_ago) {
-        // too old, set the effected hostName
-        this.set("isNNCheckpointTooOld", hostName);
-      } else {
-        // still young
-        this.set("isNNCheckpointTooOld", false);
-      }
-    }
+    this.setProperties({
+      nameNodesWithOldCheckpoints,
+      isNameNodeCheckpointUnavailable: !nameNodesWithCheckpoints.length
+    });
   },
 
   /**
@@ -947,7 +999,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           return App.showConfirmationFeedBackPopup(function (query, runMmOperation) {
             batchUtils.restartCertainServiceHostComponents(serviceName, components, hosts, label, query, runMmOperation);
           }, bodyMessage);
-        });
+        }, label);
       } else {
         App.showConfirmationFeedBackPopup(function (query, runMmOperation) {
           batchUtils.restartCertainServiceHostComponents(serviceName, components, hosts, label, query, runMmOperation);

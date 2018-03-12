@@ -33,6 +33,7 @@ App.hostComponentStatusMapper = App.QuickDataMapper.create({
       const hostComponent = App.HostComponent.find(componentState.componentName + '_' + componentState.hostName);
       this.updatePropertiesByConfig(hostComponent, componentState, this.config);
       this.updateComponentsWithStaleConfigs(componentState);
+      App.componentsStateMapper.updateComponentCountOnStateChange(componentState);
     });
   },
 

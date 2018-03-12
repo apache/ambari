@@ -6,19 +6,20 @@ regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 Ambari Agent
-
 """
 
+def get_encoded_string(data):
+  try:
+    return data.encode("utf8")
+  except UnicodeDecodeError:
+    return data
 
 def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
   """
@@ -31,7 +32,7 @@ def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
 
   islink, join, isdir = os.path.islink, os.path.join, os.path.isdir
 
-  top = top.encode("utf8")
+  top = get_encoded_string(top)
 
   try:
     # Note that listdir and error are globals in this module due
@@ -44,7 +45,7 @@ def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
 
   dirs, nondirs = [], []
   for name in names:
-    name = name.encode("utf8")
+    name = get_encoded_string(name)
     if isdir(join(top, name)):
       dirs.append(name)
     else:
@@ -53,11 +54,10 @@ def unicode_walk(top, topdown=True, onerror=None, followlinks=False):
   if topdown:
     yield top, dirs, nondirs
   for name in dirs:
-    name = name.encode("utf8")
+    name = get_encoded_string(name)
     new_path = join(top, name)
     if followlinks or not islink(new_path):
       for x in unicode_walk(new_path, topdown, onerror, followlinks):
         yield x
   if not topdown:
     yield top, dirs, nondirs
-

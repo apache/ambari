@@ -35,7 +35,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     self.AMBARI_MANAGED_LLAP_QUEUE_NAME = 'llap'
     self.CONFIG_VALUE_UINITIALIZED = 'SET_ON_FIRST_INVOCATION'
     self.CLUSTER_CREATE_OPERATION = "ClusterCreate"
-
+    self.ACCESSIBLE_NODE_LABELS = 'accessible-node-labels'
 
   def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor,self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
@@ -1949,23 +1949,24 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     self.logger.info("Entered __getSelectedQueueTotalCap fn() with llap_daemon_selected_queue_name= '{0}'.".format(llap_daemon_selected_queue_name))
     available_capacity = total_cluster_capacity
     queue_cap_key = self.__getQueueCapacityKeyFromCapacityScheduler(capacity_scheduler_properties, llap_daemon_selected_queue_name)
-    if queue_cap_key:
-      queue_cap_key = queue_cap_key.strip()
-      if len(queue_cap_key) >= 34:  # len('yarn.scheduler.capacity.<single letter queue name>.capacity') = 34
-        # Expected capacity prop key is of form : 'yarn.scheduler.capacity.<one or more queues (path)>.capacity'
-        queue_path = queue_cap_key[24:]  # Strip from beginning 'yarn.scheduler.capacity.'
-        queue_path = queue_path[0:-9]  # Strip from end '.capacity'
-        queues_list = queue_path.split('.')
-        self.logger.info("Queue list : {0}".format(queues_list))
-        if queues_list:
-          for queue in queues_list:
-            queue_cap_key = self.__getQueueCapacityKeyFromCapacityScheduler(capacity_scheduler_properties, queue)
-            queue_cap_perc = float(capacity_scheduler_properties.get(queue_cap_key))
-            available_capacity = queue_cap_perc / 100 * available_capacity
-            self.logger.info("Total capacity available for queue {0} is : {1}".format(queue, available_capacity))
-
+    for queue in self._queues_list(queue_cap_key):
+      queue_cap_key = self.__getQueueCapacityKeyFromCapacityScheduler(capacity_scheduler_properties, queue)
+      queue_cap_perc = float(capacity_scheduler_properties.get(queue_cap_key))
+      available_capacity = queue_cap_perc / 100 * available_capacity
+      self.logger.info("Total capacity available for queue {0} is : {1}".format(queue, available_capacity))
     # returns the capacity calculated for passed-in queue in 'llap_daemon_selected_queue_name'.
     return available_capacity
+
+  def _queues_list(self, queue_cap_key):
+    if not queue_cap_key: return []
+    queue_cap_key = queue_cap_key.strip()
+    if len(queue_cap_key) >= 34:  # len('yarn.scheduler.capacity.<single letter queue name>.capacity') = 34
+      # Expected capacity prop key is of form : 'yarn.scheduler.capacity.<one or more queues (path)>.capacity'
+      queue_path = queue_cap_key[24:]  # Strip from beginning 'yarn.scheduler.capacity.'
+      queue_path = queue_path[0:-9]  # Strip from end '.capacity'
+      return [queue for queue in queue_path.split('.') if queue != self.ACCESSIBLE_NODE_LABELS]
+    else:
+      return []
 
   def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendRangerKMSConfigurations(configurations, clusterData, services, hosts)

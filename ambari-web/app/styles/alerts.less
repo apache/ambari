@@ -196,10 +196,8 @@
   }
 
   .alert-text {
-    overflow: hidden;
+    .ellipsis-overflow-nowrap;
     float: left;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     width: 100%;
   }
 
@@ -310,10 +308,8 @@
   }
 
   .alert-text {
-    overflow: hidden;
+    .ellipsis-overflow-nowrap;
     float: left;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     width: 100%;
   }
 }
@@ -514,19 +510,15 @@
 }
 
 .instance-text {
+  .ellipsis-overflow-nowrap;
   font-size: 0.8em;
   width: 95%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .definition-latest-text {
+  .ellipsis-overflow-nowrap;
   font-size: 0.8em;
   width: 95%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .alerts-popup-wrap {
@@ -537,9 +529,8 @@
       padding: 10px 5px;
     }
     .trim_hostname {
+      .ellipsis-overflow;
       display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
   }
 }
@@ -652,14 +643,11 @@
         font-size: 14px;
         font-weight: bold;
         margin-bottom: 5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        .ellipsis-overflow-nowrap;
       }
       .description-text {
         font-size: 12px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        .ellipsis-overflow;
       }
     }
   }

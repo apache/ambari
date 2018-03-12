@@ -367,6 +367,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       YARNService = App.YARNService.find().objectAt(0),
       resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
     if (HDFSService) {
+      // TODO rewrite considering federation case and using activeNameNodes array
       nameNodeName = (HDFSService.get('activeNameNode')) ? HDFSService.get('activeNameNode.hostName') : HDFSService.get('nameNode.hostName');
     }
     if (this.get('currentTimeIndex') === 8 && !Em.isNone(this.get('customStartTime')) && !Em.isNone(this.get('customEndTime'))) {

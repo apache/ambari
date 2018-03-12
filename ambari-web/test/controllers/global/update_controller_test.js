@@ -65,7 +65,7 @@ describe('App.UpdateController', function () {
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(6);
+      expect(App.updater.run.callCount).to.equal(5);
     });
   });
 
@@ -108,7 +108,7 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: ['metrics/1']
+        result: ['metrics/1', 'host_components/metrics/dfs/namenode/ClusterId']
       },
       {
         title: 'FLUME service',

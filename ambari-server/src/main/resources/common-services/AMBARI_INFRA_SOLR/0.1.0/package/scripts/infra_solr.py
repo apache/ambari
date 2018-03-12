@@ -27,8 +27,9 @@ from resource_management.libraries.functions.get_user_call_output import get_use
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.script.script import Script
 
+from collection import backup_collection, restore_collection, delete_collection
+from migrate import migrate_index
 from setup_infra_solr import setup_infra_solr
-
 
 class InfraSolr(Script):
   def install(self, env):
@@ -121,6 +122,18 @@ class InfraSolr(Script):
       jaas_file=params.infra_solr_jaas_file,
       user=params.infra_solr_user)
     zkmigrator.set_acls(params.infra_solr_znode, 'world:anyone:crdwa')
+
+  def backup(self, env):
+    backup_collection(env)
+
+  def restore(self, env):
+    restore_collection(env)
+
+  def migrate(self, env):
+    migrate_index(env)
+
+  def delete(self, env):
+    delete_collection(env)
 
 if __name__ == "__main__":
   InfraSolr().execute()

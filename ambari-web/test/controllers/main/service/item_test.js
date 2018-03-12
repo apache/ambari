@@ -619,7 +619,7 @@ describe('App.MainServiceItemController', function () {
             }
           ]
         },
-        result: false
+        result: 0
       },
       {
         m: "NameNode has JMX data, the last checkpoint time is > 12 hours ago",
@@ -649,7 +649,7 @@ describe('App.MainServiceItemController', function () {
               }
             ]
           },
-        result: "c6401.ambari.apache.org"
+        result: 1
       },
       {
         m: "NameNode has no JMX data available",
@@ -678,7 +678,7 @@ describe('App.MainServiceItemController', function () {
             }
           ]
         },
-        result: null
+        result: 0
       },
       {
         m: "HA enabled, both active and standby NN has JMX data normally.",
@@ -724,7 +724,7 @@ describe('App.MainServiceItemController', function () {
             }
           ]
         },
-        result: false
+        result: 0
       },
       {
         m: "HA enabled, both NamoNodes are standby NN",
@@ -770,7 +770,7 @@ describe('App.MainServiceItemController', function () {
             }
           ]
         },
-        result: false
+        result: 0
       },
       {
         m: "HA enabled, active NN has no JMX data, use the standby's data",
@@ -815,10 +815,10 @@ describe('App.MainServiceItemController', function () {
             }
           ]
         },
-        result: false
+        result: 0
       },
       {
-        m: "HA enabled, both NamoNodes no JMX data",
+        m: "HA enabled, both NameNodes no JMX data",
         data:
         {"href" : "",
           "ServiceComponentInfo" : {
@@ -859,7 +859,7 @@ describe('App.MainServiceItemController', function () {
             }
           ]
         },
-        result: null
+        result: 0
       }
     ];
 
@@ -874,8 +874,8 @@ describe('App.MainServiceItemController', function () {
     tests.forEach(function (test) {
       it(test.m, function () {
         var mainServiceItemController = App.MainServiceItemController.create({isNNCheckpointTooOld: null});
-        mainServiceItemController.parseNnCheckPointTime(test.data);
-        expect(mainServiceItemController.get('isNNCheckpointTooOld')).to.equal(test.result);
+        mainServiceItemController.parseNnCheckPointTime(test.data, null, {});
+        expect(mainServiceItemController.get('nameNodesWithOldCheckpoints.length')).to.equal(test.result);
       });
     });
   });

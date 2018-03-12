@@ -396,7 +396,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         self.getHdfsUser().done(function() {
           var msg = Em.Object.create({
             confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(App.nnCheckpointAgeAlertThreshold) +
-              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('hdfsUser')),
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login').format(isNNCheckpointTooOld) +
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(self.get('hdfsUser')),
             confirmButton: Em.I18n.t('common.next')
           });
           return App.showConfirmationFeedBackPopup(callback, msg);
@@ -839,8 +841,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
             if (componentsMapItem.hostPropertyName) {
               self.set(componentsMapItem.hostPropertyName, hostName);
             }
+            if (componentsMapItem.addPropertyName) {
+              self.set(componentsMapItem.addPropertyName, true);
+            }
             if (configs) {
               self.clearConfigsChanges(true);
+              self.set('isReconfigureRequired', true);
               self.set('isConfigsLoadingInProgress', true);
               self[componentsMapItem.configsCallbackName](configs, null, params);
             } else {
