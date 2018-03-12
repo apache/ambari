@@ -27,10 +27,11 @@ POSSIBLE_DAEMON_NAMES = ['mysql', 'mysqld', 'mariadb']
 def get_daemon_name():
   import status_params
   
-  for possible_daemon_name in status_params.POSSIBLE_DAEMON_NAMES:
-    daemon_path = os.path.join(status_params.SERVICES_DIR, possible_daemon_name)
-    if os.path.exists(daemon_path):
-      return possible_daemon_name
+  for service_file_template in status_params.SERVICE_FILE_TEMPLATES:
+    for possible_daemon_name in status_params.POSSIBLE_DAEMON_NAMES:
+      daemon_path = service_file_template.format(possible_daemon_name)
+      if os.path.exists(daemon_path):
+        return possible_daemon_name
 
   raise Fail("Could not find service daemon for mysql")
 
