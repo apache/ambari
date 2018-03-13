@@ -85,12 +85,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    */
   private AmbariManagementController controller = AmbariServer.getController();
 
-
-  /**
-   * MetaInfo used to get stack and mpack information.
-   */
-  private AmbariMetaInfo metaInfo = controller.getAmbariMetaInfo();
-
 //  /**
 //   * Map of configuration type to configuration properties which are required that a user
 //   * input.  These properties will be stripped from the exported blueprint.
