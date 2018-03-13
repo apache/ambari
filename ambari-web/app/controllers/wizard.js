@@ -228,6 +228,44 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('currentStep', index);
   },
 
+  getPreviousStepName: function () {
+    const index = this.get('currentStep');
+    
+    if (index > 0) {
+      const steps = this.get('steps');
+      
+      if (steps) {
+        return steps[index - 1];
+      } else {
+        //legacy support
+        return 'step' + (index - 1);
+      }
+    } else {
+      return null;
+    }
+  },
+
+  getNextStepName: function () {
+    const index = this.get('currentStep');
+
+    const steps = this.get('steps');
+    if (steps) {
+      if (index < steps.length - 1) {
+        return steps[index + 1];
+      } else {
+        return null
+      }
+    }
+    
+    //legacy support
+    const totalSteps = this.get('totalSteps');
+    if (index < totalSteps - 1) {
+      return 'step' + (index + 1);
+    } else {
+      return null;
+    }
+  },
+
   clusters: null,
 
   isStep0: function () {
@@ -319,17 +357,17 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       return false;
     }
 
-    if ((this.get('currentStep') - step) > 1 && !disableNaviWarning) {
+    if ((this.get('currentStep') - step) > 0 && !disableNaviWarning) {
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),
         onPrimary: function () {
-          App.router.send('gotoStep' + step);
+          App.router.send('goto' + stepName.capitalize());
           this.hide();
         },
-        body: "If you proceed to go back to Step " + step + ", you will lose any changes you have made beyond this step"
+        body: Em.I18n.t('installer.navigation.warning')
       });
     } else {
-      App.router.send('gotoStep' + step);
+      App.router.send('goto' + stepName.capitalize());
     }
 
     return true;
@@ -621,6 +659,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.' + name, result);
   },
 
+
+  /**
+   * Save value from content to database. Converts Ember objects to plain objects first.
+   *
+   * @param  {type} name
+   */
   save: function (name) {
     var convertedValue = this.toJSInstance(this.get('content.' + name));
     this.setDBProperty(name, convertedValue);
@@ -660,8 +704,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   installOptionsTemplate: {
     hostNames: "", //string
-    manualInstall: false, //true, false
-    useSsh: true, //bool
+    manualInstall: true, //true, false
+    useSsh: false, //bool
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
@@ -673,8 +717,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   installWindowsOptionsTemplate: {
     hostNames: "", //string
-    manualInstall: false, //true, false
-    useSsh: true, //bool
+    manualInstall: true, //true, false
+    useSsh: false, //bool
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
@@ -1251,7 +1295,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * Load information about hosts with clients components
    */
   loadClients: function () {
-    var clients = this.getDBProperty('clientInfo');
+    var clients = this.getDBProperty('clients');
     this.set('content.clients', clients);
   },
 
@@ -1368,7 +1412,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
-   * Determine if <code>Assign Slaves and Clients</code> step should be skipped
+   * Determine if <code>Assign Slaves and Clients</code> step ("step7") should be skipped
    * @method setSkipSlavesStep
    * @param services
    * @param step
@@ -1564,6 +1608,20 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.setDBProperty('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
     this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
   },
+
+  getStack: function (name, version) {
+    const stacks = App.Stack.find();
+
+    for (let i = 0, length = stacks.get('length'); i < length; i++) {
+      const stack = stacks.objectAt(i);
+      if (stack.get('stackName') === name && stack.get('stackVersion') === version) {
+        return stack;
+      }
+    }
+
+    return null;
+  },
+
   /**
    * reset stored wizard data and reload App
    * @param {App.WizardController} controller - wizard controller

@@ -505,10 +505,17 @@ public abstract class AbstractProviderModule implements ProviderModule,
   public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
 
     final String collectorHostName = getCollectorHostName(clusterName, service);
+    Long componentId = null;
+    try {
+      componentId = managementController.getClusters().getCluster(clusterName).getComponentId(Role.METRICS_COLLECTOR.name());
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
 
     if (service.equals(GANGLIA)) {
+      // TODO : Multi_Metrics_Changes. Is there is more than one instance of GANGLIA_SERVER, type and name would be different.
       return HostStatusHelper.isHostComponentLive(managementController, clusterName, collectorHostName, "GANGLIA",
-        Role.GANGLIA_SERVER.name());
+        componentId, Role.GANGLIA_SERVER.name(), Role.GANGLIA_SERVER.name());
     } else if (service.equals(TIMELINE_METRICS)) {
       return metricsCollectorHAManager.isCollectorComponentLive(clusterName);
     }

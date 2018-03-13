@@ -374,7 +374,7 @@ public class ClustersDeadlockTest {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {
       serviceComponent = serviceComponentFactory.createNew(service,
-          componentName);
+          componentName, componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
     }

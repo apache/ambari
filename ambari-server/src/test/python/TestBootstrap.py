@@ -26,7 +26,7 @@ import tempfile
 import pprint
 
 from ambari_commons.os_check import OSCheck
-from bootstrap import PBootstrap, Bootstrap, BootstrapDefault, SharedState, HostLog, SCP, SSH
+from bootstrap import PBootstrap, Bootstrap, BootstrapDefault, ValidateHost, SharedState, HostLog, SCP, SSH
 from unittest import TestCase
 from subprocess import Popen
 from bootstrap import AMBARI_PASSPHRASE_VAR_NAME
@@ -817,35 +817,43 @@ class TestBootstrap(TestCase):
     bootstrap_obj.interruptBootstrap()
     self.assertTrue(createDoneFile_mock.called)
 
-
-  @patch("time.sleep")
-  @patch("time.time")
-  @patch("logging.warn")
-  @patch("logging.info")
   @patch.object(BootstrapDefault, "start")
   @patch.object(BootstrapDefault, "interruptBootstrap")
   @patch.object(BootstrapDefault, "getStatus")
-  def test_PBootstrap(self, getStatus_mock, interruptBootstrap_mock, start_mock,
-                      info_mock, warn_mock, time_mock, sleep_mock):
+  def test_PBootstrap(self, getStatus_mock, interruptBootstrap_mock, start_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
+    self.help_test_PBootstrap(shared_state, getStatus_mock, interruptBootstrap_mock, start_mock)
+
+  @patch.object(ValidateHost, "start")
+  @patch.object(ValidateHost, "interruptBootstrap")
+  @patch.object(ValidateHost, "getStatus")
+  def test_PBootstrapForHostValidation(self, getStatus_mock, interruptBootstrap_mock, start_mock):
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
+                               "setupAgentFile", "ambariServer", "centos6",
+                               None, "8440", "root", True)
+    self.help_test_PBootstrap(shared_state, getStatus_mock, interruptBootstrap_mock, start_mock)
+
+  @patch("time.sleep")
+  @patch("time.time")
+  def help_test_PBootstrap(self, shared_state, getStatus, interruptBootstrap, start, time_mock, sleep_mock):
     n = 180
-    time = 100500
-    time_mock.return_value = time
+    init_time = 100500
+    time_mock.return_value = init_time
     hosts = []
     for i in range(0, n):
       hosts.append("host" + str(i))
     # Testing normal case
-    getStatus_mock.return_value = {"return_code": 0,
-                                   "start_time": time + 999}
+    getStatus.return_value = {"return_code": 0,
+                              "start_time": init_time + 999}
     pbootstrap_obj = PBootstrap(hosts, shared_state)
     pbootstrap_obj.run()
-    self.assertEqual(start_mock.call_count, n)
-    self.assertEqual(interruptBootstrap_mock.call_count, 0)
+    self.assertEqual(start.call_count, n)
+    self.assertEqual(interruptBootstrap.call_count, 0)
 
-    start_mock.reset_mock()
-    getStatus_mock.reset_mock()
+    start.reset_mock()
+    getStatus.reset_mock()
     # Testing case of timeout
     def fake_return_code_generator():
       call_number = 0
@@ -857,8 +865,9 @@ class TestBootstrap(TestCase):
           yield None
 
     def fake_start_time_generator():
+      timeout = bootstrap.HOST_CONNECTIVITY_TIMEOUT if shared_state.validate else bootstrap.HOST_BOOTSTRAP_TIMEOUT
       while True:
-        yield time - bootstrap.HOST_BOOTSTRAP_TIMEOUT - 1
+        yield init_time - timeout - 1
 
     return_code_generator = fake_return_code_generator()
     start_time_generator = fake_start_time_generator()
@@ -871,9 +880,9 @@ class TestBootstrap(TestCase):
 
     dict_mock = MagicMock()
     dict_mock.__getitem__.side_effect = status_get_item_mock
-    getStatus_mock.return_value = dict_mock
+    getStatus.return_value = dict_mock
 
     pbootstrap_obj.run()
-    self.assertEqual(start_mock.call_count, n)
-    self.assertEqual(interruptBootstrap_mock.call_count, n / 5)
+    self.assertEqual(start.call_count, n)
+    self.assertEqual(interruptBootstrap.call_count, n / 5)
 

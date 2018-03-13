@@ -101,3 +101,14 @@ App.registerBoundHelper('statusIcon', App.StatusIconView);
  * @param {string} content - serviceName
  */
 App.registerBoundHelper('formatRole', App.FormatRoleView);
+
+/**
+ * Return formatted date string. Optionally pass a format pattern to control the output.
+ * Uses Moment.js; for supported format patterns, see https://momentjs.com/docs/#/displaying/format/
+ * 
+ * Example:
+ * {{formatDate myDate format="dddd, MMMM Do YYYY, h:mm:ss a"}}
+ * Output: 
+ * Sunday, February 14th 2010, 3:25:50 pm
+ */
+App.registerBoundHelper('formatDate', App.FormatDateView);

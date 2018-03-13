@@ -17,8 +17,13 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
-App.WizardStep10Controller = Em.Controller.extend({
+App.WizardStep10Controller = App.WizardStepController.extend({
+
+  name: 'wizardStep10Controller',
+
+  stepName: 'step10',
 
   /**
    * List of data about installed cluster components (hosts, services etc)

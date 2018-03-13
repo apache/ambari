@@ -562,6 +562,26 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       })
     }),
 
+    serviceGroups: Em.Route.extend({
+      breadcrumbs: {
+        label: Em.I18n.t('admin.serviceGroups.title')
+      },
+
+      route: '/serviceGroups',
+
+      enter: function (router, transition) {
+        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS')) {
+          router.transitionTo('main.dashboard.index');
+        }
+      },
+      
+      connectOutlets: function (router) {
+        router.set('mainAdminController.category', "adminServiceGroups");
+        router.set('mainAdminController.categoryLabel', Em.I18n.t('common.serviceGroups'));
+        router.get('mainAdminController').connectOutlet('mainAdminServiceGroups');
+      }
+    }),
+
     stackAndUpgrade: Em.Route.extend({
       route: '/stack',
       breadcrumbs: null,
@@ -617,6 +637,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.transitionTo(event.context);
       }
     }),
+    
     stackUpgrade: require('routes/stack_upgrade_routes'),
 
     adminAdvanced: Em.Route.extend({
@@ -696,7 +717,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       if(!isDisabled){
         router.transitionTo(event.context.url);
       }
-    }
+    },
+
+    createUpgradePlan: require('routes/mpack_upgrade_routes')
 
   }),
 

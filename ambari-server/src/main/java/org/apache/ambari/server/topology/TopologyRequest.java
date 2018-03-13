@@ -18,7 +18,12 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.emptySet;
+
 import java.util.Map;
+import java.util.Set;
+
+import org.apache.ambari.server.state.StackId;
 
 /**
  * A request which is used to create or modify a cluster topology.
@@ -70,4 +75,11 @@ public interface TopologyRequest {
    * @return string description of the request
    */
   String getDescription();
+
+  /**
+   * @return a set of stack id's if supported by the TopologyRequest.
+   */
+  default Set<StackId> getStackIds() {
+    return emptySet();
+  }
 }

@@ -19,9 +19,12 @@ package org.apache.ambari.server.state;
 
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 
+import com.google.inject.assistedinject.Assisted;
+
 public interface ServiceComponentFactory {
 
-  ServiceComponent createNew(Service service, String componentName);
+  ServiceComponent createNew(Service service, @Assisted("componentName") String componentName,
+                             @Assisted("componentType") String componentType);
 
   ServiceComponent createExisting(Service service, ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity);
 }

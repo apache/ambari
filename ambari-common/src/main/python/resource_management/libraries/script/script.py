@@ -61,6 +61,8 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
+from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
+  get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -790,6 +792,21 @@ class Script(object):
     except Exception as err:
       Logger.exception("Unable to load available packages")
       self.available_packages_in_repos = []
+
+  def create_component_instance(self):
+    # should be used only when mpack-instance-manager is available
+    from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
+    config = self.get_config()
+    mpack_name = get_mpack_name(config)
+    mpack_version = get_mpack_version(config)
+    mpack_instance_name = get_mpack_instance_name(config)
+    module_name = get_module_name(config)
+    component_type = get_component_type(config)
+    component_instance_name = get_component_instance_name(config)
+
+    create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
+                              module_name=module_name, components_instance_type=component_type,
+                              component_instance_name=component_instance_name)
 
 
   def install_packages(self, env):

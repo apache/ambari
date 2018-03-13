@@ -25,6 +25,7 @@ describe('App.WizardStep5Controller', function () {
 
   beforeEach(function () {
     c = App.WizardStep5Controller.create();
+    c.set('wizardController', App.InstallerController.create());
     sinon.stub(App.router, 'send', Em.K);
     App.set('router.nextBtnClickInProgress', false);
   });

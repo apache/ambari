@@ -71,13 +71,27 @@ App.HostComponentValidationMixin = Em.Mixin.create(App.BlueprintMixin, {
   },
 
   /**
+   * Get the url to use to request the correct stack version from stack advisor.
+   * Falls back to using the old global config value if necessary.
+   * 
+   * @param {object} options Should include stackName and stackVersion properties, which should refer to the mpack being installed. 
+   */
+  getStackVersionUrl(options) {
+    if (options.stackName && options.stackVersion) {
+      return '/stacks/' + options.stackName + '/versions/' + options.stackVersion;
+    }
+
+    return App.get('stackVersionURL');
+  },
+
+  /**
    * Returns request data for validation request
    * @method getHostComponentValidationParams
    * @return {HostValidationRequestData}
    */
   getHostComponentValidationParams: function(options) {
     return {
-      stackVersionUrl: App.get('stackVersionURL'),
+      stackVersionUrl: this.getStackVersionUrl(options),
       hosts: options.hosts,
       services: options.services,
       validate: 'host_groups',

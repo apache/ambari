@@ -558,7 +558,7 @@ public class HostVersionOutOfSyncListenerTest {
     for (Map.Entry<String, List<Integer>> component : topology.entrySet()) {
 
       String componentName = component.getKey();
-      cl.getService(serviceName).addServiceComponent(componentName);
+      cl.getService(serviceName).addServiceComponent(componentName, componentName);
 
       for (Integer hostIndex : component.getValue()) {
         cl.getService(serviceName)
@@ -580,7 +580,7 @@ public class HostVersionOutOfSyncListenerTest {
     Service service = cl.getService(serviceName);
 
     if (!service.getServiceComponents().containsKey(componentName)) {
-      service.addServiceComponent(componentName);
+      service.addServiceComponent(componentName, componentName);
     }
 
     ServiceComponent component = service.getServiceComponent(componentName);

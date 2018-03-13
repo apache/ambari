@@ -113,7 +113,6 @@ import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
-import org.apache.ambari.server.stack.UpdateActiveRepoVersionOnStartup;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.BlueprintFactory;
@@ -1075,7 +1074,7 @@ public class AmbariServer {
       HandlerCollection handlers = new HandlerCollection();
       Handler[] handler = serverForAgent.getHandlers();
       if(handler != null ) {
-        handlers.setHandlers((Handler[])handler);
+        handlers.setHandlers(handler);
         handlers.addHandler(requestLogHandler);
         serverForAgent.setHandler(handlers);
       }
@@ -1106,7 +1105,6 @@ public class AmbariServer {
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 
       server = injector.getInstance(AmbariServer.class);
-      injector.getInstance(UpdateActiveRepoVersionOnStartup.class).process();
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
       KerberosChecker.checkJaasConfiguration();

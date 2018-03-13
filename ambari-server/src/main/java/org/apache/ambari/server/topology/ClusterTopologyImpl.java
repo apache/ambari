@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Represents a cluster topology.
@@ -68,18 +69,21 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final BlueprintBasedClusterProvisionRequest provisionRequest;
   private final String defaultPassword;
   private final Map<String, Set<ResolvedComponent>> resolvedComponents;
+  private final Setting setting;
 
   public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
     this.ambariContext = ambariContext;
     this.clusterId = topologyRequest.getClusterId();
     this.blueprint = topologyRequest.getBlueprint();
+    this.setting = blueprint.getSetting();
     this.configuration = topologyRequest.getConfiguration();
     configRecommendationStrategy = ConfigRecommendationStrategy.NEVER_APPLY;
     provisionAction = topologyRequest instanceof BaseClusterRequest ? ((BaseClusterRequest) topologyRequest).getProvisionAction() : INSTALL_AND_START; // FIXME
 
     provisionRequest = null;
     defaultPassword = null;
-    stackIds = topologyRequest.getBlueprint().getStackIds();
+    stackIds = ImmutableSet.copyOf(
+      Sets.union(topologyRequest.getStackIds(), topologyRequest.getBlueprint().getStackIds()));
     stack = ambariContext.composeStacks(stackIds);
     resolvedComponents = ImmutableMap.of();
 
@@ -104,7 +108,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     defaultPassword = provisionRequest.getDefaultPassword();
     stackIds = request.getStackIds();
     stack = request.getStack();
-
+    setting = request.getSetting();
     blueprint.getConfiguration().setParentConfiguration(stack.getConfiguration(getServices()));
     registerHostGroupInfo(request.getHostGroupInfo());
   }
@@ -150,7 +154,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   @Override
   public Setting getSetting() {
-    return provisionRequest.getSetting();
+    return setting;
   }
 
   @Override

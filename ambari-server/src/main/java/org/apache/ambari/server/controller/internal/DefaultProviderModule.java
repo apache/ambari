@@ -124,6 +124,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new StageResourceProvider(managementController);
       case OperatingSystem:
         return new OperatingSystemResourceProvider(managementController);
+      case OperatingSystemReadOnly:
+        return new OperatingSystemReadOnlyResourceProvider(managementController);
       case Repository:
         return new RepositoryResourceProvider(managementController);
       case Setting:

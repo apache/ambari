@@ -372,7 +372,7 @@ public class AmbariContext {
       .collect(toSet());
 
     Set<ServiceComponentRequest> componentRequests = topology.getComponents()
-      .map(c -> new ServiceComponentRequest(clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.componentName(), null,
+      .map(c -> new ServiceComponentRequest(clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.componentName(), c.componentName(),
         topology.getSetting().getRecoveryEnabled(c.effectiveServiceName(), c.componentName()))) // FIXME settings by service type or name?
       .collect(toSet());
 
@@ -442,7 +442,7 @@ public class AmbariContext {
 
     final Set<ServiceComponentHostRequest> requests = components
       .filter(component -> !component.componentName().equals(RootComponent.AMBARI_SERVER.name()))
-      .map(component -> new ServiceComponentHostRequest(clusterName, component.effectiveServiceGroupName(), component.effectiveServiceName(), component.componentName(), hostName, null))
+      .map(component -> new ServiceComponentHostRequest(clusterName, component.effectiveServiceGroupName(), component.effectiveServiceName(), component.componentName(), component.componentName(),hostName, null))
       .collect(toSet());
 
     try {

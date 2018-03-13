@@ -106,7 +106,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     controller.updateClusters(Collections.singleton(cr) , null);
 
 
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null, null);
     r.setStaleConfig("true");
     Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
     Assert.assertEquals(1, resps.size());
@@ -127,7 +127,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     controller.updateClusters(Collections.singleton(cr) , null);
 
 
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null, null);
     r.setStaleConfig("true");
     Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
     Assert.assertEquals(4, resps.size());
@@ -215,13 +215,13 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   private void createServiceComponent(String clusterName, String serviceGroupName,
       String serviceName, String componentName, State desiredState)
       throws AmbariException, AuthorizationException {
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, componentName, desiredState != null ? desiredState.name() : null);
     ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
   private void createServiceComponentHost(String clusterName, String serviceGroupName, String serviceName, String componentName, String hostname, State desiredState)
       throws AmbariException, AuthorizationException {
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, componentName, hostname, desiredState != null ? desiredState.name() : null);
     controller.createHostComponents(Collections.singleton(r));
 
     //set actual config

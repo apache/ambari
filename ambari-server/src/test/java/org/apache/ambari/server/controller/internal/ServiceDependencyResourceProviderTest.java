@@ -256,7 +256,7 @@ public class ServiceDependencyResourceProviderTest {
       dStateStr = desiredState.toString();
     }
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName,
-            serviceName, componentName, dStateStr);
+            serviceName, componentName, componentName, dStateStr);
     ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
@@ -269,7 +269,7 @@ public class ServiceDependencyResourceProviderTest {
       dStateStr = desiredState.toString();
     }
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName,
-            serviceName, componentName, hostname, dStateStr);
+            serviceName, componentName, componentName, hostname, dStateStr);
     controller.createHostComponents(Collections.singleton(r));
   }
 

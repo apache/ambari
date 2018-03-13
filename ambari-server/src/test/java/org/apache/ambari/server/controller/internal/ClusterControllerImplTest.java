@@ -941,7 +941,7 @@ public class ClusterControllerImplTest {
       providers.put(Resource.Type.Host, new TestHostResourceProvider());
       providers.put(Resource.Type.Stack, new TestStackResourceProvider());
       providers.put(Resource.Type.StackVersion, new TestStackVersionResourceProvider());
-      providers.put(Resource.Type.OperatingSystem, new TestOperatingSystemResourceProvider());
+      providers.put(Resource.Type.OperatingSystemReadOnly, new TestOperatingSystemResourceProvider());
       providers.put(Resource.Type.Repository, new TestRepositoryResourceProvider());
       providers.put(Resource.Type.RepositoryVersion, new TestRepositoryVersionResourceProvider());
       providers.put(Resource.Type.CompatibleRepositoryVersion, new TestCompatibleRepositoryVersionResourceProvider());
@@ -1174,7 +1174,7 @@ public class ClusterControllerImplTest {
 
   private static class TestOperatingSystemResourceProvider extends TestResourceProvider {
     private TestOperatingSystemResourceProvider() {
-      super(OperatingSystemResourceProvider.propertyIds, OperatingSystemResourceProvider.keyPropertyIds);
+      super(OperatingSystemReadOnlyResourceProvider.propertyIds, OperatingSystemReadOnlyResourceProvider.keyPropertyIds);
     }
 
     @Override
@@ -1186,7 +1186,7 @@ public class ClusterControllerImplTest {
       keyPropertyValues.add("centos6");
       keyPropertyValues.add("oraclelinux5");
 
-      return getResources(Resource.Type.OperatingSystem, predicate, "OperatingSystems/os_type", keyPropertyValues);
+      return getResources(Resource.Type.OperatingSystemReadOnly, predicate, "OperatingSystems/os_type", keyPropertyValues);
     }
   }
 

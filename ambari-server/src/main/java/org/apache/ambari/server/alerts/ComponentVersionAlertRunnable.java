@@ -28,17 +28,16 @@ import java.util.TreeMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ModuleComponent;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
 
@@ -109,17 +108,15 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
     for (Host host : hosts) {
       List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(host.getHostName());
       for (ServiceComponentHost hostComponent : hostComponents) {
-        Service service = cluster.getService(hostComponent.getServiceName());
-        ServiceComponent serviceComponent = service.getServiceComponent(hostComponent.getServiceComponentName());
-
-        RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
-        StackId desiredStackId = serviceComponent.getDesiredStackId();
-        String desiredVersion = desiredRepositoryVersion.getVersion();
+        String serviceGroupName = hostComponent.getServiceGroupName();
+        ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
+        Long mpackId = serviceGroup.getMpackId();
+        Mpack mpack = m_metaInfo.getMpack(mpackId);
 
         final ComponentInfo componentInfo;
         try {
-          componentInfo = m_metaInfo.getComponent(desiredStackId.getStackName(),
-              desiredStackId.getStackVersion(), hostComponent.getServiceType(),
+          componentInfo = m_metaInfo.getComponent(mpack.getName(),
+              mpack.getVersion(), hostComponent.getServiceType(),
               hostComponent.getServiceComponentName());
         } catch (AmbariException ambariException) {
           // throw an UNKNOWN response if we can't load component info
@@ -135,8 +132,11 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
           continue;
         }
 
+        ModuleComponent moduleComponent = mpack.getModuleComponent(hostComponent.getServiceName(),
+            hostComponent.getServiceComponentName());
+
         String version = hostComponent.getVersion();
-        if (!StringUtils.equals(version, desiredVersion)) {
+        if (!StringUtils.equals(version, moduleComponent.getVersion())) {
           Set<ServiceComponentHost> mismatchedComponents = versionMismatches.get(host);
           if (null == mismatchedComponents) {
             mismatchedComponents = new HashSet<>();

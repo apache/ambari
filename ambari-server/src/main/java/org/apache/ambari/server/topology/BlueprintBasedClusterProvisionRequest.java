@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -37,7 +36,6 @@ import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -52,7 +50,7 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   private final ProvisionClusterRequest request;
   private final Set<StackId> stackIds;
   private final StackDefinition stack;
-  private final Map<String, MpackInstance> mpacks;
+  private final Set<MpackInstance> mpacks;
   private final SecurityConfiguration securityConfiguration;
 
   public BlueprintBasedClusterProvisionRequest(AmbariContext ambariContext, SecurityConfigurationFactory securityConfigurationFactory, Blueprint blueprint, ProvisionClusterRequest request) {
@@ -61,9 +59,9 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
 
     stackIds = ImmutableSet.copyOf(Sets.union(blueprint.getStackIds(), request.getStackIds()));
     stack = ambariContext.composeStacks(stackIds);
-    mpacks = ImmutableMap.copyOf(
-      Stream.concat(blueprint.getMpacks().stream(), request.getMpacks().stream())
-        .collect(toMap(MpackInstance::getMpackName, Function.identity())));
+    mpacks = ImmutableSet.<MpackInstance>builder().
+      addAll(blueprint.getMpacks()).
+      addAll(request.getMpacks()).build();
 
     securityConfiguration = processSecurityConfiguration(securityConfigurationFactory);
 
@@ -104,7 +102,7 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
 
   @Override
   public Collection<MpackInstance> getMpacks() {
-    return mpacks.values();
+    return mpacks;
   }
 
   @Override
@@ -166,7 +164,7 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
 
   public Map<String, Map<String, ServiceInstance>> getServicesByMpack() {
     Map<String, Map<String, ServiceInstance>> result = new HashMap<>();
-    for (MpackInstance mpack : mpacks.values()) {
+    for (MpackInstance mpack : mpacks) {
       Map<String, ServiceInstance> services = mpack.getServiceInstances().stream()
         .collect(toMap(ServiceInstance::getName, Function.identity()));
       result.put(mpack.getMpackName(), services);
@@ -179,7 +177,7 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
    * whose name is unique across all mpacks.
    */
   public Map<String, ServiceInstance> getUniqueServices() {
-    Map<String, ServiceInstance> map = mpacks.values().stream()
+    Map<String, ServiceInstance> map = mpacks.stream()
       .flatMap(mpack -> mpack.getServiceInstances().stream())
       .collect(toMap(ServiceInstance::getName, Function.identity(), (s1, s2) -> null));
     map.entrySet().removeIf(e -> e.getValue() == null); // remove non-unique names mapped to null

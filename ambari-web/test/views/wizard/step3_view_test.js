@@ -340,6 +340,52 @@ describe('App.WizardStep3View', function () {
     });
   });
 
+  describe('#removeSelectedHosts', function () {
+
+    beforeEach(function () {
+      v = App.WizardStep3View.create({
+        controller: Em.Object.create({
+          removeHosts: Em.K
+        }),
+        content: [
+          {isChecked: true, name: 'c1'},
+          {isChecked: false, name: 'c2'}
+        ]
+      });
+      sinon.spy(v.get('controller'), 'removeHosts');
+      sinon.stub(v, '$').returns({
+        on: Em.K
+      });
+    });
+
+    afterEach(function() {
+      v.get('controller').removeHosts.restore();
+      v.$.restore();
+    });
+
+    it('should remove selected hosts', function () {
+      v.set('noHostsSelected', false);
+      v.removeSelectedHosts();
+      expect(v.get('controller').removeHosts.calledWith([
+        {isChecked: true, name: 'c1'}
+      ])).to.be.true;
+    });
+
+    it('should not remove host not selected', function () {
+      v.set('noHostsSelected', false);
+      v.removeSelectedHosts();
+      expect(v.get('controller').removeHosts.calledWith([
+        {isChecked: false, name: 'c2'}
+      ])).to.be.false;
+    });
+
+    it('should not remove any host', function () {
+      v.set('noHostsSelected', true);
+      expect(v.removeSelectedHosts()).to.equal(false);
+    });
+
+  });
+
   describe('#selectCategory', function() {
     var tests = Em.A(['ALL','RUNNING','REGISTERING','REGISTERED','FAILED']);
     tests.forEach(function(test) {
