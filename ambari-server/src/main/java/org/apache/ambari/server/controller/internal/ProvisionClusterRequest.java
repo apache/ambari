@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestMpackInstanceEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
@@ -47,7 +48,6 @@ import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.ProvisionRequest;
 import org.apache.ambari.server.topology.SecurityConfiguration;
-import org.apache.ambari.server.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -540,8 +540,12 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
   @Override
   public TopologyRequestEntity toEntity() {
     TopologyRequestEntity entity = super.toEntity();
-    entity.setMpackInstances(JsonUtils.toJson(mpackInstances));
+    mpackInstances.forEach(mpackInstance -> {
+        TopologyRequestMpackInstanceEntity mpackInstanceEntity = mpackInstance.toMpackInstanceEntity(entity);
+        entity.getMpackInstances().add(mpackInstanceEntity);
+      });
     return entity;
   }
+
 
 }

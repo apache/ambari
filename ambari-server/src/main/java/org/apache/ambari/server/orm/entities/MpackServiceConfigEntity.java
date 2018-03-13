@@ -30,16 +30,16 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * Entity to represent an mpack level configuration in the blueprint.
+ * Entity representing a mpack instance - service instance configuration
  */
 @Entity
-@Table(name = "blueprint_mpack_configuration")
-@IdClass(BlueprintMpackConfigEntityPk.class)
-public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
+@Table(name = "mpack_service_config")
+@IdClass(MpackServiceConfigEntityPk.class)
+public class MpackServiceConfigEntity implements BlueprintConfiguration {
 
   @Id
-  @Column(name = "mpack_instance_id", nullable = false, insertable = false, updatable = false)
-  private Long mpackInstanceId;
+  @Column(name = "service_id", nullable = false, insertable = false, updatable = false)
+  private Long serviceId;
 
   @Id
   @Column(name = "type_name", nullable = false, insertable = true, updatable = false, length = 100)
@@ -56,35 +56,41 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   private String configAttributes;
 
   @ManyToOne
-  @JoinColumn(name = "mpack_instance_id", referencedColumnName = "id", nullable = false)
-  private BlueprintMpackInstanceEntity mpackInstance;
+  @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+  private MpackInstanceServiceEntity service;
 
   /**
-   * @return the id of the mpack instance entity this configuration belongs to
+   * @return the database id of the service instance
    */
-  public Long getMpackInstanceId() {
-    return mpackInstanceId;
+  public Long getServiceId() {
+    return serviceId;
   }
 
   /**
-   * @param mpackInstanceId the id of the instance referency entity this configuration belongs to
+   * @param serviceId  the database id of the service instance
    */
-  public void setMpackInstanceId(Long mpackInstanceId) {
-    this.mpackInstanceId = mpackInstanceId;
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   /**
-   * @return the configuration type
+   * @return the type of the configuration
    */
-  @Override
   public String getType() {
     return type;
   }
 
   /**
-   * @param typeName the type of the configuration
+   * @return the blueprint name
    */
   @Override
+  public String getBlueprintName() {
+    return getService().getMpackInstance().getBlueprintName();
+  }
+
+  /**
+   * @param typeName the type of the configuration
+   */
   public void setType(String typeName) {
     this.type = typeName;
   }
@@ -94,14 +100,6 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
    */
   public String getConfigData() {
     return configData;
-  }
-
-  /**
-   * @return the name of the blueprint
-   */
-  @Override
-  public String getBlueprintName() {
-    return getMpackInstance().getBlueprint().getBlueprintName();
   }
 
   /**
@@ -119,23 +117,23 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   }
 
   /**
-   * @param configAttributes  the configuration attributes encoded in json
+   * @param configAttributes the configuration attributes encoded in json
    */
   public void setConfigAttributes(String configAttributes) {
     this.configAttributes = configAttributes;
   }
 
   /**
-   * @return the mpack instance entity this configuration belongs to
+   * @return the service instance this configuration belongs to
    */
-  public BlueprintMpackInstanceEntity getMpackInstance() {
-    return mpackInstance;
+  public MpackInstanceServiceEntity getService() {
+    return service;
   }
 
   /**
-   * @param mpackInstance the mpack instance entity this configuration belongs to
+   * @param service the service instance this configuration belongs to
    */
-  public void setMpackInstance(BlueprintMpackInstanceEntity mpackInstance) {
-    this.mpackInstance = mpackInstance;
+  public void setService(MpackInstanceServiceEntity service) {
+    this.service = service;
   }
 }

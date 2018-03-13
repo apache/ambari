@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
@@ -56,11 +57,9 @@ import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.tasks.TopologyTask;
-import org.apache.ambari.server.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.Gson;
 import com.google.inject.persist.Transactional;
 
@@ -328,8 +327,8 @@ public class PersistedStateImpl implements PersistedState {
       description = entity.getDescription();
       provisionAction = entity.getProvisionAction();
 
-      Collection<MpackInstance> mpackInstances = JsonUtils.fromJson(entity.getMpackInstances(),
-        new TypeReference<Collection<MpackInstance>>() {});
+      Collection<MpackInstance> mpackInstances = entity.getMpackInstances().stream().
+        map(e -> MpackInstance.fromEntity(e)).collect(toList());
       stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet());
 
       try {

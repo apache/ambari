@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.orm.entities.MpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.state.SecurityType;
@@ -55,7 +56,6 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.utils.JsonUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -625,7 +625,10 @@ public class ProvisionClusterRequestTest {
       properties,
       new SecurityConfiguration(SecurityType.NONE));
     TopologyRequestEntity entity = request.toEntity();
-    assertEquals(mpackInstances, JsonUtils.fromJson(entity.getMpackInstances(), List.class));
+    assertEquals(1, entity.getMpackInstances().size());
+    MpackInstanceEntity mpack = entity.getMpackInstances().iterator().next();
+    assertEquals("HDPCORE", mpack.getMpackName());
+    assertEquals("1.0.0.0", mpack.getMpackVersion());
   }
 
 }

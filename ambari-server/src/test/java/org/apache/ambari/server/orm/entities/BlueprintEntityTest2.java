@@ -86,7 +86,7 @@ public class BlueprintEntityTest2 {
     assertEquals("HDPCORE", mpackInstanceEntity.getMpackName());
     assertEquals(1, mpackInstanceEntity.getConfigurations().size());
 
-    BlueprintMpackConfigEntity mpackConfigEntity =
+    MpackInstanceConfigEntity mpackConfigEntity =
       mpackInstanceEntity.getConfigurations().iterator().next();
     assertEquals("configdata", mpackConfigEntity.getConfigData());
     assertEquals("zk-env.sh", mpackConfigEntity.getType());
@@ -107,7 +107,7 @@ public class BlueprintEntityTest2 {
     assertEquals("hdfs-site", hostGroupConfig.getType());
 
     assertEquals(1, mpackInstanceEntity.getServiceInstances().size());
-    BlueprintServiceEntity service = mpackInstanceEntity.getServiceInstances().iterator().next();
+    MpackInstanceServiceEntity service = mpackInstanceEntity.getServiceInstances().iterator().next();
     assertEquals("ZK1", service.getName());
     assertEquals("ZOOKEEPER", service.getType());
     assertSame(mpackInstanceEntity, service.getMpackInstance());
@@ -127,7 +127,7 @@ public class BlueprintEntityTest2 {
     mpackInstanceEntity.setMpackVersion("3.0.0.0");
     mpackInstanceEntity.setMpackUri("http://hdpcore.org/3.0.0.0");
 
-    BlueprintMpackConfigEntity mpackConfigEntity = new BlueprintMpackConfigEntity();
+    MpackInstanceConfigEntity mpackConfigEntity = new MpackInstanceConfigEntity();
     mpackConfigEntity.setMpackInstance(mpackInstanceEntity);
     mpackConfigEntity.setConfigAttributes("attributes");
     mpackConfigEntity.setConfigData("configdata");
@@ -159,13 +159,13 @@ public class BlueprintEntityTest2 {
     hgComponentEntity2.setServiceName("ZK1");
     hostGroupEntity.addComponent(hgComponentEntity2);
 
-    BlueprintServiceEntity blueprintService = new BlueprintServiceEntity();
+    MpackInstanceServiceEntity blueprintService = new MpackInstanceServiceEntity();
     blueprintService.setMpackInstance(mpackInstanceEntity);
     blueprintService.setName("ZK1");
     blueprintService.setType("ZOOKEEPER");
     mpackInstanceEntity.getServiceInstances().add(blueprintService);
 
-    BlueprintServiceConfigEntity blueprintServiceConfigEntity = new BlueprintServiceConfigEntity();
+    MpackServiceConfigEntity blueprintServiceConfigEntity = new MpackServiceConfigEntity();
     blueprintServiceConfigEntity.setService(blueprintService);
     blueprintServiceConfigEntity.setType("hadoop-env");
     blueprintServiceConfigEntity.setConfigAttributes("attributes");

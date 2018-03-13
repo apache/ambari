@@ -26,6 +26,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestMpackInstanceEntity;
 import org.apache.ambari.server.state.StackId;
 import org.easymock.EasyMockRunner;
 import org.easymock.Mock;
@@ -33,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 @RunWith(EasyMockRunner.class)
@@ -60,9 +62,10 @@ public class PersistedStateImplTest {
     entity.setClusterAttributes("{}");
     entity.setDescription("Provision Cluster c1");
     entity.setTopologyHostGroupEntities(emptyList());
-    entity.setMpackInstances(
-      "[{'name':'HDPCORE','version':'1.0.0.0','service_instances':[],'configurations':[]}]".
-        replace('\'', '"'));
+    TopologyRequestMpackInstanceEntity mpackInstanceEntity = new TopologyRequestMpackInstanceEntity();
+    mpackInstanceEntity.setMpackName("HDPCORE");
+    mpackInstanceEntity.setMpackVersion("1.0.0.0");
+    entity.setMpackInstances(ImmutableList.of(mpackInstanceEntity));
     PersistedStateImpl.ReplayedTopologyRequest request =
       new PersistedStateImpl.ReplayedTopologyRequest(entity, blueprintFactory);
     assertEquals(ImmutableSet.of(new StackId("HDPCORE", "1.0.0.0")), request.getStackIds());
