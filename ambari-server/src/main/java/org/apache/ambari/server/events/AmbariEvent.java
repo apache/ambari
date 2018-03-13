@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events;
 
+import com.google.common.base.Objects;
 
 /**
  * The {@link AmbariEvent} class is the base for all events in Ambari.
@@ -156,11 +157,21 @@ public abstract class AmbariEvent {
      * Ambari configuration changed event;
      */
     AMBARI_CONFIGURATION_CHANGED,
-    
+
     /**
      * JPA initialized
      */
-    JPA_INITIALIZED;
+    JPA_INITIALIZED,
+
+    /**
+     * A management pack was registered with the system.
+     */
+    MPACK_REGISTERED,
+
+    /**
+     * A management pack was removed from the system.
+     */
+    MPACK_REMOVED
 
   }
 
@@ -192,9 +203,6 @@ public abstract class AmbariEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder(getClass().getSimpleName());
-    buffer.append("{eventType=").append(m_eventType);
-    buffer.append("}");
-    return buffer.toString();
+    return Objects.toStringHelper(this).add("eventType", m_eventType).toString();
   }
 }

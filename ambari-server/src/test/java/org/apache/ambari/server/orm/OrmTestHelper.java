@@ -48,7 +48,6 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -65,7 +64,6 @@ import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -88,7 +86,6 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.ModuleComponent;
 import org.apache.ambari.server.state.Mpack;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -141,9 +138,6 @@ public class OrmTestHelper {
 
   @Inject
   public RepositoryVersionDAO repositoryVersionDAO;
-
-  @Inject
-  public HostVersionDAO hostVersionDAO;
 
   @Inject
   public HostDAO hostDAO;
@@ -784,21 +778,5 @@ public class OrmTestHelper {
       }
     }
     return repositoryVersion;
-  }
-
-  /**
-   * Convenient method to create host version for given stack.
-   */
-  public HostVersionEntity createHostVersion(String hostName, RepositoryVersionEntity repositoryVersionEntity,
-      RepositoryVersionState repositoryVersionState) {
-    HostEntity hostEntity = hostDAO.findByName(hostName);
-    HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity, repositoryVersionEntity, repositoryVersionState);
-    hostVersionEntity.setHostId(hostEntity.getHostId());
-    hostVersionDAO.create(hostVersionEntity);
-
-    hostEntity.getHostVersionEntities().add(hostVersionEntity);
-    hostDAO.merge(hostEntity);
-
-    return hostVersionEntity;
   }
 }

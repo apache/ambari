@@ -21,13 +21,13 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.resources.OperatingSystemReadOnlyResourceDefinition;
@@ -44,10 +44,8 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -57,14 +55,12 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -77,6 +73,8 @@ import com.google.inject.persist.Transactional;
 /**
  * Resource provider for repository versions resources.
  */
+@Deprecated
+@Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
 public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
@@ -149,9 +147,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
    */
   @Inject
   private StackDAO stackDAO;
-
-  @Inject
-  HostVersionDAO hostVersionDAO;
 
   /**
    * Create a new resource provider.
@@ -380,36 +375,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       final RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(id);
       if (entity == null) {
         throw new NoSuchResourceException("There is no repository version with id " + id);
-      }
-
-      final Set<RepositoryVersionState> forbiddenToDeleteStates = Sets.newHashSet(
-          RepositoryVersionState.CURRENT,
-          RepositoryVersionState.INSTALLED,
-          RepositoryVersionState.INSTALLING);
-
-      List<HostVersionEntity> hostVersions = hostVersionDAO.findByRepositoryAndStates(
-          entity, forbiddenToDeleteStates);
-
-      if (CollectionUtils.isNotEmpty(hostVersions)) {
-        Map<RepositoryVersionState, Set<String>> hostsInUse = new HashMap<>();
-
-        for (HostVersionEntity hostVersion : hostVersions) {
-          if (!hostsInUse.containsKey(hostVersion.getState())) {
-            hostsInUse.put(hostVersion.getState(), new HashSet<>());
-          }
-
-          hostsInUse.get(hostVersion.getState()).add(hostVersion.getHostName());
-        }
-
-        Set<String> errors = new HashSet<>();
-        for (Entry<RepositoryVersionState, Set<String>> entry : hostsInUse.entrySet()) {
-          errors.add(String.format("%s on %s", entry.getKey(), StringUtils.join(entry.getValue(), ", ")));
-        }
-
-
-        throw new SystemException(
-            String.format("Repository version can't be deleted as it is used by the following hosts: %s",
-                StringUtils.join(errors, ';')));
       }
 
       entitiesToBeRemoved.add(entity);

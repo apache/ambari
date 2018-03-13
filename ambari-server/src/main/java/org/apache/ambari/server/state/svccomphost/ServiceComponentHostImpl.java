@@ -41,14 +41,12 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -62,7 +60,6 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -109,9 +106,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
-
-  @Inject
-  private HostVersionDAO hostVersionDAO;
 
   private final ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
 
@@ -1483,46 +1477,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
           + getServiceComponentName() + ", hostName = " + getHostName());
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @Transactional
-  public HostVersionEntity recalculateHostVersionState() throws AmbariException {
-    HostEntity hostEntity = host.getHostEntity();
-    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
-    HostVersionEntity hostVersionEntity = hostVersionDAO.findHostVersionByHostAndRepository(
-        hostEntity, repositoryVersion);
-
-    Lock lock = HOST_VERSION_LOCK.get(host.getHostName());
-    lock.lock();
-    try {
-      // Create one if it doesn't already exist. It will be possible to make
-      // further transitions below.
-      if (hostVersionEntity == null) {
-        hostVersionEntity = new HostVersionEntity(hostEntity, repositoryVersion,
-            RepositoryVersionState.INSTALLING);
-
-        LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
-            hostVersionEntity.getHostName(), hostVersionEntity.getState(),
-            hostVersionEntity.getRepositoryVersion().getVersion(),
-            hostVersionEntity.getRepositoryVersion().getId());
-
-        hostVersionDAO.create(hostVersionEntity);
-      }
-
-      if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT) {
-        if (host.isRepositoryVersionCorrect(repositoryVersion)) {
-          hostVersionEntity.setState(RepositoryVersionState.CURRENT);
-          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
-        }
-      }
-    } finally {
-      lock.unlock();
-    }
-    return hostVersionEntity;
   }
 
   /**
