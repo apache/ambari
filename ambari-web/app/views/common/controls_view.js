@@ -307,6 +307,8 @@ App.ServiceConfigPasswordField = Ember.View.extend(App.ServiceConfigPopoverSuppo
 
   templateName: require('templates/common/configs/widgets/service_config_password_field'),
 
+  classNames: ['password-field-wrapper'],
+
   readOnly: Em.computed.not('serviceConfig.isEditable'),
 
   keyPress: function (event) {
