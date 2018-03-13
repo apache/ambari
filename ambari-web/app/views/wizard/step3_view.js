@@ -137,7 +137,7 @@ App.WizardStep3View = App.TableView.extend({
    */
   watchSelectionOnce: function () {
     Em.run.once(this, 'watchSelection');
-  }.observes('content.@each.isChecked', 'content.@each.isChecked', 'pageContent'),
+  }.observes('content.@each.isChecked', 'content.@each.bootStatus', 'pageContent'),
 
   /**
    * Watch selection and calculate such flags as:
