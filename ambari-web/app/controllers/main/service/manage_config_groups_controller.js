@@ -170,7 +170,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     } else {
       trimmedText = propertiesList;
     }
-    return trimmedText;
+    return trimmedText.replace(/<br\/>/g, '\n');
   }.property('selectedConfigGroup.propertiesList'),
 
   /**
