@@ -45,8 +45,9 @@
 
     <div {{bind-attr class="isDatabaseExplorerVisible:col-md-9:col-md-12 :col-xs-9 :query-container"}}>
       {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel" iconActions=queryPanelActions}}
-        {{render 'open-queries'}}
-
+        <div class="query-content">
+          {{render 'open-queries'}}
+        </div>
         <div class="toolbox">
           {{#if canExecute}}
             <button type="button" class="btn btn-sm btn-success execute-query" {{action "executeQuery"}}>
@@ -81,7 +82,7 @@
           {{/if}}
 
           <button type="button" class="btn btn-sm btn-primary  pull-right" {{action "addQuery"}}> {{t "buttons.newQuery"}}</button>
-         
+
          </div>
       {{/panel-widget}}
 
@@ -119,19 +120,5 @@
         {{/panel-widget}}
       {{/if}}
     </div>
-  </div>
-
-  {{outlet 'overlay'}}
-
-  <div class="query-menu">
-    {{#popover-widget classNames="fa fa-info-circle queries-icon" titleTranslation="popover.queryEditorHelp.title" }}
-      <ul>
-        <li>{{t 'popover.queryEditorHelp.content.line1'}}</li>
-        <li>{{t 'popover.queryEditorHelp.content.line2'}}</li>
-        <li>{{t 'popover.queryEditorHelp.content.line3'}}</li>
-      </ul>
-    {{/popover-widget}}
-
-    {{render 'query-tabs'}}
   </div>
 </div>

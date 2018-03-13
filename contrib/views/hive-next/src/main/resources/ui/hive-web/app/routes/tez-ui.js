@@ -17,17 +17,6 @@
  */
 
 import Ember from 'ember';
-import constants from 'hive/utils/constants';
 
-export default Ember.Controller.extend({
-  notifyService: Ember.inject.service(constants.namingConventions.notify),
-
-  notifications: Ember.computed.alias('notifyService.notifications'),
-  isQueryMenuShown: false,
-  hideQueryMenu: function () {
-    this.set('isQueryMenuShown', false);
-  },
-  showQueryMenu: function () {
-    this.set('isQueryMenuShown', true);
-  }
+export default Ember.Route.extend({
 });

@@ -36,14 +36,14 @@
 
               <div {{bind-attr keyname="setting.key.name"}} class="typeahead-container">
                 {{typeahead-widget
-                    options=predefinedSettings
-                    excluded=excluded
-                    optionLabelPath="name"
-                    optionValuePath="name"
-                    plugins="remove_button,restore_on_backspace"
-                    selection=setting.key
-                    safeValue = setting.key.name
-                    create="addKey"
+                  options=predefinedSettings
+                  excluded=excluded
+                  optionLabelPath="name"
+                  optionValuePath="name"
+                  plugins="remove_button,restore_on_backspace"
+                  selection=setting.key
+                  safeValue = setting.key.name
+                  create="addKey"
                 }}
               </div>
             </div>
