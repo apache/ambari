@@ -62,7 +62,7 @@ import org.apache.ambari.server.state.MpackInstallState;
             + "WHERE mpackHostState.hostEntity.hostName=:hostName"),
     @NamedQuery(
         name = "mpackHostStateForMpack",
-        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.id = :mpackId") })
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId") })
 
 public class MpackHostStateEntity {
 

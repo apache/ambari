@@ -31,27 +31,28 @@ import java.util.List;
  */
 public enum MpackInstallState {
   /**
-   *
+   * The host does not require this management pack to be installed since it
+   * doesn't belong to any service groups which are associated with this pack.
    */
   NOT_REQUIRED(0),
 
   /**
-   *
+   * The management pack is not installed and has not attempted to be installed.
    */
   NOT_INSTALLED(2),
 
   /**
-   *
+   * The management pack is being installed.
    */
   INSTALLING(3),
 
   /**
-   *
+   * The management pack is successfully installed.
    */
   INSTALLED(1),
 
   /**
-   *
+   * The management pack could not be successfully installed.
    */
   INSTALL_FAILED(4);
 
@@ -77,7 +78,7 @@ public enum MpackInstallState {
    */
   public static MpackInstallState getAggregateState(List<MpackInstallState> states) {
     if (null == states || states.isEmpty()) {
-      return NOT_REQUIRED;
+      return NOT_INSTALLED;
     }
 
     MpackInstallState heaviestState = states.get(0);

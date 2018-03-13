@@ -228,7 +228,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       final Resource resource = new ResourceImpl(Resource.Type.HostStackVersion);
 
       MpackEntity mpackEntity = entity.getMpack();
-      StackId stackId = new StackId(mpackEntity.getMpackName(), mpackEntity.getMpackVersion());
+      StackId stackId = mpackEntity.getStackId();
       setResourceProperty(resource, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, entity.getHostName(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_STACK_PROPERTY_ID, stackId.getStackName(), requestedIds);
