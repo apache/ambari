@@ -20,6 +20,7 @@ import json
 import math
 import re
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import compare_versions
 
 
 class HDP26StackAdvisor(HDP25StackAdvisor):
@@ -65,6 +66,16 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     :type hosts dict
     """
     super(HDP26StackAdvisor, self).recommendZeppelinConfigurations(configurations, clusterData, services, hosts)
+
+    cluster_env = self.getServicesSiteProperties(services, "cluster-env")
+    if cluster_env and "recommendations_full_stack_version" in cluster_env:
+      full_stack_version = cluster_env["recommendations_full_stack_version"]
+      if compare_versions(full_stack_version, '2.6.3.0') >= 0:
+        zeppelin_config = self.getServicesSiteProperties(services, "zeppelin-config")
+        if zeppelin_config and zeppelin_config.get('zeppelin.notebook.storage', None) == 'org.apache.zeppelin.notebook.repo.VFSNotebookRepo':
+          putZeppelinConfigProperty = self.putProperty(configurations, 'zeppelin-config', services)
+          putZeppelinConfigProperty('zeppelin.notebook.storage', 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo')
+
     self.__addZeppelinToLivy2SuperUsers(configurations, services)
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
