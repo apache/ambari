@@ -68,14 +68,6 @@
                 <background>true</background>
               </commandScript>
             </customCommand>
-            <customCommand>
-              <name>DELETE</name>
-              <commandScript>
-                <script>scripts/infra_solr.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>600</timeout>
-              </commandScript>
-            </customCommand>
           </customCommands>
           <dependencies>
             <dependency>
