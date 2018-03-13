@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.services;
+package org.apache.ambari.server.api.services.views;
 
 import java.util.Collections;
 
@@ -34,6 +34,8 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.BaseService;
+import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 
