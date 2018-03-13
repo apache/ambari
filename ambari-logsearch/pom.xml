@@ -44,9 +44,21 @@
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
     <solr.version>5.5.5</solr.version>
-    <hadoop.version>3.0.0</hadoop.version>
+    <hadoop.version>2.7.3.2.6.4.0-91</hadoop.version>
     <common.io.version>2.5</common.io.version>
   </properties>
+  <repositories>
+    <repository>
+      <id>apache-hadoop</id>
+      <name>hdp</name>
+      <url>http://repo.hortonworks.com/content/groups/public/</url>
+    </repository>
+    <repository>
+      <id>apache-snapshots</id>
+      <name>snapshots</name>
+      <url>https://repository.apache.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
   <build>
     <plugins>
       <plugin>
@@ -217,6 +229,21 @@
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
       <version>2.9.4</version>
+    </dependency>
+    <dependency>
+       <groupId>org.apache.curator</groupId>
+       <artifactId>curator-framework</artifactId>
+       <version>2.12.0</version>
+    </dependency>
+    <dependency>
+       <groupId>org.apache.curator</groupId>
+       <artifactId>curator-client</artifactId>
+       <version>2.12.0</version>
+    </dependency>
+    <dependency>
+       <groupId>org.apache.curator</groupId>
+       <artifactId>curator-recipes</artifactId>
+       <version>2.12.0</version>
     </dependency>
   </dependencies>
 
