@@ -132,8 +132,5 @@ class InfraSolr(Script):
   def migrate(self, env):
     migrate_index(env)
 
-  def delete(self, env):
-    delete_collection(env)
-
 if __name__ == "__main__":
   InfraSolr().execute()
