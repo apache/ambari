@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.topology.Blueprint;
@@ -119,10 +120,9 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
         LOGGER.debug("Processing dependency [{}] for component [{}]", dependency.getName(), component);
 
         // dependent components from the stack definitions are only added if related services are explicitly added to the blueprint!
-        boolean isClientDependency = stack.getComponentInfo(dependency.getComponentName()).isClient();
-        if (isClientDependency && !topology.getServices().contains(dependency.getServiceName())) {
-          LOGGER.debug("The service [{}] for component [{}] is missing from the blueprint [{}], skipping dependency",
-              dependency.getServiceName(), dependency.getComponentName(), topology.getBlueprintName());
+        ComponentInfo componentInfo = stack.getComponentInfo(dependency.getComponentName());
+        if (componentInfo == null) {
+          LOGGER.debug("The component [{}] is not associated with any known services, skipping dependency", dependency.getComponentName());
           continue;
         }
 
@@ -150,9 +150,13 @@ public class DependencyAndCardinalityValidator implements TopologyValidator {
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
-          if (group.getComponentNames().contains(componentName) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
+          if (group.getComponentNames().contains(componentName)) {
+            resolved = true;
+            LOGGER.debug("Host group {} contains component {} and satisfies host-level dependency for component {}", group.getName(), componentName, component);
+          } else if (autoDeployInfo != null && autoDeployInfo.isEnabled()) {
             resolved = true;
             group.addComponent(new Component(componentName));
+            LOGGER.info("Added component {} in host group {} to satisfy host-level dependency for component {}", componentName, group.getName(), component);
           }
         }
 
