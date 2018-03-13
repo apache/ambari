@@ -88,17 +88,3 @@ def restore_collection(env):
       status_check_cmd = command_commons.create_solr_api_request_command(solr_status_request_path, status_check_json_output)
       command_commons.snapshot_status_check(status_check_cmd, status_check_json_output, command_commons.backup_name, False,
         log_output=command_commons.log_output, tries=command_commons.request_tries, time_interval=command_commons.request_time_interval)
-
-def delete_collection(env):
-    """
-    Delete specific Solr collection - used on ranger_audits by default
-    """
-    import params, command_commons
-    env.set_params(command_commons)
-
-    Logger.info(format("Delete Solr Collection: {collection}"))
-
-    solr_request_path = format("admin/collections?action=DELETE&name={collection}&wt=json")
-    delete_api_cmd = command_commons.create_solr_api_request_command(solr_request_path)
-
-    Execute(delete_api_cmd, user=params.infra_solr_user, logoutput=True)
