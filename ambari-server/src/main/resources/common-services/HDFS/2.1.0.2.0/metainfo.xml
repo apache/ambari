@@ -104,6 +104,22 @@
                 <scriptType>PYTHON</scriptType>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>BOOTSTRAP_STANDBY</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>FORMAT</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+              </commandScript>
+            </customCommand>
           </customCommands>
         </component>
 
@@ -235,6 +251,16 @@
               <primary>true</primary>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>FORMAT</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/zkfc_slave.py</script>
+                <scriptType>PYTHON</scriptType>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
       </components>
 
