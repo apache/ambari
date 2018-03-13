@@ -17,10 +17,13 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
 App.WizardStep4Controller = Em.ArrayController.extend({
 
   name: 'wizardStep4Controller',
+
+  stepName: 'step4',
 
   /**
    * List of Services
@@ -48,8 +51,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return this.filterProperty('isSelected', true).filterProperty('isInstalled', false).length === 0 || App.get('router.btnClickInProgress');
-  }.property('@each.isSelected', 'App.router.btnClickInProgress'),
+    return App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+      || this.filterProperty('isSelected', true).filterProperty('isInstalled', false).length === 0;
+  }.property('@each.isSelected', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   /**
    * List of validation errors. Look to #createError method for information

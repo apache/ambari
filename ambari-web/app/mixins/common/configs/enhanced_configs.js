@@ -279,12 +279,36 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @returns {{recommend: string, hosts: *, services: *, changed_configurations: *}}
    */
   getConfigRecommendationsParams: function(updateDependencies, changedConfigs) {
-    return {
+    const params = {
       recommend: updateDependencies ? 'configuration-dependencies' : 'configurations',
       hosts: this.get('hostNames'),
       services: this.get('serviceNames'),
       changed_configurations: updateDependencies ? changedConfigs : undefined
     };
+
+    //TODO - mpacks: Hard coded to use first mpack. Change when we are installing multiple mpacks.
+    const selectedMpacks = this.get('content.selectedMpacks');
+
+    if (selectedMpacks) {
+      params.stackName = selectedMpacks[0].name;
+      params.stackVersion = selectedMpacks[0].version;
+    }
+
+    return params;
+  },
+
+  /**
+   * Get the url to use to request the correct stack version from stack advisor.
+   * Falls back to using the old global config value if necessary.
+   * 
+   * @param {object} options Should include stackName and stackVersion properties, which should refer to the mpack being installed. 
+   */
+  getStackVersionUrl: function getStackVersionUrl(options) {
+    if (options.stackName && options.stackVersion) {
+      return '/stacks/' + options.stackName + '/versions/' + options.stackVersion;
+    }
+
+    return App.get('stackVersionURL');
   },
 
   getRecommendationsRequest: function (dataToSend, callback) {
@@ -294,8 +318,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       name: 'config.recommendations',
       sender: self,
       data: {
-        stackVersionUrl: App.get('stackVersionURL'),
-        dataToSend: dataToSend
+        stackVersionUrl: this.getStackVersionUrl(dataToSend),
+        //exclude stackName and stackVersion from dataToSend
+        dataToSend: {
+          recommend: dataToSend.recommend,
+          hosts: dataToSend.hosts,
+          services: dataToSend.services,
+          changed_configurations: dataToSend.changed_configurations
+        }
       },
       success: 'loadRecommendationsSuccess',
       error: 'loadRecommendationsError',

@@ -54,7 +54,7 @@ def check_stack_feature(stack_feature, stack_version):
   # TODO : Removed the below if of reading from cluster_env, once we have removed stack_features from there
   # and have started using /stackSettings as source of truth.
   if stack_features_setting is None:
-    Logger.info("Couldn't retrieve 'stack_features' from /stackSettings. Retrieving from cluster_env now.")
+    Logger.debug("Couldn't retrieve 'stack_features' from /stackSettings. Retrieving from cluster_env now.")
     stack_features_setting = default("/configurations/cluster-env/"+stack_settings.STACK_FEATURES_SETTING, None)
 
 

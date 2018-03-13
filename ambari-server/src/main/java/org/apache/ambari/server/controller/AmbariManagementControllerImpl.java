@@ -2256,7 +2256,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           continue;
         }
         for (Service s : entry.getValue()) {
-          if (runSmokeTest && (State.INSTALLED == s.getDesiredState() &&
+          // Ignoring the "*_CLIENTS" services, as there won't be an separate
+          // Service Check defined for them.
+          if (!s.isClientOnlyService() && runSmokeTest && (State.INSTALLED == s.getDesiredState() &&
                   maintenanceStateHelper.isOperationAllowed(opLvl, s))) {
             smokeTestServices.add(s);
           }

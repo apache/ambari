@@ -25,6 +25,7 @@ import json
 from resource_management.libraries.script import Script
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 
 def get_not_managed_resources():
   """
@@ -34,8 +35,8 @@ def get_not_managed_resources():
   """
   config = Script.get_config()
   not_managed_hdfs_path_list = json.loads(config['hostLevelParams']['not_managed_hdfs_path_list'])[:]
-  if 'managed_hdfs_resource_property_names' in config['configurations']['cluster-env']:
-    managed_hdfs_resource_property_names = config['configurations']['cluster-env']['managed_hdfs_resource_property_names']
+  if get_cluster_setting_value('managed_hdfs_resource_property_names') is not None:
+    managed_hdfs_resource_property_names = get_cluster_setting_value('managed_hdfs_resource_property_names')
     managed_hdfs_resource_property_list = filter(None, [property.strip() for property in managed_hdfs_resource_property_names.split(',')])
 
     for property_name in managed_hdfs_resource_property_list:

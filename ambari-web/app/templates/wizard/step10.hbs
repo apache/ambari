@@ -22,11 +22,11 @@
       {{{view.serviceRestartText}}}
     </div>
   {{/if}}
-  <p class="step-description">
-    {{t installer.step10.body}}
-  </p>
   <div class="panel panel-default">
     <div class="panel-body">
+      <p class="step-description">
+        {{t installer.step10.body}}
+      </p>
       <div id="step10-content" class="well pre-scrollable" {{QAAttr "summary"}}>
         <ul>
           {{#each item in clusterInfo}}

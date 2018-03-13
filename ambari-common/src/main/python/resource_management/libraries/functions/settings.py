@@ -42,7 +42,7 @@ def get_setting_type_entries(setting_type, setting_names=None):
     """
     from resource_management.libraries.functions.default import default
 
-    Logger.info("In get_setting_type_entries(). Passed-in settings type : {0}, setting(s) : {1}".format(setting_type, setting_names))
+    Logger.debug("In get_setting_type_entries(). Passed-in settings type : {0}, setting(s) : {1}".format(setting_type, setting_names))
 
     if not is_setting_type_supported(setting_type):
         Logger.error("Does not support retrieving settings for settings_type : {0}".format(setting_type))
@@ -51,7 +51,7 @@ def get_setting_type_entries(setting_type, setting_names=None):
     settings = default(setting_type, None)
 
     if settings is None:
-        Logger.info("Couldn't retrieve '"+setting_type+"'.")
+        Logger.debug("Couldn't retrieve '"+setting_type+"'.")
         return None
 
     if setting_names is None: # Return all settings
@@ -85,7 +85,7 @@ def get_setting_value(setting_type, setting_name):
     """
     from resource_management.libraries.functions.default import default
 
-    Logger.info("In get_setting_value(). Passed-in settings type : {0}, setting(s) : {1}".format(setting_type, setting_name))
+    Logger.debug("In get_setting_value(). Passed-in settings type : {0}, setting(s) : {1}".format(setting_type, setting_name))
 
     if not is_setting_type_supported(setting_type):
         Logger.error("Does not support retrieving settings for settings_type : {0}".format(setting_type))
@@ -97,7 +97,7 @@ def get_setting_value(setting_type, setting_name):
     settings = default(setting_type, None)
 
     if settings is None:
-        Logger.info("Couldn't retrieve '"+setting_type+"'.")
+        Logger.debug("Couldn't retrieve '"+setting_type+"'.")
         return None
 
     return convert_value(settings.get(setting_name))
