@@ -1465,12 +1465,21 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   registerHostsToComponent: function (hostNames, componentName) {
     if (!hostNames.length) return;
 
+    let serviceName,
+        serviceGroupName;
     var queryStr = '';
     hostNames.forEach(function (hostName) {
       queryStr += 'Hosts/host_name=' + hostName + '|';
     });
     //slice off last symbol '|'
     queryStr = queryStr.slice(0, -1);
+
+    this.get('selectedServices').forEach( function (service) {
+      if (service.get('serviceComponents').findProperty('componentName', componentName)) {
+        serviceName = service.get('serviceName');
+        serviceGroupName = service.get('stackName') + "-" + service.get('stackVersion');
+      }
+    });
 
     var data = {
       "RequestInfo": {
@@ -1480,7 +1489,9 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         "host_components": [
           {
             "HostRoles": {
-              "component_name": componentName
+              "component_name": componentName,
+              "service_name": serviceName,
+              "service_group_name": serviceGroupName
             }
           }
         ]
