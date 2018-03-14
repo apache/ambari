@@ -19,8 +19,8 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.INSTANCE_NAME;
-import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.VIEW_NAME;
 import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.VERSION;
+import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.VIEW_NAME;
 
 import java.util.EnumSet;
 import java.util.HashMap;
