@@ -217,6 +217,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String REPO_VERSION_REPO_VERSION_ID_COLUMN = "repo_version_id";
   protected static final String REPO_VERSION_REPOSITORIES_COLUMN = "repositories";
 
+  protected static final String WIDGET_TABLE = "widget";
+  protected static final String WIDGET_TAG_COLUMN = "tag";
+
   protected static final String CLUSTER_ID_COLUMN = "cluster_id";
   public static final String[] COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {COMPONENT_NAME_COLUMN, SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
   public static final String[] SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS = {SERVICE_NAME_COLUMN, CLUSTER_ID_COLUMN};
@@ -280,6 +283,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     upgradeUserTables();
     upgradeKerberosTables();
     upgradeRepoTables();
+    upgradeWidgetTable();
   }
 
   /**
@@ -839,6 +843,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
   protected void updateRequestTable() throws SQLException {
     dbAccessor.addColumn(REQUEST_TABLE, new DBAccessor.DBColumnInfo(REQUEST_USER_NAME_COLUMN, String.class, 255));
+  }
+
+  protected void upgradeWidgetTable() throws SQLException {
+    dbAccessor.addColumn(WIDGET_TABLE, new DBAccessor.DBColumnInfo(WIDGET_TAG_COLUMN, String.class, 255));
   }
 
   protected void addAmbariConfigurationTable() throws SQLException {

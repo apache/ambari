@@ -111,6 +111,7 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICA
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog270.WIDGET_TABLE;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -378,6 +379,11 @@ public class UpgradeCatalog270Test {
     // updateRequestTable
     Capture<DBAccessor.DBColumnInfo> updateRequestTableCapture = newCapture(CaptureType.ALL);
     dbAccessor.addColumn(eq(REQUEST_TABLE), capture(updateRequestTableCapture));
+    expectLastCall().once();
+
+    // updateWidgetTable
+    Capture<DBAccessor.DBColumnInfo> updateWidgetTableCapture = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq(WIDGET_TABLE), capture(updateWidgetTableCapture));
     expectLastCall().once();
 
     // addOpsDisplayNameColumnToHostRoleCommand

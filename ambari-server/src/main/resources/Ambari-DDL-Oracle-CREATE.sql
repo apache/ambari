@@ -723,6 +723,7 @@ CREATE TABLE widget (
   widget_values CLOB,
   properties CLOB,
   cluster_id NUMBER(19) NOT NULL,
+  tag VARCHAR2(255),
   CONSTRAINT PK_widget PRIMARY KEY (id)
 );
 
