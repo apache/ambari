@@ -128,6 +128,7 @@ describe('App.WizardStep4Controller', function () {
     });
   });
 
+/* disabling these test while waiting for a decision on coselected services
   describe('#setGroupedServices()', function () {
     var testCases = [
       {
@@ -211,6 +212,7 @@ describe('App.WizardStep4Controller', function () {
       });
     }, this);
   });
+ */
 
   describe('#addValidationError()', function() {
     var tests = [
