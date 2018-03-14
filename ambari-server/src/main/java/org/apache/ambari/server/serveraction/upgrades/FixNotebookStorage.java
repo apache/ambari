@@ -47,6 +47,8 @@ public class FixNotebookStorage extends AbstractServerAction {
   public static final String ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_VFSNOTEBOOK_REPO = "org.apache.zeppelin.notebook.repo.VFSNotebookRepo";
   public static final String REC_VERSION = "2.6.3.0";
   public static final String ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO = "org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo";
+  public static final String ZEPPELIN_CONFIG_FS_DIR = "zeppelin.config.fs.dir";
+  public static final String ZEPPELIN_CONFIG_FS_DIR_VALUE = "conf";
 
 
   @Inject
@@ -71,12 +73,14 @@ public class FixNotebookStorage extends AbstractServerAction {
     String newContent = ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO;
 
     if (ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_VFSNOTEBOOK_REPO.equals(oldContent)) {
-
+      properties.put(ZEPPELIN_CONFIG_FS_DIR, ZEPPELIN_CONFIG_FS_DIR_VALUE);
       properties.put(ZEPPELIN_NOTEBOOK_STORAGE, newContent);
       config.setProperties(properties);
       config.save();
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          String.format("set %s to %s", ZEPPELIN_NOTEBOOK_STORAGE, ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO), "");
+          String.format("set %s to %s and %s to %s",
+              ZEPPELIN_NOTEBOOK_STORAGE, ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO,
+              ZEPPELIN_CONFIG_FS_DIR, ZEPPELIN_CONFIG_FS_DIR_VALUE), "");
     }
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
         String.format("%s change not required", ZEPPELIN_NOTEBOOK_STORAGE), "");
