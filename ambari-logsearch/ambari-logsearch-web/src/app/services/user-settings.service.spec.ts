@@ -38,6 +38,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {UserSettingsService} from './user-settings.service';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('UserSettingsService', () => {
   beforeEach(() => {
@@ -77,7 +78,8 @@ describe('UserSettingsService', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService
       ]
     });
   });

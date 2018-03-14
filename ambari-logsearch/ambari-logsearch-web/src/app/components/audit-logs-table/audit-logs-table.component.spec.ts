@@ -41,9 +41,10 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 import {AuditLogsTableComponent} from './audit-logs-table.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('AuditLogsTableComponent', () => {
   let component: AuditLogsTableComponent;
@@ -94,7 +95,8 @@ describe('AuditLogsTableComponent', () => {
         TabsService,
         ClustersService,
         ComponentsService,
-        HostsService
+        HostsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

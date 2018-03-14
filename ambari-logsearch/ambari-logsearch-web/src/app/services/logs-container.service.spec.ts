@@ -37,6 +37,7 @@ import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {LogsContainerService} from './logs-container.service';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('LogsContainerService', () => {
   beforeEach(() => {
@@ -75,7 +76,8 @@ describe('LogsContainerService', () => {
         ServiceLogsTruncatedService,
         TabsService,
         LogsContainerService,
-        UtilsService
+        UtilsService,
+        ClusterSelectionService
       ]
     });
   });

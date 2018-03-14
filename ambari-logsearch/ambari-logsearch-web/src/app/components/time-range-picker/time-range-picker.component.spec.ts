@@ -40,6 +40,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {TimeRangePickerComponent} from './time-range-picker.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('TimeRangePickerComponent', () => {
   let component: TimeRangePickerComponent;
@@ -82,7 +83,8 @@ describe('TimeRangePickerComponent', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

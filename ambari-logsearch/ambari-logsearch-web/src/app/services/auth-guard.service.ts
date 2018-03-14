@@ -18,9 +18,9 @@
 
 import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
-import {Observable} from "rxjs/Observable";
+import {Observable} from 'rxjs/Observable';
 
-import {AuthService} from "@app/services/auth.service";
+import {AuthService} from '@app/services/auth.service';
 
 /**
  * This service meant to be a single place where the authorization should happen.
@@ -31,7 +31,7 @@ export class AuthGuardService implements CanActivate {
   constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    return this.authService.isLoggedIn().map((isAuthorized: boolean) => {
+    return this.authService.isAuthorized().map((isAuthorized: boolean) => {
       this.authService.redirectUrl = state.url;
       if (!isAuthorized) {
         this.router.navigate(['/login']);

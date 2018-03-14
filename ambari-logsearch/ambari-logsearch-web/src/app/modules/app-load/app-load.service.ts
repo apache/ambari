@@ -17,22 +17,57 @@
  */
 
 import { Injectable } from '@angular/core';
+import {Response} from '@angular/http';
 import "rxjs/add/operator/toPromise";
+
 import {AppStateService} from "@app/services/storage/app-state.service";
 import {HttpClientService} from "@app/services/http-client.service";
+import {ClustersService} from "@app/services/storage/clusters.service";
 
 @Injectable()
 export class AppLoadService {
 
-  constructor(private httpClient: HttpClientService, private appStateService: AppStateService) { }
+  constructor(
+    private httpClient: HttpClientService,
+    private appStateService: AppStateService,
+    private clustersStorage: ClustersService
+  ) {
+    this.appStateService.getParameter('isAuthorized').subscribe(this.initOnAuthorization);
+  }
 
-  checkIfAuthorized(): Promise<any> {
-    return this.httpClient.get('status').toPromise().then(() => this.appStateService.setParameters({
-      isAuthorized: true,
-      isInitialLoading: false
-    }), () => this.appStateService.setParameters({
-      isAuthorized: false,
-      isInitialLoading: false
-    }));
+  loadClusters(): void {
+    this.clustersStorage.clear();
+    this.httpClient.get('clusters').first()
+      .subscribe(
+        (response: Response) => {
+          const clusterNames = response.json();
+          if (clusterNames) {
+            this.clustersStorage.addInstances(clusterNames);
+          }
+        },
+        (errorResponse: Response) => {
+          this.clustersStorage.addInstances([]);
+        }
+      );
+  }
+
+  initOnAuthorization = (isAuthorized): void => {
+    if (isAuthorized) {
+      this.loadClusters();
+    }
+  };
+
+  syncAuthorizedStateWithBackend(): Promise<any> {
+    const statusRequest: Promise<Response> = this.httpClient.get('status').toPromise();
+    return statusRequest.then(
+      () => this.appStateService.setParameters({
+          isAuthorized: true,
+          isInitialLoading: false
+        }),
+      () => this.appStateService.setParameters({
+          isAuthorized: false,
+          isInitialLoading: false
+        })
+    );
   }
 }

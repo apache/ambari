@@ -22,7 +22,7 @@ import { HttpClientModule } from "@angular/common/http";
 import { AppLoadService } from './app-load.service';
 
 export function check_if_authorized(appLoadService: AppLoadService) {
-  return () => appLoadService.checkIfAuthorized();
+  return () => appLoadService.syncAuthorizedStateWithBackend();
 }
 
 @NgModule({

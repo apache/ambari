@@ -39,6 +39,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {AuditLogsEntriesComponent} from './audit-logs-entries.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('AuditLogsEntriesComponent', () => {
   let component: AuditLogsEntriesComponent;
@@ -84,7 +85,8 @@ describe('AuditLogsEntriesComponent', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })
