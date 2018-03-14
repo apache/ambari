@@ -30,6 +30,7 @@ class Register:
   def __init__(self, config):
     self.config = config
     self.hardware = Hardware(self.config)
+    self.init_time_ms = int(1000*time.time())
 
   def build(self, response_id='-1'):
     timestamp = int(time.time()*1000)
@@ -48,6 +49,7 @@ class Register:
                  'hardwareProfile'   : self.hardware.get(),
                  'agentEnv'          : agentEnv,
                  'agentVersion'      : Utils.read_agent_version(self.config),
-                 'prefix'            : self.config.get('agent', 'prefix')
+                 'prefix'            : self.config.get('agent', 'prefix'),
+                 'agentStartTime'    : self.init_time_ms
                }
     return register

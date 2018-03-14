@@ -164,6 +164,12 @@ public class HostImpl implements Host {
   private final String hostName;
 
   private long lastHeartbeatTime = 0L;
+
+  /**
+   * An agent can re-register several times without restarting.
+   * We should save the agent start time to timeout execution commands only on restart, not re-register.
+   */
+  private long lastAgentStartTime = 0L;
   private AgentEnv lastAgentEnv = null;
   private List<DiskInfo> disksInfo = new CopyOnWriteArrayList<>();
   private RecoveryReport recoveryReport = new RecoveryReport();
@@ -445,7 +451,7 @@ public class HostImpl implements Host {
       // TODO Audit logs
       LOG.debug("Host transitioned to heartbeat lost state, host={}, lastHeartbeatTime={}", e.getHostName(), host.getLastHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
-
+      host.setLastAgentStartTime(0);
       host.topologyManager.onHostHeartBeatLost(host);
     }
   }
@@ -880,6 +886,14 @@ public class HostImpl implements Host {
     this.lastHeartbeatTime = lastHeartbeatTime;
   }
 
+  public long getLastAgentStartTime() {
+    return lastAgentStartTime;
+  }
+
+  public void setLastAgentStartTime(long lastAgentStartTime) {
+    this.lastAgentStartTime = lastAgentStartTime;
+  }
+
   @Override
   public AgentVersion getAgentVersion() {
     HostStateEntity hostStateEntity = getHostStateEntity();
@@ -1274,6 +1288,7 @@ public class HostImpl implements Host {
     setLastRegistrationTime(e.registrationTime);
     //Initialize heartbeat time and timeInState with registration time.
     setLastHeartbeatTime(e.registrationTime);
+    setLastAgentStartTime(e.agentStartTime);
     setLastAgentEnv(e.agentEnv);
     setTimeInState(e.registrationTime);
     setAgentVersion(e.agentVersion);

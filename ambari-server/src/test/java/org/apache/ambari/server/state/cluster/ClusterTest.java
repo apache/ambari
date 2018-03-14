@@ -547,7 +547,7 @@ public class ClusterTest {
     long currentTime = 1001;
 
     clusters.getHost("h1").handleEvent(new HostRegistrationRequestEvent(
-        "h1", agentVersion, currentTime, hostInfo, agentEnv));
+        "h1", agentVersion, currentTime, hostInfo, agentEnv, currentTime));
 
     Assert.assertEquals(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
         clusters.getHost("h1").getState());

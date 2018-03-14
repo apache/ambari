@@ -161,7 +161,7 @@ public class HostTest {
 
     HostRegistrationRequestEvent e =
         new HostRegistrationRequestEvent("foo", agentVersion, currentTime,
-            info, agentEnv);
+            info, agentEnv, currentTime);
 
     if (!firstReg) {
       Assert.assertNotNull(host.getHostId());
