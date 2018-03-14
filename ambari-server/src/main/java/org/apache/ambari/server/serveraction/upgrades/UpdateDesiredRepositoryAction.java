@@ -20,7 +20,6 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -29,13 +28,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
@@ -63,12 +59,6 @@ public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
    */
   @Inject
   private Configuration m_configuration;
-
-  /**
-   * Used for restting host version states on downgrade.
-   */
-  @Inject
-  private HostVersionDAO m_hostVersionDAO;
 
   /**
    * {@inheritDoc}
@@ -151,23 +141,6 @@ public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
 
       // move repositories to the right version and create/revert configs
       m_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
-
-      // a downgrade must force host versions back to INSTALLED for the
-      // repository which failed to be upgraded.
-      if (upgradeContext.getDirection() == Direction.DOWNGRADE) {
-        RepositoryVersionEntity downgradeFromRepositoryVersion = upgradeContext.getRepositoryVersion();
-        out.append(String.format("Setting host versions back to %s for repository version %s",
-            RepositoryVersionState.INSTALLED, downgradeFromRepositoryVersion.getVersion()));
-
-        List<HostVersionEntity> hostVersionsToReset = m_hostVersionDAO.findHostVersionByClusterAndRepository(
-            cluster.getClusterId(), downgradeFromRepositoryVersion);
-
-        for (HostVersionEntity hostVersion : hostVersionsToReset) {
-          if( hostVersion.getState() != RepositoryVersionState.NOT_REQUIRED ){
-            hostVersion.setState(RepositoryVersionState.INSTALLED);
-          }
-        }
-      }
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", out.toString(), err.toString());
     } catch (Exception e) {

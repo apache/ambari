@@ -24,7 +24,6 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 
@@ -238,16 +237,6 @@ public interface ServiceComponentHost {
    * @return the service component (never {@code null}).
    */
   ServiceComponent getServiceComponent();
-
-  /**
-   * Updates an existing {@link HostVersionEntity} for the desired repository of
-   * this component, or create one if it doesn't exist.
-   *
-   * @return Returns either the newly created or the updated Host Version
-   *         Entity.
-   * @throws AmbariException
-   */
-  HostVersionEntity recalculateHostVersionState() throws AmbariException;
 
   /**
    * Convenience method to get the desired stack id from the service component

@@ -76,7 +76,8 @@ class Logger:
 
   @staticmethod
   def debug(text):
-    Logger.logger.debug(Logger.filter_text(text))
+    if Logger.logger:
+      Logger.logger.debug(Logger.filter_text(text))
 
   @staticmethod
   def error_resource(resource):

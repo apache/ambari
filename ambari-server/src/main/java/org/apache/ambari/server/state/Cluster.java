@@ -23,8 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
-
 import org.apache.ambari.server.ClusterSettingNotFoundException;
 import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -37,7 +38,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 
 import com.google.common.collect.ListMultimap;
@@ -348,30 +348,12 @@ public interface Cluster {
   void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
-   * Creates or updates host versions for all of the hosts within a cluster
-   * based on state of cluster stack version. This is used to transition all
-   * hosts into the correct state (which may not be
-   * {@link RepositoryVersionState#INSTALLING}).
-   * <p/>
-   * Hosts that are in maintenance mode will be transitioned directly into
-   * {@link RepositoryVersionState#OUT_OF_SYNC} instead. Hosts which do not need
-   * the version distributed to them will move into the
-   * {@link RepositoryVersionState#NOT_REQUIRED} state.
-   *
-   * @param repoVersionEntity    the repository that the hosts are being transitioned for (not
-   *                             {@code null}).
-   * @param versionDefinitionXml the VDF, or {@code null} if none.
-   * @param forceInstalled       if {@code true}, then this will transition everything directly to
-   *                             {@link RepositoryVersionState#INSTALLED} instead of
-   *                             {@link RepositoryVersionState#INSTALLING}. Hosts which should
-   *                             received other states (like
-   *                             {@link RepositoryVersionState#NOT_REQUIRED} will continue to
-   *                             receive those states.
-   * @return a list of hosts which need the repository installed.
+   * @return
    * @throws AmbariException
    */
-  List<Host> transitionHostsToInstalling(RepositoryVersionEntity repoVersionEntity,
-                                         VersionDefinitionXml versionDefinitionXml, boolean forceInstalled) throws AmbariException;
+  @Deprecated
+  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
+  List<Host> transitionHostsToInstalling() throws AmbariException;
 
   /**
    * Gets whether the cluster is still initializing or has finished with its

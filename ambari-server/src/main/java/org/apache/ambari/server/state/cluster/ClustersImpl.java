@@ -45,7 +45,6 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.RequestOperationLevelDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
@@ -103,8 +102,6 @@ public class ClustersImpl implements Clusters {
   private ClusterDAO clusterDAO;
   @Inject
   private HostDAO hostDAO;
-  @Inject
-  private HostVersionDAO hostVersionDAO;
   @Inject
   private HostStateDAO hostStateDAO;
   @Inject
@@ -720,8 +717,6 @@ public class ClustersImpl implements Clusters {
     Host host = hosts.get(hostname);
     unmapHostFromClusters(host, clusters);
     hostDAO.refresh(entity);
-
-    hostVersionDAO.removeByHostName(hostname);
 
     // Remove blueprint tasks before hostRoleCommands
     // TopologyLogicalTask owns the OneToOne relationship but Cascade is on
