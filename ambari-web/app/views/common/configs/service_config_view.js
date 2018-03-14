@@ -98,7 +98,7 @@ App.ServiceConfigView = Em.View.extend({
    * @return {object}
    */
   save: function () {
-    var self = this;
+    var controller = this.get('controller');
     var passwordWasChanged = this.get('controller.passwordConfigsAreChanged');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
@@ -127,23 +127,25 @@ App.ServiceConfigView = Em.View.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
-        var newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
-        self.get('controller').setProperties({
+        const newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
+        const isDefault = controller.get('selectedConfigGroup.name') === App.ServiceConfigGroup.defaultGroupName;
+        controller.setProperties({
           saveConfigsFlag: true,
           serviceConfigVersionNote: this.get('serviceConfigNote'),
+          currentDefaultVersion: isDefault ? newVersionToBeCreated : controller.get('currentDefaultVersion'),
           preSelectedConfigVersion: Em.Object.create({
             version: newVersionToBeCreated,
-            serviceName: self.get('controller.content.serviceName'),
-            groupName: self.get('controller.selectedConfigGroup.name')
+            serviceName: controller.get('content.serviceName'),
+            groupName: controller.get('selectedConfigGroup.name')
           })
         });
-        self.get('controller').saveStepConfigs();
+        controller.saveStepConfigs();
         this.hide();
       },
       onDiscard: function () {
         this.hide();
-        self.set('controller.preSelectedConfigVersion', null);
-        self.get('controller').loadStep();
+        controller.set('preSelectedConfigVersion', null);
+        controller.loadStep();
       },
       onCancel: function () {
         this.hide();
