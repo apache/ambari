@@ -86,12 +86,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>zeppelin.config.fs.dir</name>
-    <value>conf</value>
-    <description>Location where interpreter.json should be installed</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>zeppelin.interpreter.dir</name>
     <value>interpreter</value>
     <description>Interpreter implementation base directory</description>
