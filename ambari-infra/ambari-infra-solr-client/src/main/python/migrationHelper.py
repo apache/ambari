@@ -226,9 +226,9 @@ if __name__=="__main__":
   if options.action.lower() == 'backup':
     backup(options, accessor, parser)
   elif options.action.lower() == 'restore':
-    pass
+    restore(options, accessor, parser)
   elif options.action.lower() == 'migrate':
-    pass
+    migrate(options, accessor, parser)
   else:
     parser.print_help()
     print 'action option is wrong or missing'
