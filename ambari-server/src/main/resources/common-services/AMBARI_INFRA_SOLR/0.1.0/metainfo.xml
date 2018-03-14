@@ -45,6 +45,7 @@
           <customCommands>
             <customCommand>
               <name>BACKUP</name>
+              <hidden>true</hidden>
               <commandScript>
                 <script>scripts/infra_solr.py</script>
                 <scriptType>PYTHON</scriptType>
@@ -53,6 +54,7 @@
             </customCommand>
             <customCommand>
               <name>RESTORE</name>
+              <hidden>true</hidden>
               <commandScript>
                 <script>scripts/infra_solr.py</script>
                 <scriptType>PYTHON</scriptType>
@@ -61,6 +63,7 @@
             </customCommand>
             <customCommand>
               <name>MIGRATE</name>
+              <hidden>true</hidden>
               <commandScript>
                 <script>scripts/infra_solr.py</script>
                 <scriptType>PYTHON</scriptType>
