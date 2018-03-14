@@ -65,7 +65,7 @@ describe('App.UpdateController', function () {
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(5);
+      expect(App.updater.run.callCount).to.equal(6);
     });
   });
 

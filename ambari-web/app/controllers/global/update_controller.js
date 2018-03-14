@@ -196,6 +196,7 @@ App.UpdateController = Em.Controller.extend({
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
+      App.updater.run(this, 'updateHDFSNameSpaces', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services/HDFS|hosts).*');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
@@ -681,5 +682,38 @@ App.UpdateController = Em.Controller.extend({
   updateLoggingSuccess: function(data, opt, params) {
     var clbk = params.callback || function() {};
     clbk(data);
+  },
+
+  updateHDFSNameSpaces: function () {
+    const siteName = 'hdfs-site',
+      storedHdfsSiteconfigs = App.db.getConfigs().findProperty('type', siteName),
+      tagName = storedHdfsSiteconfigs && storedHdfsSiteconfigs.tag;
+    App.router.get('configurationController').getConfigsByTags([{
+      siteName,
+      tagName
+    }]).done(configs => {
+      const properties = configs && configs[0] && configs[0].properties;
+      if (properties) {
+        const nameSpaces = properties['dfs.nameservices'].split(',').map(nameSpace => {
+            const nameNodeIds = properties[`dfs.ha.namenodes.${nameSpace}`].split(','),
+              hostNames = nameNodeIds.map(id => {
+                const propertyValue = properties[`dfs.namenode.http-address.${nameSpace}.${id}`],
+                  matches = propertyValue.match(/([\D\d]+)\:\d+$/),
+                  hostName = matches && matches[1];
+                return hostName;
+              });
+            return {
+              nameSpace,
+              hostNames
+            };
+          }),
+          allNameNodes = App.HDFSService.find().objectAt(0).get('hostComponents').filterProperty('componentName', 'NAMENODE');
+        allNameNodes.forEach(component => {
+          const nameSpaceObject = nameSpaces.find(ns => ns.hostNames.contains(component.get('hostName')));
+          component.set('haNameSpace', nameSpaceObject.nameSpace);
+        });
+        App.set('router.clusterController.isHDFSNameSpacesLoaded', true);
+      }
+    })
   }
 });

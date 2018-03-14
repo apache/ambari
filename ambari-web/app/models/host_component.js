@@ -33,6 +33,7 @@ App.HostComponent = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
   haNameSpace: DS.attr('string'),
+  clusterIdValue: DS.attr('string'),
 
   serviceDisplayName: Em.computed.truncate('service.displayName', 14, 11),
 
