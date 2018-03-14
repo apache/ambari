@@ -130,6 +130,21 @@ def fill_parameters(options):
     params['solr_index_location'] = options.index_location
   if options.backup_name:
     params['solr_backup_name'] = options.backup_name
+  if options.index_version:
+    params['solr_index_version'] = options.index_version
+  if options.force:
+    params['solr_index_upgrade_force'] = options.force
+  if options.async:
+    params['solr_request_async'] = options.async
+  if options.request_tries:
+    params['solr_request_tries'] = options.request_tries
+  if options.request_time_interval:
+    params['solr_request_time_interval'] = options.request_time_interval
+  if options.disable_solr_host_check:
+    params['solr_check_hosts'] = False
+  if options.core_filter:
+    params['solr_core_filter'] = options.core_filter
+
   return params
 
 def validte_common_options(options, parser):
