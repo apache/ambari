@@ -2256,9 +2256,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           continue;
         }
         for (Service s : entry.getValue()) {
-          // Ignoring the "*_CLIENTS" services, as there won't be an separate
-          // Service Check defined for them.
-          if (!s.isClientOnlyService() && runSmokeTest && (State.INSTALLED == s.getDesiredState() &&
+          if (runSmokeTest && (State.INSTALLED == s.getDesiredState() &&
                   maintenanceStateHelper.isOperationAllowed(opLvl, s))) {
             smokeTestServices.add(s);
           }
@@ -3207,7 +3205,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
           customCommandExecutionHelper.addServiceCheckAction(stage, componentForServiceCheck.getHostName(), smokeTestRole,
               nowTimestamp, componentForServiceCheck.getServiceGroupName(), componentForServiceCheck.getServiceName(),
-              componentForServiceCheck.getServiceComponentName(), null, false, false, service.getName());
+              componentForServiceCheck.getServiceComponentName(), null, false, false, service);
 
         } catch (AmbariException e) {
             LOG.warn("Nothing to do for service check as could not find role or"

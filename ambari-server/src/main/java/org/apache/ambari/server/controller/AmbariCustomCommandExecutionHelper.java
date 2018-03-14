@@ -587,7 +587,7 @@ public class AmbariCustomCommandExecutionHelper {
         selectedServiceComponentHost.getServiceComponentName(),
         actionParameters, actionExecutionContext.isRetryAllowed(),
         actionExecutionContext.isFailureAutoSkipped(),
-        serviceName);
+        service);
   }
 
   ServiceComponentHost calculateServiceComponentHostForServiceCheck(Cluster cluster, Service service) throws AmbariException {
@@ -829,12 +829,12 @@ public class AmbariCustomCommandExecutionHelper {
    */
   public void addServiceCheckAction(Stage stage, String hostname, String smokeTestRole,
       long nowTimestamp, String serviceGroupName, String serviceName, String componentName,
-      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure, String initiatingServiceName)
+      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure, Service initiatingService)
           throws AmbariException {
 
     String clusterName = stage.getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
-    Service service = cluster.getService(serviceName);
+    Service service = cluster.getService(serviceGroupName, serviceName);
     ServiceComponent component = null;
     if (null != componentName) {
       component = service.getServiceComponent(componentName);
@@ -842,10 +842,8 @@ public class AmbariCustomCommandExecutionHelper {
     StackId stackId = (null != component) ? component.getDesiredStackId() : service.getDesiredStackId();
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
-    ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), service.getServiceType());
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
+    ServiceInfo initiatingServiceInfo = ambariMetaInfo.getService(initiatingService.getDesiredStackId().getStackName(),
+        initiatingService.getDesiredStackId().getStackVersion(), initiatingService.getServiceType());
 
     stage.addHostRoleExecutionCommand(hostname, Role.valueOf(smokeTestRole),
         RoleCommand.SERVICE_CHECK,
@@ -854,7 +852,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     HostRoleCommand hrc = stage.getHostRoleCommand(hostname, smokeTestRole);
     if (hrc != null) {
-      hrc.setCommandDetail(String.format("%s %s", RoleCommand.SERVICE_CHECK.toString(), initiatingServiceName));
+      hrc.setCommandDetail(String.format("%s %s", RoleCommand.SERVICE_CHECK.toString(), initiatingService.getName()));
     }
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations =
@@ -908,9 +906,9 @@ public class AmbariCustomCommandExecutionHelper {
 
     String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
 
-    if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
+    if (initiatingServiceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       // Service check command is not custom command
-      CommandScriptDefinition script = serviceInfo.getCommandScript();
+      CommandScriptDefinition script = initiatingServiceInfo.getCommandScript();
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
@@ -920,7 +918,7 @@ public class AmbariCustomCommandExecutionHelper {
       } else {
         String message = String.format("Service %s has no command script " +
             "defined. It is not possible to run service check" +
-            " for this service", serviceName);
+            " for this service", initiatingServiceInfo.getName());
         throw new AmbariException(message);
       }
       // We don't need package/repo information to perform service check
