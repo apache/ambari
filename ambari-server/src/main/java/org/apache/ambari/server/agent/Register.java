@@ -28,6 +28,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class Register {
   private int responseId = -1;
   private long timestamp;
+  private long agentStartTime;
   private String hostname;
   private int currentPingPort;
   private HostInfo hardwareProfile;
@@ -108,10 +109,19 @@ public class Register {
     this.currentPingPort = currentPingPort;
   }
 
+  public long getAgentStartTime() {
+    return agentStartTime;
+  }
+
+  public void setAgentStartTime(long agentStartTime) {
+    this.agentStartTime = agentStartTime;
+  }
+
   @Override
   public String toString() {
     String ret = "responseId=" + responseId + "\n" +
              "timestamp=" + timestamp + "\n" +
+             "startTime=" + agentStartTime + "\n" +
              "hostname="  + hostname + "\n" +
              "currentPingPort=" + currentPingPort + "\n" +
              "prefix=" + prefix + "\n";
