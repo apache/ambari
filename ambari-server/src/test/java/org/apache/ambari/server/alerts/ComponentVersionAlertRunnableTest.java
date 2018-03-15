@@ -39,7 +39,6 @@ import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -49,10 +48,10 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ModuleComponent;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.easymock.EasyMock;
@@ -98,7 +97,6 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
 
   private Collection<Host> m_hosts;
   private Map<String, List<ServiceComponentHost>> m_hostComponentMap = new HashMap<>();
-  private StackId m_desidredStackId;
 
   /**
    *
@@ -139,22 +137,6 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     m_hostComponentMap.put(HOSTNAME_1, new ArrayList<>());
     m_hostComponentMap.put(HOSTNAME_2, new ArrayList<>());
 
-    // desired stack
-    m_desidredStackId = createNiceMock(StackId.class);
-    expect(m_desidredStackId.getStackName()).andReturn("SOME-STACK").atLeastOnce();
-    expect(m_desidredStackId.getStackVersion()).andReturn("STACK-VERSION").atLeastOnce();
-
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersionEntity.getVersion()).andReturn(EXPECTED_VERSION).anyTimes();
-
-    // services
-    Service service = createNiceMock(Service.class);
-    expect(service.getDesiredRepositoryVersion()).andReturn(repositoryVersionEntity).atLeastOnce();
-
-    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
-    expect(serviceComponent.getDesiredStackId()).andReturn(m_desidredStackId).atLeastOnce();
-    expect(service.getServiceComponent(EasyMock.anyString())).andReturn(serviceComponent).atLeastOnce();
-
     // components
     ServiceComponentHost sch1_1 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHost sch1_2 = createNiceMock(ServiceComponentHost.class);
@@ -186,11 +168,15 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     expect(m_definition.getLabel()).andReturn(DEFINITION_LABEL).atLeastOnce();
     expect(m_definition.getEnabled()).andReturn(true).atLeastOnce();
 
+    // mock the service group
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
+    expect(serviceGroup.getMpackId()).andReturn(1L).atLeastOnce();
+
     // mock the cluster
     expect(m_cluster.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
     expect(m_cluster.getClusterName()).andReturn(CLUSTER_NAME).atLeastOnce();
     expect(m_cluster.getHosts()).andReturn(m_hosts).atLeastOnce();
-    expect(m_cluster.getService(EasyMock.anyString())).andReturn(service).atLeastOnce();
+    expect(m_cluster.getServiceGroup(EasyMock.anyString())).andReturn(serviceGroup).atLeastOnce();
 
     // mock clusters
     expect(m_clusters.getClusters()).andReturn(clusterMap).atLeastOnce();
@@ -198,6 +184,17 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     // mock the definition DAO
     expect(m_definitionDao.findByName(CLUSTER_ID, DEFINITION_NAME)).andReturn(
         m_definition).atLeastOnce();
+
+    // mock the module component
+    ModuleComponent moduleComponent = createNiceMock(ModuleComponent.class);
+    expect(moduleComponent.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
+
+    // mock the mpack
+    Mpack mpack = createNiceMock(Mpack.class);
+    expect(mpack.getModuleComponent(EasyMock.anyString(), EasyMock.anyString())).andReturn(
+        moduleComponent).atLeastOnce();
+
+    expect(m_metaInfo.getMpack(1L)).andReturn(mpack).atLeastOnce();
 
     m_metaInfo.init();
     EasyMock.expectLastCall().anyTimes();
@@ -301,7 +298,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
    * Tests that the alert which fires when there is a mismatch is a WARNING.
    */
   @Test
-  public void testomponentVersionMismatch() throws Exception {
+  public void testComponentVersionMismatch() throws Exception {
     // reset expectation so that it returns a wrong version
     ServiceComponentHost sch = m_hostComponentMap.get(HOSTNAME_1).get(0);
     EasyMock.reset(sch);
