@@ -83,6 +83,13 @@ App.stackVersionMapper = App.QuickDataMapper.create({
             "items": item.repository_versions,
             "stackServices": item.ClusterStackVersions.repository_summary && item.ClusterStackVersions.repository_summary.services
           }, true, true);
+          if (item.ClusterStackVersions.state === 'CURRENT' || item.ClusterStackVersions.state === 'OUT_OF_SYNC') {
+            var version = item.repository_versions[0].RepositoryVersions.repository_version;
+            if (version.indexOf('-') != -1) {
+              version = version.split('-')[0];
+            }
+            App.set('fullStackVersion', version);
+          }
         }
         resultStack.push(this.parseIt(stack, this.get('modelStack')));
       }, this);
