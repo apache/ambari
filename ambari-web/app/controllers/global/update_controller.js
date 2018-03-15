@@ -196,7 +196,7 @@ App.UpdateController = Em.Controller.extend({
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
-      App.updater.run(this, 'updateHDFSNameSpaces', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services/HDFS|hosts).*');
+      App.updater.run(this, 'updateHDFSNameSpaces', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services\/HDFS|hosts).*');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
