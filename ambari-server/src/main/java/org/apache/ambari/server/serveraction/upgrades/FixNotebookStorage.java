@@ -36,9 +36,11 @@ import com.google.inject.Inject;
 
 /**
  * During stack upgrade,
+ * if stack HDP >=2.6.3 and old value org.apache.zeppelin.notebook.repo.VFSNotebookRepo
  * update zeppelin.notebook.storage
  * to org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo
- * if stack HDP >=2.6.3 and old value org.apache.zeppelin.notebook.repo.VFSNotebookRepo
+ * if stack HDP >=2.6.3 and no zeppelin.config.fs.dir
+ * set zeppelin.config.fs.dir to conf
  */
 public class FixNotebookStorage extends AbstractServerAction {
 
@@ -72,17 +74,23 @@ public class FixNotebookStorage extends AbstractServerAction {
     String oldContent = properties.get(ZEPPELIN_NOTEBOOK_STORAGE);
     String newContent = ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO;
 
-    if (ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_VFSNOTEBOOK_REPO.equals(oldContent)) {
+    String output = "";
+    if (!properties.containsKey(ZEPPELIN_CONFIG_FS_DIR)) {
       properties.put(ZEPPELIN_CONFIG_FS_DIR, ZEPPELIN_CONFIG_FS_DIR_VALUE);
-      properties.put(ZEPPELIN_NOTEBOOK_STORAGE, newContent);
-      config.setProperties(properties);
-      config.save();
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          String.format("set %s to %s and %s to %s",
-              ZEPPELIN_NOTEBOOK_STORAGE, ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO,
-              ZEPPELIN_CONFIG_FS_DIR, ZEPPELIN_CONFIG_FS_DIR_VALUE), "");
+      output += String.format("set %s to %s\n",
+          ZEPPELIN_NOTEBOOK_STORAGE, ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_FILE_SYSTEM_NOTEBOOK_REPO);
     }
+    if (ORG_APACHE_ZEPPELIN_NOTEBOOK_REPO_VFSNOTEBOOK_REPO.equals(oldContent)) {
+      properties.put(ZEPPELIN_NOTEBOOK_STORAGE, newContent);
+      output += String.format("set %s to %s\n",
+          ZEPPELIN_CONFIG_FS_DIR, ZEPPELIN_CONFIG_FS_DIR_VALUE);
+    }
+    if (output.isEmpty()) {
+      output = "change not required";
+    }
+    config.setProperties(properties);
+    config.save();
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-        String.format("%s change not required", ZEPPELIN_NOTEBOOK_STORAGE), "");
+        output, "");
   }
 }
