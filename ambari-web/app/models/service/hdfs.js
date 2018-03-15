@@ -84,7 +84,7 @@ App.HDFSService = App.Service.extend({
       }
     });
     return result;
-  }.property('router.clusterController.isHDFSNameSpacesLoaded')
+  }.property('hostComponents.length')
 });
 
 App.HDFSService.FIXTURES = [];
