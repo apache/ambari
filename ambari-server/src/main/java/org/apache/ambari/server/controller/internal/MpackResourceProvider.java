@@ -74,6 +74,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   public static final String MPACK_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_name";
   public static final String MPACK_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_version";
   public static final String MPACK_DESCRIPTION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_description";
+  public static final String MPACK_DISPLAY_NAME = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_display_name";
   public static final String MPACK_URI = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_uri";
   public static final String MODULES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "modules";
   public static final String STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
@@ -114,6 +115,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     PROPERTY_IDS.add(MODULES);
     PROPERTY_IDS.add(STACK_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(STACK_VERSION_PROPERTY_ID);
+    PROPERTY_IDS.add(MPACK_DISPLAY_NAME);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_RESOURCE_ID);
@@ -153,6 +155,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(MPACK_URI, response.getMpackUri());
         resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
         resource.setProperty(REGISTRY_ID, response.getRegistryId());
+        resource.setProperty(MPACK_DISPLAY_NAME, response.getDisplayName());
         associatedResources.add(resource);
         return getRequestStatus(null, associatedResources);
       }
@@ -241,6 +244,8 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(MPACK_URI, response.getMpackUri());
         resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
         resource.setProperty(REGISTRY_ID, response.getRegistryId());
+        resource.setProperty(MPACK_DISPLAY_NAME, response.getDisplayName());
+
         results.add(resource);
       }
     } else {
@@ -291,6 +296,24 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       if (null == mpackId) {
         throw new IllegalArgumentException(
             "Either the management pack ID or the stack name and version are required when searching");
+      }
+
+      MpackResponse response = getManagementController().getMpack(mpackId);
+      Resource resource = new ResourceImpl(Resource.Type.Mpack);
+      if (null != response) {
+        resource.setProperty(MPACK_RESOURCE_ID, response.getId());
+        resource.setProperty(MPACK_ID, response.getMpackId());
+        resource.setProperty(MPACK_NAME, response.getMpackName());
+        resource.setProperty(MPACK_VERSION, response.getMpackVersion());
+        resource.setProperty(MPACK_URI, response.getMpackUri());
+        resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
+        resource.setProperty(REGISTRY_ID, response.getRegistryId());
+        resource.setProperty(MPACK_DISPLAY_NAME, response.getDisplayName());
+
+        StackId stackId = new StackId(response.getStackId());
+        resource.setProperty(STACK_NAME_PROPERTY_ID, stackId.getStackName());
+        resource.setProperty(STACK_VERSION_PROPERTY_ID, stackId.getStackVersion());
+        results.add(resource);
       }
 
       if (results.isEmpty()) {

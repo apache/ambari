@@ -18,9 +18,12 @@
 package org.apache.ambari.server.state;
 
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents the state of an mpack.
@@ -58,6 +61,9 @@ public class Mpack {
 
   @SerializedName("description")
   private String description;
+
+  @SerializedName("displayName")
+  private String displayName;
 
   private String mpackUri;
 
@@ -141,6 +147,54 @@ public class Mpack {
     this.definition = definition;
   }
 
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  /**
+   * Gets the module with the given name. Module names are service names.
+   *
+   * @param moduleName
+   *          the name of the module.
+   * @return the module or {@code null}.
+   */
+  public Module getModule(String moduleName) {
+    for (Module module : modules) {
+      if (StringUtils.equals(moduleName, module.getName())) {
+        return module;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets a component from a given module.
+   *
+   * @param moduleName
+   *          the module (service) name.
+   * @param moduleComponentName
+   *          the name of the component.
+   * @return the component or {@code null}.
+   */
+  public ModuleComponent getModuleComponent(String moduleName, String moduleComponentName) {
+    for (Module module : modules) {
+      ModuleComponent moduleComponent = module.getModuleComponent(moduleComponentName);
+      if (null != moduleComponent) {
+        return moduleComponent;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -148,31 +202,27 @@ public class Mpack {
 
     Mpack mpack = (Mpack) o;
 
-    if (!resourceId.equals(mpack.resourceId)) return false;
-    if (registryId != null ? !registryId.equals(mpack.registryId) : mpack.registryId != null) return false;
-    if (!mpackId.equals(mpack.mpackId)) return false;
-    if (!name.equals(mpack.name)) return false;
-    if (!version.equals(mpack.version)) return false;
-    if (!prerequisites.equals(mpack.prerequisites)) return false;
-    if (!modules.equals(mpack.modules)) return false;
-    if (!definition.equals(mpack.definition)) return false;
-    if (!description.equals(mpack.description)) return false;
-    return mpackUri.equals(mpack.mpackUri);
+    Mpack that = (Mpack) o;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
+    equalsBuilder.append(resourceId, that.resourceId);
+    equalsBuilder.append(registryId, that.registryId);
+    equalsBuilder.append(mpackId, that.mpackId);
+    equalsBuilder.append(name, that.name);
+    equalsBuilder.append(version, that.version);
+    equalsBuilder.append(prerequisites, that.prerequisites);
+    equalsBuilder.append(modules, that.modules);
+    equalsBuilder.append(definition, that.definition);
+    equalsBuilder.append(description, that.description);
+    equalsBuilder.append(mpackUri, that.mpackUri);
+    equalsBuilder.append(displayName, that.displayName);
+
+    return equalsBuilder.isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result = resourceId.hashCode();
-    result = 31 * result + (registryId != null ? registryId.hashCode() : 0);
-    result = 31 * result + mpackId.hashCode();
-    result = 31 * result + name.hashCode();
-    result = 31 * result + version.hashCode();
-    result = 31 * result + prerequisites.hashCode();
-    result = 31 * result + modules.hashCode();
-    result = 31 * result + definition.hashCode();
-    result = 31 * result + description.hashCode();
-    result = 31 * result + mpackUri.hashCode();
-    return result;
+    return Objects.hash(resourceId, registryId, mpackId, name, version, prerequisites, modules,
+        definition, description, mpackUri, displayName);
   }
 
   @Override
@@ -188,6 +238,7 @@ public class Mpack {
             ", definition='" + definition + '\'' +
             ", description='" + description + '\'' +
             ", mpackUri='" + mpackUri + '\'' +
+            ", displayName='" + mpackUri + '\'' +
             '}';
   }
 
@@ -215,6 +266,9 @@ public class Mpack {
     }
     if (this.definition == null) {
       this.definition = mpack.getDefinition();
+    }
+    if (displayName == null) {
+      displayName = mpack.getDisplayName();
     }
   }
 }

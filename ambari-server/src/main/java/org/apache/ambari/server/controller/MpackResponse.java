@@ -36,6 +36,7 @@ public class MpackResponse {
   private Long registryId;
   private String stackId;
   private String description;
+  private String displayName;
 
   public MpackResponse(Mpack mpack) {
     this.id = mpack.getResourceId();
@@ -45,6 +46,7 @@ public class MpackResponse {
     this.mpackUri = mpack.getMpackUri();
     this.registryId = mpack.getRegistryId();
     this.description = mpack.getDescription();
+    this.displayName = mpack.getDisplayName();
   }
 
   public Long getId() {
@@ -109,6 +111,14 @@ public class MpackResponse {
 
   public void setStackId(String stackId) {
     this.stackId = stackId;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   @Override
