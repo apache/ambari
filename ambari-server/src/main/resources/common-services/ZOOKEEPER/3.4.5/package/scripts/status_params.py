@@ -35,26 +35,26 @@ SERVER_ROLE_DIRECTORY_MAP = {
 
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "ZOOKEEPER_CLIENT")
 
-config = Script.get_config()
+config_object = Script.get_config_object()
 
 if OSCheck.is_windows_family():
   zookeeper_win_service_name = "zkServer"
 else:
-  zk_pid_dir = config['configurations']['zookeeper-env']['zk_pid_dir']
+  zk_pid_dir = config_object.get_service_config_property_value('zookeeper', 'zookeeper-env', 'zk_pid_dir')
   zk_pid_file = format("{zk_pid_dir}/zookeeper_server.pid")
 
   # Security related/required params
-  hostname = config['hostname']
-  security_enabled = config['configurations']['cluster-env']['security_enabled']
-  kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+  hostname = config_object.get_host_name()
+  security_enabled = config_object.check_cluster_security_enabled()
+  kinit_path_local = config_object.get_kinit_path()
   tmp_dir = Script.get_tmp_dir()
-  zk_user =  config['configurations']['zookeeper-env']['zk_user']
+  zk_user = config_object.get_service_config_property_value('zookeeper', 'zookeeper-env', 'zk_user')
   
-  stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+  stack_version_unformatted = str(config_object.get_stack_version())
   stack_version_formatted = format_stack_version(stack_version_unformatted)
   stack_root = Script.get_stack_root()
 
   config_dir = "/etc/zookeeper/conf"
   if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
     config_dir = format("{stack_root}/current/{component_directory}/conf")
-stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = config_object.get_stack_name_from_host_level()
