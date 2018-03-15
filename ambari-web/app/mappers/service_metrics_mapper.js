@@ -184,7 +184,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     ha_status: 'HostRoles.ha_state',
     display_name_advanced: 'display_name_advanced',
     admin_state: 'HostRoles.desired_admin_state',
-    ha_name_space: 'metrics.dfs.namenode.ClusterId'
+    cluster_id_value: 'metrics.dfs.namenode.ClusterId'
   },
 
   /**
@@ -247,6 +247,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var serviceCache = services.findProperty('ServiceInfo.service_name', hostComponent.get('service.serviceName'));
           if (serviceCache) {
             serviceCache.host_components = serviceCache.host_components.without(hostComponent.get('id'));
+          }
+        } else if (id.startsWith('NAMENODE')) {
+          var component = App.HostComponent.find(id),
+            haNameSpace = component.get('haNameSpace');
+          if (component.get('isLoaded') && haNameSpace) {
+            hostComponents.findProperty('id', id).ha_name_space = haNameSpace;
           }
         }
       }, this);
@@ -484,11 +490,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           hostComponents.forEach(hc => {
             const haState = Em.get(hc, 'metrics.dfs.FSNamesystem.HAState'),
               hostName = Em.get(hc, 'HostRoles.host_name'),
-              haNameSpace = Em.get(hc, 'metrics.dfs.namenode.ClusterId'),
+              clusterIdValue = Em.get(hc, 'metrics.dfs.namenode.ClusterId'),
               id = `NAMENODE_${hostName}`;
             switch (haState) {
               case 'active':
-                nameSpacesWithActiveNameNodes.push(haNameSpace);
+                nameSpacesWithActiveNameNodes.push(clusterIdValue);
                 item.active_name_nodes.push(id);
                 break;
               case 'standby':
@@ -497,13 +503,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
               default:
                 unknownNameNodes.push({
                   hostName,
-                  haNameSpace
+                  clusterIdValue
                 });
                 break;
             }
           });
           unknownNameNodes.forEach(nameNode => {
-            if (nameSpacesWithActiveNameNodes.contains(nameNode.haNameSpace)) {
+            if (nameSpacesWithActiveNameNodes.contains(nameNode.clusterIdValue)) {
               item.standby_name_nodes.push(`NAMENODE_${nameNode.hostName}`);
             }
           });

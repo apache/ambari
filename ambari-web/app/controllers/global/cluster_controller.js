@@ -48,6 +48,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   isHostComponentMetricsLoaded: false,
 
+  isHDFSNameSpacesLoaded: false,
+
   /**
    * This counter used as event trigger to notify that quick links should be changed.
    */
