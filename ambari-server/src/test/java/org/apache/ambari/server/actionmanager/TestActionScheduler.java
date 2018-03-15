@@ -75,6 +75,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.CommandReportEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandPair;
@@ -849,7 +850,7 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, EasyMock.createNiceMock(AmbariEventPublisher.class), conf,
+        unitOfWork, EasyMock.createNiceMock(CommandReportEventPublisher.class), conf,
         entityManagerProviderMock, hostRoleCommandDAOMock, (HostRoleCommandFactory)null);
 
     scheduler.doWork();

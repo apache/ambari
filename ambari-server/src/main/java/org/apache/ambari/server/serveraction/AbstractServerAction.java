@@ -61,7 +61,7 @@ public abstract class AbstractServerAction implements ServerAction {
 
   @Override
   public ExecutionCommand getExecutionCommand() {
-    return this.executionCommand;
+    return executionCommand;
   }
 
   @Override
@@ -71,7 +71,7 @@ public abstract class AbstractServerAction implements ServerAction {
 
   @Override
   public HostRoleCommand getHostRoleCommand() {
-    return this.hostRoleCommand;
+    return hostRoleCommand;
   }
 
   @Override
@@ -115,6 +115,7 @@ public abstract class AbstractServerAction implements ServerAction {
 
         report.setActionId(StageUtils.getActionId(hostRoleCommand.getRequestId(), hostRoleCommand.getStageId()));
         report.setClusterName(executionCommand.getClusterName());
+        report.setMpackId(executionCommand.getMpackId());
         report.setConfigurationTags(executionCommand.getConfigurationTags());
         report.setRole(executionCommand.getRole());
         report.setRoleCommand((roleCommand == null) ? null : roleCommand.toString());

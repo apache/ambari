@@ -247,17 +247,20 @@ public class ExecutionCommandWrapper {
         executionCommand.setUpgradeSummary(upgradeSummary);
       }
 
+      ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(clusterId,
+          executionCommand.getServiceGroupName());
+
+      long mpackId = serviceGroupEntity.getStack().getMpackId();
+      Mpack mpack = ambariMetaInfo.getMpack(mpackId);
+      MpackEntity mpackEntity = mpackDAO.findById(mpackId);
+
+      executionCommand.setMpackId(mpackId);
+
       // setting repositoryFile
       final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
 
       if (null == executionCommand.getRepositoryFile() && null != host) {
         final CommandRepository commandRepository;
-
-        ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.find(clusterId, executionCommand.getServiceGroupName());
-        long mpackId = serviceGroupEntity.getStack().getMpackId();
-        Mpack mpack = ambariMetaInfo.getMpack(mpackId);
-        MpackEntity mpackEntity = mpackDAO.findById(mpackId);
-
         RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(mpackEntity, host);
         commandRepository = repoVersionHelper.getCommandRepository(mpack, osEntity);
         executionCommand.setRepositoryFile(commandRepository);

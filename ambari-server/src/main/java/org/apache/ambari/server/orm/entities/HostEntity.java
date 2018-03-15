@@ -22,6 +22,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -134,7 +135,7 @@ public class HostEntity implements Comparable<HostEntity> {
       cascade = CascadeType.ALL,
       fetch = FetchType.LAZY,
       orphanRemoval = true)
-  private Collection<MpackHostStateEntity> mpackHostInstallStates;
+  private List<MpackHostStateEntity> mpackHostInstallStates;
 
   @ManyToMany
   @JoinTable(name = "ClusterHostMapping",
@@ -396,11 +397,11 @@ public class HostEntity implements Comparable<HostEntity> {
     this.hostRoleCommandEntities = hostRoleCommandEntities;
   }
 
-  public Collection<MpackHostStateEntity> getMpackInstallStates() {
+  public List<MpackHostStateEntity> getMpackInstallStates() {
     return mpackHostInstallStates;
   }
 
-  public void setMpackInstallStates(Collection<MpackHostStateEntity> mpackHostInstallStates) {
+  public void setMpackInstallStates(List<MpackHostStateEntity> mpackHostInstallStates) {
     this.mpackHostInstallStates = mpackHostInstallStates;
   }
 }
