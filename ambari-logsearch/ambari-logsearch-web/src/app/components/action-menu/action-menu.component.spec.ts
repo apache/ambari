@@ -40,10 +40,11 @@ import {HistoryManagerService} from '@app/services/history-manager.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
-import {ModalComponent} from '@app/components/modal/modal.component';
+import {ModalComponent} from '@app/modules/shared/components/modal/modal.component';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
 
 import {ActionMenuComponent} from './action-menu.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('ActionMenuComponent', () => {
   let component: ActionMenuComponent;
@@ -94,7 +95,8 @@ describe('ActionMenuComponent', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

@@ -40,9 +40,10 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {AuthService} from '@app/services/auth.service';
 import {UtilsService} from '@app/services/utils.service';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 import {ContextMenuComponent} from './context-menu.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('ContextMenuComponent', () => {
   let component: ContextMenuComponent;
@@ -100,7 +101,8 @@ describe('ContextMenuComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         AuthService,
-        UtilsService
+        UtilsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

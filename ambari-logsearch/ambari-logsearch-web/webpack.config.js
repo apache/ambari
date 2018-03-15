@@ -77,6 +77,14 @@ const postcssPlugins = function () {
 
 const resourcesDirName = 'resources';
 
+const styles = [
+  path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
+  path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
+  path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
+  path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
+  path.join(process.cwd(), "src/styles.less")
+];
+
 module.exports = {
   "resolve": {
     "extensions": [
@@ -101,13 +109,7 @@ module.exports = {
     "polyfills": [
       "./src/polyfills.ts"
     ],
-    "styles": [
-      "./node_modules/bootstrap/dist/css/bootstrap.min.css",
-      "./node_modules/font-awesome/css/font-awesome.min.css",
-      "./src/vendor/css/bootstrap-logsearch.min.css",
-      "./src/vendor/css/bootstrap-datetimepicker.min.css",
-      "./src/styles.less"
-    ]
+    "styles": styles
   },
   "output": {
     "path": path.join(process.cwd(), "dist"),
@@ -138,13 +140,7 @@ module.exports = {
         "loader": `url-loader?name=${resourcesDirName}/[name].[ext]&limit=10000`
       },
       {
-        "exclude": [
-          path.join(process.cwd(), "src/styles.less"),
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
-        ],
+        "exclude": styles,
         "test": /\.css$/,
         "use": [
           "exports-loader?module.exports.toString()",
@@ -165,13 +161,7 @@ module.exports = {
         ]
       },
       {
-        "exclude": [
-          path.join(process.cwd(), "src/styles.less"),
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
-        ],
+        "exclude": styles,
         "test": /\.scss$|\.sass$/,
         "use": [
           "exports-loader?module.exports.toString()",
@@ -200,13 +190,7 @@ module.exports = {
         ]
       },
       {
-        "exclude": [
-          path.join(process.cwd(), "src/styles.less"),
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
-        ],
+        "exclude": styles,
         "test": /\.less$/,
         "use": [
           "exports-loader?module.exports.toString()",
@@ -229,20 +213,16 @@ module.exports = {
             "options": {
               "sourceMap": false,
               "paths": [
-                "./node_modules"
+                "./node_modules",
+                "./src/app/modules",
+                "./src/app/components"
               ]
             }
           }
         ]
       },
       {
-        "exclude": [
-          path.join(process.cwd(), "src/styles.less"),
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
-        ],
+        "exclude": styles,
         "test": /\.styl$/,
         "use": [
           "exports-loader?module.exports.toString()",
@@ -270,13 +250,7 @@ module.exports = {
         ]
       },
       {
-        "include": [
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
-          path.join(process.cwd(), "src/styles.less")
-        ],
+        "include": styles,
         "test": /\.css$/,
         "use": [
           "style-loader",
@@ -297,13 +271,7 @@ module.exports = {
         ]
       },
       {
-        "include": [
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
-          path.join(process.cwd(), "src/styles.less")
-        ],
+        "include": styles,
         "test": /\.scss$|\.sass$/,
         "use": [
           "style-loader",
@@ -332,13 +300,7 @@ module.exports = {
         ]
       },
       {
-        "include": [
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
-          path.join(process.cwd(), "src/styles.less")
-        ],
+        "include": styles,
         "test": /\.less$/,
         "use": [
           "style-loader",
@@ -366,13 +328,7 @@ module.exports = {
         ]
       },
       {
-        "include": [
-          path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
-          path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
-          path.join(process.cwd(), "src/styles.less")
-        ],
+        "include": styles,
         "test": /\.styl$/,
         "use": [
           "style-loader",

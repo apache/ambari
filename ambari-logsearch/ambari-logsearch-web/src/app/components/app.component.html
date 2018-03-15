@@ -17,11 +17,11 @@
 
 <header>
   <nav class="navbar">
-    <div class="container-fluid">
-      <h1 [ngClass]="{'full-flex-width': !isAuthorized, 'pull-left': true}">{{'common.title' | translate}}</h1>
-      <top-menu *ngIf="isAuthorized"></top-menu>
-    </div>
+    <h1 [ngClass]="{'full-flex-width': !(isAuthorized$ | async), 'pull-left': true}">{{'common.title' | translate}}</h1>
+    <breadcrumbs></breadcrumbs>
+    <top-menu *ngIf="isAuthorized$ | async"></top-menu>
   </nav>
 </header>
 
 <main-container></main-container>
+<simple-notifications [options]="notificationServiceOptions"></simple-notifications>
