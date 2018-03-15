@@ -43,6 +43,10 @@ var urls = {
   },
 
   'common.cluster.settings' : {
+    'real': '/clusters/{clusterName}/settings/?fields=ClusterSettingInfo/cluster_setting_name,ClusterSettingInfo/cluster_setting_value',
+  },
+
+  'common.cluster.settings.create' : {
     'type': 'POST',
     'real': '/clusters/{clusterName}/settings',
     'format': function (data) {
@@ -836,10 +840,6 @@ var urls = {
   'config.tags': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json'
-  },
-  'config.tags.site': {
-    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs/{site}',
-    'mock': ''
   },
   'config.tags_and_groups': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*{urlParams}',

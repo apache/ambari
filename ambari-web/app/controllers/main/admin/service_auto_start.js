@@ -82,35 +82,38 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     var self = this;
     var dfd = $.Deferred();
 
-    return this.loadClusterConfig().done(function (data) {
-      var tag = [
-        {
-          siteName: 'cluster-env',
-          tagName: data.Clusters.desired_configs['cluster-env'].tag,
-          newTagName: null
-        }
-      ];
-      self.set('tag', tag);
-      App.router.get('configurationController').getConfigsByTags(tag).done(function (data) {
-        var servicesAutoStart = data[0].properties.recovery_enabled === 'true';
-        self.set('clusterConfigs', data[0].properties);
-        self.set('servicesAutoStart', servicesAutoStart);
-        self.set('servicesAutoStartSaved', servicesAutoStart);
-        self.loadComponentsConfigs().done(dfd.resolve).fail(dfd.reject);
-      }).fail(dfd.reject);
+    return this.loadClusterSettings().done(function (settings) {
+      var servicesAutoStart = settings.recovery_enabled === 'true';
+      self.set('clusterConfigs', settings);
+      self.set('servicesAutoStart', servicesAutoStart);
+      self.set('servicesAutoStartSaved', servicesAutoStart);
+      self.loadComponentsConfigs().done(dfd.resolve).fail(dfd.reject);
     }).fail(dfd.reject);
 
     return dfd.promise();
   },
 
-  loadClusterConfig: function () {
-    return App.ajax.send({
-      name: 'config.tags.site',
-      sender: this,
-      data: {
-        site: 'cluster-env'
+  loadClusterSettings: function () {
+    const dfd = $.Deferred();
+
+    App.ajax.send({
+      name: 'common.cluster.settings',
+      sender: this
+    }).then(data => {
+      const settings = {};
+      
+      if (data && data.items) {
+        data.items.forEach(item => {
+          const key = item.ClusterSettingInfo.cluster_setting_name;
+          const value = item.ClusterSettingInfo.cluster_setting_value;
+          settings[key] = value;
+        });
       }
-    });
+      
+      dfd.resolve(settings);
+    }, dfd.reject);
+    
+    return dfd.promise();
   },
 
   loadComponentsConfigs: function () {
