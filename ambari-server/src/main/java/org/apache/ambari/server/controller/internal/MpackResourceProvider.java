@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,6 +55,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.registry.RegistryMpack;
 import org.apache.ambari.server.registry.RegistryMpackVersion;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.Validate;
 
@@ -268,39 +270,50 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     } else {
       // Fetch a particular mpack based on id
       Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
-      if (propertyMap.containsKey(STACK_NAME_PROPERTY_ID)
+      if (propertyMap.containsKey(MPACK_RESOURCE_ID)) {
+        Object objMpackId = propertyMap.get(MPACK_RESOURCE_ID);
+        if (objMpackId != null) {
+          mpackId = Long.valueOf((String) objMpackId);
+        }
+        MpackResponse response = getManagementController().getMpack(mpackId);
+        Resource resource = new ResourceImpl(Resource.Type.Mpack);
+        if (null != response) {
+          resource.setProperty(MPACK_RESOURCE_ID, response.getId());
+          resource.setProperty(MPACK_ID, response.getMpackId());
+          resource.setProperty(MPACK_NAME, response.getMpackName());
+          resource.setProperty(MPACK_VERSION, response.getMpackVersion());
+          resource.setProperty(MPACK_URI, response.getMpackUri());
+          resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
+          resource.setProperty(REGISTRY_ID, response.getRegistryId());
+          List<Module> modules = getManagementController().getModules(response.getId());
+          resource.setProperty(MODULES, modules);
+          results.add(resource);
+        }
+      } //Fetch an mpack based on a stackVersion query
+      else if (propertyMap.containsKey(STACK_NAME_PROPERTY_ID)
           && propertyMap.containsKey(STACK_VERSION_PROPERTY_ID)) {
         String stackName = (String) propertyMap.get(STACK_NAME_PROPERTY_ID);
         String stackVersion = (String) propertyMap.get(STACK_VERSION_PROPERTY_ID);
         StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
         mpackId = stackEntity.getMpackId();
-      } else if (propertyMap.containsKey(MPACK_RESOURCE_ID)) {
-        Object objMpackId = propertyMap.get(MPACK_RESOURCE_ID);
-        if (objMpackId != null) {
-          mpackId = Long.valueOf((String) objMpackId);
+        MpackResponse response = getManagementController().getMpack(mpackId);
+        Resource resource = new ResourceImpl(Resource.Type.Mpack);
+        if (null != response) {
+          resource.setProperty(MPACK_RESOURCE_ID, response.getId());
+          resource.setProperty(MPACK_ID, response.getMpackId());
+          resource.setProperty(MPACK_NAME, response.getMpackName());
+          resource.setProperty(MPACK_VERSION, response.getMpackVersion());
+          resource.setProperty(MPACK_URI, response.getMpackUri());
+          resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
+          resource.setProperty(REGISTRY_ID, response.getRegistryId());
+          resource.setProperty(STACK_NAME_PROPERTY_ID, stackName);
+          resource.setProperty(STACK_VERSION_PROPERTY_ID, stackVersion);
+          results.add(resource);
         }
       }
-
       if (null == mpackId) {
         throw new IllegalArgumentException(
             "Either the management pack ID or the stack name and version are required when searching");
-      }
-
-      MpackResponse response = getManagementController().getMpack(mpackId);
-      Resource resource = new ResourceImpl(Resource.Type.Mpack);
-      if (null != response) {
-        resource.setProperty(MPACK_RESOURCE_ID, response.getId());
-        resource.setProperty(MPACK_ID, response.getMpackId());
-        resource.setProperty(MPACK_NAME, response.getMpackName());
-        resource.setProperty(MPACK_VERSION, response.getMpackVersion());
-        resource.setProperty(MPACK_URI, response.getMpackUri());
-        resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
-        resource.setProperty(REGISTRY_ID, response.getRegistryId());
-
-        StackId stackId = new StackId(response.getStackId());
-        resource.setProperty(STACK_NAME_PROPERTY_ID, stackId.getStackName());
-        resource.setProperty(STACK_VERSION_PROPERTY_ID, stackId.getStackVersion());
-        results.add(resource);
       }
 
       if (results.isEmpty()) {
