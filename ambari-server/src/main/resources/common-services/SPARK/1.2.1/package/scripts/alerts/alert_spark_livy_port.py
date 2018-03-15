@@ -35,6 +35,8 @@ CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
 
 logger = logging.getLogger('ambari_alerts')
 
+LIVY_SERVER_HOST_KEY = '{{livy-conf/livy.server.host}}'
+
 LIVY_SERVER_PORT_KEY = '{{livy-conf/livy.server.port}}'
 
 LIVYUSER_DEFAULT = 'livy'
@@ -58,7 +60,7 @@ def get_tokens():
     Returns a tuple of tokens in the format {{site/property}} that will be used
     to build the dictionary passed into execute
     """
-    return (LIVY_SERVER_PORT_KEY,LIVYUSER_DEFAULT,SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,SMOKEUSER_KEY,LIVY_SSL_ENABLED_KEY)
+    return (LIVY_SERVER_HOST_KEY,LIVY_SERVER_PORT_KEY,LIVYUSER_DEFAULT,SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,SMOKEUSER_KEY,LIVY_SSL_ENABLED_KEY)
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def execute(configurations={}, parameters={}, host_name=None):
@@ -92,6 +94,9 @@ def execute(configurations={}, parameters={}, host_name=None):
     smokeuser_kerberos_keytab = None
     if SMOKEUSER_KEYTAB_KEY in configurations:
         smokeuser_kerberos_keytab = configurations[SMOKEUSER_KEYTAB_KEY]
+
+    if LIVY_SERVER_HOST_KEY in configurations:
+        host_name = str(configurations[LIVY_SERVER_HOST_KEY])
 
     if host_name is None:
         host_name = socket.getfqdn()
