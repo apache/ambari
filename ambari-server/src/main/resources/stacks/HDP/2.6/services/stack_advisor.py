@@ -122,11 +122,16 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     cluster_env = self.getServicesSiteProperties(services, "cluster-env")
     if cluster_env and "recommendations_full_stack_version" in cluster_env:
       full_stack_version = cluster_env["recommendations_full_stack_version"]
-      if compare_versions(full_stack_version, '2.6.3.0') >= 0:
+      if full_stack_version and compare_versions(full_stack_version, '2.6.3.0', format=True) >= 0:
         zeppelin_config = self.getServicesSiteProperties(services, "zeppelin-config")
-        if zeppelin_config and zeppelin_config.get('zeppelin.notebook.storage', None) == 'org.apache.zeppelin.notebook.repo.VFSNotebookRepo':
+        if zeppelin_config:
           putZeppelinConfigProperty = self.putProperty(configurations, 'zeppelin-config', services)
-          putZeppelinConfigProperty('zeppelin.notebook.storage', 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo')
+
+          if zeppelin_config.get('zeppelin.notebook.storage', None) == 'org.apache.zeppelin.notebook.repo.VFSNotebookRepo':
+            putZeppelinConfigProperty('zeppelin.notebook.storage', 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo')
+
+          if 'zeppelin.config.fs.dir' not in zeppelin_config:
+            putZeppelinConfigProperty('zeppelin.config.fs.dir', 'conf')
 
 
     self.__addZeppelinToLivy2SuperUsers(configurations, services)
