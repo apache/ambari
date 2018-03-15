@@ -27,8 +27,6 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.version import format_stack_version
@@ -39,6 +37,8 @@ from resource_management.libraries.functions.stack_features import get_stack_fea
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+import resource_management.libraries.functions.config_helper as config_helper
+from resource_management.libraries.functions.mpack_manager_helper import get_component_conf_path, get_component_home_path
 
 
 config = Script.get_config()
@@ -109,12 +109,22 @@ def is_secure_port(port):
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
-hadoop_home = stack_select.get_hadoop_dir("home")
+
+mpack_name = config_helper.get_mpack_name(config)
+mpack_instance_name = config_helper.get_mpack_instance_name(config)
+module_name = config_helper.get_module_name(config)
+component_type = config_helper.get_component_type(config)
+component_instance_name = config_helper.get_component_instance_name(config)
+
+
+hadoop_home = get_component_home_path(mpack_name=mpack_name, instance_name=mpack_instance_name, module_name=module_name,
+                                      components_instance_type=component_type,
+                                      component_instance_name=component_instance_name)
 stack_name = default("/hostLevelParams/stack_name", None)
 stack_name = stack_name.lower()
 component_directory = "namenode"
-hadoop_libexec_dir = format("/usr/hwx/mpacks/{stack_name}/{stack_version_formatted}/{component_directory}/libexec")
-hadoop_lib_home = stack_select.get_hadoop_dir("lib")
+hadoop_libexec_dir = format("{hadoop_home}/libexec")
+hadoop_lib_home = format("{hadoop_home}/lib")
 
 hadoop_dir = "/etc/hadoop"
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
@@ -215,7 +225,9 @@ if dfs_ha_namenode_ids:
     dfs_ha_enabled = True
 
 if has_namenode or dfs_type == 'HCFS':
-    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+    hadoop_conf_dir = get_component_conf_path(mpack_name=mpack_name, instance_name=mpack_instance_name, module_name=module_name,
+                                              components_instance_type=component_type,
+                                              component_instance_name=component_instance_name)
     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
