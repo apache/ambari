@@ -184,7 +184,6 @@ public class ExecutionCommand extends AgentCommand {
    * the deprecated use of {@link KeyNames#REPO_INFO}
    */
   @SerializedName("repositoryFile")
-  @JsonIgnore
   private CommandRepository commandRepository;
 
   @SerializedName("componentVersionMap")

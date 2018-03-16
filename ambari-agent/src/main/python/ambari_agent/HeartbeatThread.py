@@ -93,11 +93,7 @@ class HeartbeatThread(threading.Thread):
         logger.debug("Heartbeat response is {0}".format(response))
         self.handle_heartbeat_reponse(response)
       except Exception as ex:
-        if isinstance(ex, (ConnectionIsAlreadyClosed)):
-          logger.info("Connection was closed. Re-running the registration")
-        elif isinstance(ex, (socket_error)):
-          logger.info("Connection error \"{0}\". Re-running the registration".format(str(ex)))
-        else:
+        if not isinstance(ex, (socket_error, ConnectionIsAlreadyClosed)):
           logger.exception("Exception in HeartbeatThread. Re-running the registration")
 
         self.unregister()
@@ -129,7 +125,7 @@ class HeartbeatThread(threading.Thread):
 
     for endpoint, cache, listener in self.post_registration_requests:
       # should not hang forever on these requests
-      response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
+      response = self.blocking_request({'hash': cache.hash}, endpoint)
       try:
         listener.on_event({}, response)
       except:
@@ -231,16 +227,12 @@ class HeartbeatThread(threading.Thread):
     for topic_name in topics_list:
       self.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
 
-  def blocking_request(self, message, destination, log_handler=None, timeout=REQUEST_RESPONSE_TIMEOUT):
+  def blocking_request(self, message, destination, timeout=REQUEST_RESPONSE_TIMEOUT):
     """
     Send a request to server and waits for the response from it. The response it detected by the correspondence of correlation_id.
     """
-    def presend_hook(correlation_id):
-      if log_handler:
-        self.server_responses_listener.logging_handlers[str(correlation_id)] = log_handler 
-           
     try:
-      correlation_id = self.connection.send(message=message, destination=destination, presend_hook=presend_hook)
+      correlation_id = self.connection.send(message=message, destination=destination)
     except ConnectionIsAlreadyClosed:
       # this happens when trying to connect to broken connection. Happens if ambari-server is restarted.
       logger.warn("Connection failed while trying to connect to {0}".format(destination))
