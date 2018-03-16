@@ -605,7 +605,7 @@ public class AlertDefinitionHash {
    * following types of alert definitions:
    * <ul>
    * <li>Service/Component alerts</li>
-   * <li>Service alerts where the host is a MASTER</li>
+   * <li>Service alerts where the host is a MASTER except AGGREGATE alerts</li>
    * <li>Host alerts that are not bound to a service</li>
    * </ul>
    *

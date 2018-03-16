@@ -59,7 +59,7 @@ class AlertStatusReporter(threading.Thread):
           changed_alerts = self.get_changed_alerts(alerts)
 
           if changed_alerts and self.initializer_module.is_registered:
-            self.initializer_module.connection.send(message=changed_alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT)
+            self.initializer_module.connection.send(message=changed_alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT, log_message_function=AlertStatusReporter.log_sending)
             self.save_results(changed_alerts)
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
@@ -93,3 +93,18 @@ class AlertStatusReporter(threading.Thread):
         changed_alerts.append(alert)
 
     return changed_alerts
+    
+  @staticmethod
+  def log_sending(message_dict):
+    """
+    Returned dictionary will be used while logging sent alert status.
+    Used because full dict is too big for logs and should be shortened
+    """
+    try:
+      for alert_status in message_dict:
+        if 'text' in alert_status:
+          alert_status['text'] = '...'
+    except KeyError:
+      pass
+      
+    return message_dict

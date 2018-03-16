@@ -137,7 +137,7 @@ public class AlertHelper {
    * @param staleAlertsDefinitionId list of stale alerts
    */
   public void addStaleAlerts(Long hostId, List<StaleAlert> staleAlertsDefinitionId) {
-    staleAlerts.putIfAbsent(hostId, new ConcurrentHashMap<>());
+    staleAlerts.put(hostId, new ConcurrentHashMap<>());
     ConcurrentMap<Long, Long> hostStaleAlerts = staleAlerts.get(hostId);
     staleAlertsDefinitionId.forEach(s -> hostStaleAlerts.put(s.getId(), s.getTimestamp()));
   }
