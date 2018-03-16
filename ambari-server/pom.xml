@@ -236,7 +236,7 @@
         <executions>
           <execution>
             <id>copy-resources</id>
-            <phase>generate-test-resources</phase>
+            <phase>process-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>

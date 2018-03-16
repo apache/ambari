@@ -488,7 +488,7 @@
           </execution>
            <execution>
             <id>copy-resources-filter</id>
-            <phase>generate-resources</phase>
+            <phase>process-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
