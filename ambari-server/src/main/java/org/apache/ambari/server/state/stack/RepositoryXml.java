@@ -114,6 +114,7 @@ public class RepositoryXml implements Validable{
     private String packageVersion;
 
     @XmlElement(name="repo")
+    @JsonProperty("repositories")
     private List<Repo> repos;
 
     private Os() {
@@ -178,6 +179,7 @@ public class RepositoryXml implements Validable{
     /**
      * @return the base url
      */
+    @JsonProperty("base_url")
     public String getBaseUrl() {
       return (null == baseurl || baseurl.isEmpty()) ? null : baseurl;
     }
@@ -185,6 +187,7 @@ public class RepositoryXml implements Validable{
     /**
      * @return the mirrorlist field
      */
+    @JsonProperty("mirrors_list")
     public String getMirrorsList() {
       return (null == mirrorslist || mirrorslist.isEmpty()) ? null : mirrorslist;
     }
@@ -192,6 +195,7 @@ public class RepositoryXml implements Validable{
     /**
      * @return the repo id
      */
+    @JsonProperty("repo_id")
     public String getRepoId() {
       return repoid;
     }
@@ -199,20 +203,25 @@ public class RepositoryXml implements Validable{
     /**
      * @return the repo name
      */
+    @JsonProperty("repo_name")
     public String getRepoName() {
       return reponame;
     }
 
+    @JsonProperty("distribution")
     public String getDistribution() {
       return distribution;
     }
 
+    @JsonProperty("components")
     public String getComponents() {
       return components;
     }
+
     /**
      * @return true if version of HDP that change with each release
      */
+    @JsonProperty("unique")
     public boolean isUnique() {
       return unique;
     }
@@ -227,6 +236,7 @@ public class RepositoryXml implements Validable{
     /**
      * @return the repo tags
      */
+    @JsonProperty("tags")
     public Set<RepoTag> getTags() {
       return tags;
     }

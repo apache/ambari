@@ -87,13 +87,16 @@ public class MpackManager {
   private File stackRoot;
   private RepositoryVersionHelper repoVersionHelper;
   private AmbariEventPublisher eventPublisher;
+  private final Gson gson;
 
 
   @AssistedInject
   public MpackManager(@Assisted("mpacksv2Staging") File mpacksStagingLocation,
-      @Assisted("stackRoot") File stackRootDir, MpackDAO mpackDAOObj, StackDAO stackDAOObj,
-      RepositoryVersionHelper repoVersionHelper, AmbariEventPublisher eventPublisher) {
+      @Assisted("stackRoot") File stackRootDir, Gson gson, MpackDAO mpackDAOObj,
+      StackDAO stackDAOObj, RepositoryVersionHelper repoVersionHelper,
+      AmbariEventPublisher eventPublisher) {
     mpacksStaging = mpacksStagingLocation;
+    this.gson = gson;
     mpackDAO = mpackDAOObj;
     stackRoot = stackRootDir;
     stackDAO = stackDAOObj;
@@ -125,13 +128,22 @@ public class MpackManager {
                   MpackEntity mpackEntity = (MpackEntity) resultSet.get(0);
 
                   // Read the mpack.json file into Mpack Object for further use.
-                  String mpackJsonContents = new String((Files.readAllBytes(Paths.get(file + "/" + MPACK_METADATA))),
-                    "UTF-8");
-                  Gson gson = new Gson();
+                  String mpackJsonContents = new String(
+                      (Files.readAllBytes(Paths.get(file + "/" + MPACK_METADATA))), "UTF-8");
+
                   Mpack existingMpack = gson.fromJson(mpackJsonContents, Mpack.class);
                   existingMpack.setResourceId(mpackEntity.getId());
                   existingMpack.setMpackUri(mpackEntity.getMpackUri());
                   existingMpack.setRegistryId(mpackEntity.getRegistryId());
+
+                  RepositoryXml repositoryXml = RepoUtil.getRepositoryXml(file);
+                  if (null == repositoryXml) {
+                    throw new IOException("The repository file " + RepoUtil.REPOSITORY_FILE_NAME
+                        + " must exist in the management pack located at " + file);
+                  }
+
+                  existingMpack.setRepositoryXml(repositoryXml);
+
                   mpackMap.put(mpackEntity.getId(), existingMpack);
                 }
               }
@@ -140,6 +152,7 @@ public class MpackManager {
         }
       }
     } catch (NullPointerException|IOException e) {
+      LOG.error("Unable to parse existing mpack structure", e);
       e.printStackTrace();
     }
   }

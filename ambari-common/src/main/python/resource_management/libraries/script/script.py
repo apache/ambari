@@ -227,7 +227,7 @@ class Script(object):
 
     self.put_structured_out({"mpackId": command_repository.mpack_id})
     self.put_structured_out({"mpackName":command_repository.mpack_name})
-    self.put_structured_out({"mpackVersion":command_repository.version_string})
+    self.put_structured_out({"mpackVersion":command_repository.version_string})a
 
 
   def save_component_version_to_structured_out(self, command_name):
