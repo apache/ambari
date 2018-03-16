@@ -362,14 +362,8 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     var fromSeconds,
       toSeconds,
       hostName = (this.get('content')) ? this.get('content.hostName') : "",
-      HDFSService = App.HDFSService.find().objectAt(0),
-      nameNodeName = "",
       YARNService = App.YARNService.find().objectAt(0),
       resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
-    if (HDFSService) {
-      // TODO rewrite considering federation case and using activeNameNodes array
-      nameNodeName = (HDFSService.get('activeNameNode')) ? HDFSService.get('activeNameNode.hostName') : HDFSService.get('nameNode.hostName');
-    }
     if (this.get('currentTimeIndex') === 8 && !Em.isNone(this.get('customStartTime')) && !Em.isNone(this.get('customEndTime'))) {
       // Custom start and end time is specified by user
       toSeconds = this.get('customEndTime') / 1000;
@@ -385,7 +379,6 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       fromSeconds: fromSeconds,
       stepSeconds: 15,
       hostName: hostName,
-      nameNodeName: nameNodeName,
       resourceManager: resourceManager
     };
   },

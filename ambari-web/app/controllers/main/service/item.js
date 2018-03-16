@@ -383,7 +383,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         this.getHdfsUser().done(() => {
           const maxAge = App.nnCheckpointAgeAlertThreshold,
             hdfsUser = this.get('hdfsUser'),
-            confirmButton =Em.I18n.t('common.next');
+            confirmButton = Em.I18n.t('common.next');
           let msg;
           if (App.get('hasNameNodeFederation') && !groupName) {
             const oldCheckpointNameSpacesList = nameNodesWithOldCheckpoints.map(nn => `<li>${nn.haNameSpace}</li>`),

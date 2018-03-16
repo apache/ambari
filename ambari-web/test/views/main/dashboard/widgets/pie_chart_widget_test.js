@@ -32,8 +32,8 @@ describe('App.PieChartDashboardWidgetView', function() {
   var pieChartDashboardWidgetView = App.PieChartDashboardWidgetView.create({
     model_type: null,
     model: model,
-    modelFieldUsed: 'used',
-    modelFieldMax: 'max',
+    modelValueUsed: Em.computed.alias('model.used'),
+    modelValueMax: Em.computed.alias('model.max'),
     widgetHtmlId: 'fake'
   });
 

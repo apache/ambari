@@ -20,16 +20,16 @@ var App = require('app');
 
 App.ResourceManagerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  modelFieldMax: 'jvmMemoryHeapMax',
-  modelFieldUsed: 'jvmMemoryHeapUsed',
+  modelValueMax: Em.computed.alias('model.jvmMemoryHeapMax'),
+  modelValueUsed: Em.computed.alias('model.jvmMemoryHeapUsed'),
   widgetHtmlId: 'widget-rm-heap',
 
   getUsed: function() {
-    return this.get('model').get(this.get('modelFieldUsed')) / (1024 * 1024) || 0;
+    return this.get('modelValueUsed') / (1024 * 1024) || 0;
   },
 
   getMax: function() {
-    return this.get('model').get(this.get('modelFieldMax')) / (1024 * 1024) || 0;
+    return this.get('modelValueMax') / (1024 * 1024) || 0;
   },
 
   didInsertElement: function() {
