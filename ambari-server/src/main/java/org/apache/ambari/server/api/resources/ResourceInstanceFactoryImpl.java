@@ -255,7 +255,8 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case DefaultOperatingSystem:
-        resourceDefinition = new DefaultOperatingSystemResourceDefinition();
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.DefaultOperatingSystem,
+            "default_operating_system", "default_operating_systems");
         break;
 
       case OperatingSystem:

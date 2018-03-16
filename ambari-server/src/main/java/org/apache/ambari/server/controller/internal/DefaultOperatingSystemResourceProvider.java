@@ -66,7 +66,7 @@ public class DefaultOperatingSystemResourceProvider extends ReadOnlyResourceProv
   };
 
   /**
-   *
+   * Used to retrieve the in-memory mpack.
    */
   @Inject
   private static Provider<AmbariMetaInfo> m_ambariMetaInfoProvider;
