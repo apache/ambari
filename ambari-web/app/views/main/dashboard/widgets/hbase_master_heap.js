@@ -17,12 +17,11 @@
  */
 
 var App = require('app');
-var numberUtils = require('utils/number_utils');
 
 App.HBaseMasterHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  modelFieldMax: 'heapMemoryMax',
-  modelFieldUsed: 'heapMemoryUsed',
+  modelValueMax: Em.computed.alias('model.heapMemoryMax'),
+  modelValueUsed: Em.computed.alias('model.heapMemoryUsed'),
   widgetHtmlId: 'widget-hbase-heap',
 
   didInsertElement: function() {
@@ -31,10 +30,10 @@ App.HBaseMasterHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   },
 
   getUsed: function() {
-    return this.get('model').get(this.get('modelFieldUsed')) / (1024 * 1024) || 0;
+    return this.get('modelValueUsed') / (1024 * 1024) || 0;
   },
 
   getMax: function() {
-    return this.get('model').get(this.get('modelFieldMax')) / (1024 * 1024) || 0;
+    return this.get('modelValueMax') / (1024 * 1024) || 0;
   }
 });

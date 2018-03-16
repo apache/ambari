@@ -83,6 +83,8 @@ App.QuickLinksView = Em.View.extend({
 
   tooltipAttribute: 'quick-links-title-tooltip',
 
+  shouldSetGroupedLinks: false,
+
   /**
    * @type {object}
    */
@@ -291,7 +293,7 @@ App.QuickLinksView = Em.View.extend({
       this.setEmptyLinks();
     } else if (hosts.length === 1 || isMultipleComponentsInLinks || this.hasOverriddenHost()) {
       this.setSingleHostLinks(hosts, response);
-    } else if (this.get('masterGroups.length') > 1) {
+    } else if (this.get('masterGroups.length') > 1 || this.get('shouldSetGroupedLinks')) {
       this.setMultipleGroupLinks(hosts);
     } else {
       this.setMultipleHostLinks(hosts);
