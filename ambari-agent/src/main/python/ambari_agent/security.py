@@ -20,6 +20,7 @@ import gzip
 import httplib
 import urllib2
 import socket
+import copy
 import ssl
 import os
 import logging
@@ -105,12 +106,16 @@ class AmbariStompConnection(WsConnection):
     self.correlation_id = -1
     WsConnection.__init__(self, *args, **kwargs)
 
-  def send(self, destination, message, content_type=None, headers=None, **keyword_headers):
+  def send(self, destination, message, content_type=None, headers=None, log_message_function=lambda x:x, presend_hook=None, **keyword_headers):
     with self.lock:
       self.correlation_id += 1
       correlation_id = self.correlation_id
+      
+    if presend_hook:
+      presend_hook(self.correlation_id)
 
-    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, correlation_id, message))
+    logged_message = log_message_function(copy.deepcopy(message))
+    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, correlation_id, logged_message))
 
     body = json.dumps(message)
     WsConnection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=correlation_id, **keyword_headers)

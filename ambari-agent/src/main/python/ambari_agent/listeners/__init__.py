@@ -20,6 +20,7 @@ limitations under the License.
 import ambari_simplejson as json
 import ambari_stomp
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,8 @@ class EventListener(ambari_stomp.ConnectionListener):
       except ValueError:
         logger.exception("Received from server event is not a valid message json. Message is:\n{0}".format(message))
         return
-      logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, message_json)))
+
+      logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, copy.deepcopy(message_json))))
       try:
         self.on_event(headers, message_json)
       except:

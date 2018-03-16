@@ -60,3 +60,18 @@ class AlertDefinitionsEventListener(EventListener):
 
   def get_handled_path(self):
     return Constants.ALERTS_DEFINITIONS_TOPIC
+    
+  def get_log_message(self, headers, message_json):
+    """
+    This string will be used to log received messsage of this type.
+    Usually should be used if full dict is too big for logs and should shortened or made more readable
+    """
+    try:
+      for cluster_id in message_json['clusters']:
+        for alert_definition in message_json['clusters'][cluster_id]['alertDefinitions']:
+          if 'source' in alert_definition:
+            alert_definition['source'] = '...'
+    except KeyError:
+      pass
+      
+    return super(AlertDefinitionsEventListener, self).get_log_message(headers, message_json)

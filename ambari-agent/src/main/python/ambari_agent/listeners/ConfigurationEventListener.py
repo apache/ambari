@@ -50,3 +50,17 @@ class ConfigurationEventListener(EventListener):
 
   def get_handled_path(self):
     return Constants.CONFIGURATIONS_TOPIC
+    
+  def get_log_message(self, headers, message_json):
+    """
+    This string will be used to log received messsage of this type.
+    Usually should be used if full dict is too big for logs and should shortened shortened or made more readable
+    """
+    try:
+      for cluster_id in message_json['clusters']:
+        for config_type in message_json['clusters'][cluster_id]['configurations']:
+          message_json['clusters'][cluster_id]['configurations'][config_type] = '...'
+    except KeyError:
+      pass
+      
+    return super(ConfigurationEventListener, self).get_log_message(headers, message_json)
