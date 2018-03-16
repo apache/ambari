@@ -2664,7 +2664,7 @@ List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();    String serviceN
    *
    * @return
    */
-  private ClusterEntity getClusterEntity() {
+  public ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }
 
