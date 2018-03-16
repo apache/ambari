@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.stackadvisor;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 
 @Singleton
 public class StackAdvisorRunner {
@@ -78,6 +78,9 @@ public class StackAdvisorRunner {
         ProcessBuilder builder = prepareShellCommand(ServiceInfo.ServiceAdvisorType.PYTHON, StackAdvisorHelper.pythonStackAdvisorScript, saCommandType,
             actionDirectory, outputFile,
             errorFile);
+        builder.environment().put("METADATA_DIR_PATH", configs.getProperty(Configuration.METADATA_DIR_PATH));
+        builder.environment().put("BASE_SERVICE_ADVISOR", Paths.get(configs.getProperty(Configuration.METADATA_DIR_PATH), "service_advisor.py").toString());
+        builder.environment().put("BASE_STACK_ADVISOR", Paths.get(configs.getProperty(Configuration.METADATA_DIR_PATH), "stack_advisor.py").toString());
         stackAdvisorReturnCode = launchProcess(builder);
         break;
     }
@@ -219,5 +222,9 @@ public class StackAdvisorRunner {
     LOG.debug("StackAdvisorRunner. Stack advisor command is {}", StringUtils.join(" ", builderParameters));
 
     return new ProcessBuilder(builderParameters);
+  }
+
+  public void setConfigs(Configuration configs) {
+    this.configs = configs;
   }
 }
