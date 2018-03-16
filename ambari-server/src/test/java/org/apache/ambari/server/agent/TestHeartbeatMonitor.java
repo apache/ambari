@@ -18,7 +18,6 @@
 package org.apache.ambari.server.agent;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -225,7 +224,6 @@ public class TestHeartbeatMonitor {
       assertEquals(isDataNode, execCmd != null);
       if (execCmd != null) {
         Map<String, String> commandParams = execCmd.getCommandParams();
-        assertTrue(SERVICE_PACKAGE_FOLDER + " should be included", commandParams.containsKey(SERVICE_PACKAGE_FOLDER));
         assertTrue(HOOKS_FOLDER + " should be included", commandParams.containsKey(HOOKS_FOLDER));
       }
     }
