@@ -782,6 +782,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             new StackId(targetStack.getStackName(), targetStack.getStackVersion()));
       }
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
+      s_upgradeHelper.publishDesiredRepositoriesUpdates(upgradeContext);
       if (direction == Direction.DOWNGRADE) {
         StackId targetStack = upgradeContext.getCluster().getCurrentStackVersion();
         cluster.setDesiredStackVersion(targetStack);

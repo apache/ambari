@@ -74,7 +74,10 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    service_subpath = command['serviceLevelParams']['service_package_folder']
+    if 'service_package_folder' in command['commandParams']:
+      service_subpath = command['commandParams']['service_package_folder']
+    else:
+      service_subpath = command['serviceLevelParams']['service_package_folder']
     return self.provide_directory(self.cache_dir, service_subpath,
                                   server_url_prefix)
 

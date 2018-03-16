@@ -50,7 +50,7 @@ service_name = config['serviceName']
 logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
 
 agent_cache_dir = config['agentLevelParams']['agentCacheDir']
-service_package_folder = config['serviceLevelParams']['service_package_folder']
+service_package_folder = config['commandParams']['service_package_folder']
 logsearch_service_name = service_name.lower().replace("_", "-")
 logsearch_config_file_name = 'input.config-' + logsearch_service_name + ".json"
 logsearch_config_file_path = agent_cache_dir + "/" + service_package_folder + "/templates/" + logsearch_config_file_name + ".j2"
