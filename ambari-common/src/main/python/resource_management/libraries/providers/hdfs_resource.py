@@ -149,10 +149,10 @@ class WebHDFSCallException(Fail):
     return None
 
 class WebHDFSUtil:
-  def __init__(self, hdfs_site, run_user, security_enabled, logoutput=None):
-    https_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.https-address',
+  def __init__(self, hdfs_site, nameservice, run_user, security_enabled, logoutput=None):
+    https_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, nameservice, 'dfs.namenode.https-address',
                                                                           security_enabled, run_user)
-    http_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.http-address',
+    http_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, nameservice, 'dfs.namenode.http-address',
                                                                          security_enabled, run_user)
     self.is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
 
@@ -319,7 +319,15 @@ class HdfsResourceWebHDFS:
     if main_resource.resource.security_enabled:
       main_resource.kinit()
 
-    self.util = WebHDFSUtil(main_resource.resource.hdfs_site, main_resource.resource.user, 
+    nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
+    if not nameservices:
+      self.action_delayed_for_nameservice(None, action_name, main_resource)
+    else:
+      for nameservice in nameservices:
+        self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
+
+  def action_delayed_for_nameservice(self, nameservice, action_name, main_resource):
+    self.util = WebHDFSUtil(main_resource.resource.hdfs_site, nameservice, main_resource.resource.user,
                             main_resource.resource.security_enabled, main_resource.resource.logoutput)
     self.mode = oct(main_resource.resource.mode)[1:] if main_resource.resource.mode else main_resource.resource.mode
     self.mode_set = False
