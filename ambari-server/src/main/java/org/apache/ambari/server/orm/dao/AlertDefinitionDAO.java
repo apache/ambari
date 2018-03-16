@@ -231,7 +231,7 @@ public class AlertDefinitionDAO {
 
   /**
    * Gets all alert definitions for the specified services that do not have a
-   * component. These definitions are assumed to be run on the master hosts.
+   * component and do not belong to AGGREGATE source type. These definitions are assumed to be run on the master hosts.
    *
    * @param clusterId
    *          the ID of the cluster.

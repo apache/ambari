@@ -33,6 +33,7 @@ class ServerResponsesListener(EventListener):
   """
   def __init__(self):
     self.listener_functions = {}
+    self.logging_handlers = {}
     self.reset_responses()
 
   def on_event(self, headers, message):
@@ -63,6 +64,13 @@ class ServerResponsesListener(EventListener):
     """
     if Constants.CORRELATION_ID_STRING in headers:
       correlation_id = headers[Constants.CORRELATION_ID_STRING]
+      
+      if correlation_id in self.logging_handlers:
+        message_json = self.logging_handlers[correlation_id](headers, message_json)
+        if message_json.startswith(" :"):
+          message_json = message_json[2:]
+        del self.logging_handlers[correlation_id]
+      
       return " (correlation_id={0}): {1}".format(correlation_id, message_json)
     return str(message_json)
 
