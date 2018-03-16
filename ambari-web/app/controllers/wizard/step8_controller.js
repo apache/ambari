@@ -1012,7 +1012,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     if (mpacks) {
       const serviceGroups = mpacks.map(mpack => ({
           "ServiceGroupInfo": {
-            "service_group_name": `${mpack.name}`,
+            "service_group_name": mpack.name,
           }
         })
       );
@@ -1053,7 +1053,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           "service_type": service.get('serviceName'),
           //TODO: mpacks - needs to be revisited when we are no longer hard coding service groups to be named 
           //               for mpacks and when the concept of a "selected stack" is no longer a thing
-          "service_group_name": `${service.get('stackName')}`,
+          "service_group_name": service.get('stackName'),
           "desired_stack": `${service.get('stackName')}-${service.get('stackVersion')}`,
         }
       })
