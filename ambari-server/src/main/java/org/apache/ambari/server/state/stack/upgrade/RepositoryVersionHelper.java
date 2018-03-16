@@ -434,13 +434,10 @@ public class RepositoryVersionHelper {
     AmbariMetaInfo ambariMetaInfo = ambariMetainfoProvider.get();
 
     try {
-      Mpack mpack = context.getMpack();
-      if (null == mpack) {
-        final Cluster cluster = clusters.get().getCluster(context.getClusterName());
-        ServiceGroup serviceGroup = cluster.getServiceGroup(context.getExpectedServiceGroupName());
-        long mpackId = serviceGroup.getMpackId();
-        mpack = ambariMetaInfo.getMpack(mpackId);
-      }
+      final Cluster cluster = clusters.get().getCluster(context.getClusterName());
+      ServiceGroup serviceGroup = cluster.getServiceGroup(context.getExpectedServiceGroupName());
+      long mpackId = serviceGroup.getMpackId();
+      Mpack mpack = ambariMetaInfo.getMpack(mpackId);
 
       final CommandRepository commandRepo = getCommandRepository(mpack, osEntity);
 

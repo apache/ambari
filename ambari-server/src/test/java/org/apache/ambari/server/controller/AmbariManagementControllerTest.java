@@ -306,6 +306,11 @@ public class AmbariManagementControllerTest {
     repositoryVersion120 = helper.getOrCreateRepositoryVersion(
         new StackId("HDP-1.2.0"), "1.2.0-1234");
 
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-1.3.1"), "1.3.1");
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.5"), "2.0.5");
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.6"), "2.0.6");
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.7"), "2.0.7");
+
     repositoryVersion201 = helper.getOrCreateRepositoryVersion(
         new StackId("HDP-2.0.1"), "2.0.1-1234");
 

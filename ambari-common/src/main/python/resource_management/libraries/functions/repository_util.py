@@ -148,6 +148,16 @@ class CommandRepository(object):
        for repo_def in repos_def:
          self.items.append(CommandRepositoryItem(self, repo_def))
 
+  def __str__(self):
+    inner = []
+    if self.mpack_id:
+      inner.append("mpack_id: %s" % str(self.mpack_id))
+    elif self.mpack_name:
+      inner.append("mpack_name: %s" % str(self.mpack_name))
+    elif self.version_string:
+      inner.append("mpack_version: %s" % str(self.version_string))
+    return "CommandRepository{%s}" % ", ".join(inner)
+
 
 class CommandRepositoryItem(object):
   """

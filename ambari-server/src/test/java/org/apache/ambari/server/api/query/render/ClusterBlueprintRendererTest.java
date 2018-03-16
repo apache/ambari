@@ -133,8 +133,10 @@ public class ClusterBlueprintRendererTest {
   @Before
   public void setup() throws Exception {
     PowerMock.mockStatic(AmbariContext.class);
+    PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
     expect(AmbariContext.getController()).andReturn(controller).anyTimes();
+    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
 
     Map<String, String> clusterTypeProps = new HashMap<>();
     clusterProps.put("test-type-one", clusterTypeProps);
@@ -201,6 +203,7 @@ public class ClusterBlueprintRendererTest {
     setupKerberosDescriptorArtifact();
 
     PowerMock.replay(AmbariContext.class);
+    PowerMock.replay(AmbariServer.class);
     replay(topology, topologyWithKerberos, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor, clusterController, artifactResource, artifactResourceProvider);
   }
 

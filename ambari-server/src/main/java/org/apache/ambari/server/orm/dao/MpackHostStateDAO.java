@@ -26,6 +26,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
+import org.apache.ambari.server.state.MpackInstallState;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -71,14 +72,14 @@ public class MpackHostStateDAO extends CrudDAO<MpackHostStateEntity, Long> {
   @RequiresSession
   public List<MpackHostStateEntity> findByHost(String hostName) {
     final TypedQuery<MpackHostStateEntity> query = entityManagerProvider.get().createNamedQuery(
-        "mpackHostStateForHost", MpackHostStateEntity.class);
+        "findInstallStateByHost", MpackHostStateEntity.class);
     query.setParameter("hostName", hostName);
 
     return daoUtils.selectList(query);
   }
 
   /**
-   * Retrieve all of the host versions for the given management pack.
+   * Retrieve all of the install states for the given management pack.
    *
    * @param mpackId
    *          the ID of the mpack
@@ -88,8 +89,48 @@ public class MpackHostStateDAO extends CrudDAO<MpackHostStateEntity, Long> {
   @RequiresSession
   public List<MpackHostStateEntity> findByMpack(Long mpackId) {
     final TypedQuery<MpackHostStateEntity> query = entityManagerProvider.get().createNamedQuery(
-        "mpackHostStateForMpack", MpackHostStateEntity.class);
+        "findInstallStateByMpack", MpackHostStateEntity.class);
     query.setParameter("mpackId", mpackId);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Retrieve the installation state for a specific mpack on a host.
+   *
+   * @param mpackId
+   *          the ID of the mpack
+   * @param hostName
+   *          FQDN of host
+   * @return Return all of the mpack install states that match the criteria.
+   */
+  @RequiresSession
+  public MpackHostStateEntity findByMpackAndHost(Long mpackId, String hostName) {
+    final TypedQuery<MpackHostStateEntity> query = entityManagerProvider.get().createNamedQuery(
+        "findInstallStateByMpackAndHost", MpackHostStateEntity.class);
+    query.setParameter("mpackId", mpackId);
+    query.setParameter("hostName", hostName);
+
+    return daoUtils.selectOne(query);
+  }
+
+  /**
+   * Retrieve all of the matching install states for any mpack on the given
+   * host.
+   *
+   * @param mpackId
+   *          the ID of the mpack
+   * @param hostName
+   *          FQDN of host
+   * @return all of the hosts in the cluster which have entries for the
+   *         specified mpack.
+   */
+  @RequiresSession
+  public List<MpackHostStateEntity> findByHostAndInstallState(String hostName, MpackInstallState state) {
+    final TypedQuery<MpackHostStateEntity> query = entityManagerProvider.get().createNamedQuery(
+        "findInstallStateByStateAndHost", MpackHostStateEntity.class);
+    query.setParameter("hostName", hostName);
+    query.setParameter("mpackInstallState", state);
 
     return daoUtils.selectList(query);
   }

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.google.common.base.Objects;
 
 public class CommandReport {
 
@@ -37,6 +38,7 @@ public class CommandReport {
   private String roleCommand;
   private String customCommand;
   private Map<String, Map<String, String>> configurationTags;
+  private Long mpackId;
 
   @JsonProperty("customCommand")
   public String getCustomCommand() {
@@ -52,57 +54,57 @@ public class CommandReport {
   public long getTaskId() {
     return taskId;
   }
-  
+
   @JsonProperty("taskId")
   public void setTaskId(long taskId) {
     this.taskId = taskId;
   }
-  
+
   @JsonProperty("clusterName")
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-  
+
   @JsonProperty("clusterName")
   public String getClusterName() {
-    return this.clusterName;
+    return clusterName;
   }
 
   @JsonProperty("actionId")
   public String getActionId() {
-    return this.actionId;
+    return actionId;
   }
-  
+
   @JsonProperty("actionId")
   public void setActionId(String actionId) {
     this.actionId = actionId;
   }
-  
+
   @JsonProperty("stderr")
   public String getStdErr() {
-    return this.stderr;
+    return stderr;
   }
-  
+
   @JsonProperty("stderr")
   public void setStdErr(String stderr) {
     this.stderr = stderr;
   }
-  
+
   @JsonProperty("exitcode")
   public int getExitCode() {
-    return this.exitCode;
+    return exitCode;
   }
-  
+
   @JsonProperty("exitcode")
   public void setExitCode(int exitCode) {
     this.exitCode = exitCode;
   }
-  
+
   @JsonProperty("stdout")
   public String getStdOut() {
-    return this.stdout;
+    return stdout;
   }
-  
+
   @JsonProperty("stdout")
   public void setStdOut(String stdout) {
     this.stdout = stdout;
@@ -110,7 +112,7 @@ public class CommandReport {
 
   @JsonProperty("structuredOut")
   public String getStructuredOut() {
-    return this.structuredOut;
+    return structuredOut;
   }
 
 
@@ -121,7 +123,7 @@ public class CommandReport {
 
   @JsonProperty("roleCommand")
   public String getRoleCommand() {
-    return this.roleCommand;
+    return roleCommand;
   }
 
   @JsonProperty("roleCommand")
@@ -133,27 +135,27 @@ public class CommandReport {
   public String getRole() {
     return role;
   }
-  
+
   @JsonProperty("role")
   public void setRole(String role) {
     this.role = role;
   }
-  
+
   @JsonProperty("status")
   public String getStatus() {
     return status;
   }
-  
+
   @JsonProperty("status")
   public void setStatus(String status) {
     this.status = status;
   }
-  
+
   @JsonProperty("serviceName")
   public String getServiceName() {
     return serviceName;
   }
-  
+
   @JsonProperty("serviceName")
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
@@ -166,7 +168,7 @@ public class CommandReport {
   public void setConfigurationTags(Map<String, Map<String,String>> tags) {
     configurationTags = tags;
   }
-  
+
   /**
    * @return the config tags that match this command, or <code>null</code>
    * if none are present
@@ -176,19 +178,45 @@ public class CommandReport {
     return configurationTags;
   }
 
+  /**
+   * Gets the management pack ID associated with this command report, or
+   * {@code null} for none.
+   *
+   * @return the mpackId the ID of the management pack, or {@code null} for
+   *         none.
+   */
+  @JsonProperty("mpackId")
+  public Long getMpackId() {
+    return mpackId;
+  }
+
+  /**
+   * Sets the management pack ID associated with this command report.
+   *
+   * @param mpackId
+   *          the mpackId to set
+   */
+  @JsonProperty("mpackId")
+  public void setMpackId(Long mpackId) {
+    this.mpackId = mpackId;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString() {
-    return "CommandReport{" +
-            "role='" + role + '\'' +
-            ", actionId='" + actionId + '\'' +
-            ", status='" + status + '\'' +
-            ", exitCode=" + exitCode +
-            ", clusterName='" + clusterName + '\'' +
-            ", serviceName='" + serviceName + '\'' +
-            ", taskId=" + taskId +
-            ", roleCommand=" + roleCommand +
-            ", configurationTags=" + configurationTags +
-            ", customCommand=" + customCommand +
-            '}';
+    return Objects.toStringHelper(this).add("role", role)
+        .add("actionId", actionId)
+        .add("status", status)
+        .add("exitCode", exitCode)
+        .add("clusterName", clusterName)
+        .add("serviceName", serviceName)
+        .add("mpackId", mpackId)
+        .add("taskId", taskId)
+        .add("roleCommand", roleCommand)
+        .add("configurationTags", configurationTags)
+        .add("customCommand", customCommand).toString();
   }
 }

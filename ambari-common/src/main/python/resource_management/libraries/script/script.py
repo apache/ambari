@@ -210,6 +210,26 @@ class Script(object):
       return os.path.realpath(config_path)
     return None
 
+
+  def save_mpack_to_structured_out(self, command_name):
+    """
+    Writes out information about the managment pack which was installed if this is an installation command.
+    :param command_name: command name
+    :return: None
+    """
+    is_install_command = command_name is not None and command_name.lower() == "install"
+    if not is_install_command:
+      return
+
+    command_repository = CommandRepository(self.get_config()['repositoryFile'])
+
+    Logger.info("Reporting installation state for {0}".format(command_repository))
+
+    self.put_structured_out({"mpackId": command_repository.mpack_id})
+    self.put_structured_out({"mpackName":command_repository.mpack_name})
+    self.put_structured_out({"mpackVersion":command_repository.version_string})
+
+
   def save_component_version_to_structured_out(self, command_name):
     """
     Saves the version of the component for this command to the structured out file. If the
@@ -224,51 +244,16 @@ class Script(object):
     :param command_name: command name
     :return: None
     """
-    from resource_management.libraries.functions.default import default
     from resource_management.libraries.functions import stack_select
-
-    repository_resolved = default("repositoryFile/resolved", False)
-    repository_version = default("repositoryFile/repoVersion", None)
-    is_install_command = command_name is not None and command_name.lower() == "install"
-
-    # start out with no version
-    component_version = None
-
-    # install command + trusted repo means use the repo version and don't consult stack-select
-    # this is needed in cases where an existing symlink is on the system and stack-select can't
-    # change it on installation (because it's scared to in order to support parallel installs)
-    if is_install_command and repository_resolved and repository_version is not None:
-      Logger.info("The repository with version {0} for this command has been marked as resolved."\
-        " It will be used to report the version of the component which was installed".format(repository_version))
-
-      component_version = repository_version
 
     stack_name = Script.get_stack_name()
     stack_select_package_name = stack_select.get_package_name()
 
     if stack_select_package_name and stack_name:
-      # only query for the component version from stack-select if we can't trust the repository yet
-      if component_version is None:
-        component_version = version_select_util.get_component_version_from_symlink(stack_name, stack_select_package_name)
-
-      # last ditch effort - should cover the edge case where the package failed to setup its
-      # link and we have to try to see if <stack-select> can help
-      if component_version is None:
-        output, code, versions = stack_select.unsafe_get_stack_versions()
-        if len(versions) == 1:
-          component_version = versions[0]
-          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging. " \
-                         "However, the stack-select tool was able to report a single version installed ({1}). " \
-                         "This is the version that will be reported.".format(stack_select_package_name, component_version))
+      component_version = version_select_util.get_component_version_from_symlink(stack_name, stack_select_package_name)
 
       if component_version:
         self.put_structured_out({"version": component_version})
-
-        # if repository_version_id is passed, pass it back with the version
-        from resource_management.libraries.functions.default import default
-        repo_version_id = default("/hostLevelParams/repository_version_id", None)
-        if repo_version_id:
-          self.put_structured_out({"repository_version_id": repo_version_id})
       else:
         if not self.is_hook():
           Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
@@ -384,6 +369,8 @@ class Script(object):
       ex.pre_raise()
       raise
     finally:
+      self.save_mpack_to_structured_out(self.command_name)
+
       if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out(self.command_name)
 
@@ -1018,8 +1005,8 @@ class Script(object):
         else:
           self.post_rolling_restart(env)
 
-    if self.should_expose_component_version("restart"):
-      self.save_component_version_to_structured_out("restart")
+    if self.should_expose_component_version(self.command_name):
+      self.save_component_version_to_structured_out(self.command_name)
 
 
   # TODO, remove after all services have switched to post_upgrade_restart
