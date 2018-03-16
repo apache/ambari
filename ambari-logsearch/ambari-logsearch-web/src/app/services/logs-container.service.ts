@@ -57,6 +57,7 @@ import {ServiceLog} from '@app/classes/models/service-log';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
+import {ClusterSelectionService} from "@app/services/storage/cluster-selection.service";
 
 @Injectable()
 export class LogsContainerService {
@@ -68,7 +69,8 @@ export class LogsContainerService {
     private auditLogsGraphStorage: AuditLogsGraphDataService, private auditLogsFieldsStorage: AuditLogsFieldsService,
     private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService,
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private clustersStorage: ClustersService,
-    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService
+    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService,
+    private clusterSelectionStoreService: ClusterSelectionService
   ) {
     const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
       let formControl = new FormControl(),
@@ -127,7 +129,10 @@ export class LogsContainerService {
         this.compareFilterOptions
       );
     });
+    this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey).subscribe(this.onClusterSelectionChanged);
   }
+
+  static clusterSelectionStoreKey = 'logs';
 
   private readonly paginationOptions: string[] = ['10', '25', '50', '100'];
 
@@ -656,6 +661,11 @@ export class LogsContainerService {
 
   topResourcesGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
 
+  private onClusterSelectionChanged = (selection): void => {
+    const clusterSelection: string[] = Array.isArray(selection) ? selection : [selection];
+    this.filtersForm.controls.clusters.setValue(clusterSelection.map(this.utils.getListItemFromString));
+  }
+
   /**
    * Compares two options list items by values (so that isChecked flags are ignored)
    * @param {ListItem} sourceItem
@@ -664,7 +674,7 @@ export class LogsContainerService {
    */
   private compareFilterOptions = (sourceItem: ListItem, newItem: ListItem): boolean => {
     return this.utils.isEqual(sourceItem.value, newItem.value);
-  };
+  }
 
   private isFormUnchanged = (valueA: object, valueB: object): boolean => {
     const trackedControlNames = this.logsTypeMap[this.activeLogsType].listFilters;
@@ -674,7 +684,7 @@ export class LogsContainerService {
       }
     }
     return true;
-  };
+  }
 
   loadLogs = (logsType: LogsType = this.activeLogsType): void => {
     this.httpClient.get(logsType, this.getParams('listFilters')).subscribe((response: Response): void => {
@@ -690,17 +700,18 @@ export class LogsContainerService {
         this.totalCount = count;
       }
     });
-    this.httpClient.get(this.logsTypeMap[logsType].graphRequestName, this.getParams('graphFilters')).subscribe((response: Response): void => {
-      const jsonResponse = response.json(),
-        model = this.logsTypeMap[logsType].graphModel;
-      model.clear();
-      if (jsonResponse) {
-        const graphData = jsonResponse.graphData;
-        if (graphData) {
-          model.addInstances(graphData);
+    this.httpClient.get(this.logsTypeMap[logsType].graphRequestName, this.getParams('graphFilters'))
+      .subscribe((response: Response): void => {
+        const jsonResponse = response.json(),
+          model = this.logsTypeMap[logsType].graphModel;
+        model.clear();
+        if (jsonResponse) {
+          const graphData = jsonResponse.graphData;
+          if (graphData) {
+            model.addInstances(graphData);
+          }
         }
-      }
-    });
+      });
     if (logsType === 'auditLogs') {
       this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
         field: 'resource'
@@ -971,16 +982,10 @@ export class LogsContainerService {
     });
   }
 
-  loadClusters(): Observable<Response> {
-    const request = this.httpClient.get('clusters');
-    request.subscribe((response: Response): void => {
-      const clusterNames = response.json();
-      if (clusterNames) {
-        this.utils.pushUniqueValues(this.filters.clusters.options, clusterNames.map(this.utils.getListItemFromString));
-        this.clustersStorage.addInstances(clusterNames);
-      }
+  loadClusters(): void {
+    this.clustersStorage.getAll().subscribe((clustersNames: string[]) => {
+      this.utils.pushUniqueValues(this.filters.clusters.options, clustersNames.map(this.utils.getListItemFromString));
     });
-    return request;
   }
 
   loadComponents(): Observable<Response[]> {

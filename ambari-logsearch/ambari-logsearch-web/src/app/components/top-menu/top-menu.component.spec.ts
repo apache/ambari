@@ -42,6 +42,8 @@ import {UtilsService} from '@app/services/utils.service';
 import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 
 import {TopMenuComponent} from './top-menu.component';
+import {RouterTestingModule} from '@angular/router/testing';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('TopMenuComponent', () => {
   let component: TopMenuComponent;
@@ -50,6 +52,7 @@ describe('TopMenuComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         ReactiveFormsModule,
         StoreModule.provideStore({
           auditLogs,
@@ -86,7 +89,8 @@ describe('TopMenuComponent', () => {
         TabsService,
         ClustersService,
         ComponentsService,
-        HostsService
+        HostsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

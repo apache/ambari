@@ -3164,7 +3164,7 @@ var urls = {
         type: 'POST',
         data: JSON.stringify({
           "RequestInfo": {
-            "command" : "BOOTSTRAP", "context" : "Bootstrap NameNode"
+            "command" : "BOOTSTRAP_STANDBY", "context" : "Bootstrap NameNode"
           },
           "Requests/resource_filters": [{
             "service_name" : "HDFS",

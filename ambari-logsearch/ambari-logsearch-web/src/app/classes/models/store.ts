@@ -30,6 +30,7 @@ import {UserConfig} from '@app/classes/models/user-config';
 import {Tab} from '@app/classes/models/tab';
 import {LogField} from "@app/classes/object";
 import {UtilsService} from '@app/services/utils.service';
+import {NotificationInterface} from '@modules/shared/interfaces/notification.interface';
 
 const storeActions = {
     'ARRAY.ADD': 'ADD',
@@ -62,6 +63,7 @@ export interface AppStore {
   serviceLogsFields: LogField[];
   auditLogsFields: LogField[];
   tabs: Tab[];
+  notifications: NotificationInterface[];
 }
 
 export class ModelService {

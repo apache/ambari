@@ -44,10 +44,11 @@ import {UtilsService} from '@app/services/utils.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {AuthService} from '@app/services/auth.service';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 import {ServiceLogsTableComponent, ListLayout} from './service-logs-table.component';
 import {ComponentLabelPipe} from "@app/pipes/component-label";
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('ServiceLogsTableComponent', () => {
   let component: ServiceLogsTableComponent;
@@ -102,7 +103,8 @@ describe('ServiceLogsTableComponent', () => {
         ComponentsService,
         HostsService,
         ComponentGeneratorService,
-        AuthService
+        AuthService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

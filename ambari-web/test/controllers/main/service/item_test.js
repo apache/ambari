@@ -865,10 +865,16 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function () {
       sinon.stub(App, 'dateTime').returns(1435790048000);
+      sinon.stub(App.HDFSService, 'find').returns([
+        Em.Object.create({
+          hostComponents: []
+        })
+      ]);
     });
 
     afterEach(function () {
       App.dateTime.restore();
+      App.HDFSService.find.restore();
     });
 
     tests.forEach(function (test) {

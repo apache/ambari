@@ -29,6 +29,7 @@ import java.util.Set;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.utils.SecretReference;
@@ -247,7 +248,13 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         }
 
         // dependent components from the stack definitions are only added if related services are explicitly added to the blueprint!
-        boolean isClientDependency = stack.getComponentInfo(dependency.getComponentName()).isClient();
+        ComponentInfo dependencyComponent = stack.getComponentInfo(dependency.getComponentName());
+        if (dependencyComponent == null) {
+          LOGGER.debug("The component [{}] is not associated with any known services, skipping dependency", dependency.getComponentName());
+          continue;
+        }
+
+        boolean isClientDependency = dependencyComponent.isClient();
         if (isClientDependency && !blueprint.getServices().contains(dependency.getServiceName())) {
           LOGGER.debug("The service [{}] for component [{}] is missing from the blueprint [{}], skipping dependency",
               dependency.getServiceName(), dependency.getComponentName(), blueprint.getName());

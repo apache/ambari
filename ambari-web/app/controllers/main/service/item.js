@@ -423,11 +423,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   pullNnCheckPointTime: function (haNameSpace) {
+    const correspondingComponent = App.HDFSService.find().objectAt(0).get('hostComponents').findProperty('haNameSpace', haNameSpace),
+      clusterIdValue = correspondingComponent.get('clusterIdValue');
     return App.ajax.send({
       name: 'common.service.hdfs.getNnCheckPointTime',
       sender: this,
       data: {
-        haNameSpace
+        clusterIdValue
       },
       success: 'parseNnCheckPointTime'
     });
@@ -436,8 +438,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   parseNnCheckPointTime: function (data, opt, params) {
     let nameNodesStatus = {},
       nameNodesWithCheckpoints = [],
-      hostComponents = params.haNameSpace ?
-        data.host_components.filterProperty('metrics.dfs.namenode.ClusterId', params.haNameSpace) : data.host_components;
+      hostComponents = params.clusterIdValue ?
+        data.host_components.filterProperty('metrics.dfs.namenode.ClusterId', params.clusterIdValue) : data.host_components;
     if (hostComponents.length <= 1) {
       nameNodesWithCheckpoints.push({
         lastCheckpointTime: Em.get(hostComponents[0], 'metrics.dfs.FSNamesystem.LastCheckpointTime'),
@@ -445,18 +447,21 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       });
     } else {
       // HA or federation enabled
-      const hostComponents = data.host_components;
+      const nameNodeComponents = App.HDFSService.find().objectAt(0).get('hostComponents').filterProperty('componentName', 'NAMENODE'),
+        hostComponents = data.host_components;
       hostComponents.forEach(namenode => {
-        const haNameSpace = Em.get(namenode, 'metrics.dfs.namenode.ClusterId'),
-          existingArray = nameNodesStatus[haNameSpace],
-          currentArray = existingArray || [];
+        const clusterIdValue = Em.get(namenode, 'metrics.dfs.namenode.ClusterId'),
+          existingArray = nameNodesStatus[clusterIdValue],
+          currentArray = existingArray || [],
+          correspondingComponent = nameNodeComponents.findProperty('clusterIdValue', clusterIdValue);
         if (!existingArray) {
-          nameNodesStatus[haNameSpace] = currentArray;
+          nameNodesStatus[clusterIdValue] = currentArray;
         }
         currentArray.pushObject(Em.Object.create({
           LastCheckpointTime: Em.get(namenode, 'metrics.dfs.FSNamesystem.LastCheckpointTime'),
           HAState: Em.get(namenode, 'metrics.dfs.FSNamesystem.HAState'),
-          hostName: Em.get(namenode, 'HostRoles.host_name')
+          hostName: Em.get(namenode, 'HostRoles.host_name'),
+          haNameSpace: correspondingComponent && correspondingComponent.get('haNameSpace')
         }));
       });
       Object.keys(nameNodesStatus).forEach(key => {
@@ -470,20 +475,20 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
             nameNodesWithCheckpoints.push({
               lastCheckpointTime: lastActiveNameNodeCheckpointTime,
               hostName: activeNameNode.get('hostName'),
-              haNameSpace: key
+              haNameSpace: activeNameNode.get('haNameSpace')
             });
           } else if (nameNodeWithCheckpoint) {
             nameNodesWithCheckpoints.push({
               lastCheckpointTime: nameNodeWithCheckpoint.get('LastCheckpointTime'),
               hostName: nameNodeWithCheckpoint.get('hostName'),
-              haNameSpace: key
+              haNameSpace: nameNodeWithCheckpoint.get('haNameSpace')
             });
           }
         } else if (standbyNameNode) {
           nameNodesWithCheckpoints.push({
             lastCheckpointTime: standbyNameNode.get('LastCheckpointTime'),
             hostName: standbyNameNode.get('hostName'),
-            haNameSpace: key
+            haNameSpace: standbyNameNode.get('haNameSpace')
           });
         }
       });

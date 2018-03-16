@@ -250,6 +250,18 @@ public interface Host extends Comparable {
   void setLastRegistrationTime(long lastRegistrationTime);
 
   /**
+   * Time the Ambari Agent was started.
+   * ( Unix timestamp )
+   * @return the lastOnAgentStartRegistrationTime
+   */
+  long getLastAgentStartTime();
+
+  /**
+   * @param lastAgentStartTime the lastAgentStartTime to set
+   */
+  void setLastAgentStartTime(long lastAgentStartTime);
+
+  /**
    * Last time the Ambari Server received a heartbeat from the Host
    * ( Unix timestamp )
    * @return the lastHeartbeatTime

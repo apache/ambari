@@ -76,6 +76,23 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     nfs_gateways_installed: 'nfs_gateways_installed',
     nfs_gateways_total: 'nfs_gateways_total'
   },
+  onefsConfig: {
+    metrics_not_available: 'metrics_not_available',
+    name_node_start_time: 'metrics.runtime.StartTime',
+    capacity_used: 'metrics.dfs.FSNamesystem.CapacityUsed',
+    capacity_total: 'metrics.dfs.FSNamesystem.CapacityTotal',
+    capacity_remaining: 'metrics.dfs.FSNamesystem.CapacityRemaining',
+    dfs_corrupt_blocks: 'metrics.dfs.FSNamesystem.CorruptBlocks',
+    dfs_under_replicated_blocks: 'metrics.dfs.FSNamesystem.UnderReplicatedBlocks',
+    dfs_missing_blocks: 'metrics.dfs.FSNamesystem.MissingBlocks',
+    live_data_nodes: 'live_data_nodes',
+    dead_data_nodes: 'dead_data_nodes',
+    decommission_data_nodes: 'decommission_data_nodes',
+    dfs_total_files: 'metrics.dfs.namenode.TotalFiles',
+    jvm_memory_heap_used: 'metrics.jvm.memHeapUsedM',
+    jvm_memory_heap_max: 'metrics.jvm.memHeapCommittedM',
+    upgrade_status: 'metrics.dfs.namenode.UpgradeFinalized'
+  },
   yarnConfig: {
     resource_manager_start_time: 'resourceManagerComponent.host_components[0].metrics.runtime.StartTime',
     jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
@@ -167,7 +184,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     ha_status: 'HostRoles.ha_state',
     display_name_advanced: 'display_name_advanced',
     admin_state: 'HostRoles.desired_admin_state',
-    ha_name_space: 'metrics.dfs.namenode.ClusterId'
+    cluster_id_value: 'metrics.dfs.namenode.ClusterId'
   },
 
   /**
@@ -230,6 +247,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var serviceCache = services.findProperty('ServiceInfo.service_name', hostComponent.get('service.serviceName'));
           if (serviceCache) {
             serviceCache.host_components = serviceCache.host_components.without(hostComponent.get('id'));
+          }
+        } else if (id.startsWith('NAMENODE')) {
+          var component = App.HostComponent.find(id),
+            haNameSpace = component.get('haNameSpace');
+          if (component.get('isLoaded') && haNameSpace) {
+            hostComponents.findProperty('id', id).ha_name_space = haNameSpace;
           }
         }
       }, this);
@@ -295,6 +318,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       finalJson = this.hdfsMapper(item);
       finalJson.rand = Math.random();
       App.store.safeLoad(App.HDFSService, finalJson);
+    } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "ONEFS") {
+      finalJson = this.onefsMapper(item);
+      finalJson.rand = Math.random();
+      App.store.safeLoad(App.ONEFSService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
       finalJson = this.hbaseMapper(item);
       finalJson.rand = Math.random();
@@ -418,6 +445,34 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       finalJson.quick_links = quickLinks[item.ServiceInfo.service_name];
   },
 
+  onefsMapper: function (item) {
+    var finalConfig = jQuery.extend({}, this.config);
+    item.components.forEach(function (component) {
+      if (this.isHostComponentPresent(component, 'ONEFS_CLIENT')) {
+        item.metrics = component.metrics;
+        item.decommission_data_nodes = [];
+        item.dead_data_nodes = [];
+        item.live_data_nodes = [];
+        if (component.metrics && component.metrics.dfs && component.metrics.dfs.namenode) {
+          item.metrics_not_available = false;
+          for (var host in App.parseJSON(component.metrics.dfs.namenode.DecomNodes)) {
+            item.decommission_data_nodes.push('DATANODE' + '_' + host);
+          }
+          for (var host in App.parseJSON(component.metrics.dfs.namenode.DeadNodes)) {
+            item.dead_data_nodes.push('DATANODE' + '_' + host);
+          }
+          for (var host in App.parseJSON(component.metrics.dfs.namenode.LiveNodes)) {
+            item.live_data_nodes.push('DATANODE' + '_' + host);
+          }
+        } else {
+          item.metrics_not_available = true;
+        }
+        finalConfig = jQuery.extend(finalConfig, this.onefsConfig);
+      }
+    }, this);
+    return this.parseIt(item, finalConfig);
+  },
+
   hdfsMapper: function (item) {
     let finalConfig = jQuery.extend({}, this.config);
     // Change the JSON so that it is easy to map
@@ -435,11 +490,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           hostComponents.forEach(hc => {
             const haState = Em.get(hc, 'metrics.dfs.FSNamesystem.HAState'),
               hostName = Em.get(hc, 'HostRoles.host_name'),
-              haNameSpace = Em.get(hc, 'metrics.dfs.namenode.ClusterId'),
+              clusterIdValue = Em.get(hc, 'metrics.dfs.namenode.ClusterId'),
               id = `NAMENODE_${hostName}`;
             switch (haState) {
               case 'active':
-                nameSpacesWithActiveNameNodes.push(haNameSpace);
+                nameSpacesWithActiveNameNodes.push(clusterIdValue);
                 item.active_name_nodes.push(id);
                 break;
               case 'standby':
@@ -448,13 +503,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
               default:
                 unknownNameNodes.push({
                   hostName,
-                  haNameSpace
+                  clusterIdValue
                 });
                 break;
             }
           });
           unknownNameNodes.forEach(nameNode => {
-            if (nameSpacesWithActiveNameNodes.contains(nameNode.haNameSpace)) {
+            if (nameSpacesWithActiveNameNodes.contains(nameNode.clusterIdValue)) {
               item.standby_name_nodes.push(`NAMENODE_${nameNode.hostName}`);
             }
           });

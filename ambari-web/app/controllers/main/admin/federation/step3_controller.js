@@ -82,8 +82,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var configsFromServer = this.get('serverConfigData.items');
     var journalNodes = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE');
     var nameNodes = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE');
-    // todo: replace with real data
-    ret.nameservice1 = 'ns1';
+    ret.nameservice1 = App.HDFSService.find().objectAt(0).get('masterComponentGroups')[0].name;
     ret.nameservice2 = this.get('content.nameServiceId');
     ret.namenode1 = nameNodes.filterProperty('isInstalled').mapProperty('hostName')[0];
     ret.namenode2 = nameNodes.filterProperty('isInstalled').mapProperty('hostName')[1];

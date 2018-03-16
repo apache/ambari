@@ -34,11 +34,12 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
-import {ModalComponent} from '@app/components/modal/modal.component';
+import {ModalComponent} from '@modules/shared/components/modal/modal.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {LogContextComponent} from './log-context.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('LogContextComponent', () => {
   let component: LogContextComponent;
@@ -84,7 +85,8 @@ describe('LogContextComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         LogsContainerService,
-        UtilsService
+        UtilsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

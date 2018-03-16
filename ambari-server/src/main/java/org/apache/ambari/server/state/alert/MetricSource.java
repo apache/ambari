@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
+import org.apache.ambari.server.state.UriInfo;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -43,7 +44,7 @@ import com.google.gson.annotations.SerializedName;
 public class MetricSource extends Source {
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private UriInfo uri = null;
 
   @SerializedName("jmx")
   private JmxInfo jmxInfo = null;
@@ -71,7 +72,7 @@ public class MetricSource extends Source {
    * @return the uri info, which may include port information
    */
   @JsonProperty("uri")
-  public AlertUri getUri() {
+  public UriInfo getUri() {
     return uri;
   }
 

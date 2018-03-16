@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+import time
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
@@ -28,19 +28,33 @@ def backup_collection(env):
     import params, command_commons
     env.set_params(command_commons)
 
-    Logger.info(format("Backup Solr Collection {collection} to {index_location}"))
-
-    solr_request_path = format("{collection}/replication?command=BACKUP&location={index_location}&name={backup_name}&wt=json")
-    backup_api_cmd = command_commons.create_solr_api_request_command(solr_request_path)
-
     Directory(command_commons.index_location,
               mode=0755,
               cd_access='a',
               owner=params.infra_solr_user,
               group=params.user_group
               )
+    collection_available = command_commons.is_collection_available_on_host()
+    if command_commons.check_hosts and not collection_available:
+      Logger.info(format("No any '{collection}' replica is used on {params.hostname} host"))
+      return
+
+    Logger.info(format("Backup Solr Collection {collection} to {index_location}"))
+
+    solr_request_path = format("{collection}/replication?command=BACKUP&location={index_location}&name={backup_name}&wt=json")
+    backup_api_cmd = command_commons.create_solr_api_request_command(solr_request_path)
 
     Execute(backup_api_cmd, user=params.infra_solr_user, logoutput=True)
+
+    if command_commons.request_async is False:
+      Logger.info("Sleep 5 seconds to wait until the backup request is executed.")
+      time.sleep(5)
+      Logger.info("Check backup status ...")
+      solr_status_request_path = format("{collection}/replication?command=details&wt=json")
+      status_check_json_output = format("{index_location}/backup_status.json")
+      status_check_cmd = command_commons.create_solr_api_request_command(solr_status_request_path, status_check_json_output)
+      command_commons.snapshot_status_check(status_check_cmd, status_check_json_output, command_commons.backup_name, True,
+        log_output=command_commons.log_output, tries=command_commons.request_tries, time_interval=command_commons.request_time_interval)
 
 def restore_collection(env):
     """
@@ -48,6 +62,11 @@ def restore_collection(env):
     """
     import params, command_commons
     env.set_params(command_commons)
+
+    collection_available = command_commons.is_collection_available_on_host()
+    if command_commons.check_hosts and not collection_available:
+      Logger.info(format("No any '{collection}' replica is used on {params.hostname} host"))
+      return
 
     Logger.info(format("Remove write.lock files from folder '{index_location}'"))
     for write_lock_file in command_commons.get_files_by_pattern(format("{index_location}"), 'write.lock'):
@@ -60,16 +79,12 @@ def restore_collection(env):
 
     Execute(restore_api_cmd, user=params.infra_solr_user, logoutput=True)
 
-def delete_collection(env):
-    """
-    Delete specific Solr collection - used on ranger_audits by default
-    """
-    import params, command_commons
-    env.set_params(command_commons)
-
-    Logger.info(format("Delete Solr Collection: {collection}"))
-
-    solr_request_path = format("admin/collections?action=DELETE&name={collection}&wt=json")
-    delete_api_cmd = command_commons.create_solr_api_request_command(solr_request_path)
-
-    Execute(delete_api_cmd, user=params.infra_solr_user, logoutput=True)
+    if command_commons.request_async is False:
+      Logger.info("Sleep 5 seconds to wait until the restore request is executed.")
+      time.sleep(5)
+      Logger.info("Check restore status ...")
+      solr_status_request_path = format("{collection}/replication?command=restorestatus&wt=json")
+      status_check_json_output = format("{index_location}/restore_status.json")
+      status_check_cmd = command_commons.create_solr_api_request_command(solr_status_request_path, status_check_json_output)
+      command_commons.snapshot_status_check(status_check_cmd, status_check_json_output, command_commons.backup_name, False,
+        log_output=command_commons.log_output, tries=command_commons.request_tries, time_interval=command_commons.request_time_interval)

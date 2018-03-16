@@ -1048,7 +1048,8 @@ class ActionScheduler implements Runnable {
   protected boolean wasAgentRestartedDuringOperation(Host host, Stage stage, String role) {
     String hostName = host.getHostName();
     long taskStartTime = stage.getHostRoleCommand(hostName, role).getStartTime();
-    return taskStartTime > 0 && taskStartTime <= host.getLastRegistrationTime();
+    long lastAgentStartTime = host.getLastAgentStartTime();
+    return taskStartTime > 0 && lastAgentStartTime > 0 && taskStartTime <= lastAgentStartTime;
   }
 
   /**

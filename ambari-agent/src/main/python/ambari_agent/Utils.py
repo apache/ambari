@@ -221,6 +221,7 @@ def execute_with_retries(tries, try_sleep, retry_exception_class, func, *args, *
   for i in range(tries):
     try:
       func(*args, **kwargs)
+      break
     except retry_exception_class:
       if i==tries-1:
         raise

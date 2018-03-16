@@ -39,6 +39,7 @@ import {UtilsService} from '@app/services/utils.service';
 import {HistoryManagerService} from './history-manager.service';
 
 import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('HistoryService', () => {
   beforeEach(() => {
@@ -79,7 +80,8 @@ describe('HistoryService', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService
       ]
     });
   });

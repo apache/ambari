@@ -55,7 +55,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.utils.SynchronousThreadPoolExecutor;
 import org.junit.After;
@@ -628,18 +627,12 @@ public class JMXPropertyProviderTest {
       return null;
     }
 
-    @Override public Host getHost(final String clusterName, final String hostName) {
-      return null;
-    }
-
     @Override
-    public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
+    public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) {
       return getPort(clusterName, componentName, hostName);
     }
 
-    @Override
-    public String getPort(String clusterName, String componentName, String hostName) throws
-      SystemException {
+    public String getPort(String clusterName, String componentName, String hostName) {
 
       if (unknownPort) {
         return null;
