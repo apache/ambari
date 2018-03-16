@@ -16,11 +16,14 @@
  * limitations under the License.
  */
 
-var App = require('app');
+const App = require('app');
 
-App.ResourceManagerUptimeView = App.UptimeTextDashboardWidgetView.extend({
+App.NameNodeWidgetMixin = Em.Mixin.create({
 
-  component: 'ResourceManager',
-  modelValue: Em.computed.alias('model.resourceManagerStartTime')
+  subGroupId: 'default',
+
+  componentGroup: Em.computed.findByKey('model.masterComponentGroups', 'name', 'subGroupId'),
+
+  clusterId: Em.computed.alias('componentGroup.clusterId')
 
 });

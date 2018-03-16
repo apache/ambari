@@ -29,7 +29,7 @@ describe('App.UptimeTextDashboardWidgetView', function() {
     uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({
       thresholdMin:40,
       thresholdMax:70,
-      modelField: 'field',
+      modelValue: Em.computed.alias('model.field'),
       model: Em.Object.create({})
     });
   });
