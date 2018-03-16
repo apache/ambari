@@ -79,6 +79,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   public static final String STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
   public static final String STACK_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
   public static final String OS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "operating_systems";
+  public static final String DEFAULT_OS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "default_operating_systems";
 
   private static Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(MPACK_RESOURCE_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID));
@@ -115,6 +116,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     PROPERTY_IDS.add(STACK_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(STACK_VERSION_PROPERTY_ID);
     PROPERTY_IDS.add(OS_PROPERTY_ID);
+    PROPERTY_IDS.add(DEFAULT_OS_PROPERTY_ID);
     PROPERTY_IDS.add(MPACK_DISPLAY_NAME);
 
     // keys

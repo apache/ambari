@@ -52,7 +52,6 @@ public class Mpack {
   @SerializedName("version")
   private String version;
 
-
   @SerializedName("prerequisites")
   private Map<String, String> prerequisites;
 
