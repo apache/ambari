@@ -63,7 +63,6 @@ from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
   get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
-from resource_management.libraries.functions.service_configs import ServiceConfigs
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -118,8 +117,8 @@ class LockedConfigureMeta(type):
       def locking_configure(obj, *args, **kw):
         # local import to avoid circular dependency (default imports Script)
         from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(Script.get_config_object().check_agent_parallel_execution()) == 1
-        lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures=True, enabled=parallel_execution_enabled)
+        parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
+        lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
         with lock:
           original_configure(obj, *args, **kw)
 
@@ -146,7 +145,6 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   config = None
-  config_object = None
   stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
@@ -186,7 +184,7 @@ class Script(object):
       with open(self.stroutfile, 'w') as fp:
         json.dump(Script.structuredOut, fp)
     except IOError, err:
-      Script.structuredOut.update({"errMsg": "Unable to write to " + self.stroutfile})
+      Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 
 
   def get_config_dir_during_stack_upgrade(self, env, base_dir, conf_select_name):
@@ -229,8 +227,8 @@ class Script(object):
     from resource_management.libraries.functions.default import default
     from resource_management.libraries.functions import stack_select
 
-    repository_resolved = Script.config_object.check_repo_resolved(False)
-    repository_version = Script.config_object.get_repo_version()
+    repository_resolved = default("repositoryFile/resolved", False)
+    repository_version = default("repositoryFile/repoVersion", None)
     is_install_command = command_name is not None and command_name.lower() == "install"
 
     # start out with no version
@@ -239,7 +237,7 @@ class Script(object):
     # install command + trusted repo means use the repo version and don't consult stack-select
     # this is needed in cases where an existing symlink is on the system and stack-select can't
     # change it on installation (because it's scared to in order to support parallel installs)
-    if is_install_command and repository_resolved and repository_version:
+    if is_install_command and repository_resolved and repository_version is not None:
       Logger.info("The repository with version {0} for this command has been marked as resolved."\
         " It will be used to report the version of the component which was installed".format(repository_version))
 
@@ -255,7 +253,7 @@ class Script(object):
 
       # last ditch effort - should cover the edge case where the package failed to setup its
       # link and we have to try to see if <stack-select> can help
-      if not component_version:
+      if component_version is None:
         output, code, versions = stack_select.unsafe_get_stack_versions()
         if len(versions) == 1:
           component_version = versions[0]
@@ -268,7 +266,7 @@ class Script(object):
 
         # if repository_version_id is passed, pass it back with the version
         from resource_management.libraries.functions.default import default
-        repo_version_id = Script.get_config_object().get_repo_version_id()
+        repo_version_id = default("/hostLevelParams/repository_version_id", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:
@@ -284,12 +282,12 @@ class Script(object):
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(Script.get_config_object().get_stack_version())
+    stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
-        request_version = Script.get_config_object().get_request_version()
-        if request_version:
+        request_version = default("/commandParams/request_version", None)
+        if request_version is not None:
           return True
       else:
         # Populate version only on base commands
@@ -350,7 +348,6 @@ class Script(object):
       with open(self.command_data_file) as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
-        Script.config_object = ServiceConfigs(f)
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
@@ -367,7 +364,7 @@ class Script(object):
     if not lzo_utils.is_gpl_license_accepted():
       repo_tags_to_skip.add("GPL")
 
-    Script.repository_util = RepositoryUtil(Script.config_object, repo_tags_to_skip)
+    Script.repository_util = RepositoryUtil(Script.config, repo_tags_to_skip)
 
     # Run class method depending on a command type
     try:
@@ -553,18 +550,18 @@ class Script(object):
 
     # repositoryFile is the truth
     # package_version should be made to the form W_X_Y_Z_nnnn
-    package_version = Script.config_object.get_repo_version()
+    package_version = default("repositoryFile/repoVersion", None)
 
     # TODO remove legacy checks
     if package_version is None:
-      package_version = Script.get_config_object().get_package_version_from_role_params()
+      package_version = default("roleParams/package_version", None)
 
     # TODO remove legacy checks
     if package_version is None:
-      package_version = Script.get_config_object().get_package_version_from_host_level_params()
+      package_version = default("hostLevelParams/package_version", None)
 
     package_version = None
-    if (package_version is None or '-' not in package_version) and Script.config_object.get_repo_file():
+    if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
       self.load_available_packages()
       package_name = self.get_package_from_available(name, self.available_packages_in_repos)
       if package_name is None:
@@ -577,8 +574,8 @@ class Script(object):
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but
     # use the supplied version to build the package_version
-    effective_version = Script.config_object.get_effective_verson()
-    role_command = Script.config_object.get_role_command()
+    effective_version = default("commandParams/version", None)
+    role_command = default("roleCommand", None)
 
     if (package_version is None or '*' in package_version) \
         and effective_version is not None and 'INSTALL' == role_command:
@@ -607,10 +604,6 @@ class Script(object):
      it a configuration instance.
     """
     return Script.config
-
-  @staticmethod
-  def get_config_object():
-    return Script.config_object;
 
   @staticmethod
   def get_password(user):
@@ -661,7 +654,7 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
 
-    command_role = Script.get_config_object().get_command_role(default_role)
+    command_role = default("/role", default_role)
     if command_role in role_directory_map:
       return role_directory_map[command_role]
     else:
@@ -674,9 +667,9 @@ class Script(object):
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = Script.config_object.get_stack_name_from_host_level()
-    if not stack_name:
-      stack_name = Script.get_config_object().get_stack_name_from_cluster_settings("HDP")
+    stack_name = default("/hostLevelParams/stack_name", None)
+    if stack_name is None:
+      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
 
     return stack_name
 
@@ -688,7 +681,7 @@ class Script(object):
     """
     from resource_management.libraries.functions.default import default
     stack_name = Script.get_stack_name()
-    stack_root_json = Script.get_config_object().get_stack_root()
+    stack_root_json = default("/configurations/cluster-env/stack_root", None)
 
     if stack_root_json is None:
       return "/usr/{0}".format(stack_name.lower())
@@ -708,14 +701,13 @@ class Script(object):
     present on the configurations sent.
     :return: a normalized stack version or None
     """
-    config_obj = Script.get_config()
-
-    if not config_obj.get_stack_version():
+    config = Script.get_config()
+    if 'hostLevelParams' not in config or 'stack_version' not in config['hostLevelParams']:
       return None
 
-    stack_version_unformatted = str(config_obj.get_stack_version())
+    stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 
-    if not stack_version_unformatted:
+    if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
 
     return format_stack_version(stack_version_unformatted)
@@ -724,8 +716,9 @@ class Script(object):
   def in_stack_upgrade():
     from resource_management.libraries.functions.default import default
 
-    upgrade_direction = Script.get_config_object().get_upgrade_direction()
-    return upgrade_direction and upgrade_direction in [Direction.UPGRADE, Direction.DOWNGRADE]
+    upgrade_direction = default("/commandParams/upgrade_direction", None)
+    return upgrade_direction is not None and upgrade_direction in [Direction.UPGRADE, Direction.DOWNGRADE]
+
 
   @staticmethod
   def is_stack_greater(stack_version_formatted, compare_to_version):
@@ -760,7 +753,7 @@ class Script(object):
     :param compare_to_version: the version of stack to compare to
     :return: True if the command's stack is greater than or equal to the specified version
     """
-    if not stack_version_formatted or not stack_version_formatted:
+    if stack_version_formatted is None or stack_version_formatted == "":
       return False
 
     return compare_versions(stack_version_formatted, compare_to_version) >= 0
@@ -775,7 +768,7 @@ class Script(object):
     """
     stack_version_formatted = Script.get_stack_version()
 
-    if not stack_version_formatted:
+    if stack_version_formatted is None:
       return False
 
     return compare_versions(stack_version_formatted, compare_to_version) < 0
@@ -795,7 +788,7 @@ class Script(object):
 
     pkg_provider = get_provider("Package")   
     try:
-      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config_object().get_repo_file()))
+      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
     except Exception as err:
       Logger.exception("Unable to load available packages")
       self.available_packages_in_repos = []
@@ -826,16 +819,18 @@ class Script(object):
     packages which match the regex won't be installed.
     NOTE: regexes don't have Python syntax, but simple package regexes which support only * and .* and ?
     """
-    config_object = self.get_config_object()
-    host_sys_prepped = config_object.get_host_sys_prepend()
-    if host_sys_prepped and host_sys_prepped == True:
+    config = self.get_config()
+
+    if 'host_sys_prepped' in config['hostLevelParams']:
       # do not install anything on sys-prepped host
-      Logger.info("Node has all packages pre-installed. Skipping.")
-      return
+      if config['hostLevelParams']['host_sys_prepped'] is True:
+        Logger.info("Node has all packages pre-installed. Skipping.")
+        return
+      pass
     try:
-      package_list_str = config_object.get_package_list()
-      agent_stack_retry_on_unavailability = config_object.get_agent_stack_retry_on_unavailability()
-      agent_stack_retry_count = config_object.get_agent_stack_retry_count()
+      package_list_str = config['hostLevelParams']['package_list']
+      agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
+      agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
@@ -932,23 +927,34 @@ class Script(object):
     Feel free to override restart() method with your implementation.
     For client components we call install
     """
-    config_object = self.get_config_object()
-    component_category = config_object.get_component_category()
-    upgrade_type_command_param = config_object.get_upgrade_type()
-    direction = config_object.get_upgrade_direction()
+    config = self.get_config()
+    componentCategory = None
+    try:
+      componentCategory = config['roleParams']['component_category']
+    except KeyError:
+      pass
 
-    upgrade_type = Script.get_upgrade_type(upgrade_type_command_param.lower())
+    upgrade_type_command_param = ""
+    direction = None
+    if config is not None:
+      command_params = config["commandParams"] if "commandParams" in config else None
+      if command_params is not None:
+        upgrade_type_command_param = command_params["upgrade_type"] if "upgrade_type" in command_params else ""
+        direction = command_params["upgrade_direction"] if "upgrade_direction" in command_params else None
+
+    upgrade_type = Script.get_upgrade_type(upgrade_type_command_param)
+    is_stack_upgrade = upgrade_type is not None
 
     # need this before actually executing so that failures still report upgrade info
-    if upgrade_type:
+    if is_stack_upgrade:
       upgrade_info = {"upgrade_type": upgrade_type_command_param}
-      if direction:
+      if direction is not None:
         upgrade_info["direction"] = direction.upper()
 
       Script.structuredOut.update(upgrade_info)
 
-    if component_category and component_category.strip().lower() == 'client':
-      if upgrade_type:
+    if componentCategory and componentCategory.strip().lower() == 'CLIENT'.lower():
+      if is_stack_upgrade:
         # Remain backward compatible with the rest of the services that haven't switched to using
         # the pre_upgrade_restart method. Once done. remove the else-block.
         if "pre_upgrade_restart" in dir(self):
@@ -963,12 +969,12 @@ class Script(object):
       if "upgrade_type" in inspect.getargspec(self.stop).args:
         self.stop(env, upgrade_type=upgrade_type)
       else:
-        if upgrade_type:
+        if is_stack_upgrade:
           self.stop(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
         else:
           self.stop(env)
 
-      if upgrade_type:
+      if is_stack_upgrade:
         # Remain backward compatible with the rest of the services that haven't switched to using
         # the pre_upgrade_restart method. Once done. remove the else-block.
         if "pre_upgrade_restart" in dir(self):
@@ -976,13 +982,13 @@ class Script(object):
         else:
           self.pre_rolling_restart(env)
 
-      service_name = config_object.get_service_name()
+      service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
       try:
         #TODO Once the logic for pid is available from Ranger and Ranger KMS code, will remove the below if block.
         services_to_skip = ['RANGER', 'RANGER_KMS']
         if service_name in services_to_skip:
           Logger.info('Temporarily skipping status check for {0} service only.'.format(service_name))
-        elif upgrade_type:
+        elif is_stack_upgrade:
           Logger.info('Skipping status check for {0} service during upgrade'.format(service_name))
         else:
           self.status(env)
@@ -998,13 +1004,13 @@ class Script(object):
       if "upgrade_type" in inspect.getargspec(self.start).args:
         self.start(env, upgrade_type=upgrade_type)
       else:
-        if upgrade_type:
+        if is_stack_upgrade:
           self.start(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
         else:
           self.start(env)
       self.post_start(env)
 
-      if upgrade_type:
+      if is_stack_upgrade:
         # Remain backward compatible with the rest of the services that haven't switched to using
         # the post_upgrade_restart method. Once done. remove the else-block.
         if "post_upgrade_restart" in dir(self):
@@ -1045,31 +1051,34 @@ class Script(object):
     Logger.info("Refresh config files ...")
     self.save_configs(env)
 
-    config_object = self.get_config_object()
-    reconfigure_action = config_object.get_reconfigure_action()
-    if reconfigure_action:
+    config = self.get_config()
+    if "reconfigureAction" in config["commandParams"] and config["commandParams"]["reconfigureAction"] is not None:
+      reconfigure_action = config["commandParams"]["reconfigureAction"]
       Logger.info("Call %s" % reconfigure_action)
       method = self.choose_method_to_execute(reconfigure_action)
       method(env)
 
   def generate_configs_get_template_file_content(self, filename, dicts):
-    config_object = self.get_config_object()
+    config = self.get_config()
     content = ''
     for dict in dicts.split(','):
-      query_key = '/'.join(['configuration', dict.strip(), 'content'])
-      partial_content = config_object.get_config_object(query_key)
-      if partial_content:
-        content += partial_content
+      if dict.strip() in config['configurations']:
+        try:
+          content += config['configurations'][dict.strip()]['content']
+        except Fail:
+          # 'content' section not available in the component client configuration
+          pass
+
     return content
 
   def generate_configs_get_xml_file_content(self, filename, dict):
-    config_object = self.get_config_object()
-    return {'configurations':config_object.get_config_object('/'.join('configurations', dict).value()),
-            'configuration_attributes':config_object.get_config_object('/'.join('configuration_attributes', dict)).value()}
+    config = self.get_config()
+    return {'configurations':config['configurations'][dict],
+            'configuration_attributes':config['configuration_attributes'][dict]}
 
   def generate_configs_get_xml_file_dict(self, filename, dict):
-    config_object = self.get_config_object()
-    return config_object.get_config_object('/'.join('configurations', dict).value())
+    config = self.get_config()
+    return config['configurations'][dict]
 
   def generate_configs(self, env):
     """
@@ -1079,17 +1088,17 @@ class Script(object):
     import params
     env.set_params(params)
 
-    config_object = self.get_config_object()
+    config = self.get_config()
 
-    xml_configs_list = config_object.get_xml_configs_list()
-    env_configs_list = config_object.get_env_configs_list()
-    properties_configs_list = config_object.get_properties_configs_list()
+    xml_configs_list = config['commandParams']['xml_configs_list']
+    env_configs_list = config['commandParams']['env_configs_list']
+    properties_configs_list = config['commandParams']['properties_configs_list']
 
     Directory(self.get_tmp_dir(), create_parents = True)
 
     conf_tmp_dir = tempfile.mkdtemp(dir=self.get_tmp_dir())
     os.chmod(conf_tmp_dir, 0700)
-    output_filename = os.path.join(self.get_tmp_dir(), config_object.get_output_configs_file_name())
+    output_filename = os.path.join(self.get_tmp_dir(), config['commandParams']['output_file'])
 
     try:
       for file_dict in xml_configs_list:
@@ -1126,7 +1135,7 @@ class Script(object):
     if Script.instance is None:
 
       from resource_management.libraries.functions.default import default
-      use_proxy = Script.get_config_object().check_agent_use_system_proxy_settings(True)
+      use_proxy = default("/agentConfigParams/agent/use_system_proxy_settings", True)
       if not use_proxy:
         reconfigure_urllib2_opener(ignore_system_proxy=True)
 
@@ -1136,11 +1145,11 @@ class Script(object):
   @staticmethod
   def get_upgrade_type(upgrade_type_command_param):
     upgrade_type = None
-    if upgrade_type_command_param == "rolling_upgrade":
+    if upgrade_type_command_param.lower() == "rolling_upgrade":
       upgrade_type = UPGRADE_TYPE_ROLLING
-    elif upgrade_type_command_param == "express_upgrade":
+    elif upgrade_type_command_param.lower() == "express_upgrade":
       upgrade_type = UPGRADE_TYPE_EXPRESS
-    elif upgrade_type_command_param == "host_ordered_upgrade":
+    elif upgrade_type_command_param.lower() == "host_ordered_upgrade":
       upgrade_type = UPGRADE_TYPE_HOST_ORDERED
 
     return upgrade_type

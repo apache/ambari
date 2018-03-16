@@ -31,11 +31,17 @@ def expect(name, expected_type, default_value=None):
   
   Optionally if the configuration is not found default_value for it can be returned.
   """
-  value = Script.get_config_object(name)
-  if not value and default_value:
-    return value
-  elif not value:
-    return UnknownConfiguration(name)
+  subdicts = filter(None, name.split('/'))
+
+  curr_dict = Script.get_config()
+  for x in subdicts:
+    if x in curr_dict:
+      curr_dict = curr_dict[x]
+    else:
+      if default_value:
+        return default_value
+      return UnknownConfiguration(curr_dict[-1])
+  value = curr_dict
   
   if expected_type == bool:
     if isinstance(value, bool):
