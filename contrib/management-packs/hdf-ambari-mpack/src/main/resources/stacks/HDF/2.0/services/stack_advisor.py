@@ -617,6 +617,7 @@ class HDF20StackAdvisor(DefaultStackAdvisor):
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
       putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 259200)
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
+      putAmsHbaseSiteProperty("hbase.unsafe.stream.capability.enforce", 'true')
     else:
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')
       putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 86400)

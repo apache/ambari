@@ -303,6 +303,7 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
     if operatingMode == "distributed":
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
+      putAmsHbaseSiteProperty("hbase.unsafe.stream.capability.enforce", 'true')
     else:
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'false')
