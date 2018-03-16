@@ -37,7 +37,6 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
    */
   @Override
   public byte[] computeUuid(TimelineClusterMetric timelineClusterMetric, int maxLength) {
-
     int metricNameUuidLength = 12;
     String metricName = timelineClusterMetric.getMetricName();
 
@@ -51,16 +50,10 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
      */
     StringBuilder splitSums = new StringBuilder();
     if (splits.length > 0) {
-      for (int s = 0; s < splits.length; s++) {
+      for (String split : splits) {
         int asciiSum = 0;
-        if ( s < splits.length -1) {
-          for (int i = 0; i < splits[s].length(); i++) {
-            asciiSum += (int) splits[s].charAt(i); // Get Ascii Sum.
-          }
-        } else {
-          for (int i = 0; i < splits[s].length(); i++) {
-            asciiSum += ((i+1) * (int) splits[s].charAt(i)); //weighted sum for last split.
-          }
+        for (int i = 0; i < split.length(); i++) {
+          asciiSum += ((i + 1) * (int) split.charAt(i)); //weighted sum for split.
         }
         splitSums.append(asciiSum); //Append the sum to the array of sums.
       }
@@ -69,9 +62,7 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
     //Compute a unique metric seed for the stemmed metric name
     String stemmedMetric = stem(metricName);
     long metricSeed = 100123456789L;
-    for (int i = 0; i < stemmedMetric.length(); i++) {
-      metricSeed += stemmedMetric.charAt(i);
-    }
+    metricSeed += computeWeightedNumericalAsciiSum(stemmedMetric);
 
     //Reverse the computed seed to get a metric UUID portion which is used optionally.
     byte[] metricUuidPortion = StringUtils.reverse(String.valueOf(metricSeed)).getBytes();
@@ -80,7 +71,9 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
 
     //If splitSums length > required metric UUID length, use only the required length suffix substring of the splitSums as metric UUID.
     if (splitLength > metricNameUuidLength) {
-      metricUuidPortion = ArrayUtils.subarray(splitSumString.getBytes(), splitLength - metricNameUuidLength, splitLength);
+      int pad = (int)(0.25 * splitLength);
+      metricUuidPortion = ArrayUtils.addAll(ArrayUtils.subarray(splitSumString.getBytes(), splitLength - metricNameUuidLength + pad, splitLength)
+        , ArrayUtils.subarray(metricUuidPortion, 0, pad));
     } else {
       //If splitSums is not enough for required metric UUID length, pad with the metric uuid portion.
       int pad = metricNameUuidLength - splitLength;
@@ -94,7 +87,7 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
     String appId = timelineClusterMetric.getAppId();
     int appidSeed = 11;
     for (int i = 0; i < appId.length(); i++) {
-      appidSeed += appId.charAt(i);
+      appidSeed += ((i+1) * appId.charAt(i));
     }
     String appIdSeedStr = String.valueOf(appidSeed);
     byte[] appUuidPortion = ArrayUtils.subarray(appIdSeedStr.getBytes(), appIdSeedStr.length() - 2, appIdSeedStr.length());
@@ -105,7 +98,7 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
     if (StringUtils.isNotEmpty(instanceId)) {
       int instanceIdSeed = 1489;
       for (int i = 0; i < appId.length(); i++) {
-        instanceIdSeed += appId.charAt(i);
+        instanceIdSeed += ((i+1)* appId.charAt(i));
       }
       buffer.putInt(instanceIdSeed);
       ArrayUtils.subarray(buffer.array(), 2, 4);
@@ -126,11 +119,12 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
   private String[] getIndidivualSplits(String metricName) {
     List<String> tokens = new ArrayList<>();
     String[] splits = new String[0];
-    if (metricName.contains("\\.")) {
+    if (metricName.contains(".")) {
       splits = metricName.split("\\.");
       for (String split : splits) {
         if (split.contains("_")) {
-          tokens.addAll(Arrays.asList(split.split("_")));
+          String[] subSplits = split.split("\\_");
+          tokens.addAll(Arrays.asList(subSplits));
         } else {
           tokens.add(split);
         }
@@ -176,31 +170,37 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
     if (StringUtils.isEmpty(value)) {
       return null;
     }
+
+    int customAsciiSum = 1489 + (int) computeWeightedNumericalAsciiSum(value); //seed = 1489
+
+    String customAsciiSumStr = String.valueOf(customAsciiSum);
+    if (customAsciiSumStr.length() < maxLength) {
+      return null;
+    } else {
+      return customAsciiSumStr.substring(customAsciiSumStr.length() - maxLength, customAsciiSumStr.length()).getBytes();
+    }
+  }
+
+  private long computeWeightedNumericalAsciiSum(String value) {
     int len = value.length();
-    int numericValue = 0;
-    int seed = 1489;
+    long numericValue = 0;
+    int sum = 0;
     for (int i = 0; i < len; i++) {
       int ascii = value.charAt(i);
       if (48 <= ascii && ascii <= 57) {
         numericValue += numericValue * 10 + (ascii - 48);
       } else {
         if (numericValue > 0) {
-          seed += numericValue;
+          sum += numericValue;
           numericValue = 0;
         }
-        seed+= value.charAt(i);
+        sum += value.charAt(i);
       }
     }
 
     if (numericValue != 0) {
-      seed+=numericValue;
+      sum +=numericValue;
     }
-
-    String seedStr = String.valueOf(seed);
-    if (seedStr.length() < maxLength) {
-      return null;
-    } else {
-      return seedStr.substring(seedStr.length() - maxLength, seedStr.length()).getBytes();
-    }
+    return sum;
   }
 }

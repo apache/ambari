@@ -336,6 +336,22 @@
           <groupId>net.sourceforge.findbugs</groupId>
           <artifactId>annotations</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>jersey-server</artifactId>
+          <groupId>org.glassfish.jersey.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-common</artifactId>
+          <groupId>org.glassfish.jersey.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-container-servlet-core</artifactId>
+          <groupId>org.glassfish.jersey.containers</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <groupId>javax.ws.rs</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -450,6 +466,16 @@
       <artifactId>jersey-server</artifactId>
       <version>1.11</version>
     </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
+      <version>1.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-client</artifactId>
+      <version>1.11</version>
+    </dependency>
     <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -479,16 +505,6 @@
       <groupId>org.codehaus.jettison</groupId>
       <artifactId>jettison</artifactId>
       <version>1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-      <version>1.11</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>1.11</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -653,6 +669,24 @@
       <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-core</artifactId>
       <type>test-jar</type>
+      <exclusions>
+        <exclusion>
+          <artifactId>jersey-server</artifactId>
+          <groupId>org.glassfish.jersey.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-common</artifactId>
+          <groupId>org.glassfish.jersey.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-container-servlet-core</artifactId>
+          <groupId>org.glassfish.jersey.containers</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <groupId>javax.ws.rs</groupId>
+        </exclusion>
+      </exclusions>
       <version>${phoenix.version}</version>
       <scope>test</scope>
     </dependency>
@@ -661,6 +695,16 @@
       <artifactId>hbase-it</artifactId>
       <version>${hbase.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>jersey-common</artifactId>
+          <groupId>org.glassfish.jersey.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <groupId>javax.ws.rs</groupId>
+        </exclusion>
+      </exclusions>
       <classifier>tests</classifier>
     </dependency>
     <dependency>
