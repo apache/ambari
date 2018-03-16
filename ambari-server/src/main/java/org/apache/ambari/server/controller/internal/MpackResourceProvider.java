@@ -259,16 +259,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       }
 
       for (MpackResponse response : responses) {
-        Resource resource = new ResourceImpl(Resource.Type.Mpack);
-        resource.setProperty(MPACK_RESOURCE_ID, response.getId());
-        resource.setProperty(MPACK_ID, response.getMpackId());
-        resource.setProperty(MPACK_NAME, response.getMpackName());
-        resource.setProperty(MPACK_VERSION, response.getMpackVersion());
-        resource.setProperty(MPACK_URI, response.getMpackUri());
-        resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
-        resource.setProperty(REGISTRY_ID, response.getRegistryId());
-        resource.setProperty(MPACK_DISPLAY_NAME, response.getDisplayName());
-
+        Resource resource = setResources(response);
         results.add(resource);
       }
     } else {
@@ -280,16 +271,9 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
           mpackId = Long.valueOf((String) objMpackId);
         }
         MpackResponse response = getManagementController().getMpack(mpackId);
-        Resource resource = new ResourceImpl(Resource.Type.Mpack);
+
         if (null != response) {
-          resource.setProperty(MPACK_RESOURCE_ID, response.getId());
-          resource.setProperty(MPACK_ID, response.getMpackId());
-          resource.setProperty(MPACK_NAME, response.getMpackName());
-          resource.setProperty(MPACK_VERSION, response.getMpackVersion());
-          resource.setProperty(MPACK_URI, response.getMpackUri());
-          resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
-          resource.setProperty(MPACK_DISPLAY_NAME, response.getDisplayName());
-          resource.setProperty(REGISTRY_ID, response.getRegistryId());
+          Resource resource = setResources(response);
           List<Module> modules = getManagementController().getModules(response.getId());
           resource.setProperty(MODULES, modules);
           results.add(resource);
@@ -302,16 +286,9 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
         mpackId = stackEntity.getMpackId();
         MpackResponse response = getManagementController().getMpack(mpackId);
-        Resource resource = new ResourceImpl(Resource.Type.Mpack);
+
         if (null != response) {
-          resource.setProperty(MPACK_RESOURCE_ID, response.getId());
-          resource.setProperty(MPACK_ID, response.getMpackId());
-          resource.setProperty(MPACK_NAME, response.getMpackName());
-          resource.setProperty(MPACK_VERSION, response.getMpackVersion());
-          resource.setProperty(MPACK_URI, response.getMpackUri());
-          resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
-          resource.setProperty(MPACK_DISPLAY_NAME, response.getDisplayName());
-          resource.setProperty(REGISTRY_ID, response.getRegistryId());
+          Resource resource = setResources(response);
           resource.setProperty(STACK_NAME_PROPERTY_ID, stackName);
           resource.setProperty(STACK_VERSION_PROPERTY_ID, stackVersion);
           results.add(resource);
@@ -328,6 +305,19 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     }
 
     return results;
+  }
+
+  private Resource setResources(MpackResponse response) {
+    Resource resource = new ResourceImpl(Resource.Type.Mpack);
+    resource.setProperty(MPACK_RESOURCE_ID, response.getId());
+    resource.setProperty(MPACK_ID, response.getMpackId());
+    resource.setProperty(MPACK_NAME, response.getMpackName());
+    resource.setProperty(MPACK_VERSION, response.getMpackVersion());
+    resource.setProperty(MPACK_URI, response.getMpackUri());
+    resource.setProperty(MPACK_DESCRIPTION, response.getDescription());
+    resource.setProperty(REGISTRY_ID, response.getRegistryId());
+    resource.setProperty(MPACK_DISPLAY_NAME, response.getDisplayName());
+    return resource;
   }
 
   @Override
