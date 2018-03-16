@@ -30,6 +30,7 @@ public class RegistryMpackResponse {
   private String mpackName;
   private String mpackDescription;
   private String mpackLogoUri;
+  private String mpackDisplayName;
 
   /**
    * Constructor
@@ -39,12 +40,13 @@ public class RegistryMpackResponse {
    * @param mpackDescription  mpack description
    * @param mpackLogoUri      mpack logo uri
    */
-  public RegistryMpackResponse(Long registryId, String mpackId, String mpackName, String mpackDescription, String mpackLogoUri) {
+  public RegistryMpackResponse(Long registryId, String mpackId, String mpackName, String mpackDescription, String mpackLogoUri, String mpackDisplayName) {
     this.registryId = registryId;
     this.mpackName = mpackName;
     this.mpackId = mpackId;
     this.mpackDescription = mpackDescription;
     this.mpackLogoUri = mpackLogoUri;
+    this.mpackDisplayName = mpackDisplayName;
   }
 
   /**
@@ -86,6 +88,14 @@ public class RegistryMpackResponse {
    */
   public String getMpackLogoUri() {
     return mpackLogoUri;
+  }
+
+  /**
+   * Get mpack display name
+   * @return mpack display name
+   */
+  public String getMpackDisplayName() {
+    return mpackDisplayName;
   }
 
   /**
