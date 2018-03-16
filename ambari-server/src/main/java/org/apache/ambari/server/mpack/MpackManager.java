@@ -123,9 +123,9 @@ public class MpackManager {
             for (final File file : dirEntry.listFiles()) {
               if (file.isDirectory()) {
                 String mpackVersion = file.getName();
-                List resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
+                List<MpackEntity> resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
                 if (resultSet.size() > 0) {
-                  MpackEntity mpackEntity = (MpackEntity) resultSet.get(0);
+                  MpackEntity mpackEntity = resultSet.get(0);
 
                   // Read the mpack.json file into Mpack Object for further use.
                   String mpackJsonContents = new String(
@@ -153,7 +153,6 @@ public class MpackManager {
       }
     } catch (NullPointerException|IOException e) {
       LOG.error("Unable to parse existing mpack structure", e);
-      e.printStackTrace();
     }
   }
 
@@ -538,7 +537,7 @@ public class MpackManager {
 
     String mpackName = mpack.getName();
     String mpackVersion = mpack.getVersion();
-    List resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
+    List<MpackEntity> resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
     StackEntity stackEntity = stackDAO.find(mpackName, mpackVersion);
     if (resultSet.size() == 0 && stackEntity == null) {
       LOG.info("Adding mpack {}-{} to the database", mpackName, mpackVersion);
