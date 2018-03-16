@@ -34,6 +34,7 @@ from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.libraries.functions import namenode_ha_utils
 
 from resource_management.core import Logger
 
@@ -121,6 +122,9 @@ def oozie_service(action = 'start', upgrade_type=None):
                 user = params.oozie_user,
         )
 
+      nameservices = namenode_ha_utils.get_nameservices(params.hdfs_site)
+      nameservice = None if not nameservices else nameservices[-1]
+
       if params.sysprep_skip_copy_oozie_share_lib_to_hdfs:
         Logger.info("Skipping creation of oozie sharelib as host is sys prepped")
         # Copy current hive-site to hdfs:/user/oozie/share/lib/spark/
@@ -137,7 +141,7 @@ def oozie_service(action = 'start', upgrade_type=None):
         hdfs_share_dir_exists = True # skip time-expensive hadoop fs -ls check
       elif WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
         # check with webhdfs is much faster than executing hadoop fs -ls. 
-        util = WebHDFSUtil(params.hdfs_site, params.oozie_user, params.security_enabled)
+        util = WebHDFSUtil(params.hdfs_site, nameservice, params.oozie_user, params.security_enabled)
         list_status = util.run_command(params.hdfs_share_dir, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
         hdfs_share_dir_exists = ('FileStatus' in list_status)
       else:
