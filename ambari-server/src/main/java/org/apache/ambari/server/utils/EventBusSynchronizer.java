@@ -28,6 +28,7 @@ import org.apache.ambari.server.events.listeners.alerts.AlertStateChangedListene
 import org.apache.ambari.server.events.listeners.upgrade.MpackInstallStateListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.CommandReportEventPublisher;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
@@ -70,6 +71,25 @@ public class EventBusSynchronizer {
     AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
 
     replaceEventBus(AmbariEventPublisher.class, publisher, synchronizedBus);
+
+    // register common ambari event listeners
+    registerAmbariListeners(injector, synchronizedBus);
+
+    return synchronizedBus;
+  }
+
+  /**
+   * Force the {@link EventBus} from {@link AlertEventPublisher} to be serial
+   * and synchronous. Also register the known listeners. Registering known
+   * listeners is necessary since the event bus was replaced.
+   *
+   * @param injector
+   */
+  public static EventBus synchronizeCommandReportEventPublisher(Injector injector) {
+    EventBus synchronizedBus = new EventBus();
+    CommandReportEventPublisher publisher = injector.getInstance(CommandReportEventPublisher.class);
+
+    replaceEventBus(CommandReportEventPublisher.class, publisher, synchronizedBus);
 
     // register common ambari event listeners
     registerAmbariListeners(injector, synchronizedBus);

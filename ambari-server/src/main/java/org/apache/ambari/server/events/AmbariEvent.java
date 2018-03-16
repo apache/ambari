@@ -109,11 +109,6 @@ public abstract class AmbariEvent {
     MAINTENANCE_MODE,
 
     /**
-     * Received a final command report for some action
-     */
-    ACTION_EXECUTION_FINISHED,
-
-    /**
      * Sent when request finishes
      */
     REQUEST_FINISHED,

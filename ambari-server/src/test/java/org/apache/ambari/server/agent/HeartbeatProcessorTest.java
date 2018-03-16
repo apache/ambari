@@ -66,6 +66,7 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
@@ -73,6 +74,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.MpackInstallState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
@@ -1171,7 +1173,7 @@ public class HeartbeatProcessorTest {
   public void testInstallPackagesWithId() throws Exception {
     // required since this test method checks the DAO result of handling a
     // heartbeat which performs some async tasks
-    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+    EventBusSynchronizer.synchronizeCommandReportEventPublisher(injector);
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
@@ -1181,20 +1183,17 @@ public class HeartbeatProcessorTest {
         Collections.singletonList(command)).anyTimes();
     replay(am);
 
-    Cluster cluster = heartbeatTestHelper.getDummyCluster();
-
-    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
-    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
-    Assert.assertNotNull(entity);
+    StackId stackId = new StackId("HDP", "0.1");
+    MpackEntity mpackEntity = helper.createMpack(stackId);
 
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, new ActionQueue());
     HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
     HeartBeat hb = new HeartBeat();
 
     JsonObject json = new JsonObject();
-    json.addProperty("actual_version", "2.2.1.0-2222");
+    json.addProperty("mpackId", mpackEntity.getId());
+    json.addProperty("mpackName", mpackEntity.getMpackName());
     json.addProperty("package_installation_result", "SUCCESS");
-    json.addProperty("repository_version_id", entity.getId());
 
     CommandReport cmdReport = new CommandReport();
     cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
@@ -1215,15 +1214,12 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setComponentStatus(new ArrayList<>());
 
-    StackId stackId = new StackId("HDP", "0.1");
-
     heartbeatProcessor.processHeartbeat(hb);
 
-    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
-    Assert.assertNotNull(entity);
-
-    entity = dao.findByStackAndVersion(stackId, "0.1.1");
-    Assert.assertNull(entity);
+    HostEntity hostEntity = hostDAO.findByName(DummyHostname1);
+    assertEquals(1, hostEntity.getMpackInstallStates().size());
+    assertEquals(MpackInstallState.INSTALLED,
+        hostEntity.getMpackInstallStates().iterator().next().getState());
   }
 
   @Test

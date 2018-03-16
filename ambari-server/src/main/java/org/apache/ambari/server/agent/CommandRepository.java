@@ -22,8 +22,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
@@ -63,13 +61,6 @@ public class CommandRepository {
   public CommandRepositoryFeature getFeature(){
     return feature;
   }
-
-  /**
-   * {@code true} if Ambari believes that this repository has reported back it's
-   * version after distribution.
-   */
-  @SerializedName("resolved")
-  private final boolean m_resolved = true;
 
   /**
    * @param id
@@ -145,42 +136,6 @@ public class CommandRepository {
       repo.m_mirrorsList = null;
       repo.m_ambariManaged = false;
     }
-  }
-
-  /**
-   * Gets whether this repository has been marked as having its version
-   * resolved.
-   *
-   * @return {@code true} if this repository has been confirmed to have the
-   *         right version.
-   */
-  public boolean isResolved() {
-    return m_resolved;
-  }
-
-  /**
-   * Update repository id to be consistent with old format
-   *
-   * @param repoVersion
-   */
-  @Deprecated
-  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  public void setLegacyRepoId(String repoVersion){
-    for (Repository repo : m_repositories) {
-      repo.m_repoId = String.format("%s-%s", repo.getRepoName(), repoVersion);
-    }
-  }
-
-  /**
-   * Sets filename for the repo
-   *
-   * @param stackName  name of the stack
-   * @param repoVersion repository version
-   */
-  @Deprecated
-  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  public void setLegacyRepoFileName(String stackName, String repoVersion) {
-    m_repoFileName = String.format("%s-%s", stackName, repoVersion);
   }
 
   /**

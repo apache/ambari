@@ -43,12 +43,12 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
+import org.apache.ambari.server.events.CommandReportReceivedEvent;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.CommandReportEventPublisher;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
@@ -117,7 +117,7 @@ public class HeartbeatProcessor extends AbstractService{
   AlertEventPublisher alertEventPublisher;
 
   @Inject
-  AmbariEventPublisher ambariEventPublisher;
+  CommandReportEventPublisher commandReportEventPublisher;
 
   @Inject
   VersionEventPublisher versionEventPublisher;
@@ -392,11 +392,11 @@ public class HeartbeatProcessor extends AbstractService{
       }
 
       // Send event for final command reports for actions
-      if (RoleCommand.valueOf(report.getRoleCommand()) == RoleCommand.ACTIONEXECUTE &&
-          HostRoleStatus.valueOf(report.getStatus()).isCompletedState()) {
-        ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
-            clusterId, hostname, report, false);
-        ambariEventPublisher.publish(event);
+      if (HostRoleStatus.valueOf(report.getStatus()).isCompletedState()) {
+        CommandReportReceivedEvent event = new CommandReportReceivedEvent(
+            clusterId, hostname, report);
+
+        commandReportEventPublisher.publish(event);
       }
 
       // Fetch HostRoleCommand that corresponds to a given task ID

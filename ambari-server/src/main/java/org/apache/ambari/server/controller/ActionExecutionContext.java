@@ -30,7 +30,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.Mpack;
 
 /**
  * The context required to create tasks and stages for a custom action
@@ -49,8 +48,6 @@ public class ActionExecutionContext {
   private boolean hostsInMaintenanceModeExcluded = true;
   private boolean allowRetry = false;
   private RepositoryVersionEntity repositoryVersion;
-  private Mpack mpack = null;
-
   private List<ExecutionCommandVisitor> m_visitors = new ArrayList<>();
 
   /**
@@ -212,24 +209,6 @@ public class ActionExecutionContext {
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
     this.repositoryVersion = repositoryVersion;
-  }
-
-  /**
-   * Sets the management pack for this command. This can be used to version and
-   * stack information.
-   *
-   * @param mpack
-   */
-  public void setMpack(Mpack mpack) {
-    this.mpack = mpack;
-  }
-
-  /**
-   * Gets the management pack associated with this command. This can be used for
-   * version and stack information.
-   */
-  public Mpack getMpack() {
-    return mpack;
   }
 
   /**
