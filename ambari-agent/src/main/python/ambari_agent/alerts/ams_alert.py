@@ -31,7 +31,7 @@ import uuid
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from ambari_commons import inet_utils
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
 
