@@ -47,6 +47,8 @@ public class AlertHelperTest {
     alertHelper.addStaleAlerts(1L, new ArrayList<StaleAlert>(){{
       add(new StaleAlert(1L, 111L));
       add(new StaleAlert(2L, 111L));
+    }});
+    alertHelper.addStaleAlerts(1L, new ArrayList<StaleAlert>(){{
       add(new StaleAlert(3L, 111L));
       add(new StaleAlert(4L, 111L));
     }});

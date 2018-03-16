@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os
 import logging
 import threading
 import copy
@@ -77,7 +76,7 @@ class CommandStatusDict():
       return False
 
     try:
-      self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT, log_message_function=CommandStatusDict.log_sending)
+      self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
       return True
     except ConnectionIsAlreadyClosed:
       return False
@@ -132,18 +131,17 @@ class CommandStatusDict():
     and populates other fields of report.
     """
     from ActionQueue import ActionQueue
-    
-    files_to_read = [report['tmpout'], report['tmperr'], report['structuredOut']]
-    files_content = ['...', '...', '{}']
-
-    for i in xrange(len(files_to_read)):
-      filename = files_to_read[i]
-      if os.path.exists(filename):
-        with open(filename, 'r') as fp:
-          files_content[i] = fp.read()
-          
-    tmpout, tmperr, tmpstructuredout = files_content
-
+    try:
+      tmpout = open(report['tmpout'], 'r').read()
+      tmperr = open(report['tmperr'], 'r').read()
+    except Exception, err:
+      logger.warn(err)
+      tmpout = '...'
+      tmperr = '...'
+    try:
+      tmpstructuredout = open(report['structuredOut'], 'r').read()
+    except Exception:
+      tmpstructuredout = '{}'
     grep = Grep()
     output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
     inprogress = self.generate_report_template(command)
@@ -171,21 +169,5 @@ class CommandStatusDict():
       'roleCommand': command['roleCommand']
     }
     return stub
-    
-  @staticmethod
-  def log_sending(message_dict):
-    """
-    Returned dictionary will be used while logging sent component status.
-    Used because full dict is too big for logs and should be shortened
-    """
-    try:
-      for cluster_id in message_dict['clusters']:
-        for command_status in message_dict['clusters'][cluster_id]:
-          if 'stdout' in command_status:
-            command_status['stdout'] = '...'
-    except KeyError:
-      pass
-      
-    return message_dict
 
 

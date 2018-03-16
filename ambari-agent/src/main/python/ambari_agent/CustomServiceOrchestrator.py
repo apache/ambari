@@ -241,7 +241,7 @@ class CustomServiceOrchestrator():
             config.pop(value_name, None)
     return configtype_credentials
 
-  def generateJceks(self, commandJson):
+  def qJceks(self, commandJson):
     """
     Generates the JCEKS file with passwords for the service specified in commandJson
 
@@ -363,7 +363,7 @@ class CustomServiceOrchestrator():
       # generate the JCEKS file for the configurations.
       credentialStoreEnabled = False
       if 'serviceLevelParams' in command and 'credentialStoreEnabled' in command['serviceLevelParams']:
-        credentialStoreEnabled = command['serviceLevelParams']['credentialStoreEnabled']
+        credentialStoreEnabled = (command['serviceLevelParams']['credentialStoreEnabled'] == "true")
 
       if credentialStoreEnabled == True:
         if 'commandBeingRetried' not in command['agentLevelParams'] or command['agentLevelParams']['commandBeingRetried'] != "true":
