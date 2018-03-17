@@ -19,7 +19,6 @@
 import {Component, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {TakeUntilDestroy} from "angular2-take-until-destroy";
 import {Observable} from "rxjs/Observable";
 import {Options} from 'angular2-notifications/src/options.type';
 

@@ -92,6 +92,8 @@
   "pagination.numbers": "{{startIndex}}-{{endIndex}} of {{totalCount}}",
 
   "logs.title": "Logs",
+  "logs.serviceLogs.title": "Service Logs",
+  "logs.auditLogs.title": "Audit Logs",
   "logs.columns": "Columns",
   "logs.status": "Status",
   "logs.details": "Details",

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, ElementRef, ViewChild, HostListener} from '@angular/core';
+import {Component, OnInit, ElementRef, ViewChild, HostListener, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -32,7 +32,7 @@ import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
 import {LogsType, LogLevel} from '@app/classes/string';
-import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel.component";
+import {FiltersPanelComponent} from '@app/components/filters-panel/filters-panel.component';
 
 @Component({
   selector: 'logs-container',
@@ -41,12 +41,37 @@ import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel
 })
 export class LogsContainerComponent implements OnInit {
 
+  private isFilterPanelFixedPostioned: boolean = false;
+
+  tabs: Observable<Tab[]> = this.tabsStorage.getAll();
+
+  private logsType: LogsType;
+
+  serviceLogsHistogramData: HomogeneousObject<HomogeneousObject<number>>;
+
+  auditLogsGraphData: HomogeneousObject<HomogeneousObject<number>>;
+
+  serviceLogsHistogramColors: HomogeneousObject<string> = this.logsContainerService.logLevels.reduce((
+    currentObject: HomogeneousObject<string>, level: LogLevelObject
+  ): HomogeneousObject<string> => {
+    return Object.assign({}, currentObject, {
+      [level.name]: level.color
+    });
+  }, {});
+
+  isServiceLogContextView: boolean = false;
+
+  @ViewChild('container') containerRef: ElementRef;
+  @ViewChild('filtersPanel') filtersPanelRef: FiltersPanelComponent;
+
+  @Input()
+  routerPath: string[] = ['/logs'];
+
   constructor(
     private appState: AppStateService, private tabsStorage: TabsService, private logsContainerService: LogsContainerService,
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
     private auditLogsGraphStorage: AuditLogsGraphDataService
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.logsContainerService.loadColumnsNames();
@@ -66,39 +91,18 @@ export class LogsContainerComponent implements OnInit {
     });
   }
 
-  @ViewChild('container') containerRef: ElementRef;
-  @ViewChild('filtersPanel') filtersPanelRef: FiltersPanelComponent;
-
-  @HostListener("window:scroll", ['$event'])
+  @HostListener('window:scroll', ['$event'])
   onWindowScroll(): void {
     this.setFixedPositionValue();
   }
-
-  private isFilterPanelFixedPostioned: boolean = false;
-
-  tabs: Observable<Tab[]> = this.tabsStorage.getAll();
 
   get filtersForm(): FormGroup {
     return this.logsContainerService.filtersForm;
   };
 
-  private logsType: LogsType;
-
   get totalCount(): number {
     return this.logsContainerService.totalCount;
   }
-
-  serviceLogsHistogramData: HomogeneousObject<HomogeneousObject<number>>;
-
-  auditLogsGraphData: HomogeneousObject<HomogeneousObject<number>>;
-
-  serviceLogsHistogramColors: HomogeneousObject<string> = this.logsContainerService.logLevels.reduce((
-    currentObject: HomogeneousObject<string>, level: LogLevelObject
-  ): HomogeneousObject<string> => {
-    return Object.assign({}, currentObject, {
-      [level.name]: level.color
-    });
-  }, {});
 
   get autoRefreshRemainingSeconds(): number {
     return this.logsContainerService.autoRefreshRemainingSeconds;
@@ -119,8 +123,6 @@ export class LogsContainerComponent implements OnInit {
       totalCount: this.totalCount
     };
   }
-
-  isServiceLogContextView: boolean = false;
 
   get isServiceLogsFileView(): boolean {
     return this.logsContainerService.isServiceLogsFileView;
@@ -151,15 +153,15 @@ export class LogsContainerComponent implements OnInit {
    * can be always visible for the user.
    */
   private setFixedPositionValue(): void {
-    const el:Element = this.containerRef.nativeElement;
-    const top:number = el.getBoundingClientRect().top;
+    const el: Element = this.containerRef.nativeElement;
+    const top: number = el.getBoundingClientRect().top;
     const valueBefore: boolean = this.isFilterPanelFixedPostioned;
-    if (valueBefore != (top <= 0)) {
-      const fpEl:Element = this.filtersPanelRef.containerEl;
+    if (valueBefore !== (top <= 0)) {
+      const fpEl: Element = this.filtersPanelRef.containerEl;
       this.isFilterPanelFixedPostioned = top <= 0;
       const filtersPanelHeight: number = fpEl.getBoundingClientRect().height;
       const containerPaddingTop: number = parseFloat(window.getComputedStyle(el).paddingTop);
-      const htmlEl:HTMLElement = this.containerRef.nativeElement;
+      const htmlEl: HTMLElement = this.containerRef.nativeElement;
       if (this.isFilterPanelFixedPostioned) {
         htmlEl.style.paddingTop = (containerPaddingTop + filtersPanelHeight) + 'px';
       } else {

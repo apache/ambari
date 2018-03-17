@@ -22,7 +22,6 @@ import 'rxjs/add/operator/finally';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
 import {Subscription} from "rxjs/Subscription";
-import {TakeUntilDestroy} from "angular2-take-until-destroy";
 
 @Component({
   selector: 'login-form',
@@ -31,18 +30,7 @@ import {TakeUntilDestroy} from "angular2-take-until-destroy";
 })
 export class LoginFormComponent implements OnInit, OnDestroy {
 
-  constructor(private authService: AuthService, private appState: AppStateService) {}
-
-  ngOnInit() {
-    this.appStateIsLoginInProgressSubscription = this.appState.getParameter('isLoginInProgress')
-      .subscribe(value => this.isLoginInProgress = value);
-  }
-
-  ngOnDestroy(){
-    this.appStateIsLoginInProgressSubscription.unsubscribe();
-  }
-
-  private appStateIsLoginInProgressSubscription: Subscription;
+  private subscriptions: Subscription[];
 
   username: string;
 
@@ -52,6 +40,18 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   isLoginInProgress: boolean;
 
+  constructor(private authService: AuthService, private appState: AppStateService) {}
+
+  ngOnInit() {
+    this.subscriptions.push(
+      this.appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value)
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
    * When it gets error response it shows.
@@ -59,7 +59,8 @@ export class LoginFormComponent implements OnInit, OnDestroy {
    */
   private onLoginError = (resp: Response): void => {
     this.isLoginAlertDisplayed = true;
-  };
+  }
+
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
    * When it gets success response it hides.
@@ -67,10 +68,10 @@ export class LoginFormComponent implements OnInit, OnDestroy {
    */
   private onLoginSuccess = (resp: Response): void => {
     this.isLoginAlertDisplayed = false;
-  };
+  }
 
   login() {
-    this.authService.login(this.username,this.password).subscribe(this.onLoginSuccess, this.onLoginError);
+    this.authService.login(this.username, this.password).subscribe(this.onLoginSuccess, this.onLoginError);
   }
 
 }

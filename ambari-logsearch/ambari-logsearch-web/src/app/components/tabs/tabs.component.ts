@@ -28,6 +28,9 @@ export class TabsComponent {
   @Input()
   items: Tab[] = [];
 
+  @Input()
+  useTabLinks: boolean = false;
+
   @Output()
   tabSwitched: EventEmitter<Tab> = new EventEmitter();
 

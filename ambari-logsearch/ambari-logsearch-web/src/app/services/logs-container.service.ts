@@ -51,86 +51,18 @@ import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
 import {LogsType, ScrollType, SortingType} from '@app/classes/string';
 import {Tab} from '@app/classes/models/tab';
-import {AuditFieldsDefinitionSet} from "@app/classes/object";
+import {AuditFieldsDefinitionSet} from '@app/classes/object';
 import {AuditLog} from '@app/classes/models/audit-log';
 import {ServiceLog} from '@app/classes/models/service-log';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
-import {ClusterSelectionService} from "@app/services/storage/cluster-selection.service";
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {ActivatedRouteSnapshot, Router, RoutesRecognized} from '@angular/router';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
 
 @Injectable()
 export class LogsContainerService {
-
-  constructor(
-    private httpClient: HttpClientService, private utils: UtilsService,
-    private tabsStorage: TabsService, private componentsStorage: ComponentsService, private hostsStorage: HostsService,
-    private appState: AppStateService, private auditLogsStorage: AuditLogsService,
-    private auditLogsGraphStorage: AuditLogsGraphDataService, private auditLogsFieldsStorage: AuditLogsFieldsService,
-    private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService,
-    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private clustersStorage: ClustersService,
-    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService,
-    private clusterSelectionStoreService: ClusterSelectionService
-  ) {
-    const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
-      let formControl = new FormControl(),
-        item = {
-          [key]: formControl
-        };
-      formControl.setValue(this.filters[key].defaultSelection);
-      return Object.assign(currentObject, item);
-    }, {});
-    this.filtersForm = new FormGroup(formItems);
-    this.loadClusters();
-    this.loadComponents();
-    this.loadHosts();
-    appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => this.activeLog = value);
-    appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
-    appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.activeLogsType = value);
-    appSettings.getParameter('timeZone').subscribe((value: string) => this.timeZone = value || this.defaultTimeZone);
-    tabsStorage.mapCollection((tab: Tab): Tab => {
-      let currentAppState = tab.appState || {};
-      const appState = Object.assign({}, currentAppState, {
-        activeFilters: this.getFiltersData(tab.appState.activeLogsType)
-      });
-      return Object.assign({}, tab, {
-        appState
-      });
-    });
-    appState.getParameter('activeFilters').subscribe((filters: object): void => {
-      this.filtersFormChange.next();
-      if (filters) {
-        const controls = this.filtersForm.controls;
-        Object.keys(controls).forEach((key: string): void => {
-          controls[key].setValue(filters.hasOwnProperty(key) ? filters[key] : null);
-        });
-      }
-      this.loadLogs();
-      this.filtersForm.valueChanges
-        .distinctUntilChanged(this.isFormUnchanged)
-        .takeUntil(this.filtersFormChange)
-        .subscribe((value): void => {
-          this.tabsStorage.mapCollection((tab: Tab): Tab => {
-            const currentAppState = tab.appState || {},
-              appState = Object.assign({}, currentAppState, tab.isActive ? {
-                activeFilters: value
-              } : null);
-            return Object.assign({}, tab, {
-              appState
-            });
-          });
-          this.loadLogs();
-      });
-    });
-    this.auditLogsSource.subscribe((logs: AuditLog[]): void => {
-      const userNames = logs.map((log: AuditLog): string => log.reqUser);
-      this.utils.pushUniqueValues(
-        this.filters.users.options, userNames.map(this.utils.getListItemFromString),
-        this.compareFilterOptions
-      );
-    });
-    this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey).subscribe(this.onClusterSelectionChanged);
-  }
 
   static clusterSelectionStoreKey = 'logs';
 
@@ -609,25 +541,12 @@ export class LogsContainerService {
 
   filtersFormChange: Subject<void> = new Subject();
 
-  private logsMapper<LogT extends AuditLog & ServiceLog>(result: [LogT[], ListItem[]]): LogT[] {
-    const [logs, fields] = result;
-    if (fields.length) {
-      const names = fields.map((field: ListItem): string => field.value);
-      return logs.map((log: LogT): LogT => {
-        return names.reduce((currentObject: object, key: string) => Object.assign(currentObject, {
-          [key]: log[key]
-        }), {}) as LogT;
-      });
-    } else {
-      return [];
-    }
-  }
-
   private auditLogsSource: Observable<AuditLog[]> = this.auditLogsStorage.getAll();
 
   private serviceLogsSource: Observable<ServiceLog[]> = this.serviceLogsStorage.getAll();
 
-  auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getParameter(ResponseRootProperties.DEFAULTS).map(this.utils.logFieldToListItemMapper);
+  auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getParameter(ResponseRootProperties.DEFAULTS)
+    .map(this.utils.logFieldToListItemMapper);
 
   serviceLogsColumns: Observable<ListItem[]> = this.serviceLogsFieldsStorage.getAll().map(this.utils.logFieldToListItemMapper);
 
@@ -661,6 +580,113 @@ export class LogsContainerService {
 
   topResourcesGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
 
+  private selectedTabByUrl$: Observable<Tab | null> = this.router.events.filter(routes => routes instanceof RoutesRecognized)
+    .map((routesRecogized: RoutesRecognized) => {
+      return this.routingUtils.getParamFromActivatedRouteSnapshot(routesRecogized.state.root, 'activeTab');
+    })
+    .switchMap((logsType: string) => {
+      if (logsType) {
+        return this.tabsStorage.getAll().first()
+          .map((tabs: Tab[]) => tabs.find((tab: Tab) => tab.id === logsType));
+      }
+      return Observable.of(null);
+    });
+
+  constructor(
+    private httpClient: HttpClientService, private utils: UtilsService,
+    private tabsStorage: TabsService, private componentsStorage: ComponentsService, private hostsStorage: HostsService,
+    private appState: AppStateService, private auditLogsStorage: AuditLogsService,
+    private auditLogsGraphStorage: AuditLogsGraphDataService, private auditLogsFieldsStorage: AuditLogsFieldsService,
+    private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService,
+    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private clustersStorage: ClustersService,
+    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService,
+    private clusterSelectionStoreService: ClusterSelectionService,
+    private router: Router,
+    private routingUtils: RoutingUtilsService
+  ) {
+    const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
+      const formControl = new FormControl();
+      const item = {
+        [key]: formControl
+      };
+      formControl.setValue(this.filters[key].defaultSelection);
+      return Object.assign(currentObject, item);
+    }, {});
+    this.filtersForm = new FormGroup(formItems);
+    this.loadClusters();
+    this.loadComponents();
+    this.loadHosts();
+    appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => this.activeLog = value);
+    appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
+    appState.getParameter('activeLogsType').subscribe((value: LogsType) => {
+      if (this.activeLogsType !== value) {
+        this.activeLogsType = value;
+      }
+    });
+    appSettings.getParameter('timeZone').subscribe((value: string) => this.timeZone = value || this.defaultTimeZone);
+    tabsStorage.mapCollection((tab: Tab): Tab => {
+      const currentAppState = tab.appState || {};
+      const appState = Object.assign({}, currentAppState, {
+        activeFilters: this.getFiltersData(tab.appState.activeLogsType)
+      });
+      return Object.assign({}, tab, {
+        appState
+      });
+    });
+    appState.getParameter('activeFilters').subscribe((filters: object): void => {
+      this.filtersFormChange.next();
+      if (filters) {
+        const controls = this.filtersForm.controls;
+        Object.keys(controls).forEach((key: string): void => {
+          controls[key].setValue(filters.hasOwnProperty(key) ? filters[key] : null);
+        });
+      }
+      this.loadLogs();
+      this.filtersForm.valueChanges
+        .distinctUntilChanged(this.isFormUnchanged)
+        .takeUntil(this.filtersFormChange)
+        .subscribe((value): void => {
+          this.tabsStorage.mapCollection((tab: Tab): Tab => {
+            const currentAppState = tab.appState || {};
+            const appState = Object.assign({}, currentAppState, tab.isActive ? {
+                activeFilters: value
+              } : null);
+            return Object.assign({}, tab, {
+              appState
+            });
+          });
+          this.loadLogs();
+      });
+    });
+    this.auditLogsSource.subscribe((logs: AuditLog[]): void => {
+      const userNames = logs.map((log: AuditLog): string => log.reqUser);
+      this.utils.pushUniqueValues(
+        this.filters.users.options, userNames.map(this.utils.getListItemFromString),
+        this.compareFilterOptions
+      );
+    });
+    this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey).subscribe(this.onClusterSelectionChanged);
+    this.selectedTabByUrl$.subscribe((activatedTab: Tab | null) => {
+      if (activatedTab && activatedTab.id !== this.activeLogsType) {
+        this.switchTab(activatedTab);
+      }
+    });
+  }
+
+  private logsMapper<LogT extends AuditLog & ServiceLog>(result: [LogT[], ListItem[]]): LogT[] {
+    const [logs, fields] = result;
+    if (fields.length) {
+      const names = fields.map((field: ListItem): string => field.value);
+      return logs.map((log: LogT): LogT => {
+        return names.reduce((currentObject: object, key: string) => Object.assign(currentObject, {
+          [key]: log[key]
+        }), {}) as LogT;
+      });
+    } else {
+      return [];
+    }
+  }
+
   private onClusterSelectionChanged = (selection): void => {
     const clusterSelection: string[] = Array.isArray(selection) ? selection : [selection];
     this.filtersForm.controls.clusters.setValue(clusterSelection.map(this.utils.getListItemFromString));
@@ -678,7 +704,7 @@ export class LogsContainerService {
 
   private isFormUnchanged = (valueA: object, valueB: object): boolean => {
     const trackedControlNames = this.logsTypeMap[this.activeLogsType].listFilters;
-    for (let name of trackedControlNames) {
+    for (const name of trackedControlNames) {
       if (!this.utils.isEqual(valueA[name], valueB[name])) {
         return false;
       }
@@ -740,7 +766,7 @@ export class LogsContainerService {
         }
       });
     }
-  };
+  }
 
   loadLogContext(id: string, hostName: string, componentName: string, scrollType: ScrollType = ''): void {
     const params = {
@@ -774,19 +800,23 @@ export class LogsContainerService {
   }
 
   private parseAuditLogsTopData(data: BarGraph[]): HomogeneousObject<HomogeneousObject<number>> {
-    return data.reduce((currentObject: HomogeneousObject<HomogeneousObject<number>>, currentItem: BarGraph): HomogeneousObject<HomogeneousObject<number>> => Object.assign(currentObject, {
-      [currentItem.name]: currentItem.dataCount.reduce((currentDataObject: HomogeneousObject<number>, currentDataItem: CommonEntry): HomogeneousObject<number> => {
-        return Object.assign(currentDataObject, {
-          [currentDataItem.name]: currentDataItem.value
-        });
-      }, {})
-    }), {});
+    return data.reduce((
+        currentObject: HomogeneousObject<HomogeneousObject<number>>, currentItem: BarGraph
+      ): HomogeneousObject<HomogeneousObject<number>> => Object.assign(currentObject, {
+        [currentItem.name]: currentItem.dataCount.reduce(
+            (currentDataObject: HomogeneousObject<number>, currentDataItem: CommonEntry): HomogeneousObject<number> => {
+            return Object.assign(currentDataObject, {
+              [currentDataItem.name]: currentDataItem.value
+            });
+          }, {}
+        )
+      }), {});
   }
 
   private getParams(
     filtersMapName: string, additionalParams: HomogeneousObject<string> = {}, logsType: LogsType = this.activeLogsType
   ): HomogeneousObject<string> {
-    let params = {};
+    const params = {};
     this.logsTypeMap[logsType][filtersMapName].forEach((key: string): void => {
       const inputValue = this.filtersForm.getRawValue()[key],
         paramNames = this.filtersMapping[key];
@@ -807,13 +837,13 @@ export class LogsContainerService {
   }
 
   getGraphData(data: BarGraph[], keys?: string[]): HomogeneousObject<HomogeneousObject<number>> {
-    let graphData = {};
+    const graphData = {};
     data.forEach(type => {
       const name = type.name;
       type.dataCount.forEach(entry => {
         const timeStamp = new Date(entry.name).valueOf();
         if (!graphData[timeStamp]) {
-          let initialValue = {};
+          const initialValue = {};
           if (keys) {
             keys.forEach((key: string) => initialValue[key] = 0);
           }
@@ -833,7 +863,7 @@ export class LogsContainerService {
       }
     });
     this.httpClient.get('auditLogsFields').subscribe((response: Response): void => {
-      const jsonResponse:AuditFieldsDefinitionSet = response.json();
+      const jsonResponse: AuditFieldsDefinitionSet = response.json();
       if (jsonResponse) {
         this.auditLogsFieldsStorage.setParameters(jsonResponse);
       }
@@ -863,12 +893,12 @@ export class LogsContainerService {
       }
     }
     return time;
-  };
+  }
 
   private getStartTime = (selection: TimeUnitListItem, current: string): string => {
     const startMoment = this.getStartTimeMoment(selection, moment(moment(current).valueOf()));
     return startMoment ? startMoment.toISOString() : '';
-  };
+  }
 
   getEndTimeMoment = (selection: TimeUnitListItem): moment.Moment | undefined => {
     let time;
@@ -892,12 +922,12 @@ export class LogsContainerService {
       }
     }
     return time;
-  };
+  }
 
   private getEndTime = (selection: TimeUnitListItem): string => {
     const endMoment = this.getEndTimeMoment(selection);
     return endMoment ? endMoment.toISOString() : '';
-  };
+  }
 
   private getQuery(isExclude: boolean): (value: SearchBoxParameter[]) => string {
     return (value: SearchBoxParameter[]): string => {
@@ -912,7 +942,7 @@ export class LogsContainerService {
         });
       }
       return parameters && parameters.length ? JSON.stringify(parameters) : '';
-    }
+    };
   }
 
   private getSortType(selection: SortingListItem[] = []): SortingType {
@@ -989,14 +1019,14 @@ export class LogsContainerService {
   }
 
   loadComponents(): Observable<Response[]> {
-    const requestComponentsData:Observable<Response> = this.httpClient.get('components');
-    const requestComponentsName:Observable<Response> = this.httpClient.get('serviceComponentsName');
+    const requestComponentsData: Observable<Response> = this.httpClient.get('components');
+    const requestComponentsName: Observable<Response> = this.httpClient.get('serviceComponentsName');
     const requests = Observable.combineLatest(requestComponentsName, requestComponentsData);
-    requests.subscribe(([componentsNamesResponse, componentsDataResponse]:Response[]) => {
+    requests.subscribe(([componentsNamesResponse, componentsDataResponse]: Response[]) => {
       const componentsNames = componentsNamesResponse.json();
       const componentsData = componentsDataResponse.json();
       const components = componentsData && componentsData.vNodeList.map((item): NodeItem => {
-        const component = componentsNames.metadata.find(component => component.name === item.name);
+        const component = componentsNames.metadata.find(componentItem => componentItem.name === item.name);
         return Object.assign(item, {
           label: component && (component.label || item.name),
           group: component && component.group && {

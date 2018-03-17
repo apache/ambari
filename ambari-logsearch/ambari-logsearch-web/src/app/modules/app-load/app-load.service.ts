@@ -23,6 +23,9 @@ import "rxjs/add/operator/toPromise";
 import {AppStateService} from "@app/services/storage/app-state.service";
 import {HttpClientService} from "@app/services/http-client.service";
 import {ClustersService} from "@app/services/storage/clusters.service";
+import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
+import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
+import {AuditFieldsDefinitionSet} from '@app/classes/object';
 
 @Injectable()
 export class AppLoadService {
@@ -30,7 +33,9 @@ export class AppLoadService {
   constructor(
     private httpClient: HttpClientService,
     private appStateService: AppStateService,
-    private clustersStorage: ClustersService
+    private clustersStorage: ClustersService,
+    private serviceLogsFieldsService: ServiceLogsFieldsService,
+    private auditLogsFieldsService: AuditLogsFieldsService
   ) {
     this.appStateService.getParameter('isAuthorized').subscribe(this.initOnAuthorization);
   }
@@ -51,11 +56,27 @@ export class AppLoadService {
       );
   }
 
+  loadFieldsForLogs(): void {
+    this.httpClient.get('serviceLogsFields').subscribe((response: Response): void => {
+      const jsonResponse = response.json();
+      if (jsonResponse) {
+        this.serviceLogsFieldsService.addInstances(jsonResponse);
+      }
+    });
+    this.httpClient.get('auditLogsFields').subscribe((response: Response): void => {
+      const jsonResponse: AuditFieldsDefinitionSet = response.json();
+      if (jsonResponse) {
+        this.auditLogsFieldsService.setParameters(jsonResponse);
+      }
+    });
+  }
+
   initOnAuthorization = (isAuthorized): void => {
     if (isAuthorized) {
       this.loadClusters();
+        //this.loadFieldsForLogs();
     }
-  };
+  }
 
   syncAuthorizedStateWithBackend(): Promise<any> {
     const statusRequest: Promise<Response> = this.httpClient.get('status').toPromise();

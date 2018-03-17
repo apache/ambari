@@ -19,7 +19,7 @@
   <div class="row">
     <div class="col-md-12 tabs-menu-container">
       <tabs class="pull-left" [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
-            (tabClosed)="onCloseTab($event[0], $event[1])"></tabs>
+        (tabClosed)="onCloseTab($event[0], $event[1])" [useTabLinks]="true"></tabs>
       <action-menu class="pull-right"></action-menu>
     </div>
   </div>
