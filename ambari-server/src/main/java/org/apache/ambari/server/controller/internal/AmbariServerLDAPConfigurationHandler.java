@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
