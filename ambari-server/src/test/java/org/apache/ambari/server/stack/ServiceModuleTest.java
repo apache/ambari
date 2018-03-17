@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.ServicePropertyInfo;
+import org.apache.ambari.server.state.SingleSignOnInfo;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
@@ -1068,6 +1069,50 @@ public class ServiceModuleTest {
     assertEquals(credentialStoreInfoChild.isSupported(), service.getModuleInfo().isCredentialStoreSupported());
     assertEquals(credentialStoreInfoChild.isEnabled(), service.getModuleInfo().isCredentialStoreEnabled());
     assertEquals(credentialStoreInfoChild.isRequired(), service.getModuleInfo().isCredentialStoreRequired());
+  }
+  /**
+   * Verify stack resolution for single sign-on details
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testResolve_SingleSignOnInfo() throws Exception {
+    SingleSignOnInfo singleSignOnInfoChild = new SingleSignOnInfo(false, null);
+    SingleSignOnInfo singleSignOnInfoParent = new SingleSignOnInfo(true, "config-type/property_name");
+    ServiceInfo childInfo = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    ServiceModule serviceModule;
+    ServiceInfo serviceInfo;
+
+    // specified in child only, child wins
+    childInfo.setSingleSignOnInfo(singleSignOnInfoChild);
+    parentInfo.setSingleSignOnInfo(null);
+    serviceModule = resolveService(childInfo, parentInfo);
+    serviceInfo = serviceModule.getModuleInfo();
+    assertEquals(singleSignOnInfoChild.isSupported(), serviceInfo.isSingleSignOnSupported());
+    assertEquals(singleSignOnInfoChild.isSupported(), serviceInfo.getSingleSignOnInfo().isSupported());
+    assertEquals(singleSignOnInfoChild.getSupported(), serviceInfo.getSingleSignOnInfo().getSupported());
+    assertEquals(singleSignOnInfoChild.getEnabledConfiguration(), serviceInfo.getSingleSignOnInfo().getEnabledConfiguration());
+
+    // specified in parent only, parent wins
+    childInfo.setSingleSignOnInfo(null);
+    parentInfo.setSingleSignOnInfo(singleSignOnInfoParent);
+    serviceModule = resolveService(childInfo, parentInfo);
+    serviceInfo = serviceModule.getModuleInfo();
+    assertEquals(singleSignOnInfoParent.isSupported(), serviceInfo.isSingleSignOnSupported());
+    assertEquals(singleSignOnInfoParent.isSupported(), serviceInfo.getSingleSignOnInfo().isSupported());
+    assertEquals(singleSignOnInfoParent.getSupported(), serviceInfo.getSingleSignOnInfo().getSupported());
+    assertEquals(singleSignOnInfoParent.getEnabledConfiguration(), serviceInfo.getSingleSignOnInfo().getEnabledConfiguration());
+
+    // specified in both, child wins
+    childInfo.setSingleSignOnInfo(singleSignOnInfoChild);
+    parentInfo.setSingleSignOnInfo(singleSignOnInfoParent);
+    serviceModule = resolveService(childInfo, parentInfo);
+    serviceInfo = serviceModule.getModuleInfo();
+    assertEquals(singleSignOnInfoChild.isSupported(), serviceInfo.isSingleSignOnSupported());
+    assertEquals(singleSignOnInfoChild.isSupported(), serviceInfo.getSingleSignOnInfo().isSupported());
+    assertEquals(singleSignOnInfoChild.getSupported(), serviceInfo.getSingleSignOnInfo().getSupported());
+    assertEquals(singleSignOnInfoChild.getEnabledConfiguration(), serviceInfo.getSingleSignOnInfo().getEnabledConfiguration());
   }
 
   @Test
