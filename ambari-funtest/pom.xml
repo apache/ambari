@@ -82,24 +82,6 @@
           </configuration>
       </plugin>
     </plugins>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-        <excludes>
-          <exclude>stacks/**</exclude>
-          <exclude>common-services/**</exclude>
-        </excludes>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>false</filtering>
-        <includes>
-          <include>stacks/**</include>
-          <include>common-services/**</include>
-        </includes>
-      </resource>
-    </resources>
   </build>
   <profiles>
     <profile>
