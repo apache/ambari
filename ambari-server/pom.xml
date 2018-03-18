@@ -535,7 +535,7 @@
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
-          <autoRequires>no</autoRequires>
+          <autoRequires>false</autoRequires>
           <prefix>/</prefix>
           <requires>
             <require>${rpm.dependency.list}</require>
