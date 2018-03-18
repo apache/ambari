@@ -58,7 +58,7 @@ import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
-import {ActivatedRouteSnapshot, Router, RoutesRecognized} from '@angular/router';
+import {Router, RoutesRecognized} from '@angular/router';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 
 @Injectable()
@@ -1071,8 +1071,8 @@ export class LogsContainerService {
   }
 
   getFiltersData(listType: string): object {
-    const itemsList = this.logsTypeMap[listType].listFilters,
-      keys = Object.keys(this.filters).filter((key: string): boolean => itemsList.indexOf(key) > -1);
+    const itemsList = this.logsTypeMap[listType].listFilters;
+    const keys = Object.keys(this.filters).filter((key: string): boolean => itemsList.indexOf(key) > -1);
     return keys.reduce((currentObject: object, key: string): object => {
       return Object.assign(currentObject, {
         [key]: this.filters[key].defaultSelection
