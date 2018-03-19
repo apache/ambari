@@ -87,11 +87,6 @@ def setup_infra_solr(name = None):
 
     create_ambari_solr_znode(java_opts)
 
-    if params.has_logsearch:
-      cleanup_logsearch_collections(params.logsearch_service_logs_collection, jaas_file, java_opts)
-      cleanup_logsearch_collections(params.logsearch_audit_logs_collection, jaas_file, java_opts)
-      cleanup_logsearch_collections('history', jaas_file, java_opts)
-
     security_json_file_location = custom_security_json_location \
       if params.infra_solr_security_json_content and str(params.infra_solr_security_json_content).strip() \
       else format("{infra_solr_conf}/security.json") # security.json file to upload
