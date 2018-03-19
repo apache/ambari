@@ -29,7 +29,7 @@ import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 public class TopologyRequestFactoryImpl implements TopologyRequestFactory {
 
   @Override
-  public ProvisionClusterRequest createProvisionClusterRequest(String rawRequestBody, Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException {
-    return new ProvisionClusterRequest(rawRequestBody, properties, securityConfiguration);
+  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException {
+    return new ProvisionClusterRequest(properties, securityConfiguration);
   }
 }

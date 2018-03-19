@@ -534,7 +534,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     ProvisionClusterRequest createClusterRequest;
     try {
       createClusterRequest =
-        topologyRequestFactory.createProvisionClusterRequest(rawRequestBody, properties, securityConfiguration);
+        topologyRequestFactory.createProvisionClusterRequest(properties, securityConfiguration);
     } catch (InvalidTopologyTemplateException e) {
       throw new IllegalArgumentException("Invalid Cluster Creation Template: " + e, e);
     }

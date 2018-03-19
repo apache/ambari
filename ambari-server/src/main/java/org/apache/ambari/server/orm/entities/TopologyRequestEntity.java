@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.Basic;
@@ -75,15 +76,14 @@ public class TopologyRequestEntity {
   @Column(name = "description", length = 1024, nullable = false)
   private String description;
 
-  @Lob
-  @Column(name = "raw_request_body", length = 100000, nullable = false)
-  private String rawRequestBody;
-
   @OneToMany(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
   private Collection<TopologyHostGroupEntity> topologyHostGroupEntities;
 
   @OneToOne(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
   private TopologyLogicalRequestEntity topologyLogicalRequestEntity;
+
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "topologyRequest")
+  private Collection<TopologyRequestMpackInstanceEntity> mpackInstances = new ArrayList<>();
 
   @Column(name = "provision_action", length = 255, nullable = true)
   @Enumerated(EnumType.STRING)
@@ -146,17 +146,17 @@ public class TopologyRequestEntity {
   }
 
   /**
-   * @return the raw request body in JSON
+   * @return the mpack instance definitions associated with this topology request
    */
-  public String getRawRequestBody() {
-    return rawRequestBody;
+  public Collection<TopologyRequestMpackInstanceEntity> getMpackInstances() {
+    return mpackInstances;
   }
 
   /**
-   * @param rawRequestBody the raw request body in JSON
+   * @param mpackInstances mpack instance definitions
    */
-  public void setRawRequestBody(String rawRequestBody) {
-    this.rawRequestBody = rawRequestBody;
+  public void setMpackInstances(Collection<TopologyRequestMpackInstanceEntity> mpackInstances) {
+    this.mpackInstances = mpackInstances;
   }
 
   public Collection<TopologyHostGroupEntity> getTopologyHostGroupEntities() {

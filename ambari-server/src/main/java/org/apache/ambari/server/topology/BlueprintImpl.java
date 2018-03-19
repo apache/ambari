@@ -34,11 +34,11 @@ import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
-import org.apache.ambari.server.orm.entities.BlueprintServiceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.MpackInstanceServiceEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.JsonUtils;
@@ -173,8 +173,7 @@ public class BlueprintImpl implements Blueprint {
 
   private void createMpackInstanceEntities(BlueprintEntity entity) {
     mpacks.forEach(mpack -> {
-      BlueprintMpackInstanceEntity mpackEntity = mpack.toEntity();
-      mpackEntity.setBlueprint(entity);
+      BlueprintMpackInstanceEntity mpackEntity = mpack.toMpackInstanceEntity(entity);
       entity.getMpackInstances().add(mpackEntity);
     });
   }
@@ -188,7 +187,7 @@ public class BlueprintImpl implements Blueprint {
       mpackInstance.setUrl(mpack.getMpackUri());
       mpackInstance.setConfiguration(processConfiguration(mpack.getConfigurations()));
       // TODO: come up with proper mpack -> stack resolution
-      for(BlueprintServiceEntity serviceEntity: mpack.getServiceInstances()) {
+      for(MpackInstanceServiceEntity serviceEntity: mpack.getServiceInstances()) {
         ServiceInstance serviceInstance = new ServiceInstance(
           serviceEntity.getName(),
           serviceEntity.getType(),
