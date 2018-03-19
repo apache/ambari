@@ -23,9 +23,9 @@ import java.util.Map;
 import org.apache.ambari.server.configuration.LdapUsernameCollisionHandlingBehavior;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.utils.PasswordUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
