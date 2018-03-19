@@ -22,10 +22,10 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewPrivilegeService;
-
-import io.swagger.annotations.ApiModelProperty;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Request body schema for endpoint {@link ViewPrivilegeService#createPrivilege(String, HttpHeaders, UriInfo, String, String, String)} )}
