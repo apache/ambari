@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 import time
-__all__ = ['retry', 'safe_retry', 'experimental' ]
+__all__ = ['retry', 'safe_retry', 'experimental', 'override', 'null_key_exception' ]
 
 from resource_management.core.logger import Logger
 
@@ -125,5 +125,33 @@ def experimental(feature=None, comment=None, disable=False):
       if not disable:
         return function(*args, **kwargs)
     return wrapper
+  return decorator
+
+def override(super_class):
+  """
+  Annotates a function which is an override function to its direct super_class method
+  :param parent_class: direct super_class
+  :return: override method in sub_cass
+  """
+  def overrider(method):
+    assert (method.__name__ in dir(super_class))
+    return method
+  return overrider
+
+def null_key_exception(method=None, result=None):
+  """
+  Annotates a function which may throw any exception to return None
+  :param method: original method
+  :return: result of original method or None if any expcetion thrown
+  """
+  def decorator(method):
+    def catch_exception(*args, **kwargs):
+      try:
+        return method(*args, **kwargs)
+      except:
+        return result
+    return catch_exception()
+  if method:
+    return decorator(method)
   return decorator
 

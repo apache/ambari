@@ -36,7 +36,7 @@ class RepositoryUtil:
     self.tags_to_skip = tags_to_skip
 
     # repo templates
-    repo_file = config['repositoryFile']
+    repo_file = config.get_repo_file()
     repo_rhel_suse =  get_cluster_setting_value('repo_suse_rhel_template')
     repo_ubuntu =  get_cluster_setting_value('repo_ubuntu_template')
 

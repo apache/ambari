@@ -28,11 +28,12 @@ import logging
 import platform
 import inspect
 import tarfile
+import traceback
 import time
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
-from ambari_commons.constants import UPGRADE_TYPE_EXPRESS
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.network import reconfigure_urllib2_opener
@@ -61,10 +62,6 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
-from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
-  get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
-from resource_management.libraries.execution_command.execution_command import ExecutionCommand
-from resource_management.libraries.execution_command.module_configs import ModuleConfigs
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -119,7 +116,7 @@ class LockedConfigureMeta(type):
       def locking_configure(obj, *args, **kw):
         # local import to avoid circular dependency (default imports Script)
         from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
+        parallel_execution_enabled = int(default("/agentLevelParams/agentConfigParams/agent/parallel_execution", 0)) == 1
         lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
         with lock:
           original_configure(obj, *args, **kw)
@@ -147,8 +144,6 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   config = None
-  execution_command = None
-  module_configs = None
   stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
@@ -270,7 +265,7 @@ class Script(object):
 
         # if repository_version_id is passed, pass it back with the version
         from resource_management.libraries.functions.default import default
-        repo_version_id = default("/hostLevelParams/repository_version_id", None)
+        repo_version_id = default("/repositoryFile/repoVersionId", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:
@@ -286,7 +281,7 @@ class Script(object):
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
+    stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
@@ -352,8 +347,6 @@ class Script(object):
       with open(self.command_data_file) as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
-        Script.execution_command = ExecutionCommand(Script.config)
-        Script.module_configs = Script.execution_command.get_module_configs()
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
@@ -566,7 +559,6 @@ class Script(object):
     if package_version is None:
       package_version = default("hostLevelParams/package_version", None)
 
-    package_version = None
     if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
       self.load_available_packages()
       package_name = self.get_package_from_available(name, self.available_packages_in_repos)
@@ -610,22 +602,6 @@ class Script(object):
      it a configuration instance.
     """
     return Script.config
-
-  @staticmethod
-  def get_execution_command():
-    """
-    The dot access dict object holds command.json
-    :return:
-    """
-    return Script.execution_command
-
-  @staticmethod
-  def get_module_configs():
-    """
-    The dot access dict object holds configurations block in command.json which maps service configurations
-    :return:
-    """
-    return Script.module_configs
 
   @staticmethod
   def get_password(user):
@@ -685,11 +661,11 @@ class Script(object):
   @staticmethod
   def get_stack_name():
     """
-    Gets the name of the stack from hostLevelParams/stack_name.
+    Gets the name of the stack from clusterLevelParams/stack_name.
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = default("/hostLevelParams/stack_name", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
     if stack_name is None:
       stack_name = default("/configurations/cluster-env/stack_name", "HDP")
 
@@ -724,10 +700,10 @@ class Script(object):
     :return: a normalized stack version or None
     """
     config = Script.get_config()
-    if 'hostLevelParams' not in config or 'stack_version' not in config['hostLevelParams']:
+    if 'clusterLevelParams' not in config or 'stack_version' not in config['clusterLevelParams']:
       return None
 
-    stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+    stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
@@ -808,27 +784,13 @@ class Script(object):
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
-    pkg_provider = get_provider("Package")   
+
+    pkg_provider = get_provider("Package")
     try:
       self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
     except Exception as err:
       Logger.exception("Unable to load available packages")
       self.available_packages_in_repos = []
-
-  def create_component_instance(self):
-    # should be used only when mpack-instance-manager is available
-    from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
-    config = self.get_config()
-    mpack_name = get_mpack_name(config)
-    mpack_version = get_mpack_version(config)
-    mpack_instance_name = get_mpack_instance_name(config)
-    module_name = get_module_name(config)
-    component_type = get_component_type(config)
-    component_instance_name = get_component_instance_name(config)
-
-    create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
-                              module_name=module_name, components_instance_type=component_type,
-                              component_instance_name=component_instance_name)
 
 
   def install_packages(self, env):
@@ -843,16 +805,16 @@ class Script(object):
     """
     config = self.get_config()
 
-    if 'host_sys_prepped' in config['hostLevelParams']:
+    if 'host_sys_prepped' in config['ambariLevelParams']:
       # do not install anything on sys-prepped host
-      if config['hostLevelParams']['host_sys_prepped'] is True:
+      if config['ambariLevelParams']['host_sys_prepped'] is True:
         Logger.info("Node has all packages pre-installed. Skipping.")
         return
       pass
     try:
-      package_list_str = config['hostLevelParams']['package_list']
-      agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-      agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
+      package_list_str = config['commandParams']['package_list']
+      agent_stack_retry_on_unavailability = bool(config['ambariLevelParams']['agent_stack_retry_on_unavailability'])
+      agent_stack_retry_count = int(config['ambariLevelParams']['agent_stack_retry_count'])
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
@@ -869,15 +831,15 @@ class Script(object):
                       retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
                       retry_count=agent_stack_retry_count)
     except KeyError:
-      pass  # No reason to worry
+      traceback.print_exc()
 
     if OSCheck.is_windows_family():
       #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
       hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(config['hostLevelParams']['jdk_location'],
-                          config["hostLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
+      install_windows_msi(config['ambariLevelParams']['jdk_location'],
+                          config["agentLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
                           hadoop_user, self.get_password(hadoop_user),
-                          str(config['hostLevelParams']['stack_version']))
+                          str(config['clusterLevelParams']['stack_version']))
       reload_windows_env()
 
   def check_package_condition(self, package):
@@ -988,7 +950,7 @@ class Script(object):
     else:
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      if "upgrade_type" in inspect.getargspec(self.stop).args:
+      if True:
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
@@ -1096,7 +1058,7 @@ class Script(object):
   def generate_configs_get_xml_file_content(self, filename, dict):
     config = self.get_config()
     return {'configurations':config['configurations'][dict],
-            'configuration_attributes':config['configuration_attributes'][dict]}
+            'configuration_attributes':config['configurationAttributes'][dict]}
 
   def generate_configs_get_xml_file_dict(self, filename, dict):
     config = self.get_config()
@@ -1169,8 +1131,8 @@ class Script(object):
     upgrade_type = None
     if upgrade_type_command_param.lower() == "rolling_upgrade":
       upgrade_type = UPGRADE_TYPE_ROLLING
-    elif upgrade_type_command_param.lower() == "express_upgrade":
-      upgrade_type = UPGRADE_TYPE_EXPRESS
+    elif upgrade_type_command_param.lower() == "nonrolling_upgrade":
+      upgrade_type = UPGRADE_TYPE_NON_ROLLING
     elif upgrade_type_command_param.lower() == "host_ordered_upgrade":
       upgrade_type = UPGRADE_TYPE_HOST_ORDERED
 
