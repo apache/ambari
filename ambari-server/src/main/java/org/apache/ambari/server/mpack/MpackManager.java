@@ -41,6 +41,8 @@ import javax.xml.bind.Marshaller;
 import org.apache.ambari.server.controller.MpackRequest;
 import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.events.MpackRegisteredEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
@@ -84,17 +86,22 @@ public class MpackManager {
   private StackDAO stackDAO;
   private File stackRoot;
   private RepositoryVersionHelper repoVersionHelper;
+  private AmbariEventPublisher eventPublisher;
+  private final Gson gson;
 
 
   @AssistedInject
   public MpackManager(@Assisted("mpacksv2Staging") File mpacksStagingLocation,
-      @Assisted("stackRoot") File stackRootDir, MpackDAO mpackDAOObj, StackDAO stackDAOObj,
-      RepositoryVersionHelper repoVersionHelper) {
+      @Assisted("stackRoot") File stackRootDir, Gson gson, MpackDAO mpackDAOObj,
+      StackDAO stackDAOObj, RepositoryVersionHelper repoVersionHelper,
+      AmbariEventPublisher eventPublisher) {
     mpacksStaging = mpacksStagingLocation;
+    this.gson = gson;
     mpackDAO = mpackDAOObj;
     stackRoot = stackRootDir;
     stackDAO = stackDAOObj;
     this.repoVersionHelper = repoVersionHelper;
+    this.eventPublisher = eventPublisher;
 
     parseMpackDirectories();
   }
@@ -116,18 +123,27 @@ public class MpackManager {
             for (final File file : dirEntry.listFiles()) {
               if (file.isDirectory()) {
                 String mpackVersion = file.getName();
-                List resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
+                List<MpackEntity> resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
                 if (resultSet.size() > 0) {
-                  MpackEntity mpackEntity = (MpackEntity) resultSet.get(0);
+                  MpackEntity mpackEntity = resultSet.get(0);
 
                   // Read the mpack.json file into Mpack Object for further use.
-                  String mpackJsonContents = new String((Files.readAllBytes(Paths.get(file + "/" + MPACK_METADATA))),
-                    "UTF-8");
-                  Gson gson = new Gson();
+                  String mpackJsonContents = new String(
+                      (Files.readAllBytes(Paths.get(file + "/" + MPACK_METADATA))), "UTF-8");
+
                   Mpack existingMpack = gson.fromJson(mpackJsonContents, Mpack.class);
                   existingMpack.setResourceId(mpackEntity.getId());
                   existingMpack.setMpackUri(mpackEntity.getMpackUri());
                   existingMpack.setRegistryId(mpackEntity.getRegistryId());
+
+                  RepositoryXml repositoryXml = RepoUtil.getRepositoryXml(file);
+                  if (null == repositoryXml) {
+                    throw new IOException("The repository file " + RepoUtil.REPOSITORY_FILE_NAME
+                        + " must exist in the management pack located at " + file);
+                  }
+
+                  existingMpack.setRepositoryXml(repositoryXml);
+
                   mpackMap.put(mpackEntity.getId(), existingMpack);
                 }
               }
@@ -136,7 +152,7 @@ public class MpackManager {
         }
       }
     } catch (NullPointerException|IOException e) {
-      e.printStackTrace();
+      LOG.error("Unable to parse existing mpack structure", e);
     }
   }
 
@@ -208,16 +224,20 @@ public class MpackManager {
     mpack.setMpackUri(mpackRequest.getMpackUri());
     mpackResourceId = populateDB(mpack);
 
-    if (mpackResourceId != null) {
-      mpackMap.put(mpackResourceId, mpack);
-      mpack.setResourceId(mpackResourceId);
-      populateStackDB(mpack);
-      return new MpackResponse(mpack);
+    if (null == mpackResourceId) {
+      String message = "Mpack :" + mpackRequest.getMpackName() + " version: "
+          + mpackRequest.getMpackVersion() + " already exists in server";
+      throw new ResourceAlreadyExistsException(message);
     }
-    String message = "Mpack :" + mpackRequest.getMpackName() + " version: " + mpackRequest.getMpackVersion()
-      + " already exists in server";
-    throw new ResourceAlreadyExistsException(message);
 
+    mpackMap.put(mpackResourceId, mpack);
+    mpack.setResourceId(mpackResourceId);
+    populateStackDB(mpack);
+
+    MpackRegisteredEvent mpackEvent = new MpackRegisteredEvent(mpackResourceId);
+    eventPublisher.publish(mpackEvent);
+
+    return new MpackResponse(mpack);
   }
 
   /***
@@ -517,7 +537,7 @@ public class MpackManager {
 
     String mpackName = mpack.getName();
     String mpackVersion = mpack.getVersion();
-    List resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
+    List<MpackEntity> resultSet = mpackDAO.findByNameVersion(mpackName, mpackVersion);
     StackEntity stackEntity = stackDAO.find(mpackName, mpackVersion);
     if (resultSet.size() == 0 && stackEntity == null) {
       LOG.info("Adding mpack {}-{} to the database", mpackName, mpackVersion);

@@ -37,6 +37,7 @@ import static org.apache.ambari.server.controller.internal.BlueprintResourceProv
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -126,7 +127,7 @@ public class BlueprintFactory {
     return new BlueprintImpl(name, hostGroups, stackIds, mpackInstances, configuration, securityConfiguration, setting);
   }
 
-  public static Collection<MpackInstance> createMpackInstances(Map<String, Object> properties) throws NoSuchStackException {
+  public static Collection<MpackInstance> createMpackInstances(Map<String, Object> properties) {
     if (properties.containsKey(MPACK_INSTANCES_PROPERTY_ID)) {
       ObjectMapper mapper = new ObjectMapper();
       mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -134,7 +135,7 @@ public class BlueprintFactory {
         String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY_ID));
         return mapper.readValue(mpackInstancesJson, new TypeReference<Collection<MpackInstance>>(){});
       } catch (IOException ex) {
-        throw new RuntimeException("Unable to parse mpack instances for blueprint: " +
+        throw new UncheckedIOException("Unable to parse mpack instances for blueprint: " +
           String.valueOf(properties.get(BLUEPRINT_NAME_PROPERTY_ID)), ex);
       }
     } else {

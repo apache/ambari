@@ -53,7 +53,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -333,7 +332,6 @@ public class HostComponentResourceProviderTest {
     Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    HostVersionDAO hostVersionDAO = createMock(HostVersionDAO.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     Injector injector = createNiceMock(Injector.class);
@@ -389,7 +387,6 @@ public class HostComponentResourceProviderTest {
             PropertyHelper.getKeyPropertyIds(type),
             managementController, injector);
     provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
-    provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
     expect(resourceProviderFactory.getHostComponentResourceProvider(
         eq(managementController))).
@@ -522,8 +519,6 @@ public class HostComponentResourceProviderTest {
     Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    HostVersionDAO hostVersionDAO = createMock(HostVersionDAO.class);
-//    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     Injector injector = createNiceMock(Injector.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -570,7 +565,6 @@ public class HostComponentResourceProviderTest {
             PropertyHelper.getKeyPropertyIds(type),
             managementController, injector);
     provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
-    provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
     expect(resourceProviderFactory.getHostComponentResourceProvider(
         eq(managementController))).
@@ -623,7 +617,6 @@ public class HostComponentResourceProviderTest {
             controller, injector);
 
     provider.setFieldValue("maintenanceStateHelper", injector.getInstance(MaintenanceStateHelper.class));
-    provider.setFieldValue("hostVersionDAO", injector.getInstance(HostVersionDAO.class));
 
     RequestStageContainer requestStages = provider.updateHostComponents(null, requests, requestProperties, runSmokeTest);
     requestStages.persist();

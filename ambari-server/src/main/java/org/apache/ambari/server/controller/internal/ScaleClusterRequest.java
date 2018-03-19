@@ -51,8 +51,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
    *
    * @throws InvalidTopologyTemplateException if any validation of properties fails
    */
-  public ScaleClusterRequest(String rawRequestBody, Set<Map<String, Object>> propertySet) throws InvalidTopologyTemplateException {
-    this.rawRequestBody = rawRequestBody;
+  public ScaleClusterRequest(Set<Map<String, Object>> propertySet) throws InvalidTopologyTemplateException {
     for (Map<String, Object> properties : propertySet) {
       // can only operate on a single cluster per logical request
       if (getClusterName() == null) {

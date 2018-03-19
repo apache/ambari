@@ -108,6 +108,7 @@ public interface Resource {
     ExtensionLink,
     Extension,
     ExtensionVersion,
+    DefaultOperatingSystem,
     OperatingSystem,
     OperatingSystemReadOnly,
     Repository,
@@ -245,6 +246,7 @@ public interface Resource {
     public static final Type ExtensionLink = InternalType.ExtensionLink.getType();
     public static final Type Extension = InternalType.Extension.getType();
     public static final Type ExtensionVersion = InternalType.ExtensionVersion.getType();
+    public static final Type DefaultOperatingSystem = InternalType.DefaultOperatingSystem.getType();
     public static final Type OperatingSystem = InternalType.OperatingSystem.getType();
     public static final Type OperatingSystemReadOnly = InternalType.OperatingSystemReadOnly.getType();
     public static final Type Repository = InternalType.Repository.getType();

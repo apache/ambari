@@ -58,10 +58,10 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.MpackHostStateDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -74,9 +74,11 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MpackInstallState;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.AvailableService;
@@ -125,10 +127,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
 
   /**
-   * Forces the {@link HostVersionEntity}s to a specific
-   * {@link RepositoryVersionState}. When used during the creation of
-   * {@link HostVersionEntity}s, this will set the state to
-   * {@link RepositoryVersionState#INSTALLED}. When used during the update of a
+   * Forces the {@link MpackHostStateEntity} to a specific
+   * {@link MpackInstallState}. When used during the creation of
+   * {@link MpackHostStateEntity}s, this will set the state to
+   * {@link MpackInstallState#INSTALLED}. When used during the update of a
    * cluster stack version, this will force all entities to
    * {@link RepositoryVersionState#CURRENT}.
    *
@@ -172,9 +174,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       .put(Type.RepositoryVersion, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID)
       .build();
 
-  @Inject
-  private static HostVersionDAO hostVersionDAO;
-
   /**
    * Used for looking up revertable upgrades.
    */
@@ -214,6 +213,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    */
   @Inject
   private static Provider<ConfigHelper> configHelperProvider;
+
+  @Inject
+  private static Provider<MpackHostStateDAO> mpackHostStateDAOProvider;;
 
   /**
    * Constructor.
@@ -287,9 +289,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
 
-      final List<RepositoryVersionState> allStates = new ArrayList<>();
-      final Map<RepositoryVersionState, List<String>> hostStates = new HashMap<>();
-      for (RepositoryVersionState state: RepositoryVersionState.values()) {
+      final List<MpackInstallState> allStates = new ArrayList<>();
+      final Map<MpackInstallState, List<String>> hostStates = new HashMap<>();
+      for (MpackInstallState state : MpackInstallState.values()) {
         hostStates.put(state, new ArrayList<>());
       }
 
@@ -302,13 +304,21 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         findFirst().
         ifPresent(mpack -> setResourceProperty(resource, CLUSTER_STACK_VERSION_MPACK_URI_PROPERTY_ID, mpack.getMpackUri(), requestedIds));
 
-      List<HostVersionEntity> hostVersionsForRepository = hostVersionDAO.findHostVersionByClusterAndRepository(
-          cluster.getClusterId(), repositoryVersion);
+      try {
+        MpackHostStateDAO mpackHostStateDAO = mpackHostStateDAOProvider.get();
+        List<MpackHostStateEntity> mpackInstallStates = Lists.newArrayList();
+        for (ServiceGroup serviceGroup : cluster.getServiceGroups().values()) {
+          long mpackId = serviceGroup.getMpackId();
+          mpackInstallStates.addAll(mpackHostStateDAO.findByMpack(mpackId));
+        }
 
-      // create the in-memory structures
-      for (HostVersionEntity hostVersionEntity : hostVersionsForRepository) {
-        hostStates.get(hostVersionEntity.getState()).add(hostVersionEntity.getHostName());
-        allStates.add(hostVersionEntity.getState());
+        // create the in-memory structures
+        for (MpackHostStateEntity mpackInstallState : mpackInstallStates) {
+          hostStates.get(mpackInstallState.getState()).add(mpackInstallState.getHostName());
+          allStates.add(mpackInstallState.getState());
+        }
+      } catch( AmbariException ambariException ) {
+        throw new SystemException(ambariException.getMessage(), ambariException);
       }
 
       ClusterVersionSummary versionSummary = null;
@@ -331,9 +341,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       setResourceProperty(resource, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, repoVersionStackId.getStackVersion(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, repositoryVersion.getId(), requestedIds);
 
-      @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
-          comment = "this is a fake status until the UI can handle services that are on their own")
-      RepositoryVersionState aggregateState = RepositoryVersionState.getAggregateState(allStates);
+      MpackInstallState aggregateState = MpackInstallState.getAggregateState(allStates);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, aggregateState, requestedIds);
 
       // mark whether this repo is revertable for this cluster
@@ -491,49 +499,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       RepositoryVersionEntity repoVersionEntity, VersionDefinitionXml versionDefinitionXml,
       StackId stackId, boolean forceInstalled, Map<String, Object> propertyMap)
       throws AmbariException, SystemException {
-
-    final String desiredRepoVersion = repoVersionEntity.getVersion();
-
-    // get all of the hosts eligible for stack distribution
-    List<Host> hosts = Lists.newArrayList(cluster.getHosts());
-
-
-    for (Host host : hosts) {
-      for (HostVersionEntity hostVersion : host.getAllHostVersions()) {
-        RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
-
-        // !!! ignore stack differences
-        if (!hostRepoVersion.getStackName().equals(repoVersionEntity.getStackName())) {
-          continue;
-        }
-
-        int compare = VersionUtils.compareVersionsWithBuild(hostRepoVersion.getVersion(), desiredRepoVersion, 4);
-
-        // ignore earlier versions
-        if (compare <= 0) {
-          continue;
-        }
-
-        // !!! the version is greater to the one to install
-
-        // if there is no backing VDF for the desired version, allow the operation (legacy behavior)
-        if (null == versionDefinitionXml) {
-          continue;
-        }
-
-        if (StringUtils.isBlank(versionDefinitionXml.getPackageVersion(host.getOsFamily()))) {
-          String msg = String.format("Ambari cannot install version %s.  Version %s is already installed.",
-            desiredRepoVersion, hostRepoVersion.getVersion());
-          throw new IllegalArgumentException(msg);
-        }
-      }
-    }
-
     checkPatchVDFAvailableServices(cluster, repoVersionEntity, versionDefinitionXml);
 
     // the cluster will create/update all of the host versions to the correct state
-    List<Host> hostsNeedingInstallCommands = cluster.transitionHostsToInstalling(
-        repoVersionEntity, versionDefinitionXml, forceInstalled);
+    List<Host> hostsNeedingInstallCommands = cluster.transitionHostsToInstalling();
 
     RequestStatusResponse response = null;
     if (!forceInstalled) {

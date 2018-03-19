@@ -25,10 +25,10 @@ import org.apache.ambari.server.events.listeners.alerts.AlertMaintenanceModeList
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.events.listeners.alerts.AlertServiceStateListener;
 import org.apache.ambari.server.events.listeners.alerts.AlertStateChangedListener;
-import org.apache.ambari.server.events.listeners.upgrade.DistributeRepositoriesActionListener;
-import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
+import org.apache.ambari.server.events.listeners.upgrade.MpackInstallStateListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.CommandReportEventPublisher;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
@@ -85,6 +85,25 @@ public class EventBusSynchronizer {
    *
    * @param injector
    */
+  public static EventBus synchronizeCommandReportEventPublisher(Injector injector) {
+    EventBus synchronizedBus = new EventBus();
+    CommandReportEventPublisher publisher = injector.getInstance(CommandReportEventPublisher.class);
+
+    replaceEventBus(CommandReportEventPublisher.class, publisher, synchronizedBus);
+
+    // register common ambari event listeners
+    registerAmbariListeners(injector, synchronizedBus);
+
+    return synchronizedBus;
+  }
+
+  /**
+   * Force the {@link EventBus} from {@link AlertEventPublisher} to be serial
+   * and synchronous. Also register the known listeners. Registering known
+   * listeners is necessary since the event bus was replaced.
+   *
+   * @param injector
+   */
   public static EventBus synchronizeAlertEventPublisher(Injector injector) {
     EventBus synchronizedBus = new EventBus();
     AlertEventPublisher publisher = injector.getInstance(AlertEventPublisher.class);
@@ -108,8 +127,7 @@ public class EventBusSynchronizer {
     synchronizedBus.register(injector.getInstance(AlertMaintenanceModeListener.class));
     synchronizedBus.register(injector.getInstance(AlertLifecycleListener.class));
     synchronizedBus.register(injector.getInstance(AlertServiceStateListener.class));
-    synchronizedBus.register(injector.getInstance(DistributeRepositoriesActionListener.class));
-    synchronizedBus.register(injector.getInstance(HostVersionOutOfSyncListener.class));
+    synchronizedBus.register(injector.getInstance(MpackInstallStateListener.class));
   }
 
   /**

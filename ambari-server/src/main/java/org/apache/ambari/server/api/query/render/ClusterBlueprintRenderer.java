@@ -33,7 +33,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.QueryInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
@@ -86,12 +85,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * Management Controller used to get stack information.
    */
   private AmbariManagementController controller = AmbariServer.getController();
-
-
-  /**
-   * MetaInfo used to get stack and mpack information.
-   */
-  private AmbariMetaInfo metaInfo = controller.getAmbariMetaInfo();
 
 //  /**
 //   * Map of configuration type to configuration properties which are required that a user

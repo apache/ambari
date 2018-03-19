@@ -364,16 +364,6 @@ CREATE TABLE hoststate (
   CONSTRAINT PK_hoststate PRIMARY KEY (host_id),
   CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
-CREATE TABLE host_version (
-  id BIGINT NOT NULL,
-  repo_version_id BIGINT NOT NULL,
-  host_id BIGINT NOT NULL,
-  state VARCHAR(32) NOT NULL,
-  CONSTRAINT PK_host_version PRIMARY KEY (id),
-  CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id));
-
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
@@ -652,40 +642,43 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
 
-CREATE TABLE blueprint_mpack_instance(
+CREATE TABLE mpack_instance(
   id BIGINT NOT NULL,
-  blueprint_name VARCHAR(255) NOT NULL,
+  owner VARCHAR (20) NOT NULL,
+  blueprint_name VARCHAR(255),
+  topology_request_id BIGINT,
   mpack_name VARCHAR(255) NOT NULL,
   mpack_version VARCHAR(255) NOT NULL,
   mpack_uri VARCHAR(255),
   mpack_id BIGINT,
   CONSTRAINT PK_blueprint_mpack_inst PRIMARY KEY (id),
   CONSTRAINT FK_mpi_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name),
+  CONSTRAINT FK_mpi_topology_request FOREIGN KEY (topology_request_id) REFERENCES topology_request(id),
   CONSTRAINT FK_mpi_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks(id));
 
-CREATE TABLE blueprint_service (
+CREATE TABLE mpack_instance_service (
   id BIGINT NOT NULL,
   mpack_instance_id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL,
   type VARCHAR(255) NOT NULL,
-  CONSTRAINT PK_blueprint_service PRIMARY KEY (id),
-  CONSTRAINT FK_blueprint_svc_mpack_inst FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
+  CONSTRAINT PK_mpack_inst_svc_id PRIMARY KEY (id),
+  CONSTRAINT FK_service_mpack_instance FOREIGN KEY (mpack_instance_id) REFERENCES mpack_instance(id));
 
-CREATE TABLE blueprint_service_config (
+CREATE TABLE mpack_service_config (
   service_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data LONGTEXT NOT NULL,
   config_attributes LONGTEXT,
-  CONSTRAINT PK_bp_svc_conf PRIMARY KEY (service_id, type_name),
-  CONSTRAINT FK_bp_svc_config_to_service FOREIGN KEY (service_id) REFERENCES blueprint_service (id));
+  CONSTRAINT PK_mpack_svc_conf PRIMARY KEY (service_id, type_name),
+  CONSTRAINT FK_mpack_svc_config_to_service FOREIGN KEY (service_id) REFERENCES mpack_instance_service (id));
 
-CREATE TABLE blueprint_mpack_configuration (
+CREATE TABLE mpack_instance_config (
   mpack_instance_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data LONGTEXT NOT NULL,
   config_attributes LONGTEXT,
-  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_instance_id, type_name),
-  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
+  CONSTRAINT PK_mpack_inst_conf PRIMARY KEY (mpack_instance_id, type_name),
+  CONSTRAINT FK_mpack_inst_conf_to_mpack FOREIGN KEY (mpack_instance_id) REFERENCES mpack_instance(id));
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(100) NOT NULL,
@@ -910,7 +903,6 @@ CREATE TABLE topology_request (
   action VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
-  raw_request_body LONGTEXT NOT NULL,
   cluster_properties LONGTEXT,
   cluster_attributes LONGTEXT,
   description VARCHAR(1024),
@@ -1287,7 +1279,6 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('permission_id_seq', 7),
   ('privilege_id_seq', 1),
   ('config_id_seq', 1),
-  ('host_version_id_seq', 0),
   ('mpack_host_state_id_seq', 0),
   ('service_config_id_seq', 1),
   ('alert_definition_id_seq', 0),
@@ -1325,8 +1316,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('remote_cluster_id_seq', 0),
   ('remote_cluster_service_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0),
-  ('blueprint_service_id_seq', 0),
-  ('blueprint_mpack_instance_id_seq', 0),
+  ('mpack_inst_svc_id_seq', 0),
+  ('mpack_instance_id_seq', 0),
   ('hostgroup_component_id_seq', 0);
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name) VALUES

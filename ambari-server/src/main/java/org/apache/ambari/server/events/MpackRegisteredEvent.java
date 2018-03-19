@@ -10,26 +10,40 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.ambari.server.topology;
-
-import java.util.Map;
-
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+package org.apache.ambari.server.events;
 
 /**
- * Factory for creating topology requests.
+ * The {@link MpackRegisteredEvent} is fired when a management pack is registerd
+ * with Ambari.
  */
-public class TopologyRequestFactoryImpl implements TopologyRequestFactory {
+public class MpackRegisteredEvent extends AmbariEvent {
+  /**
+   * The management pack ID.
+   */
+  protected final long m_mpackId;
 
-  @Override
-  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException {
-    return new ProvisionClusterRequest(properties, securityConfiguration);
+  /**
+   * Constructor.
+   *
+   * @param eventType
+   * @param clusterId
+   */
+  public MpackRegisteredEvent(long m_mpackId) {
+    super(AmbariEventType.MPACK_REGISTERED);
+    this.m_mpackId = m_mpackId;
+  }
+
+  /**
+   * Gets the management pack ID that the event belongs to.
+   *
+   * @return the ID of the management pack.
+   */
+  public long getMpackIdId() {
+    return m_mpackId;
   }
 }

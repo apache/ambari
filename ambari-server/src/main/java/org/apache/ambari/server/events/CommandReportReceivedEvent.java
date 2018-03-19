@@ -19,18 +19,18 @@ package org.apache.ambari.server.events;
 
 import org.apache.ambari.server.agent.CommandReport;
 
+import com.google.common.base.Objects;
+
 /**
- * The {@link ActionFinalReportReceivedEvent} is fired when a
- * command report action is received. Event is fired only if command state
- * is COMPLETED/FAILED/ABORTED.
+ * The {@link CommandReportReceivedEvent} is fired when a command report is
+ * received. Event is fired only if command state is COMPLETED/FAILED/ABORTED.
  */
-public final class ActionFinalReportReceivedEvent extends AmbariEvent {
+public final class CommandReportReceivedEvent {
 
   private Long clusterId;
   private String hostname;
   private CommandReport commandReport;
   private String role;
-  private Boolean emulated;
 
   /**
    * Constructor.
@@ -38,24 +38,17 @@ public final class ActionFinalReportReceivedEvent extends AmbariEvent {
    * @param clusterId (beware, may be null if action is not bound to cluster)
    * @param hostname host that is an origin for a command report
    * @param report full command report (may be null if action has been cancelled)
-   * @param emulated true, if event was generated without actually receiving
-   * data from agent (e.g. if we did not perform action, or action timed out,
-   * but we want to trigger event listener anyway). More loose checks against
-   * data will be performed in this case.
    */
-  public ActionFinalReportReceivedEvent(Long clusterId, String hostname,
-                                        CommandReport report,
-                                        Boolean emulated) {
-    super(AmbariEventType.ACTION_EXECUTION_FINISHED);
+  public CommandReportReceivedEvent(Long clusterId, String hostname,
+      CommandReport report) {
     this.clusterId = clusterId;
     this.hostname = hostname;
-    this.commandReport = report;
+    commandReport = report;
     if (report.getRole() != null) {
-      this.role = report.getRole();
+      role = report.getRole();
     } else {
-      this.role = null;
+      role = null;
     }
-    this.emulated = emulated;
   }
 
   public Long getClusterId() {
@@ -74,17 +67,11 @@ public final class ActionFinalReportReceivedEvent extends AmbariEvent {
     return role;
   }
 
-  public Boolean isEmulated() {
-    return emulated;
-  }
-
   @Override
   public String toString() {
-    return "ActionFinalReportReceivedEvent{" +
-            "clusterId=" + clusterId +
-            ", hostname='" + hostname + '\'' +
-            ", commandReportStatus=" + commandReport.getStatus() +
-            ", commandReportRole=" + role +
-            '}';
+    return Objects.toStringHelper(this).add("clusterId", clusterId)
+        .add("hostname", hostname)
+        .add("status", commandReport.getStatus())
+        .add("role", role).toString();
   }
 }

@@ -28,7 +28,7 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
@@ -390,10 +390,11 @@ public interface Host extends Comparable {
   MaintenanceState getMaintenanceState(long clusterId);
 
   /**
-   * Get all of the HostVersionEntity objects for the host.
+   * Get all of the {@link MpackInstallState} objects for the host.
+   *
    * @return
    */
-  List<HostVersionEntity> getAllHostVersions();
+  List<MpackHostStateEntity> getMPackInstallStates();
 
   /**
    * Gets whether this host has components which advertise their version.

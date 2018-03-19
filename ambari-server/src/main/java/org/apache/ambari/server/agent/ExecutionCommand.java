@@ -170,6 +170,12 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("roleParameters")
   private Map<String, Object> roleParameters;
 
+  /**
+   * If set, the management pack associated with this command.
+   */
+  @SerializedName("mpackId")
+  private Long mpackId;
+
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
   }
@@ -596,5 +602,26 @@ public class ExecutionCommand extends AgentCommand {
    */
   public UpgradeSummary getUpgradeSummary() {
     return upgradeSummary;
+  }
+
+  /**
+   * Gets the ID of the management pack associated with this command, or
+   * {@code null} if none.
+   *
+   * @return the mpackId the ID of the mpack or {@code null}.
+   */
+  public Long getMpackId() {
+    return mpackId;
+  }
+
+  /**
+   * Sets the ID of the management pack associated with this command, or
+   * {@code null} if none.
+   *
+   * @param mpackId
+   *          the mpackId to set
+   */
+  public void setMpackId(Long mpackId) {
+    this.mpackId = mpackId;
   }
 }

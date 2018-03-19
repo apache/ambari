@@ -50,7 +50,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -876,7 +875,7 @@ public class UpgradeHelper {
         } catch (AmbariException e) {
           LOG.warn("Component {}/{} doesn't exist for stack {}.  Setting version to {}",
               serviceComponent.getServiceName(), serviceComponent.getName(), targetStack,
-              StackVersionListener.UNKNOWN_VERSION);
+              "UNKNOWN");
         }
 
         UpgradeState upgradeStateToSet = UpgradeState.IN_PROGRESS;
@@ -891,9 +890,9 @@ public class UpgradeHelper {
 
           // !!! if we aren't version advertised, but there IS a version, set
           // it.
-          if (!versionAdvertised && !StringUtils.equals(StackVersionListener.UNKNOWN_VERSION,
+          if (!versionAdvertised && !StringUtils.equals("UNKNOWN",
               serviceComponentHost.getVersion())) {
-            serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
+            serviceComponentHost.setVersion("UNKNOWN");
           }
         }
 

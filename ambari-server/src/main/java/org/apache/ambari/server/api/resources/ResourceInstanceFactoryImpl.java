@@ -254,6 +254,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ExtensionLinkResourceDefinition();
         break;
 
+      case DefaultOperatingSystem:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.DefaultOperatingSystem,
+            "default_operating_system", "default_operating_systems");
+        break;
+
       case OperatingSystem:
         resourceDefinition = new OperatingSystemResourceDefinition();
         break;

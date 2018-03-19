@@ -86,7 +86,7 @@ import org.apache.ambari.server.orm.dao.ClusterSettingDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.MpackHostStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -99,7 +99,6 @@ import org.apache.ambari.server.orm.entities.ClusterSettingEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -125,8 +124,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -145,8 +142,6 @@ import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.ambari.server.state.repository.ClusterVersionSummary;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.topology.TopologyRequest;
@@ -160,6 +155,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -247,7 +243,7 @@ public class ClusterImpl implements Cluster {
   private HostDAO hostDAO;
 
   @Inject
-  private HostVersionDAO hostVersionDAO;
+  private MpackHostStateDAO mpackHostStateDAO;
 
   @Inject
   private ServiceFactory serviceFactory;
@@ -634,6 +630,7 @@ public class ClusterImpl implements Cluster {
     return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
   }
 
+  @Override
   public List<ServiceComponentHost> getServiceComponentHosts() {
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     if (!serviceComponentHostsByHost.isEmpty()) {
@@ -1118,7 +1115,7 @@ public class ClusterImpl implements Cluster {
         }
       } else {
         for (Service serviceCandidate : servicesById.values()) {
-          if (serviceCandidate.getClusterId().equals(this.getClusterId())
+          if (serviceCandidate.getClusterId().equals(getClusterId())
               && StringUtils.equals(serviceCandidate.getServiceGroupName(), serviceGroupName)
               && StringUtils.equals(serviceCandidate.getName(), serviceName)) {
             if (service == null) {
@@ -1171,7 +1168,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Map<Long, Service> getServicesById() {
-    return new HashMap<Long, Service>(servicesById);
+    return new HashMap<>(servicesById);
   }
 
   @Override
@@ -1262,7 +1259,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Map<String, ServiceGroup> getServiceGroups() throws AmbariException {
-    return new HashMap<String, ServiceGroup>(serviceGroups);
+    return new HashMap<>(serviceGroups);
   }
 
   @Override
@@ -1384,106 +1381,8 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   @Transactional
-  public List<Host> transitionHostsToInstalling(RepositoryVersionEntity repoVersionEntity,
-                                                VersionDefinitionXml versionDefinitionXml, boolean forceInstalled) throws AmbariException {
-
-
-    // the hosts to return so that INSTALL commands can be generated for them
-    final List<Host> hostsRequiringInstallation;
-
-    clusterGlobalLock.writeLock().lock();
-    try {
-
-      // get this once for easy lookup later
-      Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
-      hostsRequiringInstallation = new ArrayList<>(hosts.size());
-
-      // for every host, either create or update the host version to the right
-      // state - starting with STATE
-      Collection<HostEntity> hostEntities = getClusterEntity().getHostEntities();
-
-      for (HostEntity hostEntity : hostEntities) {
-
-        // start with INSTALLING
-        RepositoryVersionState state = RepositoryVersionState.INSTALLING;
-        if (forceInstalled) {
-          state = RepositoryVersionState.INSTALLED;
-        }
-
-        // is this host version not required b/c of versionable components
-        Host host = hosts.get(hostEntity.getHostName());
-        if (!host.hasComponentsAdvertisingVersions(desiredStackVersion)) {
-          state = RepositoryVersionState.NOT_REQUIRED;
-        }
-
-        // if the repository is still required, check against the repo type
-        if (state != RepositoryVersionState.NOT_REQUIRED) {
-          if (repoVersionEntity.getType() != RepositoryType.STANDARD) {
-            // does the host gets a different repo state based on VDF and repo
-            // type
-            boolean hostRequiresRepository = false;
-            ClusterVersionSummary clusterSummary = versionDefinitionXml.getClusterSummary(this);
-            Set<String> servicesInUpgrade = clusterSummary.getAvailableServiceNames();
-
-            List<ServiceComponentHost> schs = getServiceComponentHosts(hostEntity.getHostName());
-            for (ServiceComponentHost serviceComponentHost : schs) {
-              String serviceName = serviceComponentHost.getServiceName();
-              if (servicesInUpgrade.contains(serviceName)) {
-                hostRequiresRepository = true;
-                break;
-              }
-            }
-
-            // if not required, then move onto the next host
-            if (!hostRequiresRepository) {
-              state = RepositoryVersionState.NOT_REQUIRED;
-            }
-          }
-        }
-
-        // last check if it's still required - check for MM
-        if (state != RepositoryVersionState.NOT_REQUIRED) {
-          if (host.getMaintenanceState(clusterId) != MaintenanceState.OFF) {
-            state = RepositoryVersionState.OUT_OF_SYNC;
-          }
-        }
-
-        // now that the correct state is determdined for the host version,
-        // either update or create it
-        HostVersionEntity hostVersionEntity = null;
-        Collection<HostVersionEntity> hostVersions = hostEntity.getHostVersionEntities();
-        for (HostVersionEntity existingHostVersion : hostVersions) {
-          if (existingHostVersion.getRepositoryVersion().getId() == repoVersionEntity.getId()) {
-            hostVersionEntity = existingHostVersion;
-            break;
-          }
-        }
-
-        if (null == hostVersionEntity) {
-          hostVersionEntity = new HostVersionEntity(hostEntity, repoVersionEntity, state);
-          hostVersionDAO.create(hostVersionEntity);
-
-          // bi-directional association update
-          hostVersions.add(hostVersionEntity);
-          hostDAO.merge(hostEntity);
-        } else {
-          hostVersionEntity.setState(state);
-          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
-        }
-
-        LOG.info("Created host version for {}, state={}, repository version={} (repo_id={})",
-          hostVersionEntity.getHostName(), hostVersionEntity.getState(),
-          repoVersionEntity.getVersion(), repoVersionEntity.getId());
-
-        if (state == RepositoryVersionState.INSTALLING) {
-          hostsRequiringInstallation.add(host);
-        }
-      }
-    } finally {
-      clusterGlobalLock.writeLock().unlock();
-    }
-
-    return hostsRequiringInstallation;
+  public List<Host> transitionHostsToInstalling() throws AmbariException {
+    return Lists.newArrayList();
   }
 
   @Override
@@ -1960,7 +1859,6 @@ public class ClusterImpl implements Cluster {
       refresh();
       deleteAllServices();
       deleteAllServiceGroups();
-      resetHostVersions();
 
       refresh(); // update one-to-many clusterServiceEntities
       removeEntities();
@@ -1978,16 +1876,6 @@ public class ClusterImpl implements Cluster {
     upgradeDAO.removeAll(clusterId);
     topologyRequestDAO.removeAll(clusterId);
     clusterDAO.removeByPK(clusterId);
-  }
-
-  //TODO this needs to be reworked to support multiple instance of same service
-  private void resetHostVersions() {
-    for (HostVersionEntity hostVersionEntity : hostVersionDAO.findByCluster(getClusterName())) {
-      if (!hostVersionEntity.getState().equals(RepositoryVersionState.NOT_REQUIRED)) {
-        hostVersionEntity.setState(RepositoryVersionState.NOT_REQUIRED);
-        hostVersionDAO.merge(hostVersionEntity);
-      }
-    }
   }
 
   @Override

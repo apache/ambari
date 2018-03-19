@@ -52,7 +52,6 @@ public class Mpack {
   @SerializedName("version")
   private String version;
 
-
   @SerializedName("prerequisites")
   private Map<String, String> prerequisites;
 
@@ -64,6 +63,9 @@ public class Mpack {
 
   @SerializedName("description")
   private String description;
+
+  @SerializedName("displayName")
+  private String displayName;
 
   private String mpackUri;
 
@@ -144,13 +146,20 @@ public class Mpack {
     this.modules = modules;
   }
 
-
   public String getDefinition() {
     return definition;
   }
 
   public void setDefinition(String definition) {
     this.definition = definition;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   /**
@@ -234,6 +243,7 @@ public class Mpack {
     equalsBuilder.append(definition, that.definition);
     equalsBuilder.append(description, that.description);
     equalsBuilder.append(mpackUri, that.mpackUri);
+    equalsBuilder.append(displayName, that.displayName);
 
     return equalsBuilder.isEquals();
   }
@@ -244,7 +254,7 @@ public class Mpack {
   @Override
   public int hashCode() {
     return Objects.hash(resourceId, registryId, mpackId, name, version, prerequisites, modules,
-        definition, description, mpackUri);
+        definition, description, mpackUri, displayName);
   }
 
   @Override
@@ -260,6 +270,7 @@ public class Mpack {
             ", definition='" + definition + '\'' +
             ", description='" + description + '\'' +
             ", mpackUri='" + mpackUri + '\'' +
+            ", displayName='" + mpackUri + '\'' +
             '}';
   }
 
@@ -290,6 +301,9 @@ public class Mpack {
     }
     if (definition == null) {
       definition = mpack.getDefinition();
+    }
+    if (displayName == null) {
+      displayName = mpack.getDisplayName();
     }
   }
 }
