@@ -1177,7 +1177,7 @@ App.CheckDBConnectionView = Ember.View.extend({
       } else {
         name = 'AD';
       }
-      App.popover(this.$(), {
+      App.popover(this.$('.connection-result'), {
         title: Em.I18n.t('services.service.config.database.btn.idle'),
         content: Em.I18n.t('installer.controls.checkConnection.popover').format(name),
         placement: 'right',

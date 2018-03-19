@@ -46,6 +46,25 @@ ul, ol {
 .glyphicon-4x{font-size: 4em;}
 .glyphicon-5x{font-size: 5em;}
 
+/************************************************************************
+* Health status(service/host/host component health)icons class names
+***********************************************************************/
+.glyphicon-warning-sign, .icon-warning-sign {
+  color: @health-status-red;
+}
+.glyphicon-ok-sign, .icon-ok-sign {
+  color: @health-status-green;
+}
+.glyphicon-question-sign, .icon-question-sign {
+  color: @health-status-yellow;
+}
+.glyphicon-minus-sign, .icon-minus-sign {
+  color: @health-status-orange;
+}
+.icon-medkit {
+  color: @maintenance-black;
+}
+
 body.modal-open {
   //fix bootstrap padding when modal opened
   padding-right: 0 !important;
@@ -1284,9 +1303,15 @@ table.graphs {
 }
 
 /*Start Admin*/
- .btn-padding {
-   margin-left: 20px
- }
+.btn-padding {
+  margin-left: 20px
+}
+
+.btn-primary[disabled] {
+  .icon-spinner {
+    color: white;
+  }
+}
 
 #admin-auto-start {
   background-color: #fff;
@@ -1320,11 +1345,20 @@ table.graphs {
     .all-checkbox {
       display: inline-block;
       top: 2px;
+      label {
+        font-size: inherit;
+      }
     }
   }
   .general-auto-start {
     display: inline-block;
     margin-left: 15px;
+  }
+  .form-horizontal .radio,
+  .form-horizontal .checkbox,
+  .form-horizontal .radio-inline,
+  .form-horizontal .checkbox-inline {
+    padding-top: 0;
   }
 }
 

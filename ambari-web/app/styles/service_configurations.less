@@ -269,11 +269,15 @@
     .glyphicon-warning-sign {
       color: @health-status-red;
     }
+    .btn-wrapper {
+      min-width: 200px;
+    }
     .connection-result {
       font-size: 15px;
-      line-height: 30px;
+      line-height: @default-button-height;
     }
-    a.mute {
+    a {
+      vertical-align: top;
       color: #333;
       &:hover {
         text-decoration: none;
