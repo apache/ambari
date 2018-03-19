@@ -303,7 +303,8 @@ public class StackAdvisorCommandTest {
         map(
           "Configuration",
           map(
-            "properties", ldapConfigData
+            "properties", ldapConfigData,
+            "category", "ldap-configuration"
           )
         )
       )
@@ -315,13 +316,13 @@ public class StackAdvisorCommandTest {
     doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
 
     JsonNode servicesRootNode = json("{}");
-    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
+    command.populateAmbariConfiguration((ObjectNode)servicesRootNode);
 
     JsonNode expectedLdapConfig = json(
       map(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), ldapConfigData)
     );
 
-    assertEquals(expectedLdapConfig, servicesRootNode);
+    assertEquals(expectedLdapConfig, servicesRootNode.get("ambari-server-configuration"));
   }
 
   @Test
@@ -347,101 +348,11 @@ public class StackAdvisorCommandTest {
     doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
 
     JsonNode servicesRootNode = json("{}");
-    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
+    command.populateAmbariConfiguration((ObjectNode)servicesRootNode);
 
-    JsonNode expectedLdapConfig = json("{}");
+    JsonNode expectedLdapConfig = json("{\"ambari-server-configuration\":{}}");
 
     assertEquals(expectedLdapConfig, servicesRootNode);
-  }
-
-  /**
-   * An ambigous ldap config that has two items in its data[] array should result in exception
-   */
-  @Test(expected = StackAdvisorException.class)
-  public void testPopulateLdapConfig_multipleConfigs() throws Exception {
-    File recommendationsDir = temp.newFolder("recommendationDir");
-    String recommendationsArtifactsLifetime = "1w";
-    int requestId = 0;
-    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
-    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
-        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
-
-    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion").build();
-
-    Map<String, Object> ldapConfigData = map(
-      "authentication.ldap.primaryUrl", "localhost:33389",
-      "authentication.ldap.secondaryUrl", "localhost:333",
-      "authentication.ldap.baseDn", "c=ambari,dc=apache,dc=org"
-    );
-
-    Map<String, Object> storedLdapConfigResult =  map(
-      "items",
-      list(
-        map(
-          "Configuration",
-          map(
-            "data",
-            list(ldapConfigData, ldapConfigData)
-          )
-        )
-      )
-    );
-
-    Response response =
-     Response.status(ResultStatus.STATUS.OK.getStatus()).entity(jsonString(storedLdapConfigResult)).build();
-
-    doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
-
-    JsonNode servicesRootNode = json("{}");
-    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
-  }
-
-  /**
-   * An if multiple ambari configurations are stored with 'ldap-config' type, an
-   * exception should be thrown
-   */
-  @Test(expected = StackAdvisorException.class)
-  public void testPopulateLdapConfig_multipleResults() throws Exception {
-    File recommendationsDir = temp.newFolder("recommendationDir");
-    String recommendationsArtifactsLifetime = "1w";
-    int requestId = 0;
-    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
-    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
-    TestStackAdvisorCommand command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
-      ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
-
-    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
-      .build();
-
-    Map<String, Object> ldapConfig = map(
-      "Configuration",
-      map(
-        "data",
-        list(
-          map(
-            "authentication.ldap.primaryUrl", "localhost:33389",
-            "authentication.ldap.secondaryUrl", "localhost:333",
-            "authentication.ldap.baseDn", "c=ambari,dc=apache,dc=org"
-          )
-        )
-      )
-    );
-
-    Map<String, Object> storedLdapConfigResult = map(
-      "items",
-      list(ldapConfig, ldapConfig)
-    );
-
-    Response response =
-      Response.status(ResultStatus.STATUS.OK.getStatus()).entity(jsonString(storedLdapConfigResult)).build();
-
-    doReturn(response).when(command).handleRequest(any(), any(), any(), any(), any(), any());
-
-    JsonNode servicesRootNode = json("{}");
-    command.populateLdapConfiguration((ObjectNode)servicesRootNode);
   }
 
   private static String jsonString(Object obj) throws IOException {
