@@ -65,10 +65,10 @@ public abstract class MpackInstanceEntity {
   @Column(name = "mpack_uri")
   private String mpackUri;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackInstance")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackInstance", orphanRemoval = true)
   private Collection<MpackInstanceServiceEntity> serviceInstances = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackInstance")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackInstance", orphanRemoval = true)
   private Collection<MpackInstanceConfigEntity> configurations = new ArrayList<>();
 
   @ManyToOne

@@ -50,7 +50,7 @@ public class MpackInstanceServiceEntity {
   @JoinColumn(name = "mpack_instance_id", referencedColumnName = "id", nullable = false)
   private MpackInstanceEntity mpackInstance;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "service")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "service", orphanRemoval = true)
   private Collection<MpackServiceConfigEntity> configurations = new ArrayList<>();
 
   private String name;

@@ -145,6 +145,12 @@ public class MpackInstance implements Configurable {
     return mpackInstanceEntity;
   }
 
+  /**
+   * Used during conversion to {@link MpackInstanceEntity}. Sets the common properties that are shared across all
+   * {@link MpackInstanceEntity} subclasses. Bidirectional relations are handled for {@link  MpackInstanceConfigEntity},
+   * {@link MpackInstanceServiceEntity} and {@link MpackServiceConfigEntity} entites.
+   * @param mpackInstanceEntity the entity to set the properties on
+   */
   private void setCommonProperties(MpackInstanceEntity mpackInstanceEntity) {
     mpackInstanceEntity.setMpackUri(url);
     mpackInstanceEntity.setMpackName(mpackName);
