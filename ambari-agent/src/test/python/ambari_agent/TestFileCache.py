@@ -65,7 +65,7 @@ class TestFileCache(TestCase):
     provide_directory_mock.return_value = "dummy value"
     fileCache = FileCache(self.config)
     command = {
-      'serviceLevelParams' : {
+      'commandParams' : {
         'service_package_folder' : os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package')
       }
     }
@@ -341,7 +341,7 @@ class TestFileCache(TestCase):
   @patch("os.unlink")
   @patch("shutil.rmtree")
   @patch("os.makedirs")
-  def invalidate_directory(self, makedirs_mock, rmtree_mock,
+  def test_invalidate_directory(self, makedirs_mock, rmtree_mock,
                                 unlink_mock, isdir_mock, isfile_mock,
                                 exists_mock):
     fileCache = FileCache(self.config)

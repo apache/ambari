@@ -26,6 +26,7 @@ import zipfile
 import urllib2
 import urllib
 import time
+import threading
 
 from ambari_agent.Utils import execute_with_retries
 
@@ -64,6 +65,8 @@ class FileCache():
     # from the server is not possible or agent should rollback to local copy
     self.tolerate_download_failures = \
           config.get('agent','tolerate_download_failures').lower() == 'true'
+    self.currently_providing_dict_lock = threading.RLock()
+    self.currently_providing = {}
     self.reset()
 
 
@@ -145,12 +148,22 @@ class FileCache():
       subdirectory: subpath inside cache
       server_url_prefix: url of "resources" folder at the server
     """
-
     full_path = os.path.join(cache_path, subdirectory)
     logger.debug("Trying to provide directory {0}".format(subdirectory))
 
     if not self.auto_cache_update_enabled():
       logger.debug("Auto cache update is disabled.")
+      return full_path
+
+    wait_for_another_execution_event = None
+    with self.currently_providing_dict_lock:
+      if full_path in self.currently_providing:
+        wait_for_another_execution_event = self.currently_providing[full_path]
+      else:
+        self.currently_providing[full_path] = threading.Event()
+
+    if wait_for_another_execution_event:
+      wait_for_another_execution_event.wait()
       return full_path
 
     try:
@@ -189,6 +202,10 @@ class FileCache():
                     "Error details: {0}".format(str(e)))
       else:
         raise # we are not tolerant to exceptions, command execution will fail
+    finally:
+      self.currently_providing[full_path].set()
+      del self.currently_providing[full_path]
+
     return full_path
 
 
@@ -273,15 +290,11 @@ class FileCache():
           os.unlink(directory)
         elif os.path.isdir(directory):
           """
-          All the magic here is because status/exec commands can execute at the same time as this code, causing weird race conditions
+          Execute shutil.rmtree(directory) multiple times.
+          Reason: race condition, where a file (e.g. *.pyc) in deleted directory
+          is created during function is running, causing it to fail.
           """
-          new_directory_name = directory + '.bak.' + str(time.time())
-          os.rename(directory, new_directory_name)
-          try:
-            execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, new_directory_name)
-          except:
-            logger.exception("Can not remove directory {0}".format(new_directory_name))
-
+          execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, directory)
         # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception, err:
