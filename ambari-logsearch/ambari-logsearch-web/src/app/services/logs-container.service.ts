@@ -60,6 +60,7 @@ import {CommonEntry} from '@app/classes/models/common-entry';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {Router, RoutesRecognized} from '@angular/router';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 @Injectable()
 export class LogsContainerService {
@@ -592,6 +593,20 @@ export class LogsContainerService {
       return Observable.of(null);
     });
 
+  private readonly valueGetters = {
+    to: (selection: TimeUnitListItem) => {
+      return this.logsFilteringUtilsService.getEndTimeFromTimeUnitListItem(selection, this.timeZone);
+    },
+    from: (selection: TimeUnitListItem, current: string) => {
+      return this.logsFilteringUtilsService.getStartTimeFromTimeUnitListItem(selection, current, this.timeZone);
+    },
+    sortType: this.logsFilteringUtilsService.getSortTypeFromSortingListItem,
+    sortBy: this.logsFilteringUtilsService.getSortKeyFromSortingListItem,
+    page: this.logsFilteringUtilsService.getPage,
+    includeQuery: this.logsFilteringUtilsService.getQuery(false),
+    excludeQuery: this.logsFilteringUtilsService.getQuery(true)
+  };
+
   constructor(
     private httpClient: HttpClientService, private utils: UtilsService,
     private tabsStorage: TabsService, private componentsStorage: ComponentsService, private hostsStorage: HostsService,
@@ -602,7 +617,8 @@ export class LogsContainerService {
     private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService,
     private clusterSelectionStoreService: ClusterSelectionService,
     private router: Router,
-    private routingUtils: RoutingUtilsService
+    private routingUtils: RoutingUtilsService,
+    private logsFilteringUtilsService: LogsFilteringUtilsService
   ) {
     const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
       const formControl = new FormControl();
@@ -677,6 +693,9 @@ export class LogsContainerService {
     const [logs, fields] = result;
     if (fields.length) {
       const names = fields.map((field: ListItem): string => field.value);
+      if (names.indexOf('id') === -1) {
+        names.push('id');
+      }
       return logs.map((log: LogT): LogT => {
         return names.reduce((currentObject: object, key: string) => Object.assign(currentObject, {
           [key]: log[key]
@@ -822,7 +841,7 @@ export class LogsContainerService {
         paramNames = this.filtersMapping[key];
       paramNames.forEach((paramName: string): void => {
         let value;
-        const valueGetter = this.valueGetters[paramName] || this.defaultValueGetter;
+        const valueGetter = this.valueGetters[paramName] || this.logsFilteringUtilsService.defaultValueGetterFromListItem;
         if (paramName === 'from') {
           value = valueGetter(inputValue, params['to']);
         } else {
@@ -869,113 +888,6 @@ export class LogsContainerService {
       }
     });
   }
-
-  getStartTimeMoment = (selection: TimeUnitListItem, end: moment.Moment): moment.Moment | undefined => {
-    let time;
-    const value = selection && selection.value;
-    if (value) {
-      const endTime = end.clone();
-      switch (value.type) {
-        case 'LAST':
-          time = endTime.subtract(value.interval, value.unit);
-          break;
-        case 'CURRENT':
-          time = moment().tz(this.timeZone).startOf(value.unit);
-          break;
-        case 'PAST':
-          time = endTime.startOf(value.unit);
-          break;
-        case 'CUSTOM':
-          time = value.start;
-          break;
-        default:
-          break;
-      }
-    }
-    return time;
-  }
-
-  private getStartTime = (selection: TimeUnitListItem, current: string): string => {
-    const startMoment = this.getStartTimeMoment(selection, moment(moment(current).valueOf()));
-    return startMoment ? startMoment.toISOString() : '';
-  }
-
-  getEndTimeMoment = (selection: TimeUnitListItem): moment.Moment | undefined => {
-    let time;
-    const value = selection && selection.value;
-    if (value) {
-      switch (value.type) {
-        case 'LAST':
-          time = moment();
-          break;
-        case 'CURRENT':
-          time = moment().tz(this.timeZone).endOf(value.unit);
-          break;
-        case 'PAST':
-          time = moment().tz(this.timeZone).startOf(value.unit).millisecond(-1);
-          break;
-        case 'CUSTOM':
-          time = value.end;
-          break;
-        default:
-          break;
-      }
-    }
-    return time;
-  }
-
-  private getEndTime = (selection: TimeUnitListItem): string => {
-    const endMoment = this.getEndTimeMoment(selection);
-    return endMoment ? endMoment.toISOString() : '';
-  }
-
-  private getQuery(isExclude: boolean): (value: SearchBoxParameter[]) => string {
-    return (value: SearchBoxParameter[]): string => {
-      let parameters;
-      if (value && value.length) {
-        parameters = value.filter((item: SearchBoxParameter): boolean => {
-          return item.isExclude === isExclude;
-        }).map((parameter: SearchBoxParameter): HomogeneousObject<string> => {
-          return {
-            [parameter.name]: parameter.value.replace(/\s/g, '+')
-          };
-        });
-      }
-      return parameters && parameters.length ? JSON.stringify(parameters) : '';
-    };
-  }
-
-  private getSortType(selection: SortingListItem[] = []): SortingType {
-    return selection[0] && selection[0].value ? selection[0].value.type : 'desc';
-  }
-
-  private getSortKey(selection: SortingListItem[] = []): string {
-    return selection[0] && selection[0].value ? selection[0].value.key : '';
-  }
-
-  private getPage(value: number | undefined): string | undefined {
-    return typeof value === 'undefined' ? value : value.toString();
-  }
-
-  private defaultValueGetter(selection: ListItem | ListItem[] | null): string {
-    if (Array.isArray(selection)) {
-      return selection.map((item: ListItem): any => item.value).join(',');
-    } else if (selection) {
-      return selection.value;
-    } else {
-      return '';
-    }
-  }
-
-  private readonly valueGetters = {
-    to: this.getEndTime,
-    from: this.getStartTime,
-    sortType: this.getSortType,
-    sortBy: this.getSortKey,
-    page: this.getPage,
-    includeQuery: this.getQuery(false),
-    excludeQuery: this.getQuery(true)
-  };
 
   switchTab(activeTab: Tab): void {
     this.tabsStorage.mapCollection((tab: Tab): Tab => {
@@ -1096,7 +1008,7 @@ export class LogsContainerService {
 
   openServiceLog(log: ServiceLog): void {
     const tab = {
-      id: log.id,
+      id: log.id || `${log.host}-${log.type}`,
       isCloseable: true,
       label: `${log.host} >> ${log.type}`,
       appState: {

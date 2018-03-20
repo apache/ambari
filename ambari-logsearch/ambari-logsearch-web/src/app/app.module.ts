@@ -112,6 +112,7 @@ import {TranslateService as AppTranslateService} from '@app/services/translate.s
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {TabGuard} from '@app/services/tab.guard';
 import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 export function getXHRBackend(
   injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions
@@ -235,7 +236,8 @@ export function getXHRBackend(
     AuthService,
     AuthGuardService,
     HistoryManagerService,
-    ClusterSelectionService
+    ClusterSelectionService,
+    LogsFilteringUtilsService
   ],
   bootstrap: [AppComponent],
   entryComponents: [

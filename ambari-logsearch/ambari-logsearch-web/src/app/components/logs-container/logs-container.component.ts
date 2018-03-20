@@ -16,9 +16,12 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, ElementRef, ViewChild, HostListener, Input} from '@angular/core';
+import {Component, OnInit, ElementRef, ViewChild, HostListener, Input, OnDestroy} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/skipWhile';
+import 'rxjs/add/operator/skip';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
@@ -33,13 +36,17 @@ import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
 import {LogsType, LogLevel} from '@app/classes/string';
 import {FiltersPanelComponent} from '@app/components/filters-panel/filters-panel.component';
+import {Subscription} from 'rxjs/Subscription';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
 @Component({
   selector: 'logs-container',
   templateUrl: './logs-container.component.html',
   styleUrls: ['./logs-container.component.less']
 })
-export class LogsContainerComponent implements OnInit {
+export class LogsContainerComponent implements OnInit, OnDestroy {
 
   private isFilterPanelFixedPostioned: boolean = false;
 
@@ -67,28 +74,75 @@ export class LogsContainerComponent implements OnInit {
   @Input()
   routerPath: string[] = ['/logs'];
 
+  private subscriptions: Subscription[] = [];
+  private queryParamsSyncInProgress: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
   constructor(
-    private appState: AppStateService, private tabsStorage: TabsService, private logsContainerService: LogsContainerService,
+    private appState: AppStateService,
+    private tabsStorage: TabsService,
+    private logsContainerService: LogsContainerService,
+    private logsFilteringUtilsService: LogsFilteringUtilsService,
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
-    private auditLogsGraphStorage: AuditLogsGraphDataService
+    private auditLogsGraphStorage: AuditLogsGraphDataService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.logsContainerService.loadColumnsNames();
-    this.appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
-    this.serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
-      this.serviceLogsHistogramData = this.logsContainerService.getGraphData(data, this.logsContainerService.logLevels.map((
-        level: LogLevelObject
-      ): LogLevel => {
-        return level.name;
-      }));
-    });
-    this.auditLogsGraphStorage.getAll().subscribe((data: BarGraph[]): void => {
-      this.auditLogsGraphData = this.logsContainerService.getGraphData(data);
-    });
-    this.appState.getParameter('isServiceLogContextView').subscribe((value: boolean): void => {
-      this.isServiceLogContextView = value;
-    });
+    this.subscriptions.push(
+      this.appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value)
+    );
+    this.subscriptions.push(
+      this.serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
+        this.serviceLogsHistogramData = this.logsContainerService.getGraphData(data, this.logsContainerService.logLevels.map((
+          level: LogLevelObject
+        ): LogLevel => {
+          return level.name;
+        }));
+      })
+    );
+    this.subscriptions.push(
+      this.auditLogsGraphStorage.getAll().subscribe((data: BarGraph[]): void => {
+        this.auditLogsGraphData = this.logsContainerService.getGraphData(data);
+      })
+    );
+    this.subscriptions.push(
+      this.appState.getParameter('isServiceLogContextView').subscribe((value: boolean): void => {
+        this.isServiceLogContextView = value;
+      })
+    );
+    this.subscriptions.push(
+      this.tabsStorage.getAll().map((tabs: Tab[]) => {
+        const activeTab = tabs.find(tab => tab.isActive);
+        return activeTab && activeTab.appState.activeFilters;
+      }).skip(1).debounceTime(100).subscribe(activeFilter => {
+        const queryParams = this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
+          activeFilter, this.logsContainerService.activeLogsType
+        );
+        this.queryParamsSyncStart();
+        this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: queryParams })
+          .then(this.queryParamsSyncStop, this.queryParamsSyncStop)
+          .catch(this.queryParamsSyncStop);
+      })
+    );
+    this.subscriptions.push(
+      this.activatedRoute.queryParams.subscribe((params) => {
+        if (!this.queryParamsSyncInProgress.getValue() && Object.keys(params).length) {
+          const filterFromQueryParams = this.logsFilteringUtilsService.getFilterFromQueryParams(
+            params, this.logsContainerService.activeLogsType
+          );
+          this.appState.getParameter('activeFilters').first().subscribe((filter) => {
+            this.appState.setParameter('activeFilters', Object.assign(filter || {}, filterFromQueryParams));
+            console.info(Object.assign(filter || {}, filterFromQueryParams));
+          });
+        }
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -146,6 +200,14 @@ export class LogsContainerComponent implements OnInit {
 
   get serviceLogsColumns(): Observable<ListItem[]> {
     return this.logsContainerService.serviceLogsColumns;
+  }
+
+  private queryParamsSyncStart = () => {
+    this.queryParamsSyncInProgress.next(true);
+  }
+
+  private queryParamsSyncStop = () => {
+    this.queryParamsSyncInProgress.next(false);
   }
 
   /**
