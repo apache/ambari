@@ -91,7 +91,7 @@ public class HostComponentStateEntity {
   @Column(name = "id", nullable = false, insertable = true, updatable = false)
   private Long id;
 
-  @Column(name = "host_component_desired_state_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "host_comp_desired_state_id", nullable = false, insertable = false, updatable = false)
   private Long hostComponentDesiredStateId;
 
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
@@ -140,7 +140,7 @@ public class HostComponentStateEntity {
   private HostEntity hostEntity;
 
   @OneToOne
-  @JoinColumn(name = "host_component_desired_state_id", referencedColumnName = "id", nullable = false)
+  @JoinColumn(name = "host_comp_desired_state_id", referencedColumnName = "id", nullable = false)
   private HostComponentDesiredStateEntity hostComponentDesiredStateEntity;
 
   public Long getId() {

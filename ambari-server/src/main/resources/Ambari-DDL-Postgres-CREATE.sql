@@ -316,7 +316,7 @@ CREATE TABLE hostcomponentdesiredstate (
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
-  host_component_desired_state_id BIGINT NOT NULL,
+  host_comp_desired_state_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   component_type VARCHAR(255) NOT NULL,
@@ -329,7 +329,7 @@ CREATE TABLE hostcomponentstate (
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT UQ_hostcomponentstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_component_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
+  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_comp_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_id, cluster_id);
