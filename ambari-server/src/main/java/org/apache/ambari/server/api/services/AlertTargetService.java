@@ -54,7 +54,7 @@ import io.swagger.annotations.ApiResponses;
  * targets.
  */
 @Path("/alert_targets/")
-@Api(value = "/Alerts", description = "Endpoint for alert specific operations")
+@Api(value = "Alerts", description = "Endpoint for alert specific operations")
 public class AlertTargetService extends BaseService {
 
   public static final String ALERT_TARGET_REQUEST_TYPE = "org.apache.ambari.server.controller.AlertTargetSwagger";
