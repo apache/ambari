@@ -81,6 +81,10 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     return isServiceWithWidgetdescriptor;
   }.property('content.serviceName'),
 
+  isHDFSFederatedSummary: function () {
+    return this.get('content.serviceName') === 'HDFS' && this.get('sectionNameSuffix') === '_SUMMARY' && App.get('hasNameNodeFederation');
+  }.property('content.serviceName', 'sectionNameSuffix', 'App.hasNameNodeFederation'),
+
   /**
    *  @Type {App.WidgetLayout}
    */
@@ -96,9 +100,17 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     return [];
   }.property('isWidgetsLoaded', 'activeWidgetLayout.widgets'),
 
+  activeNSWidgetLayouts: [],
+
+  selectedNSWidgetLayout: {},
+
   isAmbariMetricsInstalled: function () {
     return App.Service.find().someProperty('serviceName', 'AMBARI_METRICS');
   }.property('App.router.mainServiceController.content.length'),
+
+  switchNameServiceLayout: function (data) {
+    this.set('selectedNSWidgetLayout', data.context);
+  },
 
   /**
    * load widgets defined by user
@@ -108,6 +120,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     var sectionName = this.get('sectionName');
     var urlParams = 'WidgetLayoutInfo/section_name=' + sectionName;
     this.set('activeWidgetLayout', {});
+    this.set('activeNSWidgetLayouts', []);
     this.set('isWidgetsLoaded', false);
     if (this.get('isServiceWithEnhancedWidgets')) {
       return App.ajax.send({
@@ -133,10 +146,16 @@ App.WidgetSectionMixin = Ember.Mixin.create({
   getActiveWidgetLayoutSuccessCallback: function (data) {
     var self = this;
     if (data.items[0]) {
-      self.getWidgetLayoutSuccessCallback(data);
+      if (this.get('isHDFSFederatedSummary') && data.items.length === 1) {
+        this.createFederationWidgetLayouts(data.items[0]);
+      } else {
+        self.getWidgetLayoutSuccessCallback(data);
+      }
     } else {
       self.getAllActiveWidgetLayouts().done(function (activeWidgetLayoutsData) {
         self.getDefaultWidgetLayoutByName(self.get('defaultLayoutName')).done(function (defaultWidgetLayoutData) {
+          defaultWidgetLayoutData = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
+          defaultWidgetLayoutData.layout_name = self.get('userLayoutName');
           self.createUserWidgetLayout(defaultWidgetLayoutData).done(function (userLayoutIdData) {
             var activeWidgetLayouts;
             var widgetLayouts = [];
@@ -176,13 +195,18 @@ App.WidgetSectionMixin = Ember.Mixin.create({
    */
   getWidgetLayoutSuccessCallback: function (data) {
     if (data) {
-      App.widgetMapper.map(data.items[0].WidgetLayoutInfo);
+      data.items.forEach(function (item) {
+        App.widgetMapper.map(item.WidgetLayoutInfo);
+      });
       App.widgetLayoutMapper.map(data);
-      this.set('activeWidgetLayout', App.WidgetLayout.find(data.items[0].WidgetLayoutInfo.id));
+      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('layoutName', this.get('userLayoutName')));
+      if (this.get('isHDFSFederatedSummary')) {
+        this.set('activeNSWidgetLayouts', App.WidgetLayout.find().filterProperty('sectionName', this.get('sectionName')).rejectProperty('layoutName', this.get('userLayoutName')));
+        this.set('selectedNSWidgetLayout', this.get('activeNSWidgetLayouts')[0]);
+      }
       this.set('isWidgetsLoaded', true);
     }
   },
-
 
   getDefaultWidgetLayoutByName: function (layoutName) {
     var urlParams = 'WidgetLayoutInfo/layout_name=' + layoutName;
@@ -195,13 +219,12 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     });
   },
 
-  createUserWidgetLayout: function (defaultWidgetLayoutData) {
-    var layout = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
-    var layoutName = this.get('userLayoutName');
+  createUserWidgetLayout: function (widgetLayoutData) {
+    var layout = widgetLayoutData;
     var data = {
       "WidgetLayoutInfo": {
         "display_name": layout.display_name,
-        "layout_name": layoutName,
+        "layout_name": layout.layout_name,
         "scope": "USER",
         "section_name": layout.section_name,
         "user_name": App.router.get('loginName'),
@@ -218,6 +241,33 @@ App.WidgetSectionMixin = Ember.Mixin.create({
       data: {
         data: data
       }
+    });
+  },
+
+  updateUserWidgetLayout: function (widgetLayoutData) {
+    var layout = widgetLayoutData;
+    var data = {
+      "WidgetLayoutInfo": {
+        "display_name": layout.display_name,
+        "layout_name": layout.layout_name,
+        "id": layout.id,
+        "scope": "USER",
+        "section_name": layout.section_name,
+        "user_name": App.router.get('loginName'),
+        "widgets": layout.widgets.map(function (widget) {
+          return {
+            "id": widget.WidgetInfo.id
+          }
+        })
+      }
+    };
+    return App.ajax.send({
+      name: 'widget.layout.edit',
+      sender: this,
+      data: {
+        layoutId: layout.id,
+        data: data
+      },
     });
   },
 
@@ -270,5 +320,53 @@ App.WidgetSectionMixin = Ember.Mixin.create({
    */
   clearActiveWidgetLayout: function () {
     this.set('activeWidgetLayout', {});
+    this.set('activeNSWidgetLayouts', []);
+  },
+
+  createFederationWidgetLayouts: function (currentLWidgetLayout) {
+    var self = this;
+    currentLWidgetLayout = currentLWidgetLayout.WidgetLayoutInfo;
+    var newLayoutsIds = [currentLWidgetLayout.id];
+    var userLayoutName = this.get('userLayoutName');
+    var nameServices = App.HDFSService.find().objectAt(0).get('masterComponentGroups');
+    var nameServiceToWidgetMap = {all: []};
+    var nonNameServiceSpecific = [];
+    this.getDefaultWidgetLayoutByName(this.get('defaultLayoutName')).done(function (defaultWidgetLayoutData) {
+      var newLayout = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
+
+      newLayout.widgets.forEach(function (widget) {
+        var tag = widget.WidgetInfo.tag;
+        if (widget.WidgetInfo.scope === 'CLUSTER' && tag) {
+          if (!nameServiceToWidgetMap[tag]) {
+            nameServiceToWidgetMap[tag] = [];
+          }
+          nameServiceToWidgetMap[tag].push(widget);
+          nameServiceToWidgetMap.all.push(widget);
+        } else {
+          nonNameServiceSpecific.push(widget);
+        }
+      });
+
+      Em.keys(nameServiceToWidgetMap).forEach(function (nameService) {
+        newLayout.layout_name = userLayoutName + '_nameservice_' + nameService;
+        newLayout.display_name = nameService === 'all' ? 'All' : nameService;
+        newLayout.widgets = nameServiceToWidgetMap[nameService];
+        self.createUserWidgetLayout(newLayout).done(function (data) {
+          newLayoutsIds.push(data.resources[0].WidgetLayoutInfo.id);
+          if (newLayoutsIds.length >= nameServices.length) {
+            self.saveActiveWidgetLayouts({
+              "WidgetLayouts": newLayoutsIds.map(function (layout) {
+                return {id: layout};
+              })
+            }).done(function () {
+              currentLWidgetLayout.widgets = nonNameServiceSpecific;
+              self.updateUserWidgetLayout(currentLWidgetLayout).done(function () {
+                self.getActiveWidgetLayout();
+              });
+            });
+          }
+        });
+      })
+    });
   }
 });
