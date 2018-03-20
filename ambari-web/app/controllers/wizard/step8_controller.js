@@ -1568,39 +1568,33 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   applyConfigurationsToCluster: function (serviceConfigTags) {
     var allServices = this.get('installedServices').concat(this.get('selectedServices'));
-    var allConfigData = [];
+    
     allServices.forEach(function (service) {
       var serviceConfigData = [];
+     
       Object.keys(service.get('configTypesRendered')).forEach(function (type) {
         var serviceConfigTag = serviceConfigTags.findProperty('type', type);
         if (serviceConfigTag) {
           serviceConfigData.pushObject(serviceConfigTag);
         }
       }, this);
+      
       if (serviceConfigData.length) {
-        allConfigData.pushObject(JSON.stringify({
-          Clusters: {
-            desired_config: serviceConfigData.map(function(item) {
-              var props = {};
-              Em.keys(item.properties).forEach(function(propName) {
-                if (item.properties[propName] !== null) {
-                  props[propName] = item.properties[propName];
-                }
-              });
-              item.properties = props;
-              return item;
-            })
+        //TODO: Remove this delete call when the API supports service_config_version_note
+        serviceConfigData.forEach(scd => {
+          delete scd.service_config_version_note;
+        })
+
+        this.addRequestToAjaxQueue({
+          name: 'common.service.create.configs',
+          data: {
+            serviceName: service.get('serviceName'),
+            serviceGroupName: `${service.get('stackName')}-${service.get('stackVersion')}`,
+            data: serviceConfigData
           }
-        }));
+        });    
       }
     }, this);
-
-    this.addRequestToAjaxQueue({
-      name: 'common.across.services.configurations',
-      data: {
-        data: '[' + allConfigData.toString() + ']'
-      }
-    });
   },
 
   /**
