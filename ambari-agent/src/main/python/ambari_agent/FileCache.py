@@ -25,6 +25,7 @@ import shutil
 import zipfile
 import urllib2
 import urllib
+import time
 
 from ambari_agent.Utils import execute_with_retries
 
@@ -272,14 +273,19 @@ class FileCache():
           os.unlink(directory)
         elif os.path.isdir(directory):
           """
-          Execute shutil.rmtree(directory) multiple times.
-          Reason: race condition, where a file (e.g. *.pyc) in deleted directory
-          is created during function is running, causing it to fail.
+          All the magic here is because status/exec commands can execute at the same time as this code, causing weird race conditions
           """
-          execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, directory)
+          new_directory_name = directory + '.bak.' + str(time.time())
+          os.rename(directory, new_directory_name)
+          try:
+            execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, new_directory_name)
+          except:
+            logger.exception("Can not remove directory {0}".format(new_directory_name))
+
         # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception, err:
+      logger.exception("Can not invalidate cache directory {0}".format(directory))
       raise CachingException("Can not invalidate cache directory {0}: {1}",
                              directory, str(err))
 
