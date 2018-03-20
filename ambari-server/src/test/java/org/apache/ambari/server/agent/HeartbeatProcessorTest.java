@@ -19,7 +19,6 @@ package org.apache.ambari.server.agent;
 
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyClusterId;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostStatus;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
@@ -1183,7 +1182,6 @@ public class HeartbeatProcessorTest {
     cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
     cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
     cmdReport.setRole("install_packages");
-    cmdReport.setClusterId(DummyClusterId);
 
     List<CommandReport> reports = new ArrayList<>();
     reports.add(cmdReport);

@@ -17,12 +17,15 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.Map;
+
 import org.codehaus.jackson.annotate.JsonProperty;
+
 
 
 import com.google.common.base.Objects;
 
-import java.util.Map;
+
 
 public class CommandReport {
 

@@ -49,11 +49,8 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.apache.commons.collections.CollectionUtils;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -310,7 +307,7 @@ public class HeartBeatHandler {
     return osType.toLowerCase();
   }
 
-  protected HeartBeatResponse createRegisterCommand(String hostname) {
+  public HeartBeatResponse createRegisterCommand(String hostname) {
     refreshCacheForHosts.remove(hostname);
     HeartBeatResponse response = new HeartBeatResponse();
     RegistrationCommand regCmd = new RegistrationCommand();

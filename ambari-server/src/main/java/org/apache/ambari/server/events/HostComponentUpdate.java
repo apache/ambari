@@ -51,7 +51,7 @@ public class HostComponentUpdate {
 
   public static HostComponentUpdate createHostComponentStatusUpdate(HostComponentStateEntity stateEntity, State previousState) {
     HostComponentUpdate hostComponentUpdate = new HostComponentUpdate(stateEntity.getClusterId(),
-        stateEntity.getServiceName(), stateEntity.getHostEntity().getHostName(), stateEntity.getComponentName(),
+        stateEntity.getServiceComponentDesiredStateEntity().getClusterServiceEntity().getServiceName(), stateEntity.getHostEntity().getHostName(), stateEntity.getComponentName(),
         stateEntity.getCurrentState(), previousState, null, null);
     return hostComponentUpdate;
   }

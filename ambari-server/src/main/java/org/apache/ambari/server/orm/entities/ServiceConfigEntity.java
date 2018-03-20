@@ -322,4 +322,8 @@ public class ServiceConfigEntity {
     }
     return null;
   }
+
+  public void setServiceName(String serviceName) {
+    this.clusterServiceEntity.setServiceName(serviceName);
+  }
 }

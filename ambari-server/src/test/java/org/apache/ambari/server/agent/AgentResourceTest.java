@@ -19,7 +19,6 @@
 package org.apache.ambari.server.agent;
 
 import static org.easymock.EasyMock.createNiceMock;
-import org.eclipse.jetty.server.SessionManager;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

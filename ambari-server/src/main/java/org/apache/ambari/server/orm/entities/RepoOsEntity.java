@@ -20,8 +20,6 @@ package org.apache.ambari.server.orm.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Objects;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -37,6 +35,11 @@ import javax.persistence.TableGenerator;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+
+import com.google.common.base.Objects;
+
+
+
 
 
 /**

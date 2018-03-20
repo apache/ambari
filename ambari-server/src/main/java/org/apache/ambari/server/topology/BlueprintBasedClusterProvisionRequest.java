@@ -29,9 +29,11 @@ import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +98,36 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   }
 
   @Override
+  public Collection<String> getServices() {
+    return null;
+  }
+
+  @Override
+  public Collection<ServiceInfo> getServiceInfos() {
+    return null;
+  }
+
+  @Override
+  public Collection<String> getComponents(String service) {
+    return null;
+  }
+
+  @Override
+  public String getRecoveryEnabled(String serviceName, String componentName) {
+    return null;
+  }
+
+  @Override
+  public String getCredentialStoreEnabled(String serviceName) {
+    return null;
+  }
+
+  @Override
+  public boolean shouldSkipFailure() {
+    return false;
+  }
+
+  @Override
   public Set<StackId> getStackIds() {
     return stackIds;
   }
@@ -103,6 +135,11 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
   @Override
   public Collection<MpackInstance> getMpacks() {
     return mpacks;
+  }
+
+  @Override
+  public Stack getStack() {
+    return null;
   }
 
   @Override
@@ -156,10 +193,6 @@ public class BlueprintBasedClusterProvisionRequest implements Blueprint, Provisi
 
   public ProvisionAction getProvisionAction() {
     return request.getProvisionAction();
-  }
-
-  public StackDefinition getStack() {
-    return stack;
   }
 
   public Map<String, Map<String, ServiceInstance>> getServicesByMpack() {

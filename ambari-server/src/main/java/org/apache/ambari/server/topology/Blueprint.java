@@ -26,8 +26,8 @@ import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 
 /**
  * Blueprint representation.

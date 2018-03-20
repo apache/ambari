@@ -77,7 +77,6 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;

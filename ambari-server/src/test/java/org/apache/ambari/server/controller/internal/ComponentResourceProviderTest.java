@@ -89,8 +89,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 

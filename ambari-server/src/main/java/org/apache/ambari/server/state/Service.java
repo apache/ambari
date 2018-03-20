@@ -28,8 +28,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {

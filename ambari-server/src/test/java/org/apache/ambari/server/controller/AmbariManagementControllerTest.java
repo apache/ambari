@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller;
 
 
 import static java.util.stream.Collectors.toSet;
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;

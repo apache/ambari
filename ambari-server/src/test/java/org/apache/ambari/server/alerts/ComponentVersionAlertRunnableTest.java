@@ -28,13 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.MockEventListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -50,8 +51,6 @@ import org.apache.ambari.server.state.ModuleComponent;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
@@ -66,7 +65,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 
-import javax.persistence.EntityManager;
 
 /**
  * Tests {@link ComponentVersionAlertRunnable}.

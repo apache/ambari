@@ -817,7 +817,6 @@ public class TestHeartbeatHandler {
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
-    cr.setClusterId(DummyClusterId);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
     cr.setRoleCommand("INSTALL");
@@ -884,7 +883,6 @@ public class TestHeartbeatHandler {
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(1, 1));
     cr.setTaskId(1);
-    cr.setClusterId(DummyClusterId);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
     cr.setRoleCommand("INSTALL");

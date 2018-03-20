@@ -134,7 +134,7 @@ public class HeartbeatController {
         if (!agentSessionManager.isRegistered(simpSessionId)) {
           //Server restarted, or unknown host.
           LOG.error(String.format("Host with [%s] sessionId not registered", simpSessionId));
-          return hh.createRegisterCommand();
+          return hh.createRegisterCommand(agentSessionManager.getHost(simpSessionId).getHostName());
         }
         message.setHostname(agentSessionManager.getHost(simpSessionId).getHostName());
         heartBeatResponse = hh.handleHeartBeat(message);
