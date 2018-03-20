@@ -82,7 +82,6 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProviderTest;
@@ -109,7 +108,6 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
@@ -117,7 +115,6 @@ import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -308,6 +305,11 @@ public class AmbariManagementControllerTest {
 
     repositoryVersion120 = helper.getOrCreateRepositoryVersion(
         new StackId("HDP-1.2.0"), "1.2.0-1234");
+
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-1.3.1"), "1.3.1");
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.5"), "2.0.5");
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.6"), "2.0.6");
+    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.7"), "2.0.7");
 
     repositoryVersion201 = helper.getOrCreateRepositoryVersion(
         new StackId("HDP-2.0.1"), "2.0.1-1234");
@@ -6847,27 +6849,6 @@ public class AmbariManagementControllerTest {
     } catch (StackAccessException e) {
       // do nothing
     }
-  }
-
-  @Test
-  public void testGetStackOperatingSystemsWithRepository() throws Exception {
-    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    StackEntity stackEntity = stackDAO.find(STACK_NAME, STACK_VERSION);
-    assertNotNull(stackEntity);
-
-    RepositoryVersionEntity versionEntity = dao.create(stackEntity, "0.2.2", "HDP-0.2", ClusterStackVersionResourceProviderTest.REPO_OS_ENTITIES);
-
-    OperatingSystemRequest request = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, null);
-    Set<OperatingSystemResponse> responses = controller.getOperatingSystems(Collections.singleton(request));
-    Assert.assertEquals(OS_CNT, responses.size());
-
-    OperatingSystemRequest requestWithParams = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, OS_TYPE);
-    requestWithParams.setVersionDefinitionId(versionEntity.getId().toString());
-
-    Set<OperatingSystemResponse> responsesWithParams = controller.getOperatingSystems(Collections.singleton(requestWithParams));
-    Assert.assertEquals(1, responsesWithParams.size());
-
   }
 
   @Test

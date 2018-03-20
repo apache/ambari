@@ -27,7 +27,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -62,9 +61,6 @@ public abstract class AbstractCheckDescriptor {
 
   @Inject
   protected Provider<Clusters> clustersProvider;
-
-  @Inject
-  Provider<HostVersionDAO> hostVersionDaoProvider;
 
   @Inject
   Provider<RepositoryVersionDAO> repositoryVersionDaoProvider;

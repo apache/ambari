@@ -57,6 +57,7 @@ public class MpackResourceDefinition extends BaseResourceDefinition {
     Set<SubResourceDefinition> setChildren = new HashSet<>();
     setChildren.add(new SubResourceDefinition(Resource.Type.StackVersion, null, false));
     setChildren.add(new SubResourceDefinition(Resource.Type.OperatingSystem, null, true));
+    setChildren.add(new SubResourceDefinition(Resource.Type.DefaultOperatingSystem, null, true));
     return setChildren;
   }
 

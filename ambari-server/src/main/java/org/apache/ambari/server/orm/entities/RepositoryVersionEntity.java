@@ -19,9 +19,7 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -122,9 +120,6 @@ public class RepositoryVersionEntity {
   @OneToMany(fetch = FetchType.EAGER, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
   private List<RepoOsEntity> repoOsEntities = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
-  private Set<HostVersionEntity> hostVersionEntities;
-
   @Column(name = "repo_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private RepositoryType type = RepositoryType.STANDARD;
@@ -190,14 +185,6 @@ public class RepositoryVersionEntity {
     if (version.startsWith(stackName)) {
       version = version.substring(stackName.length() + 1);
     }
-  }
-
-  /**
-   * Update one-to-many relation without rebuilding the whole entity
-   * @param entity many-to-one entity
-   */
-  public void updateHostVersionEntityRelation(HostVersionEntity entity){
-    hostVersionEntities.add(entity);
   }
 
   public Long getId() {

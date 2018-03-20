@@ -81,13 +81,6 @@ public class CheckDescription {
       .put(HostsMasterMaintenanceCheck.KEY_NO_UPGRADE_PACK,
           "Could not find upgrade pack named %s.").build());
 
-  public static CheckDescription HOSTS_REPOSITORY_VERSION = new CheckDescription("HOSTS_REPOSITORY_VERSION",
-    PrereqCheckType.HOST,
-    "All hosts should have target version installed",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "The following hosts must have version {{version}} installed: {{fails}}.").build());
-
   public static CheckDescription SERVICES_MAINTENANCE_MODE = new CheckDescription("SERVICES_MAINTENANCE_MODE",
     PrereqCheckType.SERVICE,
     "No services can be in Maintenance Mode",
@@ -115,13 +108,6 @@ public class CheckDescription {
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "The last upgrade attempt did not complete. {{fails}}").build());
-
-  public static CheckDescription INSTALL_PACKAGES_CHECK = new CheckDescription("INSTALL_PACKAGES_CHECK",
-    PrereqCheckType.CLUSTER,
-    "Install packages must be re-run",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-          "Re-run Install Packages before starting upgrade").build());
 
   public static CheckDescription CONFIG_MERGE = new CheckDescription("CONFIG_MERGE",
     PrereqCheckType.CLUSTER,

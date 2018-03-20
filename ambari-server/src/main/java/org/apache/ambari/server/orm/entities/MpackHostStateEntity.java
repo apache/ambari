@@ -34,7 +34,7 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.MpackInstallState;
 
 /**
  * The {@link MpackHostStateEntity} is used to track the installation state of a
@@ -57,12 +57,17 @@ import org.apache.ambari.server.state.RepositoryVersionState;
     initialValue = 0)
 @NamedQueries({
     @NamedQuery(
-        name = "mpackHostStateForHost",
-        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState JOIN mpackHostState.hostEntity host "
-            + "WHERE mpackHostState.hostEntity.hostName=:hostName"),
+        name = "findInstallStateByHost",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.hostEntity.hostName=:hostName"),
     @NamedQuery(
-        name = "mpackHostStateForMpack",
-        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.id = :mpackId") })
+        name = "findInstallStateByMpack",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId"),
+    @NamedQuery(
+        name = "findInstallStateByMpackAndHost",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId AND mpackHostState.hostEntity.hostName=:hostName"),
+    @NamedQuery(
+        name = "findInstallStateByStateAndHost",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.hostEntity.hostName=:hostName AND mpackHostState.state = :mpackInstallState") })
 
 public class MpackHostStateEntity {
 
@@ -101,11 +106,11 @@ public class MpackHostStateEntity {
   private MpackEntity mpackEntity;
 
   /**
-   * The state of the
+   * The installation state of a management pack on a given host.
    */
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
-  private RepositoryVersionState state;
+  private MpackInstallState state;
 
   /**
    * Constructor.
@@ -121,7 +126,7 @@ public class MpackHostStateEntity {
    * @param state
    */
   public MpackHostStateEntity(MpackEntity mpackEntity, HostEntity hostEntity,
-      RepositoryVersionState state) {
+      MpackInstallState state) {
     this.mpackEntity = mpackEntity;
     this.hostEntity = hostEntity;
     this.state = state;
@@ -163,11 +168,11 @@ public class MpackHostStateEntity {
     this.hostEntity = hostEntity;
   }
 
-  public RepositoryVersionState getState() {
+  public MpackInstallState getState() {
     return state;
   }
 
-  public void setState(RepositoryVersionState state) {
+  public void setState(MpackInstallState state) {
     this.state = state;
   }
 
@@ -184,7 +189,7 @@ public class MpackHostStateEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(id, mpackId, hostId, state);
+    return Objects.hash(mpackId, hostId, state);
   }
 
   @Override
@@ -200,7 +205,7 @@ public class MpackHostStateEntity {
     }
 
     MpackHostStateEntity other = (MpackHostStateEntity) obj;
-    return Objects.equals(id, other.id) && Objects.equals(mpackId, other.mpackId)
+    return Objects.equals(mpackId, other.mpackId)
         && Objects.equals(hostId, other.hostId) && Objects.equals(state, other.state);
   }
 }

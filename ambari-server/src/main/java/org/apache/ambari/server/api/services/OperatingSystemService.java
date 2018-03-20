@@ -49,13 +49,38 @@ public class OperatingSystemService extends BaseService {
   private final String m_mpackId;
 
   /**
+   * Instructs the service to instantiate the
+   * {@link Resource.Type#DefaultOperatingSystem} resource provider.
+   */
+  private final boolean m_isDefaultOnly;
+
+  private final Resource.Type m_resourceType;
+
+  /**
    * Constructor.
-   *
-   * @param parentKeyProperties
-   *          extra properties to be inserted into created resource
+   * 
+   * @param mpackId
+   *          the ID of the mpack to get operating system resources for.
    */
   public OperatingSystemService(String mpackId) {
+    this(mpackId, false);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param mpackId
+   *          the ID of the mpack to get operating system resources for.
+   * @param isDefaultOnly
+   *          {@code true} to retrieve the original values for the operating
+   *          systems of an mpack.
+   */
+  public OperatingSystemService(String mpackId, boolean isDefaultOnly) {
     m_mpackId = mpackId;
+    m_isDefaultOnly = isDefaultOnly;
+
+    m_resourceType = m_isDefaultOnly ? Resource.Type.DefaultOperatingSystem
+        : Resource.Type.OperatingSystem;
   }
 
   /**
@@ -166,7 +191,7 @@ public class OperatingSystemService extends BaseService {
   private ResourceInstance createResource(String osType) {
     final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Mpack, m_mpackId);
-    mapIds.put(Resource.Type.OperatingSystem, osType);
-    return createResource(Resource.Type.OperatingSystem, mapIds);
+    mapIds.put(m_resourceType, osType);
+    return createResource(m_resourceType, mapIds);
   }
 }

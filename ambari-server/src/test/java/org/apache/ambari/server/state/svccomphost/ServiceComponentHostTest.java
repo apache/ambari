@@ -20,7 +20,6 @@ package org.apache.ambari.server.state.svccomphost;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,9 +41,7 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -53,7 +50,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -66,12 +62,10 @@ import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -1062,87 +1056,5 @@ public class ServiceComponentHostTest {
 
     entity = hostComponentDesiredStateDAO.findByIndex(sch1.getServiceComponentId());
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
-  }
-
-  /**
-   * Tests that the host version for a repository can transition properly to
-   * CURRENT even if other components on that host have not reported in correct
-   * for their own repo versions. This assures that the host version logic is
-   * scoped to the repo that is transitioning and is not affected by other
-   * components.
-   */
-  @Test
-  public void testHostVersionTransitionIsScopedByRepository() throws Exception {
-    // put the existing host versions OUT_OF_SYNC
-    HostEntity hostEntity = hostDAO.findByName(hostName1);
-    Collection<HostVersionEntity> hostVersions = hostEntity.getHostVersionEntities();
-    Assert.assertEquals(1, hostVersions.size());
-    hostVersions.iterator().next().setState(RepositoryVersionState.OUT_OF_SYNC);
-    hostDAO.merge(hostEntity);
-
-    ServiceComponentHost namenode = createNewServiceComponentHost(clusterName, "HDFS", "NAMENODE", hostName1, false);
-    namenode.setDesiredState(State.STARTED);
-    namenode.setState(State.STARTED);
-
-    ServiceComponentHost datanode = createNewServiceComponentHost(clusterName, "HDFS", "DATANODE", hostName1, false);
-    datanode.setDesiredState(State.STARTED);
-    datanode.setState(State.STARTED);
-
-    ServiceComponentHost zkServer = createNewServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_SERVER", hostName1, false);
-    zkServer.setDesiredState(State.STARTED);
-    zkServer.setState(State.STARTED);
-
-    ServiceComponentHost zkClient = createNewServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostName1, true);
-    zkClient.setDesiredState(State.STARTED);
-    zkClient.setState(State.STARTED);
-
-    // put some host components into a bad state
-    hostEntity = hostDAO.findByName(hostName1);
-    Collection<HostComponentStateEntity> hostComponentStates = hostEntity.getHostComponentStateEntities();
-    for( HostComponentStateEntity hostComponentState : hostComponentStates ) {
-      if( StringUtils.equals("HDFS", "" ) ) {
-        hostComponentState.setVersion(State.UNKNOWN.name());
-        hostComponentStateDAO.merge(hostComponentState);
-      }
-    }
-
-    // create the repo just for ZK
-    StackId stackId = new StackId("HDP-2.2.0");
-    RepositoryVersionEntity patchRepositoryVersion = helper.getOrCreateRepositoryVersion(stackId, "2.2.0.0-1");
-
-    // create the new host version
-    zkServer.getServiceComponent().setDesiredRepositoryVersion(patchRepositoryVersion);
-    zkClient.getServiceComponent().setDesiredRepositoryVersion(patchRepositoryVersion);
-
-    helper.createHostVersion(hostName1, patchRepositoryVersion, RepositoryVersionState.INSTALLED);
-
-    // move ZK components to UPGRADED and reporting the new version
-    hostEntity = hostDAO.findByName(hostName1);
-    hostComponentStates = hostEntity.getHostComponentStateEntities();
-    for( HostComponentStateEntity hostComponentState : hostComponentStates ) {
-      if( StringUtils.equals("ZOOKEEPER", "" ) ) {
-        hostComponentState.setVersion(patchRepositoryVersion.getVersion());
-        hostComponentState.setUpgradeState(UpgradeState.COMPLETE);
-        hostComponentStateDAO.merge(hostComponentState);
-      }
-    }
-
-    hostEntity = hostDAO.merge(hostEntity);
-
-    zkServer.recalculateHostVersionState();
-
-    // very transition to CURRENT
-    hostVersions = hostEntity.getHostVersionEntities();
-    Assert.assertEquals(2, hostVersions.size());
-
-    for (HostVersionEntity hostVersion : hostVersions) {
-      if (hostVersion.getRepositoryVersion().equals(repositoryVersion)) {
-        Assert.assertEquals(RepositoryVersionState.OUT_OF_SYNC, hostVersion.getState());
-      } else if (hostVersion.getRepositoryVersion().equals(patchRepositoryVersion)) {
-        Assert.assertEquals(RepositoryVersionState.CURRENT, hostVersion.getState());
-      } else {
-        Assert.fail("Unexpected repository version");
-      }
-    }
   }
 }

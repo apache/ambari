@@ -34,6 +34,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,6 +198,18 @@ public class MpackEntity {
     buffer.append(", mpackUri=").append(mpackUri);
     buffer.append("}");
     return buffer.toString();
+  }
+
+  /**
+   * Gets the management pack name and version as a single {@link StackId}
+   * instance.
+   *
+   * @return a {@link StackId} instance created from the mpack name and version.
+   * @see #getMpackName()
+   * @see #getMpackVersion()
+   */
+  public StackId getStackId() {
+    return new StackId(mpackName, mpackVersion);
   }
 }
 

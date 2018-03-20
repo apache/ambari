@@ -49,7 +49,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -163,9 +162,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    */
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
-
-  @Inject
-  private HostVersionDAO hostVersionDAO;
 
   // ----- Constructors ----------------------------------------------------
 

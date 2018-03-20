@@ -345,16 +345,6 @@ CREATE TABLE hoststate (
   CONSTRAINT PK_hoststate PRIMARY KEY (host_id),
   CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
-CREATE TABLE host_version (
-  id BIGINT NOT NULL,
-  repo_version_id BIGINT NOT NULL,
-  host_id BIGINT NOT NULL,
-  state VARCHAR(32) NOT NULL,
-  CONSTRAINT PK_host_version PRIMARY KEY (id),
-  CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT UQ_host_repo UNIQUE(host_id, repo_version_id));
-
 CREATE TABLE servicedesiredstate (
   cluster_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
@@ -1316,8 +1306,6 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'repo_os_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'repo_definition_id_seq', 0 FROM SYSIBM.SYSDUMMY1
-  union all
-  select 'host_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'mpack_host_state_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all

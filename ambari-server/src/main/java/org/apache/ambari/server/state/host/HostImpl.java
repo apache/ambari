@@ -45,12 +45,12 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.MpackHostStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
@@ -126,7 +126,7 @@ public class HostImpl implements Host {
   private HostStateDAO hostStateDAO;
 
   @Inject
-  private HostVersionDAO hostVersionDAO;
+  private MpackHostStateDAO mpackHostStateDAO;
 
   @Inject
   private ClusterDAO clusterDAO;
@@ -1135,13 +1135,11 @@ public class HostImpl implements Host {
   }
 
   /**
-   * Get all of the HostVersionEntity objects for the host.
-   *
-   * @return all of the HostVersionEntity objects for the host
+   * {@inheritDoc}
    */
   @Override
-  public List<HostVersionEntity> getAllHostVersions() {
-    return hostVersionDAO.findByHost(getHostName());
+  public List<MpackHostStateEntity> getMPackInstallStates() {
+    return mpackHostStateDAO.findByHost(getHostName());
   }
 
   // Get the cached host entity or load it fresh through the DAO.

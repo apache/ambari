@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.MpackResponse.MpackResponseWrapper;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
@@ -157,13 +158,22 @@ public class MpacksService extends BaseService {
    *
    * @return operating system service
    */
-  // TODO: find a way to handle this with Swagger (refactor or custom annotation?)
+  @ApiIgnore
   @Path("{id}/operating_systems")
-  public OperatingSystemService getOperatingSystemsHandler(
-      @ApiParam @PathParam("id") String mpackId) {
+  public OperatingSystemService getOperatingSystemsHandler(@ApiParam @PathParam("id") String mpackId) {
     return new OperatingSystemService(mpackId);
   }
 
+  /**
+   * Handles ANY {id}/default_operating_systems request
+   *
+   * @return operating system service
+   */
+  @ApiIgnore
+  @Path("{id}/default_operating_systems")
+  public OperatingSystemService getDefaultOperatingSystemsHandler(@ApiParam @PathParam("id") String mpackId) {
+    return new OperatingSystemService(mpackId, true);
+  }
 
   @DELETE
   @Path("{id}")
