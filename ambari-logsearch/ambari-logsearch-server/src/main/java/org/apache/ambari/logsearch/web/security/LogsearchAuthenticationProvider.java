@@ -87,7 +87,7 @@ public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthentica
           logger.error(e, e.getCause());
         }
       }
-      
+
       auditRecord.put("result", "denied");
       logger.warn("Authentication failed for user=" + inAuthentication.getName() + ", userDetail=" + inAuthentication.toString());
       if (authException != null) {
