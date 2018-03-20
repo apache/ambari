@@ -34,24 +34,24 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 /**
- * Entity representing a service instance in multi-service blueprints
+ * Entity representing a service instance in multi-service blueprints/cluster templates
  */
 @Entity
-@Table(name = "blueprint_service")
-@TableGenerator(name = "blueprint_service_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name",
-  valueColumnName = "sequence_value", pkColumnValue = "blueprint_service_id_seq", initialValue = 1)
-public class BlueprintServiceEntity {
+@Table(name = "mpack_instance_service")
+@TableGenerator(name = "mpack_inst_svc_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name",
+  valueColumnName = "sequence_value", pkColumnValue = "mpack_inst_svc_id_seq", initialValue = 1)
+public class MpackInstanceServiceEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE, generator = "blueprint_service_id_generator")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "mpack_inst_svc_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
   private Long id;
 
   @ManyToOne()
   @JoinColumn(name = "mpack_instance_id", referencedColumnName = "id", nullable = false)
-  private BlueprintMpackInstanceEntity mpackInstance;
+  private MpackInstanceEntity mpackInstance;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "service")
-  private Collection<BlueprintServiceConfigEntity> configurations = new ArrayList<>();
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "service", orphanRemoval = true)
+  private Collection<MpackServiceConfigEntity> configurations = new ArrayList<>();
 
   private String name;
 
@@ -74,28 +74,28 @@ public class BlueprintServiceEntity {
   /**
    * @return the mpack instance to the mpack associated with this service
    */
-  public BlueprintMpackInstanceEntity getMpackInstance() {
+  public MpackInstanceEntity getMpackInstance() {
     return mpackInstance;
   }
 
   /**
    * @param mpackInstance the mpack instance to the mpack associated with this service
    */
-  public void setMpackInstance(BlueprintMpackInstanceEntity mpackInstance) {
+  public void setMpackInstance(MpackInstanceEntity mpackInstance) {
     this.mpackInstance = mpackInstance;
   }
 
   /**
    * @return the service instance level configuration entities
    */
-  public Collection<BlueprintServiceConfigEntity> getConfigurations() {
+  public Collection<MpackServiceConfigEntity> getConfigurations() {
     return configurations;
   }
 
   /**
    * @param configurations the service instance level configuration entities
    */
-  public void setConfigurations(Collection<BlueprintServiceConfigEntity> configurations) {
+  public void setConfigurations(Collection<MpackServiceConfigEntity> configurations) {
     this.configurations = configurations;
   }
 

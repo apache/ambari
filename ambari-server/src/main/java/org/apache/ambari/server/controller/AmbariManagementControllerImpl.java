@@ -4806,14 +4806,24 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String propertyName = request.getPropertyName();
+    Set<PropertyInfo> configs;
 
-    Set<PropertyInfo> properties;
+    //properties : cluster-env
+    //TODO: Remove after getting rid of cluster-env
     if (propertyName != null) {
-      properties = ambariMetaInfo.getStackPropertiesByName(stackName, stackVersion, propertyName);
+      configs = ambariMetaInfo.getStackPropertiesByName(stackName, stackVersion, propertyName);
     } else {
-      properties = ambariMetaInfo.getStackProperties(stackName, stackVersion);
+      configs = ambariMetaInfo.getStackProperties(stackName, stackVersion);
     }
-    for (PropertyInfo property: properties) {
+
+    //settings : stackSettings
+    if(configs.size() == 0){
+      if (propertyName != null) {
+        configs = ambariMetaInfo.getStackSettingsByName(stackName, stackVersion, propertyName);
+      } else
+        configs = ambariMetaInfo.getStackSettings(stackName, stackVersion);
+    }
+    for (PropertyInfo property: configs) {
       response.add(property.convertToResponse());
     }
 

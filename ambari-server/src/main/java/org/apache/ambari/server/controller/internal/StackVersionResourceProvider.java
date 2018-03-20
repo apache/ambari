@@ -61,7 +61,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_PACKS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "upgrade_packs";
   public static final String STACK_MIN_JDK     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "min_jdk";
   public static final String STACK_MAX_JDK     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "max_jdk";
-  public static final String MPACK_ID     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
+  public static final String MPACK_RESOURCE_ID     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
 
   public static final Set<String> PROPERTY_IDS = new HashSet<>();
 
@@ -69,7 +69,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   protected static StackDAO stackDAO;
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID, MPACK_ID}));
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID, MPACK_RESOURCE_ID}));
 
   /**
    * The key property ids for a mpack resource.
@@ -78,7 +78,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
   static {
     // properties
-    PROPERTY_IDS.add(MPACK_ID);
+    PROPERTY_IDS.add(MPACK_RESOURCE_ID);
     PROPERTY_IDS.add(STACK_VERSION_PROPERTY_ID);
     PROPERTY_IDS.add(STACK_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(STACK_MIN_VERSION_PROPERTY_ID);
@@ -92,7 +92,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
     PROPERTY_IDS.add(STACK_MAX_JDK);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_RESOURCE_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID);
 
@@ -115,9 +115,9 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       requests.add(getRequest(Collections.emptyMap()));
     } else {
       Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
-      if (propertyMap.containsKey(MPACK_ID)) {
+      if (propertyMap.containsKey(MPACK_RESOURCE_ID)) {
         Resource resource = new ResourceImpl(Resource.Type.StackVersion);
-        Long mpackId = Long.valueOf((String) propertyMap.get(MPACK_ID));
+        Long mpackId = Long.valueOf((String) propertyMap.get(MPACK_RESOURCE_ID));
         StackEntity stackEntity = stackDAO.findByMpack(mpackId);
         requests.add(new StackVersionRequest(stackEntity.getStackName(), stackEntity.getStackVersion()));
         resource.setProperty(STACK_NAME_PROPERTY_ID,
@@ -126,7 +126,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
         resource.setProperty(STACK_VERSION_PROPERTY_ID,
                 (String)stackEntity.getStackVersion());
 
-        resource.setProperty(MPACK_ID, mpackId);
+        resource.setProperty(MPACK_RESOURCE_ID, mpackId);
 
         resources.add(resource);
 

@@ -144,13 +144,13 @@ CREATE TABLE servicegroups (
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
-  service_group_cluster_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
   dependent_service_group_id BIGINT NOT NULL,
-  dependent_service_group_cluster_id BIGINT NOT NULL,
+  dependent_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
-  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
-  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, cluster_id, dependent_service_group_id, dependent_cluster_id),
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
@@ -316,7 +316,7 @@ CREATE TABLE hostcomponentdesiredstate (
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
-  host_component_desired_state_id BIGINT NOT NULL,
+  host_comp_desired_state_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   component_type VARCHAR(255) NOT NULL,
@@ -330,7 +330,7 @@ CREATE TABLE hostcomponentstate (
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT UQ_hostcomponentstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_component_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
+  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_comp_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_id, cluster_id);
@@ -626,40 +626,55 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
 
-CREATE TABLE blueprint_mpack_instance(
+CREATE TABLE topology_request (
   id BIGINT NOT NULL,
-  blueprint_name VARCHAR(255) NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties TEXT,
+  cluster_attributes TEXT,
+  description VARCHAR(1024),
+  provision_action VARCHAR(255),
+  CONSTRAINT PK_topology_request PRIMARY KEY (id),
+  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
+
+CREATE TABLE mpack_instance(
+  id BIGINT NOT NULL,
+  owner VARCHAR (20) NOT NULL,
+  blueprint_name VARCHAR(255),
+  topology_request_id BIGINT,
   mpack_name VARCHAR(255) NOT NULL,
   mpack_version VARCHAR(255) NOT NULL,
   mpack_uri VARCHAR(255),
   mpack_id BIGINT,
   CONSTRAINT PK_blueprint_mpack_inst PRIMARY KEY (id),
   CONSTRAINT FK_mpi_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name),
+  CONSTRAINT FK_mpi_topology_request FOREIGN KEY (topology_request_id) REFERENCES topology_request(id),
   CONSTRAINT FK_mpi_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks(id));
 
-CREATE TABLE blueprint_service (
+CREATE TABLE mpack_instance_service (
   id BIGINT NOT NULL,
   mpack_instance_id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL,
   type VARCHAR(255) NOT NULL,
-  CONSTRAINT PK_blueprint_service PRIMARY KEY (id),
-  CONSTRAINT FK_blueprint_svc_mpack_inst FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
+  CONSTRAINT PK_mpack_inst_svc_id PRIMARY KEY (id),
+  CONSTRAINT FK_service_mpack_instance FOREIGN KEY (mpack_instance_id) REFERENCES mpack_instance(id));
 
-CREATE TABLE blueprint_service_config (
+CREATE TABLE mpack_service_config (
   service_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data TEXT NOT NULL,
   config_attributes TEXT,
-  CONSTRAINT PK_bp_svc_conf PRIMARY KEY (service_id, type_name),
-  CONSTRAINT FK_bp_svc_config_to_service FOREIGN KEY (service_id) REFERENCES blueprint_service (id));
+  CONSTRAINT PK_mpack_svc_conf PRIMARY KEY (service_id, type_name),
+  CONSTRAINT FK_mpack_svc_config_to_service FOREIGN KEY (service_id) REFERENCES mpack_instance_service (id));
 
-CREATE TABLE blueprint_mpack_configuration (
+CREATE TABLE mpack_instance_config (
   mpack_instance_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data TEXT NOT NULL,
   config_attributes TEXT,
-  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_instance_id, type_name),
-  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
+  CONSTRAINT PK_mpack_inst_conf PRIMARY KEY (mpack_instance_id, type_name),
+  CONSTRAINT FK_mpack_inst_conf_to_mpack FOREIGN KEY (mpack_instance_id) REFERENCES mpack_instance(id));
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -880,19 +895,6 @@ CREATE TABLE artifact (
   artifact_data TEXT NOT NULL,
   foreign_keys VARCHAR(255) NOT NULL,
   CONSTRAINT PK_artifact PRIMARY KEY (artifact_name, foreign_keys));
-
-CREATE TABLE topology_request (
-  id BIGINT NOT NULL,
-  action VARCHAR(255) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  bp_name VARCHAR(100) NOT NULL,
-  raw_request_body TEXT NOT NULL,
-  cluster_properties TEXT,
-  cluster_attributes TEXT,
-  description VARCHAR(1024),
-  provision_action VARCHAR(255),
-  CONSTRAINT PK_topology_request PRIMARY KEY (id),
-  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
 
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,
@@ -1295,8 +1297,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('ambari_operation_history_id_seq', 0),
   ('remote_cluster_id_seq', 0),
   ('remote_cluster_service_id_seq', 0),
-  ('blueprint_service_id_seq', 0),
-  ('blueprint_mpack_instance_id_seq', 0),
+  ('mpack_inst_svc_id_seq', 0),
+  ('mpack_instance_id_seq', 0),
   ('hostgroup_component_id_seq', 0),
   ('servicecomponent_version_id_seq', 0),
   ('repo_os_id_seq', 0),
