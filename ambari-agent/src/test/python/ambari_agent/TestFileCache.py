@@ -341,7 +341,7 @@ class TestFileCache(TestCase):
   @patch("os.unlink")
   @patch("shutil.rmtree")
   @patch("os.makedirs")
-  def test_invalidate_directory(self, makedirs_mock, rmtree_mock,
+  def invalidate_directory(self, makedirs_mock, rmtree_mock,
                                 unlink_mock, isdir_mock, isfile_mock,
                                 exists_mock):
     fileCache = FileCache(self.config)
