@@ -142,13 +142,13 @@ CREATE TABLE servicegroups (
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
-  service_group_cluster_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
   dependent_service_group_id BIGINT NOT NULL,
-  dependent_service_group_cluster_id BIGINT NOT NULL,
+  dependent_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
-  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
-  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, cluster_id, dependent_service_group_id, dependent_cluster_id),
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
@@ -316,7 +316,7 @@ CREATE TABLE hostcomponentdesiredstate (
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
-  host_component_desired_state_id BIGINT NOT NULL,
+  host_comp_desired_state_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   component_type VARCHAR(255) NOT NULL,
@@ -329,7 +329,7 @@ CREATE TABLE hostcomponentstate (
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT UQ_hostcomponentstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_component_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
+  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_comp_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_id, cluster_id);
@@ -624,6 +624,18 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
 
+CREATE TABLE topology_request (
+  id BIGINT NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties VARCHAR(3000),
+  cluster_attributes VARCHAR(3000),
+  description VARCHAR(1024),
+  provision_action VARCHAR(255),
+  CONSTRAINT PK_topology_request PRIMARY KEY (id),
+  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
+
 CREATE TABLE mpack_instance(
   id BIGINT NOT NULL,
   owner VARCHAR (20) NOT NULL,
@@ -880,18 +892,6 @@ CREATE TABLE artifact (
   artifact_data VARCHAR(3000) NOT NULL,
   foreign_keys VARCHAR(255) NOT NULL,
   CONSTRAINT PK_artifact PRIMARY KEY (artifact_name, foreign_keys));
-
-CREATE TABLE topology_request (
-  id BIGINT NOT NULL,
-  action VARCHAR(255) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  bp_name VARCHAR(100) NOT NULL,
-  cluster_properties VARCHAR(3000),
-  cluster_attributes VARCHAR(3000),
-  description VARCHAR(1024),
-  provision_action VARCHAR(255),
-  CONSTRAINT PK_topology_request PRIMARY KEY (id),
-  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
 
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,
