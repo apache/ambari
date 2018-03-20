@@ -81,13 +81,13 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var ret = {};
     var configsFromServer = this.get('serverConfigData.items');
     var journalNodes = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE');
-    // todo: replace with real data
-    ret.nameservice1 = 'ns1';
+    var nameNodes = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE');
+    ret.nameservice1 = App.HDFSService.find().objectAt(0).get('masterComponentGroups')[0].name;
     ret.nameservice2 = this.get('content.nameServiceId');
-    ret.namenode1 = this.get('content.selectedHosts.currentNN')[0];
-    ret.namenode2 = this.get('content.selectedHosts.currentNN')[1];
-    ret.namenode3 = this.get('content.selectedHosts.additionalNN')[0];
-    ret.namenode4 = this.get('content.selectedHosts.additionalNN')[1];
+    ret.namenode1 = nameNodes.filterProperty('isInstalled').mapProperty('hostName')[0];
+    ret.namenode2 = nameNodes.filterProperty('isInstalled').mapProperty('hostName')[1];
+    ret.namenode3 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[0];
+    ret.namenode4 = nameNodes.filterProperty('isInstalled', false).mapProperty('hostName')[1];
     ret.journalnodes = journalNodes.map(function (c) {
       return c.get('hostName') + ':8485'
     }).join(';');

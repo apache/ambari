@@ -730,6 +730,7 @@
         },
         "SPARK2_CLIENT": {
           "STACK-SELECT-PACKAGE": "spark2-client",
+          "LEGACY": "spark2-client",
           "INSTALL": [
             "spark2-client",
             "livy2-client"

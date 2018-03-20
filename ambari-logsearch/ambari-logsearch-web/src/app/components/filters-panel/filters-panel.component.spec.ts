@@ -40,6 +40,7 @@ import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 import {FiltersPanelComponent} from './filters-panel.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('FiltersPanelComponent', () => {
   let component: FiltersPanelComponent;
@@ -92,7 +93,8 @@ describe('FiltersPanelComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         LogsContainerService,
-        UtilsService
+        UtilsService,
+        ClusterSelectionService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

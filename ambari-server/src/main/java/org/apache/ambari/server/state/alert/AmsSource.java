@@ -20,6 +20,8 @@ package org.apache.ambari.server.state.alert;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.ambari.server.state.UriInfo;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
@@ -34,7 +36,7 @@ import com.google.gson.annotations.SerializedName;
 public class AmsSource extends Source {
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private UriInfo uri = null;
 
   @SerializedName("ams")
   private AmsInfo amsInfo = null;
@@ -51,7 +53,7 @@ public class AmsSource extends Source {
    * @return the uri info, which may include port information
    */
   @JsonProperty("uri")
-  public AlertUri getUri() {
+  public UriInfo getUri() {
     return uri;
   }
 

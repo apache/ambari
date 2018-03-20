@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-@import 'mixins';
+@import '../modules/shared/main';
 
 :host {
   background-color: @main-background-color; // TODO implement actual color
@@ -29,22 +29,26 @@
     border-radius: 0;
     background-color: @navbar-background-color;
     color: #fff;
-
-    .container-fluid {
-      .stretch-flex;
-    }
-
+    .stretch-flex;
     h1 {
-      margin-bottom: @h1-vertical-margin;
+      align-items: center;
+      background-color: lighten(@navbar-background-color, 5%);
+      display: flex;
+      margin: 0 2em 0 0;
+      padding: 0 2em;
       text-transform: uppercase;
-
       &.full-flex-width {
         flex-basis: 100%;
       }
     }
+    breadcrumbs {
+      font-size: 18px;
+      .stretch-flex;
+    }
 
     /deep/ top-menu {
       margin-left: auto;
+      margin-right: 5em;
     }
   }
 }

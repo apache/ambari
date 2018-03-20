@@ -131,6 +131,20 @@
           margin-bottom: 5px;
         }
       }
+      .overrideField {
+        .long-input {
+          width: 101%;
+        }
+        .config-controls {
+          padding-left: 0;
+          padding-right: 0;
+          margin-left: -5px;
+          .help-block {
+            margin: 0;
+            line-height: 32px;
+          }
+        }
+      }
     }
     form {
       margin-bottom: 0;
@@ -289,6 +303,7 @@
   }
   .config-controls {
     line-height: 34px;
+    vertical-align: top;
   }
   .clear-left{
     clear:left;
@@ -327,5 +342,13 @@
         left: auto;
       }
     }
+  }
+}
+
+.password-field-wrapper {
+  width: 75%;
+  display: inline-block;
+  .row {
+    padding: 0;
   }
 }

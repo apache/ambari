@@ -130,7 +130,7 @@ module.exports =
       {
         "name": "dfs.namenode.https-address.{{nameservice2}}.nn3",
         "displayName": "dfs.namenode.https-address.{{nameservice2}}.nn3",
-        "description": "The fully-qualified HTTP address for nn3 NameNode.",
+        "description": "The fully-qualified HTTPS address for nn3 NameNode.",
         "isReconfigurable": false,
         "recommendedValue": "{{namenode3}}:{{nnHttpsPort}}",
         "value": "{{namenode3}}:{{nnHttpsPort}}",
@@ -141,7 +141,7 @@ module.exports =
       {
         "name": "dfs.namenode.https-address.{{nameservice2}}.nn4",
         "displayName": "dfs.namenode.https-address.{{nameservice2}}.nn4",
-        "description": "The fully-qualified HTTP address for nn4 NameNode.",
+        "description": "The fully-qualified HTTPS address for nn4 NameNode.",
         "isReconfigurable": false,
         "recommendedValue": "{{namenode4}}:{{nnHttpsPort}}",
         "value": "{{namenode4}}:{{nnHttpsPort}}",
@@ -163,7 +163,7 @@ module.exports =
       {
         "name": "dfs.namenode.shared.edits.dir.{{nameservice1}}",
         "displayName": "dfs.namenode.shared.edits.dir.{{nameservice1}}",
-        "description": " The URI which identifies the group of JNs where the NameNodes will write/read edits.",
+        "description": "The URI which identifies the group of JNs where the NameNodes will write/read edits.",
         "isReconfigurable": false,
         "recommendedValue": "qjournal://{{journalnodes}}/{{nameservice1}}",
         "value": "qjournal://{{journalnodes}}/{{nameservice1}}",
@@ -174,10 +174,54 @@ module.exports =
       {
         "name": "dfs.namenode.shared.edits.dir.{{nameservice2}}",
         "displayName": "dfs.namenode.shared.edits.dir.{{nameservice2}}",
-        "description": " The URI which identifies the group of JNs where the NameNodes will write/read edits.",
+        "description": "The URI which identifies the group of JNs where the NameNodes will write/read edits.",
         "isReconfigurable": false,
         "recommendedValue": "qjournal://{{journalnodes}}/{{nameservice2}}",
         "value": "qjournal://{{journalnodes}}/{{nameservice2}}",
+        "category": "HDFS",
+        "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.servicerpc-address.{{nameservice1}}.nn1",
+        "displayName": "dfs.namenode.servicerpc-address.{{nameservice1}}.nn1",
+        "description": "RPC address for HDFS Services communication.",
+        "isReconfigurable": false,
+        "recommendedValue": "{{namenode1}}:8021",
+        "value": "{{namenode1}}:8021",
+        "category": "HDFS",
+        "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.servicerpc-address.{{nameservice1}}.nn2",
+        "displayName": "dfs.namenode.servicerpc-address.{{nameservice1}}.nn2",
+        "description": "RPC address for HDFS Services communication.",
+        "isReconfigurable": false,
+        "recommendedValue": "{{namenode2}}:8021",
+        "value": "{{namenode2}}:8021",
+        "category": "HDFS",
+        "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.servicerpc-address.{{nameservice2}}.nn3",
+        "displayName": "dfs.namenode.servicerpc-address.{{nameservice2}}.nn3",
+        "description": "RPC address for HDFS Services communication.",
+        "isReconfigurable": false,
+        "recommendedValue": "{{namenode3}}:8021",
+        "value": "{{namenode3}}:8021",
+        "category": "HDFS",
+        "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.servicerpc-address.{{nameservice2}}.nn4",
+        "displayName": "dfs.namenode.servicerpc-address.{{nameservice2}}.nn4",
+        "description": "RPC address for HDFS Services communication.",
+        "isReconfigurable": false,
+        "recommendedValue": "{{namenode4}}:8021",
+        "value": "{{namenode4}}:8021",
         "category": "HDFS",
         "filename": "hdfs-site",
         "serviceName": 'MISC'

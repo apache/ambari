@@ -343,7 +343,7 @@ public class HeartBeatHandler {
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         null != register.getPublicHostname() ? register.getPublicHostname() : hostname,
         new AgentVersion(register.getAgentVersion()), now, register.getHardwareProfile(),
-        register.getAgentEnv()));
+        register.getAgentEnv(), register.getAgentStartTime()));
 
     RegistrationResponse response = new RegistrationResponse();
 

@@ -754,8 +754,9 @@ accordion .panel-group .panel{
   padding-left: 19px;
 }
 
-.repo-version-inline .dot {
-  padding-right: 15px;
+.repo-version-inline .form-group {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .status-CURRENT {
@@ -984,12 +985,14 @@ thead.view-permission-header > tr > th {
 }
 
 #current-stack-details {
-  bottom: 20px;
-  padding-left: 0px;
+  padding-left: 0;
+  margin-right: 15px;
 }
 
-#current-stack-details .table-borderless {
- border: transparent;
+#current-stack-details .table {
+  position: absolute;
+  top: 2px;
+  border: transparent;
 }
 
 #current-stack-details .table-borderless tbody tr td, .table-borderless tbody tr th, .table-borderless thead tr th {
@@ -1084,7 +1087,7 @@ thead.view-permission-header > tr > th {
   overflow: auto;
   border: 1px solid #ddd;
   padding: 8px 25px;
-  margin: 8px;
+  margin: 2px;
 }
 
 .register-version-form .details-panel .control-label {
@@ -1375,4 +1378,14 @@ th.entity-actions {
   top: 10px;
   left: 2px;
   box-shadow: -2px -2px 10px -3px rgba(0, 0, 0, 0.5);
+}
+
+a.disabled i:before,
+a[disabled] i:before {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.display-inline {
+  display: inline;
 }

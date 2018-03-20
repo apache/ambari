@@ -188,7 +188,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
             if log.isEnabledFor(logging.DEBUG):
                 log.debug("Received frame: %r, headers=%r, body=%r", f.cmd, f.headers, f.body)
             else:
-                log.info("Received frame: %r, headers=%r, len(body)=%r", f.cmd, f.headers, utils.length(f.body))
+                log.debug("Received frame: %r, headers=%r, len(body)=%r", f.cmd, f.headers, utils.length(f.body))
             self.notify(frame_type, f.headers, f.body)
         else:
             log.warning("Unknown response frame type: '%s' (frame length was %d)", frame_type, utils.length(frame_str))
@@ -268,7 +268,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Sending frame: %s", lines)
         else:
-            log.info("Sending frame: %r, headers=%r", frame.cmd or "heartbeat", frame.headers)
+            log.debug("Sending frame: %r, headers=%r", frame.cmd or "heartbeat", frame.headers)
 
         self.send(encode(packed_frame))
 

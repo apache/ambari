@@ -16,30 +16,38 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {HttpClientService} from '@app/services/http-client.service';
+import {TakeUntilDestroy} from "angular2-take-until-destroy";
+import {Observable} from "rxjs/Observable";
+import {Options} from 'angular2-notifications/src/options.type';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.less']
 })
+export class AppComponent implements OnInit {
 
-export class AppComponent {
+  isAuthorized$: Observable<boolean> = this.appState.getParameter('isAuthorized');
 
-  constructor(private httpClient: HttpClientService, private translate: TranslateService, private appState: AppStateService) {
-    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
-    appState.setParameter('isInitialLoading', true);
-    httpClient.get('status').subscribe(() => appState.setParameters({
-      isAuthorized: true,
-      isInitialLoading: false
-    }), () => appState.setParameter('isInitialLoading', false));
-    translate.setDefaultLang('en');
-    translate.use('en');
+  private notificationServiceOptions: Options = {
+    timeOut: 5000,
+    showProgressBar: true,
+    pauseOnHover: true,
+    preventLastDuplicates: 'visible'
+  };
+
+  constructor(
+    private translate: TranslateService,
+    private appState: AppStateService
+  ) {}
+
+  ngOnInit() {
+    this.appState.setParameter('isInitialLoading', true);
+    this.translate.setDefaultLang('en');
+    this.translate.use('en');
   }
-
-  isAuthorized: boolean = false;
 
 }

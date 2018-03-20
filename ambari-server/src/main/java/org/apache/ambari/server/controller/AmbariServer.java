@@ -386,6 +386,7 @@ public class AmbariServer {
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
+      rootServlet.setInitParameter("precompressed", "gzip=.gz");
       rootServlet.setInitOrder(1);
 
       /* Configure default servlet for agent server */
@@ -1077,7 +1078,9 @@ public class AmbariServer {
 
       setupProxyAuth();
 
-      injector.getInstance(GuiceJpaInitializer.class);
+      // Start and Initialize JPA
+      GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
+      jpaInitializer.setInitialized(); // This must be called to alert Ambari that JPA is initialized.
 
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 

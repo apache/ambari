@@ -78,6 +78,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {
       HBASE: App.MainDashboardServiceHbaseView,
       HDFS: App.MainDashboardServiceHdfsView,
+      ONEFS: App.MainDashboardServiceHdfsView,
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       RANGER: App.MainDashboardServiceRangerView,
@@ -442,7 +443,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
               if (!existingGroup) {
                 groups.push(currentGroup);
                 Em.setProperties(currentGroup, {
-                  components: []
+                  components: [],
+                  componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
+                    nameSpace: name
+                  })
                 });
               }
               currentGroup.components.push(component);

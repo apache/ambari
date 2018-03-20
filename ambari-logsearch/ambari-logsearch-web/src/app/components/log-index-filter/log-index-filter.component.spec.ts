@@ -40,10 +40,11 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
-import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {DropdownButtonComponent} from '@modules/shared/components/dropdown-button/dropdown-button.component';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 import {LogIndexFilterComponent} from './log-index-filter.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('LogIndexFilterComponent', () => {
   let component: LogIndexFilterComponent;
@@ -93,7 +94,8 @@ describe('LogIndexFilterComponent', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

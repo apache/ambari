@@ -35,11 +35,11 @@ public class TopologyComponent {
   private String serviceName;
   private String displayName;
   private String version;
-  private Set<Long> hostIds;
-  private Set<String> hostNames;
-  private Set<String> publicHostNames;
-  private TreeMap<String, String> componentLevelParams;
-  private TreeMap<String, String> commandParams;
+  private Set<Long> hostIds = new HashSet<>();
+  private Set<String> hostNames = new HashSet<>();
+  private Set<String> publicHostNames = new HashSet<>();
+  private TreeMap<String, String> componentLevelParams = new TreeMap<>();
+  private TreeMap<String, String> commandParams = new TreeMap<>();
 
   private TopologyComponent() {
   }

@@ -115,7 +115,7 @@ class ScriptAlert(BaseAlert):
       matchObj = re.match( r'((.*)services(.*)package)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        with Environment(basedir, tmp_dir=AGENT_TMP_DIR, logger=logging.getLogger('ambari_alerts')) as env:
+        with Environment(basedir, tmp_dir=AGENT_TMP_DIR, logger=logging.getLogger('alerts')) as env:
           result = cmd_module.execute(configurations, self.parameters, self.host_name)
       else:
         result = cmd_module.execute(configurations, self.parameters, self.host_name)

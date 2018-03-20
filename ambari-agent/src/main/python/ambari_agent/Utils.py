@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+import time
 import threading
 import collections
 from functools import wraps
@@ -215,3 +216,13 @@ def lazy_property(undecorated):
       return v
 
   return decorated
+
+def execute_with_retries(tries, try_sleep, retry_exception_class, func, *args, **kwargs):
+  for i in range(tries):
+    try:
+      func(*args, **kwargs)
+      break
+    except retry_exception_class:
+      if i==tries-1:
+        raise
+      time.sleep(try_sleep)

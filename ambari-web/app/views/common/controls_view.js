@@ -168,7 +168,7 @@ App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 
   onValueUpdate: function () {
     if (!this.get('isVisible')) return;
-    if (this.get('selected')) {
+    if (this.get('selected') || this.get('serviceConfig.changedViaUndoValue')) {
       var self = this, config = this.get('serviceConfig'),
         controller = this.get('controller');
       delay(function(){
@@ -306,6 +306,8 @@ App.ServiceConfigPasswordField = Ember.View.extend(App.ServiceConfigPopoverSuppo
   placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
 
   templateName: require('templates/common/configs/widgets/service_config_password_field'),
+
+  classNames: ['password-field-wrapper'],
 
   readOnly: Em.computed.not('serviceConfig.isEditable'),
 

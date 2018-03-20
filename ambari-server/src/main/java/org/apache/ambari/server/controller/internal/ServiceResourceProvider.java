@@ -413,7 +413,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     o = properties.get(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
     if (null != o) {
-      svcRequest.setMaintenanceState(o.toString());
+      svcRequest.setCredentialStoreSupported(o.toString());
     }
 
     return svcRequest;

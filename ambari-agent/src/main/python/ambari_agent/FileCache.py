@@ -26,6 +26,8 @@ import zipfile
 import urllib2
 import urllib
 
+from ambari_agent.Utils import execute_with_retries
+
 logger = logging.getLogger()
 
 class CachingException(Exception):
@@ -72,7 +74,10 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    service_subpath = command['serviceLevelParams']['service_package_folder']
+    if 'service_package_folder' in command['commandParams']:
+      service_subpath = command['commandParams']['service_package_folder']
+    else:
+      service_subpath = command['serviceLevelParams']['service_package_folder']
     return self.provide_directory(self.cache_dir, service_subpath,
                                   server_url_prefix)
 
@@ -257,13 +262,21 @@ class FileCache():
     directory and any parent directories if needed. May throw exceptions
     on permission problems
     """
+    CLEAN_DIRECTORY_TRIES = 5
+    CLEAN_DIRECTORY_TRY_SLEEP = 0.25
+
     logger.debug("Invalidating directory {0}".format(directory))
     try:
       if os.path.exists(directory):
         if os.path.isfile(directory): # It would be a strange situation
           os.unlink(directory)
         elif os.path.isdir(directory):
-          shutil.rmtree(directory)
+          """
+          Execute shutil.rmtree(directory) multiple times.
+          Reason: race condition, where a file (e.g. *.pyc) in deleted directory
+          is created during function is running, causing it to fail.
+          """
+          execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, directory)
         # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception, err:

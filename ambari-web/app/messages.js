@@ -1672,6 +1672,7 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step1.body':'This wizard will walk you through the process of setting up a new Highly Available NameNode pair that will be used to create a new HDFS namespace, allowing you to use Ambari to manage multiple HDFS namespaces and take advantage of HDFS Federation.',
   'admin.nameNodeFederation.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
   'admin.nameNodeFederation.wizard.step1.nameserviceid':'New Nameservice ID',
+  'admin.nameNodeFederation.wizard.step1.nameserviceid.existing':'Existing Nameservice ID',
   'admin.nameNodeFederation.wizard.step1.nameserviceid.error':'Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
   'admin.nameNodeFederation.wizard.step2.header': 'Select Hosts',
   'admin.nameNodeFederation.wizard.step3.header': 'Review',
@@ -1680,6 +1681,21 @@ Em.I18n.translations = {
     'The following lists the configuration changes that will be made by the Wizard to enable NameNode Federation. This information is for <b> review only </b> and is not editable except for the  <b>dfs.journalnode.edits.dir</b> properties' +
     '</div>',
   'admin.nameNodeFederation.wizard.step4.header': 'Configure Components',
+  'admin.nameNodeFederation.wizard,step4.save.configuration.note':'This configuration is created by Enable NameNode Federation wizard',
+  'admin.nameNodeFederation.wizard.step4.notice.inProgress':'Please wait while NameNode Federation Wizard is being deployed.',
+  'admin.nameNodeFederation.wizard.step4.notice.completed':'NameNode Federation Wizard has been enabled successfully.',
+  'admin.nameNodeFederation.wizard.step4.task0.title': 'Stop All Services',
+  'admin.nameNodeFederation.wizard.step4.task1.title': 'Reconfigure HDFS',
+  'admin.nameNodeFederation.wizard.step4.task2.title': 'Install Additional NameNodes',
+  'admin.nameNodeFederation.wizard.step4.task3.title': 'Install Additional ZKFCs',
+  'admin.nameNodeFederation.wizard.step4.task4.title': 'Format NameNode',
+  'admin.nameNodeFederation.wizard.step4.task5.title': 'Format ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task6.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task7.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task8.title': 'Bootstrap NameNode',
+  'admin.nameNodeFederation.wizard.step4.task9.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task10.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task11.title': 'Start All Services',
 
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
@@ -2989,6 +3005,7 @@ Em.I18n.translations = {
   'dashboard.widgets.HawqSegmentUp': 'HAWQ Segments Live',
   'dashboard.widgets.PxfUp': 'PXF Agents Live',
   'dashboard.widgets.PXFAgents': 'PXF Agents',
+  'dashboard.widgets.nameSpace': 'Namespace',
 
   'dashboard': {
     'widgets': {

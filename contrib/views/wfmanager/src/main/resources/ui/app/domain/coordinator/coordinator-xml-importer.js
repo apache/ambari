@@ -147,8 +147,11 @@ var CoordinatorXmlImporter= Ember.Object.extend({
       dataSetJson.frequency.value = frequency;
     }
     dataSetJson["uriTemplate"] = dataset['uri-template'];
-    if (dataset['done-flag']){
+    if (dataset.hasOwnProperty('done-flag')){
       dataSetJson.doneFlag = dataset['done-flag'];
+      dataSetJson.doneFlagType = "custom";
+    } else {
+      dataSetJson.doneFlagType = "default";
     }
     return dataSetJson;
   },

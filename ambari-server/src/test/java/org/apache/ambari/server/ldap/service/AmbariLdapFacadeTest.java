@@ -17,8 +17,8 @@ package org.apache.ambari.server.ldap.service;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -158,12 +158,12 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
 
     // configuration map with user attributes detected
     Map<String, String> userConfigMap = Maps.newHashMap();
-    userConfigMap.put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key(), "uid");
+    userConfigMap.put(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE.key(), "uid");
     AmbariLdapConfiguration userAttrDecoratedConfig = new AmbariLdapConfiguration(userConfigMap);
 
     // configuration map with user+group attributes detected
     Map<String, String> groupConfigMap = Maps.newHashMap(userConfigMap);
-    groupConfigMap.put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE.key(), "dn");
+    groupConfigMap.put(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE.key(), "dn");
     AmbariLdapConfiguration groupAttrDecoratedConfig = new AmbariLdapConfiguration(groupConfigMap);
 
     Capture<AmbariLdapConfiguration> userAttrDetectionConfigCapture = Capture.newInstance();

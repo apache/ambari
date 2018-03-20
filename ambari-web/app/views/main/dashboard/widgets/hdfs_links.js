@@ -18,9 +18,13 @@
 
 var App = require('app');
 
-App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
+App.HDFSLinksView = App.LinkDashboardWidgetView.extend(App.NameNodeWidgetMixin, {
 
   templateName: require('templates/main/dashboard/widgets/hdfs_links'),
+
+  activeNameNode: Em.computed.findByKey('model.activeNameNodes', 'haNameSpace', 'clusterId'),
+
+  standbyNameNodes: Em.computed.filterByKey('model.standbyNameNodes', 'haNameSpace', 'clusterId'),
 
   port: '50070',
 
@@ -35,15 +39,18 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
 
   isHAEnabled: Em.computed.not('model.snameNode'),
 
-  // TODO rewrite considering federation case and using activeNameNodes and standbyNameNodes arrays
+  isActiveNNValid: Em.computed.bool('activeNameNode'),
 
-  isActiveNNValid: Em.computed.bool('model.activeNameNode'),
+  isStandbyNNValid: Em.computed.bool('standbyNameNodes.length'),
 
-  isStandbyNNValid: Em.computed.bool('model.standbyNameNode'),
-
-  isTwoStandbyNN: Em.computed.and('model.standbyNameNode', 'model.standbyNameNode2'),
+  isTwoStandbyNN: Em.computed.equal('standbyNameNodes.length', 2),
 
   twoStandbyComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'NAMENODE');
-  }.property()
+  }.property(),
+
+  masterGroupsArray: function () {
+    const activeMasterGroup = this.get('model.masterComponentGroups').find(group => group.name === this.get('subGroupId'));
+    return [activeMasterGroup];
+  }.property('model.masterComponentGroups', 'subGroupId')
 });

@@ -18,18 +18,18 @@
 
 var App = require('app');
 
-App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
+App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNodeWidgetMixin, {
 
-  modelFieldMax: 'jvmMemoryHeapMax',
-  modelFieldUsed: 'jvmMemoryHeapUsed',
-  widgetHtmlId: 'widget-nn-heap',
+  modelValueMax: Em.computed.getByKey('model.jvmMemoryHeapMaxValues', 'clusterId'),
+  modelValueUsed: Em.computed.getByKey('model.jvmMemoryHeapUsedValues', 'clusterId'),
+  widgetHtmlId: Em.computed.format('widget-nn-heap-{0}', 'subGroupId'),
 
   getUsed: function() {
-    return this.get('model').get(this.get('modelFieldUsed')) / (1024 * 1024) || 0;
+    return this.get('modelValueUsed') / (1024 * 1024) || 0;
   },
 
   getMax: function() {
-    return this.get('model').get(this.get('modelFieldMax')) / (1024 * 1024) || 0;
+    return this.get('modelValueMax') / (1024 * 1024) || 0;
   },
 
   didInsertElement: function() {

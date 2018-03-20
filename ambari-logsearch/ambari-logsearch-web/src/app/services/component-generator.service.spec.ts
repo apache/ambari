@@ -39,6 +39,7 @@ import {UtilsService} from '@app/services/utils.service';
 import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 
 import {ComponentGeneratorService} from './component-generator.service';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('ComponentGeneratorService', () => {
   beforeEach(() => {
@@ -78,7 +79,9 @@ describe('ComponentGeneratorService', () => {
         ClustersService,
         ComponentsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ComponentGeneratorService,
+        ClusterSelectionService
       ]
     });
   });
