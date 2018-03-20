@@ -20,6 +20,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -133,11 +134,16 @@ public class HostGroupImpl implements HostGroup {
    */
   private void parseComponents(HostGroupEntity entity) {
     for (HostGroupComponentEntity componentEntity : entity.getComponents() ) {
+      StackId stackId =
+        isNotEmpty(componentEntity.getMpackName()) && isNotEmpty(componentEntity.getMpackVersion()) ?
+          new StackId(componentEntity.getMpackName(), componentEntity.getMpackVersion()) : null;
+
       Component component = new Component(
         componentEntity.getName(),
-        new StackId(componentEntity.getMpackName(), componentEntity.getMpackVersion()),
+        stackId,
         componentEntity.getServiceName(),
         null == componentEntity.getProvisionAction() ? null : ProvisionAction.valueOf(componentEntity.getProvisionAction()));
+
       addComponent(component);
     }
   }

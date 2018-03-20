@@ -481,8 +481,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
   protected ClusterTopology createClusterTopology(TreeNode<Resource> clusterNode)
       throws InvalidTopologyTemplateException, InvalidTopologyException {
-
-    return new ClusterTopologyImpl(new AmbariContext(), new ExportBlueprintRequest(clusterNode));
+    return new ClusterTopologyImpl(controller.getAmbariContext(), new ExportBlueprintRequest(clusterNode));
   }
 
   /**
