@@ -156,13 +156,13 @@ CREATE TABLE servicegroups (
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
-  service_group_cluster_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
   dependent_service_group_id BIGINT NOT NULL,
-  dependent_service_group_cluster_id BIGINT NOT NULL,
+  dependent_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
-  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
-  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, cluster_id, dependent_service_group_id, dependent_cluster_id),
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
