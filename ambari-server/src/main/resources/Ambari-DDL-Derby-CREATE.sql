@@ -624,6 +624,18 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
 
+CREATE TABLE topology_request (
+  id BIGINT NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties VARCHAR(3000),
+  cluster_attributes VARCHAR(3000),
+  description VARCHAR(1024),
+  provision_action VARCHAR(255),
+  CONSTRAINT PK_topology_request PRIMARY KEY (id),
+  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
+
 CREATE TABLE mpack_instance(
   id BIGINT NOT NULL,
   owner VARCHAR (20) NOT NULL,
@@ -880,18 +892,6 @@ CREATE TABLE artifact (
   artifact_data VARCHAR(3000) NOT NULL,
   foreign_keys VARCHAR(255) NOT NULL,
   CONSTRAINT PK_artifact PRIMARY KEY (artifact_name, foreign_keys));
-
-CREATE TABLE topology_request (
-  id BIGINT NOT NULL,
-  action VARCHAR(255) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  bp_name VARCHAR(100) NOT NULL,
-  cluster_properties VARCHAR(3000),
-  cluster_attributes VARCHAR(3000),
-  description VARCHAR(1024),
-  provision_action VARCHAR(255),
-  CONSTRAINT PK_topology_request PRIMARY KEY (id),
-  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
 
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,

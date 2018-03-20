@@ -639,6 +639,18 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY CLUSTERED (blueprint_name));
 
+CREATE TABLE topology_request (
+  id BIGINT NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties TEXT,
+  cluster_attributes TEXT,
+  description VARCHAR(1024),
+  provision_action VARCHAR(255),
+  CONSTRAINT PK_topology_request PRIMARY KEY CLUSTERED (id),
+  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
+
 CREATE TABLE mpack_instance(
   id BIGINT NOT NULL,
   owner VARCHAR (20) NOT NULL,
@@ -898,18 +910,6 @@ CREATE TABLE widget_layout_user_widget (
   CONSTRAINT PK_widget_layout_user_widget PRIMARY KEY CLUSTERED (widget_layout_id, widget_id),
   CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id),
   CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id));
-
-CREATE TABLE topology_request (
-  id BIGINT NOT NULL,
-  action VARCHAR(255) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  bp_name VARCHAR(100) NOT NULL,
-  cluster_properties TEXT,
-  cluster_attributes TEXT,
-  description VARCHAR(1024),
-  provision_action VARCHAR(255),
-  CONSTRAINT PK_topology_request PRIMARY KEY CLUSTERED (id),
-  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
 
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,
