@@ -116,7 +116,7 @@ App.HDFSService = App.Service.extend({
             };
         if (!existingNameSpace) {
           result.push(currentNameSpace);
-        }
+    }
         if (!currentNameSpace.hosts.contains(hostName)) {
           currentNameSpace.hosts.push(hostName);
         }
