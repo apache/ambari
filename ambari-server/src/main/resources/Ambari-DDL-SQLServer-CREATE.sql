@@ -56,16 +56,6 @@ CREATE TABLE stack (
   CONSTRAINT FK_mpacks FOREIGN KEY (mpack_id) REFERENCES mpacks(id),
   CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
 
-CREATE TABLE mpack_host_state (
-  id BIGINT NOT NULL,
-  host_id BIGINT NOT NULL,
-  mpack_id BIGINT NOT NULL,
-  state VARCHAR(32) NOT NULL,
-  CONSTRAINT PK_mpack_host_state PRIMARY KEY (id),
-  CONSTRAINT FK_mhs_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_mhs_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id),
-  CONSTRAINT UQ_mpack_host_state UNIQUE(host_id, mpack_id));
-
 CREATE TABLE extension(
   extension_id BIGINT NOT NULL,
   extension_name VARCHAR(255) NOT NULL,
@@ -134,6 +124,16 @@ CREATE TABLE hosts (
   total_mem BIGINT NOT NULL,
   CONSTRAINT PK_hosts PRIMARY KEY CLUSTERED (host_id),
   CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));
+
+CREATE TABLE mpack_host_state (
+  id BIGINT NOT NULL,
+  host_id BIGINT NOT NULL,
+  mpack_id BIGINT NOT NULL,
+  state VARCHAR(32) NOT NULL,
+  CONSTRAINT PK_mpack_host_state PRIMARY KEY (id),
+  CONSTRAINT FK_mhs_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT FK_mhs_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id),
+  CONSTRAINT UQ_mpack_host_state UNIQUE(host_id, mpack_id));
 
 CREATE TABLE clustersettings (
   id BIGINT NOT NULL,
