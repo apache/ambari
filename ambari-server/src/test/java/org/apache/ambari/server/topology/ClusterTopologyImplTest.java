@@ -36,6 +36,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
