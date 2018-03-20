@@ -685,7 +685,7 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateHDFSNameSpaces: function () {
-    if (App.Service.find().someProperty('serviceName', 'HDFS')) {
+    if (App.Service.find().someProperty('serviceName', 'HDFS') && App.get('isHaEnabled')) {
       const siteName = 'hdfs-site',
         storedHdfsSiteconfigs = App.db.getConfigs().findProperty('type', siteName),
         tagName = storedHdfsSiteconfigs && storedHdfsSiteconfigs.tag;
