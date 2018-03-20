@@ -33,7 +33,7 @@ class AfterInstallHook(Hook):
     try:
       ensure_jdbc_driver_is_in_classpath(params.hadoop_common_dir,
                                          params.config["hostLevelParams"]["agentCacheDir"],
-                                         params.config['hostLevelParams']['jdk_location'],
+                                         params.config['ambariLevelParams']['jdk_location'],
                                          ["sqljdbc4.jar", "sqljdbc_auth.dll"])
     except Exception, e:
       raise Fail("Unable to deploy the required JDBC driver in the class path. Error info: {0}".format(e.message))
@@ -43,7 +43,7 @@ class AfterInstallHook(Hook):
               configurations=params.config['configurations']['core-site'],
               owner=params.hdfs_user,
               mode="f",
-              configuration_attributes=params.config['configuration_attributes']['core-site']
+              configuration_attributes=params.config['configurationAttributes']['core-site']
     )
 
     File(format("{params.hadoop_install_root}/cluster.properties"),

@@ -154,7 +154,7 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
 
   @Override
   public boolean isEnabled() {
-    return inputDescriptor.isEnabled();
+    return inputDescriptor.isEnabled() != null ? inputDescriptor.isEnabled() : true;
   }
 
   @Override

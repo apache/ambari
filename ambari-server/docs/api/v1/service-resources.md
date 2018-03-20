@@ -18,7 +18,7 @@ limitations under the License.
 # Service Resources
 Service resources are services of a Hadoop cluster (e.g. HDFS, MapReduce and Ganglia).  Service resources are sub-resources of clusters. 
 
-###API Summary
+### API Summary
 
 - [List services](services.md)
 - [View service information](services-service.md)
@@ -26,7 +26,7 @@ Service resources are services of a Hadoop cluster (e.g. HDFS, MapReduce and Gan
 - [Update services](update-services.md)
 - [Update service](update-service.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>
@@ -53,7 +53,7 @@ Service resources are services of a Hadoop cluster (e.g. HDFS, MapReduce and Gan
 
 
 
-###States
+### States
 
 The current state of a service resource can be determined by looking at the ServiceInfo/state property.
 
@@ -131,10 +131,10 @@ The following table lists the possible values of the service resource ServiceInf
   </tr>
 </table>
 
-###Starting a Service
+### Starting a Service
 A service can be started through the API by setting its state to be STARTED (see [update service](update-service.md)).
 
-###Stopping a Service
+### Stopping a Service
 A service can be stopped through the API by setting its state to be INSTALLED (see [update service](update-service.md)).
 
 

@@ -73,8 +73,7 @@ module.exports = {
    * @param {bool} runMmOperation
    */
   restartAllServiceHostComponents: function(serviceDisplayName, serviceName, staleConfigsOnly, query, runMmOperation) {
-    var self = this;
-    var context = staleConfigsOnly ?
+    const context = staleConfigsOnly ?
       Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceDisplayName) :
       Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceDisplayName);
 
@@ -86,18 +85,40 @@ module.exports = {
       staleConfigs: staleConfigsOnly ? staleConfigsOnly : null,
       passiveState: 'OFF',
       displayParams: ['host_components/HostRoles/component_name']
-    }, function (data) {
-      var hostComponents = [];
-      data.items.forEach(function (host) {
-        host.host_components.forEach(function (hostComponent) {
-          hostComponents.push(Em.Object.create({
-            componentName: hostComponent.HostRoles.component_name,
-            hostName: host.Hosts.host_name
-          }))
-        });
-      });
-      self.restartHostComponents(hostComponents, context, "SERVICE", query);
+    }, data => {
+      const hostComponents = this.getRestartComponentsArray(data);
+      this.restartHostComponents(hostComponents, context, 'SERVICE', query);
     });
+  },
+
+  restartCertainServiceHostComponents: function (serviceName, components, hosts, label, query, runMmOperation) {
+    const context = Em.I18n.t('rollingrestart.context.allForSelectedService').format(label);
+    if (runMmOperation) {
+      this.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName);
+    }
+    this.getComponentsFromServer({
+      services: serviceName && [serviceName],
+      hosts,
+      components,
+      passiveState: 'OFF',
+      displayParams: ['host_components/HostRoles/component_name']
+    }, data => {
+      const hostComponents = this.getRestartComponentsArray(data);
+      this.restartHostComponents(hostComponents, context, 'SERVICE', query);
+    });
+  },
+
+  getRestartComponentsArray: function (data) {
+    let hostComponents = [];
+    data.items.forEach(host => {
+      host.host_components.forEach(hostComponent => {
+        hostComponents.push(Em.Object.create({
+          componentName: hostComponent.HostRoles.component_name,
+          hostName: host.Hosts.host_name
+        }));
+      });
+    });
+    return hostComponents;
   },
 
   /**

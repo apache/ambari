@@ -48,6 +48,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   isHostComponentMetricsLoaded: false,
 
+  isHDFSNameSpacesLoaded: false,
+
   /**
    * This counter used as event trigger to notify that quick links should be changed.
    */
@@ -134,6 +136,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     this._super();
     if (data.items && data.items.length > 0) {
       App.setProperties({
+        clusterId: data.items[0].Clusters.cluster_id,
         clusterName: data.items[0].Clusters.cluster_name,
         currentStackVersion: data.items[0].Clusters.version,
         isKerberosEnabled: data.items[0].Clusters.security_type === 'KERBEROS'
@@ -173,6 +176,10 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     }
     App.router.get('userSettingsController').getAllUserSettings();
     App.router.get('errorsHandlerController').loadErrorLogs();
+
+    var hostsController = App.router.get('mainHostController');
+    hostsController.set('isCountersUpdating', true);
+    hostsController.updateStatusCounters();
 
     this.loadClusterInfo();
     this.restoreUpgradeState();
@@ -249,11 +256,28 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
             self.set('isHostComponentMetricsLoaded', true);
           });
           // components config loading doesn't affect overall progress
-          updater.updateComponentConfig(function () {
+          self.loadComponentWithStaleConfigs(function () {
             self.set('isComponentsConfigLoaded', true);
           });
         });
       });
+    });
+  },
+
+  loadComponentWithStaleConfigs: function (callback) {
+    return App.ajax.send({
+      name: 'components.get.staleConfigs',
+      sender: this,
+      success: 'loadComponentWithStaleConfigsSuccessCallback',
+      callback: callback
+    });
+  },
+
+  loadComponentWithStaleConfigsSuccessCallback: function(json) {
+    json.items.forEach((item) => {
+      const componentName = item.ServiceComponentInfo.component_name;
+      const hosts = item.host_components.mapProperty('HostRoles.host_name') || [];
+      App.componentsStateMapper.updateStaleConfigsHosts(componentName, hosts);
     });
   },
 
@@ -288,7 +312,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * restore upgrade status from server
    * and make call to get latest status from server
    * Also loading all upgrades to App.StackUpgradeHistory model
-   * TODO should be called even if recent background operations doesn't have Upgrade request
    */
   restoreUpgradeState: function () {
     var self = this;
@@ -296,7 +319,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
       var allUpgrades = data.items.sortProperty('Upgrade.request_id');
       var lastUpgradeData = allUpgrades.pop();
-      var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
       if (lastUpgradeData){
         var status = lastUpgradeData.Upgrade.request_status;
         var lastUpgradeNotFinished = (self.isSuspendedState(status) || self.isRunningState(status));
@@ -329,11 +351,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         }
       } else {
         upgradeController.initDBProperties();
-        upgradeController.loadUpgradeData(true);
-      }
-
-      if (!Em.isNone(dbUpgradeState)) {
-        App.set('upgradeState', dbUpgradeState);
       }
 
       App.stackUpgradeHistoryMapper.map(data);

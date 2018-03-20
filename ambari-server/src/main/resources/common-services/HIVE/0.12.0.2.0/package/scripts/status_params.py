@@ -51,7 +51,7 @@ component_directory_interactive = Script.get_component_from_role(SERVER_ROLE_DIR
 config = Script.get_config()
 
 stack_root = Script.get_stack_root()
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 
 if OSCheck.is_windows_family():
@@ -69,13 +69,13 @@ else:
   webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')
 
   process_name = 'mysqld'
-  if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-    daemon_name = 'mysql'
-  else:
-    daemon_name = 'mysqld'
+  
+  SERVICE_FILE_TEMPLATES = ['/etc/init.d/{0}', '/usr/lib/systemd/system/{0}.service']
+  POSSIBLE_DAEMON_NAMES = ['mysql', 'mysqld', 'mariadb']
+
 
   # Security related/required params
-  hostname = config['hostname']
+  hostname = config['agentLevelParams']['hostname']
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
@@ -115,4 +115,4 @@ else:
   if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE", "HIVE_SERVER_INTERACTIVE"]:
     hive_config_dir = hive_server_conf_dir
     
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

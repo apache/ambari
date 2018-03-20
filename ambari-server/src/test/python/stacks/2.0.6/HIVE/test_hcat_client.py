@@ -55,7 +55,7 @@ class TestHcatClient(RMFTestCase):
       mode = 0644,
       conf_dir = '/usr/hdp/current/hive-server2/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hive-site']
     )
     self.assertResourceCalled('File', '/etc/hive-hcatalog/conf/hcat-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hcat-env']['content']),
@@ -94,7 +94,7 @@ class TestHcatClient(RMFTestCase):
       mode = 0644,
       conf_dir = '/usr/hdp/current/hive-server2/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['hive-site']
     )
     self.assertResourceCalled('File', '/etc/hive-hcatalog/conf/hcat-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hcat-env']['content']),

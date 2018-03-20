@@ -175,12 +175,11 @@ public class BackgroundCustomCommandExecutionTest {
     }
   }
 
-  private void createClusterFixture() throws AmbariException, AuthorizationException {
+  private void createClusterFixture() throws AmbariException, AuthorizationException, IllegalAccessException , NoSuchFieldException{
     String clusterName = "c1";
     createCluster(clusterName);
     addHost("c6401", clusterName);
     addHost("c6402", clusterName);
-
     clusters.getCluster(clusterName);
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName, STACK_ID.getStackId());
@@ -216,7 +215,7 @@ public class BackgroundCustomCommandExecutionTest {
   }
 
   private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
-      throws AmbariException, AuthorizationException {
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName, m_repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
     ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(r1));
   }

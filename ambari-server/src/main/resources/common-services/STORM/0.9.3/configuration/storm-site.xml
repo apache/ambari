@@ -106,6 +106,7 @@
   </property>
   <property>
     <name>storm.log.dir</name>
+    <display-name>Storm Log directory</display-name>
     <value>{{log_dir}}</value>
     <description>Log directory for Storm.</description>
     <on-ambari-upgrade add="true"/>

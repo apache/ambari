@@ -65,7 +65,7 @@ class TestFileCache(TestCase):
     provide_directory_mock.return_value = "dummy value"
     fileCache = FileCache(self.config)
     command = {
-      'commandParams' : {
+      'serviceLevelParams' : {
         'service_package_folder' : os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package')
       }
     }
@@ -83,7 +83,7 @@ class TestFileCache(TestCase):
     fileCache = FileCache(self.config)
     # Check missing parameter
     command = {
-      'commandParams' : {
+      'clusterLevelParams' : {
       }
     }
     base = fileCache.get_hook_base_dir(command, "server_url_pref")
@@ -92,7 +92,7 @@ class TestFileCache(TestCase):
 
     # Check existing dir case
     command = {
-      'commandParams' : {
+      'clusterLevelParams' : {
         'hooks_folder' : 'stack-hooks'
       }
     }

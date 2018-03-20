@@ -219,6 +219,7 @@ public class CreateAndConfigureActionTest {
     host.setHostAttributes(hostAttributes);
 
     clusters.mapHostToCluster(hostName, clusterName);
+    clusters.updateHostMappings(host);
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!

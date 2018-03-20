@@ -20,11 +20,15 @@ package org.apache.ambari.logfeeder;
 
 import org.springframework.boot.Banner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.system.ApplicationPidFileWriter;
 
 @SpringBootApplication(
-  scanBasePackages = {"org.apache.ambari.logfeeder"}
+  scanBasePackages = {"org.apache.ambari.logfeeder"},
+  exclude = {
+    SolrAutoConfiguration.class
+  }
 )
 public class LogFeeder {
 

@@ -39,7 +39,7 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 
 config = Script.get_config()
 stack_root = Script.get_stack_root()
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 if OSCheck.is_windows_family():
@@ -65,7 +65,7 @@ else:
   }
 
   # Security related/required params
-  hostname = config['hostname']
+  hostname = config['agentLevelParams']['hostname']
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
@@ -80,4 +80,4 @@ else:
   storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)
   storm_ui_keytab = default('/configurations/storm-env/storm_ui_keytab', None)
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

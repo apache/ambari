@@ -63,6 +63,9 @@ import javax.persistence.TableGenerator;
         name = "ServiceConfigEntity.findLatestServiceConfigsByService",
         query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceId = :serviceId AND (scv.groupId = null OR scv.groupId IN (SELECT cg.groupId from ConfigGroupEntity cg)) AND scv.version = (SELECT MAX(scv2.version) FROM ServiceConfigEntity scv2 WHERE (scv2.serviceId = :serviceId AND scv2.clusterId = :clusterId) AND (scv2.groupId = scv.groupId OR (scv2.groupId IS NULL AND scv.groupId IS NULL)))"),
     @NamedQuery(
+        name = "ServiceConfigEntity.findLatestServiceConfigsByServiceDefaultGroup",
+        query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceName = :serviceName AND scv.groupId = null AND scv.version = (SELECT MAX(scv2.version) FROM ServiceConfigEntity scv2 WHERE (scv2.serviceName = :serviceName AND scv2.clusterId = :clusterId) AND scv2.groupId IS NULL)"),
+    @NamedQuery(
         name = "ServiceConfigEntity.findLatestServiceConfigsByCluster",
         query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceConfigId IN (SELECT MAX(scv1.serviceConfigId) FROM ServiceConfigEntity scv1 WHERE (scv1.clusterId = :clusterId) AND (scv1.groupId IS NULL) GROUP BY scv1.serviceId)") })
 public class ServiceConfigEntity {

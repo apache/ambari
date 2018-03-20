@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -53,7 +51,9 @@ import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -65,6 +65,8 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+
+import javax.persistence.EntityManager;
 
 /**
  * Tests {@link ComponentVersionAlertRunnable}.
@@ -174,7 +176,6 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
 
     // mock the cluster
     expect(m_cluster.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
-    expect(m_cluster.getClusterName()).andReturn(CLUSTER_NAME).atLeastOnce();
     expect(m_cluster.getHosts()).andReturn(m_hosts).atLeastOnce();
     expect(m_cluster.getServiceGroup(EasyMock.anyString())).andReturn(serviceGroup).atLeastOnce();
 
@@ -349,9 +350,13 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     public void configure(Binder binder) {
       Cluster cluster = createNiceMock(Cluster.class);
 
-      binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+      PartialNiceMockBinder.newBuilder(ComponentVersionAlertRunnableTest.this).addConfigsBindings()
+          .addDBAccessorBinding()
+          .addFactoriesInstallBinding()
+          .addAmbariMetaInfoBinding()
+          .build().configure(binder);
+
+      binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
       binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
       binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));

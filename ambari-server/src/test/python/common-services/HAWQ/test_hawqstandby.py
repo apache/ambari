@@ -120,7 +120,7 @@ class TestHawqStandby(HawqBaseTestCase):
     self.assertResourceCalled('XmlConfig', 'hawq-site.xml',
         conf_dir = self.CONF_DIR,
         configurations = self.getConfig()['configurations']['hawq-site'],
-        configuration_attributes = self.getConfig()['configuration_attributes']['hawq-site'],
+        configuration_attributes = self.getConfig()['configurationAttributes']['hawq-site'],
         group = self.GPADMIN,
         owner = self.GPADMIN,
         mode = 0644

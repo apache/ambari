@@ -23,12 +23,14 @@ import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -394,17 +396,14 @@ public class ServiceComponentTest {
     sch1.setState(State.STARTED);
     sch2.setState(State.STARTED);
 
-    try {
-      // delete the SC
-      sc.delete();
-      Assert.assertTrue("Delete must fail as some SCH are in STARTED state", false);
-    }catch(AmbariException e) {
-      // expected
-    }
+    // delete the SC
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
+    sc.delete(deleteMetaData);
+    Assert.assertNotNull("Delete must fail as some SCH are in STARTED state", deleteMetaData.getAmbariException());
 
     sch1.setState(State.INSTALLED);
     sch2.setState(State.INSTALL_FAILED);
-    sc.delete();
+    sc.delete(new DeleteHostComponentStatusMetaData());
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
@@ -412,4 +411,5 @@ public class ServiceComponentTest {
 
     Assert.assertNull(serviceComponentDesiredStateEntity);
  }
+
 }

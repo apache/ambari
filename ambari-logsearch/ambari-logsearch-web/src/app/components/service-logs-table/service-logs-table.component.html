@@ -79,7 +79,7 @@
                 <log-level [logEntry]="log"></log-level>
               </td>
               <td *ngIf="isColumnDisplayed('type')" [ngClass]="'log-type'">
-                {{log.type}}
+                {{log.type | componentLabel | async}}
               </td>
               <ng-container *ngFor="let column of displayedColumns">
                 <td *ngIf="customStyledColumns.indexOf(column.value) === -1"

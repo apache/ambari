@@ -55,45 +55,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
     });
   });
 
-  describe("#dashboardMasterComponentView", function() {
-    var dashboardMasterComponentView;
-
-    beforeEach(function() {
-      dashboardMasterComponentView = view.get('dashboardMasterComponentView').create({
-        parentView: Em.Object.create({
-          service: Em.Object.create({
-            hostComponents: []
-          })
-        })
-      });
-    });
-
-    describe("#mastersComp", function () {
-
-      it("should return master components", function () {
-        dashboardMasterComponentView.set('parentView.service', Em.Object.create({
-          hostComponents: [
-            Em.Object.create({
-              componentName: 'ZKFC'
-            }),
-            Em.Object.create({
-              componentName: 'JOURNALNODE'
-            }),
-            Em.Object.create({
-              componentName: 'NAMENODE',
-              isMaster: true
-            })
-          ]
-        }));
-        dashboardMasterComponentView.propertyDidChange('mastersComp');
-        expect(dashboardMasterComponentView.get('mastersComp').mapProperty('componentName')).to.be.eql(['NAMENODE', 'ZKFC']);
-        expect(dashboardMasterComponentView.get('mastersComp')[0].get('isMaster')).to.be.true;
-        expect(dashboardMasterComponentView.get('mastersComp')[1].get('isSubComponent')).to.be.true;
-      });
-    });
-
-  });
-
   describe("#metricsNotAvailableObserver()", function() {
 
     beforeEach(function() {

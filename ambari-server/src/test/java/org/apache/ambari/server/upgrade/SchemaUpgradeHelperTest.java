@@ -31,6 +31,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 /**
  * Base Test Upgrade Catalog class
@@ -136,6 +137,7 @@ public class SchemaUpgradeHelperTest {
   @Before
   public void init(){
     Injector injector = Guice.createInjector(new UpgradeHelperTestModule());
+    injector.getInstance(AmbariJpaPersistService.class).start();
     schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
   }
 

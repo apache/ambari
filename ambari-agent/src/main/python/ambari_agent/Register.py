@@ -18,40 +18,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os
 import time
-import subprocess
-from Hardware import Hardware
-import hostname
-from HostInfo import HostInfo
+from ambari_agent import hostname
+from ambari_agent.Hardware import Hardware
+from ambari_agent.HostInfo import HostInfo
+from ambari_agent.Utils import Utils
 
-
-firstContact = True
 class Register:
   """ Registering with the server. Get the hardware profile and
   declare success for now """
   def __init__(self, config):
     self.config = config
     self.hardware = Hardware(self.config)
+    self.init_time_ms = int(1000*time.time())
 
-  def build(self, version, id='-1'):
-    global clusterId, clusterDefinitionRevision, firstContact
+  def build(self, response_id='-1'):
     timestamp = int(time.time()*1000)
 
     hostInfo = HostInfo(self.config)
     agentEnv = { }
-    hostInfo.register(agentEnv, False, False)
+    hostInfo.register(agentEnv, runExpensiveChecks=True)
 
-    current_ping_port = self.config.get('agent','current_ping_port')
+    current_ping_port = self.config.get('agent','ping_port')
 
-    register = { 'responseId'        : int(id),
+    register = { 'id'                : int(response_id),
                  'timestamp'         : timestamp,
                  'hostname'          : hostname.hostname(self.config),
                  'currentPingPort'   : int(current_ping_port),
                  'publicHostname'    : hostname.public_hostname(self.config),
                  'hardwareProfile'   : self.hardware.get(),
                  'agentEnv'          : agentEnv,
-                 'agentVersion'      : version,
-                 'prefix'            : self.config.get('agent', 'prefix')
+                 'agentVersion'      : Utils.read_agent_version(self.config),
+                 'prefix'            : self.config.get('agent', 'prefix'),
+                 'agentStartTime'    : self.init_time_ms
                }
     return register

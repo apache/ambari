@@ -35,6 +35,8 @@ App.RadioButtonView = App.CheckboxView.extend({
    */
   selection: null,
 
+  classNames: ['radio'],
+
   /**
    * <code>value</code> html attribute of radio button
    * @type {[type]}
@@ -48,6 +50,7 @@ App.RadioButtonView = App.CheckboxView.extend({
     valueBinding: 'parentView.value',
     disabledBinding: 'parentView.disabled',
     checked: Em.computed.alias('parentView.checked'),
+    nameBinding: 'parentView.name',
     didInsertElement: function() {
       this.set('parentView.checkboxId', this.get('elementId'));
       this._super();

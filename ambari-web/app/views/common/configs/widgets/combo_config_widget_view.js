@@ -17,6 +17,8 @@
  */
 
 var App = require('app');
+var dbInfo = require('data/db_properties_info') || {};
+var dbUtils = require('utils/configs/database');
 
 /**
  * Combo box widget view for config property.
@@ -47,6 +49,29 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     this.addObserver('config.stackConfigProperty.valueAttributes.entries.[]', this, this.updateValuesList);
     this.addObserver('controller.forceUpdateBoundaries', this, this.updateValuesList);
     this.addObserver('config.value', this, this.isValueCompatibleWithWidget);
+    this.addCustomMessage();
+  },
+
+  addCustomMessage: function () {
+    // show warning alert about downloading db connector for hive database
+    if (this.get('config.name') === 'hive_database') {
+      this.set('config.additionalView', Em.View.extend({
+        template: Em.Handlebars.compile('<div class="alert alert-warning enhanced-configs">{{{view.message}}}</div>'),
+        message: function () {
+          var selectedDb = dbUtils.getDBType(this.get('config.value'));
+          var dbData = dbInfo.dpPropertiesMap[selectedDb];
+          return Em.I18n.t('services.service.config.database.msg.jdbcSetup.detailed').format(
+            dbData.db_name,
+            dbData.db_type,
+            dbData.driver,
+            dbData.driver_download_url,
+            dbData.driver_download_url,
+            dbData.driver_name
+          );
+        }.property('config.value'),
+        config: this.get('config')
+      }));
+    }
   },
 
   disableSwitchToTextBox: function () {

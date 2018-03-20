@@ -24,6 +24,9 @@ import {AppStateService, appState} from '@app/services/storage/app-state.service
 import {HttpClientService} from '@app/services/http-client.service';
 
 import {AppComponent} from './app.component';
+import {BreadcrumbsComponent} from '@app/components/breadrumbs/breadcrumbs.component';
+import {RouterTestingModule} from '@angular/router/testing';
+import {TypeaheadModule} from 'ngx-bootstrap';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -31,16 +34,18 @@ describe('AppComponent', () => {
       get: () => {
         return {
           subscribe: () => {}
-        }
+        };
       }
     };
     TestBed.configureTestingModule({
-      declarations: [AppComponent],
+      declarations: [AppComponent, BreadcrumbsComponent],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appState
         }),
-        ...TranslationModules
+        ...TranslationModules,
+        TypeaheadModule.forRoot()
       ],
       providers: [
         AppStateService,

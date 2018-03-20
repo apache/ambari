@@ -18,19 +18,24 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -135,9 +140,9 @@ public class ClusterTopologyImplTest {
     expect(group4.getComponents()).andReturn(group4Components).anyTimes();
 
     expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
-    expect(group2.getComponentNames()).andReturn(Collections.singletonList("component3")).anyTimes();
-    expect(group3.getComponentNames()).andReturn(Collections.singletonList("component4")).anyTimes();
-    expect(group4.getComponentNames()).andReturn(Collections.singletonList("NAMENODE")).anyTimes();
+    expect(group2.getComponentNames()).andReturn(singletonList("component3")).anyTimes();
+    expect(group3.getComponentNames()).andReturn(singletonList("component4")).anyTimes();
+    expect(group4.getComponentNames()).andReturn(singletonList("NAMENODE")).anyTimes();
   }
 
   @After
@@ -223,6 +228,36 @@ public class ClusterTopologyImplTest {
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
     new ClusterTopologyImpl(ambariContext, request);
+  }
+
+  @Test
+  public void testDecidingIfComponentIsHadoopCompatible() throws Exception {
+    expect(blueprint.getServiceInfos()).andReturn(asList(
+      aHCFSWith(aComponent("ONEFS_CLIENT")),
+      aServiceWith(aComponent("ZOOKEEPER_CLIENT")))
+    ).anyTimes();
+    replayAll();
+    ClusterTopologyImpl topology = new ClusterTopologyImpl(null, new TestTopologyRequest(TopologyRequest.Type.PROVISION));
+    assertTrue(topology.isComponentHadoopCompatible("ONEFS_CLIENT"));
+    assertFalse(topology.isComponentHadoopCompatible("ZOOKEEPER_CLIENT"));
+  }
+
+  private ServiceInfo aHCFSWith(ComponentInfo... components) {
+    ServiceInfo service = aServiceWith(components);
+    service.setServiceType(ServiceInfo.HADOOP_COMPATIBLE_FS);
+    return service;
+  }
+
+  private ServiceInfo aServiceWith(ComponentInfo... components) {
+    ServiceInfo service = new ServiceInfo();
+    service.getComponents().addAll(asList(components));
+    return service;
+  }
+
+  private ComponentInfo aComponent(String name) {
+    ComponentInfo component = new ComponentInfo();
+    component.setName(name);
+    return component;
   }
 
   private class TestTopologyRequest implements TopologyRequest {

@@ -43,7 +43,7 @@ rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.add
 rm_https_port = "8090"
 rm_nodes_exclude_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
 
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
 
 hadoop_libexec_dir = '/usr/lib/hadoop/libexec'

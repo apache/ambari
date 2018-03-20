@@ -21,7 +21,7 @@ import base64
 import getpass
 import os
 import string
-import subprocess
+from ambari_commons import subprocess32
 import sys
 import tempfile
 from tempfile import gettempdir
@@ -29,7 +29,7 @@ from tempfile import gettempdir
 from resource_management import *
 from utils import get_property_value
 from ambari_commons.os_utils import remove_file
-from ambari_agent import Constants
+from ambari_commons.constants import AGENT_TMP_DIR
 from collections import namedtuple
 from resource_management.core import sudo
 from resource_management.core.resources.klist import Klist
@@ -289,7 +289,7 @@ class KerberosScript(Script):
 
   @staticmethod
   def clear_tmp_cache():
-    tmp_dir = Constants.AGENT_TMP_DIR
+    tmp_dir = AGENT_TMP_DIR
     if tmp_dir is None:
       tmp_dir = gettempdir()
     curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
@@ -354,7 +354,7 @@ class KerberosScript(Script):
 
       # If no keytab data is available and a password was supplied, simply use it.
       elif password is not None:
-        process = subprocess.Popen([kinit_path_local, principal], stdin=subprocess.PIPE)
+        process = subprocess32.Popen([kinit_path_local, principal], stdin=subprocess32.PIPE)
         stdout, stderr = process.communicate(password)
         if process.returncode:
           err_msg = Logger.filter_text("Execution of kinit returned %d. %s" % (process.returncode, stderr))

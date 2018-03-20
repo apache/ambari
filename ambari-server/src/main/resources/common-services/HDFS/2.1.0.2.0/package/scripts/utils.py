@@ -19,7 +19,7 @@ limitations under the License.
 import os
 import re
 import urllib2
-import subprocess
+from ambari_commons import subprocess32
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 from resource_management.core.resources.system import Directory, File, Execute
@@ -294,7 +294,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
 
     # If stop didn't happen, kill it forcefully
     if code != 0:
-      code, out, err = shell.checked_call(("cat", pid_file), sudo=True, env=hadoop_env_exports, stderr=subprocess.PIPE)
+      code, out, err = shell.checked_call(("cat", pid_file), sudo=True, env=hadoop_env_exports, stderr=subprocess32.PIPE)
       pid = out
       Execute(("kill", "-9", pid), sudo=True)
 

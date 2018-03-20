@@ -36,17 +36,9 @@
   <modules>
     <module>microsoft-r_mpack</module>
     <module>hdf-ambari-mpack</module>
+    <module>isilon-onefs-mpack</module>
   </modules>
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.rat</groupId>
-          <artifactId>apache-rat-plugin</artifactId>
-          <version>0.11</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.rat</groupId>
@@ -55,7 +47,6 @@
           <excludes>
             <!--GIT files-->
             <exclude>.git/</exclude>
-            <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
             <!--gitignore content-->
             <exclude>.idea/</exclude>
@@ -65,7 +56,6 @@
             <exclude>.classpath</exclude>
             <exclude>.project</exclude>
             <exclude>.settings</exclude>
-            <exclude>**/target/**</exclude>
             <exclude>**/.gitkeep</exclude>
             <exclude>**/.bowerrc</exclude>
             <exclude>**/.editorconfig</exclude>

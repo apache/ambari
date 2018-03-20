@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('User', ['Restangular', '$http', 'Settings', 'UserConstants', '$translate', 'Cluster', function(Restangular, $http, Settings, UserConstants, $translate, Cluster) {
+.factory('User', ['Restangular', '$http', 'Settings', 'UserConstants', '$translate', 'Cluster', 'Auth', function(Restangular, $http, Settings, UserConstants, $translate, Cluster, Auth) {
   Restangular.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
     var extractedData;
     if(operation === 'getList'){
@@ -99,6 +99,7 @@ angular.module('ambariAdminConsole')
      * @returns {Object}
      */
     makeUser: function(user) {
+      user.Users.isDeletable = !(user.Users.user_name === Auth.getCurrentUser() || user.Users.user_type !== 'LOCAL');
       user.Users.encodedName = encodeURIComponent(user.Users.user_name);
       user.Users.userTypeName = $t(UserConstants.TYPES[user.Users.user_type].LABEL_KEY);
       user.Users.ldapUser = user.Users.user_type === UserConstants.TYPES.LDAP.VALUE;

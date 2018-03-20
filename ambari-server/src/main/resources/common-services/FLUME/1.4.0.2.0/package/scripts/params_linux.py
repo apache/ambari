@@ -30,9 +30,9 @@ config = Script.get_config()
 stack_root = Script.get_stack_root()
 
 # upgrade params
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 flume_conf_dir = '/etc/flume/conf'

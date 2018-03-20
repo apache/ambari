@@ -43,21 +43,25 @@ public class HostStatus {
   }
 
   @JsonProperty("status")
+  @com.fasterxml.jackson.annotation.JsonProperty("status")
   public Status getStatus() {
     return status;
   }
 
   @JsonProperty("status")
+  @com.fasterxml.jackson.annotation.JsonProperty("status")
   public void setStatus(Status status) {
     this.status = status;
   }
 
   @JsonProperty("cause")
+  @com.fasterxml.jackson.annotation.JsonProperty("cause")
   public String getCause() {
     return cause;
   }
 
   @JsonProperty("cause")
+  @com.fasterxml.jackson.annotation.JsonProperty("cause")
   public void setCause(String cause) {
     this.cause = cause;
   }

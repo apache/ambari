@@ -29,7 +29,7 @@ import select
 import sys
 import logging
 import string
-import subprocess
+from ambari_commons import subprocess32
 import threading
 import traceback
 from exceptions import Fail, ExecutionFailed, ExecuteTimeoutException
@@ -88,7 +88,7 @@ def preexec_fn():
     raise
 
 @log_function_call
-def checked_call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+def checked_call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
          path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
   """
@@ -102,7 +102,7 @@ def checked_call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,st
                               tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy)
   
 @log_function_call
-def call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
          path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
   """
@@ -115,7 +115,7 @@ def call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,stderr=sub
                               tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy)
 
 @log_function_call
-def non_blocking_call(command, quiet=False, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+def non_blocking_call(command, quiet=False, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, timeout=None, path=None, sudo=False):
   """
   Execute the shell command and don't wait until it's completion
@@ -164,7 +164,7 @@ def _call_wrapper(command, **kwargs):
       
   return result
 
-def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None, 
          path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
   """
@@ -175,8 +175,8 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
   @param logoutput: boolean, whether command output should be logged of not
   @param throw_on_failure: if true, when return code is not zero exception is thrown
   @param stdout,stderr: 
-    subprocess.PIPE - enable output to variable
-    subprocess.STDOUT - redirect to stdout
+    subprocess32.PIPE - enable output to variable
+    subprocess32.STDOUT - redirect to stdout
     None - disable output to variable, and output to Python out straightly (even if logoutput is False)
     {int fd} - redirect to file with descriptor.
     {string filename} - redirects to a file with name.
@@ -207,7 +207,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     command = command.replace(placeholder, replacement.format(env_str=env_str))
 
   # --noprofile is used to preserve PATH set for ambari-agent
-  subprocess_command = ["/bin/bash","--login","--noprofile","-c", command]
+  subprocess32_command = ["/bin/bash","--login","--noprofile","-c", command]
   
   files_to_close = []
   if isinstance(stdout, (basestring)):
@@ -218,7 +218,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     files_to_close.append(stderr)
   
   try:
-    proc = subprocess.Popen(subprocess_command, stdout=stdout, stderr=stderr,
+    proc = subprocess32.Popen(subprocess32_command, stdout=stdout, stderr=stderr,
                             cwd=cwd, env=env, shell=False, close_fds=True,
                             preexec_fn=preexec_fn)
     
@@ -234,9 +234,9 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     logoutput = logoutput==True and Logger.logger.isEnabledFor(logging.INFO) or logoutput==None and Logger.logger.isEnabledFor(logging.DEBUG)
     read_set = []
     
-    if stdout == subprocess.PIPE:
+    if stdout == subprocess32.PIPE:
       read_set.append(proc.stdout)
-    if stderr == subprocess.PIPE:
+    if stderr == subprocess32.PIPE:
       read_set.append(proc.stderr)
     
     fd_to_string = {
@@ -303,7 +303,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     raise ExecutionFailed(err_msg, code, out, err)
   
   # if separate stderr is enabled (by default it's redirected to out)
-  if stderr == subprocess.PIPE:
+  if stderr == subprocess32.PIPE:
     return code, out, err
   
   return code, out

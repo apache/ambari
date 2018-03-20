@@ -24,6 +24,7 @@ UPGRADE_TYPE_ROLLING = "rolling"
 UPGRADE_TYPE_EXPRESS = "express"
 UPGRADE_TYPE_HOST_ORDERED = "host_ordered"
 
+AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
 
 class SERVICE:
   """

@@ -71,20 +71,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('content.componentsWithStaleConfigsCount'), word);
   }.property('content.componentsWithStaleConfigsCount'),
 
-  /**
-   * Reset <code>sortedComponents</code>
-   * Used when some component was deleted from host
-   */
-  redrawComponents: function() {
-    if (App.router.get('mainHostDetailsController.redrawComponents')) {
-      this.set('sortedComponents', []);
-      this.sortedComponentsFormatter();
-      App.router.set('mainHostDetailsController.redrawComponents', false);
-    }
-  }.observes('App.router.mainHostDetailsController.redrawComponents'),
-
   willInsertElement: function() {
-    this.set('sortedComponents', []);
     this.sortedComponentsFormatter();
     this.addObserver('content.hostComponents.length', this, 'sortedComponentsFormatter');
   },
@@ -126,32 +113,18 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     const updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
     const hostComponentViewMap = this.get('hostComponentViewMap');
     const masters = [], slaves = [], clients = [];
-    // Remove deleted components
-    this.get('sortedComponents').forEach((sortedComponent, index) => {
-      if (!this.get('content.hostComponents').findProperty('id', sortedComponent.get('id'))) {
-        this.get('sortedComponents').removeAt(index, 1);
-      }
-    });
 
     this.get('content.hostComponents').forEach(function (component) {
-      const obj = this.get('sortedComponents').findProperty('id', component.get('id'));
-      if (obj) {
-        // Update existing component
-        updatebleProperties.forEach(function (property) {
-          obj.set(property, component.get(property));
-        });
-      } else {
-        component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
-        if (component.get('isMaster')) {
-          masters.push(component);
-        } else if (component.get('isSlave')) {
-          slaves.push(component);
-        } else if (component.get('isClient')) {
-          component.set('isLast', true);
-          component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
-          clients.pushObject(component);
+      component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
+      if (component.get('isMaster')) {
+        masters.push(component);
+      } else if (component.get('isSlave')) {
+        slaves.push(component);
+      } else if (component.get('isClient')) {
+        component.set('isLast', true);
+        component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
+        clients.pushObject(component);
         }
-      }
     }, this);
     this.set('sortedComponents', masters.concat(slaves, clients));
   },
@@ -224,7 +197,58 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @type {String}
    */
   timeSinceHeartBeat: function () {
-    var d = this.get('content.rawLastHeartBeatTime');
-    return d ? $.timeago(d) : '';
-  }.property('content.rawLastHeartBeatTime')
+    if (this.get('content.isNotHeartBeating')) {
+      const d = this.get('content.lastHeartBeatTime');
+      return d ? $.timeago(d) : '';
+    }
+    //when host hasn't lost heartbeat we assume that last heartbeat was a minute ago
+    return Em.I18n.t('common.minute.ago');
+  }.property('content.lastHeartBeatTime', 'content.isNotHeartBeating'),
+
+  /**
+   * Get clients with custom commands
+   */
+  clientsWithCustomCommands: function() {
+    var clients = this.get('clients').rejectProperty('componentName', 'KERBEROS_CLIENT');
+    var options = [];
+    var clientWithCommands;
+    clients.forEach(function(client) {
+      var componentName = client.get('componentName');
+      var customCommands = App.StackServiceComponent.find(componentName).get('customCommands');
+
+      if (customCommands.length) {
+        clientWithCommands = {
+          label: client.get('displayName'),
+          commands: []
+        };
+        customCommands.forEach(function(command) {
+          clientWithCommands.commands.push({
+            label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+            service: client.get('service.serviceName'),
+            hosts: client.get('hostName'),
+            component: componentName,
+            command: command
+          });
+        });
+
+        options.push(clientWithCommands);
+      }
+    });
+
+    return options;
+  }.property('controller'),
+
+  /**
+   * Call installClients method from controller for not installed client components
+   */
+  installClients: function () {
+    this.get('controller').installClients(this.get('notInstalledClientComponents'));
+  },
+
+  /**
+   * Call installClients method from controller for not install failed client components
+   */
+  reinstallClients: function () {
+    this.get('controller').installClients(this.get('installFailedClients'));
+  }
 });

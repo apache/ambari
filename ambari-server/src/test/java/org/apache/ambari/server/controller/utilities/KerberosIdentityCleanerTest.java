@@ -164,7 +164,6 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
 
   private void uninstallComponent(String service, String component, String host) throws KerberosMissingAdminCredentialsException {
     kerberosIdentityCleaner.componentRemoved(new ServiceComponentUninstalledEvent(CLUSTER_ID, "any", "any", service, "", "", component, host, false, null));
-
   }
 
   private void uninstallService(String service, List<Component> components) throws KerberosMissingAdminCredentialsException {

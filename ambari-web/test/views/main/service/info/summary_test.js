@@ -279,7 +279,11 @@ describe('App.MainServiceInfoSummaryView', function() {
         mastersLength: 0,
         slavesLength: 0,
         clientsLength: 0,
-        mastersObj: ['master'],
+        mastersObj: [
+          {
+            components: ['master']
+          }
+        ],
         slavesObj: ['slave'],
         clientObj: ['client']
       });
@@ -521,4 +525,8 @@ describe('App.MainServiceInfoSummaryView', function() {
       )).to.be.true;
     });
   });
+
+  App.TestAliases.testAsComputedOr(view, 'showComponentsTitleForNonMasters', ['!mastersLength', 'hasMultipleMasterGroups']);
+
+  App.TestAliases.testAsComputedGt(view, 'hasMultipleMasterGroups', 'mastersObj.length', 1);
 });

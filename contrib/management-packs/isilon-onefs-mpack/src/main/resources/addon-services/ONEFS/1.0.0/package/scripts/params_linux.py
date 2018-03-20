@@ -28,7 +28,7 @@ from resource_management.libraries.functions import format
 
 config = Script.get_config()
 
-hostname = config["hostname"]
+hostname = config["agentLevelParams"]["hostname"]
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']

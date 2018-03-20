@@ -320,6 +320,7 @@ CREATE TABLE hostcomponentstate (
   component_type VARCHAR2(255) NOT NULL,
   version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
   current_state VARCHAR2(255) NOT NULL,
+  last_live_state VARCHAR2(255) DEFAULT 'UNKNOWN' NOT NULL,
   host_id NUMBER(19) NOT NULL,
   service_group_id NUMBER(19) NOT NULL,
   service_id NUMBER(19) NOT NULL,
@@ -450,6 +451,7 @@ CREATE TABLE request (
   status VARCHAR(255) DEFAULT 'PENDING' NOT NULL,
   display_status VARCHAR(255) DEFAULT 'PENDING' NOT NULL,
   cluster_host_info BLOB NOT NULL,
+  user_name VARCHAR(255),
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -1080,11 +1082,11 @@ CREATE TABLE kerberos_keytab (
 );
 
 CREATE TABLE kerberos_keytab_principal (
-  kkp_id BIGINT NOT NULL DEFAULT 0,
+  kkp_id NUMBER(19) DEFAULT 0 NOT NULL,
   keytab_path VARCHAR2(255) NOT NULL,
   principal_name VARCHAR2(255) NOT NULL,
   host_id NUMBER(19),
-  is_distributed NUMBER(1) NOT NULL DEFAULT 0,
+  is_distributed NUMBER(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_kkp PRIMARY KEY (kkp_id),
   CONSTRAINT FK_kkp_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path),
   CONSTRAINT FK_kkp_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
@@ -1093,7 +1095,7 @@ CREATE TABLE kerberos_keytab_principal (
 );
 
 CREATE TABLE kkp_mapping_service (
-  kkp_id BIGINT NOT NULL DEFAULT 0,
+  kkp_id NUMBER(19) DEFAULT 0 NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   CONSTRAINT PK_kkp_mapping_service PRIMARY KEY (kkp_id, service_name, component_name),

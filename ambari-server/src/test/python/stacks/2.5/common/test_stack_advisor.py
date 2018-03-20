@@ -1677,7 +1677,7 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.default.state=RUNNING\n'
                                   'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
                                   'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
-                                  'yarn.scheduler.capacity.root.default.capacity=100\n'
+                                  'yarn.scheduler.capacity.root.accessible-node-labels.default.capacity=100\n'
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
@@ -4867,9 +4867,9 @@ class TestHDP25StackAdvisor(TestCase):
       },
       "services": [
         {
-          "href": "/api/v1/stacks/HDP/versions/2.2/services/AMBARI_INFRA",
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/AMBARI_INFRA_SOLR",
           "StackServices": {
-            "service_name": "AMBARI_INFRA",
+            "service_name": "AMBARI_INFRA_SOLR",
             "service_version": "2.6.0.2.2",
             "stack_name": "HDP",
             "stack_version": "2.3"

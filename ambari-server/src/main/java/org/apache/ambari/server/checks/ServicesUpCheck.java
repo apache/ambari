@@ -19,11 +19,11 @@ package org.apache.ambari.server.checks;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -89,7 +89,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     List<String> errorMessages = new ArrayList<>();
-    Set<String> failedServiceNames = new HashSet<>();
+    LinkedHashSet<ServiceDetail> failedServices = new LinkedHashSet<>();
 
     Set<String> servicesInUpgrade = getServicesInUpgrade(request);
     for (String serviceName : servicesInUpgrade) {
@@ -160,7 +160,8 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
           }
 
           if ((float) down / total > SLAVE_THRESHOLD) { // arbitrary
-            failedServiceNames.add(service.getName());
+            failedServices.add(new ServiceDetail(serviceName));
+
             String message = MessageFormat.format(
                 "{0}: {1} out of {2} {3} are started; there should be {4,number,percent} started before upgrading.",
                 service.getName(), up, total, serviceComponent.getName(), SLAVE_THRESHOLD);
@@ -169,7 +170,8 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
         } else {
           for (HostComponentSummary summary : hostComponentSummaries) {
             if (isConsideredDown(cluster, serviceComponent, summary)) {
-              failedServiceNames.add(service.getName());
+              failedServices.add(new ServiceDetail(serviceName));
+
               String message = MessageFormat.format("{0}: {1} (in {2} on host {3})",
                   service.getName(), serviceComponent.getName(), summary.getCurrentState(),
                   summary.getHostName());
@@ -182,7 +184,11 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedServiceNames));
+      prerequisiteCheck.setFailedOn(
+          failedServices.stream().map(failedService -> failedService.serviceName).collect(
+              Collectors.toCollection(LinkedHashSet::new)));
+
+      prerequisiteCheck.getFailedDetail().addAll(failedServices);
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(
           "The following Service Components should be in a started state.  Please invoke a service Stop and full Start and try again. "

@@ -16,20 +16,22 @@
 * limitations under the License.
 }}
 
-<div class="entry-row db-connection form-group">
-  <div class="control-group">
-    <div class="row">
-      <div class="col-md-10">
-        <span {{bindAttr class=":pull-left :btn :btn-primary view.isBtnDisabled:disabled"}} {{action connectToDatabase target="view"}}>{{view.btnCaption}}</span>
+{{#unless view.isNewSelected}}
+  <div class="entry-row db-connection form-group">
+    <div class="control-group">
+      <div class="row">
+        <div class="col-md-10">
+          <span {{bindAttr class=":pull-left :btn :btn-primary view.isBtnDisabled:disabled"}} {{action connectToDatabase target="view"}}>{{view.btnCaption}}</span>
 
-        <div class="pull-left connection-result mll">
-          <a {{bindAttr class="view.isConnectionSuccess:mute:action"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
+          <div class="pull-left connection-result mll">
+            <a {{bindAttr class="view.isConnectionSuccess:mute:action"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
+          </div>
+          {{#if view.isConnecting}}
+            {{view App.SpinnerView classNames="mll pull-left"}}
+          {{/if}}
+          <i {{bindAttr class=":pull-right view.isConnectionSuccess:glyphicon-ok-sign:glyphicon-warning-sign :glyphicon view.isRequestResolved::hide"}}></i>
         </div>
-        {{#if view.isConnecting}}
-          {{view App.SpinnerView classNames="mll pull-left"}}
-        {{/if}}
-        <i {{bindAttr class=":pull-right view.isConnectionSuccess:glyphicon-ok-sign:glyphicon-warning-sign :glyphicon view.isRequestResolved::hide"}}></i>
       </div>
     </div>
   </div>
-</div>
+{{/unless}}

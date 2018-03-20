@@ -3,12 +3,14 @@
     {
       "type":"ambari_agent",
       "rowtype":"service",
-      "path":"/root/test-logs/ambari-server/ambari-agent.log"
+      "path":"/root/test-logs/ambari-server/ambari-agent.log",
+      "group": "Ambari"
     },
     {
       "type":"ambari_server",
       "rowtype":"service",
-      "path":"/root/test-logs/ambari-server/ambari-server.log"
+      "path":"/root/test-logs/ambari-server/ambari-server.log",
+      "group": "Ambari"
     },
     {
       "type":"ambari_alerts",
@@ -16,22 +18,26 @@
       "add_fields":{
         "level":"INFO"
       },
-      "path":"/root/test-logs/ambari-server/ambari-alerts.log"
+      "path":"/root/test-logs/ambari-server/ambari-alerts.log",
+      "group": "Ambari"
     },
     {
       "type":"ambari_config_changes",
       "rowtype":"service",
-      "path":"/root/test-logs/ambari-server/ambari-config-changes.log"
+      "path":"/root/test-logs/ambari-server/ambari-config-changes.log",
+      "group": "Ambari"
     },
     {
       "type":"ambari_eclipselink",
       "rowtype":"service",
-      "path":"/root/test-logs/ambari-server/ambari-eclipselink.log"
+      "path":"/root/test-logs/ambari-server/ambari-eclipselink.log",
+      "group": "Ambari"
     },
     {
       "type":"ambari_server_check_database",
       "rowtype":"service",
-      "path":"/root/test-logs/ambari-server/ambari-server-check-database.log"
+      "path":"/root/test-logs/ambari-server/ambari-server-check-database.log",
+      "group": "Ambari"
     },
     {
       "type":"ambari_audit",

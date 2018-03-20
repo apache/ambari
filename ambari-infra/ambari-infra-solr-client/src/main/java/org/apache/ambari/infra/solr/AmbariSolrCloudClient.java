@@ -31,6 +31,7 @@ import org.apache.ambari.infra.solr.commands.RemoveAdminHandlersCommand;
 import org.apache.ambari.infra.solr.commands.SecureSolrZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.SecureZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.SetClusterPropertyZkCommand;
+import org.apache.ambari.infra.solr.commands.TransferZnodeZkCommand;
 import org.apache.ambari.infra.solr.commands.UnsecureZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.UploadConfigZkCommand;
 import org.apache.ambari.infra.solr.commands.CheckZnodeZkCommand;
@@ -64,7 +65,7 @@ public class AmbariSolrCloudClient {
   private final int maxShardsPerNode;
   private final String routerName;
   private final String routerField;
-  private final boolean splitting;
+  private final boolean implicitRouting;
   private final String jaasFile;
   private final String znode;
   private final String saslUsers;
@@ -72,6 +73,9 @@ public class AmbariSolrCloudClient {
   private final String propValue;
   private final String securityJsonLocation;
   private final boolean secure;
+  private final String transferMode;
+  private final String copySrc;
+  private final String copyDest;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
     this.zkConnectString = builder.zkConnectString;
@@ -88,13 +92,16 @@ public class AmbariSolrCloudClient {
     this.maxShardsPerNode = builder.maxShardsPerNode;
     this.routerName = builder.routerName;
     this.routerField = builder.routerField;
-    this.splitting = builder.splitting;
+    this.implicitRouting = builder.implicitRouting;
     this.znode = builder.znode;
     this.saslUsers = builder.saslUsers;
     this.propName = builder.propName;
     this.propValue = builder.propValue;
     this.securityJsonLocation = builder.securityJsonLocation;
     this.secure = builder.secure;
+    this.transferMode = builder.transferMode;
+    this.copySrc = builder.copySrc;
+    this.copyDest = builder.copyDest;
   }
 
   /**
@@ -114,7 +121,7 @@ public class AmbariSolrCloudClient {
       LOG.info("Collection '{}' creation request sent.", collection);
     } else {
       LOG.info("Collection '{}' already exits.", getCollection());
-      if (this.isSplitting()) {
+      if (this.isImplicitRouting()) {
         createShard(null);
       }
     }
@@ -265,6 +272,13 @@ public class AmbariSolrCloudClient {
     return new RemoveAdminHandlersCommand(getRetryTimes(), getInterval()).run(this);
   }
 
+  /**
+   * Transfer znode data (cannot be both scr and dest local)
+   */
+  public boolean transferZnode() throws Exception {
+    return new TransferZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
+  }
+
   public String getZkConnectString() {
     return zkConnectString;
   }
@@ -317,8 +331,8 @@ public class AmbariSolrCloudClient {
     return routerField;
   }
 
-  public boolean isSplitting() {
-    return splitting;
+  public boolean isImplicitRouting() {
+    return implicitRouting;
   }
 
   public String getJaasFile() {
@@ -347,5 +361,17 @@ public class AmbariSolrCloudClient {
 
   public String getSecurityJsonLocation() {
     return securityJsonLocation;
+  }
+
+  public String getTransferMode() {
+    return transferMode;
+  }
+
+  public String getCopySrc() {
+    return copySrc;
+  }
+
+  public String getCopyDest() {
+    return copyDest;
   }
 }

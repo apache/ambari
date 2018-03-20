@@ -486,8 +486,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     return hosts;
   }
 
-  @Override
-  public Host getHost(String clusterName, String hostName) {
+  private Host getHost(String clusterName, String hostName) {
     Host host = null;
     try {
       Cluster cluster = managementController.getClusters().getCluster(clusterName);
@@ -525,12 +524,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   // ----- JMXHostProvider ---------------------------------------------------
 
   @Override
-  public String getPort(String clusterName, String componentName, String hostName) throws SystemException {
-    return getPort(clusterName, componentName, hostName, false);
-  }
-
-  @Override
-  public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
+  public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) {
     ConcurrentMap<String, ConcurrentMap<String, String>> clusterJmxPorts;
     // Still need double check to ensure single init
     if (!jmxPortMap.containsKey(clusterName)) {

@@ -53,15 +53,6 @@
     <module>ambari-views-package</module>
   </modules>
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.rat</groupId>
-          <artifactId>apache-rat-plugin</artifactId>
-          <version>0.11</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.rat</groupId>
@@ -77,11 +68,9 @@
             <exclude>pass.txt</exclude>
             <exclude>.DS_Store</exclude>
             <exclude>.iml/</exclude>
-            <exclude>**/*.iml</exclude>
             <exclude>.classpath</exclude>
             <exclude>.project</exclude>
             <exclude>.settings</exclude>
-            <exclude>**/target/**</exclude>
             <exclude>**/.gitkeep</exclude>
             <exclude>**/.ember-cli</exclude>
             <exclude>**/.travis.yml</exclude>

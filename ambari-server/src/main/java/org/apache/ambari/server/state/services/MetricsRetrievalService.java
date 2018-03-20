@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
 import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
@@ -182,6 +183,7 @@ public class MetricsRetrievalService extends AbstractService {
   public MetricsRetrievalService() {
     ObjectMapper jmxObjectMapper = new ObjectMapper();
     jmxObjectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
+    jmxObjectMapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
     m_jmxObjectReader = jmxObjectMapper.reader(JMXMetricHolder.class);
   }
 
@@ -232,6 +234,7 @@ public class MetricsRetrievalService extends AbstractService {
       LOG.info("Metrics Retrieval Service request TTL cache is enabled and set to {} seconds",
           ttlSeconds);
     }
+    notifyStarted();
   }
 
   /**
@@ -257,6 +260,7 @@ public class MetricsRetrievalService extends AbstractService {
 
     m_queuedUrls.clear();
     m_threadPoolExecutor.shutdownNow();
+    notifyStopped();
   }
 
   /**

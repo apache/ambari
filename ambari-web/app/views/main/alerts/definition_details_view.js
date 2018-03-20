@@ -66,25 +66,18 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       this.set('isLoaded', true);
       this.get('controller').loadAlertInstances();
     } else {
-      this.loadDefinitionDetails();
+      App.router.get('clusterController').addObserver('isAlertsLoaded', this, 'loadAfterModelLoaded');
     }
   },
 
-  loadDefinitionDetails: function() {
-    var self = this,
-        updater = App.router.get('updateController');
-
-    updater.updateAlertGroups(function () {
-      updater.updateAlertDefinitions(function () {
-        updater.updateAlertDefinitionSummary(function () {
-          self.set('isLoaded', true);
-          // App.AlertDefinition doesn't represents real models
-          // Real model (see AlertDefinition types) should be used
-          self.set('controller.content', App.AlertDefinition.find(parseInt(self.get('controller.content.id'))));
-          self.get('controller').loadAlertInstances();
-        });
-      });
-    });
+  loadAfterModelLoaded: function() {
+    var clusterController = App.router.get('clusterController');
+    if (clusterController.get('isAlertsLoaded')) {
+      this.set('isLoaded', true);
+      this.set('controller.content', App.AlertDefinition.find(parseInt(this.get('controller.content.id'))));
+      this.get('controller').loadAlertInstances();
+      clusterController.removeObserver('isAlertsLoaded', this, 'loadAfterModelLoaded');
+    }
   },
 
   nameValidation: function () {

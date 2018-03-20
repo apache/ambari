@@ -116,8 +116,8 @@ class TestRUExecuteTasks(RMFTestCase):
     call_mock.side_effect = fake_call   # echo the command
 
     # Ensure that the json file was actually read.
-    stack_name = default("/hostLevelParams/stack_name", None)
-    stack_version = default("/hostLevelParams/stack_version", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
+    stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")
@@ -164,8 +164,8 @@ class TestRUExecuteTasks(RMFTestCase):
     call_mock.side_effect = fake_call   # echo the command
 
     # Ensure that the json file was actually read.
-    stack_name = default("/hostLevelParams/stack_name", None)
-    stack_version = default("/hostLevelParams/stack_version", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
+    stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default('/commandParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")

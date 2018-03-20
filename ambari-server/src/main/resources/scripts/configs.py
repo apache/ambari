@@ -226,7 +226,7 @@ def set_properties(cluster, config_type, args, accessor):
     elif ext == ".json":
       updater = update_from_file(config_file)
     else:
-      logger.error("File extension {0} doesn't supported".format(ext))
+      logger.error("File extension {0} is not supported".format(ext))
       return -1
     logger.info('### from file {0}'.format(config_file))
   else:

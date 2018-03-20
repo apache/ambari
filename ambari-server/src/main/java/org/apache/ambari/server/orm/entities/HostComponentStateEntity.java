@@ -123,6 +123,10 @@ public class HostComponentStateEntity {
   private State currentState = State.INIT;
 
   @Enumerated(value = EnumType.STRING)
+  @Column(name = "last_live_state", nullable = true, insertable = true, updatable = true)
+  private State lastLiveState = State.INIT;
+
+  @Enumerated(value = EnumType.STRING)
   @Column(name = "upgrade_state", nullable = false, insertable = true, updatable = true)
   private UpgradeState upgradeState = UpgradeState.NONE;
 
@@ -215,6 +219,14 @@ public class HostComponentStateEntity {
     this.currentState = currentState;
   }
 
+  public State getLastLiveState() {
+    return lastLiveState;
+  }
+
+  public void setLastLiveState(State lastLiveState) {
+    this.lastLiveState = lastLiveState;
+  }
+
   public UpgradeState getUpgradeState() {
     return upgradeState;
   }
@@ -274,6 +286,11 @@ public class HostComponentStateEntity {
       return false;
     }
 
+    if (lastLiveState != null ? !lastLiveState.equals(that.lastLiveState)
+        : that.lastLiveState != null) {
+      return false;
+    }
+
     if (upgradeState != null ? !upgradeState.equals(that.upgradeState)
         : that.upgradeState != null) {
       return false;
@@ -305,6 +322,7 @@ public class HostComponentStateEntity {
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (componentType != null ? componentType.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
+    result = 31 * result + (lastLiveState != null ? lastLiveState.hashCode() : 0);
     result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
     return result;
