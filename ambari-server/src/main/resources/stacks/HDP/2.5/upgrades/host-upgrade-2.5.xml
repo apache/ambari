@@ -56,7 +56,7 @@
       </execute-stage>
 
     </group>
-     
+
     <!--
     In a HOST_ORDERED upgrade, this placeholder group is expanded by the number of hosts passed
     when creating the upgrade.  For starters, this will include "stop" commands, a manual
@@ -66,7 +66,7 @@
     <group xsi:type="host-order" name="HOST_ORDER" title="Upgrade All Hosts">
       <skippable>true</skippable>
     </group>
-    
+
     <!--
     After processing this group, the user-specified Kerberos descriptor will be updated to work with
     the new stack-level Kerberos descriptor.
@@ -90,7 +90,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -190,7 +190,7 @@
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
@@ -270,7 +270,7 @@
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -511,7 +511,7 @@
 
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
         </pre-upgrade>
-        
+
         <pre-downgrade />
 
         <upgrade>
