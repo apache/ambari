@@ -36,16 +36,22 @@ public class ServiceResponse {
   private String maintenanceState;
   private boolean credentialStoreSupported;
   private boolean credentialStoreEnabled;
+  private final boolean ssoIntegrationSupported;
+  private final boolean ssoIntegrationDesired;
+  private final boolean ssoIntegrationEnabled;
 
   public ServiceResponse(Long clusterId, String clusterName, String serviceName,
-      StackId desiredStackId, String desiredRepositoryVersion,
-      RepositoryVersionState repositoryVersionState, String desiredState,
-      boolean credentialStoreSupported, boolean credentialStoreEnabled) {
+                         StackId desiredStackId, String desiredRepositoryVersion,
+                         RepositoryVersionState repositoryVersionState, String desiredState,
+                         boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported, boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.desiredStackId = desiredStackId;
     this.repositoryVersionState = repositoryVersionState;
+    this.ssoIntegrationSupported = ssoIntegrationSupported;
+    this.ssoIntegrationDesired = ssoIntegrationDesired;
+    this.ssoIntegrationEnabled = ssoIntegrationEnabled;
     setDesiredState(desiredState);
     this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
@@ -226,6 +232,30 @@ public class ServiceResponse {
     result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
+  }
+
+  /**
+   * Indicates if this service supports single sign-on integration.
+   */
+  @ApiModelProperty(name = "sso_integration_supported")
+  public boolean isSsoIntegrationSupported() {
+    return ssoIntegrationSupported;
+  }
+
+  /**
+   * Indicates whether the service is chosen for SSO integration or not
+   */
+  @ApiModelProperty(name = "sso_integration_desired")
+  public boolean isSsoIntegrationDesired() {
+    return ssoIntegrationDesired;
+  }
+
+  /**
+   * Indicates whether the service is configured for SSO integration or not
+   */
+  @ApiModelProperty(name = "sso_integration_enabled")
+  public boolean isSsoIntegrationEnabled() {
+    return ssoIntegrationEnabled;
   }
 
   /**

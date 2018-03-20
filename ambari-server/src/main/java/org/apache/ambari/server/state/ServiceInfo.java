@@ -653,6 +653,10 @@ public class ServiceInfo implements Validable {
     return (singleSignOnInfo != null) && singleSignOnInfo.isSupported();
   }
 
+  public String getSingleSignOnEnabledConfiguration() {
+    return singleSignOnInfo != null ? singleSignOnInfo.getEnabledConfiguration() : null;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

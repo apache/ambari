@@ -120,6 +120,15 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
       "ServiceInfo", "desired_repository_version_id");
 
+  private static final String SSO_INTEGRATION_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "ServiceInfo", "sso_integration_supported");
+
+  private static final String SSO_INTEGRATION_ENABLED_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "ServiceInfo", "sso_integration_enabled");
+
+  private static final String SSO_INTEGRATION_DESIRED_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "ServiceInfo", "sso_integration_desired");
+
   protected static final String SERVICE_REPOSITORY_STATE = "ServiceInfo/repository_state";
 
   //Parameters from the predicate
@@ -158,6 +167,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
     PROPERTY_IDS.add(QUERY_PARAMETERS_RECONFIGURE_CLIENT);
     PROPERTY_IDS.add(QUERY_PARAMETERS_START_DEPENDENCIES);
+
+    PROPERTY_IDS.add(SSO_INTEGRATION_SUPPORTED_PROPERTY_ID);
+    PROPERTY_IDS.add(SSO_INTEGRATION_ENABLED_PROPERTY_ID);
+    PROPERTY_IDS.add(SSO_INTEGRATION_DESIRED_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_NAME_PROPERTY_ID);
@@ -274,6 +287,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       setResourceProperty(resource, SERVICE_REPOSITORY_STATE,
           response.getRepositoryVersionState(), requestedIds);
+
+      setResourceProperty(resource, SSO_INTEGRATION_SUPPORTED_PROPERTY_ID,
+        response.isSsoIntegrationSupported(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_ENABLED_PROPERTY_ID,
+        response.isSsoIntegrationEnabled(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_DESIRED_PROPERTY_ID,
+        response.isSsoIntegrationDesired(), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);
