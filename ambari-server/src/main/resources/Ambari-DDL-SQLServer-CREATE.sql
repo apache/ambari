@@ -344,7 +344,7 @@ CREATE TABLE hostcomponentstate (
   CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_comp_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
-CREATE NONCLUSTERED INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
+CREATE NONCLUSTERED INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_id, cluster_id);
 
 CREATE TABLE hoststate (
   agent_version VARCHAR(255) NOT NULL,
