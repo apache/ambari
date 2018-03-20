@@ -65,6 +65,9 @@ class TestFileCache(TestCase):
     provide_directory_mock.return_value = "dummy value"
     fileCache = FileCache(self.config)
     command = {
+      'commandParams' : {
+        'service_package_folder' : os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package')
+      },
       'serviceLevelParams' : {
         'service_package_folder' : os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package')
       }
