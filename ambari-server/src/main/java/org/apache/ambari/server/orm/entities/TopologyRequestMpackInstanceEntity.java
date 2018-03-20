@@ -23,33 +23,30 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-/**
- * Mpack instance entity for blueprints
- */
 @Entity
-@DiscriminatorValue("Blueprint")
-public class BlueprintMpackInstanceEntity extends MpackInstanceEntity {
+@DiscriminatorValue("TopologyRequest")
+public class TopologyRequestMpackInstanceEntity extends MpackInstanceEntity {
 
   @ManyToOne
-  @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name")
-  private BlueprintEntity blueprint;
+  @JoinColumn(name = "topology_request_id", referencedColumnName = "id")
+  private TopologyRequestEntity topologyRequest;
 
   /**
-   * @return the blueprint
+   * @return the topology request
    */
-  public BlueprintEntity getBlueprint() {
-    return blueprint;
+  public TopologyRequestEntity getTopologyRequest() {
+    return topologyRequest;
   }
 
   /**
-   * @param blueprint the blueprint
+   * @param topologyRequest the topology request
    */
-  public void setBlueprint(BlueprintEntity blueprint) {
-    this.blueprint = blueprint;
+  public void setTopologyRequest(TopologyRequestEntity topologyRequest) {
+    this.topologyRequest = topologyRequest;
   }
 
   @Override
   public String getBlueprintName() {
-    return blueprint.getBlueprintName();
+    return topologyRequest.getBlueprintName();
   }
 }

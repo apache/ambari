@@ -24,9 +24,9 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 
 /**
- * Composite primary key for {@link BlueprintMpackConfigEntity}
+ * Composite primary key for {@link MpackInstanceConfigEntity}
  */
-public class BlueprintMpackConfigEntityPk {
+public class MpackInstanceConfigEntityPk {
   @Id
   @Column(name = "mpack_instance_id", nullable = false, insertable = true, updatable = false)
   private Long mpackInstanceId;
@@ -39,7 +39,7 @@ public class BlueprintMpackConfigEntityPk {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    BlueprintMpackConfigEntityPk that = (BlueprintMpackConfigEntityPk) o;
+    MpackInstanceConfigEntityPk that = (MpackInstanceConfigEntityPk) o;
     return Objects.equals(mpackInstanceId, that.mpackInstanceId) &&
       Objects.equals(type, that.type);
   }
