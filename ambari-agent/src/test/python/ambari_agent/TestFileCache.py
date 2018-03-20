@@ -23,10 +23,7 @@ import os
 import pprint
 
 from unittest import TestCase
-import threading
 import tempfile
-import time
-from threading import Thread
 
 from ambari_agent.FileCache import FileCache, CachingException
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -61,7 +58,46 @@ class TestFileCache(TestCase):
 
 
   @patch.object(FileCache, "provide_directory")
-  def test_get_service_base_dir(self, provide_directory_mock):
+  def test_get_service_base_dir_both(self, provide_directory_mock):
+    provide_directory_mock.return_value = "dummy value"
+    fileCache = FileCache(self.config)
+    command = {
+      'commandParams' : {
+        'service_package_folder' : os.path.join('stacks', 'HDP', '2.2.2', 'services', 'ZOOKEEPER', 'package')
+      },
+      'serviceLevelParams' : {
+        'service_package_folder' : os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package')
+      }
+    }
+    res = fileCache.get_service_base_dir(command, "server_url_pref")
+    self.assertEquals(
+      pprint.pformat(provide_directory_mock.call_args_list[0][0]),
+      "('/var/lib/ambari-agent/cache',\n "
+      "{0},\n"
+      " 'server_url_pref')".format(pprint.pformat(command['commandParams']['service_package_folder'])))
+    self.assertEquals(res, "dummy value")
+
+
+  @patch.object(FileCache, "provide_directory")
+  def test_get_service_base_dir_command_param(self, provide_directory_mock):
+    provide_directory_mock.return_value = "dummy value"
+    fileCache = FileCache(self.config)
+    command = {
+      'commandParams' : {
+        'service_package_folder' : os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package')
+      }
+    }
+    res = fileCache.get_service_base_dir(command, "server_url_pref")
+    self.assertEquals(
+      pprint.pformat(provide_directory_mock.call_args_list[0][0]),
+      "('/var/lib/ambari-agent/cache',\n "
+      "{0},\n"
+      " 'server_url_pref')".format(pprint.pformat(command['commandParams']['service_package_folder'])))
+    self.assertEquals(res, "dummy value")
+
+
+  @patch.object(FileCache, "provide_directory")
+  def test_get_service_base_dir_service_level_param(self, provide_directory_mock):
     provide_directory_mock.return_value = "dummy value"
     fileCache = FileCache(self.config)
     command = {
@@ -74,8 +110,24 @@ class TestFileCache(TestCase):
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache',\n "
       "{0},\n"
-      " 'server_url_pref')".format(pprint.pformat(os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package'))))
+      " 'server_url_pref')".format(pprint.pformat(command['serviceLevelParams']['service_package_folder'])))
     self.assertEquals(res, "dummy value")
+
+
+  @patch.object(FileCache, "provide_directory")
+  def test_get_service_base_dir_absent(self, provide_directory_mock):
+    provide_directory_mock.return_value = "dummy value"
+    fileCache = FileCache(self.config)
+    commands = [
+      { 'commandParams': {}, 'serviceLevelParams': {} },
+      { 'serviceLevelParams': {} },
+      { 'commandParams': {} },
+      {}
+    ]
+
+    for command in commands:
+      res = fileCache.get_service_base_dir(command, "server_url_pref")
+      self.assertTrue(res is None)
 
 
   @patch.object(FileCache, "provide_directory")

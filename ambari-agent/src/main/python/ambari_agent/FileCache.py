@@ -75,12 +75,15 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    if 'service_package_folder' in command['commandParams']:
-      service_subpath = command['commandParams']['service_package_folder']
-    else:
-      service_subpath = command['serviceLevelParams']['service_package_folder']
-    return self.provide_directory(self.cache_dir, service_subpath,
-                                  server_url_prefix)
+    key = 'service_package_folder'
+    service_subpath = None
+    for param_type in ('commandParams', 'serviceLevelParams'):
+      if param_type in command and key in command[param_type]:
+        service_subpath = command[param_type][key]
+        break
+
+    if service_subpath:
+      return self.provide_directory(self.cache_dir, service_subpath, server_url_prefix)
 
 
   def get_hook_base_dir(self, command, server_url_prefix):
