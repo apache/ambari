@@ -69,14 +69,14 @@ App.WizardStep1View = Em.View.extend({
    *
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isAnyOsEmpty', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete'),
+  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete'),
 
   /**
    * Show warning message flag
    *
    * @type {bool}
    */
-  warningExist: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isAnyOsEmpty'),
+  warningExist: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled'),
 
   skipVerifyBaseUrl: Em.computed.or('controller.selectedStack.skipValidationChecked', 'controller.selectedStack.useRedhatSatellite'),
 
@@ -202,19 +202,16 @@ App.WizardStep1View = Em.View.extend({
   },
 
   /**
-   * If any OS is empty
+   * If all OSes are empty
    * @type {bool}
    */
-  isAnyOsEmpty: function () {
+  isNoOsFilled: function () {
     var operatingSystems = this.get('controller.selectedStack.operatingSystems');
-    if (Em.isNone(operatingSystems)) {
+    if (this.get('controller.selectedStack.useRedhatSatellite') || Em.isNone(operatingSystems)) {
       return false;
     }
     var selectedOS = operatingSystems.filterProperty('isSelected', true);
-    if (this.get('controller.selectedStack.useRedhatSatellite')) {
-      selectedOS = selectedOS.filter(this.isRedhat);
-    }
-    return selectedOS.someProperty('isNotFilled', true);
+    return selectedOS.everyProperty('isNotFilled', true);
   }.property('controller.selectedStack.operatingSystems.@each.isSelected', 'controller.selectedStack.operatingSystems.@each.isNotFilled', 'controller.selectedStack.useRedhatSatellite'),
 
   popoverView: Em.View.extend({

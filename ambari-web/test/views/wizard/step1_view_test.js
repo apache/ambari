@@ -35,7 +35,7 @@ describe('App.WizardStep1View', function () {
 
   App.TestAliases.testAsComputedEveryBy(getView(), 'isNoOsChecked', 'controller.selectedStack.operatingSystems', 'isSelected', false);
 
-  App.TestAliases.testAsComputedOr(getView(), 'isSubmitDisabled', ['invalidFormatUrlExist', 'isNoOsChecked', 'isAnyOsEmpty', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete']);
+  App.TestAliases.testAsComputedOr(getView(), 'isSubmitDisabled', ['invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete']);
 
   App.TestAliases.testAsComputedSomeBy(getView(), 'invalidUrlExist', 'allRepositories', 'validation', App.Repository.validation.INVALID);
 
@@ -58,27 +58,21 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#isAnyOsEmpty', function() {
+  describe('#isNoOsFilled', function() {
 
-    it('should be true when useRedhatSatellite is true and redhat os is empty', function() {
+    it('should be false when useRedhatSatellite is true', function() {
       view.set('controller.selectedStack', Em.Object.create({
-        useRedhatSatellite: true,
-        operatingSystems: [
-          Em.Object.create({
-            isSelected: true,
-            isNotFilled: true,
-            osType: 'redhat'
-          })
-        ]
+        useRedhatSatellite: true
       }));
-      expect(view.get('isAnyOsEmpty')).to.be.true;
+      expect(view.get('isNoOsFilled')).to.be.false;
     });
 
     it('should be false when operatingSystems is null', function() {
       view.set('controller.selectedStack', Em.Object.create({
+        useRedhatSatellite: false,
         operatingSystems: null
       }));
-      expect(view.get('isAnyOsEmpty')).to.be.false;
+      expect(view.get('isNoOsFilled')).to.be.false;
     });
 
     it('should be false when operatingSystem is filled', function() {
@@ -91,7 +85,7 @@ describe('App.WizardStep1View', function () {
           })
         ]
       }));
-      expect(view.get('isAnyOsEmpty')).to.be.false;
+      expect(view.get('isNoOsFilled')).to.be.false;
     });
 
     it('should be true when operatingSystem is not filled', function() {
@@ -101,14 +95,10 @@ describe('App.WizardStep1View', function () {
           Em.Object.create({
             isSelected: true,
             isNotFilled: true
-          }),
-          Em.Object.create({
-            isSelected: true,
-            isNotFilled: false
           })
         ]
       }));
-      expect(view.get('isAnyOsEmpty')).to.be.true;
+      expect(view.get('isNoOsFilled')).to.be.true;
     });
   });
 
