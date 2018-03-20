@@ -141,7 +141,7 @@ App.stackMapper = App.QuickDataMapper.create({
     }, this);
 
     //In case ambari_managed_repositories is undefined, set use_redhat_satellite to be false
-    stack.use_redhat_satellite = item.operating_systems[0].OperatingSystems.ambari_managed_repositories === false;
+    stack.use_redhat_satellite = Em.get(item,'operating_systems.0.OperatingSystems.ambari_managed_repositories') === false;
     stack.stack_services = servicesArray;
     stack.operating_systems = operatingSystemsArray;
     App.store.safeLoadMany(modelRepo, resultRepo);
