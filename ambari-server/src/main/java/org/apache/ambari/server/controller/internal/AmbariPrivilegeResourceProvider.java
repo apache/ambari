@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider.CLUSTER_NAME;
 import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.INSTANCE_NAME;
 import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.VERSION;
 import static org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider.VIEW_NAME;
@@ -30,6 +30,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.GroupEntity;
@@ -52,7 +53,7 @@ import com.google.common.collect.Sets;
  */
 public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<Object> {
 
-  public static final String PRIVILEGE_TYPE_PROPERTY_ID  = "PrivilegeInfo/type";
+  public static final String TYPE = PrivilegeResourceProvider.PRIVILEGE_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PrivilegeResourceProvider.TYPE_PROPERTY_ID;
 
   /**
    * Data access object used to obtain privilege entities.
@@ -71,8 +72,8 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
       VIEW_NAME,
       VERSION,
       INSTANCE_NAME,
-      PRIVILEGE_CLUSTER_NAME_PROPERTY_ID,
-      PRIVILEGE_TYPE_PROPERTY_ID);
+      CLUSTER_NAME,
+      TYPE);
 
   /**
    * The key property ids for a privilege resource.
@@ -164,7 +165,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
             break;
           case CLUSTER:
             ClusterEntity clusterEntity = (ClusterEntity) resourceEntities.get(resourceEntity.getId());
-            setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
+            setResourceProperty(resource, CLUSTER_NAME, clusterEntity.getClusterName(), requestedIds);
             break;
           case VIEW:
             ViewInstanceEntity viewInstanceEntity = (ViewInstanceEntity) resourceEntities.get(resourceEntity.getId());
@@ -176,7 +177,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
             break;
         }
 
-        setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, resourceType.name(), requestedIds);
+        setResourceProperty(resource, TYPE, resourceType.name(), requestedIds);
       }
     }
 

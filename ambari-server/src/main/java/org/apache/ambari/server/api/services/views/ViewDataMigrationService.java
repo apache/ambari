@@ -41,8 +41,8 @@ import io.swagger.annotations.ApiResponses;
 /**
  * Service responsible for data migration between view instances.
  */
-@Api(tags = "Views", description = "Endpoint for view specific operations")
 @Path("/views/{viewName}/versions/{version}/instances/{instanceName}/migrate")
+@Api(tags = "Views", description = "Endpoint for view specific operations")
 public class ViewDataMigrationService extends BaseService {
   /**
    * Logger.

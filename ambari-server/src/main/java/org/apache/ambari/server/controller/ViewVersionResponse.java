@@ -123,7 +123,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns build number
      * @return build number
      */
-    @ApiModelProperty(name = ViewVersionResourceProvider.VIEW_BUILD_PROPERTY_ID)
+    @ApiModelProperty(name = ViewVersionResourceProvider.BUILD_NUMBER_PROPERTY_ID)
     public String getBuildNumber() {
       return buildNumber;
     }
@@ -133,7 +133,7 @@ public class ViewVersionResponse implements ApiModel {
      * @return {@code true} if cluster is configurable
      *         {@code false} otherwise.
      */
-    @ApiModelProperty(name = ViewVersionResourceProvider.CLUSTER_CONFIG_PROPERTY_ID)
+    @ApiModelProperty(name = ViewVersionResourceProvider.CLUSTER_CONFIGURABLE_PROPERTY_ID)
     public boolean isClusterConfigurable() {
       return clusterConfigurable;
     }
@@ -195,7 +195,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns view status
      * @return {@link ViewDefinition.ViewStatus}
      */
-    @ApiModelProperty(name = ViewVersionResourceProvider.VIEW_STATUS_PROPERTY_ID)
+    @ApiModelProperty(name = ViewVersionResourceProvider.STATUS_PROPERTY_ID)
     public ViewDefinition.ViewStatus getStatus() {
       return status;
     }
@@ -204,7 +204,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns views status details
      * @return status details
      */
-    @ApiModelProperty(name = ViewVersionResourceProvider.VIEW_STATUS_DETAIL_PROPERTY_ID)
+    @ApiModelProperty(name = ViewVersionResourceProvider.STATUS_DETAIL_PROPERTY_ID)
     public String getStatusDetail() {
       return statusDetail;
     }
@@ -223,7 +223,7 @@ public class ViewVersionResponse implements ApiModel {
      * Returns view version
      * @return view version
      */
-    @ApiModelProperty(name = ViewVersionResourceProvider.VIEW_VERSION_PROPERTY_ID)
+    @ApiModelProperty(name = ViewVersionResourceProvider.VERSION_PROPERTY_ID)
     public String getVersion() {
       return version;
     }

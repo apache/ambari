@@ -61,7 +61,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   public static final String RESOURCE_NAME_PROPERTY_ID = "resource_name";
 
   public static final String VIEW_NAME = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VIEW_NAME_PROPERTY_ID;
-  public static final String VIEW_VERSION = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VERSION_PROPERTY_ID;
+  public static final String VERSION = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VERSION_PROPERTY_ID;
   public static final String PERMISSION_ID = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PERMISSION_ID_PROPERTY_ID;
   public static final String PERMISSION_NAME = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PERMISSION_NAME_PROPERTY_ID;
   public static final String RESOURCE_NAME = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + RESOURCE_NAME_PROPERTY_ID;
@@ -71,7 +71,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.View, VIEW_NAME)
-      .put(Resource.Type.ViewVersion, VIEW_VERSION)
+      .put(Resource.Type.ViewVersion, VERSION)
       .put(Resource.Type.ViewPermission, PERMISSION_ID)
       .build();
 
@@ -80,7 +80,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
    */
   private static Set<String> propertyIds = Sets.newHashSet(
       VIEW_NAME,
-      VIEW_VERSION,
+      VERSION,
       PERMISSION_ID,
       PERMISSION_NAME,
       RESOURCE_NAME);
@@ -127,7 +127,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
     PermissionEntity viewUsePermission = permissionDAO.findViewUsePermission();
     for (Map<String, Object> propertyMap: getPropertyMaps(predicate)) {
       Object viewName = propertyMap.get(VIEW_NAME);
-      Object viewVersion = propertyMap.get(VIEW_VERSION);
+      Object viewVersion = propertyMap.get(VERSION);
       if (viewName != null && viewVersion != null) {
         ViewEntity viewEntity = viewRegistry.getDefinition(viewName.toString(), viewVersion.toString());
 
@@ -207,7 +207,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
     Resource resource = new ResourceImpl(Resource.Type.ViewPermission);
     ViewPermissionResponse.ViewPermissionInfo viewPermissionInfo  = viewPermissionResponse.getViewPermissionInfo();
     setResourceProperty(resource, VIEW_NAME, viewPermissionInfo.getViewName(), requestedIds);
-    setResourceProperty(resource, VIEW_VERSION, viewPermissionInfo.getVersion(), requestedIds);
+    setResourceProperty(resource, VERSION, viewPermissionInfo.getVersion(), requestedIds);
 
     setResourceProperty(resource, PERMISSION_ID, viewPermissionInfo.getPermissionId(), requestedIds);
     setResourceProperty(resource, PERMISSION_NAME, viewPermissionInfo.getPermissionName(), requestedIds);

@@ -55,8 +55,8 @@ import io.swagger.annotations.ApiResponses;
 /**
  *  Service responsible for view privilege resource requests.
  */
-@Api(tags = "Views", description = "Endpoint for view specific operations")
 @Path("/views/{viewName}/versions/{version}/instances/{instanceName}/privileges")
+@Api(tags = "Views", description = "Endpoint for view specific operations")
 public class ViewPrivilegeService extends BaseService {
 
   public static final String PRIVILEGE_INFO_REQUEST_TYPE = "org.apache.ambari.server.controller.ViewPrivilegeResponse.Wrapper";

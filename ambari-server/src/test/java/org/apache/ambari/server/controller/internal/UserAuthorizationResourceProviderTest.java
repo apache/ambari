@@ -168,63 +168,63 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
     Injector injector = createInjector();
 
     Resource clusterResource = createMock(Resource.class);
-    expect(clusterResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID))
+    expect(clusterResource.getPropertyValue(UserPrivilegeResourceProvider.PERMISSION_NAME))
         .andReturn("CLUSTER.DO_SOMETHING")
         .anyTimes();
-    expect(clusterResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID))
+    expect(clusterResource.getPropertyValue(UserPrivilegeResourceProvider.TYPE))
         .andReturn("CLUSTER")
         .anyTimes();
-    expect(clusterResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID))
+    expect(clusterResource.getPropertyValue(UserPrivilegeResourceProvider.CLUSTER_NAME))
         .andReturn("Cluster Name")
         .anyTimes();
 
     Resource viewResource = createMock(Resource.class);
-    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID))
+    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.PERMISSION_NAME))
         .andReturn("VIEW.DO_SOMETHING")
         .anyTimes();
-    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID))
+    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.TYPE))
         .andReturn("VIEW")
         .anyTimes();
-    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID))
+    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.VIEW_NAME))
         .andReturn("View Name")
         .anyTimes();
-    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID))
+    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.VIEW_VERSION))
         .andReturn("View Version")
         .anyTimes();
-    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID))
+    expect(viewResource.getPropertyValue(UserPrivilegeResourceProvider.INSTANCE_NAME))
         .andReturn("View Instance Name")
         .anyTimes();
 
     Resource adminResource = createMock(Resource.class);
-    expect(adminResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID))
+    expect(adminResource.getPropertyValue(UserPrivilegeResourceProvider.PERMISSION_NAME))
         .andReturn("ADMIN.DO_SOMETHING")
         .anyTimes();
-    expect(adminResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID))
+    expect(adminResource.getPropertyValue(UserPrivilegeResourceProvider.TYPE))
         .andReturn("ADMIN")
         .anyTimes();
-    expect(adminResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID))
+    expect(adminResource.getPropertyValue(UserPrivilegeResourceProvider.CLUSTER_NAME))
         .andReturn(null)
         .anyTimes();
 
     Resource emptyResource = createMock(Resource.class);
-    expect(emptyResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID))
+    expect(emptyResource.getPropertyValue(UserPrivilegeResourceProvider.PERMISSION_NAME))
         .andReturn("EMPTY.DO_SOMETHING")
         .anyTimes();
-    expect(emptyResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID))
+    expect(emptyResource.getPropertyValue(UserPrivilegeResourceProvider.TYPE))
         .andReturn("ADMIN")
         .anyTimes();
-    expect(emptyResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID))
+    expect(emptyResource.getPropertyValue(UserPrivilegeResourceProvider.CLUSTER_NAME))
         .andReturn(null)
         .anyTimes();
 
     Resource nullResource = createMock(Resource.class);
-    expect(nullResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID))
+    expect(nullResource.getPropertyValue(UserPrivilegeResourceProvider.PERMISSION_NAME))
         .andReturn("NULL.DO_SOMETHING")
         .anyTimes();
-    expect(nullResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID))
+    expect(nullResource.getPropertyValue(UserPrivilegeResourceProvider.TYPE))
         .andReturn("ADMIN")
         .anyTimes();
-    expect(nullResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID))
+    expect(nullResource.getPropertyValue(UserPrivilegeResourceProvider.CLUSTER_NAME))
         .andReturn(null)
         .anyTimes();
 
