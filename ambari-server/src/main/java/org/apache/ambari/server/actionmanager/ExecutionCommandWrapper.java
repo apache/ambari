@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -299,8 +300,10 @@ public class ExecutionCommandWrapper {
       }
 
       Service service = cluster.getService(serviceGroupName, serviceName);
+      ServiceComponent serviceComponent = null;
       if (null != service) {
         serviceType = service.getServiceType();
+        serviceComponent = service.getServiceComponent(componentName);
       }
 
       ModuleComponent moduleComponent = null;
@@ -309,7 +312,7 @@ public class ExecutionCommandWrapper {
         // only set the version if it's not set and this is NOT an install
         // command
 
-        moduleComponent = mpack.getModuleComponent(serviceName, componentName);
+        moduleComponent = mpack.getModuleComponent(serviceType, serviceComponent.getType());
       }
 
       if (null != moduleComponent) {

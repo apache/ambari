@@ -132,8 +132,8 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
           continue;
         }
 
-        ModuleComponent moduleComponent = mpack.getModuleComponent(hostComponent.getServiceName(),
-            hostComponent.getServiceComponentName());
+        ModuleComponent moduleComponent = mpack.getModuleComponent(hostComponent.getServiceType(),
+            hostComponent.getServiceComponentType());
 
         String version = hostComponent.getVersion();
         if (!StringUtils.equals(version, moduleComponent.getVersion())) {

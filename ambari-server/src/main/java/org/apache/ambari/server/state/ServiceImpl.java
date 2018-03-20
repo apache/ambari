@@ -500,7 +500,7 @@ public class ServiceImpl implements Service {
   public ServiceResponse convertToResponse() {
     RepositoryVersionEntity desiredRespositoryVersion = getDesiredRepositoryVersion();
     Mpack mpack = ambariMetaInfo.getMpack(serviceGroup.getMpackId());
-    Module module = mpack.getModule(getName());
+    Module module = mpack.getModule(getServiceType());
 
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),

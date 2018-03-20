@@ -588,7 +588,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {
           ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-              stackId.getStackVersion(), s.getServiceType(), sc.getName());
+              stackId.getStackVersion(), s.getServiceType(), sc.getType());
           category = componentInfo.getCategory();
           if (category != null) {
             serviceComponentResponse.setCategory(category);
@@ -942,7 +942,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       String componentName = request.getComponentName();
       String componentType = request.getComponentType();
 
-      String serviceName = getManagementController().findService(cluster, componentType);
+      String serviceName = getManagementController().findServiceName(cluster, componentType);
 
       debug("Looking up service name for component, componentType={}, serviceName={}", componentType, serviceName);
 

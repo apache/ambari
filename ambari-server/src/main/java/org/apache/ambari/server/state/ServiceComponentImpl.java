@@ -450,10 +450,9 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
 
     String serviceName = service.getName();
-    String componentName = getName();
 
     Mpack mpack = ambariMetaInfo.getMpack(sg.getMpackId());
-    ModuleComponent moduleComponent = mpack.getModuleComponent(serviceName, componentName);
+    ModuleComponent moduleComponent = mpack.getModuleComponent(service.getServiceType(), getType());
 
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), sg.getServiceGroupId(), sg.getServiceGroupName(), service.getServiceId(),
