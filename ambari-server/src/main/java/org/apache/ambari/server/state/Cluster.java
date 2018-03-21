@@ -387,6 +387,13 @@ public interface Cluster {
    */
   Map<String, DesiredConfig> getDesiredConfigs();
 
+  /**
+   * Gets the active desired configurations for the cluster.
+   * @param cachedConfigEntities retrieves cluster config entities from the cache if true, otherwise from the DB directly.
+   * @return a map of type-to-configuration information.
+   */
+  Map<String, DesiredConfig> getDesiredConfigs(boolean cachedConfigEntities);
+
   ClusterEntity getClusterEntity();
 
   /**
