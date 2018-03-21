@@ -29,6 +29,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -53,7 +54,7 @@ public class UpgradePlanService extends BaseService {
   }
 
   @POST @ApiIgnore // until documented
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response createPlan(String body,
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
@@ -62,7 +63,7 @@ public class UpgradePlanService extends BaseService {
   }
 
   @GET @ApiIgnore // until documented
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response getPlans( @Context HttpHeaders headers,
       @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
@@ -71,7 +72,7 @@ public class UpgradePlanService extends BaseService {
 
   @GET @ApiIgnore // until documented
   @Path("{upgradePlanId}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response getPlan(@Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("upgradePlanId") Long id) {
     return handleRequest(headers, null, ui, Request.Type.GET,
@@ -80,7 +81,7 @@ public class UpgradePlanService extends BaseService {
 
   @PUT @ApiIgnore // until documented
   @Path("{upgradePlanId}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response updatePlan(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("upgradePlanId") Long id) {
     return handleRequest(headers, body, ui, Request.Type.PUT,
@@ -89,7 +90,7 @@ public class UpgradePlanService extends BaseService {
 
   @DELETE @ApiIgnore // until documented
   @Path("{upgradePlanId}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response deleteUpgradePlan(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("upgradePlanId") Long id) {
     return handleRequest(headers, body, ui, Request.Type.DELETE,

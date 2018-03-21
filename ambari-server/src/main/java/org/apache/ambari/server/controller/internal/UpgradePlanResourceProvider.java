@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.controller.utilities.PropertyHelper.EXTERNAL_PATH_SEP;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,6 +39,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.UpgradePlanDAO;
 import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
@@ -65,20 +64,20 @@ import com.google.inject.Inject;
 @StaticallyInject
 public class UpgradePlanResourceProvider extends AbstractControllerResourceProvider {
 
-  private static final String UPGRADE_PLAN = "UpgradePlan";
+  private static final String UPGRADE_PLAN = "UpgradePlan" + PropertyHelper.EXTERNAL_PATH_SEP;
 
-  protected static final String UPGRADE_PLAN_ID = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "id";
-  protected static final String UPGRADE_PLAN_CLUSTER_NAME = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "cluster_name";
+  protected static final String UPGRADE_PLAN_ID = UPGRADE_PLAN + "id";
+  protected static final String UPGRADE_PLAN_CLUSTER_NAME = UPGRADE_PLAN + "cluster_name";
 
-  public static final String UPGRADE_PLAN_TYPE = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "upgrade_type";
-  public static final String UPGRADE_PLAN_DIRECTION = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "direction";
-  public static final String UPGRADE_PLAN_SKIP_FAILURES = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "skip_failures";
-  public static final String UPGRADE_PLAN_SKIP_PREREQUISITE_CHECKS = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "skip_prerequisite_checks";
-  public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECKS = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "skip_service_checks";
-  public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECK_FAILURES = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "skip_service_check_failures";
-  public static final String UPGRADE_PLAN_FAIL_ON_CHECK_WARNINGS = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "fail_on_check_warnings";
+  public static final String UPGRADE_PLAN_TYPE                        = UPGRADE_PLAN + "upgrade_type";
+  public static final String UPGRADE_PLAN_DIRECTION                   = UPGRADE_PLAN + "direction";
+  public static final String UPGRADE_PLAN_SKIP_FAILURES               = UPGRADE_PLAN + "skip_failures";
+  public static final String UPGRADE_PLAN_SKIP_PREREQUISITE_CHECKS    = UPGRADE_PLAN + "skip_prerequisite_checks";
+  public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECKS         = UPGRADE_PLAN + "skip_service_checks";
+  public static final String UPGRADE_PLAN_SKIP_SERVICE_CHECK_FAILURES = UPGRADE_PLAN + "skip_service_check_failures";
+  public static final String UPGRADE_PLAN_FAIL_ON_CHECK_WARNINGS      = UPGRADE_PLAN + "fail_on_check_warnings";
 
-  public static final String UPGRADE_PLAN_SERVICE_GROUPS = UPGRADE_PLAN + EXTERNAL_PATH_SEP + "servicegroups";
+  public static final String UPGRADE_PLAN_SERVICE_GROUPS              = UPGRADE_PLAN + "servicegroups";
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.<Resource.Type, String>builder()
       .put(Resource.Type.UpgradePlan, UPGRADE_PLAN_ID)
