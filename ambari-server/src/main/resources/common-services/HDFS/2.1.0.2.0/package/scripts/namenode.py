@@ -213,6 +213,8 @@ class NameNodeDefault(NameNode):
 
     rebalance_env = {'PATH': params.hadoop_bin_dir}
 
+    rebalance_command_suffix = ""
+
     if params.security_enabled:
       # Create the kerberos credentials cache (ccache) file and set it in the environment to use
       # when executing HDFS rebalance command. Use the sha224 hash of the combination of the principal and keytab file
@@ -230,6 +232,8 @@ class NameNodeDefault(NameNode):
       if shell.call(klist_cmd, user=params.hdfs_user)[0] != 0:
         Execute(kinit_cmd, user=params.hdfs_user)
 
+      rebalance_command_suffix = format("; rm -f {ccache_file_path}")
+
     def calculateCompletePercent(first, current):
       # avoid division by zero
       try:
@@ -240,11 +244,11 @@ class NameNodeDefault(NameNode):
       return 1.0 - division_result
 
 
-    def startRebalancingProcess(threshold, rebalance_env):
-      rebalanceCommand = format('hdfs --config {hadoop_conf_dir} balancer -threshold {threshold}')
+    def startRebalancingProcess(threshold, rebalance_env, suffix):
+      rebalanceCommand = format('hdfs --config {hadoop_conf_dir} balancer -threshold {threshold}{suffix}')
       return as_user(rebalanceCommand, params.hdfs_user, env=rebalance_env)
 
-    command = startRebalancingProcess(threshold, rebalance_env)
+    command = startRebalancingProcess(threshold, rebalance_env, rebalance_command_suffix)
 
     basedir = os.path.join(env.config.basedir, 'scripts')
     if(threshold == 'DEBUG'): #FIXME TODO remove this on PROD
@@ -282,12 +286,6 @@ class NameNodeDefault(NameNode):
              "operation earlier. The process may take a long time to finish (hours, even days). If the problem persists "
              "please consult with the HDFS administrators if they have triggred or killed the operation.")
 
-    if params.security_enabled:
-      # Delete the kerberos credentials cache (ccache) file
-      File(ccache_file_path,
-           action = "delete",
-      )
-      
   def get_log_folder(self):
     import params
     return params.hdfs_log_dir
