@@ -1943,7 +1943,7 @@ public class ConfigHelper {
       if (LOG.isInfoEnabled()) {
         LOG.info("For configs update on host {} will be used cluster entity {}", hostId, cl.getClusterEntity().toString());
       }
-      Map<String, DesiredConfig> clusterDesiredConfigs = cl.getDesiredConfigs();
+      Map<String, DesiredConfig> clusterDesiredConfigs = cl.getDesiredConfigs(false);
       LOG.info("For configs update on host {} will be used following cluster desired configs {}", hostId,
           clusterDesiredConfigs.toString());
 
