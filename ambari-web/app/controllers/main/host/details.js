@@ -109,6 +109,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     'ATLAS_SERVER': {
       deletePropertyName: 'deleteAtlasServer',
       hostPropertyName: 'atlasServer',
+      configTagsCallbackName: 'loadAtlasConfigs',
       configsCallbackName: 'onLoadAtlasConfigs'
     },
     'RANGER_KMS_SERVER': {
@@ -978,6 +979,25 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       sender: this,
       data: {
         urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')'
+      },
+      success: params.callback
+    });
+    this.trackRequest(request);
+  },
+
+  /**
+   * Success callback for Atlas load configs request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method loadAtlasConfigs
+   */
+  loadAtlasConfigs: function (data, opt, params) {
+    var request = App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+        urlParams: '(type=application-properties&tag=' + data.Clusters.desired_configs['application-properties'].tag + ')'
       },
       success: params.callback
     });
