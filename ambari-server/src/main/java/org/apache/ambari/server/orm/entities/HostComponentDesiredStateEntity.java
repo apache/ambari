@@ -68,9 +68,6 @@ import com.google.common.base.Objects;
   @NamedQuery(name = "HostComponentDesiredStateEntity.findByIndex", query =
     "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.id=:id"),
 
-  @NamedQuery(name = "HostComponentDesiredStateEntity.findByIndexAndHost", query =
-    "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.clusterId=:clusterId AND hcds.serviceName=:serviceName AND hcds.componentName=:componentName AND hcds.hostId=:hostId"),
-
   @NamedQuery(name = "HostComponentDesiredStateEntity.findByHostsAndCluster", query =
     "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.hostId IN :hostIds AND hcds.clusterId=:clusterId"),
 })

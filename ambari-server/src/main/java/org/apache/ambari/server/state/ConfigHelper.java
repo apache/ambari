@@ -1625,12 +1625,13 @@ public class ConfigHelper {
    * @param currentServiceConfigEntity service config entity with populated current cluster configs
    * @param configGroupId id of config group contained changed configs. Can be null in case group is default
    * @param clusterId cluster id
-   * @param serviceName service name configs were changed for
+   * @param serviceId service name configs were changed for
    * @return map of type names to collections of properties' names were changed.
    */
   public Map<String, Collection<String>> getChangedConfigTypes(Cluster cluster,
                                                                 ServiceConfigEntity currentServiceConfigEntity,
-                                                                Long configGroupId, Long clusterId, String serviceName) {
+                                                                Long configGroupId, Long clusterId, Long serviceId
+  ) {
     ServiceConfigEntity previousServiceConfigEntity;
     List<ClusterConfigEntity> previousConfigEntities = new ArrayList<>();
     List<ClusterConfigEntity> currentConfigEntities = new ArrayList<>();
@@ -1646,7 +1647,7 @@ public class ConfigHelper {
     // Service config with custom group contains not all config types, so it is needed
     // to complement it with configs from default group
     previousServiceConfigEntity =
-        serviceConfigDAO.getLastServiceConfigForServiceDefaultGroup(clusterId, serviceName);
+        serviceConfigDAO.getLastServiceConfigForServiceDefaultGroup(clusterId, serviceId);
     if (previousServiceConfigEntity != null) {
       for (ClusterConfigEntity clusterConfigEntity : previousServiceConfigEntity.getClusterConfigEntities()) {
         // Add only configs not present yet
