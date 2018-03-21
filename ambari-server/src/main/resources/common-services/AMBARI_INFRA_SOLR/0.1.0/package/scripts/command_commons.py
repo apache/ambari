@@ -71,8 +71,9 @@ check_hosts = default("/commandParams/solr_check_hosts", True)
 solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
 solr_base_url = format("{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr")
 
-keytab = params.infra_solr_kerberos_keytab
-principal = params.infra_solr_kerberos_principal
+if params.security_enabled:
+  keytab = params.infra_solr_kerberos_keytab
+  principal = params.infra_solr_kerberos_principal
 
 hostname_suffix = params.hostname.replace(".", "_")
 
@@ -94,7 +95,7 @@ def create_solr_api_request_command(request_path, output=None):
   solr_url = format("{solr_base_url}/{request_path}")
   grep_cmd = " | grep 'solr_rs_status: 200'"
   api_cmd = format("kinit -kt {keytab} {principal} && curl -w'solr_rs_status: %{{http_code}}' -k --negotiate -u : '{solr_url}'") \
-    if params.security_enabled else format("curl -k '{solr_url}'")
+    if params.security_enabled else format("curl -w'solr_rs_status: %{{http_code}}' -k '{solr_url}'")
   if output is not None:
     api_cmd+=format(" -o {output}")
   api_cmd+=grep_cmd
@@ -133,7 +134,7 @@ def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, 
           else:
             backup_data = backup_list
 
-          if backup_data['snapshotName'] != snapshot_name:
+          if (not 'snapshotName' in backup_data) or backup_data['snapshotName'] != snapshot_name:
             snapshot = backup_data['snapshotName']
             Logger.info(format("Snapshot name: {snapshot}, wait until {snapshot_name} will be available."))
             time.sleep(time_interval)
@@ -154,7 +155,7 @@ def snapshot_status_check(request_cmd, json_output, snapshot_name, backup=True, 
           if log_output:
             Logger.info(str(restorestatus_data))
 
-          if restorestatus_data['snapshotName'] != format("snapshot.{snapshot_name}"):
+          if (not 'snapshotName' in restorestatus_data) or restorestatus_data['snapshotName'] != format("snapshot.{snapshot_name}"):
             snapshot = restorestatus_data['snapshotName']
             Logger.info(format("Snapshot name: {snapshot}, wait until snapshot.{snapshot_name} will be available."))
             time.sleep(time_interval)
