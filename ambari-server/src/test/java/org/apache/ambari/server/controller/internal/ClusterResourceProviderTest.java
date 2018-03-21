@@ -154,7 +154,7 @@ public class ClusterResourceProviderTest {
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
       .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
-    expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
+    expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
     replayAll();
@@ -186,7 +186,7 @@ public class ClusterResourceProviderTest {
     expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
-    expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
+    expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
     replayAll();
@@ -472,7 +472,7 @@ public class ClusterResourceProviderTest {
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
     expect(topologyFactory.createProvisionClusterRequest(eq(properties), anyObject())).andReturn(topologyRequest).once();
-    expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
+    expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
     replayAll();
@@ -803,7 +803,7 @@ public class ClusterResourceProviderTest {
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
     expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
-    expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
+    expect(topologyManager.provisionCluster(eq(topologyRequest), anyObject())).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
     replayAll();

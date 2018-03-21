@@ -80,7 +80,7 @@ public class ArtifactDAO {
    */
   @RequiresSession
   public List<ArtifactEntity> findByForeignKeys(TreeMap<String, String> foreignKeys) {
-    TypedQuery<ArtifactEntity> query = entityManagerProvider.get().
+      TypedQuery<ArtifactEntity> query = entityManagerProvider.get().
         createNamedQuery("artifactByForeignKeys", ArtifactEntity.class);
     query.setParameter("foreignKeys", ArtifactEntity.serializeForeignKeys(foreignKeys));
 

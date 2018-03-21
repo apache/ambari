@@ -75,6 +75,8 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   public static final String CLUSTER_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME;
   public static final String SERVICE_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_NAME;
 
+  public static final String PROVISION_REQUEST_ARTIFACT_NAME = "provision_cluster_request";
+
   /**
    * primary key fields
    */
@@ -525,7 +527,9 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private Resource toResource(ArtifactEntity entity, Set<String> requestedIds) throws AmbariException {
     Resource resource = new ResourceImpl(Resource.Type.Artifact);
     setResourceProperty(resource, ARTIFACT_NAME_PROPERTY, entity.getArtifactName(), requestedIds);
-    setResourceProperty(resource, ARTIFACT_DATA_PROPERTY, entity.getArtifactData(), requestedIds);
+    Map<String, Object> artifactData = PROVISION_REQUEST_ARTIFACT_NAME.equals(entity.getArtifactName()) ?
+      replaceClusterTemplatePasswords(entity.getArtifactData()) : entity.getArtifactData();
+    setResourceProperty(resource, ARTIFACT_DATA_PROPERTY, artifactData, requestedIds);
 
     for (Map.Entry<String, String> entry : entity.getForeignKeys().entrySet()) {
       TypeRegistration typeRegistration = typeRegistrationsByShortFK.get(entry.getKey());
@@ -533,6 +537,10 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
           typeRegistration.fromPersistId(entry.getValue()), requestedIds);
     }
     return resource;
+  }
+
+  private Map<String, Object> replaceClusterTemplatePasswords(Map<String, Object> artifactData) {
+    return artifactData;
   }
 
   /**
@@ -545,6 +553,15 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private boolean isInstanceRequest(Set<Map<String, Object>> requestProps) {
     return requestProps.size() == 1 &&
         requestProps.iterator().next().get(ARTIFACT_NAME_PROPERTY) != null;
+  }
+
+  /**
+   * Return the {@link TypeRegistration} for the requested type or {@code null} if the type is not registered
+   * @param resourceType the resource type
+   * @return the type registration or {@code null} if the type is not registered
+   */
+  public static TypeRegistration getTypeRegistration(Resource.Type resourceType) {
+    return typeRegistrations.get(resourceType);
   }
 
   //todo: when static registration is changed to external registration, this interface
