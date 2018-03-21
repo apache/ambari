@@ -545,7 +545,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
       if (StringUtils.isEmpty(request.getServiceName())) {
-        request.setServiceName(getManagementController().findService(cluster, request.getComponentName()));
+        request.setServiceName(getManagementController().findServiceName(cluster, request.getComponentName()));
       }
 
       ServiceComponent sc = getServiceComponent(
@@ -1081,7 +1081,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           String serviceGroupName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
           if (StringUtils.isEmpty(serviceName)) {
             Cluster cluster = managementController.getClusters().getCluster(clusterName);
-            serviceName = managementController.findService(cluster, componentName);
+            serviceName = managementController.findServiceName(cluster, componentName);
             //TODO : What if SG name is empty.
           }
 
