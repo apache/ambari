@@ -76,7 +76,7 @@ public interface Blueprint {
   Setting getSetting();
 
   /**
-   * @return the set of stack (mpack) IDs associated with the blueprint
+   *
    * Get all of the services represented in the blueprint.
    *
    * @return collection of all represented service names
@@ -126,7 +126,6 @@ public interface Blueprint {
    * Get the stack associated with the blueprint.
    *
    * @return associated stack
->>>>>>> trunk
    */
   Set<StackId> getStackIds();
 
