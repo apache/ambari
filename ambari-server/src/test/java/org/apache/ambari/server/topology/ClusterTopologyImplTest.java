@@ -33,10 +33,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -58,7 +61,10 @@ public class ClusterTopologyImplTest {
   private static final HostGroup group2 = createNiceMock(HostGroup.class);
   private static final HostGroup group3 = createNiceMock(HostGroup.class);
   private static final HostGroup group4 = createNiceMock(HostGroup.class);
+  private static final StackId STACK_ID = new StackId("HDP", "2.6");
+  private static final ImmutableSet<StackId> STACK_IDS = ImmutableSet.of(STACK_ID);
   private final AmbariContext ambariContext = createNiceMock(AmbariContext.class);
+  private final StackDefinition stack = createNiceMock(StackDefinition.class);
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
 
@@ -67,7 +73,6 @@ public class ClusterTopologyImplTest {
 
   @Before
   public void setUp() throws Exception {
-
     configuration = new Configuration(new HashMap<>(),
       new HashMap<>());
     bpconfiguration = new Configuration(new HashMap<>(),
@@ -105,7 +110,7 @@ public class ClusterTopologyImplTest {
     group4Info.setPredicate(predicate);
 
     expect(blueprint.getConfiguration()).andReturn(bpconfiguration).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(new StackId("HDP", "2.6"))).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(STACK_IDS).anyTimes();
 
     hostGroupMap.put("group1", group1);
     hostGroupMap.put("group2", group2);
@@ -126,6 +131,8 @@ public class ClusterTopologyImplTest {
     group3Components.add(new Component("component4"));
     Set<Component> group4Components = new HashSet<>();
     group4Components.add(new Component("component5"));
+
+    expect(ambariContext.composeStacks(STACK_IDS)).andReturn(stack).anyTimes();
 
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
@@ -151,8 +158,8 @@ public class ClusterTopologyImplTest {
 
   @After
   public void tearDown() {
-    verify(blueprint, group1, group2, group3, group4);
-    reset(blueprint, group1, group2, group3, group4);
+    verify(ambariContext, stack, blueprint, group1, group2, group3, group4);
+    reset(ambariContext, stack, blueprint, group1, group2, group3, group4);
 
 
     hostGroupInfoMap.clear();
@@ -160,7 +167,7 @@ public class ClusterTopologyImplTest {
   }
 
   private void replayAll() {
-    replay(blueprint, group1, group2, group3, group4);
+    replay(ambariContext, stack, blueprint, group1, group2, group3, group4);
   }
 
 
@@ -236,12 +243,10 @@ public class ClusterTopologyImplTest {
 
   @Test
   public void testDecidingIfComponentIsHadoopCompatible() throws Exception {
-    expect(blueprint.getServiceInfos()).andReturn(asList(
-      aHCFSWith(aComponent("ONEFS_CLIENT")),
-      aServiceWith(aComponent("ZOOKEEPER_CLIENT")))
-    ).anyTimes();
+    expect(stack.getServicesForComponent("ONEFS_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aHCFSWith(aComponent("ONEFS_CLIENT"))))).anyTimes();
+    expect(stack.getServicesForComponent("ZOOKEEPER_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aServiceWith(aComponent("ZOOKEEPER_CLIENT"))))).anyTimes();
     replayAll();
-    ClusterTopologyImpl topology = new ClusterTopologyImpl(null, new TestTopologyRequest(TopologyRequest.Type.PROVISION));
+    ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, new TestTopologyRequest(TopologyRequest.Type.PROVISION));
     assertTrue(topology.isComponentHadoopCompatible("ONEFS_CLIENT"));
     assertFalse(topology.isComponentHadoopCompatible("ZOOKEEPER_CLIENT"));
   }
