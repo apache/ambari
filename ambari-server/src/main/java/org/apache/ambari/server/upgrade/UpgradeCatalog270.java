@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -922,8 +923,77 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     upgradeLdapConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
+    updateSolrConfigurations();
     renameAmbariInfra();
     updateKerberosDescriptorArtifacts();
+  }
+
+  protected void updateSolrConfigurations() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    if (clusterMap == null || clusterMap.isEmpty())
+      return;
+
+    for (final Cluster cluster : clusterMap.values()) {
+      updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {
+        content = updateLuceneMatchVersion(content, "7.2.1");
+        return updateMergeFactor(content, "logsearch_service_logs_merge_factor");
+      });
+      updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> {
+        content = updateLuceneMatchVersion(content,"7.2.1");
+        return updateMergeFactor(content, "logsearch_audit_logs_merge_factor");
+      });
+      updateConfig(cluster, "ranger-solr-configuration", (content) -> {
+        content = updateLuceneMatchVersion(content,"6.6.0");
+        return updateMergeFactor(content, "ranger_audit_logs_merge_factor");
+      });
+
+      updateConfig(cluster, "atlas-solrconfig",
+              (content) -> updateLuceneMatchVersion(content,"6.6.0"));
+
+      updateConfig(cluster, "infra-solr-env", this::updateInfraSolrEnv);
+
+      updateConfig(cluster, "infra-solr-security-json", (content) ->
+              content.replace("org.apache.ambari.infra.security.InfraRuleBasedAuthorizationPlugin",
+                      "org.apache.solr.security.InfraRuleBasedAuthorizationPlugin"));
+    }
+  }
+
+  protected String updateInfraSolrEnv(String content) {
+    return content.replaceAll("SOLR_KERB_NAME_RULES=\".*\"", "")
+            .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
+            .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
+  }
+
+  private void updateConfig(Cluster cluster, String configType, Function<String, String> contentUpdater) throws AmbariException {
+    Config config = cluster.getDesiredConfigByType(configType);
+    if (config == null)
+      return;
+    if (config.getProperties() == null || !config.getProperties().containsKey("content"))
+      return;
+
+    String content = config.getProperties().get("content");
+    content = contentUpdater.apply(content);
+    updateConfigurationPropertiesForCluster(cluster, configType, Collections.singletonMap("content", content), true, true);
+  }
+
+  protected String updateLuceneMatchVersion(String content, String newLuceneMatchVersion) {
+    return content.replaceAll("<luceneMatchVersion>.*</luceneMatchVersion>",
+            "<luceneMatchVersion>" + newLuceneMatchVersion + "</luceneMatchVersion>");
+  }
+
+  protected String updateMergeFactor(String content, String variableName) {
+    return content.replaceAll("<mergeFactor>\\{\\{" + variableName + "\\}\\}</mergeFactor>",
+            "<mergePolicyFactory class=\"org.apache.solr.index.TieredMergePolicyFactory\">\n" +
+                    "      <int name=\"maxMergeAtOnce\">{{" + variableName + "}}</int>\n" +
+                    "      <int name=\"segmentsPerTier\">{{" + variableName + "}}</int>\n" +
+                    "    </mergePolicyFactory>");
   }
 
   protected void addUserAuthenticationSequence() throws SQLException {
@@ -1039,8 +1109,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           String oldProtocolProperty = null;
           String oldPortProperty = null;
           if (logSearchEnv != null) {
-            oldProtocolProperty = logSearchEnv.getProperties().get("logsearch_ui_port");
-            oldPortProperty = logSearchEnv.getProperties().get("logsearch_ui_protocol");
+            oldPortProperty = logSearchEnv.getProperties().get("logsearch_ui_port");
+            oldProtocolProperty = logSearchEnv.getProperties().get("logsearch_ui_protocol");
           }
 
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
@@ -1092,23 +1162,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             }
           }
 
-          Config logSearchServiceLogsConfig = cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig");
-          if (logSearchServiceLogsConfig != null) {
-            String content = logSearchServiceLogsConfig.getProperties().get("content");
-            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
-              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
-              updateConfigurationPropertiesForCluster(cluster, "logsearch-service_logs-solrconfig", Collections.singletonMap("content", content), true, true);
-            }
-          }
-
-          Config logSearchAuditLogsConfig = cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig");
-          if (logSearchAuditLogsConfig != null) {
-            String content = logSearchAuditLogsConfig.getProperties().get("content");
-            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
-              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
-              updateConfigurationPropertiesForCluster(cluster, "logsearch-audit_logs-solrconfig", Collections.singletonMap("content", content), true, true);
-            }
-          }
+          removeAdminHandlersFrom(cluster, "logsearch-service_logs-solrconfig");
+          removeAdminHandlersFrom(cluster, "logsearch-audit_logs-solrconfig");
 
           Config logFeederOutputConfig = cluster.getDesiredConfigByType("logfeeder-output-config");
           if (logFeederOutputConfig != null) {
@@ -1130,6 +1185,21 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  private void removeAdminHandlersFrom(Cluster cluster, String configType) throws AmbariException {
+    Config logSearchServiceLogsConfig = cluster.getDesiredConfigByType(configType);
+    if (logSearchServiceLogsConfig != null) {
+      String content = logSearchServiceLogsConfig.getProperties().get("content");
+      if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
+        content = removeAdminHandlers(content);
+        updateConfigurationPropertiesForCluster(cluster, configType, Collections.singletonMap("content", content), true, true);
+      }
+    }
+  }
+
+  protected String removeAdminHandlers(String content) {
+    return content.replaceAll("(?s)<requestHandler\\s+name=\"/admin/\"\\s+class=\"solr.admin.AdminHandlers\"\\s*/>", "");
   }
 
   protected void renameAmbariInfra() throws SQLException {
