@@ -423,8 +423,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   pullNnCheckPointTime: function (haNameSpace) {
-    const correspondingComponent = App.HDFSService.find().objectAt(0).get('hostComponents').findProperty('haNameSpace', haNameSpace),
-      clusterIdValue = correspondingComponent.get('clusterIdValue');
+    let clusterIdValue;
+    if (haNameSpace) {
+      const hostComponents = App.HDFSService.find().objectAt(0).get('hostComponents'),
+        correspondingComponent = hostComponents && hostComponents.findProperty('haNameSpace', haNameSpace);
+      clusterIdValue = correspondingComponent && correspondingComponent.get('clusterIdValue');
+    }
     return App.ajax.send({
       name: 'common.service.hdfs.getNnCheckPointTime',
       sender: this,
