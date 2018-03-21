@@ -2039,7 +2039,7 @@ Em.I18n.translations = {
   'services.service.summary.historyServer': 'History Server Web UI',
   'services.service.summary.hiveserver2.jdbc.url.text': ' JDBC URL',
   'services.service.summary.hiveserver2.endpoint.tooltip.text':'JDBC connection string for {0}',
-  'services.service.summary.hiveserver2.endpoint.value':'jdbc:hive2://{0}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace={1}',
+  'services.service.summary.hiveserver2.endpoint.value':'jdbc:hive2://{0}/;serviceDiscoveryMode={1};zooKeeperNamespace={2}',
   'services.service.actions.downloadClientConfigs':'Download Client Configs',
   'services.service.actions.downloadClientConfigs.fail.noConfigFile':'No configuration files defined for the component',
   'services.service.actions.downloadClientConfigs.fail.popup.header':'{0} Configs',
