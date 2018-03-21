@@ -513,7 +513,7 @@ public interface AmbariManagementController {
    *
    * @throws  AmbariException if service name is null or empty
    */
-  String findService(Cluster cluster, String componentName) throws AmbariException;
+  String findServiceName(Cluster cluster, String componentName) throws AmbariException;
 
   /**
    * Get service name by cluster instance and component id
@@ -526,7 +526,22 @@ public interface AmbariManagementController {
    * @throws  AmbariException if service name is null or empty
    */
 
-  String findService(Cluster cluster, Long componentId) throws AmbariException;
+  String findServiceName(Cluster cluster, Long componentId) throws AmbariException;
+
+
+  /**
+   * Get Service by cluster instance and component id
+   *
+   * @param cluster the cluster instance
+   * @param componentId the component id in Long type
+   *
+   * @return a service instance
+   *
+   * @throws  AmbariException if service name is null or empty
+   */
+
+  Service findService(Cluster cluster, Long componentId) throws AmbariException;
+
 
   /**
    * Get the clusters for this management controller.

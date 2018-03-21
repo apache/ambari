@@ -459,7 +459,7 @@ public class JMXHostProviderTest {
     hostComponents.put("host1", null);
 
     expect(managementControllerMock.getClusters()).andReturn(clustersMock).anyTimes();
-    expect(managementControllerMock.findService(clusterMock, "DATANODE")).andReturn("HDFS");
+    expect(managementControllerMock.findServiceName(clusterMock, "DATANODE")).andReturn("HDFS");
     expect(clustersMock.getCluster("c1")).andReturn(clusterMock).anyTimes();
     expect(clusterMock.getService("HDFS")).andReturn(serviceMock).anyTimes();
     expect(serviceMock.getServiceComponent("DATANODE")).andReturn(serviceComponentMock).anyTimes();

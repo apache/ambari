@@ -143,16 +143,16 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     ServiceComponentHost sch2_1 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHost sch2_2 = createNiceMock(ServiceComponentHost.class);
 
-    expect(sch1_1.getServiceName()).andReturn("FOO").atLeastOnce();
+    expect(sch1_1.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch1_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch1_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch1_2.getServiceName()).andReturn("BAR").atLeastOnce();
+    expect(sch1_2.getServiceType()).andReturn("BAR").atLeastOnce();
     expect(sch1_2.getServiceComponentName()).andReturn("BAR_COMPONENT").atLeastOnce();
     expect(sch1_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch2_1.getServiceName()).andReturn("FOO").atLeastOnce();
+    expect(sch2_1.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch2_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch2_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch2_2.getServiceName()).andReturn("BAZ").atLeastOnce();
+    expect(sch2_2.getServiceType()).andReturn("BAZ").atLeastOnce();
     expect(sch2_2.getServiceComponentName()).andReturn("BAZ_COMPONENT").atLeastOnce();
     expect(sch2_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
 
@@ -301,7 +301,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     // reset expectation so that it returns a wrong version
     ServiceComponentHost sch = m_hostComponentMap.get(HOSTNAME_1).get(0);
     EasyMock.reset(sch);
-    expect(sch.getServiceName()).andReturn("FOO").atLeastOnce();
+    expect(sch.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch.getVersion()).andReturn(WRONG_VERSION).atLeastOnce();
 

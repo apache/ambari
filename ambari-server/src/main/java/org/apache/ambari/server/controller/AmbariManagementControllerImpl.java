@@ -702,7 +702,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       if (StringUtils.isEmpty(request.getServiceName())) {
         try {
-          request.setServiceName(findService(cluster, request.getComponentName()));
+          request.setServiceName(findServiceName(cluster, request.getComponentName()));
         } catch (ServiceNotFoundException e) {
           // handled below
         }
@@ -1407,7 +1407,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         // time bomb.  Blueprints are making this assumption.
         String serviceName = "";
         try {
-          serviceName = findService(cluster, request.getComponentName());
+          serviceName = findServiceName(cluster, request.getComponentName());
         } catch (ServiceNotFoundException e) {
           // handled below
         }
@@ -2616,7 +2616,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
-
+    if (execCmd.getComponentName() == null) {
+      execCmd.setComponentName(scHost.getServiceComponentName());
+    }
     // Get the value of credential store enabled from the DB
     Service clusterService = cluster.getService(serviceGroupName, serviceName);
     execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
@@ -3737,13 +3739,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public String findService(Cluster cluster, String componentName) throws AmbariException {
+  public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
     return cluster.getServiceByComponentName(componentName).getName();
   }
 
   @Override
-  public String findService(Cluster cluster, Long componentId) throws AmbariException {
+  public String findServiceName(Cluster cluster, Long componentId) throws AmbariException {
     return cluster.getServiceByComponentId(componentId).getName();
+  }
+
+  @Override
+  public Service findService(Cluster cluster, Long componentId) throws AmbariException {
+    return cluster.getServiceByComponentId(componentId);
   }
 
   @Override
@@ -3772,7 +3779,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // if any request are for the whole host, they need to be expanded
     for (ServiceComponentHostRequest request : requests) {
-      if (null == request.getComponentName()) {
+      if (null == request.getComponentId()) {
         if (null == request.getClusterName() || request.getClusterName().isEmpty() ||
             null == request.getHostname() || request.getHostname().isEmpty()) {
           throw new IllegalArgumentException("Cluster name and hostname must be specified.");
@@ -3801,27 +3808,38 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (ServiceComponentHostRequest request : expanded) {
 
-      validateServiceComponentHostRequest(request);
-
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
+      HostComponentStateEntity hostComponentStateEntity = null;
+      Service s = null;
+
       if (StringUtils.isEmpty(request.getServiceName())) {
-        request.setServiceName(findService(cluster, request.getComponentName()));
+        hostComponentStateEntity = hostComponentStateDAO.findById(request.getComponentId());
+        if (hostComponentStateEntity == null) {
+          throw new AmbariException("Could not find Host Component resource for"
+                  + " componentId = "+ request.getComponentId());
+        }
+        s = cluster.getService(hostComponentStateEntity.getServiceId());
+        request.setServiceGroupName(s.getServiceGroupName());
+        request.setServiceName(s.getName());
+        request.setComponentName(hostComponentStateEntity.getComponentName());
+        request.setComponentType(hostComponentStateEntity.getComponentType());
       }
 
       LOG.info("Received a hostComponent DELETE request"
         + ", clusterName=" + request.getClusterName()
+        + ", serviceGroupName=" + request.getServiceGroupName()
         + ", serviceName=" + request.getServiceName()
+        + ", componentId=" + request.getComponentId()     
         + ", componentName=" + request.getComponentName()
         + ", componentType=" + request.getComponentType()
         + ", hostname=" + request.getHostname()
         + ", request=" + request);
 
-      Service service = cluster.getService(request.getServiceName());
-      ServiceComponent component = service.getServiceComponent(request.getComponentName());
+      ServiceComponent component = s.getServiceComponent(request.getComponentName());
       ServiceComponentHost componentHost = component.getServiceComponentHost(request.getHostname());
 
-      setRestartRequiredServices(service, request.getComponentName());
+      setRestartRequiredServices(s, request.getComponentName());
       try {
         checkIfHostComponentsInDeleteFriendlyState(request, cluster);
         if (!safeToRemoveSCHs.containsKey(component)) {
