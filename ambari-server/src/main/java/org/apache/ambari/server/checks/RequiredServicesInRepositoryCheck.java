@@ -19,6 +19,8 @@ package org.apache.ambari.server.checks;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -77,6 +79,12 @@ public class RequiredServicesInRepositoryCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.setFailedOn(new LinkedHashSet<>(missingDependencies));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(String.format(failReasonTemplate, message));
+
+      Set<ServiceDetail> missingServiceDetails = missingDependencies.stream().map(
+          missingService -> new ServiceDetail(missingService)).collect(
+              Collectors.toCollection(TreeSet::new));
+
+      prerequisiteCheck.getFailedDetail().addAll(missingServiceDetails);
       return;
     }
 

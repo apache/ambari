@@ -26,9 +26,9 @@ tmp_dir = Script.get_tmp_dir()
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
+jce_location = config['ambariLevelParams']['jdk_location']
 jdk_name = default("/hostLevelParams/jdk_name", None)
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
@@ -56,7 +56,7 @@ hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefi
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 
-if str(config['hostLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
+if str(config['clusterLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
   jsvc_path = "/usr/libexec/bigtop-utils"
 else:

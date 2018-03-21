@@ -19,7 +19,7 @@
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {FormsModule} from '@angular/forms';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -37,28 +37,20 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
-import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {DropdownButtonComponent} from '@modules/shared/components/dropdown-button/dropdown-button.component';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 import {LogIndexFilterComponent} from './log-index-filter.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('LogIndexFilterComponent', () => {
   let component: LogIndexFilterComponent;
   let fixture: ComponentFixture<LogIndexFilterComponent>;
 
   beforeEach(async(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       imports: [
         FormsModule,
@@ -85,11 +77,8 @@ describe('LogIndexFilterComponent', () => {
         DropdownListComponent
       ],
       providers: [
+        ...MockHttpRequestModules,
         ComponentGeneratorService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         LogsContainerService,
         UserSettingsService,
         UtilsService,
@@ -105,7 +94,8 @@ describe('LogIndexFilterComponent', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

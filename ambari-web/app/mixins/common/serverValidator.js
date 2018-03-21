@@ -63,6 +63,17 @@ App.ServerValidatorMixin = Em.Mixin.create({
   }),
 
   /**
+   * Ajax request object to validation API
+   * @type {$.ajax}
+   */
+  validationRequest: null,
+
+  /**
+   * Timer id returned by setTimeout for calling function to send validation request
+   */
+  requestTime: 0,
+
+  /**
    * Map with allowed error types
    *
    * @type {Object}
@@ -124,7 +135,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
     this.runServerSideValidation().done(function() {
       if (self.get('configErrorList.issues.length') || self.get('configErrorList.criticalIssues.length')) {
-        App.showConfigValidationPopup(self.get('configErrorList'), primary, secondary);
+        App.showConfigValidationPopup(self.get('configErrorList'), primary, secondary, self);
       } else {
         deferred.resolve();
       }
@@ -149,12 +160,13 @@ App.ServerValidatorMixin = Em.Mixin.create({
     this.getBlueprintConfigurations(this.get('stepConfigs'))
       .done(function(blueprintConfigurations) {
         recommendations.blueprint.configurations = blueprintConfigurations;
-        self.validateSelectedConfigs({
+        var request = self.validateSelectedConfigs({
           hosts: self.get('hostNames'),
           services: self.get('serviceNames'),
           blueprint: recommendations
-        }).done(dfd.resolve)
-          .fail(dfd.reject);
+        });
+        self.set('validationRequest', request);
+        request.done(dfd.resolve).fail(dfd.reject);
       });
     return dfd.promise();
   },
@@ -239,6 +251,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       isError: type === errorTypes.ERROR,
       isWarn: type === errorTypes.WARN,
       isGeneral: type === errorTypes.GENERAL,
+      cssClass: this.get('isInstallWizard') ? '' : (type === errorTypes.ERROR ? 'error' : 'warning'),
       messages: Em.makeArray(messages)
     };
 
@@ -361,5 +374,22 @@ App.ServerValidatorMixin = Em.Mixin.create({
     this.set('configErrorList', this.collectAllIssues(parsed.configErrorsMap, parsed.generalErrors));
   },
 
-  validationError: Em.K
+  validationError: Em.K,
+
+  valueObserver: function () {
+    var self = this;
+    if (this.get('isInstallWizard') && this.get('currentTabName') === 'all-configurations') {
+      if (this.get('requestTimer')) clearTimeout(this.get('requestTimer'));
+      self.set('requestTimer', setTimeout(function () {
+        if (self.get('validationRequest')) {
+          self.get('validationRequest').abort();
+        }
+        self.runServerSideValidation().done(function () {
+          self.set('validationRequest', null);
+          self.set('requestTimer', 0);
+        });
+      }, 500));
+    }
+  }.observes('selectedService.configs.@each.value')
+
 });

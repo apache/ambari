@@ -24,7 +24,9 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 
 /**
@@ -74,7 +76,56 @@ public interface Blueprint {
   Setting getSetting();
 
   /**
-   * @return the set of stack (mpack) IDs associated with the blueprint
+   *
+   * Get all of the services represented in the blueprint.
+   *
+   * @return collection of all represented service names
+   */
+  Collection<String> getServices();
+
+  /**
+  * @return collection of all service infos
+   */
+  Collection<ServiceInfo> getServiceInfos();
+
+  /**
+   * Get the components that are included in the blueprint for the specified service.
+   *
+   * @param service  service name
+   *
+   * @return collection of component names for the service.  Will not return null.
+   */
+  Collection<String> getComponents(String service);
+
+  /**
+   * Get whether a component is enabled for auto start.
+   *
+   * @param serviceName - Service name.
+   * @param componentName - Component name.
+   *
+   * @return null if value is not specified; true or false if specified.
+   */
+  String getRecoveryEnabled(String serviceName, String componentName);
+
+  /**
+   * Get whether a service is enabled for credential store use.
+   *
+   * @param serviceName - Service name.
+   *
+   * @return null if value is not specified; true or false if specified.
+   */
+  String getCredentialStoreEnabled(String serviceName);
+
+  /**
+   * Check if auto skip failure is enabled.
+   * @return true if enabled, otherwise false.
+   */
+  boolean shouldSkipFailure();
+
+  /**
+   * Get the stack associated with the blueprint.
+   *
+   * @return associated stack
    */
   Set<StackId> getStackIds();
 
@@ -84,6 +135,8 @@ public interface Blueprint {
    * @return associated mpacks
    */
   Collection<MpackInstance> getMpacks();
+
+  Stack getStack();
 
   /**
    * Get the host groups which contain the give component.

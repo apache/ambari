@@ -20,12 +20,14 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 
 /**
  * Computes Ranger properties.  This class is only used when moving from
@@ -141,6 +143,7 @@ public class RangerConfigCalculation extends AbstractUpgradeServerAction {
     targetValues.put("ranger_privelege_user_jdbc_url", userJDBCUrl);
     config.setProperties(targetValues);
     config.save();
+    agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", stdout.toString(), "");
   }

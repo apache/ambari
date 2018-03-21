@@ -9,7 +9,7 @@
 import errno
 import os
 import socket
-import subprocess
+from ambari_commons import subprocess32
 import sys
 
 from psutil import _common
@@ -91,7 +91,7 @@ def swap_memory():
     #     usr/src/cmd/swap/swap.c
     # ...nevertheless I can't manage to obtain the same numbers as 'swap'
     # cmdline utility, so let's parse its output (sigh!)
-    p = subprocess.Popen(['swap', '-l', '-k'], stdout=subprocess.PIPE)
+    p = subprocess32.Popen(['swap', '-l', '-k'], stdout=subprocess32.PIPE)
     stdout, stderr = p.communicate()
     if PY3:
         stdout = stdout.decode(sys.stdout.encoding)
@@ -433,8 +433,8 @@ class Process(object):
         # TODO: rewrite this in C (...but the damn netstat source code
         # does not include this part! Argh!!)
         cmd = "pfiles %s" % pid
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+        p = subprocess32.Popen(cmd, shell=True, stdout=subprocess32.PIPE,
+                             stderr=subprocess32.PIPE)
         stdout, stderr = p.communicate()
         if PY3:
             stdout, stderr = [x.decode(sys.stdout.encoding)

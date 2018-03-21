@@ -51,7 +51,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     XmlConfig("accumulo-site.xml",
               conf_dir = dest_conf_dir,
               configurations = configs,
-              configuration_attributes=params.config['configuration_attributes']['accumulo-site'],
+              configuration_attributes=params.config['configurationAttributes']['accumulo-site'],
               owner = params.accumulo_user,
               group = params.user_group,
               mode = 0644
@@ -81,7 +81,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     XmlConfig( "accumulo-site.xml",
                conf_dir = dest_conf_dir,
                configurations = configs,
-               configuration_attributes=params.config['configuration_attributes']['accumulo-site'],
+               configuration_attributes=params.config['configurationAttributes']['accumulo-site'],
                owner = params.accumulo_user,
                group = params.user_group,
                mode = 0600

@@ -44,7 +44,7 @@ class ECSClient(Script):
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['core-site'],
-              configuration_attributes=params.config['configuration_attributes']['core-site'],
+              configuration_attributes=params.config['configurationAttributes']['core-site'],
               owner=params.hdfs_user,
               group=params.user_group,
               only_if=format("ls {hadoop_conf_dir}"))
@@ -52,7 +52,7 @@ class ECSClient(Script):
     XmlConfig("hdfs-site.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['hdfs-site'],
-              configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+              configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
               owner=params.hdfs_user,
               group=params.user_group,
               only_if=format("ls {hadoop_conf_dir}"))

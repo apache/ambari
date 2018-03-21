@@ -49,6 +49,9 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
   @Field(HOST)
   private String host;
 
+  @Field(GROUP)
+  private String group;
+
   @Field(SDI_DYNAMIC_FIELDS)
   private Map<String, Object> sdiDynamicFields;
 
@@ -90,6 +93,16 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
   @Override
   public void setHost(String host) {
     this.host = host;
+  }
+
+  @Override
+  public String getGroup() {
+    return group;
+  }
+
+  @Override
+  public void setGroup(String group) {
+    this.group = group;
   }
 
   @Override

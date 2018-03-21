@@ -66,7 +66,7 @@ class OozieClient(Script):
       import params
       config = self.get_config()
       return {'configurations': params.oozie_site,
-              'configuration_attributes': config['configuration_attributes'][dictionary]}
+              'configurationAttributes': config['configurationAttributes'][dictionary]}
     else:
       return super(OozieClient, self).generate_configs_get_xml_file_content(filename, dictionary)
 

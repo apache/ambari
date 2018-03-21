@@ -17,19 +17,26 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Objects;
+
+import org.apache.ambari.server.state.UriInfo;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 
 /**
  * Alert when the source type is defined as {@link SourceType#SERVER}
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServerSource extends ParameterizedSource {
 
   @SerializedName("class")
   private String m_class;
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private UriInfo uri = null;
 
   @SerializedName("jmx")
   private MetricSource.JmxInfo jmxInfo = null;
@@ -38,6 +45,7 @@ public class ServerSource extends ParameterizedSource {
   /**
    * Gets the fully qualified classname specified in the source.
    */
+  @JsonProperty("class")
   public String getSourceClass() {
     return m_class;
   }
@@ -46,7 +54,7 @@ public class ServerSource extends ParameterizedSource {
     return jmxInfo;
   }
 
-  public AlertUri getUri() {
+  public UriInfo getUri() {
     return uri;
   }
 
@@ -55,10 +63,7 @@ public class ServerSource extends ParameterizedSource {
    */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((m_class == null) ? 0 : m_class.hashCode());
-    return result;
+    return Objects.hash(super.hashCode(), m_class);
   }
 
   /**
@@ -79,14 +84,7 @@ public class ServerSource extends ParameterizedSource {
     }
 
     ServerSource other = (ServerSource) obj;
-    if (m_class == null) {
-      if (other.m_class != null) {
-        return false;
-      }
-    } else if (!m_class.equals(other.m_class)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(m_class, other.m_class);
   }
 
 }

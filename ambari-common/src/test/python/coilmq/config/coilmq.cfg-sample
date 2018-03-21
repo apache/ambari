@@ -1,0 +1,87 @@
+;Licensed to the Apache Software Foundation (ASF) under one
+;or more contributor license agreements.  See the NOTICE file
+;distributed with this work for additional information
+;regarding copyright ownership.  The ASF licenses this file
+;to you under the Apache License, Version 2.0 (the
+;"License"); you may not use this file except in compliance
+;with the License.  You may obtain a copy of the License at
+;
+;    http://www.apache.org/licenses/LICENSE-2.0
+;
+;Unless required by applicable law or agreed to in writing, software
+;distributed under the License is distributed on an "AS IS" BASIS,
+;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;See the License for the specific language governing permissions and
+;limitations under the License.
+
+[coilmq]
+
+; Backend implementation configuration.
+; -------------------------------------
+; Factories for implementations can be configured by passing a dotted-path.
+; This is typically the path to a class or to a callable that returns a configured
+; object (that implements the necessary functionality).  The reason to use a callable
+; is in cases when the object may need to be initialized with values from the
+; app's configuration.  (For example, a database storage engine will need to know
+; the database connect URI.)
+
+; Configuration backend used for storage
+; qstore.factory = coilmq.store.memory.MemoryQueue
+
+; Configure the scheduler implementations used
+; scheduler.subscriber_priority_factory = coilmq.scheduler.FavorReliableSubscriberScheduler
+; scheduler.queue_priority_factory = coilmq.scheduler.RandomQueueScheduler
+
+; Configure the authenticator class -- and any options
+; auth.factory = coilmq.auth.simple:make_simple
+; auth.simple.file = /path/to/authfile.ini
+
+; You can include custom logging configuration, if you like.  If you do configure
+; logging here, then any commandline logging arguments (e.g. --logfile) will be _IGNORED_. 
+; See the Python documentation for the log file format: 
+; 	http://docs.python.org/library/logging.html#configuration-file-format
+
+[loggers]
+keys=root,coilmq
+
+[handlers]
+keys=console,file,syslog
+
+[formatters]
+keys=threaded,syslog
+
+[logger_root]
+level=DEBUG
+handlers=console,file,syslog
+
+[logger_coilmq]
+level=DEBUG
+handlers=console,file,syslog
+qualname=coilmq
+propagate=0
+
+[handler_console]
+class=StreamHandler
+level=DEBUG
+formatter=threaded
+args=(sys.stdout,)
+
+[handler_syslog]
+class=handlers.SysLogHandler
+level=DEBUG
+formatter=syslog
+args=('/dev/log',)
+
+[handler_file]
+class=FileHandler
+level=DEBUG
+formatter=threaded
+args=('/tmp/coilmq.log', 'w')
+
+[formatter_syslog]
+format=[%(threadName)s] %(name)s - %(levelname)s - %(message)s
+datefmt= 
+
+[formatter_threaded]
+format=%(asctime)s [%(threadName)s] %(name)s - %(levelname)s - %(message)s
+datefmt=

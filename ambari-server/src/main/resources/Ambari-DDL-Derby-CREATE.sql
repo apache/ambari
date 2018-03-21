@@ -322,6 +322,7 @@ CREATE TABLE hostcomponentstate (
   component_type VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_state VARCHAR(255) NOT NULL,
+  last_live_state VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
   host_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
@@ -451,6 +452,7 @@ CREATE TABLE request (
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   cluster_host_info BLOB NOT NULL,
+  user_name VARCHAR(255),
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -1308,6 +1310,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'repo_definition_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'mpack_host_state_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'host_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'service_config_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   union all

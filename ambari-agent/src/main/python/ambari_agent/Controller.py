@@ -30,7 +30,7 @@ import urllib2
 import pprint
 from random import randint
 import re
-import subprocess
+from ambari_commons import subprocess32
 import functools
 
 import hostname
@@ -45,7 +45,8 @@ from ambari_agent.FileCache import FileCache
 from ambari_agent.NetUtil import NetUtil
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
-from ambari_agent.ClusterConfiguration import  ClusterConfiguration
+from ambari_agent.ClusterConfigurationCache import  ClusterConfigurationCache
+from ambari_agent.ClusterTopologyCache import ClusterTopologyCache
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
@@ -61,6 +62,9 @@ AGENT_AUTO_RESTART_EXIT_CODE = 77
 AGENT_RAM_OVERUSE_MESSAGE = "Ambari-agent RAM usage {used_ram} MB went above {config_name}={max_ram} MB. Restarting ambari-agent to clean the RAM."
 
 class Controller(threading.Thread):
+
+  EXECUTION_COMMANDS = 'executionCommands'
+  ALERT_DEFINITION_COMMANDS = 'alertDefinitionCommands'
 
   def __init__(self, config, server_hostname, heartbeat_stop_callback = None):
     threading.Thread.__init__(self)
@@ -109,7 +113,7 @@ class Controller(threading.Thread):
     extensions_cache_dir = os.path.join(cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
     host_scripts_cache_dir = os.path.join(cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
     alerts_cache_dir = os.path.join(cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
-    cluster_config_cache_dir = os.path.join(cache_dir, FileCache.CLUSTER_CONFIGURATION_CACHE_DIRECTORY)
+    cluster_cache_dir = os.path.join(cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
     recovery_cache_dir = os.path.join(cache_dir, FileCache.RECOVERY_CACHE_DIRECTORY)
 
     self.heartbeat_idle_interval_min = int(self.config.get('heartbeat', 'idle_interval_min')) if self.config.get('heartbeat', 'idle_interval_min') else self.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MIN_SEC
@@ -125,7 +129,8 @@ class Controller(threading.Thread):
 
     self.recovery_manager = RecoveryManager(recovery_cache_dir)
 
-    self.cluster_configuration = ClusterConfiguration(cluster_config_cache_dir)
+    self.cluster_configuration_cache = ClusterConfigurationCache(cluster_cache_dir)
+    self.cluster_topology_cache = ClusterTopologyCache(cluster_cache_dir)
 
     self.move_data_dir_mount_file()
 
@@ -134,7 +139,7 @@ class Controller(threading.Thread):
 
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir,
       stacks_cache_dir, common_services_cache_dir, extensions_cache_dir,
-      host_scripts_cache_dir, self.cluster_configuration, config,
+      host_scripts_cache_dir, self.cluster_configuration_cache, config,
       self.recovery_manager)
 
     self.alert_scheduler_handler.start()
@@ -200,7 +205,7 @@ class Controller(threading.Thread):
 
         # always update cached cluster configurations on registration
         # must be prior to any other operation
-        self.cluster_configuration.update_configurations_from_heartbeat(ret)
+        self.update_caches_from_heartbeat(ret)
         self.recovery_manager.update_configuration_from_registration(ret)
         self.config.update_configuration_from_registration(ret)
         logger.debug("Updated config: %s", self.config)
@@ -230,6 +235,35 @@ class Controller(threading.Thread):
         time.sleep(delay)
 
     return ret
+
+  def update_caches_from_heartbeat(self, heartbeat):
+    heartbeat_keys = heartbeat.keys()
+
+    if self.EXECUTION_COMMANDS in heartbeat_keys:
+      execution_commands = heartbeat[self.EXECUTION_COMMANDS]
+      for command in execution_commands:
+        if 'clusterName' in command and 'configurations' in command:
+          cluster_name = command['clusterName']
+          configurations = command['configurations']
+          topology = command['clusterHostInfo']
+          self.cluster_configuration_cache.update_cluster_cache(cluster_name, configurations)
+          self.cluster_topology_cache.update_cluster_cache(cluster_name, topology)
+
+          # TODO: use this once server part is ready.
+          self.cluster_topology_cache.get_md5_hashsum(cluster_name)
+          self.cluster_configuration_cache.get_md5_hashsum(cluster_name)
+
+
+    if self.ALERT_DEFINITION_COMMANDS in heartbeat_keys:
+      alert_definition_commands = heartbeat[self.ALERT_DEFINITION_COMMANDS]
+      for command in alert_definition_commands:
+        if 'clusterName' in command and 'configurations' in command:
+          cluster_name = command['clusterName']
+          configurations = command['configurations']
+          self.cluster_configuration_cache.update_cluster_cache(cluster_name, configurations)
+
+          # TODO: use this once server part is ready.
+          self.cluster_configuration_cache.get_md5_hashsum(cluster_name)
 
   def cancelCommandInQueue(self, commands):
     """ Remove from the queue commands, kill the process if it's in progress """
@@ -379,7 +413,7 @@ class Controller(threading.Thread):
         # if the response contains configurations, update the in-memory and
         # disk-based configuration cache (execution and alert commands have this)
         logger.log(logging_level, "Updating configurations from heartbeat")
-        self.cluster_configuration.update_configurations_from_heartbeat(response)
+        self.update_caches_from_heartbeat(response)
 
         refreshCache = False
         if 'refreshCache' in response.keys():
@@ -613,12 +647,12 @@ class Controller(threading.Thread):
         if os.path.exists(source_file) and not os.path.exists(destination_file):
           command = "mkdir -p %s" % os.path.dirname(destination_file)
           logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
-          return_code = subprocess.call(command, shell=True)
+          return_code = subprocess32.call(command, shell=True)
           logger.info("Return code: %d" % return_code)
 
           command = "mv %s %s" % (source_file, destination_file)
           logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
-          return_code = subprocess.call(command, shell=True)
+          return_code = subprocess32.call(command, shell=True)
           logger.info("Return code: %d" % return_code)
     except Exception, e:
       logger.error("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))

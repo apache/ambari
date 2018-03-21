@@ -17,7 +17,6 @@
  */
 
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
@@ -40,23 +39,18 @@ import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
 import {AuthService} from '@app/services/auth.service';
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
-import {ModalComponent} from '@app/components/modal/modal.component';
+import {ModalComponent} from '@app/modules/shared/components/modal/modal.component';
+
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 
 import {TimeZonePickerComponent} from './timezone-picker.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 
 describe('TimeZonePickerComponent', () => {
   let component: TimeZonePickerComponent;
   let fixture: ComponentFixture<TimeZonePickerComponent>;
 
   beforeEach(async(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       declarations: [
         TimeZonePickerComponent,
@@ -82,6 +76,7 @@ describe('TimeZonePickerComponent', () => {
         ...TranslationModules
       ],
       providers: [
+        ...MockHttpRequestModules,
         AppSettingsService,
         AppStateService,
         ClustersService,
@@ -95,14 +90,11 @@ describe('TimeZonePickerComponent', () => {
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
         TabsService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         LogsContainerService,
         AuthService,
         UserSettingsService,
-        UtilsService
+        UtilsService,
+        ClusterSelectionService
       ],
     })
     .compileComponents();

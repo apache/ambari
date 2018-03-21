@@ -21,12 +21,14 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 
 /**
  * Computes HBase properties.  This class is only used when moving from
@@ -87,6 +89,7 @@ public class HBaseConfigCalculation extends AbstractUpgradeServerAction {
 
     config.setProperties(properties);
     config.save();
+    agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
                   String.format("%s was set to %s", NEW_LOWER_LIMIT_PROPERTY_NAME, lowerLimitNew.toString()), "");

@@ -52,7 +52,7 @@ class TestMahoutClient(RMFTestCase):
       mode = 0644,
       conf_dir = '/usr/hdp/2.2.1.0-2067/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['yarn-site']
     )
 
     self.assertResourceCalled('File',
@@ -93,7 +93,7 @@ class TestMahoutClient(RMFTestCase):
     # test to make sure conf_select is working correctly
     json_content['commandParams']['upgrade_direction'] = 'upgrade'
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.3'
+    json_content['clusterLevelParams']['stack_version'] = '2.3'
 
     mocks_dict = {}
     self.executeScript(

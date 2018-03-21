@@ -41,7 +41,7 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 config = Script.get_config()
 stack_root = Script.get_stack_root()
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 if OSCheck.is_windows_family():
@@ -60,6 +60,6 @@ else:
 
   tmp_dir = Script.get_tmp_dir()
   oozie_user = config['configurations']['oozie-env']['oozie_user']
-  hostname = config["hostname"]
+  hostname = config['agentLevelParams']['hostname']
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

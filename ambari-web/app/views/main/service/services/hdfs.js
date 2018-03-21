@@ -62,27 +62,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
-  dashboardMasterComponentView: App.SummaryMasterComponentsView.extend({
-    mastersComp: function() {
-      var masterComponents = [];
-      var hostComponents = this.get('parentView.service.hostComponents');
-      var zkfcs = hostComponents.filterProperty('componentName', 'ZKFC');
-
-      hostComponents.forEach(function (comp) {
-        if (comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE') {
-          masterComponents.push(comp);
-          var zkfc = zkfcs.findProperty('hostName', comp.get('hostName'));
-          if (zkfc) {
-            zkfc.set('isSubComponent', true);
-            masterComponents.push(zkfc);
-          }
-        }
-      });
-      return masterComponents;
-    }.property('parentView.service.hostComponents.length')
-
-  }),
-  
   metricsNotAvailableObserver: function () {
     if(!this.get("service.metricsNotAvailable")) {
       App.tooltip($("[rel='tooltip']"));

@@ -54,6 +54,7 @@
   </property>
   <property>
     <name>livy_log_dir</name>
+    <display-name>Livy Log directory</display-name>
     <value>/var/log/livy</value>
     <description>Livy Log Dir</description>
     <value-attributes>
@@ -63,6 +64,7 @@
   </property>
   <property>
     <name>livy_pid_dir</name>
+    <display-name>Livy PID directory</display-name>
     <value>/var/run/livy</value>
     <value-attributes>
       <type>directory</type>

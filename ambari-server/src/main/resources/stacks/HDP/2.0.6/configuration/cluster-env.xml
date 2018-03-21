@@ -70,25 +70,25 @@
   </property>
   <property>
     <name>ignore_groupsusers_create</name>
-    <display-name>Skip group modifications during install</display-name>
+    <display-name>Use Ambari to Manage Group Memberships</display-name>
     <value>false</value>
     <property-type>ADDITIONAL_USER_PROPERTY</property-type>
-    <description>Whether to ignore failures on users and group creation</description>
+    <description>Ambari will add or remove service accounts from groups.</description>
     <value-attributes>
       <overridable>false</overridable>
-      <type>boolean</type>
+      <type>boolean-inverted</type>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>sysprep_skip_create_users_and_groups</name>
-    <display-name>Whether to skip creating users and groups in a sysprepped cluster</display-name>
+    <display-name>Use Ambari to Manage Service Accounts and Groups</display-name>
     <value>false</value>
     <property-type>ADDITIONAL_USER_PROPERTY</property-type>
-    <description>Whether to skip creating users and groups in a sysprepped cluster</description>
+    <description>Ambari will create the service accounts and groups that are required for each service if they do not exist in the /etc/password, and /etc/group of the Ambari Managed hosts.</description>
     <value-attributes>
       <overridable>true</overridable>
-      <type>boolean</type>
+      <type>boolean-inverted</type>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -198,8 +198,8 @@ gpgcheck=0</value>
     <name>override_uid</name>
     <value>true</value>
     <property-type>ADDITIONAL_USER_PROPERTY</property-type>
-    <display-name>Have Ambari manage UIDs</display-name>
-    <description>Have Ambari manage UIDs</description>
+    <display-name>Use Ambari to Manage Service Accounts UID's</display-name>
+    <description>Ambari will be able to change UID's of service accounts.</description>
     <value-attributes>
       <overridable>false</overridable>
       <type>boolean</type>

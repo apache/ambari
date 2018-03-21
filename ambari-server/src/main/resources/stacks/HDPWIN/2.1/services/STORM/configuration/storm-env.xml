@@ -27,11 +27,13 @@
   </property>
   <property>
     <name>storm_log_dir</name>
+    <display-name>Storm Log directory</display-name>
     <value>c:\hadoop\logs\storm</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm_pid_dir</name>
+    <display-name>Storm PID directory</display-name>
     <value>c:\hadoop\run\storm</value>
     <on-ambari-upgrade add="true"/>
   </property>

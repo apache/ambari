@@ -192,6 +192,12 @@
       </configuration-dependencies>
       <widgetsFileName>YARN_widgets.json</widgetsFileName>
       <metricsFileName>YARN_metrics.json</metricsFileName>
+      <themes>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
 
     <service>
@@ -317,6 +323,14 @@
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
       <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>
       <metricsFileName>MAPREDUCE2_metrics.json</metricsFileName>
+
+      <themes-dir>themes-mapred</themes-dir>
+      <themes>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
   </services>
 </metainfo>

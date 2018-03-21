@@ -1,6 +1,6 @@
 {
     "clusterName": "c1",
-    "configuration_attributes": {},
+    "configurationAttributes": {},
     "roleParams": {
         "threshold": "20",
         "check_execute_list": "last_agent_env_check",

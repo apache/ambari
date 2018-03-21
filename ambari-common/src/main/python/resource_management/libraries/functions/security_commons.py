@@ -32,7 +32,7 @@ FILE_TYPE_JAAS_CONF = 'JAAS_CONF'
 HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME = 'hadoop.security.credential.provider.path'
 
 # Copy JCEKS provider to service specific location and update the ACL
-def update_credential_provider_path(config, config_type, dest_provider_path, file_owner, file_group):
+def update_credential_provider_path(config, config_type, dest_provider_path, file_owner, file_group, use_local_jceks=False):
   """
   Copies the JCEKS file for the specified config from the default location to the given location,
   and sets the ACLs for the specified owner and group. Also updates the config type's configuration
@@ -57,7 +57,10 @@ def update_credential_provider_path(config, config_type, dest_provider_path, fil
     # make a copy of the config dictionary since it is read-only
     config_copy = config.copy()
     # overwrite the provider path with the path specified
-    config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file{0}'.format(dest_provider_path)
+    if use_local_jceks:
+      config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'localjceks://file{0}'.format(dest_provider_path)
+    else:
+      config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file{0}'.format(dest_provider_path)
     return config_copy
   return config
 

@@ -18,7 +18,10 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,6 +36,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -51,13 +55,16 @@ public class RangerKerberosConfigCalculationTest {
 
   private Injector m_injector;
   private Clusters m_clusters;
+  private AgentConfigsHolder agentConfigsHolder;
   private Field m_clusterField;
+  private Field agentConfigsHolderField;
 
   @Before
   public void setup() throws Exception {
     m_injector = EasyMock.createMock(Injector.class);
     m_clusters = EasyMock.createMock(Clusters.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
+    agentConfigsHolder = createMock(AgentConfigsHolder.class);
 
     Config hadoopConfig = EasyMock.createNiceMock(Config.class);
     expect(hadoopConfig.getType()).andReturn("hadoop-env").anyTimes();
@@ -118,12 +125,18 @@ public class RangerKerberosConfigCalculationTest {
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
+    expect(cluster.getHosts()).andReturn(Collections.emptyList()).atLeastOnce();
+    agentConfigsHolder.updateData(eq(1L), eq(Collections.emptyList()));
+    expectLastCall().atLeastOnce();
 
     replay(m_injector, m_clusters, cluster, hadoopConfig, hiveConfig, yarnConfig, hbaseConfig,
-        knoxConfig, stormConfig, kafkaConfig, kmsConfig, hdfsSiteConfig, adminSiteConfig);
+        knoxConfig, stormConfig, kafkaConfig, kmsConfig, hdfsSiteConfig, adminSiteConfig, agentConfigsHolder);
 
     m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
+    agentConfigsHolderField = AbstractUpgradeServerAction.class.getDeclaredField("agentConfigsHolder");
+    agentConfigsHolderField.setAccessible(true);
   }
 
   @Test
@@ -144,6 +157,7 @@ public class RangerKerberosConfigCalculationTest {
 
     RangerKerberosConfigCalculation action = new RangerKerberosConfigCalculation();
     m_clusterField.set(action, m_clusters);
+    agentConfigsHolderField.set(action, agentConfigsHolder);
 
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);

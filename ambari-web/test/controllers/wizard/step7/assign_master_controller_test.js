@@ -241,46 +241,11 @@ describe('App.AssignMasterOnStep7Controller', function () {
   describe("#renderHostInfo()", function () {
 
     beforeEach(function() {
-      sinon.stub(App.Host, 'find').returns([
-        Em.Object.create({
-          hostName: 'host1',
-          cpu: 1,
-          memory: 1,
-          diskInfo: {}
-        })
-      ]);
-      sinon.stub(view, 'sortHosts');
       sinon.stub(view, 'getHosts').returns([]);
-      sinon.stub(numberUtils, 'bytesToSize').returns(1);
     });
 
     afterEach(function() {
-      App.Host.find.restore();
-      view.sortHosts.restore();
-      numberUtils.bytesToSize.restore();
-    });
-
-    it("should set hosts", function() {
-      view.reopen({
-        content: Em.Object.create({
-          controllerName: null
-        })
-      });
-      view.renderHostInfo();
-      expect(view.get('hosts')).to.be.eql([Em.Object.create({
-        host_name: 'host1',
-        cpu: 1,
-        memory: 1,
-        disk_info: {},
-        host_info: Em.I18n.t('installer.step5.hostInfo').fmt('host1', 1, 1)
-      })]);
-      expect(view.sortHosts.calledWith([Em.Object.create({
-        host_name: 'host1',
-        cpu: 1,
-        memory: 1,
-        disk_info: {},
-        host_info: Em.I18n.t('installer.step5.hostInfo').fmt('host1', 1, 1)
-      })])).to.be.true;
+      view.getHosts.restore();
     });
 
     it("should make general request to get hosts", function() {

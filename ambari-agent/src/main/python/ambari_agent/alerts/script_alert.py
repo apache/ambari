@@ -24,10 +24,11 @@ import os
 import re
 from alerts.base_alert import BaseAlert
 from resource_management.core.environment import Environment
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
-from ambari_agent import Constants
+from ambari_commons.constants import AGENT_TMP_DIR
 
-logger = logging.getLogger("ambari_alerts")
+logger = logging.getLogger(__name__)
 
 class ScriptAlert(BaseAlert):
 
@@ -89,6 +90,7 @@ class ScriptAlert(BaseAlert):
   def _collect(self):
     cmd_module = self._load_source()
 
+    full_configurations = self.configuration_builder.get_configuration(self.cluster_id, None, None)
     if cmd_module is not None:
       configurations = {}
 
@@ -98,7 +100,7 @@ class ScriptAlert(BaseAlert):
           # for each token, if there is a value, store in; otherwise don't store
           # a key with a value of None
           for token in tokens:
-            value = self._get_configuration_value(token)
+            value = self._get_configuration_value(full_configurations, token)
             if value is not None:
               configurations[token] = value
       except AttributeError:
@@ -106,12 +108,14 @@ class ScriptAlert(BaseAlert):
         # be passed in so hopefully the script doesn't need any
         logger.debug("The script {0} does not have a get_tokens() function".format(str(cmd_module)))
 
+      Script.config = full_configurations
+
       # try to get basedir for scripts
       # it's needed for server side scripts to properly use resource management
       matchObj = re.match( r'((.*)services(.*)package)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        with Environment(basedir, tmp_dir=Constants.AGENT_TMP_DIR, logger=logging.getLogger('ambari_alerts')) as env:
+        with Environment(basedir, tmp_dir=AGENT_TMP_DIR, logger=logging.getLogger('alerts')) as env:
           result = cmd_module.execute(configurations, self.parameters, self.host_name)
       else:
         result = cmd_module.execute(configurations, self.parameters, self.host_name)
@@ -162,7 +166,7 @@ class ScriptAlert(BaseAlert):
       logger.debug("[Alert][{0}] Executing script check {1}".format(
         self.get_name(), self.path_to_script))
 
-          
+
     if (not self.path_to_script.endswith('.py')):
       logger.error("[Alert][{0}] Unable to execute script {1}".format(
         self.get_name(), self.path_to_script))

@@ -123,12 +123,14 @@ public class HostMaintenanceModeCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     hostMaintenanceModeCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
 
     // put a host into MM in order to trigger the warning
     check = new PrerequisiteCheck(null, null);
     Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
     hostMaintenanceModeCheck.perform(check, new PrereqCheckRequest("cluster", UpgradeType.HOST_ORDERED));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertFalse(check.getFailedDetail().isEmpty());
     Assert.assertEquals("The following hosts cannot be in Maintenance Mode: h3.", check.getFailReason());
   }
 }

@@ -55,7 +55,7 @@ public final class FlumeServiceCalculatedState extends DefaultServiceCalculatedS
           serviceName, null, null, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =
-          managementControllerProvider.get().getHostComponents(Collections.singleton(request));
+          managementControllerProvider.get().getHostComponents(Collections.singleton(request), true);
 
         State state = State.UNKNOWN;
         for (ServiceComponentHostResponse schr : hostComponentResponses) {

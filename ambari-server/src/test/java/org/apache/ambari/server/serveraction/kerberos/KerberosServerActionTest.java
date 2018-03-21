@@ -156,6 +156,7 @@ public class KerberosServerActionTest extends EasyMockSupport {
 
     expect(mockExecutionCommand.getCommandParams()).andReturn(commandParams).anyTimes();
     expect(mockExecutionCommand.getClusterName()).andReturn("c1").anyTimes();
+    expect(mockExecutionCommand.getClusterId()).andReturn("1").anyTimes();
     expect(mockExecutionCommand.getConfigurations()).andReturn(Collections.emptyMap()).anyTimes();
     expect(mockExecutionCommand.getRoleCommand()).andReturn(null).anyTimes();
     expect(mockExecutionCommand.getConfigurationTags()).andReturn(null).anyTimes();
