@@ -20,7 +20,6 @@ package org.apache.ambari.server.state;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -178,13 +177,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     componentType = serviceComponentDesiredStateEntity.getComponentType();
 
     updateComponentInfo();
-
-    List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities = hostComponentDesiredStateDAO.findByIndex(
-        service.getClusterId(),
-        service.getName(),
-        serviceComponentDesiredStateEntity.getComponentName()
-    );
-
 
     for (HostComponentStateEntity hostComponentStateEntity : serviceComponentDesiredStateEntity.getHostComponentStateEntities()) {
 

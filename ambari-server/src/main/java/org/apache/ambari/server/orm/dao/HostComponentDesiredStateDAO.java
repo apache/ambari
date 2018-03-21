@@ -93,32 +93,11 @@ public class HostComponentDesiredStateDAO {
   @RequiresSession
   public HostComponentDesiredStateEntity findByIndex(Long componentId) {
     final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
-      .createNamedQuery("HostComponentDesiredStateEntity.findByIndexAndHost", HostComponentDesiredStateEntity.class);
+      .createNamedQuery("HostComponentDesiredStateEntity.findByIndex", HostComponentDesiredStateEntity.class);
 
     query.setParameter("id", componentId);
 
     return daoUtils.selectSingle(query);
-  }
-
-  /**
-   * Retrieve the single Host Component Desired State for the given unique cluster, service, component, and host.
-   *
-   * @param clusterId Cluster ID
-   * @param serviceName Service Name
-   * @param componentName Component Name
-   * @return Return the Host Component Desired State entity that match the criteria.
-   */
-  @RequiresSession
-  public List<HostComponentDesiredStateEntity> findByIndex(Long clusterId, String serviceName,
-                                                     String componentName) {
-    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
-      .createNamedQuery("HostComponentDesiredStateEntity.findByIndex", HostComponentDesiredStateEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceName", serviceName);
-    query.setParameter("componentName", componentName);
-
-    return daoUtils.selectList(query);
   }
 
   @RequiresSession

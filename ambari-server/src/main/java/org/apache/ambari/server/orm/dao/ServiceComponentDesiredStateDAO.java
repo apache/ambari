@@ -147,7 +147,7 @@ public class ServiceComponentDesiredStateDAO {
    * @return all found entities according to input map.
    */
   @RequiresSession
-  public List<ServiceComponentDesiredStateEntity> findByNames(Map<Long, Map<String, List<String>>> serviceComponentDesiredStates) {
+  public List<ServiceComponentDesiredStateEntity> findByNames(Map<Long, Map<Long, List<String>>> serviceComponentDesiredStates) {
     if (MapUtils.isEmpty(serviceComponentDesiredStates)) {
       return Collections.emptyList();
     }
@@ -156,10 +156,10 @@ public class ServiceComponentDesiredStateDAO {
     Root<ServiceComponentDesiredStateEntity> desiredStates = cq.from(ServiceComponentDesiredStateEntity.class);
 
     List<Predicate> clusters = new ArrayList<>();
-    for (Map.Entry<Long, Map<String, List<String>>> cluster : serviceComponentDesiredStates.entrySet()) {
+    for (Map.Entry<Long, Map<Long, List<String>>> cluster : serviceComponentDesiredStates.entrySet()) {
       List<Predicate> services = new ArrayList<>();
-      for (Map.Entry<String, List<String>> service : cluster.getValue().entrySet()) {
-        services.add(cb.and(cb.equal(desiredStates.get("serviceName"), service.getKey()),
+      for (Map.Entry<Long, List<String>> service : cluster.getValue().entrySet()) {
+        services.add(cb.and(cb.equal(desiredStates.get("serviceId"), service.getKey()),
             desiredStates.get("componentName").in(service.getValue())));
       }
       clusters.add(cb.and(cb.equal(desiredStates.get("clusterId"), cluster.getKey()),

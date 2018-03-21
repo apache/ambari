@@ -2083,7 +2083,7 @@ public class ClusterImpl implements Cluster {
       Map<String, Collection<String>> changedConfigs = configHelper.getChangedConfigTypes(this, serviceConfigEntity,
           configGroup == null ? null : configGroup.getId(),
           clusterId,
-          serviceConfigEntity.getServiceName());
+          serviceConfigEntity.getServiceId());
 
       long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(clusterId,
         serviceId);
@@ -2423,7 +2423,7 @@ public class ClusterImpl implements Cluster {
       }
     }
     Map<String, Collection<String>> changedConfigs = configHelper.getChangedConfigTypes(this, serviceConfigEntity,
-        serviceConfigEntity.getGroupId(), clusterId, serviceConfigEntity.getServiceName());
+        serviceConfigEntity.getGroupId(), clusterId, serviceConfigEntity.getServiceId());
 
     ClusterEntity clusterEntity = getClusterEntity();
     long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(
