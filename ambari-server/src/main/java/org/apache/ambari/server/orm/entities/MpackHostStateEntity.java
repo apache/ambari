@@ -57,12 +57,17 @@ import org.apache.ambari.server.state.MpackInstallState;
     initialValue = 0)
 @NamedQueries({
     @NamedQuery(
-        name = "mpackHostStateForHost",
-        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState JOIN mpackHostState.hostEntity host "
-            + "WHERE mpackHostState.hostEntity.hostName=:hostName"),
+        name = "findInstallStateByHost",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.hostEntity.hostName=:hostName"),
     @NamedQuery(
-        name = "mpackHostStateForMpack",
-        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId") })
+        name = "findInstallStateByMpack",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId"),
+    @NamedQuery(
+        name = "findInstallStateByMpackAndHost",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId AND mpackHostState.hostEntity.hostName=:hostName"),
+    @NamedQuery(
+        name = "findInstallStateByStateAndHost",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.hostEntity.hostName=:hostName AND mpackHostState.state = :mpackInstallState") })
 
 public class MpackHostStateEntity {
 
@@ -184,7 +189,7 @@ public class MpackHostStateEntity {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(id, mpackId, hostId, state);
+    return Objects.hash(mpackId, hostId, state);
   }
 
   @Override
@@ -200,7 +205,7 @@ public class MpackHostStateEntity {
     }
 
     MpackHostStateEntity other = (MpackHostStateEntity) obj;
-    return Objects.equals(id, other.id) && Objects.equals(mpackId, other.mpackId)
+    return Objects.equals(mpackId, other.mpackId)
         && Objects.equals(hostId, other.hostId) && Objects.equals(state, other.state);
   }
 }

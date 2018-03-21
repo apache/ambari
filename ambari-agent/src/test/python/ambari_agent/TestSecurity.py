@@ -18,7 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import StringIO
-import sys, subprocess
+import sys
+from ambari_commons import subprocess32
 from mock.mock import MagicMock, patch, ANY
 import mock.mock
 import unittest
@@ -58,59 +59,6 @@ class TestSecurity(unittest.TestCase):
   def tearDown(self):
     # enable stdout
     sys.stdout = sys.__stdout__
-
-
-  ### VerifiedHTTPSConnection ###
-
-  @patch.object(security.CertificateManager, "initSecurity")
-  @patch("socket.create_connection")
-  @patch("ssl.wrap_socket")
-  def test_VerifiedHTTPSConnection_connect(self, wrap_socket_mock,
-                                           create_connection_mock,
-                                            init_security_mock):
-    init_security_mock.return_value = None
-    self.config.set('security', 'keysdir', '/dummy-keysdir')
-    connection = security.VerifiedHTTPSConnection("example.com",
-      self.config.get('server', 'secured_url_port'), self.config)
-    connection._tunnel_host = False
-    connection.sock = None
-    connection.connect()
-    self.assertTrue(wrap_socket_mock.called)
-
-  ### VerifiedHTTPSConnection with no certificates creation
-  @patch.object(security.CertificateManager, "initSecurity")
-  @patch("socket.create_connection")
-  @patch("ssl.wrap_socket")
-  def test_Verified_HTTPSConnection_non_secure_connect(self, wrap_socket_mock,
-                                                    create_connection_mock,
-                                                    init_security_mock):
-    connection = security.VerifiedHTTPSConnection("example.com",
-      self.config.get('server', 'secured_url_port'), self.config)
-    connection._tunnel_host = False
-    connection.sock = None
-    connection.connect()
-    self.assertFalse(init_security_mock.called)
-
-  ### VerifiedHTTPSConnection with two-way SSL authentication enabled
-  @patch.object(security.CertificateManager, "initSecurity")
-  @patch("socket.create_connection")
-  @patch("ssl.wrap_socket")
-  def test_Verified_HTTPSConnection_two_way_ssl_connect(self, wrap_socket_mock,
-                                                    create_connection_mock,
-                                                    init_security_mock):
-    wrap_socket_mock.side_effect=ssl.SSLError()
-    connection = security.VerifiedHTTPSConnection("example.com",
-      self.config.get('server', 'secured_url_port'), self.config)
-    self.config.isTwoWaySSLConnection = MagicMock(return_value=True)
-
-    connection._tunnel_host = False
-    connection.sock = None
-    try:
-      connection.connect()
-    except ssl.SSLError:
-      pass
-    self.assertTrue(init_security_mock.called)
-
   ### CachedHTTPSConnection ###
 
   @patch.object(security.VerifiedHTTPSConnection, "connect")
@@ -343,12 +291,12 @@ class TestSecurity(unittest.TestCase):
       pass
     self.assertFalse(open_mock.return_value.write.called)
 
-  @patch("subprocess.Popen")
-  @patch("subprocess.Popen.communicate")
+  @patch.object(subprocess32, "Popen")
+  @patch("subprocess32.Popen.communicate")
   @patch.object(os, "chmod")
   def test_genAgentCrtReq(self, chmod_mock, communicate_mock, popen_mock):
     man = CertificateManager(self.config, "active_server")
-    p = MagicMock(spec=subprocess.Popen)
+    p = MagicMock(spec=subprocess32.Popen)
     p.communicate = communicate_mock
     popen_mock.return_value = p
     man.genAgentCrtReq('/dummy-keysdir/hostname.key')

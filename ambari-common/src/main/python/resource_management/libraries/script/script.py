@@ -28,6 +28,7 @@ import logging
 import platform
 import inspect
 import tarfile
+import traceback
 import time
 from optparse import OptionParser
 import resource_management
@@ -117,7 +118,7 @@ class LockedConfigureMeta(type):
       def locking_configure(obj, *args, **kw):
         # local import to avoid circular dependency (default imports Script)
         from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
+        parallel_execution_enabled = int(default("/agentLevelParams/agentConfigParams/agent/parallel_execution", 0)) == 1
         lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
         with lock:
           original_configure(obj, *args, **kw)
@@ -210,6 +211,26 @@ class Script(object):
       return os.path.realpath(config_path)
     return None
 
+
+  def save_mpack_to_structured_out(self, command_name):
+    """
+    Writes out information about the managment pack which was installed if this is an installation command.
+    :param command_name: command name
+    :return: None
+    """
+    is_install_command = command_name is not None and command_name.lower() == "install"
+    if not is_install_command:
+      return
+
+    command_repository = CommandRepository(self.get_config()['repositoryFile'])
+
+    Logger.info("Reporting installation state for {0}".format(command_repository))
+
+    self.put_structured_out({"mpackId": command_repository.mpack_id})
+    self.put_structured_out({"mpackName":command_repository.mpack_name})
+    self.put_structured_out({"mpackVersion":command_repository.version_string})
+
+
   def save_component_version_to_structured_out(self, command_name):
     """
     Saves the version of the component for this command to the structured out file. If the
@@ -224,49 +245,19 @@ class Script(object):
     :param command_name: command name
     :return: None
     """
-    from resource_management.libraries.functions.default import default
     from resource_management.libraries.functions import stack_select
-
-    repository_resolved = default("repositoryFile/resolved", False)
-    repository_version = default("repositoryFile/repoVersion", None)
-    is_install_command = command_name is not None and command_name.lower() == "install"
-
-    # start out with no version
-    component_version = None
-
-    # install command + trusted repo means use the repo version and don't consult stack-select
-    # this is needed in cases where an existing symlink is on the system and stack-select can't
-    # change it on installation (because it's scared to in order to support parallel installs)
-    if is_install_command and repository_resolved and repository_version is not None:
-      Logger.info("The repository with version {0} for this command has been marked as resolved."\
-        " It will be used to report the version of the component which was installed".format(repository_version))
-
-      component_version = repository_version
 
     stack_name = Script.get_stack_name()
     stack_select_package_name = stack_select.get_package_name()
 
     if stack_select_package_name and stack_name:
-      # only query for the component version from stack-select if we can't trust the repository yet
-      if component_version is None:
-        component_version = version_select_util.get_component_version_from_symlink(stack_name, stack_select_package_name)
-
-      # last ditch effort - should cover the edge case where the package failed to setup its
-      # link and we have to try to see if <stack-select> can help
-      if component_version is None:
-        output, code, versions = stack_select.unsafe_get_stack_versions()
-        if len(versions) == 1:
-          component_version = versions[0]
-          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging. " \
-                         "However, the stack-select tool was able to report a single version installed ({1}). " \
-                         "This is the version that will be reported.".format(stack_select_package_name, component_version))
+      component_version = version_select_util.get_component_version_from_symlink(stack_name, stack_select_package_name)
 
       if component_version:
         self.put_structured_out({"version": component_version})
-
         # if repository_version_id is passed, pass it back with the version
         from resource_management.libraries.functions.default import default
-        repo_version_id = default("/hostLevelParams/repository_version_id", None)
+        repo_version_id = default("/repositoryFile/repoVersionId", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:
@@ -282,7 +273,7 @@ class Script(object):
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
+    stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
@@ -384,6 +375,8 @@ class Script(object):
       ex.pre_raise()
       raise
     finally:
+      self.save_mpack_to_structured_out(self.command_name)
+
       if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out(self.command_name)
 
@@ -560,7 +553,6 @@ class Script(object):
     if package_version is None:
       package_version = default("hostLevelParams/package_version", None)
 
-    package_version = None
     if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
       self.load_available_packages()
       package_name = self.get_package_from_available(name, self.available_packages_in_repos)
@@ -663,11 +655,11 @@ class Script(object):
   @staticmethod
   def get_stack_name():
     """
-    Gets the name of the stack from hostLevelParams/stack_name.
+    Gets the name of the stack from clusterLevelParams/stack_name.
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = default("/hostLevelParams/stack_name", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
     if stack_name is None:
       stack_name = default("/configurations/cluster-env/stack_name", "HDP")
 
@@ -702,10 +694,10 @@ class Script(object):
     :return: a normalized stack version or None
     """
     config = Script.get_config()
-    if 'hostLevelParams' not in config or 'stack_version' not in config['hostLevelParams']:
+    if 'clusterLevelParams' not in config or 'stack_version' not in config['clusterLevelParams']:
       return None
 
-    stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+    stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
@@ -786,7 +778,8 @@ class Script(object):
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
-    pkg_provider = get_provider("Package")   
+
+    pkg_provider = get_provider("Package")
     try:
       self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
     except Exception as err:
@@ -821,16 +814,16 @@ class Script(object):
     """
     config = self.get_config()
 
-    if 'host_sys_prepped' in config['hostLevelParams']:
+    if 'host_sys_prepped' in config['ambariLevelParams']:
       # do not install anything on sys-prepped host
-      if config['hostLevelParams']['host_sys_prepped'] is True:
+      if config['ambariLevelParams']['host_sys_prepped'] is True:
         Logger.info("Node has all packages pre-installed. Skipping.")
         return
       pass
     try:
-      package_list_str = config['hostLevelParams']['package_list']
-      agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-      agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
+      package_list_str = config['commandParams']['package_list']
+      agent_stack_retry_on_unavailability = bool(config['ambariLevelParams']['agent_stack_retry_on_unavailability'])
+      agent_stack_retry_count = int(config['ambariLevelParams']['agent_stack_retry_count'])
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
@@ -847,15 +840,15 @@ class Script(object):
                       retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
                       retry_count=agent_stack_retry_count)
     except KeyError:
-      pass  # No reason to worry
+      traceback.print_exc()
 
     if OSCheck.is_windows_family():
       #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
       hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(config['hostLevelParams']['jdk_location'],
-                          config["hostLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
+      install_windows_msi(config['ambariLevelParams']['jdk_location'],
+                          config["agentLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
                           hadoop_user, self.get_password(hadoop_user),
-                          str(config['hostLevelParams']['stack_version']))
+                          str(config['clusterLevelParams']['stack_version']))
       reload_windows_env()
 
   def check_package_condition(self, package):
@@ -966,7 +959,7 @@ class Script(object):
     else:
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      if "upgrade_type" in inspect.getargspec(self.stop).args:
+      if True:
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
@@ -1018,8 +1011,8 @@ class Script(object):
         else:
           self.post_rolling_restart(env)
 
-    if self.should_expose_component_version("restart"):
-      self.save_component_version_to_structured_out("restart")
+    if self.should_expose_component_version(self.command_name):
+      self.save_component_version_to_structured_out(self.command_name)
 
 
   # TODO, remove after all services have switched to post_upgrade_restart
@@ -1074,7 +1067,7 @@ class Script(object):
   def generate_configs_get_xml_file_content(self, filename, dict):
     config = self.get_config()
     return {'configurations':config['configurations'][dict],
-            'configuration_attributes':config['configuration_attributes'][dict]}
+            'configuration_attributes':config['configurationAttributes'][dict]}
 
   def generate_configs_get_xml_file_dict(self, filename, dict):
     config = self.get_config()

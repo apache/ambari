@@ -354,7 +354,7 @@ public class HostComponentResourceProviderTest {
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.findService(cluster, "Component100")).andReturn("Service100").anyTimes();
+    expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
@@ -540,7 +540,7 @@ public class HostComponentResourceProviderTest {
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.findService(cluster, "Component100")).andReturn("Service100").anyTimes();
+    expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();

@@ -33,6 +33,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,6 +215,10 @@ public class RequestStageContainer {
 
       if (null != requestContext) {
         request.setRequestContext(requestContext);
+      }
+
+      if (request != null) { //request can be null at least in JUnit
+        request.setUserName(AuthorizationHelper.getAuthenticatedName());
       }
 
       if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {

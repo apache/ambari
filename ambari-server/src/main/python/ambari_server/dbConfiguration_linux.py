@@ -23,7 +23,7 @@ import os
 import re
 import shutil
 import socket
-import subprocess
+from ambari_commons import subprocess32
 import sys
 import time
 import pwd
@@ -645,10 +645,10 @@ class PGConfig(LinuxDBMSConfig):
           print out
       print "About to start PostgreSQL"
       try:
-        process = subprocess.Popen(PGConfig.PG_START_CMD.split(' '),
-                                   stdout=subprocess.PIPE,
-                                   stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE
+        process = subprocess32.Popen(PGConfig.PG_START_CMD.split(' '),
+                                   stdout=subprocess32.PIPE,
+                                   stdin=subprocess32.PIPE,
+                                   stderr=subprocess32.PIPE
         )
         out, err = process.communicate()
         retcode = process.returncode
@@ -767,10 +767,10 @@ class PGConfig(LinuxDBMSConfig):
   @staticmethod
   def _restart_postgres():
     print "Restarting PostgreSQL"
-    process = subprocess.Popen(PGConfig.PG_RESTART_CMD.split(' '),
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE
+    process = subprocess32.Popen(PGConfig.PG_RESTART_CMD.split(' '),
+                               stdout=subprocess32.PIPE,
+                               stdin=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE
     )
     time.sleep(5)
     result = process.poll()
@@ -1210,10 +1210,10 @@ class SQLAConfig(LinuxDBMSConfig):
     cmd = SQLAConfig.EXTRACT_CMD.format(files[0], get_resources_location(properties))
 
 
-    process = subprocess.Popen(cmd.split(' '),
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE
+    process = subprocess32.Popen(cmd.split(' '),
+                               stdout=subprocess32.PIPE,
+                               stdin=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE
     )
 
     out, err = process.communicate()

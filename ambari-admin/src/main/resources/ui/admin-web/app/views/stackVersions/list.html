@@ -82,10 +82,10 @@
         </span>
       </td>
       <td class="verison-label-row">
-        <div ng-show="repo.status == 'current'">
+        <div ng-show="repo.status == 'CURRENT'">
           <span class="label {{'status-' + repo.status}}">{{'versions.current' | translate}}:&nbsp;{{repo.currentHosts}}/{{repo.totalHosts}}</span>
         </div>
-        <div ng-show="repo.status == 'installed'">
+        <div ng-show="repo.status == 'INSTALLED'">
           <span class="label {{'status-' + repo.status}}">{{'versions.installed' | translate}}:&nbsp;{{repo.installedHosts}}/{{repo.totalHosts}}</span>
         </div>
         <div ng-show="!repo.cluster">

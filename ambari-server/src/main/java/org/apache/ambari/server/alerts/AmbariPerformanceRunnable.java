@@ -343,7 +343,7 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
     alert.setLabel(entity.getLabel());
     alert.setText(overview);
     alert.setTimestamp(System.currentTimeMillis());
-    alert.setCluster(cluster.getClusterName());
+    alert.setClusterId(cluster.getClusterId());
 
     return Collections.singletonList(alert);
   }
@@ -371,11 +371,11 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
       Object value = parameter.getValue();
 
       if (StringUtils.equals(parameter.getName(), area.m_warningParameter)) {
-        warningThreshold = getThresholdValue(value, warningThreshold);
+        warningThreshold = alertHelper.getThresholdValue(value, warningThreshold);
       }
 
       if (StringUtils.equals(parameter.getName(), area.m_criticalParameter)) {
-        criticalThreshold = getThresholdValue(value, criticalThreshold);
+        criticalThreshold = alertHelper.getThresholdValue(value, criticalThreshold);
       }
     }
 

@@ -191,8 +191,12 @@ class InstallPackages(Script):
       for directory_struct in directories:
         if "component" in directory_struct:
           component_name = directory_struct["component"]
+
       if component_name:
         stack_version = stack_select.get_stack_version_before_install(component_name)
+      else:
+        Logger.warning("Unable to fix {0} since stack using outdated stack_packages.json".format(package_name))
+        return
 
       if 0 == len(restricted_packages) or package_name in restricted_packages:
         if stack_version:
@@ -371,8 +375,8 @@ class InstallPackages(Script):
     ret_code = 0
     
     config = self.get_config()
-    agent_stack_retry_on_unavailability = cbool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-    agent_stack_retry_count = cint(config['hostLevelParams']['agent_stack_retry_count'])
+    agent_stack_retry_on_unavailability = cbool(config['ambariLevelParams']['agent_stack_retry_on_unavailability'])
+    agent_stack_retry_count = cint(config['ambariLevelParams']['agent_stack_retry_count'])
 
     # Install packages
     packages_were_checked = False

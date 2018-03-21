@@ -18,10 +18,12 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -46,6 +48,7 @@ public class HiveZKQuorumConfigActionTest {
   private HiveZKQuorumConfigAction m_action = null;
 
   private Clusters m_clusters = EasyMock.createStrictMock(Clusters.class);
+  private AgentConfigsHolder agentConfigsHolder = EasyMock.createStrictMock(AgentConfigsHolder.class);
   private Cluster m_cluster = EasyMock.createStrictMock(Cluster.class);
   private Config m_hiveSiteConfig = EasyMock.createStrictMock(Config.class);
   private ExecutionCommand m_executionCommand = EasyMock.createNiceMock(ExecutionCommand.class);
@@ -66,7 +69,11 @@ public class HiveZKQuorumConfigActionTest {
     // set the mock objects on the class under test
     Field m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
+    Field agentConfigsHolderField = AbstractUpgradeServerAction.class.getDeclaredField("agentConfigsHolder");
+    agentConfigsHolderField.setAccessible(true);
+
     m_clusterField.set(m_action, m_clusters);
+    agentConfigsHolderField.set(m_action, agentConfigsHolder);
     m_action.setExecutionCommand(m_executionCommand);
 
   }
@@ -96,11 +103,16 @@ public class HiveZKQuorumConfigActionTest {
 
     EasyMock.expect(m_cluster.getDesiredConfigByType(HiveZKQuorumConfigAction.HIVE_SITE_CONFIG_TYPE)).andReturn(m_hiveSiteConfig).atLeastOnce();
 
-    EasyMock.replay(m_executionCommand, m_clusters, m_cluster, m_hiveSiteConfig);
+    EasyMock.expect(m_cluster.getClusterId()).andReturn(1L).atLeastOnce();
+    EasyMock.expect(m_cluster.getHosts()).andReturn(Collections.emptyList()).atLeastOnce();
+    agentConfigsHolder.updateData(EasyMock.eq(1L), EasyMock.eq(Collections.emptyList()));
+    EasyMock.expectLastCall().atLeastOnce();
+
+    EasyMock.replay(m_executionCommand, m_clusters, m_cluster, m_hiveSiteConfig, agentConfigsHolder);
 
     m_action.execute(null);
 
-    EasyMock.verify(m_executionCommand, m_clusters, m_cluster, m_hiveSiteConfig);
+    EasyMock.verify(m_executionCommand, m_clusters, m_cluster, m_hiveSiteConfig, agentConfigsHolder);
 
     Assert.assertEquals(zookeeperQuorum, hiveSiteProperties.get(HiveZKQuorumConfigAction.HIVE_SITE_ZK_QUORUM));
     Assert.assertEquals(zookeeperQuorum, hiveSiteProperties.get(HiveZKQuorumConfigAction.HIVE_SITE_ZK_CONNECT_STRING));

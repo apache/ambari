@@ -685,7 +685,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       },
       exitRoute: function (router, context, callback) {
         var controller = router.get('mainAdminServiceAutoStartController');
-        if (!controller.get('isSaveDisabled')) {
+        if (controller.get('isModified')) {
           controller.showSavePopup(callback);
         } else {
           callback();
@@ -908,6 +908,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 
     enableRAHighAvailability: require('routes/ra_high_availability_routes'),
+
+    enableNameNodeFederation: require('routes/namenode_federation_routes'),
 
     addHawqStandby: require('routes/add_hawq_standby_routes'),
 

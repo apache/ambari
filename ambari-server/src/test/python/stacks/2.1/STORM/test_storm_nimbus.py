@@ -83,23 +83,8 @@ class TestStormNimbus(TestStormBase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
                        )
-    self.assert_configure_default()
+    self.assert_configure_default(has_metrics=True)
 
-    self.assertResourceCalled('File', '/etc/storm/conf/storm-metrics2.properties',
-                              content = Template('storm-metrics2.properties.j2'),
-                              owner = 'storm',
-                              group = 'hadoop',
-                              )
-    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
-                              action = ['delete'],
-                              )
-    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
-                              action = ['delete'],
-                              )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink-legacy-with-common-*.jar /usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
-                              not_if = 'ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
-                              only_if = 'ls /usr/lib/storm/lib/ambari-metrics-storm-sink-legacy-with-common-*.jar',
-                              )
     self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm nimbus > /var/log/storm/nimbus.out 2>&1 &\n echo $! > /var/run/storm/nimbus.pid',
         path = ['/usr/bin'],
         user = 'storm',
@@ -134,23 +119,8 @@ class TestStormNimbus(TestStormBase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
                        )
-    self.assert_configure_default()
+    self.assert_configure_default(has_metrics=True, legacy=False)
 
-    self.assertResourceCalled('File', '/etc/storm/conf/storm-metrics2.properties',
-                              content = Template('storm-metrics2.properties.j2'),
-                              owner = 'storm',
-                              group = 'hadoop',
-                              )
-    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
-                              action = ['delete'],
-                              )
-    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
-                              action = ['delete'],
-                              )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar /usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
-                              not_if = 'ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
-                              only_if = 'ls /usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar',
-                              )
     self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm nimbus > /var/log/storm/nimbus.out 2>&1 &\n echo $! > /var/run/storm/nimbus.pid',
         path = ['/usr/bin'],
         user = 'storm',

@@ -25,6 +25,7 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {AuthService} from '@app/services/auth.service';
 
 import {LoginFormComponent} from './login-form.component';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('LoginFormComponent', () => {
   let component: LoginFormComponent;
@@ -48,6 +49,7 @@ describe('LoginFormComponent', () => {
     TestBed.configureTestingModule({
       declarations: [LoginFormComponent],
       imports: [
+        RouterTestingModule,
         FormsModule,
         ...TranslationModules,
         StoreModule.provideStore({

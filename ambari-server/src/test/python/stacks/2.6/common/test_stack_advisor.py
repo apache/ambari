@@ -1394,26 +1394,26 @@ class TestHDP26StackAdvisor(TestCase):
     expected = {
       'ranger-admin-site': {
         'properties': {
-          'ranger.audit.solr.zookeepers': 'NONE', 
+          'ranger.audit.solr.zookeepers': 'NONE',
           'ranger.audit.source.type': 'solr'
         }
-      }, 
+      },
       'admin-properties': {
         'properties': {
           'policymgr_external_url': 'http://host1:6080'
         }
-      }, 
+      },
       'ranger-tagsync-site': {
         'properties': {}
-      }, 
+      },
       'tagsync-application-properties': {
-        'properties': {} 
-      }, 
+        'properties': {}
+      },
       'ranger-env': {
         'properties': {
           'ranger-storm-plugin-enabled': 'No'
         }
-      }, 
+      },
       'ranger-ugsync-site': {
         'properties': {
           'ranger.usersync.group.searchenabled': 'true'

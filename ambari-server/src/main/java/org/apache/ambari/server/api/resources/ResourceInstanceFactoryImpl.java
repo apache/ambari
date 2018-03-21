@@ -254,6 +254,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ExtensionLinkResourceDefinition();
         break;
 
+      case DefaultOperatingSystem:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.DefaultOperatingSystem,
+            "default_operating_system", "default_operating_systems");
+        break;
+
       case OperatingSystem:
         resourceDefinition = new OperatingSystemResourceDefinition();
         break;
@@ -446,6 +451,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case UpgradeItem:
         resourceDefinition = new SimpleResourceDefinition(
             Resource.Type.UpgradeItem, "upgrade_item", "upgrade_items", Resource.Type.Task);
+        break;
+
+      case UpgradePlan:
+        resourceDefinition = new SimpleResourceDefinition(
+            Resource.Type.UpgradePlan, "upgrade_plan", "upgrade_plans");
         break;
 
       case UpgradeSummary:

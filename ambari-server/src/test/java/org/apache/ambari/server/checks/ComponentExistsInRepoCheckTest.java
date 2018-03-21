@@ -185,6 +185,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
     Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
   }
 
@@ -222,6 +223,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(check.getFailedDetail().isEmpty());
     Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
   }
 
@@ -248,6 +250,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertEquals(1, check.getFailedDetail().size());
     Assert.assertTrue(check.getFailedOn().contains("ZOOKEEPER"));
   }
 
@@ -276,6 +279,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertEquals(1, check.getFailedDetail().size());
     Assert.assertTrue(check.getFailedOn().contains("ZOOKEEPER_SERVER"));
   }
 
@@ -310,6 +314,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertEquals(1, check.getFailedDetail().size());
     Assert.assertTrue(check.getFailedOn().contains("FOO_SERVICE"));
   }
 
@@ -350,6 +355,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertEquals(1, check.getFailedDetail().size());
     Assert.assertTrue(check.getFailedOn().contains("FOO_COMPONENT"));
   }
 

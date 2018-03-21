@@ -72,6 +72,7 @@
   </property>
   <property>
     <name>spark.history.fs.logDirectory</name>
+    <display-name>Spark History FS Log directory</display-name>
     <value>{{spark_history_dir}}</value>
     <final>true</final>
     <description>
@@ -91,6 +92,7 @@
   </property>
   <property>
     <name>spark.eventLog.dir</name>
+    <display-name>Spark Eventlog directory</display-name>
     <value>{{spark_history_dir}}</value>
     <final>true</final>
     <description>

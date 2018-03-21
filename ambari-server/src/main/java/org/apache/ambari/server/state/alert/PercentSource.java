@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -25,6 +29,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PercentSource extends Source {
 
   @SerializedName("numerator")
@@ -38,6 +43,7 @@ public class PercentSource extends Source {
    *
    * @return a metric value representing the numerator (never {@code null}).
    */
+  @JsonProperty("numerator")
   public MetricFractionPart getNumerator() {
     return m_numerator;
   }
@@ -47,29 +53,16 @@ public class PercentSource extends Source {
    *
    * @return a metric value representing the denominator (never {@code null}).
    */
+  @JsonProperty("denominator")
   public MetricFractionPart getDenominator() {
     return m_denominator;
   }
 
-  /**
-   *
-   */
   @Override
   public int hashCode() {
-    final int prime = 31;
-
-    int result = super.hashCode();
-    result = prime * result
-        + ((m_denominator == null) ? 0 : m_denominator.hashCode());
-    result = prime * result
-        + ((m_numerator == null) ? 0 : m_numerator.hashCode());
-
-    return result;
+    return Objects.hash(super.hashCode(), m_denominator, m_numerator);
   }
 
-  /**
-   *
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -85,24 +78,8 @@ public class PercentSource extends Source {
     }
 
     PercentSource other = (PercentSource) obj;
-
-    if (m_denominator == null) {
-      if (other.m_denominator != null) {
-        return false;
-      }
-    } else if (!m_denominator.equals(other.m_denominator)) {
-      return false;
-    }
-
-    if (m_numerator == null) {
-      if (other.m_numerator != null) {
-        return false;
-      }
-    } else if (!m_numerator.equals(other.m_numerator)) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(m_denominator, other.m_denominator) &&
+      Objects.equals(m_numerator, other.m_numerator);
   }
 
   /**
@@ -112,6 +89,7 @@ public class PercentSource extends Source {
    * Equality checking for instances of this class should be executed on every
    * member to ensure that reconciling stack differences is correct.
    */
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   public static final class MetricFractionPart {
     @SerializedName("jmx")
     private String m_jmxInfo = null;
@@ -122,6 +100,7 @@ public class PercentSource extends Source {
     /**
      * @return the jmx info, if this metric is jmx-based
      */
+    @JsonProperty("jmx")
     public String getJmxInfo() {
       return m_jmxInfo;
     }
@@ -129,62 +108,29 @@ public class PercentSource extends Source {
     /**
      * @return the ganglia info, if this metric is ganglia-based
      */
+    @JsonProperty("ganglia")
     public String getGangliaInfo() {
       return m_gangliaInfo;
     }
 
-    /**
-     *
-     */
     @Override
     public int hashCode() {
-      final int prime = 31;
-
-      int result = 1;
-      result = prime * result
-          + ((m_gangliaInfo == null) ? 0 : m_gangliaInfo.hashCode());
-
-      result = prime * result
-          + ((m_jmxInfo == null) ? 0 : m_jmxInfo.hashCode());
-
-      return result;
+      return Objects.hash(m_gangliaInfo, m_jmxInfo);
     }
 
-    /**
-     *
-     */
     @Override
     public boolean equals(Object obj) {
       if (this == obj) {
         return true;
       }
 
-      if (obj == null) {
-        return false;
-      }
-
-      if (getClass() != obj.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
       MetricFractionPart other = (MetricFractionPart) obj;
-      if (m_gangliaInfo == null) {
-        if (other.m_gangliaInfo != null) {
-          return false;
-        }
-      } else if (!m_gangliaInfo.equals(other.m_gangliaInfo)) {
-        return false;
-      }
-
-      if (m_jmxInfo == null) {
-        if (other.m_jmxInfo != null) {
-          return false;
-        }
-      } else if (!m_jmxInfo.equals(other.m_jmxInfo)) {
-        return false;
-      }
-
-      return true;
+      return Objects.equals(m_gangliaInfo, other.m_gangliaInfo) &&
+        Objects.equals(m_jmxInfo, other.m_jmxInfo);
     }
 
   }

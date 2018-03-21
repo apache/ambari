@@ -22,13 +22,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -38,6 +37,7 @@ import com.google.gson.annotations.SerializedName;
 public class CommandRepository {
 
   @SerializedName("repositories")
+  @JsonProperty("repositories")
   private List<Repository> m_repositories = new ArrayList<>();
 
   @SerializedName("mpackId")
@@ -50,9 +50,11 @@ public class CommandRepository {
   private String m_mpackVersion;
 
   @SerializedName("repoFileName")
+  @JsonProperty("repoFileName")
   private String m_repoFileName;
 
   @SerializedName("feature")
+  @JsonProperty("feature")
   private final CommandRepositoryFeature feature = new CommandRepositoryFeature();
 
   /**
@@ -63,13 +65,6 @@ public class CommandRepository {
   public CommandRepositoryFeature getFeature(){
     return feature;
   }
-
-  /**
-   * {@code true} if Ambari believes that this repository has reported back it's
-   * version after distribution.
-   */
-  @SerializedName("resolved")
-  private final boolean m_resolved = true;
 
   /**
    * @param id
@@ -88,7 +83,7 @@ public class CommandRepository {
   }
 
   /**
-   * @param version
+   * @param mpackVersion
    *          the mpack version
    */
   public void setMpackVersion(String mpackVersion) {
@@ -148,42 +143,6 @@ public class CommandRepository {
   }
 
   /**
-   * Gets whether this repository has been marked as having its version
-   * resolved.
-   *
-   * @return {@code true} if this repository has been confirmed to have the
-   *         right version.
-   */
-  public boolean isResolved() {
-    return m_resolved;
-  }
-
-  /**
-   * Update repository id to be consistent with old format
-   *
-   * @param repoVersion
-   */
-  @Deprecated
-  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  public void setLegacyRepoId(String repoVersion){
-    for (Repository repo : m_repositories) {
-      repo.m_repoId = String.format("%s-%s", repo.getRepoName(), repoVersion);
-    }
-  }
-
-  /**
-   * Sets filename for the repo
-   *
-   * @param stackName  name of the stack
-   * @param repoVersion repository version
-   */
-  @Deprecated
-  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  public void setLegacyRepoFileName(String stackName, String repoVersion) {
-    m_repoFileName = String.format("%s-%s", stackName, repoVersion);
-  }
-
-  /**
    * Sets filename for the repo
    *
    * @param stackName  name of the stack
@@ -202,6 +161,7 @@ public class CommandRepository {
      * Repository is pre-installed on the host
      */
     @SerializedName("preInstalled")
+    @JsonProperty("preInstalled")
     private Boolean m_isPreInstalled = false;
 
     /**
@@ -210,6 +170,7 @@ public class CommandRepository {
      * Currently affecting: getting available packages from the repository
      */
     @SerializedName("scoped")
+    @JsonProperty("scoped")
     private boolean m_isScoped = true;
 
     public void setIsScoped(boolean isScoped){
@@ -219,7 +180,6 @@ public class CommandRepository {
     public void setPreInstalled(String isPreInstalled) {
       m_isPreInstalled = isPreInstalled.equalsIgnoreCase("true");
     }
-
   }
 
   /**
@@ -229,25 +189,31 @@ public class CommandRepository {
   public static class Repository {
 
     @SerializedName("baseUrl")
+    @JsonProperty("baseUrl")
     private String m_baseUrl;
 
     @SerializedName("repoId")
+    @JsonProperty("repoId")
     private String m_repoId;
 
     @SerializedName("ambariManaged")
+    @JsonProperty("ambariManaged")
     private boolean m_ambariManaged = true;
 
-
     @SerializedName("repoName")
+    @JsonProperty("repoName")
     private final String m_repoName;
 
     @SerializedName("distribution")
+    @JsonProperty("distribution")
     private final String m_distribution;
 
     @SerializedName("components")
+    @JsonProperty("components")
     private final String m_components;
 
     @SerializedName("mirrorsList")
+    @JsonProperty("mirrorsList")
     private String m_mirrorsList;
 
     @SerializedName("tags")
@@ -286,24 +252,8 @@ public class CommandRepository {
       m_baseUrl = url;
     }
 
-    public String getOsType() {
-      return m_osType;
-    }
-
-    public String getRepoId() {
-      return m_repoId;
-    }
-
     public String getRepoName() {
       return m_repoName;
-    }
-
-    public String getDistribution() {
-      return m_distribution;
-    }
-
-    public String getComponents() {
-      return m_components;
     }
 
     public String getBaseUrl() {
@@ -330,4 +280,5 @@ public class CommandRepository {
     }
 
   }
+
 }

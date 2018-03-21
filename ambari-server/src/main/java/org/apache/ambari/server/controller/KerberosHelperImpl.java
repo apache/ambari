@@ -1553,6 +1553,10 @@ public class KerberosHelperImpl implements KerberosHelper {
               keytabFileGroupAccess = variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupAccess(), configurations);
               keytabFileConfiguration = variableReplacementHelper.replaceVariables(keytabDescriptor.getConfiguration(), configurations);
             }
+            if (keytabFileOwnerName == null || keytabFileGroupName == null) {
+              LOG.warn("Missing owner ({}) or group name ({}) of kerberos descriptor {}", keytabFileOwnerName, keytabFileGroupName, keytabDescriptor.getName());
+            }
+
             // Evaluate the principal "pattern" found in the record to generate the "evaluated principal"
             // by replacing the _HOST and _REALM variables.
             String evaluatedPrincipal = principal.replace("_HOST", hostname).replace("_REALM", realm);
@@ -1598,7 +1602,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               // TODO probably fail on group difference. Some services can inject its principals to same keytab, but
               // TODO with different owners, so make sure that keytabs are accessible through group acls
               // TODO this includes same group name and group 'r' mode
-              if (!resolvedKeytab.getGroupName().equals(sameKeytab.getGroupName())) {
+              if (!StringUtils.equals(resolvedKeytab.getGroupName(), sameKeytab.getGroupName())) {
                 if (differentOwners) {
                   LOG.error(warnTemplate,
                     keytabFilePath, hostname, "groups", sameKeytab.getGroupName(),
@@ -1611,7 +1615,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                     sameKeytab.getGroupName());
                 }
               }
-              if (!resolvedKeytab.getGroupAccess().equals(sameKeytab.getGroupAccess())) {
+              if (!StringUtils.equals(resolvedKeytab.getGroupAccess(), sameKeytab.getGroupAccess())) {
                 if (differentOwners) {
                   if (!sameKeytab.getGroupAccess().contains("r")) {
                     LOG.error("Keytab '{}' on host '{}' referenced by multiple identities which have different owners," +

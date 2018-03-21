@@ -40,8 +40,12 @@ import freemarker.template.TemplateException;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.StatusMessage;
+import org.apache.ambari.logsearch.common.LabelFallbackHandler;
+import org.apache.ambari.logsearch.conf.UIMappingConfig;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
+import org.apache.ambari.logsearch.model.metadata.AuditFieldMetadataResponse;
+import org.apache.ambari.logsearch.model.metadata.FieldMetadata;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
@@ -51,7 +55,6 @@ import org.apache.ambari.logsearch.model.request.impl.UserExportRequest;
 import org.apache.ambari.logsearch.model.response.AuditLogData;
 import org.apache.ambari.logsearch.model.response.AuditLogResponse;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
-import org.apache.ambari.logsearch.model.response.GroupListResponse;
 import org.apache.ambari.logsearch.model.response.LogData;
 import org.apache.ambari.logsearch.solr.ResponseDataGenerator;
 import org.apache.ambari.logsearch.solr.SolrConstants;
@@ -59,6 +62,7 @@ import org.apache.ambari.logsearch.solr.model.SolrAuditLogData;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.util.DownloadUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.ambari.logsearch.common.VResponse;
 import org.apache.log4j.Logger;
@@ -89,6 +93,10 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
   private Configuration freemarkerConfiguration;
   @Inject
   private SolrSchemaFieldDao solrSchemaFieldDao;
+  @Inject
+  private UIMappingConfig uiMappingConfig;
+  @Inject
+  private LabelFallbackHandler labelFallbackHandler;
 
   public AuditLogResponse getLogs(AuditLogRequest request) {
     String event = "/audit/logs";
@@ -123,11 +131,14 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
     return docList;
   }
 
-  public GroupListResponse getAuditComponents(AuditComponentRequest request) {
-    GroupListResponse componentResponse = new GroupListResponse();
-    List<LogData> docList = getComponents(request);
-    componentResponse.setGroupList(docList);
-    return componentResponse;
+  public Map<String, String> getAuditComponents(String clusters) {
+    SolrQuery solrQuery = new SolrQuery();
+    solrQuery.setQuery("*:*");
+    solrQuery.setRows(0);
+    SolrUtil.setFacetField(solrQuery, AUDIT_COMPONENT);
+    QueryResponse queryResponse = auditSolrDao.process(solrQuery);
+    return responseDataGenerator.generateComponentMetadata(queryResponse, AUDIT_COMPONENT,
+      uiMappingConfig.getAuditComponentLabels());
   }
 
   public BarGraphDataListResponse getAuditBarGraphData(AuditBarGraphRequest request) {
@@ -142,8 +153,56 @@ public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse
     return responseDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 0);
   }
 
-  public String getAuditLogsSchemaFieldsName() {
-    return convertObjToString(solrSchemaFieldDao.getSchemaFieldNameMap(LogType.AUDIT));
+  public AuditFieldMetadataResponse getAuditLogSchemaMetadata() {
+    Map<String, List<FieldMetadata>> overrides = new HashMap<>();
+    List<FieldMetadata> defaults = new ArrayList<>();
+
+    Map<String, String> schemaFieldsMap = solrSchemaFieldDao.getSchemaFieldNameMap(LogType.AUDIT);
+
+    Map<String, Map<String, String>> fieldLabelMap = uiMappingConfig.getMergedAuditFieldLabelMap();
+    Map<String, List<String>> fieldVisibleeMap = uiMappingConfig.getMergedAuditFieldVisibleMap();
+    Map<String, List<String>> fieldExcludeMap = uiMappingConfig.getMergedAuditFieldExcludeMap();
+    Map<String, List<String>> fieldFilterableExcludeMap = uiMappingConfig.getMergedAuditFieldFilterableExcludesMap();
+
+    Map<String, String> commonFieldLabels = uiMappingConfig.getAuditFieldCommonLabels();
+    List<String> commonFieldVisibleList = uiMappingConfig.getAuditFieldCommonVisibleList();
+    List<String> commonFieldExcludeList = uiMappingConfig.getAuditFieldCommonExcludeList();
+    List<String> commonFieldFilterableExcludeList = uiMappingConfig.getAuditFieldCommonExcludeList();
+
+    Map<String, String> componentLabels = uiMappingConfig.getAuditComponentLabels();
+
+    for (Map.Entry<String, String> component : componentLabels.entrySet()) {
+      String componentName = component.getKey();
+      List<FieldMetadata> auditComponentFieldMetadataList = new ArrayList<>();
+      for (Map.Entry<String, String> fieldEntry : schemaFieldsMap.entrySet()) {
+        String field = fieldEntry.getKey();
+        if (!fieldExcludeMap.containsKey(field) && !commonFieldExcludeList.contains(field)) {
+          String fieldLabel = fieldLabelMap.get(componentName) != null ? fieldLabelMap.get(componentName).get(field): null;
+          String fallbackedFieldLabel = labelFallbackHandler.fallbackIfRequired(field, fieldLabel,
+            true, true, true,
+            uiMappingConfig.getAuditFieldFallbackPrefixes());
+
+          Boolean excludeFromFilter = fieldFilterableExcludeMap.get(componentName) != null && fieldFilterableExcludeMap.get(componentName).contains(field);
+          Boolean visible = fieldVisibleeMap.get(componentName) != null && fieldVisibleeMap.get(componentName).contains(field);
+          auditComponentFieldMetadataList.add(new FieldMetadata(field, fallbackedFieldLabel, !excludeFromFilter, visible));
+        }
+        overrides.put(componentName, auditComponentFieldMetadataList);
+      }
+    }
+
+    for (Map.Entry<String, String> fieldEntry : schemaFieldsMap.entrySet()) {
+      String field = fieldEntry.getKey();
+      if (!commonFieldExcludeList.contains(field)) {
+        String fieldLabel = commonFieldLabels.get(field);
+        Boolean visible = commonFieldVisibleList.contains(field);
+        Boolean excludeFromFilter = commonFieldFilterableExcludeList.contains(field);
+        String fallbackedFieldLabel = labelFallbackHandler.fallbackIfRequired(field, fieldLabel,
+          true, true, true,
+          uiMappingConfig.getAuditFieldFallbackPrefixes());
+        defaults.add(new FieldMetadata(field, fallbackedFieldLabel, !excludeFromFilter, visible));
+      }
+    }
+    return new AuditFieldMetadataResponse(defaults, overrides);
   }
 
   public BarGraphDataListResponse getServiceLoad(AuditServiceLoadRequest request) {

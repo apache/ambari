@@ -16,90 +16,59 @@
 * limitations under the License.
 }}
 
-<div class="admin-auto-start">
-  <h4>{{t admin.serviceAutoStart.header}}</h4>
-  <p>{{t admin.serviceAutoStart.header.text}}</p>
-  {{#if view.isLoaded}}
-    <div class="cluster-switcher row">
-      <div class="col-md-2">
-        <strong>{{t admin.serviceAutoStart.body.text}}</strong>
-      </div>
-      <div class="col-md-4">
-        {{view App.CheckboxView checkedBinding="controller.servicesAutoStart"}}
-      </div>
-      <div class="col-md-6">
-        <div class="pull-right operations-button">
-          <button class="btn btn-default" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
-          <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
-        </div>
-      </div>
+<div id="admin-auto-start">
+  <p class="description">{{t admin.serviceAutoStart.header.text}}</p>
+  {{#if controller.isLoaded}}
+    <div class="cluster-level-switcher">
+      <span class="h2">{{t admin.serviceAutoStart.general.switcher}}</span>
+      {{view App.CheckboxView
+             didInsertElementBinding="view.initSwitcher"
+             classNames="general-auto-start circle-toggle-switch"
+             disabledBinding="view.isDisabled"
+             checkedBinding="controller.isGeneralRecoveryEnabled"}}
     </div>
-    <hr>
-    <div class="row">
-      <div class="col-md-4 col-lg-3">
-        <div class="services-heading">{{t common.service}}</div>
-        <div class="row">
-          <div class="col-md-12">
-            <ul class="nav nav-tabs nav-stacked nav-tabs-left">
-              {{#each tab in controller.tabs}}
-                <li {{bindAttr class="tab.isActive:active"}}>
-                  <a href="#" data-toggle="tab" {{bindAttr data-target="tab.headingClass"}}>
-                    {{tab.display_name}}
-                    {{view App.MainAdminServiceAutoStartIndicatorView tabBinding="tab"}}
-                  </a>
-                </li>
-              {{/each}}
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-8 col-lg-9 row">
-        <div class="tab-content col-md-12">
-          {{#each tab in controller.tabs}}
-            <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name"}}>
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th class="col-md-4">
-                      {{t common.component}}
-                    </th>
-                    <th class="col-md-8">
-                      {{t common.status}}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {{#each component in tab.components}}
-                    <tr>
-                      <td class="col-md-4">
-                        {{component.displayName}}
-                      </td>
-                      <td class="col-md-8">
-                        {{view App.MainAdminServiceAutoStartComponentView componentBinding="component" tabBinding="tab"}}
-                      </td>
-                    </tr>
-                  {{/each}}
-                </tbody>
-                {{#isAuthorized "SERVICE.MANAGE_AUTO_START"}}
-                  <tfoot>
-                    <tr>
-                      <td class="col-md-4"></td>
-                      <td class="col-md-8">
-                        <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>
-                            {{t common.enableAll}}
-                        </a> |
-                        <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
-                      </td>
-                    </tr>
-                  </tfoot>
-                {{/isAuthorized}}
-              </table>
-            </div>
-          {{/each}}
-        </div>
-      </div>
+    <div class="form-horizontal">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{{t common.service}}</th>
+            <th>{{t common.components}}</th>
+            <th>
+              {{view App.CheckboxView
+                     disabledBinding="view.isDisabled"
+                     classNames="all-checkbox"
+                     checkedBinding="view.allComponentsChecked"}}
+              {{t admin.serviceAutoStart.column.autoStart}}
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {{#each component in componentsConfigsGrouped}}
+          <tr>
+            <td {{bindAttr class="component.isFirst::skip-border"}}>
+              {{#if component.isFirst}}
+                {{component.serviceDisplayName}}
+              {{/if}}
+            </td>
+            <td>{{component.displayName}}</td>
+            <td>{{view App.CheckboxView
+                       disabledBinding="view.isDisabled"
+                       checkedBinding="component.recoveryEnabled"}}</td>
+            <td></td>
+          </tr>
+        {{/each}}
+        </tbody>
+      </table>
     </div>
   {{else}}
     {{view App.SpinnerView}}
   {{/if}}
+  <div {{bindAttr class="view.isDisablad:hidden :configs-save-panel"}}>
+    <div class="pull-right">
+      <button class="btn btn-default" {{action restoreCachedValues target="controller"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.cancel}}</button>
+      <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.save}}</button>
+    </div>
+    <div class="clearfix"></div>
+  </div>
 </div>

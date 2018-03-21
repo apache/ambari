@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -203,7 +204,7 @@ public class MpackInstallChecker {
    */
   public static void main(String[] args) throws Exception {
 
-    Injector injector = Guice.createInjector(new ControllerModule(), new MpackCheckerAuditModule());
+    Injector injector = Guice.createInjector(new ControllerModule(), new MpackCheckerAuditModule(), new LdapModule());
     MpackInstallChecker mpackInstallChecker = injector.getInstance(MpackInstallChecker.class);
     MpackContext mpackContext = processArguments(args);
 

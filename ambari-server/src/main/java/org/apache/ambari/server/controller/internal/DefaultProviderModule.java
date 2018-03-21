@@ -114,6 +114,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new UpgradeGroupResourceProvider(managementController);
       case UpgradeItem:
         return new UpgradeItemResourceProvider(managementController);
+      case UpgradePlan:
+        return new UpgradePlanResourceProvider(managementController);
       case UpgradeSummary:
         return new UpgradeSummaryResourceProvider(managementController);
       case PreUpgradeCheck:
@@ -122,6 +124,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new HostStackVersionResourceProvider(managementController);
       case Stage:
         return new StageResourceProvider(managementController);
+      case DefaultOperatingSystem:
+        return new DefaultOperatingSystemResourceProvider(managementController);
       case OperatingSystem:
         return new OperatingSystemResourceProvider(managementController);
       case OperatingSystemReadOnly:

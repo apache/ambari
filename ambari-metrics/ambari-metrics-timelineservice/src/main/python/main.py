@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import os
-import subprocess
+from ambari_commons import subprocess32
 import sys
 
 from ambari_commons.exceptions import FatalException, NonFatalException
@@ -70,7 +70,7 @@ def exec_ams_env_cmd(options):
   ams_env_cmd = os.path.join(options.conf_dir, AMS_ENV_CMD)
   if os.path.exists(ams_env_cmd):
     cmds = ["cmd.exe", "/C", ams_env_cmd]
-    procAms = subprocess.Popen(cmds, env=os.environ)
+    procAms = subprocess32.Popen(cmds, env=os.environ)
     out, err = procAms.communicate()
     if err is not None and err is not "":
       print_warning_msg(AMS_ENV_CMD + " error output: " + err)
@@ -129,7 +129,7 @@ def server_process_main(options, scmStatus=None):
   param_list = java_exe + " " + command
 
   print_info_msg("Running server: " + str(param_list))
-  procJava = subprocess.Popen(param_list, env=os.environ)
+  procJava = subprocess32.Popen(param_list, env=os.environ)
 
   #wait for server process for SERVER_START_TIMEOUT seconds
   print "Waiting for server start..."

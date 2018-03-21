@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,6 +46,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -72,12 +72,10 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
       OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
       OPERATING_SYSTEM_IS_AMBARI_MANAGED, OPERATING_SYSTEM_REPOS);
 
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Resource.Type.Mpack, OPERATING_SYSTEM_MPACK_ID);
-      put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
-    }
-  };
+  public static Map<Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Mpack, OPERATING_SYSTEM_MPACK_ID)
+      .put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID)
+      .build();
 
   /**
    * Used to update

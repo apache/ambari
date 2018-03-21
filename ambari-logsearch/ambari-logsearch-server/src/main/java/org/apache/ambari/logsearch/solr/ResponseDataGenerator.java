@@ -24,6 +24,7 @@ import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,9 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import org.apache.ambari.logsearch.common.LabelFallbackHandler;
+import org.apache.ambari.logsearch.model.metadata.ComponentMetadata;
+import org.apache.ambari.logsearch.model.metadata.ServiceComponentMetadataWrapper;
 import org.apache.ambari.logsearch.model.response.BarGraphData;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.CountData;
@@ -49,12 +53,17 @@ import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.util.NamedList;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 @Named
 public class ResponseDataGenerator {
+
+  @Inject
+  private LabelFallbackHandler labelFallbackHandler;
 
   public BarGraphDataListResponse generateBarGraphDataResponseWithRanges(QueryResponse response, String typeField, boolean typeUppercase) {
     BarGraphDataListResponse dataList = new BarGraphDataListResponse();
@@ -396,7 +405,7 @@ public class ResponseDataGenerator {
     if (response == null) {
       return graphInfo;
     }
-    List<List<PivotField>> hirarchicalPivotField = new ArrayList<List<PivotField>>();
+    List<List<PivotField>> hirarchicalPivotField = new ArrayList<>();
     List<GraphData> dataList = new ArrayList<>();
     NamedList<List<PivotField>> namedList = response.getFacetPivot();
     if (namedList != null) {
@@ -449,5 +458,67 @@ public class ResponseDataGenerator {
     }
     
     return response;
+  }
+
+  public Map<String, String> generateComponentMetadata(QueryResponse queryResponse,
+                                                       String facetField, Map<String, String> componetnLabels) {
+    Map<String, String> result = new HashMap<>();
+    if (queryResponse == null) {
+      return result;
+    }
+    FacetField facetFields = queryResponse.getFacetField(facetField);
+    if (facetFields == null) {
+      return result;
+    }
+    List<Count> counts = facetFields.getValues();
+    if (counts == null) {
+      return result;
+    }
+    for (Count count : counts) {
+      if (count.getName() != null) {
+        String label = componetnLabels.get(count.getName());
+        String fallbackedLabel = labelFallbackHandler.fallbackIfRequired(count.getName(), label, true, false, true);
+        result.put(count.getName(), fallbackedLabel);
+      }
+    }
+    return result;
+  }
+
+  public ServiceComponentMetadataWrapper generateGroupedComponentMetadataResponse(QueryResponse queryResponse, String pivotFields,
+                                                                                  Map<String, String> groupLabels,
+                                                                                  Map<String, String> componentLabels) {
+    List<ComponentMetadata> componentMetadata = new ArrayList<>();
+    Map<String, String> groupsMetadata = new HashMap<>();
+
+    if (queryResponse == null) {
+      return new ServiceComponentMetadataWrapper(componentMetadata, groupsMetadata);
+    }
+    NamedList<List<PivotField>> facetPivotResponse = queryResponse.getFacetPivot();
+    if (facetPivotResponse == null || facetPivotResponse.size() < 1) {
+      return new ServiceComponentMetadataWrapper(componentMetadata, groupsMetadata);
+    }
+    if (CollectionUtils.isEmpty(facetPivotResponse.get(pivotFields))) {
+      return new ServiceComponentMetadataWrapper(componentMetadata, groupsMetadata);
+    }
+
+    for (PivotField pivotField : facetPivotResponse.get(pivotFields)) {
+      if (pivotField != null && pivotField.getValue() != null) {
+        String componentName = pivotField.getValue().toString();
+        String groupName = null;
+        if (CollectionUtils.isNotEmpty(pivotField.getPivot())) {
+          Object groupValue = pivotField.getPivot().get(0).getValue();
+          if (groupValue != null) {
+            groupName = groupValue.toString();
+            groupsMetadata.put(groupName, groupLabels.getOrDefault(groupName, null));
+          }
+        }
+        String label = componentLabels.get(componentName);
+        String fallbackedLabel = labelFallbackHandler.fallbackIfRequired(componentName, label, true, false, true);
+        componentMetadata.add((new ComponentMetadata(componentName, fallbackedLabel, groupName)));
+
+      }
+    }
+
+    return new ServiceComponentMetadataWrapper(componentMetadata, groupsMetadata);
   }
 }

@@ -109,9 +109,9 @@ for host in ams_collector_hosts.split(","):
     metric_truststore_alias = host
   metric_truststore_alias_list.append(metric_truststore_alias)
 
-agent_cache_dir = config['hostLevelParams']['agentCacheDir']
-service_package_folder = config['commandParams']['service_package_folder']
-stack_name = default("/hostLevelParams/stack_name", None)
+agent_cache_dir = config['agentLevelParams']['agentCacheDir']
+service_package_folder = config['serviceLevelParams']['service_package_folder']
+stack_name = default("/clusterLevelParams/stack_name", None)
 dashboards_dirs = []
 # Stack specific
 dashboards_dirs.append(os.path.join(agent_cache_dir, service_package_folder,
@@ -207,15 +207,15 @@ security_enabled = False if not is_hbase_distributed else config['configurations
 # this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
-java_home = config['hostLevelParams']['java_home']
-ambari_java_home = default("/commandParams/ambari_java_home", None)
+java_home = config['ambariLevelParams']['java_home']
+ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
 # not supporting 32 bit jdk.
 java64_home = ambari_java_home if ambari_java_home is not None else java_home
-ambari_java_version = default("/commandParams/ambari_java_version", None)
+ambari_java_version = default("/ambariLevelParams/ambari_java_version", None)
 if ambari_java_version:
-  java_version = expect("/commandParams/ambari_java_version", int)
+  java_version = expect("/ambariLevelParams/ambari_java_version", int)
 else :
-  java_version = expect("/hostLevelParams/java_version", int)
+  java_version = expect("/ambariLevelParams/java_version", int)
 
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512")
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
@@ -265,9 +265,9 @@ else:
   hbase_heapsize = master_heapsize
 
 max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
-hostname = config["hostname"]
+hostname = config['agentLevelParams']['hostname']
 
-cluster_zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
+cluster_zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_server_hosts'])
 if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
   cluster_zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
 else:
@@ -314,7 +314,7 @@ klist_path_local = functions.get_klist_path(default('/configurations/kerberos-en
 klist_cmd = ""
 
 if security_enabled:
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
   smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
   smoke_user_princ = config['configurations']['cluster-env']['smokeuser_principal_name']

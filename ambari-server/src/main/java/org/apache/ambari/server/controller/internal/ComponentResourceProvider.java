@@ -64,12 +64,14 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -174,6 +176,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   private MaintenanceStateHelper maintenanceStateHelper;
+
+  @Inject
+  private TopologyDeleteFormer topologyDeleteFormer;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -588,7 +593,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {
           ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-              stackId.getStackVersion(), s.getServiceType(), sc.getName());
+              stackId.getStackVersion(), s.getServiceType(), sc.getType());
           category = componentInfo.getCategory();
           if (category != null) {
             serviceComponentResponse.setCategory(category);
@@ -860,6 +865,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected RequestStatusResponse deleteComponents(Set<ServiceComponentRequest> requests) throws AmbariException, AuthorizationException {
     Clusters clusters = getManagementController().getClusters();
     AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
 
     for (ServiceComponentRequest request : requests) {
       Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
@@ -872,28 +878,32 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
 
       if (sc != null) {
-        deleteHostComponentsForServiceComponent(sc, request);
+        deleteHostComponentsForServiceComponent(sc, request, deleteMetaData);
+        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
         sc.setDesiredState(State.DISABLED);
-        s.deleteServiceComponent(request.getComponentName());
+        s.deleteServiceComponent(request.getComponentName(), deleteMetaData);
+        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
       }
     }
+    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
     return null;
   }
 
-  private void deleteHostComponentsForServiceComponent(ServiceComponent sc, ServiceComponentRequest request) throws AmbariException {
+  private void deleteHostComponentsForServiceComponent(ServiceComponent sc, ServiceComponentRequest request,
+                                                       DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException {
     for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
       if (!sch.getDesiredState().isRemovableState()) {
-        throw new AmbariException("Found non removable host component when trying to delete service component." +
+        deleteMetaData.setAmbariException(new AmbariException("Found non removable host component when trying to delete service component." +
             " To remove host component, it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN" +
             "/UNINSTALLED/INSTALLING state."
-            + ", request=" + request
-            + ", current state=" + sc.getDesiredState() + ".");
-
+            + ", request=" + request.toString()
+            + ", current state=" + sc.getDesiredState() + "."));
+        return;
       }
     }
 
     for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-      sch.delete();
+      sch.delete(deleteMetaData);
     }
   }
   private Cluster getClusterForRequest(final ServiceComponentRequest request, final Clusters clusters) throws AmbariException {
@@ -942,7 +952,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       String componentName = request.getComponentName();
       String componentType = request.getComponentType();
 
-      String serviceName = getManagementController().findService(cluster, componentType);
+      String serviceName = getManagementController().findServiceName(cluster, componentType);
 
       debug("Looking up service name for component, componentType={}, serviceName={}", componentType, serviceName);
 

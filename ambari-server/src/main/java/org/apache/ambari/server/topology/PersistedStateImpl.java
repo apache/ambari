@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -107,7 +110,7 @@ public class PersistedStateImpl implements PersistedState {
 
   @Override
   public  PersistedTopologyRequest persistTopologyRequest(BaseClusterRequest request) {
-    TopologyRequestEntity requestEntity = toEntity(request);
+    TopologyRequestEntity requestEntity = request.toEntity();
     topologyRequestDAO.create(requestEntity);
     return new PersistedTopologyRequest(requestEntity.getId(), request);
   }
@@ -251,38 +254,6 @@ public class PersistedStateImpl implements PersistedState {
     return allRequests;
   }
 
-  private TopologyRequestEntity toEntity(BaseClusterRequest request) {
-    TopologyRequestEntity entity = new TopologyRequestEntity();
-
-    entity.setRawRequestBody(request.getRawRequestBody());
-
-    //todo: this isn't set for a scaling operation because we had intended to allow multiple
-    //todo: bp's to be used to scale a cluster although this isn't currently supported by
-    //todo: new topology infrastructure
-    entity.setAction(request.getType().name());
-    if (request.getBlueprint() != null) {
-      entity.setBlueprintName(request.getBlueprint().getName());
-    }
-
-    entity.setClusterAttributes(attributesAsString(request.getConfiguration().getAttributes()));
-    entity.setClusterId(request.getClusterId());
-    entity.setClusterProperties(propertiesAsString(request.getConfiguration().getProperties()));
-    entity.setDescription(request.getDescription());
-
-    if (request.getProvisionAction() != null) {
-      entity.setProvisionAction(request.getProvisionAction());
-    }
-
-    // host groups
-    Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<>();
-    for (HostGroupInfo groupInfo : request.getHostGroupInfo().values())  {
-      hostGroupEntities.add(toEntity(groupInfo, entity));
-    }
-    entity.setTopologyHostGroupEntities(hostGroupEntities);
-
-    return entity;
-  }
-
   private TopologyLogicalRequestEntity toEntity(LogicalRequest request, TopologyRequestEntity topologyRequestEntity) {
     TopologyLogicalRequestEntity entity = new TopologyLogicalRequestEntity();
 
@@ -340,51 +311,7 @@ public class PersistedStateImpl implements PersistedState {
     return entity;
   }
 
-  private TopologyHostGroupEntity toEntity(HostGroupInfo groupInfo, TopologyRequestEntity topologyRequestEntity) {
-    TopologyHostGroupEntity entity = new TopologyHostGroupEntity();
-    entity.setGroupAttributes(attributesAsString(groupInfo.getConfiguration().getAttributes()));
-    entity.setGroupProperties(propertiesAsString(groupInfo.getConfiguration().getProperties()));
-    entity.setName(groupInfo.getHostGroupName());
-    entity.setTopologyRequestEntity(topologyRequestEntity);
-
-    // host info
-    Collection<TopologyHostInfoEntity> hostInfoEntities = new ArrayList<>();
-    entity.setTopologyHostInfoEntities(hostInfoEntities);
-
-    Collection<String> hosts = groupInfo.getHostNames();
-    if (hosts.isEmpty()) {
-      TopologyHostInfoEntity hostInfoEntity = new TopologyHostInfoEntity();
-      hostInfoEntity.setTopologyHostGroupEntity(entity);
-      hostInfoEntity.setHostCount(groupInfo.getRequestedHostCount());
-      if (groupInfo.getPredicate() != null) {
-        hostInfoEntity.setPredicate(groupInfo.getPredicateString());
-      }
-      hostInfoEntities.add(hostInfoEntity);
-    } else {
-      for (String hostName : hosts) {
-        TopologyHostInfoEntity hostInfoEntity = new TopologyHostInfoEntity();
-        hostInfoEntity.setTopologyHostGroupEntity(entity);
-        if (groupInfo.getPredicate() != null) {
-          hostInfoEntity.setPredicate(groupInfo.getPredicateString());
-        }
-        hostInfoEntity.setFqdn(hostName);
-        hostInfoEntity.setRackInfo(groupInfo.getHostRackInfo().get(hostName));
-        hostInfoEntity.setHostCount(0);
-        hostInfoEntities.add(hostInfoEntity);
-      }
-    }
-    return entity;
-  }
-
-  private static String propertiesAsString(Map<String, Map<String, String>> configurationProperties) {
-    return jsonSerializer.toJson(configurationProperties);
-  }
-
-  private static String attributesAsString(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
-    return jsonSerializer.toJson(configurationAttributes);
-  }
-
-  private static class ReplayedTopologyRequest implements TopologyRequest {
+  static final class ReplayedTopologyRequest implements TopologyRequest {
     private final Long clusterId;
     private final Type type;
     private final String description;
@@ -400,7 +327,9 @@ public class PersistedStateImpl implements PersistedState {
       description = entity.getDescription();
       provisionAction = entity.getProvisionAction();
 
-      stackIds = TopologyRequestUtil.getStackIdsFromRequest(entity.getRawRequestBody());
+      Collection<MpackInstance> mpackInstances = entity.getMpackInstances().stream().
+        map(e -> MpackInstance.fromEntity(e)).collect(toList());
+      stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet());
 
       try {
         blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());

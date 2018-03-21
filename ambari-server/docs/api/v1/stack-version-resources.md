@@ -17,7 +17,7 @@ limitations under the License.
 
 # Stack Version Resources
 
-#####Get Stack Versions
+##### Get Stack Versions
 Retrieves all stack versions.
 
 For cluster:
@@ -60,7 +60,7 @@ For host:
       ]
     }
     
-#####Get Stack Version
+##### Get Stack Version
 Retrieves single stack version.
 
 For cluster:
@@ -141,7 +141,7 @@ For host:
       ]
     }
     
-#####Install Repository Version
+##### Install Repository Version
 Performs install of given repository version on the resource.
 
 For cluster:

@@ -19,11 +19,13 @@ limitations under the License.
 """
 
 AMBARI_SUDO_BINARY = "ambari-sudo.sh"
-
+HADOOP_CLIENTS_MODULE_NAME = "HADOOP_CLIENTS"
+HADOOP_CLIENT_COMPONENT_TYPE = "HADOOP_CLIENT"
 UPGRADE_TYPE_ROLLING = "rolling"
 UPGRADE_TYPE_EXPRESS = "express"
 UPGRADE_TYPE_HOST_ORDERED = "host_ordered"
 
+AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
 
 class SERVICE:
   """

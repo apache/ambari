@@ -122,7 +122,9 @@ describe('App.clusterController', function () {
         {
           "Clusters": {
             "cluster_name": "tdk",
-            "version": "HDP-1.3.0"
+            "version": "HDP-1.3.0",
+            "security_type": "KERBEROS",
+            "cluster_id": 1
           }
         }
       ]
@@ -130,6 +132,8 @@ describe('App.clusterController', function () {
     it('Check cluster', function () {
       controller.reloadSuccessCallback(testData);
       expect(App.get('clusterName')).to.equal('tdk');
+      expect(App.get('clusterId')).to.equal(1);
+      expect(App.get('isKerberosEnabled')).to.be.true;
       expect(App.get('currentStackVersion')).to.equal('HDP-1.3.0');
     });
   });
@@ -497,10 +501,6 @@ describe('App.clusterController', function () {
         expect(controller.getAllUpgrades.calledOnce).to.be.true;
       });
 
-      it('upgradeState is PENDING', function () {
-        expect(App.get('upgradeState')).to.equal('PENDING');
-      });
-
       it('restoreLastUpgrade is called with valid arguments', function () {
         expect(upgradeController.restoreLastUpgrade.calledWith(data.upgradeData.items[0])).to.be.true;
       });
@@ -568,10 +568,6 @@ describe('App.clusterController', function () {
         expect(controller.getAllUpgrades.calledOnce).to.be.true;
       });
 
-      it('upgradeState is PENDING', function () {
-        expect(App.get('upgradeState')).to.equal('PENDING');
-      });
-
       it('restoreLastUpgrade is not called', function () {
         expect(upgradeController.restoreLastUpgrade.called).to.be.false;
       });
@@ -582,10 +578,6 @@ describe('App.clusterController', function () {
 
       it('initDBProperties is called once', function () {
         expect(upgradeController.initDBProperties.calledOnce).to.be.true;
-      });
-
-      it('loadUpgradeData is called with valid arguments', function () {
-        expect(upgradeController.loadUpgradeData.calledWith(true)).to.be.true;
       });
 
     });
@@ -1078,7 +1070,7 @@ describe('App.clusterController', function () {
       sinon.stub(controller, 'loadConfigProperties');
       sinon.stub(updater, 'updateComponentsState', Em.clb);
       sinon.stub(updater, 'updateServiceMetric', Em.clb);
-      sinon.stub(updater, 'updateComponentConfig', Em.clb);
+      sinon.stub(controller, 'loadComponentWithStaleConfigs', Em.clb);
 
       controller.loadServicesAndComponents();
     });
@@ -1091,7 +1083,7 @@ describe('App.clusterController', function () {
       controller.updateLoadStatus.restore();
       updater.updateComponentsState.restore();
       updater.updateServiceMetric.restore();
-      updater.updateComponentConfig.restore();
+      controller.loadComponentWithStaleConfigs.restore();
     });
 
     it('updateServices should be called', function() {
@@ -1138,12 +1130,50 @@ describe('App.clusterController', function () {
       expect(controller.get('isHostComponentMetricsLoaded')).to.be.true;
     });
 
-    it('updateComponentConfig should be called', function() {
-      expect(updater.updateComponentConfig.calledOnce).to.be.true;
+    it('loadComponentWithStaleConfigs should be called', function() {
+      expect(controller.loadComponentWithStaleConfigs.calledOnce).to.be.true;
     });
 
     it('isComponentsConfigLoaded should be true', function() {
       expect(controller.get('isComponentsConfigLoaded')).to.be.true;
+    });
+  });
+
+  describe('#loadComponentWithStaleConfigs', function() {
+    it('App.ajax.send should be called', function() {
+      controller.loadComponentWithStaleConfigs();
+      var args = testHelpers.findAjaxRequest('name', 'components.get.staleConfigs');
+      expect(args).to.exist;
+    });
+  });
+
+  describe('#loadComponentWithStaleConfigsSuccessCallback', function() {
+    beforeEach(function() {
+      sinon.stub(App.componentsStateMapper, 'updateStaleConfigsHosts');
+    });
+    afterEach(function() {
+      App.componentsStateMapper.updateStaleConfigsHosts.restore();
+    });
+
+    it('updateStaleConfigsHosts should be called', function() {
+      var json = {
+        items: [
+          {
+            ServiceComponentInfo: {
+              component_name: 'C1'
+            },
+            host_components: [
+              {
+                HostRoles: {
+                  host_name: 'host1'
+                }
+              }
+            ]
+          }
+        ]
+      };
+      controller.loadComponentWithStaleConfigsSuccessCallback(json);
+      expect(App.componentsStateMapper.updateStaleConfigsHosts.calledWith('C1', ['host1'])).to.be.true;
     });
   });
 });

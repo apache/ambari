@@ -217,8 +217,6 @@ public class UpgradeTest {
       }
      }
 
-    schemaUpgradeHelper.startPersistenceService();
-
     schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 
     schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs, "test");
@@ -226,8 +224,6 @@ public class UpgradeTest {
     schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
 
     LOG.info("Upgrade successful.");
-
-    schemaUpgradeHelper.stopPersistenceService();
   }
 
   private String getLastVersion() throws Exception {

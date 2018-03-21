@@ -32,7 +32,6 @@ import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AlertExecutionCommand;
 import org.apache.ambari.server.api.resources.AlertDefResourceDefinition;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -115,13 +114,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    */
   @Inject
   private static AlertDefinitionFactory definitionFactory;
-
-  /**
-   * Used to enqueue commands to send to the agents when running an alert
-   * on-demand.
-   */
-  @Inject
-  private static ActionQueue actionQueue;
 
   /**
    * Publishes the following events:
@@ -793,7 +785,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       AlertExecutionCommand command = new AlertExecutionCommand(
           cluster.getClusterName(), hostName, definition);
 
-      actionQueue.enqueue(hostName, command);
+      //TODO implement alert execution commands logic
+      //actionQueue.enqueue(hostName, command);
     }
   }
 }

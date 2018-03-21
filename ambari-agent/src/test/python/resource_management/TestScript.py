@@ -36,24 +36,31 @@ class TestScript(RMFTestCase):
   @patch("resource_management.core.providers.package.PackageProvider")
   def test_install_packages(self, package_provider_mock):
     no_packages_config = {
-      'hostLevelParams' : {
+      'commandParams': {
+        'package_list' : ''
+      },
+      'ambariLevelParams' : {
         'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
         'agent_stack_retry_count': '5',
         'agent_stack_retry_on_unavailability': 'false'
       }
     }
     empty_config = {
-      'hostLevelParams' : {
-        'package_list' : '',
+      'commandParams': {
+        'package_list' : ''
+      },
+      'ambariLevelParams' : {
         'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
         'agent_stack_retry_count': '5',
         'agent_stack_retry_on_unavailability': 'false'
       }
     }
     dummy_config = {
-      'hostLevelParams' : {
+      'commandParams' : {
         'package_list' : "[{\"type\":\"rpm\",\"name\":\"hbase\", \"condition\": \"\"},"
                          "{\"type\":\"rpm\",\"name\":\"yet-another-package\", \"condition\": \"\"}]",
+      },                 
+      'ambariLevelParams' : {
         'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
         'service_repo_info' : "[{\"mirrorsList\":\"abc\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
         'agent_stack_retry_count': '5',

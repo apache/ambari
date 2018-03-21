@@ -226,4 +226,9 @@ public interface ClusterTopology {
   boolean containsMasterComponent(String hostGroup);
 
   Collection<HostGroup> getHostGroups();
+
+  /*
+   * @return true if the given component belongs to a service that has serviceType=HCFS
+   */
+  boolean isComponentHadoopCompatible(String component);
 }

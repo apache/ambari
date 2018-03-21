@@ -20,7 +20,7 @@
 ############################################################################
 
 import os
-import subprocess
+from ambari_commons import subprocess32
 import sys
 import phoenix_utils
 import atexit
@@ -95,7 +95,7 @@ java_cmd = find_java() + ' -cp "' + phoenix_client_path + \
 
 print 'java command: %s' % str(java_cmd)
 
-childProc = subprocess.Popen(java_cmd, shell=True)
+childProc = subprocess32.Popen(java_cmd, shell=True)
 #Wait for child process exit
 (output, error) = childProc.communicate()
 returncode = childProc.returncode

@@ -67,7 +67,8 @@ App.UpdateController = Em.Controller.extend({
              "host_components/metrics/hbase/master/MasterActiveTime," +
              "host_components/metrics/hbase/master/AverageLoad," +
              "host_components/metrics/master/AssignmentManger/ritCount",
-    'STORM': 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary'
+    'STORM': 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary',
+    'HDFS': 'host_components/metrics/dfs/namenode/ClusterId'
   },
 
   /**
@@ -187,24 +188,29 @@ App.UpdateController = Em.Controller.extend({
    */
   updateAll: function () {
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
-      App.updater.run(this, 'updateServices', 'isWorking');
-      App.updater.run(this, 'updateHost', 'isWorking');
+      App.updater.run(this, 'updateHostsMetrics', 'isWorking', App.contentUpdateInterval, '\/main\/(hosts).*');
       App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
-      App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services|hosts).*');
       App.updater.run(this, 'graphsUpdate', 'isWorking');
-      App.updater.run(this, 'updateComponentConfig', 'isWorking');
 
-      App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval, '\/main\/alerts.*');
-      App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval, '\/main\/alerts.*');
-      App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
-      App.updater.run(this, 'updateClusterEnv', 'isWorking', App.clusterEnvUpdateInterval);
-      App.updater.run(this, 'updateUpgradeState', 'isWorking', App.bgOperationsUpdateInterval);
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
+      App.updater.run(this, 'updateHDFSNameSpaces', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services\/HDFS|hosts).*');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
+
+  startSubscriptions: function () {
+    App.StompClient.subscribe('/events/hostcomponents', App.hostComponentStatusMapper.map.bind(App.hostComponentStatusMapper));
+    App.StompClient.subscribe('/events/alerts', App.alertSummaryMapper.map.bind(App.alertSummaryMapper));
+    App.StompClient.subscribe('/events/ui_topologies', App.topologyMapper.map.bind(App.topologyMapper));
+    App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
+    App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
+    App.StompClient.subscribe('/events/hosts', App.hostStateMapper.map.bind(App.hostStateMapper));
+    App.StompClient.subscribe('/events/alert_definitions', App.alertDefinitionsMapperAdapter.map.bind(App.alertDefinitionsMapperAdapter));
+    App.StompClient.subscribe('/events/alert_group', App.alertGroupsMapperAdapter.map.bind(App.alertGroupsMapperAdapter));
+    App.StompClient.subscribe('/events/upgrade', App.upgradeStateMapper.map.bind(App.upgradeStateMapper));
+  },
 
   /**
    *
@@ -217,8 +223,9 @@ App.UpdateController = Em.Controller.extend({
         self = this,
         hostDetailsFilter = '',
         realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,' +
-            'alerts_summary,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+            'alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
             'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,' +
+            (App.Service.find().someProperty('serviceName', 'HDFS') ? 'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,' : '') +
             '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
         hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
         stackVersionInfo = ',stack_versions/HostStackVersions,' +
@@ -307,6 +314,23 @@ App.UpdateController = Em.Controller.extend({
     }
   },
 
+  updateHostsMetrics: function(callback) {
+    let queryParams = App.router.get('mainHostController').getQueryParameters(true);
+    if (App.router.get('currentState.parentState.name') === 'hostDetails') {
+      const currentHostname = App.router.get('location.lastSetURL')
+        .match(/\/hosts\/(.*)\/(summary|configs|alerts|stackVersions|logs)/)[1];
+      queryParams = [
+        {
+          key: 'Hosts/host_name',
+          value: [currentHostname],
+          type: 'MULTIPLE',
+          isHostDetails: true
+        }
+      ]
+    }
+    this.loadHostsMetric(queryParams).always(callback);
+  },
+
   /**
    *
    * @param {Array} queryParams
@@ -344,7 +368,7 @@ App.UpdateController = Em.Controller.extend({
         success: 'loadHostsMetricSuccessCallback'
       });
     }
-    return null;
+    return $.Deferred().resolve().promise();
   },
 
   /**
@@ -455,7 +479,7 @@ App.UpdateController = Em.Controller.extend({
       atsHandlerParam = isATSInstalled ? 'ServiceComponentInfo/component_name=APP_TIMELINE_SERVER|' : '',
       haComponents = App.get('isHaEnabled') ? 'ServiceComponentInfo/component_name=JOURNALNODE|ServiceComponentInfo/component_name=ZKFC|' : '',
       realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam + haComponents +
-        'ServiceComponentInfo/category=MASTER&fields=' +
+        'ServiceComponentInfo/category.in(MASTER,CLIENT)&fields=' +
         'ServiceComponentInfo/service_name,' +
         'ServiceComponentInfo/service_type,' +
         'host_components/HostRoles/display_name,' +
@@ -501,6 +525,7 @@ App.UpdateController = Em.Controller.extend({
     } else if (/^2.2/.test(App.get('currentStackVersionNumber'))) {
       serviceSpecificParams.STORM = 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary';
     }
+    serviceSpecificParams.ONEFS = 'metrics/dfs/*,';
 
     App.cache.services.forEach(function (service) {
       var urlParams = serviceSpecificParams[service.ServiceInfo.service_name];
@@ -523,14 +548,6 @@ App.UpdateController = Em.Controller.extend({
     var testUrl = '/data/services/HDP2/services.json';
     var componentConfigUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,ServiceInfo/desired_repository_version_id,components/ServiceComponentInfo/component_name&minimal_response=true');
     App.HttpClient.get(componentConfigUrl, App.serviceMapper, {
-      complete: callback
-    });
-  },
-
-  updateComponentConfig: function (callback) {
-    var testUrl = '/data/services/host_component_stale_configs.json';
-    var componentConfigUrl = this.getUrl(testUrl, '/components?host_components/HostRoles/stale_configs=true&fields=host_components/HostRoles/display_name,host_components/HostRoles/service_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/stale_configs,host_components/HostRoles/desired_admin_state&minimal_response=true');
-    App.HttpClient.get(componentConfigUrl, App.componentConfigMapper, {
       complete: callback
     });
   },
@@ -575,6 +592,7 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateAlertDefinitionSummary: function(callback) {
+    //TODO move to clusterController
     var testUrl = '/data/alerts/alert_summary.json';
     var realUrl = '/alerts?format=groupedSummary';
     var url = this.getUrl(testUrl, realUrl);
@@ -601,14 +619,9 @@ App.UpdateController = Em.Controller.extend({
     });
   },
 
-  updateUpgradeState: function (callback) {
-    var currentStateName = App.get('router.currentState.name'),
-      parentStateName = App.get('router.currentState.parentState.name'),
-      mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController');
-    if (!(currentStateName === 'versions' && parentStateName === 'stackAndUpgrade') && currentStateName !== 'stackUpgrade' && App.get('wizardIsNotFinished') && !mainAdminStackAndUpgradeController.get('isLoadUpgradeDataPending')) {
-      mainAdminStackAndUpgradeController.loadUpgradeData(true).done(callback);
-    } else {
-      callback();
+  makeCallForClusterEnv: function(event) {
+    if (event.configs && event.configs.someProperty('type', 'cluster-env')) {
+      this.updateClusterEnv();
     }
   },
 
@@ -673,5 +686,46 @@ App.UpdateController = Em.Controller.extend({
   updateLoggingSuccess: function(data, opt, params) {
     var clbk = params.callback || function() {};
     clbk(data);
+  },
+
+  updateHDFSNameSpaces: function () {
+    const siteName = 'hdfs-site',
+      storedHdfsSiteconfigs = App.db.getConfigs().findProperty('type', siteName),
+      tagName = storedHdfsSiteconfigs && storedHdfsSiteconfigs.tag;
+    App.router.get('configurationController').getConfigsByTags([{
+      siteName,
+      tagName
+    }]).done(configs => {
+      const properties = configs && configs[0] && configs[0].properties;
+      if (properties) {
+        const nameSpaceProperty = properties['dfs.nameservices'];
+        if (nameSpaceProperty) {
+          const nameSpaces = nameSpaceProperty.split(',').map(nameSpace => {
+              const nameNodeIdsProperty = properties[`dfs.ha.namenodes.${nameSpace}`];
+              if (nameNodeIdsProperty) {
+                const nameNodeIds = nameNodeIdsProperty.split(','),
+                  hostNames = nameNodeIds.map(id => {
+                    const propertyValue = properties[`dfs.namenode.http-address.${nameSpace}.${id}`],
+                      matches = propertyValue && propertyValue.match(/([\D\d]+)\:\d+$/),
+                      hostName = matches && matches[1];
+                    return hostName;
+                  });
+                return {
+                  nameSpace,
+                  hostNames
+                };
+              }
+            }),
+            allNameNodes = App.HDFSService.find().objectAt(0).get('hostComponents').filterProperty('componentName', 'NAMENODE');
+          allNameNodes.forEach(component => {
+            const nameSpaceObject = nameSpaces.find(ns => ns && ns.hostNames && ns.hostNames.contains(component.get('hostName')));
+            if (nameSpaceObject) {
+              component.set('haNameSpace', nameSpaceObject.nameSpace);
+            }
+          });
+          App.set('router.clusterController.isHDFSNameSpacesLoaded', true);
+        }
+      }
+    })
   }
 });

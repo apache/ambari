@@ -395,7 +395,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         //may set SERVICE_REPO_INFO in hostLevelParams inside the method
         List<OsSpecific.Package> packages = managementController.getPackagesForStackServiceHost(stackInfo, serviceInfo, hostLevelParams, osFamily);
         String packageList = gson.toJson(packages);
-        hostLevelParams.put(PACKAGE_LIST, packageList);
 
         Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredClusterConfigs);
         String userList = gson.toJson(userSet);
@@ -435,6 +434,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           }
         }
 
+        commandParams.put(PACKAGE_LIST, packageList);
         commandParams.put("xml_configs_list", xmlConfigs);
         commandParams.put("env_configs_list", envConfigs);
         commandParams.put("properties_configs_list", propertiesConfigs);

@@ -34,71 +34,31 @@
 {{/if}}
 {{#if view.canEdit}}
   {{#unless view.readOnly}}
-  <div {{bindAttr class=":widget-config-controls view.referToSelectedGroup::clear-min-height"}}>
-    <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::hidden"}}>
-      <a href="#"
-        {{bindAttr class=":widget-action :widget-action-undo view.undoAllowed::hidden"}}
-        data-toggle="tooltip" {{translateAttr data-original-title="common.undo"}}
-        {{action "restoreValue" target="view"}}>
-         <i class="icon-undo"></i>
-      </a>
-    </div>
-    <div class="widget-col left">
-      {{#if view.showPencil}}
-        {{#if view.isWidgetViewAllowed}}
-          <a href="#"
-            data-toggle="tooltip" {{translateAttr data-original-title="common.edit"}}
-            {{bindAttr class=":glyphicon :glyphicon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.config.showAsTextBox::active"}}
-            {{action "toggleWidgetView" target="view"}}>
-          </a>
-        {{else}}
-          <i class="icon-pencil widget-action widget-action-switch-view text-danger"
-             data-toggle="tooltip" {{bindAttr data-original-title="view.issueMessage"}}></i>
-        {{/if}}
-      {{/if}}
-      {{#if view.config.recommendedValueExists}}
-        {{#unless view.disabled}}
-          <a href="#"
-            {{bindAttr class=":icon-repeat :widget-action-set-recommended view.isHover::hide :widget-action"}}
-            {{action "setRecommendedValue" target="view"}} data-toggle="tooltip" {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}>
-          </a>
-        {{/unless}}
-      {{/if}}
-    </div>
-    <div class="widget-col right">
-      {{#if view.config.supportsFinal}}
-        <a href="#" data-toggle="tooltip"
-          {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:hide" disabled="view.config.isNotEditable"}}
-          {{action "toggleFinalFlag" view.config target="view"}}
-          {{translateAttr data-original-title="services.service.config.final"}}>
-          <i class="glyphicon glyphicon-lock"></i>
-        </a>
-      {{/if}}
-      {{#unless view.isOriginalSCP}}
-        {{#unless view.disabled}}
-          {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-            <a {{bindAttr class=":widget-action :widget-action-remove view.isHover:show:hide"}} href="#"
-                                                                                                data-toggle="tooltip"
-              {{action "removeOverride" view.config target="view.parentView"}}
-              {{translateAttr data-original-title="common.remove"}}>
-              <i class="glyphicon glyphicon-minus-sign"></i>
-            </a>
-          {{/isAuthorized}}
-        {{/unless}}
-      {{/unless}}
-      {{#if view.overrideAllowed}}
-        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-          <div {{bindAttr class=":widget-action :widget-action-override view.isHover:show:hide"}}>
-            <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
-              {{action "createOverrideProperty" view.config target="view.parentView"}}
-              {{translateAttr data-original-title="common.override"}}>
-              <i class="glyphicon glyphicon-plus-sign"></i>
-            </a>
-          </div>
-        {{/isAuthorized}}
-      {{/if}}
-    </div>
-  </div>
+    {{#if view.inlineControls}}
+      <div class="widget-config-controls">
+        {{template "templates/common/configs/widgets/controls/undo"}}
+        {{template "templates/common/configs/widgets/controls/edit"}}
+        {{template "templates/common/configs/widgets/controls/remove_override"}}
+        {{template "templates/common/configs/widgets/controls/create_override"}}
+        {{template "templates/common/configs/widgets/controls/set_recommended"}}
+        {{template "templates/common/configs/widgets/controls/final"}}
+      </div>
+    {{else}}
+      <div {{bindAttr class=":widget-config-controls view.referToSelectedGroup::clear-min-height"}}>
+        <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::hidden"}}>
+          {{template "templates/common/configs/widgets/controls/undo"}}
+        </div>
+        <div class="widget-col left">
+          {{template "templates/common/configs/widgets/controls/edit"}}
+          {{template "templates/common/configs/widgets/controls/set_recommended"}}
+        </div>
+        <div class="widget-col right">
+          {{template "templates/common/configs/widgets/controls/final"}}
+          {{template "templates/common/configs/widgets/controls/remove_override"}}
+          {{template "templates/common/configs/widgets/controls/create_override"}}
+        </div>
+      </div>
+    {{/if}}
   {{/unless}}
 {{/if}}
 

@@ -26,6 +26,12 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
 
   lazyLoading: null,
 
+  didInsertElement: function () {
+    if (this.get('controller.isInstallWizard')) {
+      this.selectedServiceObserver();
+    }
+  },
+
   pushView: function () {
     if (this.get('controller.selectedService')) {
       var self = this;
@@ -38,6 +44,9 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
           filterBinding: controllerRoute + '.filter',
           columnsBinding: controllerRoute + '.filterColumns',
           selectedServiceBinding: controllerRoute + '.selectedService',
+          actionsStacked: function () {
+            return this.get('controller.isInstallWizard') && this.get('supportsConfigLayout');
+          }.property('controller.isInstallWizard', 'supportsConfigLayout'),
           serviceConfigsByCategoryView: Em.ContainerView.create(),
           willDestroyElement: function () {
             $('.loading').append(Em.I18n.t('common.loading.eclipses'));

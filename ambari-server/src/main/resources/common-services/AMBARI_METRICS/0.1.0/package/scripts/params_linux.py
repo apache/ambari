@@ -38,7 +38,7 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 major_stack_version = get_major_version(stack_version_formatted)
