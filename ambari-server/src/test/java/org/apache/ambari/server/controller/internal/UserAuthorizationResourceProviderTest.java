@@ -83,6 +83,8 @@ import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.StackFactory;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
@@ -434,6 +436,8 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(RegistryFactory.class).toInstance(createNiceMock(RegistryFactory.class));
         bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
         bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+        bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
+        bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
       }
     });
   }
