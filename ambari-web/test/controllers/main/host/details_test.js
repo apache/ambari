@@ -677,6 +677,24 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
+  describe("#loadAtlasConfigs()", function() {
+    it("valid request is sent", function() {
+      controller.loadAtlasConfigs({Clusters: {
+        desired_configs: {
+          'application-properties': {
+            tag: 'tag'
+          }
+        }
+      }}, null, {});
+      var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: '(type=application-properties&tag=tag)'
+      });
+    });
+  });
+
   describe("#loadRangerConfigs()", function() {
     it("valid request is sent", function() {
       controller.loadRangerConfigs({Clusters: {
