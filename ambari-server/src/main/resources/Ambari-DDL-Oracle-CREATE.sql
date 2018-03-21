@@ -1039,6 +1039,29 @@ CREATE TABLE upgrade_history(
   CONSTRAINT UQ_upgrade_hist_srvc_grp UNIQUE (upgrade_id, service_group_id)
 );
 
+CREATE TABLE upgrade_plan (
+  id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  upgrade_type VARCHAR2(255) DEFAULT 'ROLLING' NOT NULL,
+  direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
+  skip_failures SMALLINT DEFAULT 0 NOT NULL, 
+  skip_sc_failures SMALLINT DEFAULT 0 NOT NULL, 
+  skip_prechecks SMALLINT DEFAULT 0 NOT NULL,
+  fail_on_precheck_warnings SMALLINT DEFAULT 0 NOT NULL,
+  skip_service_checks SMALLINT DEFAULT 0 NOT NULL,
+  CONSTRAINT PK_upgrade_plan PRIMARY KEY (id)
+);
+
+CREATE TABLE upgrade_plan_detail (
+  id NUMBER(19) NOT NULL,
+  upgrade_plan_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  mpack_target_id NUMBER(19) NOT NULL,
+  CONSTRAINT PK_upgrade_plan_detail PRIMARY KEY (id),
+  CONSTRAINT FK_upgrade_det_upgrade_plan FOREIGN KEY (upgrade_plan_id) REFERENCES upgrade_plan (id)
+);
+
+
 CREATE TABLE ambari_operation_history(
   id NUMBER(19) NOT NULL,
   from_version VARCHAR2(255) NOT NULL,
@@ -1271,6 +1294,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_defini
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_plan_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_plan_detail_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('mpack_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('registry_id_seq', 0);

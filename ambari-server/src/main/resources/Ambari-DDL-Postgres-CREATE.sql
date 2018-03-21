@@ -1044,6 +1044,28 @@ CREATE TABLE upgrade_history(
   CONSTRAINT UQ_upgrade_hist_srvc_grp UNIQUE (upgrade_id, service_group_id)
 );
 
+CREATE TABLE upgrade_plan (
+  id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  upgrade_type VARCHAR(255) DEFAULT 'ROLLING' NOT NULL,
+  direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  skip_failures SMALLINT DEFAULT 0 NOT NULL, 
+  skip_sc_failures SMALLINT DEFAULT 0 NOT NULL, 
+  skip_prechecks SMALLINT DEFAULT 0 NOT NULL,
+  fail_on_precheck_warnings SMALLINT DEFAULT 0 NOT NULL,
+  skip_service_checks SMALLINT DEFAULT 0 NOT NULL,
+  CONSTRAINT PK_upgrade_plan PRIMARY KEY (id)
+);
+
+CREATE TABLE upgrade_plan_detail (
+  id BIGINT NOT NULL,
+  upgrade_plan_id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  mpack_target_id BIGINT NOT NULL,
+  CONSTRAINT PK_upgrade_plan_detail PRIMARY KEY (id),
+  CONSTRAINT FK_upgrade_det_upgrade_plan FOREIGN KEY (upgrade_plan_id) REFERENCES upgrade_plan (id)
+);
+
 CREATE TABLE ambari_operation_history(
   id BIGINT NOT NULL,
   from_version VARCHAR(255) NOT NULL,
@@ -1272,9 +1294,11 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('service_config_id_seq', 1),
   ('upgrade_id_seq', 0),
   ('upgrade_group_id_seq', 0),
+  ('upgrade_item_id_seq', 0),
+  ('upgrade_plan_id_seq', 0),
+  ('upgrade_plan_detail_id_seq', 0),
   ('widget_id_seq', 0),
   ('widget_layout_id_seq', 0),
-  ('upgrade_item_id_seq', 0),
   ('stack_id_seq', 0),
   ('mpack_id_seq',0),
   ('registry_id_seq',0),
