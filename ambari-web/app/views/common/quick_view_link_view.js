@@ -409,9 +409,24 @@ App.QuickLinksView = Em.View.extend({
         newItem.url = template.fmt(protocol, host, linkPort);
       }
       newItem.label = link.label;
+      newItem.url = this.resolvePlaceholders(newItem.url);
       return newItem;
     }
     return null;
+  },
+
+  /**
+   * Replace placeholders like ${config-type/property-name} in the given URL
+   */
+  resolvePlaceholders: function(url) {
+    return url.replace(/\$\{(\S+)\/(\S+)\}/g, function(match, configType, propertyName) {
+      var config = this.get('configProperties').findProperty('type', configType);
+      if (config) {
+        return config.properties[propertyName] ? config.properties[propertyName] : match;
+      } else {
+        return match;
+      }
+    }.bind(this));
   },
 
   /**
