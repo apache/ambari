@@ -744,7 +744,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         })));
       return App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
     }
-
     if (componentsMapItem) {
       this.addAndReconfigureComponent(componentsMapItem, hostName, component, event.fromServiceSummary);
     } else if (componentName === 'JOURNALNODE') {
@@ -801,7 +800,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       componentName = component.get('componentName'),
       componentDisplayName = component.get('displayName'),
       componentsMapItem = this.get('addDeleteComponentsMap')[componentName],
-      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName);
+      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
+      configTagsCallbackName,
+      configsCallbackName;
+    if (componentsMapItem) {
+      configTagsCallbackName = componentsMapItem.configTagsCallbackName || 'loadConfigsSuccessCallback';
+      configsCallbackName = componentsMapItem.configsCallbackName || 'saveZkConfigs';
+    }
+
+    this.loadComponentRelatedConfigs(configTagsCallbackName, configsCallbackName);
 
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
@@ -872,6 +879,55 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     });
   },
+
+  /**
+   * Success callback for load configs request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method loadConfigsSuccessCallback
+   */
+  loadConfigsSuccessCallback: function (data, opt, params) {
+    var urlParams = this.constructConfigUrlParams(data);
+    if (urlParams.length > 0) {
+      var request = App.ajax.send({
+        name: 'reassign.load_configs',
+        sender: this,
+        data: {
+          urlParams: urlParams.join('|')
+        },
+        success: params.callback || 'saveZkConfigs'
+      });
+      this.trackRequest(request);
+      return true;
+    }
+    this.set('isConfigsLoadingInProgress', false);
+    return false;
+  },
+
+  /**
+   * construct URL params for query, that load configs
+   * @param data {Object}
+   * @return {Array}
+   */
+  constructConfigUrlParams: function (data) {
+    var urlParams = [];
+    var services = App.Service.find();
+    if (App.get('isHaEnabled')) {
+      urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+    }
+    this.get('zooKeeperRelatedServices').forEach(function (service) {
+      if (services.someProperty('serviceName', service.serviceName)) {
+        service.typesToLoad.forEach(function (type) {
+          if (data.Clusters.desired_configs[type]) {
+            urlParams.push('(type=' + type + '&tag=' + data.Clusters.desired_configs[type].tag + ')');
+          }
+        });
+      }
+    });
+    return urlParams;
+  },
+
 
   loadComponentRelatedConfigs: function (configTagsCallbackName, configsCallbackName) {
     this.clearConfigsChanges();
