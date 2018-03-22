@@ -150,10 +150,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
-<<<<<<< HEAD
-        <version>2.1.5</version>
-=======
->>>>>>> upstream/trunk
         <executions>
           <execution>
             <!-- unbinds rpm creation from maven lifecycle -->
