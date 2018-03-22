@@ -639,6 +639,10 @@
       </component>
 
       <component name="HDFS_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdfs_user_agent" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

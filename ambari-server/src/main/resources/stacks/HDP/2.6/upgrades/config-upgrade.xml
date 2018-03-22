@@ -51,6 +51,15 @@
           </definition>
         </changes>
       </component>
+      <component name="HDFS_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdfs_user_agent" summary="Set User-Agent">
+            <type>core-site</type>
+            <set key="fs.azure.user.agent.prefix" value="User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}" if-type="core-site" if-key="fs.azure.user.agent.prefix" if-key-state="absent" />
+            <set key="fs.s3a.user.agent.prefix" value="User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}" if-type="core-site" if-key="fs.s3a.user.agent.prefix" if-key-state="absent" />
+          </definition>
+        </changes>
+      </component>
     </service>
 
     <service name="HIVE">
