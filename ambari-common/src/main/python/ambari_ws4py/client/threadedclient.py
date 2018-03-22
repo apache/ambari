@@ -7,7 +7,7 @@ __all__ = ['WebSocketClient']
 
 class WebSocketClient(WebSocketBaseClient):
     def __init__(self, url, protocols=None, extensions=None, heartbeat_freq=None,
-                 ssl_options=None, headers=None):
+                 ssl_options=None, headers=None, exclude_headers=None):
         """
         .. code-block:: python
 
@@ -32,7 +32,7 @@ class WebSocketClient(WebSocketBaseClient):
 
         """
         WebSocketBaseClient.__init__(self, url, protocols, extensions, heartbeat_freq,
-                                     ssl_options, headers=headers)
+                                     ssl_options, headers=headers, exclude_headers=exclude_headers)
         self._th = threading.Thread(target=self.run, name='WebSocketClient')
         self._th.daemon = True
 
