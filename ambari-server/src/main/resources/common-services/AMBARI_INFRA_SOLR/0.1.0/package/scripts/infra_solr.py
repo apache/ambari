@@ -29,7 +29,7 @@ from resource_management.libraries.script.script import Script
 
 from collection import backup_collection, restore_collection
 from migrate import migrate_index
-from setup_infra_solr import setup_infra_solr
+from setup_infra_solr import setup_infra_solr, setup_solr_znode_env
 
 class InfraSolr(Script):
   def install(self, env):
@@ -48,6 +48,7 @@ class InfraSolr(Script):
     env.set_params(params)
     self.configure(env)
 
+    setup_solr_znode_env()
     start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' >> {infra_solr_log} 2>&1') \
             if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} >> {infra_solr_log} 2>&1')
     Execute(
