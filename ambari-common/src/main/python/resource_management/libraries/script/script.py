@@ -104,30 +104,7 @@ def get_path_from_configuration(name, configuration):
 def get_config_lock_file():
   return os.path.join(Script.get_tmp_dir(), "link_configs_lock_file")
 
-class LockedConfigureMeta(type):
-  '''
-  This metaclass ensures that Script.configure() is invoked with a fcntl-based process lock
-  if necessary (when Ambari Agent is configured to execute tasks concurrently) for all subclasses.
-  '''
-  def __new__(meta, classname, supers, classdict):
-    if 'configure' in classdict:
-      original_configure = classdict['configure']
-
-      def locking_configure(obj, *args, **kw):
-        # local import to avoid circular dependency (default imports Script)
-        from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(default("/agentLevelParams/agentConfigParams/agent/parallel_execution", 0)) == 1
-        lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
-        with lock:
-          original_configure(obj, *args, **kw)
-
-      classdict['configure'] = locking_configure
-
-    return type.__new__(meta, classname, supers, classdict)
-
 class Script(object):
-  __metaclass__ = LockedConfigureMeta
-
   instance = None
 
   """
