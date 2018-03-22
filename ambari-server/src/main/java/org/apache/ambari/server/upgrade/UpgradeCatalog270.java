@@ -914,6 +914,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    renameAmbariInfra();
+    updateKerberosDescriptorArtifacts();
     addNewConfigurationsFromXml();
     showHcatDeletedUserMessage();
     setStatusOfStagesAndRequests();
@@ -924,76 +926,108 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     createRoleAuthorizations();
     addUserAuthenticationSequence();
     updateSolrConfigurations();
-    renameAmbariInfra();
-    updateKerberosDescriptorArtifacts();
   }
 
-  protected void updateSolrConfigurations() throws AmbariException {
+  protected void renameAmbariInfra() throws SQLException {
+    LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR");
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK);
+    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK);
+    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
+    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
+    try {
+      dbAccessor.updateTable(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+    }
+    finally {
+      dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
+              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
+              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
+              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
+              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+    }
+
+
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
     if (clusters == null)
       return;
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
-
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    if (clusterMap == null || clusterMap.isEmpty())
+    if (MapUtils.isEmpty(clusterMap))
       return;
 
+    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
+    for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.findAll()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(serviceConfigEntity.getServiceName())) {
+        serviceConfigEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        serviceConfigDAO.merge(serviceConfigEntity);
+      }
+    }
+
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
     for (final Cluster cluster : clusterMap.values()) {
-      updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content, "7.2.1");
-        return updateMergeFactor(content, "logsearch_service_logs_merge_factor");
-      });
-      updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> {
-        content = updateLuceneMatchVersion(content,"7.2.1");
-        return updateMergeFactor(content, "logsearch_audit_logs_merge_factor");
-      });
-      updateConfig(cluster, "ranger-solr-configuration", (content) -> {
-        content = updateLuceneMatchVersion(content,"6.6.0");
-        return updateMergeFactor(content, "ranger_audit_logs_merge_factor");
-      });
+      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionDAO.findByService(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME)) {
+        alertDefinitionEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertDefinitionDAO.merge(alertDefinitionEntity);
+      }
+    }
 
-      updateConfig(cluster, "atlas-solrconfig",
-              (content) -> updateLuceneMatchVersion(content,"6.6.0"));
+    AlertDispatchDAO alertDispatchDAO = injector.getInstance(AlertDispatchDAO.class);
+    for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(alertGroupEntity.getServiceName())) {
+        alertGroupEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertGroupEntity.setGroupName(AMBARI_INFRA_NEW_NAME);
+        alertDispatchDAO.merge(alertGroupEntity);
+      }
+    }
 
-      updateConfig(cluster, "infra-solr-env", this::updateInfraSolrEnv);
-
-      updateConfig(cluster, "infra-solr-security-json", (content) ->
-              content.replace("org.apache.ambari.infra.security.InfraRuleBasedAuthorizationPlugin",
-                      "org.apache.solr.security.InfraRuleBasedAuthorizationPlugin"));
+    AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
+    for (AlertHistoryEntity alertHistoryEntity : alertsDAO.findAll()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(alertHistoryEntity.getServiceName())) {
+        alertHistoryEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertsDAO.merge(alertHistoryEntity);
+      }
     }
   }
 
-  protected String updateInfraSolrEnv(String content) {
-    return content.replaceAll("SOLR_KERB_NAME_RULES=\".*\"", "")
-            .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
-            .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
-  }
-
-  private void updateConfig(Cluster cluster, String configType, Function<String, String> contentUpdater) throws AmbariException {
-    Config config = cluster.getDesiredConfigByType(configType);
-    if (config == null)
-      return;
-    if (config.getProperties() == null || !config.getProperties().containsKey("content"))
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity == null)
       return;
 
-    String content = config.getProperties().get("content");
-    content = contentUpdater.apply(content);
-    updateConfigurationPropertiesForCluster(cluster, configType, Collections.singletonMap("content", content), true, true);
-  }
+    Map<String, Object> data = artifactEntity.getArtifactData();
+    if (data == null)
+      return;
 
-  protected String updateLuceneMatchVersion(String content, String newLuceneMatchVersion) {
-    return content.replaceAll("<luceneMatchVersion>.*</luceneMatchVersion>",
-            "<luceneMatchVersion>" + newLuceneMatchVersion + "</luceneMatchVersion>");
-  }
+    final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+    if (kerberosDescriptor == null)
+      return;
 
-  protected String updateMergeFactor(String content, String variableName) {
-    return content.replaceAll("<mergeFactor>\\{\\{" + variableName + "\\}\\}</mergeFactor>",
-            "<mergePolicyFactory class=\"org.apache.solr.index.TieredMergePolicyFactory\">\n" +
-                    "      <int name=\"maxMergeAtOnce\">{{" + variableName + "}}</int>\n" +
-                    "      <int name=\"segmentsPerTier\">{{" + variableName + "}}</int>\n" +
-                    "    </mergePolicyFactory>");
+    Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
+    KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
+    if (ambariInfraService == null)
+      return;
+
+    ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
+    services.remove(AMBARI_INFRA_OLD_NAME);
+    services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
+    kerberosDescriptor.setServices(services);
+
+    for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
+      updateKerberosIdentities(serviceDescriptor);
+      for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
+        updateKerberosIdentities(componentDescriptor);
+      }
+    }
+
+    artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+    artifactDAO.merge(artifactEntity);
   }
 
   protected void addUserAuthenticationSequence() throws SQLException {
@@ -1202,108 +1236,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     return content.replaceAll("(?s)<requestHandler\\s+name=\"/admin/\"\\s+class=\"solr.admin.AdminHandlers\"\\s*/>", "");
   }
 
-  protected void renameAmbariInfra() throws SQLException {
-    LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR");
-    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK);
-    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK);
-    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
-    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
-    try {
-      dbAccessor.updateTable(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-    }
-    finally {
-      dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-    }
-
-
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters == null)
-      return;
-
-    Map<String, Cluster> clusterMap = clusters.getClusters();
-    if (MapUtils.isEmpty(clusterMap))
-      return;
-
-    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
-    for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(serviceConfigEntity.getServiceName())) {
-        serviceConfigEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        serviceConfigDAO.merge(serviceConfigEntity);
-      }
-    }
-
-    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
-    for (final Cluster cluster : clusterMap.values()) {
-      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionDAO.findByService(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME)) {
-        alertDefinitionEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertDefinitionDAO.merge(alertDefinitionEntity);
-      }
-    }
-
-    AlertDispatchDAO alertDispatchDAO = injector.getInstance(AlertDispatchDAO.class);
-    for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertGroupEntity.getServiceName())) {
-        alertGroupEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertGroupEntity.setGroupName(AMBARI_INFRA_NEW_NAME);
-        alertDispatchDAO.merge(alertGroupEntity);
-      }
-    }
-
-    AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
-    for (AlertHistoryEntity alertHistoryEntity : alertsDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertHistoryEntity.getServiceName())) {
-        alertHistoryEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertsDAO.merge(alertHistoryEntity);
-      }
-    }
-  }
-
-  @Override
-  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
-    if (artifactEntity == null)
-      return;
-
-    Map<String, Object> data = artifactEntity.getArtifactData();
-    if (data == null)
-      return;
-
-    final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
-    if (kerberosDescriptor == null)
-      return;
-
-    Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
-    KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
-    if (ambariInfraService == null)
-      return;
-
-    ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
-    services.remove(AMBARI_INFRA_OLD_NAME);
-    services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
-    kerberosDescriptor.setServices(services);
-
-    for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
-      updateKerberosIdentities(serviceDescriptor);
-      for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
-        updateKerberosIdentities(componentDescriptor);
-      }
-    }
-
-    artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-    artifactDAO.merge(artifactEntity);
-  }
-
   private void updateKerberosIdentities(AbstractKerberosDescriptorContainer descriptorContainer) {
     if (descriptorContainer.getIdentities() == null)
       return;
@@ -1496,5 +1428,73 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         }
       }
     });
+  }
+
+  protected void updateSolrConfigurations() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    if (clusterMap == null || clusterMap.isEmpty())
+      return;
+
+    for (final Cluster cluster : clusterMap.values()) {
+      updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {
+        content = updateLuceneMatchVersion(content, "7.2.1");
+        return updateMergeFactor(content, "logsearch_service_logs_merge_factor");
+      });
+      updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> {
+        content = updateLuceneMatchVersion(content,"7.2.1");
+        return updateMergeFactor(content, "logsearch_audit_logs_merge_factor");
+      });
+      updateConfig(cluster, "ranger-solr-configuration", (content) -> {
+        content = updateLuceneMatchVersion(content,"6.6.0");
+        return updateMergeFactor(content, "ranger_audit_logs_merge_factor");
+      });
+
+      updateConfig(cluster, "atlas-solrconfig",
+              (content) -> updateLuceneMatchVersion(content,"6.6.0"));
+
+      updateConfig(cluster, "infra-solr-env", this::updateInfraSolrEnv);
+
+      updateConfig(cluster, "infra-solr-security-json", (content) ->
+              content.replace("org.apache.ambari.infra.security.InfraRuleBasedAuthorizationPlugin",
+                      "org.apache.solr.security.InfraRuleBasedAuthorizationPlugin"));
+    }
+  }
+
+  private void updateConfig(Cluster cluster, String configType, Function<String, String> contentUpdater) throws AmbariException {
+    Config config = cluster.getDesiredConfigByType(configType);
+    if (config == null)
+      return;
+    if (config.getProperties() == null || !config.getProperties().containsKey("content"))
+      return;
+
+    String content = config.getProperties().get("content");
+    content = contentUpdater.apply(content);
+    updateConfigurationPropertiesForCluster(cluster, configType, Collections.singletonMap("content", content), true, true);
+  }
+
+  protected String updateLuceneMatchVersion(String content, String newLuceneMatchVersion) {
+    return content.replaceAll("<luceneMatchVersion>.*</luceneMatchVersion>",
+            "<luceneMatchVersion>" + newLuceneMatchVersion + "</luceneMatchVersion>");
+  }
+
+  protected String updateMergeFactor(String content, String variableName) {
+    return content.replaceAll("<mergeFactor>\\{\\{" + variableName + "\\}\\}</mergeFactor>",
+            "<mergePolicyFactory class=\"org.apache.solr.index.TieredMergePolicyFactory\">\n" +
+                    "      <int name=\"maxMergeAtOnce\">{{" + variableName + "}}</int>\n" +
+                    "      <int name=\"segmentsPerTier\">{{" + variableName + "}}</int>\n" +
+                    "    </mergePolicyFactory>");
+  }
+
+  protected String updateInfraSolrEnv(String content) {
+    return content.replaceAll("SOLR_KERB_NAME_RULES=\".*\"", "")
+            .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
+            .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
   }
 }
