@@ -543,7 +543,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           });
         } else {
           activeNameNodeConfigKeys.forEach(key => {
-            item[key].default = Em.get(firstHostComponent, activeNameNodeConfigKeys[key]);
+            item[key].default = Em.get(firstHostComponent, activeNameNodeConfig[key]);
           });
         }
 

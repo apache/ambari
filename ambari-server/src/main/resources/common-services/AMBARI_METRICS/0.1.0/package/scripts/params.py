@@ -110,7 +110,7 @@ for host in ams_collector_hosts.split(","):
   metric_truststore_alias_list.append(metric_truststore_alias)
 
 agent_cache_dir = config['agentLevelParams']['agentCacheDir']
-service_package_folder = config['serviceLevelParams']['service_package_folder']
+service_package_folder = config['commandParams']['service_package_folder']
 stack_name = default("/clusterLevelParams/stack_name", None)
 dashboards_dirs = []
 # Stack specific

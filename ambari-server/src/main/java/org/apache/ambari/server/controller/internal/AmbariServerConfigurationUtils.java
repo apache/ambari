@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.ConfigurationPropertyType;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 
 /**
  * Provides useful utility methods for AMBARI-level configuration related tasks.
@@ -27,30 +28,33 @@ import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 public class AmbariServerConfigurationUtils {
 
   /**
-   * @param category
-   *          the name of the category
-   * @param propertyName
-   *          the name of the property
+   * @param category     the name of the category
+   * @param propertyName the name of the property
    * @return the type of the given category/property if such category/property
-   *         exists; {@code null} otherwise
-   * @throws IllegalStateException
-   *           if there is no property found with the given name
+   * exists; {@code null} otherwise
+   * @throws IllegalStateException if there is no property found with the given name
    */
   public static ConfigurationPropertyType getConfigurationPropertyType(String category, String propertyName) {
-    if (AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName().equals(category)) {
-      return AmbariLdapConfigurationKeys.fromKeyStr(propertyName).getConfigurationPropertyType();
-    }
-    return null;
+    return getConfigurationPropertyType(AmbariServerConfigurationCategory.translate(category), propertyName);
   }
 
   /**
-   * @param category
-   *          the name of the category
-   * @param propertyName
-   *          the name of the property
+   * @param category     the category
+   * @param propertyName the name of the property
+   * @return the type of the given category/property if such category/property
+   * exists; {@code null} otherwise
+   * @throws IllegalStateException if there is no property found with the given name
+   */
+  public static ConfigurationPropertyType getConfigurationPropertyType(AmbariServerConfigurationCategory category, String propertyName) {
+    return AmbariServerConfigurationKey.translate(category, propertyName).getConfigurationPropertyType();
+  }
+
+  /**
+   * @param category     the name of the category
+   * @param propertyName the name of the property
    * @return the String representation of the type if such category/property
-   *         exists; {@code null} otherwise * @throws IllegalStateException if
-   *         there is no property found with the given name
+   * exists; {@code null} otherwise * @throws IllegalStateException if
+   * there is no property found with the given name
    */
   public static String getConfigurationPropertyTypeName(String category, String propertyName) {
     final ConfigurationPropertyType configurationPropertyType = getConfigurationPropertyType(category, propertyName);
@@ -59,17 +63,14 @@ public class AmbariServerConfigurationUtils {
 
   /**
    * Indicates whether the given property's type is
-   * 
-   * {@link ConfigurationPropertyType.PASSWORD}
+   * <p>
+   * {@link ConfigurationPropertyType#PASSWORD}
    *
-   * @param category
-   *          the name of the category
-   * @param propertyName
-   *          the name of the property
+   * @param category     the name of the category
+   * @param propertyName the name of the property
    * @return {@code true} in case the given property's type is
-   *         {@link ConfigurationPropertyType.PASSWORD}; {@code false} otherwise
-   * @throws IllegalStateException
-   *           if there is no property found with the given name
+   * {@link ConfigurationPropertyType#PASSWORD}; {@code false} otherwise
+   * @throws IllegalStateException if there is no property found with the given name
    */
   public static boolean isPassword(String category, String propertyName) {
     return ConfigurationPropertyType.PASSWORD.equals(getConfigurationPropertyType(category, propertyName));

@@ -24,9 +24,9 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.AuthorizationTestModule;
@@ -70,17 +70,17 @@ public class LdapPerformanceTest {
     injector.getInstance(GuiceJpaInitializer.class);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
     
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "c6402.ambari.apache.org");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, "389");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS, "posixAccount");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "uid");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, "posixGroup");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, "cn");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE, "memberUid");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "dc=apache,dc=org");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ANONYMOUS_BIND, "false");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.BIND_DN, "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.BIND_PASSWORD, "hdfs");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.SERVER_HOST, "c6402.ambari.apache.org");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.SERVER_PORT, "389");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.USER_OBJECT_CLASS, "posixAccount");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE, "uid");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.GROUP_OBJECT_CLASS, "posixGroup");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE, "cn");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE, "memberUid");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.USER_SEARCH_BASE, "dc=apache,dc=org");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.ANONYMOUS_BIND, "false");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.BIND_DN, "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.BIND_PASSWORD, "hdfs");
   }
 
   @After

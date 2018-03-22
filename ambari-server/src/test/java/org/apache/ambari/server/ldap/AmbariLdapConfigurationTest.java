@@ -26,8 +26,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.nio.charset.Charset;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -50,8 +50,8 @@ public class AmbariLdapConfigurationTest {
 
   @Test
   public void testLdapUserSearchFilter() throws Exception {
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "test_uid");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER, "{usernameAttribute}={0}");
+    configuration.setValueFor(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE, "test_uid");
+    configuration.setValueFor(AmbariServerConfigurationKey.USER_SEARCH_FILTER, "{usernameAttribute}={0}");
     assertEquals("test_uid={0}", configuration.getLdapServerProperties().getUserSearchFilter(false));
   }
 
@@ -62,8 +62,8 @@ public class AmbariLdapConfigurationTest {
 
   @Test
   public void testAlternatLdapUserSearchFilter() throws Exception {
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "test_uid");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER, "{usernameAttribute}={5}");
+    configuration.setValueFor(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE, "test_uid");
+    configuration.setValueFor(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_FILTER, "{usernameAttribute}={5}");
     assertEquals("test_uid={5}", configuration.getLdapServerProperties().getUserSearchFilter(true));
   }
 
@@ -74,19 +74,19 @@ public class AmbariLdapConfigurationTest {
 
   @Test
   public void testAlternateUserSearchEnabledTrue() throws Exception {
-    configuration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "true");
+    configuration.setValueFor(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_ENABLED, "true");
     assertTrue(configuration.isLdapAlternateUserSearchEnabled());
   }
 
   @Test
   public void testAlternateUserSearchEnabledFalse() throws Exception {
-    configuration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "false");
+    configuration.setValueFor(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_ENABLED, "false");
     assertFalse(configuration.isLdapAlternateUserSearchEnabled());
   }
 
   @Test
   public void testGetLdapServerProperties_WrongManagerPassword() throws Exception {
-    configuration.setValueFor(AmbariLdapConfigurationKeys.BIND_PASSWORD, "somePassword");
+    configuration.setValueFor(AmbariServerConfigurationKey.BIND_PASSWORD, "somePassword");
     // if it's not a store alias and is not a file, the default manager PW should be returned (which is null)
     assertNull(configuration.getLdapServerProperties().getManagerPassword());
   }
@@ -100,24 +100,24 @@ public class AmbariLdapConfigurationTest {
     passwordFile.deleteOnExit();
     FileUtils.writeStringToFile(passwordFile, managerPw, Charset.defaultCharset());
 
-    configuration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "host");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, "1");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST, "secHost");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT, "2");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USE_SSL, "true");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.ANONYMOUS_BIND, "true");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.BIND_DN, "5");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.BIND_PASSWORD, passwordFile.getAbsolutePath());
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "7");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "8");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_BASE, "9");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS, "10");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_BASE, "11");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, "12");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE, "13");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, "14");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES, "15");
-    configuration.setValueFor(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER, "16");
+    configuration.setValueFor(AmbariServerConfigurationKey.SERVER_HOST, "host");
+    configuration.setValueFor(AmbariServerConfigurationKey.SERVER_PORT, "1");
+    configuration.setValueFor(AmbariServerConfigurationKey.SECONDARY_SERVER_HOST, "secHost");
+    configuration.setValueFor(AmbariServerConfigurationKey.SECONDARY_SERVER_PORT, "2");
+    configuration.setValueFor(AmbariServerConfigurationKey.USE_SSL, "true");
+    configuration.setValueFor(AmbariServerConfigurationKey.ANONYMOUS_BIND, "true");
+    configuration.setValueFor(AmbariServerConfigurationKey.BIND_DN, "5");
+    configuration.setValueFor(AmbariServerConfigurationKey.BIND_PASSWORD, passwordFile.getAbsolutePath());
+    configuration.setValueFor(AmbariServerConfigurationKey.USER_SEARCH_BASE, "7");
+    configuration.setValueFor(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE, "8");
+    configuration.setValueFor(AmbariServerConfigurationKey.USER_BASE, "9");
+    configuration.setValueFor(AmbariServerConfigurationKey.USER_OBJECT_CLASS, "10");
+    configuration.setValueFor(AmbariServerConfigurationKey.GROUP_BASE, "11");
+    configuration.setValueFor(AmbariServerConfigurationKey.GROUP_OBJECT_CLASS, "12");
+    configuration.setValueFor(AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE, "13");
+    configuration.setValueFor(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE, "14");
+    configuration.setValueFor(AmbariServerConfigurationKey.GROUP_MAPPING_RULES, "15");
+    configuration.setValueFor(AmbariServerConfigurationKey.GROUP_SEARCH_FILTER, "16");
 
     final LdapServerProperties ldapProperties = configuration.getLdapServerProperties();
 

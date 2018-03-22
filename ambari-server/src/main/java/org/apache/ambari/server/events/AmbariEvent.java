@@ -170,7 +170,12 @@ public abstract class AmbariEvent {
     /**
      * Host component's stale config status has been changed.
      */
-    STALE_CONFIGS_UPDATE;
+    STALE_CONFIGS_UPDATE,
+
+    /**
+     * Service component's repo has been changed..
+     */
+    SERVICE_COMPONENT_REPO_CHANGE;
   }
 
   /**

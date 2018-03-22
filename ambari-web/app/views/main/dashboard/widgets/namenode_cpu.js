@@ -39,7 +39,7 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNod
           this.set('nnHostName', nn.get('hostName'));
         }
       } else {
-        this.set('nnHostName', self.get('model.nameNode.hostName'));
+        this.set('nnHostName', this.get('model.nameNode.hostName'));
       }
       if (this.get('nnHostName')) {
         this.getValue();

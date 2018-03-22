@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.internal;
+package org.apache.ambari.server.configuration;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -25,7 +25,8 @@ import org.apache.commons.lang.StringUtils;
  * configuration categories.
  */
 public enum AmbariServerConfigurationCategory {
-  LDAP_CONFIGURATION("ldap-configuration");
+  LDAP_CONFIGURATION("ldap-configuration"),
+  SSO_CONFIGURATION("sso-configuration");
 
   private final String categoryName;
 

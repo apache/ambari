@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -38,12 +39,12 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -913,6 +914,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    renameAmbariInfra();
+    updateKerberosDescriptorArtifacts();
     addNewConfigurationsFromXml();
     showHcatDeletedUserMessage();
     setStatusOfStagesAndRequests();
@@ -922,8 +925,109 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     upgradeLdapConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
-    renameAmbariInfra();
-    updateKerberosDescriptorArtifacts();
+    updateSolrConfigurations();
+  }
+
+  protected void renameAmbariInfra() throws SQLException {
+    LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR");
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK);
+    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK);
+    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
+    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
+    try {
+      dbAccessor.updateTable(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+      dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
+    }
+    finally {
+      dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
+              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
+              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
+              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+      dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
+              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
+    }
+
+
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+    if (MapUtils.isEmpty(clusterMap))
+      return;
+
+    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
+    for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.findAll()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(serviceConfigEntity.getServiceName())) {
+        serviceConfigEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        serviceConfigDAO.merge(serviceConfigEntity);
+      }
+    }
+
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    for (final Cluster cluster : clusterMap.values()) {
+      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionDAO.findByService(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME)) {
+        alertDefinitionEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertDefinitionDAO.merge(alertDefinitionEntity);
+      }
+    }
+
+    AlertDispatchDAO alertDispatchDAO = injector.getInstance(AlertDispatchDAO.class);
+    for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(alertGroupEntity.getServiceName())) {
+        alertGroupEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertGroupEntity.setGroupName(AMBARI_INFRA_NEW_NAME);
+        alertDispatchDAO.merge(alertGroupEntity);
+      }
+    }
+
+    AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
+    for (AlertHistoryEntity alertHistoryEntity : alertsDAO.findAll()) {
+      if (AMBARI_INFRA_OLD_NAME.equals(alertHistoryEntity.getServiceName())) {
+        alertHistoryEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        alertsDAO.merge(alertHistoryEntity);
+      }
+    }
+  }
+
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity == null)
+      return;
+
+    Map<String, Object> data = artifactEntity.getArtifactData();
+    if (data == null)
+      return;
+
+    final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+    if (kerberosDescriptor == null)
+      return;
+
+    Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
+    KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
+    if (ambariInfraService == null)
+      return;
+
+    ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
+    services.remove(AMBARI_INFRA_OLD_NAME);
+    services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
+    kerberosDescriptor.setServices(services);
+
+    for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
+      updateKerberosIdentities(serviceDescriptor);
+      for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
+        updateKerberosIdentities(componentDescriptor);
+      }
+    }
+
+    artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+    artifactDAO.merge(artifactEntity);
   }
 
   protected void addUserAuthenticationSequence() throws SQLException {
@@ -1039,8 +1143,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           String oldProtocolProperty = null;
           String oldPortProperty = null;
           if (logSearchEnv != null) {
-            oldProtocolProperty = logSearchEnv.getProperties().get("logsearch_ui_port");
-            oldPortProperty = logSearchEnv.getProperties().get("logsearch_ui_protocol");
+            oldPortProperty = logSearchEnv.getProperties().get("logsearch_ui_port");
+            oldProtocolProperty = logSearchEnv.getProperties().get("logsearch_ui_protocol");
           }
 
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
@@ -1092,23 +1196,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             }
           }
 
-          Config logSearchServiceLogsConfig = cluster.getDesiredConfigByType("logsearch-service_logs-solrconfig");
-          if (logSearchServiceLogsConfig != null) {
-            String content = logSearchServiceLogsConfig.getProperties().get("content");
-            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
-              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
-              updateConfigurationPropertiesForCluster(cluster, "logsearch-service_logs-solrconfig", Collections.singletonMap("content", content), true, true);
-            }
-          }
-
-          Config logSearchAuditLogsConfig = cluster.getDesiredConfigByType("logsearch-audit_logs-solrconfig");
-          if (logSearchAuditLogsConfig != null) {
-            String content = logSearchAuditLogsConfig.getProperties().get("content");
-            if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
-              content = content.replaceAll("(?s)<requestHandler name=\"/admin/\".*?class=\"solr.admin.AdminHandlers\" />", "");
-              updateConfigurationPropertiesForCluster(cluster, "logsearch-audit_logs-solrconfig", Collections.singletonMap("content", content), true, true);
-            }
-          }
+          removeAdminHandlersFrom(cluster, "logsearch-service_logs-solrconfig");
+          removeAdminHandlersFrom(cluster, "logsearch-audit_logs-solrconfig");
 
           Config logFeederOutputConfig = cluster.getDesiredConfigByType("logfeeder-output-config");
           if (logFeederOutputConfig != null) {
@@ -1132,106 +1221,19 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected void renameAmbariInfra() throws SQLException {
-    LOG.info("Renaming service AMBARI_INFRA to AMBARI_INFRA_SOLR");
-    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK);
-    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK);
-    dbAccessor.dropFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
-    dbAccessor.dropFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK);
-    try {
-      dbAccessor.updateTable(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(COMPONENT_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(COMPONENT_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(SERVICE_DESIRED_STATE_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-      dbAccessor.updateTable(CLUSTER_SERVICES_TABLE, SERVICE_NAME_COLUMN, AMBARI_INFRA_NEW_NAME, String.format("WHERE %s = '%s'", SERVICE_NAME_COLUMN, AMBARI_INFRA_OLD_NAME));
-    }
-    finally {
-      dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, SERVICE_COMPONENT_DESIRED_STATES_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(SERVICE_DESIRED_STATE_TABLE, SERVICE_DESIRED_STATE_CLUSTER_SERVICES_FK,
-              SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, CLUSTER_SERVICES_TABLE, SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(COMPONENT_DESIRED_STATE_TABLE, COMPONENT_DESIRED_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-      dbAccessor.addFKConstraint(COMPONENT_STATE_TABLE, COMPONENT_STATE_SERVICE_COMPONENT_DESIRED_STATE_FK,
-              COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, SERVICE_COMPONENT_DESIRED_STATE_TABLE, COMPONENT_NAME_SERVICE_NAME_CLUSTER_ID_KEY_COLUMNS, false);
-    }
-
-
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters == null)
-      return;
-
-    Map<String, Cluster> clusterMap = clusters.getClusters();
-    if (MapUtils.isEmpty(clusterMap))
-      return;
-
-    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
-    for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(serviceConfigEntity.getServiceName())) {
-        serviceConfigEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        serviceConfigDAO.merge(serviceConfigEntity);
-      }
-    }
-
-    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
-    for (final Cluster cluster : clusterMap.values()) {
-      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionDAO.findByService(cluster.getClusterId(), AMBARI_INFRA_OLD_NAME)) {
-        alertDefinitionEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertDefinitionDAO.merge(alertDefinitionEntity);
-      }
-    }
-
-    AlertDispatchDAO alertDispatchDAO = injector.getInstance(AlertDispatchDAO.class);
-    for (AlertGroupEntity alertGroupEntity : alertDispatchDAO.findAllGroups()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertGroupEntity.getServiceName())) {
-        alertGroupEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertGroupEntity.setGroupName(AMBARI_INFRA_NEW_NAME);
-        alertDispatchDAO.merge(alertGroupEntity);
-      }
-    }
-
-    AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
-    for (AlertHistoryEntity alertHistoryEntity : alertsDAO.findAll()) {
-      if (AMBARI_INFRA_OLD_NAME.equals(alertHistoryEntity.getServiceName())) {
-        alertHistoryEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
-        alertsDAO.merge(alertHistoryEntity);
+  private void removeAdminHandlersFrom(Cluster cluster, String configType) throws AmbariException {
+    Config logSearchServiceLogsConfig = cluster.getDesiredConfigByType(configType);
+    if (logSearchServiceLogsConfig != null) {
+      String content = logSearchServiceLogsConfig.getProperties().get("content");
+      if (content.contains("class=\"solr.admin.AdminHandlers\"")) {
+        content = removeAdminHandlers(content);
+        updateConfigurationPropertiesForCluster(cluster, configType, Collections.singletonMap("content", content), true, true);
       }
     }
   }
 
-  @Override
-  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
-    if (artifactEntity == null)
-      return;
-
-    Map<String, Object> data = artifactEntity.getArtifactData();
-    if (data == null)
-      return;
-
-    final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
-    if (kerberosDescriptor == null)
-      return;
-
-    Map<String, KerberosServiceDescriptor> services = kerberosDescriptor.getServices();
-    KerberosServiceDescriptor ambariInfraService = services.get(AMBARI_INFRA_OLD_NAME);
-    if (ambariInfraService == null)
-      return;
-
-    ambariInfraService.setName(AMBARI_INFRA_NEW_NAME);
-    services.remove(AMBARI_INFRA_OLD_NAME);
-    services.put(AMBARI_INFRA_NEW_NAME, ambariInfraService);
-    kerberosDescriptor.setServices(services);
-
-    for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
-      updateKerberosIdentities(serviceDescriptor);
-      for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
-        updateKerberosIdentities(componentDescriptor);
-      }
-    }
-
-    artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-    artifactDAO.merge(artifactEntity);
+  protected String removeAdminHandlers(String content) {
+    return content.replaceAll("(?s)<requestHandler\\s+name=\"/admin/\"\\s+class=\"solr.admin.AdminHandlers\"\\s*/>", "");
   }
 
   private void updateKerberosIdentities(AbstractKerberosDescriptorContainer descriptorContainer) {
@@ -1337,17 +1339,17 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     LOG.info("Moving LDAP related properties from ambari.properties to ambari_congiuration DB table...");
     final AmbariConfigurationDAO ambariConfigurationDao = injector.getInstance(AmbariConfigurationDAO.class);
     final Map<String, String> propertiesToBeSaved = new HashMap<>();
-    final Map<AmbariLdapConfigurationKeys, String> ldapConfigurationMap = getLdapConfigurationMap();
+    final Map<AmbariServerConfigurationKey, String> ldapConfigurationMap = getLdapConfigurationMap();
     ldapConfigurationMap.forEach((key, oldPropertyName) -> {
       String ldapPropertyValue = configuration.getProperty(oldPropertyName);
       if (StringUtils.isNotBlank(ldapPropertyValue)) {
-        if (AmbariLdapConfigurationKeys.SERVER_HOST == key || AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST == key) {
+        if (AmbariServerConfigurationKey.SERVER_HOST == key || AmbariServerConfigurationKey.SECONDARY_SERVER_HOST == key) {
           final HostAndPort hostAndPort = HostAndPort.fromString(ldapPropertyValue);
-          AmbariLdapConfigurationKeys keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_HOST
-            : AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST;
+          AmbariServerConfigurationKey keyToBesaved = AmbariServerConfigurationKey.SERVER_HOST == key ? AmbariServerConfigurationKey.SERVER_HOST
+            : AmbariServerConfigurationKey.SECONDARY_SERVER_HOST;
           populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.getHostText());
 
-          keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_PORT : AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT;
+          keyToBesaved = AmbariServerConfigurationKey.SERVER_HOST == key ? AmbariServerConfigurationKey.SERVER_PORT : AmbariServerConfigurationKey.SECONDARY_SERVER_PORT;
           populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), String.valueOf(hostAndPort.getPort()));
         } else {
           populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, key.key(), ldapPropertyValue);
@@ -1373,41 +1375,41 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    * @return a map describing the new LDAP configuration key to the old ambari.properties property name
    */
   @SuppressWarnings("serial")
-  private Map<AmbariLdapConfigurationKeys, String> getLdapConfigurationMap() {
-    return Collections.unmodifiableMap(new HashMap<AmbariLdapConfigurationKeys, String>() {
-      {
-        put(AmbariLdapConfigurationKeys.LDAP_ENABLED, "ambari.ldap.isConfigured");
-        put(AmbariLdapConfigurationKeys.SERVER_HOST, "authentication.ldap.primaryUrl");
-        put(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST, "authentication.ldap.secondaryUrl");
-        put(AmbariLdapConfigurationKeys.USE_SSL, "authentication.ldap.useSSL");
-        put(AmbariLdapConfigurationKeys.ANONYMOUS_BIND, "authentication.ldap.bindAnonymously");
-        put(AmbariLdapConfigurationKeys.BIND_DN, "authentication.ldap.managerDn");
-        put(AmbariLdapConfigurationKeys.BIND_PASSWORD, "authentication.ldap.managerPassword");
-        put(AmbariLdapConfigurationKeys.DN_ATTRIBUTE, "authentication.ldap.dnAttribute");
-        put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS, "authentication.ldap.userObjectClass");
-        put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "authentication.ldap.usernameAttribute");
-        put(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "authentication.ldap.baseDn");
-        put(AmbariLdapConfigurationKeys.USER_BASE, "authentication.ldap.userBase");
-        put(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, "authentication.ldap.groupObjectClass");
-        put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, "authentication.ldap.groupNamingAttr");
-        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE, "authentication.ldap.groupMembershipAttr");
-        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE, "authentication.ldap.baseDn");
-        put(AmbariLdapConfigurationKeys.GROUP_BASE, "authentication.ldap.groupBase");
-        put(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER, "authentication.ldap.userSearchFilter");
-        put(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.userMemberReplacePattern");
-        put(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER, "authentication.ldap.sync.userMemberFilter");
-        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "authentication.ldap.alternateUserSearchEnabled");
-        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER, "authentication.ldap.alternateUserSearchFilter");
-        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER, "authorization.ldap.groupSearchFilter");
-        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.groupMemberReplacePattern");
-        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER, "authentication.ldap.sync.groupMemberFilter");
-        put(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES, "authorization.ldap.adminGroupMappingRules");
-        put(AmbariLdapConfigurationKeys.FORCE_LOWERCASE_USERNAMES, "authentication.ldap.username.forceLowercase");
-        put(AmbariLdapConfigurationKeys.REFERRAL_HANDLING, "authentication.ldap.referral");
-        put(AmbariLdapConfigurationKeys.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
-        put(AmbariLdapConfigurationKeys.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
-      }
-    });
+  private Map<AmbariServerConfigurationKey, String> getLdapConfigurationMap() {
+    Map<AmbariServerConfigurationKey, String> map = new HashMap<>();
+
+    map.put(AmbariServerConfigurationKey.LDAP_ENABLED, "ambari.ldap.isConfigured");
+    map.put(AmbariServerConfigurationKey.SERVER_HOST, "authentication.ldap.primaryUrl");
+    map.put(AmbariServerConfigurationKey.SECONDARY_SERVER_HOST, "authentication.ldap.secondaryUrl");
+    map.put(AmbariServerConfigurationKey.USE_SSL, "authentication.ldap.useSSL");
+    map.put(AmbariServerConfigurationKey.ANONYMOUS_BIND, "authentication.ldap.bindAnonymously");
+    map.put(AmbariServerConfigurationKey.BIND_DN, "authentication.ldap.managerDn");
+    map.put(AmbariServerConfigurationKey.BIND_PASSWORD, "authentication.ldap.managerPassword");
+    map.put(AmbariServerConfigurationKey.DN_ATTRIBUTE, "authentication.ldap.dnAttribute");
+    map.put(AmbariServerConfigurationKey.USER_OBJECT_CLASS, "authentication.ldap.userObjectClass");
+    map.put(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE, "authentication.ldap.usernameAttribute");
+    map.put(AmbariServerConfigurationKey.USER_SEARCH_BASE, "authentication.ldap.baseDn");
+    map.put(AmbariServerConfigurationKey.USER_BASE, "authentication.ldap.userBase");
+    map.put(AmbariServerConfigurationKey.GROUP_OBJECT_CLASS, "authentication.ldap.groupObjectClass");
+    map.put(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE, "authentication.ldap.groupNamingAttr");
+    map.put(AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE, "authentication.ldap.groupMembershipAttr");
+    map.put(AmbariServerConfigurationKey.GROUP_SEARCH_BASE, "authentication.ldap.baseDn");
+    map.put(AmbariServerConfigurationKey.GROUP_BASE, "authentication.ldap.groupBase");
+    map.put(AmbariServerConfigurationKey.USER_SEARCH_FILTER, "authentication.ldap.userSearchFilter");
+    map.put(AmbariServerConfigurationKey.USER_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.userMemberReplacePattern");
+    map.put(AmbariServerConfigurationKey.USER_MEMBER_FILTER, "authentication.ldap.sync.userMemberFilter");
+    map.put(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_ENABLED, "authentication.ldap.alternateUserSearchEnabled");
+    map.put(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_FILTER, "authentication.ldap.alternateUserSearchFilter");
+    map.put(AmbariServerConfigurationKey.GROUP_SEARCH_FILTER, "authorization.ldap.groupSearchFilter");
+    map.put(AmbariServerConfigurationKey.GROUP_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.groupMemberReplacePattern");
+    map.put(AmbariServerConfigurationKey.GROUP_MEMBER_FILTER, "authentication.ldap.sync.groupMemberFilter");
+    map.put(AmbariServerConfigurationKey.GROUP_MAPPING_RULES, "authorization.ldap.adminGroupMappingRules");
+    map.put(AmbariServerConfigurationKey.FORCE_LOWERCASE_USERNAMES, "authentication.ldap.username.forceLowercase");
+    map.put(AmbariServerConfigurationKey.REFERRAL_HANDLING, "authentication.ldap.referral");
+    map.put(AmbariServerConfigurationKey.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
+    map.put(AmbariServerConfigurationKey.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
+
+    return map;
   }
 
   protected void updateHostComponentLastStateTable() throws SQLException {
@@ -1426,5 +1428,73 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         }
       }
     });
+  }
+
+  protected void updateSolrConfigurations() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    if (clusterMap == null || clusterMap.isEmpty())
+      return;
+
+    for (final Cluster cluster : clusterMap.values()) {
+      updateConfig(cluster, "logsearch-service_logs-solrconfig", (content) -> {
+        content = updateLuceneMatchVersion(content, "7.2.1");
+        return updateMergeFactor(content, "logsearch_service_logs_merge_factor");
+      });
+      updateConfig(cluster, "logsearch-audit_logs-solrconfig", (content) -> {
+        content = updateLuceneMatchVersion(content,"7.2.1");
+        return updateMergeFactor(content, "logsearch_audit_logs_merge_factor");
+      });
+      updateConfig(cluster, "ranger-solr-configuration", (content) -> {
+        content = updateLuceneMatchVersion(content,"6.6.0");
+        return updateMergeFactor(content, "ranger_audit_logs_merge_factor");
+      });
+
+      updateConfig(cluster, "atlas-solrconfig",
+              (content) -> updateLuceneMatchVersion(content,"6.6.0"));
+
+      updateConfig(cluster, "infra-solr-env", this::updateInfraSolrEnv);
+
+      updateConfig(cluster, "infra-solr-security-json", (content) ->
+              content.replace("org.apache.ambari.infra.security.InfraRuleBasedAuthorizationPlugin",
+                      "org.apache.solr.security.InfraRuleBasedAuthorizationPlugin"));
+    }
+  }
+
+  private void updateConfig(Cluster cluster, String configType, Function<String, String> contentUpdater) throws AmbariException {
+    Config config = cluster.getDesiredConfigByType(configType);
+    if (config == null)
+      return;
+    if (config.getProperties() == null || !config.getProperties().containsKey("content"))
+      return;
+
+    String content = config.getProperties().get("content");
+    content = contentUpdater.apply(content);
+    updateConfigurationPropertiesForCluster(cluster, configType, Collections.singletonMap("content", content), true, true);
+  }
+
+  protected String updateLuceneMatchVersion(String content, String newLuceneMatchVersion) {
+    return content.replaceAll("<luceneMatchVersion>.*</luceneMatchVersion>",
+            "<luceneMatchVersion>" + newLuceneMatchVersion + "</luceneMatchVersion>");
+  }
+
+  protected String updateMergeFactor(String content, String variableName) {
+    return content.replaceAll("<mergeFactor>\\{\\{" + variableName + "\\}\\}</mergeFactor>",
+            "<mergePolicyFactory class=\"org.apache.solr.index.TieredMergePolicyFactory\">\n" +
+                    "      <int name=\"maxMergeAtOnce\">{{" + variableName + "}}</int>\n" +
+                    "      <int name=\"segmentsPerTier\">{{" + variableName + "}}</int>\n" +
+                    "    </mergePolicyFactory>");
+  }
+
+  protected String updateInfraSolrEnv(String content) {
+    return content.replaceAll("SOLR_KERB_NAME_RULES=\".*\"", "")
+            .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
+            .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
   }
 }

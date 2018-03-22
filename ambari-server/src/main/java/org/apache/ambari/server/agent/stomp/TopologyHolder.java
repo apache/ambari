@@ -30,8 +30,10 @@ import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.TopologyAgentUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -41,6 +43,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.collections.CollectionUtils;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -52,6 +55,11 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
 
   @Inject
   private Clusters clusters;
+
+  @Inject
+  public TopologyHolder(AmbariEventPublisher ambariEventPublisher) {
+    ambariEventPublisher.register(this);
+  }
 
   @Override
   public TopologyUpdateEvent getUpdateIfChanged(String agentHash) throws AmbariException {
@@ -97,9 +105,9 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
                 .setServiceName(sch.getServiceName())
                 .setVersion(sch.getVersion())
                 .setHostIds(hostOrderIds)
-                .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(stackId, serviceName,
+                .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(cl.getClusterId(), serviceName,
                     componentName, cl.getSecurityType()))
-                .setCommandParams(ambariManagementController.getTopologyCommandParams(stackId, serviceName, componentName))
+                .setCommandParams(ambariManagementController.getTopologyCommandParams(cl.getClusterId(), serviceName, componentName))
                 .build();
             topologyComponents.add(topologyComponent);
           }
@@ -181,5 +189,46 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
   @Override
   protected TopologyUpdateEvent getEmptyData() {
     return TopologyUpdateEvent.emptyUpdate();
+  }
+
+  @Subscribe
+  public void onClusterComponentsRepoUpdate(ClusterComponentsRepoChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
+    Long clusterId = clusterComponentsRepoChangedEvent.getClusterId();
+
+    TopologyCluster topologyCluster = new TopologyCluster();
+    topologyCluster.setTopologyComponents(getTopologyComponentRepos(clusterId));
+    TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
+    topologyUpdates.put(Long.toString(clusterId), topologyCluster);
+    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates, TopologyUpdateEvent.EventType.UPDATE);
+    updateData(topologyUpdateEvent);
+  }
+
+  private Set<TopologyComponent> getTopologyComponentRepos(Long clusterId) throws AmbariException {
+    Set<TopologyComponent> topologyComponents = new HashSet<>();
+    Cluster cl = clusters.getCluster(clusterId);
+    for (Service service : cl.getServices().values()) {
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        Map<String, ServiceComponentHost> componentsMap = component.getServiceComponentHosts();
+        if (!componentsMap.isEmpty()) {
+
+          //TODO will be a need to change to multi-instance usage
+          ServiceComponentHost sch = componentsMap.entrySet().iterator().next().getValue();
+
+          String serviceName = sch.getServiceName();
+          String componentName = sch.getServiceComponentName();
+
+          TopologyComponent topologyComponent = TopologyComponent.newBuilder()
+              .setComponentName(sch.getServiceComponentName())
+              .setServiceName(sch.getServiceName())
+              .setVersion(sch.getVersion())
+              .setCommandParams(ambariManagementController.getTopologyCommandParams(cl.getClusterId(), serviceName, componentName))
+              .setComponentLevelParams(ambariManagementController.getTopologyComponentLevelParams(clusterId,
+                  serviceName, componentName, cl.getSecurityType()))
+              .build();
+          topologyComponents.add(topologyComponent);
+        }
+      }
+    }
+    return topologyComponents;
   }
 }

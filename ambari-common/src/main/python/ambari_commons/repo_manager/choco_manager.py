@@ -14,16 +14,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
 
-from resource_management.core.providers.package import PackageProvider
-from resource_management.core.logger import Logger
+from ambari_commons.repo_manager.generic_manager import GenericManagerProperties, GenericManager
 from ambari_commons.shell import shellRunner
 
-import os
+from resource_management.core.logger import Logger
+#from ambari_commons.shell import shellRunner
+
 
 INSTALL_CMD = {
   True: ['cmd', '/c', 'choco', 'install', '--pre', '-y', '-v'],
@@ -45,12 +43,23 @@ CHECK_CMD = {
   False: ['cmd', '/c', 'choco', 'list', '--pre', '--local-only'],
 }
 
-class ChocoProvider(PackageProvider):
-  def install_package(self, name, use_repos={}, skip_repos=[]):
-    if not self._check_existence(name) or use_repos:
-      cmd = INSTALL_CMD[self.get_logoutput()]
-      if use_repos:
-        enable_repo_option = '-s' + ",".join(sorted(use_repos.keys()))
+
+class ChocoManagerProperties(GenericManagerProperties):
+  pass
+
+
+class ChocoManager(GenericManager):
+  def install_package(self, name, context):
+    """
+    Install package
+
+    :type name str
+    :type context ambari_commons.shell.RepoCallContext
+    """
+    if not self._check_existence(name) or context.use_repos:
+      cmd = INSTALL_CMD[context.log_output]
+      if context.use_repos:
+        enable_repo_option = '-s' + ",".join(sorted(context.use_repos.keys()))
         cmd = cmd + [enable_repo_option]
       cmd = cmd + [name]
       cmdString = " ".join(cmd)
@@ -62,10 +71,16 @@ class ChocoProvider(PackageProvider):
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
-  def upgrade_package(self, name, use_repos={}, skip_repos=[]):
-    cmd = UPGRADE_CMD[self.get_logoutput()]
-    if use_repos:
-      enable_repo_option = '-s' + ",".join(sorted(use_repos.keys()))
+  def upgrade_package(self, name, context):
+    """
+    Install package
+
+    :type name str
+    :type context ambari_commons.shell.RepoCallContext
+    """
+    cmd = UPGRADE_CMD[context.log_output]
+    if context.use_repos:
+      enable_repo_option = '-s' + ",".join(sorted(context.use_repos.keys()))
       cmd = cmd + [enable_repo_option]
     cmd = cmd + [name]
     cmdString = " ".join(cmd)
@@ -75,9 +90,16 @@ class ChocoProvider(PackageProvider):
     if res['exitCode'] != 0:
       raise Exception("Error while upgrading choco package " + name + ". " + res['error'] + res['output'])
 
-  def remove_package(self, name):
-    if self._check_existence(name):
-      cmd = REMOVE_CMD[self.get_logoutput()] + [name]
+  def remove_package(self, name, context, ignore_dependencies=False):
+    """
+    Remove package
+
+    :type name str
+    :type context ambari_commons.shell.RepoCallContext
+    :type ignore_dependencies bool
+    """
+    if self._check_existence(name, context):
+      cmd = REMOVE_CMD[context.log_output] + [name]
       cmdString = " ".join(cmd)
       Logger.info("Removing package %s ('%s')" % (name, " ".join(cmd)))
       runner = shellRunner()
@@ -87,8 +109,8 @@ class ChocoProvider(PackageProvider):
     else:
       Logger.info("Skipping removal of non-existing package %s" % (name))
 
-  def _check_existence(self, name):
-    cmd = CHECK_CMD[self.get_logoutput()] + [name]
+  def _check_existence(self, name, context):
+    cmd = CHECK_CMD[context.log_output] + [name]
     runner = shellRunner()
     res = runner.run(cmd)
     if name in res['output']:

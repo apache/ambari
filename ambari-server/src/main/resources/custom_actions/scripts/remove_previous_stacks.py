@@ -26,7 +26,7 @@ from resource_management import Script, format, Package, Execute, Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
-from resource_management.core.providers import get_provider
+from ambari_commons.repo_manager import ManagerFactory
 
 CURRENT_ = "/current/"
 stack_root = Script.get_stack_root()
@@ -43,7 +43,7 @@ class RemovePreviousStacks(Script):
     self.stack_tool_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
 
     versions_to_remove = self.get_lower_versions(version)
-    self.pkg_provider = get_provider("Package")
+    self.pkg_provider = ManagerFactory.get()
 
     for low_version in versions_to_remove:
       self.remove_stack_version(structured_output, low_version)

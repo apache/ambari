@@ -34,7 +34,8 @@ describe('App.MainDashboardWidgetsView', function () {
       setDBProperty: Em.K,
       persistKey: 'key',
       widgetGroupsDeferred: {
-        done: Em.clb
+        done: Em.clb,
+        resolve: Em.K
       }
     });
   });
