@@ -106,7 +106,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.6</version>
         <executions>
           <execution>
             <phase>none</phase>
