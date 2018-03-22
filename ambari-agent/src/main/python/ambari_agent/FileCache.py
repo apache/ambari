@@ -246,7 +246,7 @@ class FileCache():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-      os.chmod(hash_file, 0o666)
+      os.chmod(hash_file, 0o644)
     except Exception, err:
       raise CachingException("Can not write to file {0} : {1}".format(hash_file,
                                                                  str(err)))
