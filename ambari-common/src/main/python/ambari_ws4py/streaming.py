@@ -52,25 +52,25 @@ class Stream(object):
         self.pings = []
         """
         Parsed ping control messages. They are instances of
-        :class:`ambari_ws4py.messaging.PingControlMessage`
+        :class:`ws4py.messaging.PingControlMessage`
         """
 
         self.pongs = []
         """
         Parsed pong control messages. They are instances of
-        :class:`ambari_ws4py.messaging.PongControlMessage`
+        :class:`ws4py.messaging.PongControlMessage`
         """
 
         self.closing = None
         """
         Parsed close control messsage. Instance of
-        :class:`ambari_ws4py.messaging.CloseControlMessage`
+        :class:`ws4py.messaging.CloseControlMessage`
         """
 
         self.errors = []
         """
         Detected errors while parsing. Instances of
-        :class:`ambari_ws4py.messaging.CloseControlMessage`
+        :class:`ws4py.messaging.CloseControlMessage`
         """
 
         self._parser = None
@@ -105,19 +105,19 @@ class Stream(object):
 
     def text_message(self, text):
         """
-        Returns a :class:`ambari_ws4py.messaging.TextMessage` instance
+        Returns a :class:`ws4py.messaging.TextMessage` instance
         ready to be built. Convenience method so
         that the caller doesn't need to import the
-        :class:`ambari_ws4py.messaging.TextMessage` class itself.
+        :class:`ws4py.messaging.TextMessage` class itself.
         """
         return TextMessage(text=text)
 
     def binary_message(self, bytes):
         """
-        Returns a :class:`ambari_ws4py.messaging.BinaryMessage` instance
+        Returns a :class:`ws4py.messaging.BinaryMessage` instance
         ready to be built. Convenience method so
         that the caller doesn't need to import the
-        :class:`ambari_ws4py.messaging.BinaryMessage` class itself.
+        :class:`ws4py.messaging.BinaryMessage` class itself.
         """
         return BinaryMessage(bytes)
 
@@ -135,7 +135,7 @@ class Stream(object):
     def close(self, code=1000, reason=''):
         """
         Returns a close control message built from
-        a :class:`ambari_ws4py.messaging.CloseControlMessage` instance,
+        a :class:`ws4py.messaging.CloseControlMessage` instance,
         using the given status ``code`` and ``reason`` message.
         """
         return CloseControlMessage(code=code, reason=reason)
@@ -143,14 +143,14 @@ class Stream(object):
     def ping(self, data=''):
         """
         Returns a ping control message built from
-        a :class:`ambari_ws4py.messaging.PingControlMessage` instance.
+        a :class:`ws4py.messaging.PingControlMessage` instance.
         """
         return PingControlMessage(data).single(mask=self.always_mask)
 
     def pong(self, data=''):
         """
         Returns a ping control message built from
-        a :class:`ambari_ws4py.messaging.PongControlMessage` instance.
+        a :class:`ws4py.messaging.PongControlMessage` instance.
         """
         return PongControlMessage(data).single(mask=self.always_mask)
 
