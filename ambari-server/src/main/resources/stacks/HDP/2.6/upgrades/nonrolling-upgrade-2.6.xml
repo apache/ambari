@@ -305,6 +305,10 @@
         <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set User-Agent">
+        <task xsi:type="configure" id="hdfs_user_agent" />
+      </execute-stage>
+
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
