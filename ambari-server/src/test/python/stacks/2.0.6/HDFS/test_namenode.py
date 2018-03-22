@@ -1269,10 +1269,6 @@ class TestNamenode(RMFTestCase):
                               wait_for_finish=False
                               )
 
-    self.assertResourceCalled('File', ccache_path,
-                              action = ['delete'],
-                              )
-
     self.assertNoMoreResources()
 
   @patch("os.path.isfile")

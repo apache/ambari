@@ -282,12 +282,6 @@ class NameNodeDefault(NameNode):
              "operation earlier. The process may take a long time to finish (hours, even days). If the problem persists "
              "please consult with the HDFS administrators if they have triggred or killed the operation.")
 
-    if params.security_enabled:
-      # Delete the kerberos credentials cache (ccache) file
-      File(ccache_file_path,
-           action = "delete",
-      )
-      
   def get_log_folder(self):
     import params
     return params.hdfs_log_dir
