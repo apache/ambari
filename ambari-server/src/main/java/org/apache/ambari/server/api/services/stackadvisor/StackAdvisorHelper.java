@@ -33,7 +33,6 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorC
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
-
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.logging.Log;
@@ -53,7 +52,7 @@ public class StackAdvisorHelper {
   private int recommendationsArtifactsRolloverMax;
   public static String pythonStackAdvisorScript;
   private final AmbariMetaInfo metaInfo;
-  private AmbariServerConfigurationHandler ambariServerConfigurationHandler;
+  private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
   /* Monotonically increasing requestid */
   private int requestId = 0;

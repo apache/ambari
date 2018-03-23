@@ -49,7 +49,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
-import org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -91,11 +90,6 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       + ",services/configurations/dependencies/StackConfigurationDependency/dependency_name"
       + ",services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type"
       + "&services/StackServices/service_name.in(%s)";
-
-  private static final String GET_AMBARI_CONFIG_URI = String.format("/api/v1/services/%s/components/%s/configurations?fields=%s",
-      RootService.AMBARI.name(),
-      RootComponent.AMBARI_SERVER.name(),
-      RootServiceComponentConfigurationResourceProvider.CONFIGURATION_PROPERTIES_PROPERTY_ID);
 
   private static final String SERVICES_PROPERTY = "services";
   private static final String SERVICES_COMPONENTS_PROPERTY = "components";
