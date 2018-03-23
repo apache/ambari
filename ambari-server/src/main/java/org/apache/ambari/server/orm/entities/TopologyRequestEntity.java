@@ -45,7 +45,8 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
                 pkColumnName = "sequence_name", valueColumnName = "sequence_value",
                 pkColumnValue = "topology_request_id_seq", initialValue = 0)
 @NamedQueries({
-  @NamedQuery(name = "TopologyRequestEntity.findByClusterId", query = "SELECT req FROM TopologyRequestEntity req WHERE req.clusterId = :clusterId")
+  @NamedQuery(name = "TopologyRequestEntity.findByClusterId", query = "SELECT req FROM TopologyRequestEntity req WHERE req.clusterId = :clusterId"),
+  @NamedQuery(name = "TopologyRequestEntity.findProvisionRequests", query = "SELECT req FROM TopologyRequestEntity req WHERE req.action = 'PROVISION'"),
 })
 public class TopologyRequestEntity {
   @Id
