@@ -301,7 +301,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
    * @private
    */
   _createGroupWidgetObj(id, groupId, subGroupId, isVisible) {
-    var widget = this.get('widgetsDefinitionMap')[id];
+    const widget = this.get('widgetsDefinitionMap')[id];
+    subGroupId = subGroupId || 'default';
     return WidgetObject.create({
       id: `${id}-${groupId}-${subGroupId}`,
       threshold: this.get('userPreferences.groups')[groupId][subGroupId].threshold[id],

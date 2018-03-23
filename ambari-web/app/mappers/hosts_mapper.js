@@ -92,6 +92,16 @@ App.hostsMapper = App.QuickDataMapper.create({
       item: 'name'
     }
   },
+  nameNodeMetricsConfig: {
+    name_node_start_time: 'metrics.runtime.StartTime',
+    jvm_memory_heap_used: 'metrics.jvm.HeapMemoryUsed',
+    capacity_used: 'metrics.dfs.FSNamesystem.CapacityUsed',
+    capacity_total: 'metrics.dfs.FSNamesystem.CapacityTotal',
+    capacity_remaining: 'metrics.dfs.FSNamesystem.CapacityRemaining',
+    capacity_non_dfs_used: 'metrics.dfs.FSNamesystem.CapacityNonDFSUsed',
+    jvm_memory_heap_max: 'metrics.jvm.HeapMemoryMax',
+    name_node_rpc: 'metrics.rpc.client.RpcQueueTime_avg_time'
+  },
   map: function (json, returnMapped) {
     returnMapped = !!returnMapped;
     console.time('App.hostsMapper execution time');
@@ -108,6 +118,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var clusterName = App.get('clusterName');
       var advancedHostComponents = [];
       var hostComponentLogs = [];
+      var nameNodeMetrics;
 
       // Create a map for quick access on existing hosts
       var hosts = App.Host.find().toArray();
@@ -126,7 +137,8 @@ App.hostsMapper = App.QuickDataMapper.create({
         item.host_components = item.host_components || [];
         for (var i = 0; i < item.host_components.length; i++){
           var host_component = item.host_components[i];
-          var id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
+          var componentName = host_component.HostRoles.component_name;
+          var id = componentName + "_" + item.Hosts.host_name;
           var component = this.parseIt(host_component, this.hostComponentConfig);
           var serviceName = host_component.HostRoles.service_name;
 
@@ -165,6 +177,9 @@ App.hostsMapper = App.QuickDataMapper.create({
             component.component_logs_id = logParsed.id;
             hostComponentLogs.push(logParsed);
           }
+          if (componentName === 'NAMENODE' && host_component.metrics) {
+            nameNodeMetrics = this.parseIt(host_component, this.nameNodeMetricsConfig);
+          }
         }
 
         var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
@@ -199,6 +214,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
         });
         var parsedItem = this.parseIt(item, this.config);
+        $.extend(parsedItem, nameNodeMetrics);
 
         parsedItem.selected = selectedHosts.contains(parsedItem.host_name);
         parsedItem.not_started_components = notStartedComponents;
