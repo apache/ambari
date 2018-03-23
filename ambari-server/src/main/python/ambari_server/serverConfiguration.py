@@ -1001,14 +1001,14 @@ def get_web_server_startup_timeout(properties):
   the configured port. If this value is too low, then the startup script will return an
   error code even though Ambari is actually starting up.
   :param properties:
-  :return: The timeout value, in seconds. The default is 50.
+  :return: The timeout value, in seconds. The default is 90.
   """
   # get the timeout property and strip it if it exists
   timeout = properties[WEB_SERVER_STARTUP_TIMEOUT]
   timeout = None if timeout is None else timeout.strip()
 
   if timeout is None or timeout == "":
-    timeout = 50
+    timeout = 90
   else:
     timeout = int(timeout)
   return timeout
