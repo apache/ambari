@@ -36,3 +36,4 @@ require('templates/common/configs/widgets/controls/edit');
 require('templates/common/configs/widgets/config_label');
 require('templates/common/configs/configs_comparison_row');
 require('templates/common/configs/configs_comparison_cell');
+require('templates/wizard/installer_cancel_button');

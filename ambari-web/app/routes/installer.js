@@ -92,9 +92,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router) {
       console.time('step0 connectOutlets');
       var self = this;
+      var wizardStep0Controller = router.get('wizardStep0Controller');
       var controller = router.get('installerController');
       controller.setCurrentStep('0');
       controller.loadAllPriorSteps().done(function () {
+        wizardStep0Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep0', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step0 connectOutlets');
@@ -187,8 +189,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       router.setNavigationFlow('step2');
 
       var controller = router.get('installerController');
+      var wizardStep2Controller = router.get('wizardStep2Controller');
       controller.setCurrentStep('2');
       controller.loadAllPriorSteps().done(function () {
+        wizardStep2Controller.set('wizardController', controller);
         self.scrollTop();
         controller.connectOutlet('wizardStep2', controller.get('content'));
         console.timeEnd('step2 connectOutlets');
@@ -352,9 +356,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       router.setNavigationFlow('step6');
 
       var controller = router.get('installerController');
+      var wizardStep6Controller = router.get('wizardStep6Controller');
       router.get('wizardStep6Controller').set('hosts', []);
       controller.setCurrentStep('6');
       controller.loadAllPriorSteps().done(function () {
+        wizardStep6Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep6', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step6 connectOutlets');
