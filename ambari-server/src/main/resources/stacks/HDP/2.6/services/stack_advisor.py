@@ -114,14 +114,19 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
       putAtlasApplicationProperty('atlas.sso.knox.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
 
-    # If SSO should be enabled for this service, continue
-    elif ambari_configuration.should_enable_sso('ATLAS'):
-      ambari_sso_details = ambari_configuration.get_ambari_sso_details()
+    # If SSO should be enabled for this service
+    if ambari_configuration.should_enable_sso('ATLAS'):
+      putAtlasApplicationProperty('atlas.sso.knox.enabled', "true")
 
+      ambari_sso_details = ambari_configuration.get_ambari_sso_details()
       if ambari_sso_details:
-        putAtlasApplicationProperty('atlas.sso.knox.providerurl', ambari_sso_details.provider_url)
-        putAtlasApplicationProperty('atlas.sso.knox.publicKey', ambari_sso_details.public_key_pem)
-      pass
+        putAtlasApplicationProperty('atlas.sso.knox.providerurl', ambari_sso_details.get_jwt_provider_url())
+        putAtlasApplicationProperty('atlas.sso.knox.publicKey', ambari_sso_details.get_jwt_public_key(False, True))
+        putAtlasApplicationProperty('atlas.sso.knox.browser.useragent', 'Mozilla,Chrome')
+
+    # If SSO should be disabled for this service
+    elif ambari_configuration.should_disable_sso('ATLAS'):
+      putAtlasApplicationProperty('atlas.sso.knox.enabled', "false")
 
     # Set the proxy user
     knox_service_user = services['configurations']['knox-env']['properties']['knox_user'] \

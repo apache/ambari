@@ -84,7 +84,7 @@ class TestAmbariConfiguration(TestCase):
     self.assertIsNone(ambari_sso_details.get_jwt_public_key_file())
     self.assertIsNone(ambari_sso_details.get_jwt_public_key())
 
-  def testAmbariSSOConfiguration(self):
+  def testAmbariSSOConfigurationNotManagingServices(self):
     services_json = {
       "ambari-server-configuration": {
         "sso-configuration": {
@@ -96,11 +96,65 @@ class TestAmbariConfiguration(TestCase):
     ambari_configuration = self.ambari_configuration_class(services_json)
     self.assertIsNotNone(ambari_configuration.get_ambari_sso_configuration())
     self.assertEquals("AMBARI", ambari_configuration.get_ambari_sso_configuration_value("ambari.sso.enabled_services"))
-    self.assertTrue(ambari_configuration.should_enable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_enable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_disable_sso("AMBARI"))
 
     services_json = {
       "ambari-server-configuration": {
         "sso-configuration": {
+          "ambari.sso.manage_services" : "false",
+          "ambari.sso.enabled_services" : "AMBARI, RANGER"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_sso_configuration())
+    self.assertEquals("AMBARI, RANGER", ambari_configuration.get_ambari_sso_configuration_value("ambari.sso.enabled_services"))
+    self.assertFalse(ambari_configuration.should_enable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_disable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_enable_sso("RANGER"))
+    self.assertFalse(ambari_configuration.should_disable_sso("RANGER"))
+
+    services_json = {
+      "ambari-server-configuration": {
+        "sso-configuration": {
+          "ambari.sso.manage_services" : "false",
+          "ambari.sso.enabled_services" : "*"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_sso_configuration())
+    self.assertEquals("*", ambari_configuration.get_ambari_sso_configuration_value("ambari.sso.enabled_services"))
+    self.assertFalse(ambari_configuration.should_enable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_disable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_enable_sso("RANGER"))
+    self.assertFalse(ambari_configuration.should_disable_sso("RANGER"))
+
+  def testAmbariSSOConfigurationManagingServices(self):
+    services_json = {
+      "ambari-server-configuration": {
+        "sso-configuration": {
+          "ambari.sso.manage_services" : "true",
+          "ambari.sso.enabled_services": "AMBARI"
+        }
+      }
+    }
+
+    ambari_configuration = self.ambari_configuration_class(services_json)
+    self.assertIsNotNone(ambari_configuration.get_ambari_sso_configuration())
+    self.assertEquals("AMBARI", ambari_configuration.get_ambari_sso_configuration_value("ambari.sso.enabled_services"))
+    self.assertTrue(ambari_configuration.should_enable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_disable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_enable_sso("RANGER"))
+    self.assertTrue(ambari_configuration.should_disable_sso("RANGER"))
+
+    services_json = {
+      "ambari-server-configuration": {
+        "sso-configuration": {
+          "ambari.sso.manage_services" : "true",
           "ambari.sso.enabled_services" : "AMBARI, RANGER"
         }
       }
@@ -110,11 +164,14 @@ class TestAmbariConfiguration(TestCase):
     self.assertIsNotNone(ambari_configuration.get_ambari_sso_configuration())
     self.assertEquals("AMBARI, RANGER", ambari_configuration.get_ambari_sso_configuration_value("ambari.sso.enabled_services"))
     self.assertTrue(ambari_configuration.should_enable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_disable_sso("AMBARI"))
     self.assertTrue(ambari_configuration.should_enable_sso("RANGER"))
+    self.assertFalse(ambari_configuration.should_disable_sso("RANGER"))
 
     services_json = {
       "ambari-server-configuration": {
         "sso-configuration": {
+          "ambari.sso.manage_services" : "true",
           "ambari.sso.enabled_services" : "*"
         }
       }
@@ -124,7 +181,9 @@ class TestAmbariConfiguration(TestCase):
     self.assertIsNotNone(ambari_configuration.get_ambari_sso_configuration())
     self.assertEquals("*", ambari_configuration.get_ambari_sso_configuration_value("ambari.sso.enabled_services"))
     self.assertTrue(ambari_configuration.should_enable_sso("AMBARI"))
+    self.assertFalse(ambari_configuration.should_disable_sso("AMBARI"))
     self.assertTrue(ambari_configuration.should_enable_sso("RANGER"))
+    self.assertFalse(ambari_configuration.should_disable_sso("RANGER"))
 
   def testAmbariJWTProperties(self):
     services_json = {

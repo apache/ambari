@@ -130,24 +130,53 @@ class AmbariConfiguration(object):
     """
     return self.get_category_property_value(self.get_ambari_sso_configuration(), property_name)
 
+  def get_services_to_enable(self):
+    """
+    Safely gets the list of services that Ambari should enabled for SSO.
+
+    The returned value is a list of the relevant service names converted to lowercase.
+
+    :return: a list of service names converted to lowercase
+    """
+    sso_enabled_services = self.get_ambari_sso_configuration_value("ambari.sso.enabled_services")
+
+    return [x.strip().lower() for x in sso_enabled_services.strip().split(",")] \
+      if sso_enabled_services \
+      else []
+
   def should_enable_sso(self, service_name):
     """
     Tests the configuration data to determine if the specified service should be configured by
-    Ambari for SSO integration.
+    Ambari to enable SSO integration.
 
     The relevant property is "sso-configuration/ambari.sso.enabled_services", which is expected
     to be a comma-delimited list of services to be enabled.
 
     :param service_name: the name of the service to test
-    :return: true, if the service should be configured for SSO; false, otherwise
+    :return: True, if SSO should be enabled; False, otherwise
     """
-    sso_enabled_services = self.get_ambari_sso_configuration_value("ambari.sso.enabled_services")
+    if "true" == self.get_ambari_sso_configuration_value("ambari.sso.manage_services"):
+      services_to_enable = self.get_services_to_enable()
+      return "*" in services_to_enable or service_name.lower() in services_to_enable
+    else:
+      return False
 
-    service_list = [x.strip().lower() for x in sso_enabled_services.strip().split(",")] \
-      if sso_enabled_services \
-      else []
+  def should_disable_sso(self, service_name):
+    """
+    Tests the configuration data to determine if the specified service should be configured by
+    Ambari to disable SSO integration.
 
-    return "*" in service_list or service_name.lower() in service_list
+    The relevant property is "sso-configuration/ambari.sso.enabled_services", which is expected
+    to be a comma-delimited list of services to be enabled.
+
+    :param service_name: the name of the service to test
+    :return: true, if SSO should be disabled; false, otherwise
+    """
+    if "true" == self.get_ambari_sso_configuration_value("ambari.sso.manage_services"):
+      services_to_enable = self.get_services_to_enable()
+      return "*" not in services_to_enable and service_name.lower() not in services_to_enable
+    else:
+      return False
 
   def get_ambari_sso_details(self):
     """
