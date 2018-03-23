@@ -34,17 +34,23 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepoTag;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
  * Represents a Repository definition type.
  */
 @Entity
-@Table(name = "repo_definition")
+@Table(
+    name = "repo_definition",
+    uniqueConstraints = @UniqueConstraint(
+        name = "UQ_repo_def_os_id_repo_id",
+        columnNames = { "repo_os_id", "repo_id" }))
 @TableGenerator(name = "repo_definition_id_generator",
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
@@ -210,18 +216,18 @@ public class RepoDefinitionEntity {
         && Objects.equal(distribution, that.distribution)
         && Objects.equal(components, that.components);
   }
-  
+
   /**
    * {@inheritDoc}
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("id", repoID)
       .add("name", repoName)
       .add("tags", repoTags)
       .toString();
-  }  
+  }
 
   /**
    * Builds a {@link RepoDefinitionEntity} from a {@link RepositoryInfo} instance.
