@@ -24,7 +24,7 @@ from ambari_commons.os_utils import is_root, run_os_command, copy_file, set_file
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import get_silent, print_warning_msg, print_error_msg
 from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
-from ambari_server.setupSecurity import REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE
+from ambari_server.setupSecurity import REGEX_TRUE_FALSE
 from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, update_properties, \
   store_password_file
 
@@ -47,6 +47,8 @@ JWT_PUBLIC_KEY_FILENAME = "jwt-cert.pem"
 JWT_PUBLIC_KEY_HEADER = "-----BEGIN CERTIFICATE-----\n"
 JWT_PUBLIC_KEY_FOOTER = "\n-----END CERTIFICATE-----\n"
 
+REGEX_URL = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+
 
 def validateOptions(options):
   errors = []
@@ -58,7 +60,7 @@ def validateOptions(options):
       errors.append("Missing option: --sso-provider-url")
     if not options.sso_public_cert_file:
       errors.append("Missing option: --sso-public-cert-file")
-    if options.sso_provider_url and not re.search(REGEX_HOSTNAME_PORT, options.sso_provider_url):
+    if options.sso_provider_url and not re.search(REGEX_URL, options.sso_provider_url):
       errors.append("Invalid --sso-provider-url")
 
   if len(errors) > 0:

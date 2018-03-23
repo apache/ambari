@@ -208,7 +208,7 @@ class TestSetupSso(unittest.TestCase):
     get_ambari_properties_mock.return_value = properties
 
     sso_enabled = 'true'
-    sso_provider_url = 'http://testHost:8080'
+    sso_provider_url = 'https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso'
     sso_public_cert_file = '/test/file/path'
     sso_jwt_cookie_name = 'test_cookie'
     sso_jwt_audience_list = 'test, audience, list'
