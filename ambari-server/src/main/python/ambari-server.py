@@ -579,6 +579,8 @@ def init_setup_sso_options(parser):
   parser.add_option('--sso-public-cert-file', default=None, help="The path where the public certificate PEM is located; this must be provided when --sso-enabled is set to 'true'", dest="sso_public_cert_file")
   parser.add_option('--sso-jwt-cookie-name', default=None, help="The name of the JWT cookie", dest="sso_jwt_cookie_name")
   parser.add_option('--sso-jwt-audience-list', default=None, help="A comma separated list of JWT audience(s)", dest="sso_jwt_audience_list")
+  parser.add_option('--ambari-admin-username', default=None, help="Ambari Admin username for LDAP setup", dest="ambari_admin_username")
+  parser.add_option('--ambari-admin-password', default=None, help="Ambari Admin password for LDAP setup", dest="ambari_admin_password")
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_pam_setup_parser_options(parser):
