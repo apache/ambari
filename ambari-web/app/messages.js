@@ -287,6 +287,7 @@ Em.I18n.translations = {
   'common.compare': 'Compare',
   'common.latest': 'Latest',
   'common.custom': 'Custom',
+  'common.continue': 'Continue',
   'common.continueAnyway': 'Continue Anyway',
   'common.property.undefined': "Undefined",
   'common.summary': "Summary",
