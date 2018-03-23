@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -159,12 +160,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(ambariContext.composeStacks(anyObject())).andReturn(stack).anyTimes();
     expect(bp.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
-    expect(bp.getServiceInfos()).andReturn(Collections.emptyList()).anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
     expect(stack.getVersion()).andReturn(STACK_VERSION).atLeastOnce();
     // return false for all components since for this test we don't care about the value
     expect(stack.isMasterComponent(anyObject())).andReturn(false).anyTimes();
+    expect(stack.getServicesForComponent(anyObject())).andAnswer(() -> Stream.empty()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.emptyMap()).anyTimes();
 
     expect(serviceInfo.getRequiredProperties()).andReturn(Collections.emptyMap()).anyTimes();

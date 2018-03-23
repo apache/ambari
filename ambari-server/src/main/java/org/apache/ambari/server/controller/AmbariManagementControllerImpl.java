@@ -448,10 +448,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
     maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
     kerberosHelper = injector.getInstance(KerberosHelper.class);
-    hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
-    serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     m_metadataHolder = injector.getProvider(MetadataHolder.class);
     m_agentConfigsHolder = injector.getProvider(AgentConfigsHolder.class);
+    hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     if(configs != null)
     {
       if (configs.getApiSSLAuthentication()) {
@@ -841,7 +841,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   Set<ServiceComponentHostResponse> persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
     Multimap<Cluster, ServiceComponentHost> schMap = ArrayListMultimap.create();
-    Map<Long, Map<String, List<String>>> serviceComponentNames = new HashMap<>();
+    Map<Long, Map<Long, List<String>>> serviceComponentNames = new HashMap<>();
     Map<Long, Map<String, Map<String, ServiceComponentDesiredStateEntity>>> serviceComponentDesiredStateEntities = new HashMap<>();
 
     for (ServiceComponentHostRequest request : requests) {
@@ -850,7 +850,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
       serviceComponentNames.computeIfAbsent(sc.getClusterId(), c -> new HashMap<>())
-          .computeIfAbsent(sc.getServiceName(), h ->new ArrayList<>()).add(sc.getName());
+          .computeIfAbsent(sc.getServiceId(), h ->new ArrayList<>()).add(sc.getName());
     }
 
     List<ServiceComponentDesiredStateEntity> entities = serviceComponentDesiredStateDAO.findByNames(serviceComponentNames);

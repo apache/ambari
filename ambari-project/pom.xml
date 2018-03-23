@@ -613,13 +613,6 @@
         <version>${swagger.maven.plugin.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.inferred</groupId>
-        <artifactId>freebuilder</artifactId>
-        <version>1.14.8</version>
-        <optional>true</optional>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
         <version>${fasterxml.jackson.version}</version>
