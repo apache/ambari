@@ -41,13 +41,16 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.LocalUriInfo;
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.DateUtils;
@@ -120,9 +123,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private final AmbariMetaInfo metaInfo;
 
+  private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
+
   @SuppressWarnings("unchecked")
   public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType, int requestId,
-      StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+                             StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler) {
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
 
@@ -135,6 +140,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     this.requestId = requestId;
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
+    this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
   }
 
   protected abstract StackAdvisorCommandType getCommandType();
@@ -185,49 +191,20 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   }
 
   /**
-   * Retrieves the LDAP configuration if exists and adds it to services.json
+   * Retrieves the Ambari configuration if exists and adds it to services.json
    *
    * @param root The JSON document that will become service.json when passed to the stack advisor engine
-   * @throws StackAdvisorException
-   * @throws IOException
    */
-   void populateAmbariConfiguration(ObjectNode root) throws StackAdvisorException, IOException {
-    Response response = handleRequest(null, null, new LocalUriInfo(GET_AMBARI_CONFIG_URI), Request.Type.GET,
-        createConfigResource());
-
-    if (response.getStatus() != Status.OK.getStatusCode()) {
-      String message = String.format(
-          "Error occurred during retrieving ambari configuration, status=%s, response=%s",
-          response.getStatus(), response.getEntity());
-      LOG.warn(message);
-      throw new StackAdvisorException(message);
-    }
-
-    String ambariConfigJSON = (String) response.getEntity();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Ambari configuration: {}", ambariConfigJSON);
-    }
-
-    Map<String, JsonNode> result = new HashMap<>();
-    for (JsonNode item : mapper.readTree(ambariConfigJSON).get("items")) {
-      JsonNode config = item.get("Configuration");
-      if (config == null) {
-        LOG.warn("Unexpected JSON document encountered: missing the Configuration object");
-        continue;
-      }
-      JsonNode properties = config.get("properties");
-      if (properties == null) {
-        LOG.warn("Unexpected JSON document encountered: missing the Configuration/properties object");
-        continue;
-      }
-      if (config.get("category") != null) {
-        result.put(config.get("category").getTextValue(), properties);
-      }
+  void populateAmbariConfiguration(ObjectNode root) throws NoSuchResourceException {
+    Map<String, RootServiceComponentConfiguration> config = ambariServerConfigurationHandler.getConfigurations(null);
+    Map<String, Map<String,String>> result = new HashMap<>();
+    for (String category : config.keySet()) {
+      result.put(category, config.get(category).getProperties());
     }
     root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, mapper.valueToTree(result));
   }
 
-  protected void populateAmbariServerInfo(ObjectNode root) throws StackAdvisorException {
+  protected void populateAmbariServerInfo(ObjectNode root) {
     Map<String, String> serverProperties = metaInfo.getAmbariServerProperties();
 
     if (serverProperties != null && !serverProperties.isEmpty()) {

@@ -49,7 +49,7 @@ import com.google.inject.Inject;
  * AmbariServerConfigurationHandler handles Ambari server specific configuration properties.
  */
 @StaticallyInject
-class AmbariServerConfigurationHandler extends RootServiceComponentConfigurationHandler {
+public class AmbariServerConfigurationHandler extends RootServiceComponentConfigurationHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerConfigurationHandler.class);
 
   @Inject
