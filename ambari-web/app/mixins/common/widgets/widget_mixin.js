@@ -42,7 +42,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  VALUE_NAME_REGEX: /(\w+\s+\w+)?[\w\.\,\-\:\=\[\]]+/g,
+  VALUE_NAME_REGEX: /[^(\s+\-\*\/\\+\s+)+](\w+\s+\w+)?[\w\.\,\-\:\=\[\]]*/g,
 
   /**
    * @type {string}

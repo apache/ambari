@@ -379,9 +379,14 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
             metricObj.host_component_criteria = element.hostComponentCriteria;
           }
           metrics.push(metricObj);
-
         }
-        value += element.name;
+        if (element.isOperator) {
+          // operators should have spaces around in order to differentiate them when symbol is a part of metric name
+          // e.g "metric-a" and "metric1 - metric2"
+          value += " " + element.name + " ";
+        } else {
+          value += element.name;
+        }
       }, this);
       value += '}';
     }
