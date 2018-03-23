@@ -64,6 +64,8 @@ from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
   get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
+from resource_management.libraries.execution_command.module_configs import ModuleConfigs
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -146,6 +148,8 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   config = None
+  execution_command = None
+  module_configs = None
   stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
@@ -339,6 +343,8 @@ class Script(object):
       with open(self.command_data_file) as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
+        Script.execution_command = ExecutionCommand(Script.config)
+        Script.module_configs = Script.execution_command.get_module_configs()
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
@@ -596,6 +602,22 @@ class Script(object):
      it a configuration instance.
     """
     return Script.config
+
+  @staticmethod
+  def get_execution_command():
+    """
+    The dot access dict object holds command.json
+    :return:
+    """
+    return Script.execution_command
+
+  @staticmethod
+  def get_module_configs():
+    """
+    The dot access dict object holds configurations block in command.json which maps service configurations
+    :return:
+    """
+    return Script.module_configs
 
   @staticmethod
   def get_password(user):
