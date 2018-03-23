@@ -220,6 +220,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       }
       blueprintResource.setProperty(BlueprintResourceProvider.BLUEPRINT_SECURITY_PROPERTY_ID, securityConfigMap);
     }
+    // This is needed so that exported 3.0+ blueprints have a "Blueprints" section in all cases (previously
+    // Blueprints/stack_name, Blueprints/stack_version provided this but in 3.0 we have mpacks instead of stacks.)
+    else {
+      blueprintResource.setProperty(BlueprintResourceProvider.BLUEPRINT_SECURITY_PROPERTY_ID,
+        ImmutableMap.of(SecurityConfigurationFactory.TYPE_PROPERTY_ID, SecurityType.NONE.name()));
+    }
 
     List<Map<String, Object>> groupList = formatGroupsAsList(topology);
     blueprintResource.setProperty("host_groups", groupList);

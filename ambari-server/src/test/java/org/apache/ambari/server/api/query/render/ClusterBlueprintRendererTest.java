@@ -72,6 +72,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -462,7 +463,7 @@ public class ClusterBlueprintRendererTest {
 
     Map<String, Object> securityProperties = (Map<String, Object>) properties.get("Blueprints").get("security");
     assertNotNull(securityProperties);
-    assertEquals("KERBEROS", securityProperties.get("type"));
+    assertEquals(SecurityType.KERBEROS.name(), securityProperties.get("type"));
     assertNotNull(((Map<String, Object>) securityProperties.get("kerberos_descriptor")).get("properties"));
   }
 
@@ -529,6 +530,10 @@ public class ClusterBlueprintRendererTest {
         assertEquals(expectedValues, actualValues);
       }
     }
+
+    Map<String, Object> securityProperties = (Map<String, Object>) properties.get("Blueprints").get("security");
+    assertNotNull(securityProperties);
+    assertEquals(SecurityType.NONE.name(), securityProperties.get("type"));
   }
 
   @Test
