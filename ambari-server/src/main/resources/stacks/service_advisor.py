@@ -85,6 +85,12 @@ class ServiceAdvisor(DefaultStackAdvisor):
     """
     pass
 
+  def getServiceConfigurationRecommendationsForSSO(self, configurations, clusterSummary, services, hosts):
+    """
+    Any SSO-related configuration recommendations for the service should be defined in this function.
+    """
+    pass
+
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
     Returns an array of Validation objects about issues with the hostnames to which components are assigned.
