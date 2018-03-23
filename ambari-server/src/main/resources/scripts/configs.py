@@ -47,6 +47,7 @@ PROPERTIES = 'properties'
 ATTRIBUTES = 'properties_attributes'
 CLUSTERS = 'Clusters'
 DESIRED_CONFIGS = 'desired_configs'
+SERVICE_CONFIG_NOTE='service_config_version_note'
 TYPE = 'type'
 TAG = 'tag'
 ITEMS = 'items'
@@ -99,13 +100,14 @@ def get_config_tag(cluster, config_type, accessor):
     raise Exception('"{0}" not found in server response. Response:\n{1}'.format(config_type, response))
   return current_config_tag
 
-def create_new_desired_config(cluster, config_type, properties, attributes, accessor):
+def create_new_desired_config(cluster, config_type, properties, attributes, accessor,version_note):
   new_tag = TAG_PREFIX + str(int(time.time() * 1000000))
   new_config = {
     CLUSTERS: {
       DESIRED_CONFIGS: {
         TYPE: config_type,
         TAG: new_tag,
+        SERVICE_CONFIG_NOTE:version_note,
         PROPERTIES: properties
       }
     }
@@ -127,9 +129,9 @@ def get_current_config(cluster, config_type, accessor):
   current_config = config_by_tag[ITEMS][0]
   return current_config[PROPERTIES], current_config.get(ATTRIBUTES, {})
 
-def update_config(cluster, config_type, config_updater, accessor):
+def update_config(cluster, config_type, config_updater, accessor,version_note):
   properties, attributes = config_updater(cluster, config_type, accessor)
-  create_new_desired_config(cluster, config_type, properties, attributes, accessor)
+  create_new_desired_config(cluster, config_type, properties, attributes, accessor,version_note)
 
 def update_specific_property(config_name, config_value):
   def update(cluster, config_type, accessor):
@@ -215,7 +217,7 @@ def get_config(cluster, config_type, accessor, output):
     config[ATTRIBUTES] = attributes
   output(config)
 
-def set_properties(cluster, config_type, args, accessor):
+def set_properties(cluster, config_type, args, accessor,version_note):
   logger.info('### Performing "set":')
 
   if len(args) == 1:
@@ -234,10 +236,10 @@ def set_properties(cluster, config_type, args, accessor):
     config_value = args[1]
     updater = update_specific_property(config_name, config_value)
     logger.info('### new property - "{0}":"{1}"'.format(config_name, config_value))
-  update_config(cluster, config_type, updater, accessor)
+  update_config(cluster, config_type, updater, accessor,version_note)
   return 0
 
-def delete_properties(cluster, config_type, args, accessor):
+def delete_properties(cluster, config_type, args, accessor,version_note):
   logger.info('### Performing "delete":')
   if len(args) == 0:
     logger.error("Not enough arguments. Expected config key.")
@@ -245,7 +247,7 @@ def delete_properties(cluster, config_type, args, accessor):
 
   config_name = args[0]
   logger.info('### on property "{0}"'.format(config_name))
-  update_config(cluster, config_type, delete_specific_property(config_name), accessor)
+  update_config(cluster, config_type, delete_specific_property(config_name), accessor,version_note)
   return 0
 
 
@@ -276,6 +278,7 @@ def main():
   parser.add_option("-l", "--host", dest="host", help="Server external host name")
   parser.add_option("-n", "--cluster", dest="cluster", help="Name given to cluster. Ex: 'c1'")
   parser.add_option("-c", "--config-type", dest="config_type", help="One of the various configuration types in Ambari. Ex: core-site, hdfs-site, mapred-queue-acls, etc.")
+  parser.add_option("-b", "--version-note", dest="version_note",default="", help="Version change notes which will help to know what has been changed in this config , this value is optional and is used for action set ")
 
   config_options_group = OptionGroup(parser, "To specify property(s) please use \"-f\" OR \"-k\" and \"-v'\"")
   config_options_group.add_option("-f", "--file", dest="file", help="File where entire configurations are saved to, or read from. Supported extensions (.xml, .json>)")
@@ -330,6 +333,7 @@ def main():
   host = options.host
   cluster = options.cluster
   config_type = options.config_type
+  version_note = options.version_note
 
   accessor = api_accessor(host, user, password, protocol, port)
   if action == SET_ACTION:
@@ -340,7 +344,7 @@ def main():
       action_args = [options.file]
     else:
       action_args = [options.key, options.value]
-    return set_properties(cluster, config_type, action_args, accessor)
+    return set_properties(cluster, config_type, action_args, accessor,version_note)
 
   elif action == GET_ACTION:
     if options.file:
@@ -354,7 +358,7 @@ def main():
       parser.error("You should use option (-k) to set property name witch will be deleted")
     else:
       action_args = [options.key]
-    return delete_properties(cluster, config_type, action_args, accessor)
+    return delete_properties(cluster, config_type, action_args, accessor,version_note)
   else:
     logger.error('Action "{0}" is not supported. Supported actions: "get", "set", "delete".'.format(action))
     return -1
