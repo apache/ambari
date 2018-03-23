@@ -91,7 +91,8 @@ class CustomServiceOrchestrator():
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr.txt')
     # cache reset should also be called on explicit refreshCache command
-    controller.refresh_cache_listeners.append(self.file_cache.reset)
+    # TODO : AMBARI-21056 Revisit for correct changes
+    #controller.refresh_cache_listeners.append(self.file_cache.reset)
 
     # Construct the hadoop credential lib JARs path
     self.credential_shell_lib_path = os.path.join(self.config.get('security', 'credential_lib_dir',
