@@ -139,6 +139,12 @@
   position: relative;
   cursor: pointer;
 }
+
+.has-error.add-item-input {
+  color: #666;
+  border: 1px solid #EF6162 !important;
+}
+
 .add-item-input span:focus{
   cursor: default;
 }
