@@ -148,7 +148,7 @@ public class StackAdvisorHelper {
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.SSO_CONFIGURATIONS) {
       command = new SingleSignOnConfigurationRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES) {
       command = new ConfigurationDependenciesRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
           requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
