@@ -25,10 +25,16 @@ class TestBasicAdvisor(TestCase):
     import imp
     self.maxDiff = None
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
-    stackAdvisorPath = os.path.abspath(os.path.join(self.testDirectory, '../../../main/resources/stacks/stack_advisor.py'))
 
     default_sa_classname = 'DefaultStackAdvisor'
 
+    stacksPath = os.path.join(self.testDirectory, '../../../main/resources/stacks')
+
+    ambariConfigurationPath = os.path.abspath(os.path.join(stacksPath, 'ambari_configuration.py'))
+    with open(ambariConfigurationPath, 'rb') as fp:
+      imp.load_module('ambari_configuration', fp, ambariConfigurationPath, ('.py', 'rb', imp.PY_SOURCE))
+
+    stackAdvisorPath = os.path.abspath(os.path.join(stacksPath, 'stack_advisor.py'))
     with open(stackAdvisorPath, 'rb') as fp:
       stack_advisor_impl = imp.load_module('stack_advisor', fp, stackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
 
