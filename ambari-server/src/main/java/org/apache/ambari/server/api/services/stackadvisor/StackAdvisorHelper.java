@@ -34,7 +34,7 @@ import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorC
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.configuration.Configuration;
-
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,6 +53,7 @@ public class StackAdvisorHelper {
   private int recommendationsArtifactsRolloverMax;
   public static String pythonStackAdvisorScript;
   private final AmbariMetaInfo metaInfo;
+  private final AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
   /* Monotonically increasing requestid */
   private int requestId = 0;
@@ -60,7 +61,7 @@ public class StackAdvisorHelper {
 
   @Inject
   public StackAdvisorHelper(Configuration conf, StackAdvisorRunner saRunner,
-                            AmbariMetaInfo metaInfo) throws IOException {
+                            AmbariMetaInfo metaInfo, AmbariServerConfigurationHandler ambariServerConfigurationHandler) throws IOException {
     this.recommendationsDir = conf.getRecommendationsDir();
     this.recommendationsArtifactsLifetime = conf.getRecommendationsArtifactsLifetime();
     this.recommendationsArtifactsRolloverMax = conf.getRecommendationsArtifactsRolloverMax();
@@ -68,6 +69,7 @@ public class StackAdvisorHelper {
     this.pythonStackAdvisorScript = conf.getStackAdvisorScript();
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
+    this.ambariServerConfigurationHandler = ambariServerConfigurationHandler;
   }
 
   /**
@@ -99,10 +101,10 @@ public class StackAdvisorHelper {
     StackAdvisorCommand<ValidationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
       command = new ComponentLayoutValidationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
       command = new ConfigurationValidationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));
@@ -140,16 +142,16 @@ public class StackAdvisorHelper {
     StackAdvisorCommand<RecommendationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
       command = new ComponentLayoutRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
       command = new ConfigurationRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.SSO_CONFIGURATIONS) {
       command = new SingleSignOnConfigurationRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES) {
       command = new ConfigurationDependenciesRecommendationCommand(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType,
-          requestId, saRunner, metaInfo);
+          requestId, saRunner, metaInfo, ambariServerConfigurationHandler);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));
