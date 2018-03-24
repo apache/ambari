@@ -26,20 +26,24 @@ import traceback
 RECOMMEND_COMPONENT_LAYOUT_ACTION = 'recommend-component-layout'
 VALIDATE_COMPONENT_LAYOUT_ACTION = 'validate-component-layout'
 RECOMMEND_CONFIGURATIONS = 'recommend-configurations'
+RECOMMEND_CONFIGURATIONS_FOR_SSO = 'recommend-configurations-for-sso'
 RECOMMEND_CONFIGURATION_DEPENDENCIES = 'recommend-configuration-dependencies'
 VALIDATE_CONFIGURATIONS = 'validate-configurations'
 
 ALL_ACTIONS = [RECOMMEND_COMPONENT_LAYOUT_ACTION,
                VALIDATE_COMPONENT_LAYOUT_ACTION,
                RECOMMEND_CONFIGURATIONS,
+               RECOMMEND_CONFIGURATIONS_FOR_SSO,
                RECOMMEND_CONFIGURATION_DEPENDENCIES,
                VALIDATE_CONFIGURATIONS]
 USAGE = "Usage: <action> <hosts_file> <services_file>\nPossible actions are: {0}\n".format( str(ALL_ACTIONS) )
 
 SCRIPT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-STACK_ADVISOR_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, '../stacks/stack_advisor.py')
+STACKS_DIRECTORY = os.path.join(SCRIPT_DIRECTORY, '../stacks')
+STACK_ADVISOR_PATH = os.path.join(STACKS_DIRECTORY, 'stack_advisor.py')
+AMBARI_CONFIGURATION_PATH = os.path.join(STACKS_DIRECTORY, 'ambari_configuration.py')
 STACK_ADVISOR_DEFAULT_IMPL_CLASS = 'DefaultStackAdvisor'
-STACK_ADVISOR_IMPL_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, './../stacks/{0}/{1}/services/stack_advisor.py')
+STACK_ADVISOR_IMPL_PATH_TEMPLATE = os.path.join(STACKS_DIRECTORY, '{0}/{1}/services/stack_advisor.py')
 STACK_ADVISOR_IMPL_CLASS_TEMPLATE = '{0}{1}StackAdvisor'
 
 ADVISOR_CONTEXT = "advisor_context"
@@ -115,6 +119,10 @@ def main(argv=None):
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurations'}
     result = stackAdvisor.recommendConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
+  elif action == RECOMMEND_CONFIGURATIONS_FOR_SSO:
+    services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationsForSSO'}
+    result = stackAdvisor.recommendConfigurationsForSSO(services, hosts)
+    result_file = os.path.join(actionDir, "configurations.json")
   elif action == RECOMMEND_CONFIGURATION_DEPENDENCIES:
     services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationDependencies'}
     result = stackAdvisor.recommendConfigurationDependencies(services, hosts)
@@ -131,8 +139,11 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
   """Instantiates StackAdvisor implementation for the specified Stack"""
   import imp
 
-  with open(STACK_ADVISOR_PATH_TEMPLATE, 'rb') as fp:
-    default_stack_advisor = imp.load_module('stack_advisor', fp, STACK_ADVISOR_PATH_TEMPLATE, ('.py', 'rb', imp.PY_SOURCE))
+  with open(AMBARI_CONFIGURATION_PATH, 'rb') as fp:
+    imp.load_module('ambari_configuration', fp, AMBARI_CONFIGURATION_PATH, ('.py', 'rb', imp.PY_SOURCE))
+
+  with open(STACK_ADVISOR_PATH, 'rb') as fp:
+    default_stack_advisor = imp.load_module('stack_advisor', fp, STACK_ADVISOR_PATH, ('.py', 'rb', imp.PY_SOURCE))
   className = STACK_ADVISOR_DEFAULT_IMPL_CLASS
   stack_advisor = default_stack_advisor
 

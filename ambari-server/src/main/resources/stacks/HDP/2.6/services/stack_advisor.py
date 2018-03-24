@@ -48,6 +48,12 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
 
+  def getServiceConfigurationRecommenderForSSODict(self):
+      return {
+        "ATLAS": self.recommendAtlasConfigurationsForSSO,
+        "RANGER": self.recommendRangerConfigurationsForSSO
+      }
+
   def recommendSPARK2Configurations(self, configurations, clusterData, services, hosts):
     """
     :type configurations dict
@@ -85,26 +91,51 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendAtlasConfigurations(configurations, clusterData, services, hosts)
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    self.recommendAtlasConfigurationsForSSO(configurations, clusterData, services, hosts)
+
+  def recommendAtlasConfigurationsForSSO(self, configurations, clusterData, services, hosts):
+    ambari_configuration = self.get_ambari_configuration(services)
+
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
 
-    knox_host = 'localhost'
-    knox_port = '8443'
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    # If KNOX is installed, automatically enable SSO using details from KNOX
     if 'KNOX' in servicesList:
+      knox_host = 'localhost'
+      knox_port = '8443'
+
       knox_hosts = self.getComponentHostNames(services, "KNOX", "KNOX_GATEWAY")
       if len(knox_hosts) > 0:
         knox_hosts.sort()
         knox_host = knox_hosts[0]
+
       if 'gateway-site' in services['configurations'] and 'gateway.port' in services['configurations']["gateway-site"]["properties"]:
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
       putAtlasApplicationProperty('atlas.sso.knox.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
 
-    knox_service_user = ''
-    if 'KNOX' in servicesList and 'knox-env' in services['configurations']:
-      knox_service_user = services['configurations']['knox-env']['properties']['knox_user']
-    else:
-      knox_service_user = 'knox'
-    putAtlasApplicationProperty('atlas.proxyusers',knox_service_user)
+    # If SSO should be enabled for this service
+    if ambari_configuration.should_enable_sso('ATLAS'):
+      putAtlasApplicationProperty('atlas.sso.knox.enabled', "true")
+
+      ambari_sso_details = ambari_configuration.get_ambari_sso_details()
+      if ambari_sso_details:
+        putAtlasApplicationProperty('atlas.sso.knox.providerurl', ambari_sso_details.get_jwt_provider_url())
+        putAtlasApplicationProperty('atlas.sso.knox.publicKey', ambari_sso_details.get_jwt_public_key(False, True))
+        putAtlasApplicationProperty('atlas.sso.knox.browser.useragent', 'Mozilla,Chrome')
+
+    # If SSO should be disabled for this service
+    elif ambari_configuration.should_disable_sso('ATLAS'):
+      putAtlasApplicationProperty('atlas.sso.knox.enabled', "false")
+
+    # Set the proxy user
+    knox_service_user = services['configurations']['knox-env']['properties']['knox_user'] \
+      if 'knox-env' in services['configurations'] and 'knox_user' in \
+         services['configurations']['knox-env']['properties'] \
+      else 'knox'
+    putAtlasApplicationProperty('atlas.proxyusers', knox_service_user)
+  pass
+
 
   def recommendDruidConfigurations(self, configurations, clusterData, services, hosts):
 
@@ -526,6 +557,16 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerUgsyncSite("ranger.usersync.group.searchenabled", "true")
     else:
       putRangerUgsyncSite("ranger.usersync.group.searchenabled", "false")
+
+    self.recommendRangerConfigurationsForSSO(configurations, clusterData, services, hosts)
+
+  def recommendRangerConfigurationsForSSO(self, configurations, clusterData, services, hosts):
+    ambari_configuration = self.get_ambari_configuration(services)
+
+    # If SSO should be enabled for this service, continue
+    if ambari_configuration.should_enable_sso('RANGER'):
+      #TODO: See AMBARI-23332
+      pass
 
   def validateRangerUsersyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_usersync_properties = properties
