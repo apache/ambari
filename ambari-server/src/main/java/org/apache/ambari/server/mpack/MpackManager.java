@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -167,7 +168,7 @@ public class MpackManager {
 
 
   /**
-   * Parses mpack.json to fetch mpack and associated packlet information and
+   * Parses mpack.json to fetch mpack and associated modules information and
    * stores the mpack to the database and mpackMap
    *
    * @param mpackRequest
@@ -200,6 +201,11 @@ public class MpackManager {
 
       if (isValidMetadata) {
         mpackTarPath = downloadMpack(mpackRequest.getMpackUri(), mpack.getDefinition());
+        if (!validateMpackTarballChecksum(mpackTarPath.toString(), mpack.getChecksum())) {
+          StringBuilder message = new StringBuilder("Incorrect checksum for downloaded mpack tarball ");
+          message.append(mpackName);
+          throw new IllegalArgumentException(message.toString()); //Mismatch in information
+        }
         createMpackDirectory(mpack);
         mpackDirectory = mpacksStaging + File.separator + mpack.getName() + File.separator + mpack.getVersion();
       } else {
@@ -212,7 +218,11 @@ public class MpackManager {
       // Mpack registration using direct download
       mpack = downloadMpackMetadata(mpackRequest.getMpackUri());
       mpackTarPath = downloadMpack(mpackRequest.getMpackUri(), mpack.getDefinition());
-
+      if (!validateMpackTarballChecksum(mpackTarPath.toString(), mpack.getChecksum())) {
+        StringBuilder message = new StringBuilder("Incorrect checksum for downloaded mpack tarball ");
+        message.append(mpackName);
+        throw new IllegalArgumentException(message.toString()); //Mismatch in information
+      }
       LOG.info("Custom Mpack Registration :" + mpackRequest.getMpackUri());
 
       if (createMpackDirectory(mpack)) {
@@ -477,6 +487,29 @@ public class MpackManager {
       Files.delete(stackPath);
     }
     Files.createSymbolicLink(stackPath, mpackPath);
+  }
+
+  /***
+   * After mpack tarball is downloaded, before it is extacted, do md5 validation to make sure it is valid
+   * @param tarballPath mpack tarball path
+   * @param md5 checksum to be verified
+   * @return true if md5 matches mpack md5
+   */
+  private boolean validateMpackTarballChecksum(String tarballPath, String md5) {
+    boolean matched = true;
+    try {
+      FileInputStream fis = new FileInputStream(tarballPath);
+      String generatedMd5 = DigestUtils.md5Hex(fis).toLowerCase();
+      if (!md5.equals(generatedMd5)) {
+        LOG.error("Mpack file {} does not match provided MD5 {}", tarballPath, md5);
+        matched = false;
+      }
+      fis.close();
+    } catch(IOException e) {
+      LOG.error("Cannot open mpack {} " + tarballPath);
+      matched = false;
+    }
+    return matched;
   }
 
   /***

@@ -67,6 +67,9 @@ public class Mpack {
   @SerializedName("displayName")
   private String displayName;
 
+  @SerializedName("checksum")
+  private String checksum;
+
   private String mpackUri;
 
   /**
@@ -162,6 +165,14 @@ public class Mpack {
     this.displayName = displayName;
   }
 
+  public String getChecksum() {
+    return checksum;
+  }
+
+  public void setChecksum(String checksum) {
+    this.checksum = checksum;
+  }
+
   /**
    * Gets the repository XML representation.
    *
@@ -244,6 +255,7 @@ public class Mpack {
     equalsBuilder.append(description, that.description);
     equalsBuilder.append(mpackUri, that.mpackUri);
     equalsBuilder.append(displayName, that.displayName);
+    equalsBuilder.append(checksum, that.checksum);
 
     return equalsBuilder.isEquals();
   }
@@ -254,7 +266,7 @@ public class Mpack {
   @Override
   public int hashCode() {
     return Objects.hash(resourceId, registryId, mpackId, name, version, prerequisites, modules,
-        definition, description, mpackUri, displayName);
+        definition, description, mpackUri, displayName, checksum);
   }
 
   @Override
@@ -271,6 +283,7 @@ public class Mpack {
             ", description='" + description + '\'' +
             ", mpackUri='" + mpackUri + '\'' +
             ", displayName='" + mpackUri + '\'' +
+            ", checksum='" + checksum + '\'' +
             '}';
   }
 
@@ -304,6 +317,9 @@ public class Mpack {
     }
     if (displayName == null) {
       displayName = mpack.getDisplayName();
+    }
+    if (checksum == null) {
+      checksum = mpack.getChecksum();
     }
   }
 }
