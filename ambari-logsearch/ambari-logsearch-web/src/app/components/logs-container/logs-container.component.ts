@@ -130,11 +130,13 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.activatedRoute.queryParams.filter(() => !this.queryParamsSyncInProgress.getValue()).subscribe(this.onQueryParamsChange)
     );
-    // if (this.activatedRoute.queryParams && Object.keys(this.activatedRoute.queryParams).length) {
-    //   this.syncQueryParamsToFiltersForms(this.activatedRoute.queryParams);
-    // } else {
-    //   this.syncFiltersToQueryParams(this.filtersForm.value);
-    // }
+    if (this.activatedRoute.queryParams && Object.keys(this.activatedRoute.queryParams).length) {
+      this.activatedRoute.queryParams.first().subscribe((queryParams): void => {
+        this.syncQueryParamsToFiltersForms(queryParams);
+      });
+    } else {
+      this.syncFiltersToQueryParams(this.filtersForm.value);
+    }
 
     this.subscriptions.push(
       this.logsStateService.getParameter('activeTabId').skip(1).subscribe(this.onActiveTabSwitched)
@@ -264,7 +266,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
       const filtersFromQueryParams = this.logsFilteringUtilsService.getFilterFromQueryParams(
         queryParams, this.logsContainerService.activeLogsType
       );
-      this.logsContainerService.syncFiltersToFilterForms(filtersFromQueryParams);
+      this.logsContainerService.syncFiltersToFiltersForms(filtersFromQueryParams);
     }
   }
 

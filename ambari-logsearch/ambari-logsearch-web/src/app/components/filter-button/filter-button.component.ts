@@ -49,9 +49,9 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
   }
 
   set selection(items: ListItem[]) {
-    this.selectedItems = items;
+    this.selectedItems = items || [];
     if (this.onChange) {
-      this.onChange(items);
+      this.onChange(items || []);
     }
   }
 

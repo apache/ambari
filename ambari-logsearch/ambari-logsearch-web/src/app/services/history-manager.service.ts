@@ -293,7 +293,6 @@ export class HistoryManagerService {
       delete objectA[controlName];
       delete objectB[controlName];
     });
-    console.info('isHistoryUnchanged',this.utils.isEqual(objectA, objectB));
     return this.utils.isEqual(objectA, objectB);
   }
 

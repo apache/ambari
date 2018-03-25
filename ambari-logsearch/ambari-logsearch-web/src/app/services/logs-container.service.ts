@@ -669,14 +669,14 @@ export class LogsContainerService {
    * @param tab {Tab}
    */
   syncTabFiltersToFilterForms(tab: Tab): void {
-    this.syncFiltersToFilterForms(tab.activeFilters);
+    this.syncFiltersToFiltersForms(tab.activeFilters);
   }
 
   /**
-   * Update the filters form with the given filters (from active tab's filters)
+   * Update the filters form with the given filters.
    * @param filters {object}
    */
-  syncFiltersToFilterForms(filters): void {
+  syncFiltersToFiltersForms(filters): void {
     this.filtersFormSyncInProgress.next(true);
     // this.filtersForm.reset(filters, {emitEvent: false});
     const controls = this.filtersForm.controls;
