@@ -78,7 +78,7 @@ public enum AmbariServerConfigurationKey {
    * SSO Configuration Keys
    * ******************************************************** */
   SSO_MANAGE_SERVICES(AmbariServerConfigurationCategory.SSO_CONFIGURATION, "ambari.sso.manage_services", PLAINTEXT, "false", "A Boolean value indicating whether Ambari is to manage the SSO configuration for services or not."),
-  SSO_ENABED_SERVICES(AmbariServerConfigurationCategory.SSO_CONFIGURATION, "ambari.sso.enabled_services", PLAINTEXT, null, "A comma-delimited list of services that are expected to be configured for SSO.  A \"*\" indicates all services.");
+  SSO_ENABLED_SERVICES(AmbariServerConfigurationCategory.SSO_CONFIGURATION, "ambari.sso.enabled_services", PLAINTEXT, null, "A comma-delimited list of services that are expected to be configured for SSO.  A \"*\" indicates all services.");
 
   private final AmbariServerConfigurationCategory configurationCategory;
   private final String propertyName;
