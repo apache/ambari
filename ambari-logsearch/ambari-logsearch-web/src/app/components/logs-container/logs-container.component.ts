@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, ElementRef, ViewChild, HostListener, Input, OnDestroy} from '@angular/core';
+import {Component, OnInit, ElementRef, ViewChild, HostListener, Input, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/debounceTime';
@@ -40,6 +40,7 @@ import {Subscription} from 'rxjs/Subscription';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
 @Component({
   selector: 'logs-container',
@@ -85,7 +86,9 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
     private auditLogsGraphStorage: AuditLogsGraphDataService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private logsStateService: LogsStateService,
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -112,33 +115,31 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
         this.isServiceLogContextView = value;
       })
     );
+
+    // Sync from form to query params on form values change
     this.subscriptions.push(
-      this.tabsStorage.getAll().map((tabs: Tab[]) => {
-        const activeTab = tabs.find(tab => tab.isActive);
-        return activeTab && activeTab.appState.activeFilters;
-      }).skip(1).debounceTime(100).subscribe(activeFilter => {
-        const queryParams = this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
-          activeFilter, this.logsContainerService.activeLogsType
-        );
-        this.queryParamsSyncStart();
-        this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: queryParams })
-          .then(this.queryParamsSyncStop, this.queryParamsSyncStop)
-          .catch(this.queryParamsSyncStop);
-      })
+      this.filtersForm.valueChanges
+        .filter(() => !this.logsContainerService.filtersFormSyncInProgress.getValue()).subscribe(this.onFiltersFormChange)
     );
+
     this.subscriptions.push(
-      this.activatedRoute.queryParams.subscribe((params) => {
-        if (!this.queryParamsSyncInProgress.getValue() && Object.keys(params).length) {
-          const filterFromQueryParams = this.logsFilteringUtilsService.getFilterFromQueryParams(
-            params, this.logsContainerService.activeLogsType
-          );
-          this.appState.getParameter('activeFilters').first().subscribe((filter) => {
-            this.appState.setParameter('activeFilters', Object.assign(filter || {}, filterFromQueryParams));
-            console.info(Object.assign(filter || {}, filterFromQueryParams));
-          });
-        }
-      })
+      this.activatedRoute.params.map((params: {[key: string]: any}) => params && params.activeTab)
+        .subscribe(this.onActiveTabParamChange)
     );
+
+    this.subscriptions.push(
+      this.activatedRoute.queryParams.filter(() => !this.queryParamsSyncInProgress.getValue()).subscribe(this.onQueryParamsChange)
+    );
+    // if (this.activatedRoute.queryParams && Object.keys(this.activatedRoute.queryParams).length) {
+    //   this.syncQueryParamsToFiltersForms(this.activatedRoute.queryParams);
+    // } else {
+    //   this.syncFiltersToQueryParams(this.filtersForm.value);
+    // }
+
+    this.subscriptions.push(
+      this.logsStateService.getParameter('activeTabId').skip(1).subscribe(this.onActiveTabSwitched)
+    );
+
   }
 
   ngOnDestroy() {
@@ -202,13 +203,86 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     return this.logsContainerService.serviceLogsColumns;
   }
 
-  private queryParamsSyncStart = () => {
-    this.queryParamsSyncInProgress.next(true);
+  //
+  // SECTION: TABS
+  //
+
+  /**
+   * Set the active params in the store corresponding to the URL param (activeTab)
+   * @param {string} tabId The 'activeTab' segment of the URL (eg.: #/logs/serviceLogs where the serviceLogs is the activeTab parameter)
+   */
+  private onActiveTabParamChange = (tabId: string): void => {
+    this.logsContainerService.setActiveTabById(tabId);
   }
 
-  private queryParamsSyncStop = () => {
+  private onActiveTabSwitched = (tabId: string): void => {
+    this.tabsStorage.findInCollection((tab: Tab) => tab.id === tabId).first().subscribe((tab: Tab) => {
+      if (tab) {
+        this.syncFiltersToQueryParams(tab.activeFilters);
+      }
+    });
+  }
+
+  //
+  // SECTION END: TABS
+  //
+
+  //
+  // SECTION: FILTER SYNCHRONIZATION
+  //
+
+  /**
+   * Turn on the 'query params in sync' flag, so that the query to form sync don't run.
+   * So when we actualize the query params to reflect the filters form values we have to turn of the back sync (query params change to form)
+   */
+  private queryParamsSyncStart = (): void => {
+    this.queryParamsSyncInProgress.next(true);
+  }
+  /**
+   * Turn off the 'query params in sync' flag
+   */
+  private queryParamsSyncStop = (): void => {
     this.queryParamsSyncInProgress.next(false);
   }
+
+  /**
+   * The goal is to make the app always bookmarkable.
+   * @param filters
+   */
+  private syncFiltersToQueryParams(filters): void {
+    const queryParams = this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
+      filters, this.logsContainerService.activeLogsType
+    );
+    this.queryParamsSyncStart(); // turn on the 'sync in progress' flag
+    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: queryParams })
+      .then(this.queryParamsSyncStop, this.queryParamsSyncStop) // turn off the 'sync in progress' flag
+      .catch(this.queryParamsSyncStop); // turn off the 'sync in progress' flag
+  }
+
+  private syncQueryParamsToFiltersForms(queryParams): void {
+    if (Object.keys(queryParams).length) {
+      const filtersFromQueryParams = this.logsFilteringUtilsService.getFilterFromQueryParams(
+        queryParams, this.logsContainerService.activeLogsType
+      );
+      this.logsContainerService.syncFiltersToFilterForms(filtersFromQueryParams);
+    }
+  }
+
+  /**
+   * Handle the filters' form changes and sync it to the query parameters
+   * @param values The new filter values. This is the raw value of the form group
+   */
+  private onFiltersFormChange = (filters): void => {
+    this.syncFiltersToQueryParams(filters);
+  }
+
+  private onQueryParamsChange = (queryParams: {[key: string]: any}) => {
+    this.syncQueryParamsToFiltersForms(queryParams);
+  }
+
+  //
+  // SECTION END: FILTER SYNCHRONIZATION
+  //
 
   /**
    * The goal is to set the fixed position of the filter panel when it is scrolled to the top. So that the panel

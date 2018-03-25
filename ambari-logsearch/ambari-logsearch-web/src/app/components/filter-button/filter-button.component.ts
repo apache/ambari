@@ -18,7 +18,7 @@
 
 import {Component, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {ListItem} from "@app/classes/list-item";
+import {ListItem} from '@app/classes/list-item';
 import {UtilsService} from '@app/services/utils.service';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 

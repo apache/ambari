@@ -35,13 +35,12 @@ export class TabGuard implements CanActivate {
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
     const activeTabParam: string = this.routingUtilsService.getParamFromActivatedRouteSnapshot(next, 'activeTab');
-    if (!activeTabParam) {
-      this.tabsStorageService.getAll().first().map((tabs: Tab[]) => tabs && tabs[0])
-        .subscribe((tab: Tab) => {
-          this.router.navigate(['/logs', tab.id]);
-        });
-      return false;
-    }
-    return true;
+    return this.tabsStorageService.getAll().switchMap((tabs: Tab[]) => {
+      if (!activeTabParam && tabs && tabs.length) {
+        this.router.navigate(['/logs', tabs[0].id]);
+      }
+      const canActivate: boolean = !!activeTabParam && !!tabs.find((tab: Tab) => tab.id === activeTabParam);
+      return Observable.of(canActivate);
+    });
   }
 }

@@ -18,14 +18,20 @@
 
 import { Injectable } from '@angular/core';
 import {Response} from '@angular/http';
-import "rxjs/add/operator/toPromise";
+import 'rxjs/add/operator/toPromise';
+import {TranslateService} from '@ngx-translate/core';
 
-import {AppStateService} from "@app/services/storage/app-state.service";
-import {HttpClientService} from "@app/services/http-client.service";
-import {ClustersService} from "@app/services/storage/clusters.service";
+import {AppStateService} from '@app/services/storage/app-state.service';
+import {HttpClientService} from '@app/services/http-client.service';
+import {ClustersService} from '@app/services/storage/clusters.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {AuditFieldsDefinitionSet} from '@app/classes/object';
+import {Observable} from 'rxjs/Observable';
+import {UtilsService} from '@app/services/utils.service';
+import {HostsService} from '@app/services/storage/hosts.service';
+import {NodeItem} from '@app/classes/models/node-item';
+import {ComponentsService} from '@app/services/storage/components.service';
 
 @Injectable()
 export class AppLoadService {
@@ -35,9 +41,13 @@ export class AppLoadService {
     private appStateService: AppStateService,
     private clustersStorage: ClustersService,
     private serviceLogsFieldsService: ServiceLogsFieldsService,
-    private auditLogsFieldsService: AuditLogsFieldsService
+    private auditLogsFieldsService: AuditLogsFieldsService,
+    private translationService: TranslateService,
+    private hostStoreService: HostsService,
+    private componentsStorageService: ComponentsService
   ) {
     this.appStateService.getParameter('isAuthorized').subscribe(this.initOnAuthorization);
+    this.appStateService.setParameter('isInitialLoading', true);
   }
 
   loadClusters(): void {
@@ -56,6 +66,58 @@ export class AppLoadService {
       );
   }
 
+  clearClusters(): void {
+    this.clustersStorage.clear();
+  }
+
+  loadHosts(): Observable<Response> {
+    this.hostStoreService.clear();
+    const request = this.httpClient.get('hosts');
+    request.subscribe((response: Response): void => {
+      const jsonResponse = response.json(),
+        hosts = jsonResponse && jsonResponse.vNodeList;
+      if (hosts) {
+        this.hostStoreService.addInstances(hosts);
+      }
+    });
+    return request;
+  }
+
+  clearHosts(): void {
+    this.hostStoreService.clear();
+  }
+
+  loadComponents(): Observable<Response[]> {
+    const requestComponentsData: Observable<Response> = this.httpClient.get('components');
+    const requestComponentsName: Observable<Response> = this.httpClient.get('serviceComponentsName');
+    const requests = Observable.combineLatest(requestComponentsName, requestComponentsData);
+    requests.subscribe(([componentsNamesResponse, componentsDataResponse]: Response[]) => {
+      const componentsNames = componentsNamesResponse.json();
+      const componentsData = componentsDataResponse.json();
+      const components = componentsData && componentsData.vNodeList.map((item): NodeItem => {
+        const component = componentsNames.metadata.find(componentItem => componentItem.name === item.name);
+        return Object.assign(item, {
+          label: component && (component.label || item.name),
+          group: component && component.group && {
+            name: component.group,
+            label: componentsNames.groups[component.group]
+          },
+          value: item.logLevelCount.reduce((currentValue: number, currentItem): number => {
+            return currentValue + Number(currentItem.value);
+          }, 0)
+        });
+      });
+      if (components) {
+        this.componentsStorageService.addInstances(components);
+      }
+    });
+    return requests;
+  }
+
+  clearComponents(): void {
+    this.componentsStorageService.clear();
+  }
+
   loadFieldsForLogs(): void {
     this.httpClient.get('serviceLogsFields').subscribe((response: Response): void => {
       const jsonResponse = response.json();
@@ -71,24 +133,41 @@ export class AppLoadService {
     });
   }
 
+  clearFieldsForLogs(): void {
+
+  }
+
   initOnAuthorization = (isAuthorized): void => {
     if (isAuthorized) {
       this.loadClusters();
-        //this.loadFieldsForLogs();
+      this.loadHosts();
+      this.loadComponents();
+      // this.loadFieldsForLogs();
+    } else {
+      this.clearClusters();
+      this.clearHosts();
+      this.clearComponents();
     }
   }
 
   syncAuthorizedStateWithBackend(): Promise<any> {
     const statusRequest: Promise<Response> = this.httpClient.get('status').toPromise();
-    return statusRequest.then(
+    statusRequest.then(
       () => this.appStateService.setParameters({
-          isAuthorized: true,
-          isInitialLoading: false
-        }),
+        isAuthorized: true,
+        isInitialLoading: false
+      }),
       () => this.appStateService.setParameters({
-          isAuthorized: false,
-          isInitialLoading: false
-        })
+        isAuthorized: false,
+        isInitialLoading: false
+      })
     );
+    return statusRequest;
   }
+
+  setTranslationService() {
+    this.translationService.setDefaultLang('en');
+    return this.translationService.use('en').toPromise();
+  }
+
 }

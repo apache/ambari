@@ -58,9 +58,11 @@ import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
-import {Router, RoutesRecognized} from '@angular/router';
+import {ActivatedRoute, Router, RoutesRecognized} from '@angular/router';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
 @Injectable()
 export class LogsContainerService {
@@ -424,7 +426,7 @@ export class LogsContainerService {
         return {
           label: option,
           value: option
-        }
+        };
       }),
       defaultSelection: [
         {
@@ -581,17 +583,8 @@ export class LogsContainerService {
 
   topResourcesGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
 
-  private selectedTabByUrl$: Observable<Tab | null> = this.router.events.filter(routes => routes instanceof RoutesRecognized)
-    .map((routesRecogized: RoutesRecognized) => {
-      return this.routingUtils.getParamFromActivatedRouteSnapshot(routesRecogized.state.root, 'activeTab');
-    })
-    .switchMap((logsType: string) => {
-      if (logsType) {
-        return this.tabsStorage.getAll().first()
-          .map((tabs: Tab[]) => tabs.find((tab: Tab) => tab.id === logsType));
-      }
-      return Observable.of(null);
-    });
+  private activeTabId$: Observable<any> = this.tabsStorage.getAll().map((tabs: Tab[]) => tabs.find((tab: Tab) => tab.isActive))
+    .map((tab: Tab) => tab.id).distinctUntilChanged();
 
   private readonly valueGetters = {
     to: (selection: TimeUnitListItem) => {
@@ -607,6 +600,8 @@ export class LogsContainerService {
     excludeQuery: this.logsFilteringUtilsService.getQuery(true)
   };
 
+  filtersFormSyncInProgress: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
   constructor(
     private httpClient: HttpClientService, private utils: UtilsService,
     private tabsStorage: TabsService, private componentsStorage: ComponentsService, private hostsStorage: HostsService,
@@ -617,8 +612,10 @@ export class LogsContainerService {
     private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService,
     private clusterSelectionStoreService: ClusterSelectionService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private routingUtils: RoutingUtilsService,
-    private logsFilteringUtilsService: LogsFilteringUtilsService
+    private logsFilteringUtilsService: LogsFilteringUtilsService,
+    private logsStateService: LogsStateService
   ) {
     const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
       const formControl = new FormControl();
@@ -629,9 +626,14 @@ export class LogsContainerService {
       return Object.assign(currentObject, item);
     }, {});
     this.filtersForm = new FormGroup(formItems);
-    this.loadClusters();
-    this.loadComponents();
-    this.loadHosts();
+    // this.loadComponents();
+    // this.loadClusters();
+    // this.loadHosts();
+
+    this.componentsStorage.getAll().subscribe(this.setComponentsFilters);
+    this.clustersStorage.getAll().subscribe(this.setClustersFilters);
+    this.hostsStorage.getAll().subscribe(this.setHostsFilters);
+
     appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => this.activeLog = value);
     appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
     appState.getParameter('activeLogsType').subscribe((value: LogsType) => {
@@ -641,39 +643,13 @@ export class LogsContainerService {
     });
     appSettings.getParameter('timeZone').subscribe((value: string) => this.timeZone = value || this.defaultTimeZone);
     tabsStorage.mapCollection((tab: Tab): Tab => {
-      const currentAppState = tab.appState || {};
-      const appState = Object.assign({}, currentAppState, {
+      return Object.assign({}, tab, {
         activeFilters: this.getFiltersData(tab.appState.activeLogsType)
       });
-      return Object.assign({}, tab, {
-        appState
-      });
     });
-    appState.getParameter('activeFilters').subscribe((filters: object): void => {
-      this.filtersFormChange.next();
-      if (filters) {
-        const controls = this.filtersForm.controls;
-        Object.keys(controls).forEach((key: string): void => {
-          controls[key].setValue(filters.hasOwnProperty(key) ? filters[key] : null);
-        });
-      }
-      this.loadLogs();
-      this.filtersForm.valueChanges
-        .distinctUntilChanged(this.isFormUnchanged)
-        .takeUntil(this.filtersFormChange)
-        .subscribe((value): void => {
-          this.tabsStorage.mapCollection((tab: Tab): Tab => {
-            const currentAppState = tab.appState || {};
-            const appState = Object.assign({}, currentAppState, tab.isActive ? {
-                activeFilters: value
-              } : null);
-            return Object.assign({}, tab, {
-              appState
-            });
-          });
-          this.loadLogs();
-      });
-    });
+
+    this.filtersForm.valueChanges.filter(() => !this.filtersFormSyncInProgress.getValue()).subscribe(this.onFiltersFormValueChange);
+
     this.auditLogsSource.subscribe((logs: AuditLog[]): void => {
       const userNames = logs.map((log: AuditLog): string => log.reqUser);
       this.utils.pushUniqueValues(
@@ -682,12 +658,103 @@ export class LogsContainerService {
       );
     });
     this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey).subscribe(this.onClusterSelectionChanged);
-    this.selectedTabByUrl$.subscribe((activatedTab: Tab | null) => {
-      if (activatedTab && activatedTab.id !== this.activeLogsType) {
-        this.switchTab(activatedTab);
+  }
+
+  //
+  // SECTION: FILTERS AND TABS
+  //
+
+  /**
+   * Update the filters form with the given filters (from active tab's filters)
+   * @param tab {Tab}
+   */
+  syncTabFiltersToFilterForms(tab: Tab): void {
+    this.syncFiltersToFilterForms(tab.activeFilters);
+  }
+
+  /**
+   * Update the filters form with the given filters (from active tab's filters)
+   * @param filters {object}
+   */
+  syncFiltersToFilterForms(filters): void {
+    this.filtersFormSyncInProgress.next(true);
+    // this.filtersForm.reset(filters, {emitEvent: false});
+    const controls = this.filtersForm.controls;
+    Object.keys(controls).forEach((controlName: string) => {
+      controls[controlName].setValue(filters[controlName], {emitEvent: false, onlySelf: true});
+    });
+    this.filtersFormSyncInProgress.next(false);
+  }
+
+  /**
+   * Sync the given filters into the active tab activeFilters property.
+   * @param filters
+   */
+  private syncFiltersToActiveTabFilters(filters): void {
+    this.tabsStorage.mapCollection((tab: Tab): Tab => {
+      const changes = tab.isActive ? {
+        activeFilters: filters
+      } : {};
+      return Object.assign({}, tab, changes);
+    });
+  }
+
+  /**
+   * Set the appState in the store by the stored state in the Tab object. It is mainly the 'activeLogsType' and the 'isServiceLogsFileView'
+   * property
+   * @param {Tab} tab
+   */
+  private setAppStateByTab(tab: Tab): void {
+    this.activeLogsType = tab.appState.activeLogsType; // there are dependencies on this prop...
+    this.appState.setParameters(tab.appState);
+  }
+
+  /**
+   * Actualize the 'isActive' property all the tabs in the store, and set it true where the given tab id is the same.
+   * @param {Tab} tabToActivate
+   */
+  private setActiveTab(tabToActivate: Tab): void {
+    this.tabsStorage.mapCollection((tab: Tab): Tab => {
+      return Object.assign({}, tab, {
+        isActive: tab.id === tabToActivate.id
+      });
+    });
+  }
+
+  /**
+   * Switch the tab to the given tab.
+   * @param {Tab} activeTab
+   */
+  switchTab(activeTab: Tab): void {
+    this.setActiveTab(activeTab);
+    this.setAppStateByTab(activeTab);
+    this.syncTabFiltersToFilterForms(activeTab);
+  }
+
+  /**
+   * Switch to the tab with the given tab id.
+   * @param {string} tabId
+   */
+  setActiveTabById(tabId: string): void {
+    this.tabsStorage.findInCollection((tab: Tab) => tab.id === tabId).first().subscribe((tab: Tab | null) => {
+      if (tab) {
+        this.switchTab(tab);
+        this.logsStateService.setParameter('activeTabId', tabId);
       }
     });
   }
+
+  /**
+   * Handle the filters form value changes in order to sync the current tab's filters and also to load the logs.
+   */
+  private onFiltersFormValueChange = (): void => {
+    this.syncFiltersToActiveTabFilters(this.filtersForm.getRawValue());
+    this.loadLogs();
+  }
+
+  //
+  // SECTION END: FILTERS AND TABS
+  //
 
   private logsMapper<LogT extends AuditLog & ServiceLog>(result: [LogT[], ListItem[]]): LogT[] {
     const [logs, fields] = result;
@@ -836,9 +903,10 @@ export class LogsContainerService {
     filtersMapName: string, additionalParams: HomogeneousObject<string> = {}, logsType: LogsType = this.activeLogsType
   ): HomogeneousObject<string> {
     const params = {};
+    const values = this.filtersForm.getRawValue();
     this.logsTypeMap[logsType][filtersMapName].forEach((key: string): void => {
-      const inputValue = this.filtersForm.getRawValue()[key],
-        paramNames = this.filtersMapping[key];
+      const inputValue = values[key];
+      const paramNames = this.filtersMapping[key];
       paramNames.forEach((paramName: string): void => {
         let value;
         const valueGetter = this.valueGetters[paramName] || this.logsFilteringUtilsService.defaultValueGetterFromListItem;
@@ -889,15 +957,6 @@ export class LogsContainerService {
     });
   }
 
-  switchTab(activeTab: Tab): void {
-    this.tabsStorage.mapCollection((tab: Tab): Tab => {
-      return Object.assign({}, tab, {
-        isActive: tab.id === activeTab.id
-      });
-    });
-    this.appState.setParameters(activeTab.appState);
-  }
-
   startCaptureTimer(): void {
     this.startCaptureTime = new Date().valueOf();
     const maxCaptureTimeInSeconds = this.maximumCaptureTimeLimit / 1000;
@@ -925,9 +984,7 @@ export class LogsContainerService {
   }
 
   loadClusters(): void {
-    this.clustersStorage.getAll().subscribe((clustersNames: string[]) => {
-      this.utils.pushUniqueValues(this.filters.clusters.options, clustersNames.map(this.utils.getListItemFromString));
-    });
+
   }
 
   loadComponents(): Observable<Response[]> {
@@ -956,6 +1013,30 @@ export class LogsContainerService {
       }
     });
     return requests;
+  }
+
+  setComponentsFilters = (components): void => {
+    this.filters.components.options = [];
+    if (components) {
+      this.utils.pushUniqueValues(
+        this.filters.components.options,
+        components.map(node => this.utils.getListItemFromNode(node, true))
+      );
+    }
+  }
+
+  setClustersFilters = (clustersNames: string[]): void => {
+    this.filters.clusters.options = [];
+    if (clustersNames) {
+      this.utils.pushUniqueValues(this.filters.clusters.options, clustersNames.map(this.utils.getListItemFromString));
+    }
+  }
+
+  setHostsFilters = (hosts): void => {
+    this.filters.hosts.options = [];
+    if (hosts) {
+      this.utils.pushUniqueValues(this.filters.hosts.options, hosts.map(this.utils.getListItemFromNode));
+    }
   }
 
   loadHosts(): Observable<Response> {

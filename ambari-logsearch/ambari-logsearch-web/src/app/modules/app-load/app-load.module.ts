@@ -24,12 +24,16 @@ import { AppLoadService } from './app-load.service';
 export function check_if_authorized(appLoadService: AppLoadService) {
   return () => appLoadService.syncAuthorizedStateWithBackend();
 }
+export function set_translation_service(appLoadService: AppLoadService) {
+  return () => appLoadService.setTranslationService();
+}
 
 @NgModule({
   imports: [HttpClientModule],
   providers: [
     AppLoadService,
-    { provide: APP_INITIALIZER, useFactory: check_if_authorized, deps: [AppLoadService], multi: true }
+    { provide: APP_INITIALIZER, useFactory: check_if_authorized, deps: [AppLoadService], multi: true },
+    { provide: APP_INITIALIZER, useFactory: set_translation_service, deps: [AppLoadService], multi: true }
   ]
 })
 export class AppLoadModule { }

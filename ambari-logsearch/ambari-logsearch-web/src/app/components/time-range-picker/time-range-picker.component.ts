@@ -65,7 +65,9 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
       this.onChange(newValue);
     }
     this.setEndTime(this.logsFilteringUtilsService.getEndTimeMomentFromTimeUnitListItem(newValue, this.logsContainer.timeZone));
-    this.setStartTime(this.logsFilteringUtilsService.getStartTimeMomentFromTimeUnitListItem(newValue, this.endTime, this.logsContainer.timeZone));
+    this.setStartTime(this.logsFilteringUtilsService.getStartTimeMomentFromTimeUnitListItem(
+      newValue, this.endTime, this.logsContainer.timeZone
+    ));
   }
 
   setStartTime(timeObject: Moment): void {

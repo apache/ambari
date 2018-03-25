@@ -170,7 +170,7 @@ export class MenuButtonComponent {
    * The goal is to have one and only one place where we open the dropdown. So that later if we need to change the way
    * how we do, it will be easier.
    */
-  private openDropdown():void {
+  private openDropdown(): void {
     this.dropdownIsOpen = true;
   }
 
@@ -178,7 +178,7 @@ export class MenuButtonComponent {
    * The goal is to have one and only one place where we close the dropdown. So that later if we need to change the way
    * how we do, it will be easier.
    */
-  private closeDropdown():void {
+  private closeDropdown(): void {
     this.dropdownIsOpen = false;
   }
 
@@ -205,7 +205,9 @@ export class MenuButtonComponent {
    */
   onDropdownItemChange(options: ListItem) {
     this.updateSelection(options);
-    !this.isMultipleChoice && this.closeDropdown();
+    if (!this.isMultipleChoice) {
+      this.closeDropdown();
+    }
   }
 
   updateSelection(options: ListItem) {

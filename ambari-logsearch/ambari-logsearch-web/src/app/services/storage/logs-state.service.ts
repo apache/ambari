@@ -16,36 +16,18 @@
  * limitations under the License.
  */
 
-import {HomogeneousObject} from '@app/classes/object';
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {defaultState} from '@app/classes/models/logs-state';
+import {AppStore, ObjectModelService, getObjectReducer} from '@app/classes/models/store';
 
-export interface Tab {
-  id: string;
-  isActive?: boolean;
-  isCloseable?: boolean;
-  label: string;
-  activeFilters?: object;
-  appState?: HomogeneousObject<any>;
+export const modelName = 'logsState';
+
+@Injectable()
+export class LogsStateService extends ObjectModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
+  }
 }
 
-export const initialTabs: Tab[] = [
-  {
-    id: 'serviceLogs',
-    isActive: true,
-    label: 'common.serviceLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'serviceLogs',
-      isServiceLogsFileView: false
-    }
-  },
-  {
-    id: 'auditLogs',
-    isActive: false,
-    label: 'common.auditLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'auditLogs',
-      isServiceLogsFileView: false
-    }
-  }
-];
+export const logsState = getObjectReducer(modelName, defaultState);

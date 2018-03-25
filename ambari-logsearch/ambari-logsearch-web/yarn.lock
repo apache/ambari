@@ -542,10 +542,6 @@ angular2-notifications@0.4.46:
   version "0.4.46"
   resolved "https://registry.yarnpkg.com/angular2-notifications/-/angular2-notifications-0.4.46.tgz#d868cfad43c4da3c1490a57a96d637a5eb96ce69"
 
-angular2-take-until-destroy@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/angular2-take-until-destroy/-/angular2-take-until-destroy-2.0.1.tgz#6b502a55f7859f0fca1a7d1357c472162ffad969"
-
 ansi-align@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ansi-align/-/ansi-align-2.0.0.tgz#c36aeccba563b89ceb556f3690f0b1d9e3547f7f"

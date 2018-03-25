@@ -19,7 +19,7 @@
 import {Component, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {Observable} from "rxjs/Observable";
+import {Observable} from 'rxjs/Observable';
 import {Options} from 'angular2-notifications/src/options.type';
 
 @Component({
@@ -39,14 +39,13 @@ export class AppComponent implements OnInit {
   };
 
   constructor(
-    private translate: TranslateService,
+    // private translate: TranslateService,
     private appState: AppStateService
   ) {}
 
   ngOnInit() {
-    this.appState.setParameter('isInitialLoading', true);
-    this.translate.setDefaultLang('en');
-    this.translate.use('en');
+    // this.translate.setDefaultLang('en');
+    // this.translate.use('en');
   }
 
 }

@@ -137,6 +137,7 @@ export class LogsFilteringUtilsService {
 
   getQueryParamsFromActiveFilter(activeFilter: any, activeLogsType: LogsType): {[key: string]: string} {
     const {isUndoOrRedo, ...filters} = activeFilter;
+    console.info(activeLogsType);
     return Object.keys(filters).reduce((currentParams, key) => {
       const newParams = {
         ...currentParams

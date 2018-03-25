@@ -80,7 +80,6 @@
               </td>
               <td *ngIf="isColumnDisplayed('type')" [ngClass]="'log-type'">
                 {{log.type | componentLabel | async}}
-                {{log.id}}
               </td>
               <ng-container *ngFor="let column of displayedColumns">
                 <td *ngIf="customStyledColumns.indexOf(column.value) === -1"
