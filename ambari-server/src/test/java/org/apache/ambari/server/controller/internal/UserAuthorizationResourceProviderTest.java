@@ -87,7 +87,6 @@ import org.apache.ambari.server.topology.ComponentResolver;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.StackFactory;
-import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
