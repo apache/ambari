@@ -61,7 +61,7 @@ public interface ResolvedComponent {
       .component(component)
       .componentName(component.getName())
       .serviceName(Optional.ofNullable(component.getServiceInstance()))
-      .serviceGroupName(Optional.ofNullable(component.getMpackInstance()));
+      .serviceGroupName(Optional.ofNullable(component.getStackIdAsString()));
   }
 
   class Builder extends ResolvedComponent_Builder {

@@ -236,6 +236,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceede
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
+import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.ambari.server.utils.SecretReference;
@@ -357,6 +358,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private CredentialStoreService credentialStoreService;
   @Inject
   private SettingDAO settingDAO;
+  @Inject
+  private AmbariContext ambariContext;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -5190,6 +5193,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public AmbariMetaInfo getAmbariMetaInfo() {
     return ambariMetaInfo;
+  }
+
+  @Override
+  public AmbariContext getAmbariContext() {
+    return ambariContext;
   }
 
   @Override

@@ -86,6 +86,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
@@ -425,6 +426,8 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
         bind(RegistryFactory.class).toInstance(createNiceMock(RegistryFactory.class));
         bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
         bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+        bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
+        bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
       }
     });
   }
