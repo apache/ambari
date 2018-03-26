@@ -278,7 +278,7 @@ def main():
   parser.add_option("-l", "--host", dest="host", help="Server external host name")
   parser.add_option("-n", "--cluster", dest="cluster", help="Name given to cluster. Ex: 'c1'")
   parser.add_option("-c", "--config-type", dest="config_type", help="One of the various configuration types in Ambari. Ex: core-site, hdfs-site, mapred-queue-acls, etc.")
-  parser.add_option("-b", "--version-note", dest="version_note",default="", help="Version change notes which will help to know what has been changed in this config , this value is optional and is used for action set ")
+  parser.add_option("-b", "--version-note", dest="version_note",default="", help="Version change notes which will help to know what has been changed in this config , this value is optional and is used for action <set> and <delete>")
 
   config_options_group = OptionGroup(parser, "To specify property(s) please use \"-f\" OR \"-k\" and \"-v'\"")
   config_options_group.add_option("-f", "--file", dest="file", help="File where entire configurations are saved to, or read from. Supported extensions (.xml, .json>)")
