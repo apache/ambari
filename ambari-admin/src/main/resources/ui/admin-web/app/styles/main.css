@@ -1377,7 +1377,7 @@ th.entity-actions {
   transform: rotate(45deg);
   top: 10px;
   left: 2px;
-  box-shadow: -2px -2px 10px -3px rgba(0, 0, 0, 0.5);
+  border: 1px solid #ccc;
 }
 
 a.disabled i:before,
