@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -15,17 +14,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
+
 import ConfigParser
 import glob
 
-from ambari_commons.constants import AMBARI_SUDO_BINARY
-from resource_management.core.providers.package import RPMBasedPackageProvider
-from resource_management.core import shell
-from resource_management.core.shell import string_cmd_from_args_list
+from .generic_manager import GenericManagerProperties, GenericManager
+from .yum_parser import YumParser
+from ambari_commons import shell
 from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 from resource_management.core import sudo
@@ -35,40 +31,48 @@ from StringIO import StringIO
 import re
 import os
 
-INSTALL_CMD = {
-  True: ['/usr/bin/yum', '-y', 'install'],
-  False: ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install'],
-}
 
-REMOVE_CMD = {
-  True: ['/usr/bin/yum', '-y', 'erase'],
-  False: ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase'],
-}
+class YumManagerProperties(GenericManagerProperties):
+  """
+  Class to keep all Package-manager depended properties
+  """
+  locked_output = None
+  repo_error = "Failure when receiving data from the peer", "Nothing to do"
 
-REMOVE_WITHOUT_DEPENDENCIES_CMD = ['rpm', '-e', '--nodeps']
+  repo_manager_bin = "/usr/bin/yum"
+  pkg_manager_bin = "/usr/bin/rpm"
+  repo_update_cmd = [repo_manager_bin, "clean", "metadata"]
 
-YUM_LIB_DIR = "/var/lib/yum"
-YUM_TR_PREFIX = "transaction-"
+  available_packages_cmd = [repo_manager_bin, "list", "available", "--showduplicates"]
+  installed_packages_cmd = [repo_manager_bin, "list", "installed", "--showduplicates"]
+  all_packages_cmd = [repo_manager_bin, "list", "all", "--showduplicates"]
 
-YUM_REPO_LOCATION = "/etc/yum.repos.d"
-REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean', 'metadata']
-ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed"]
-ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
-VERIFY_DEPENDENCY_CMD = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'dependencies']
+  yum_lib_dir = "/var/lib/yum"
+  yum_tr_prefix = "transaction-"
 
-# base command output sample:
-# -----------------------------
-# select.noarch                       2.5.6.0-40.el6            REPO-2.5
-# select.noarch                       2.6.3.0-56                REPO-2.6.3.0-56
-# select.noarch                       2.6.3.0-57                REPO-2.6.3.0-57
-# select.noarch                       2.6.3.0-63                REPO-2.6.3.0
-# select.noarch                       2.6.3.0-63                REPO-2.6.3.0-63
+  repo_definition_location = "/etc/yum.repos.d"
 
-LIST_ALL_SELECT_TOOL_PACKAGES_CMD = "yum list all --showduplicates|grep -v '@' |grep '^{pkg_name}'|awk '{print $2}'"
-SELECT_TOOL_VERSION_PATTERN = re.compile("(\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,2}-*\d*).*")  # xx.xx.xx.xx(-xxxx)
+  install_cmd = {
+    True: [repo_manager_bin, '-y', 'install'],
+    False: [repo_manager_bin, '-d', '0', '-e', '0', '-y', 'install']
+  }
+
+  remove_cmd = {
+    True: [repo_manager_bin, '-y', 'erase'],
+    False: [repo_manager_bin, '-d', '0', '-e', '0', '-y', 'erase']
+  }
+
+  verify_dependency_cmd = [repo_manager_bin, '-d', '0', '-e', '0', 'check', 'dependencies']
+  installed_package_version_command = [pkg_manager_bin, "-q", "--queryformat", "%{{version}}-%{{release}}"]
+
+  remove_without_dependencies_cmd = ['rpm', '-e', '--nodeps']
 
 
-class YumProvider(RPMBasedPackageProvider):
+class YumManager(GenericManager):
+
+  @property
+  def properties(self):
+    return YumManagerProperties
 
   def get_available_packages_in_repos(self, repos):
     """
@@ -88,8 +92,8 @@ class YumProvider(RPMBasedPackageProvider):
 
     for repo in repo_ids:
       repo = repo if repos.feat.scoped else None
-      available_packages.extend(self._get_available_packages(repo))
-      installed_packages.extend(self._get_installed_packages(repo))
+      available_packages.extend(self.available_packages(repo_filter=repo))
+      installed_packages.extend(self.installed_packages(repo_filter=repo))
 
     # fallback logic
 
@@ -99,140 +103,79 @@ class YumProvider(RPMBasedPackageProvider):
         Logger.info("Adding fallback repositories: {0}".format(", ".join(fallback_repo_ids)))
 
         for repo in fallback_repo_ids:
-          available_packages.extend(self._get_available_packages(repo))
-          installed_packages.extend(self._get_installed_packages(repo))
+          available_packages.extend(self.available_packages(repo_filter=repo))
+          installed_packages.extend(self.installed_packages(repo_filter=repo))
 
     return [package[0] for package in available_packages + installed_packages]
 
-  def get_all_package_versions(self, pkg_name):
-    """
-    :type pkg_name str
-    """
-    command = LIST_ALL_SELECT_TOOL_PACKAGES_CMD.replace("{pkg_name}", pkg_name)
-    result = self._call_with_timeout(command)
-
-    if result["retCode"] == 0:
-       return result["out"].split(os.linesep)
-
-    return None
-
-  def __parse_select_tool_version(self, v):
-    """
-    :type v str
-    """
-    matches = SELECT_TOOL_VERSION_PATTERN.findall(v.strip())
-    return matches[0] if matches else None
-
-  def normalize_select_tool_versions(self, versions):
-    """
-    Function expect output from get_all_package_versions
-
-    :type versions str|list|set
-    :rtype list
-    """
-    if isinstance(versions, str):
-      versions = [versions]
-
-    return [self.__parse_select_tool_version(i) for i in versions]
-
-  def _get_available_packages(self, repo_filter=None):
+  def available_packages(self, pkg_names=None, repo_filter=None):
     """
     Returning list of available packages with possibility to filter them by name
-    :param repo_filter: repository name
 
+    :type pkg_names list|set
     :type repo_filter str|None
     :rtype list[list,]
     """
 
-    cmd = list(ALL_AVAILABLE_PACKAGES_CMD)
-
+    packages = []
+    cmd = list(self.properties.available_packages_cmd)
     if repo_filter:
       cmd.extend(["--disablerepo=*", "--enablerepo=" + repo_filter])
 
-    return self._lookup_packages(cmd, 'Available Packages')
+    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+      for pkg in YumParser.packages_reader(output):
+        if pkg_names and not pkg[0] in pkg_names:
+          continue
 
-  def _get_installed_packages(self, repo_filter=None):
+        packages.append(pkg)
+
+    return packages
+
+  def installed_packages(self, pkg_names=None, repo_filter=None):
     """
     Returning list of the installed packages with possibility to filter them by name
-    :param repo_filter: repository name
 
+    :type pkg_names list|set
     :type repo_filter str|None
     :rtype list[list,]
     """
 
-    packages = self._lookup_packages(list(ALL_INSTALLED_PACKAGES_CMD), "Installed Packages")
-    if repo_filter:
-      packages = [item for item in packages if item[2].lower() == repo_filter.lower()]
-
-    return packages
-
-  def _lookup_packages(self, command, skip_till):
-    """
-    :type command list[str]
-    :type skip_till str|None
-    """
     packages = []
+    cmd = self.properties.installed_packages_cmd
 
-    result = self._call_with_timeout(command)
+    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+      for pkg in YumParser.packages_reader(output):
+        if pkg_names and not pkg[0] in pkg_names:
+          continue
 
-    if result and 0 == result['retCode']:
-      lines = result['out'].split('\n')
-      lines = [line.strip() for line in lines]
-      items = []
-      if skip_till:
-        skip_index = 3
-        for index in range(len(lines)):
-          if skip_till in lines[index]:
-            skip_index = index + 1
-            break
-      else:
-        skip_index = 0
-
-      for line in lines[skip_index:]:
-        items = items + line.strip(' \t\n\r').split()
-
-      items_count = len(items)
-
-      for i in range(0, items_count, 3):
-
-        # check if we reach the end
-        if i+3 > items_count:
-          break
-
-        if '.' in items[i]:
-          items[i] = items[i][:items[i].rindex('.')]
-        if items[i + 2].find('@') == 0:
-          items[i + 2] = items[i + 2][1:]
-        packages.append(items[i:i + 3])
+        if repo_filter and repo_filter.lower() != pkg[2].lower():
+          continue
+        packages.append(pkg)
 
     return packages
 
-  def all_available_packages(self, result_type=list, group_by_index=-1):
+  def all_packages(self, pkg_names=None, repo_filter=None):
     """
-    Return all available packages in the system except packages in REPO_URL_EXCLUDE
+    Returning list of the installed packages with possibility to filter them by name
 
-    :arg result_type Could be list or dict, defines type of returning value
-    :arg group_by_index index of element in the __packages_reader result, which would be used as key
-    :return result_type formatted list of packages, including installed and available in repos
-
-    :type result_type type
-    :type group_by_index int
-    :rtype list|dict
+    :type pkg_names list|set
+    :type repo_filter str|None
+    :rtype list[list,]
     """
-    #  ToDo: move to iterative package lookup (check apt provider for details)
-    return self._get_available_packages(None)
 
-  def all_installed_packages(self, from_unknown_repo=False):
-    """
-    Return all installed packages in the system except packages in REPO_URL_EXCLUDE
+    packages = []
+    cmd = self.properties.all_packages_cmd
 
-    :arg from_unknown_repo return packages from unknown repos
-    :type from_unknown_repo bool
+    with shell.process_executor(cmd, error_callback=self._executor_error_handler) as output:
+      for pkg in YumParser.packages_reader(output):
+        if pkg_names and not pkg[0] in pkg_names:
+          continue
 
-    :return result_type formatted list of packages
-    """
-    #  ToDo: move to iterative package lookup (check apt provider for details)
-    return self._get_installed_packages(None)
+        if repo_filter and repo_filter.lower() != pkg[2].lower():
+          continue
+        packages.append(pkg)
+
+    return packages
 
   def verify_dependencies(self):
     """
@@ -242,42 +185,64 @@ class YumProvider(RPMBasedPackageProvider):
     :return True if no dependency issues found, False if dependency issue present
     :rtype bool
     """
-    code, out = self.checked_call(VERIFY_DEPENDENCY_CMD, sudo=True)
+    ret = shell.subprocess_executor(self.properties.verify_dependency_cmd)
     pattern = re.compile("has missing requires|Error:")
 
-    if code or (out and pattern.search(out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (VERIFY_DEPENDENCY_CMD, code, out))
+    if ret.code or (ret.out and pattern.search(ret.out)):
+      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '{0}' returned {1}. {2}".format(
+        self.properties.verify_dependency_cmd, ret.code, ret.out))
       Logger.error(err_msg)
       return False
 
     return True
 
-  def install_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=False):
-    if is_upgrade or use_repos or not self._check_existence(name):
-      cmd = INSTALL_CMD[self.get_logoutput()]
-      if use_repos:
-        enable_repo_option = '--enablerepo=' + ",".join(sorted(use_repos.keys()))
-        disable_repo_option = '--disablerepo=' + "*" if len(skip_repos) == 0 else ','.join(skip_repos)
+  def install_package(self, name, context):
+    """
+    Install package
+
+    :type name str
+    :type context ambari_commons.shell.RepoCallContext
+    """
+
+    if context.is_upgrade or context.use_repos or not self._check_existence(name):
+      cmd = self.properties.install_cmd[context.log_output]
+      if context.use_repos:
+        enable_repo_option = '--enablerepo=' + ",".join(sorted(context.use_repos.keys()))
+        disable_repo_option = '--disablerepo=' + "*" if not context.skip_repos or len(context.skip_repos) == 0 else ','.join(context.skip_repos)
         cmd = cmd + [disable_repo_option, enable_repo_option]
       cmd = cmd + [name]
-      Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      self.checked_call_with_retries(cmd, sudo=True, logoutput=self.get_logoutput())
+      Logger.info("Installing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping installation of existing package %s" % (name))
+      Logger.info("Skipping installation of existing package {0}".format(name))
 
-  def upgrade_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=True):
-    return self.install_package(name, use_repos, skip_repos, is_upgrade)
+  def upgrade_package(self, name, context):
+    """
+    Install package
 
-  def remove_package(self, name, ignore_dependencies=False):
+    :type name str
+    :type context ambari_commons.shell.RepoCallContext
+    """
+    context.is_upgrade = True
+    return self.install_package(name, context)
+
+  def remove_package(self, name, context, ignore_dependencies=False):
+    """
+    Remove package
+
+    :type name str
+    :type context ambari_commons.shell.RepoCallContext
+    :type ignore_dependencies bool
+    """
     if self._check_existence(name):
       if ignore_dependencies:
-        cmd = REMOVE_WITHOUT_DEPENDENCIES_CMD + [name]
+        cmd = self.properties.remove_without_dependencies_cmd + [name]
       else:
-        cmd = REMOVE_CMD[self.get_logoutput()] + [name]
-      Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
+        cmd = self.properties.remove_cmd[context.log_output] + [name]
+      Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
+      shell.repository_manager_executor(cmd, self.properties, context)
     else:
-      Logger.info("Skipping removal of non-existing package %s" % (name))
+      Logger.info("Skipping removal of non-existing package {0}".format(name))
 
   def _check_existence(self, name):
     """
@@ -322,14 +287,6 @@ class YumProvider(RPMBasedPackageProvider):
 
     return False
 
-  def is_repo_error_output(self, out):
-    return "Failure when receiving data from the peer" in out or \
-           "Nothing to do" in out
-
-  def get_repo_update_cmd(self):
-    return REPO_UPDATE_CMD
-
-
   @staticmethod
   def _build_repos_ids(repos):
     """
@@ -356,7 +313,7 @@ class YumProvider(RPMBasedPackageProvider):
     # for every repo file, find any which match the base URLs we're trying to write out
     # if there are any matches, it means the repo already exists and we should use it to search
     # for packages to install
-    for repo_file in glob.glob(os.path.join(YUM_REPO_LOCATION, "*.repo")):
+    for repo_file in glob.glob(os.path.join(YumManagerProperties.repo_definition_location, "*.repo")):
       config_parser = ConfigParser.ConfigParser()
       config_parser.read(repo_file)
       sections = config_parser.sections()
@@ -372,6 +329,33 @@ class YumProvider(RPMBasedPackageProvider):
             repo_ids.append(section)
 
     return set(repo_ids)
+
+  def rpm_check_package_available(self, name):
+    import rpm # this is faster then calling 'rpm'-binary externally.
+    ts = rpm.TransactionSet()
+    packages = ts.dbMatch()
+
+    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
+    regex = re.compile(name_regex)
+
+    for package in packages:
+      if regex.match(package['name']):
+        return True
+    return False
+
+  def get_installed_package_version(self, package_name):
+    version = None
+    cmd = list(self.properties.installed_package_version_command) + ["\"{0}\"".format(package_name)]
+
+    result = shell.subprocess_executor(cmd)
+
+    try:
+      if result.code == 0:
+        version = result.out.strip().partition(".el")[0]
+    except IndexError:
+      pass
+
+    return version
 
   def __extract_transaction_id(self, filename):
     """
@@ -395,12 +379,12 @@ class YumProvider(RPMBasedPackageProvider):
     """
     transactions = {}
 
-    prefix_len = len(YUM_TR_PREFIX)
-    for item in sudo.listdir(YUM_LIB_DIR):
-      if YUM_TR_PREFIX == item[:prefix_len]:
+    prefix_len = len(self.properties.yum_tr_prefix)
+    for item in sudo.listdir(self.properties.yum_lib_dir):
+      if self.properties.yum_tr_prefix == item[:prefix_len]:
         tr_id = self.__extract_transaction_id(item)
 
-        f = StringIO(sudo.read_file(os.path.join(YUM_LIB_DIR, item)))
+        f = StringIO(sudo.read_file(os.path.join(self.properties.yum_lib_dir, item)))
         pkgs_in_transaction = list(self.__transaction_file_parser(f))
 
         if tr_id not in transactions:

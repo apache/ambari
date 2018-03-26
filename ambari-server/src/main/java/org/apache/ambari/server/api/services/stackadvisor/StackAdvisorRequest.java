@@ -233,6 +233,7 @@ public class StackAdvisorRequest {
   public enum StackAdvisorRequestType {
     HOST_GROUPS("host_groups"),
     CONFIGURATIONS("configurations"),
+    SSO_CONFIGURATIONS("sso-configurations"),
     CONFIGURATION_DEPENDENCIES("configuration-dependencies");
 
     private String type;

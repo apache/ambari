@@ -25,8 +25,8 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
 
   maxValue: 100,
 
-  modelFieldMax: null,
-  modelFieldUsed: null,
+  modelValueMax: null,
+  modelValueUsed: null,
 
   hiddenInfo: null,
 
@@ -37,11 +37,11 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
   widgetHtmlId: null,
 
   getUsed: function() {
-    return this.get('model').get(this.get('modelFieldUsed')) || 0;
+    return this.get('modelValueUsed') || 0;
   },
 
   getMax: function() {
-    return this.get('model').get(this.get('modelFieldMax')) || 0;
+    return this.get('modelValueMax') || 0;
   },
 
   calcHiddenInfo: function() {
@@ -55,7 +55,7 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
   },
 
   calcIsPieExists: function() {
-    return this.get('model').get(this.get('modelFieldMax')) > 0;
+    return this.get('modelValueMax') > 0;
   },
 
   calcDataForPieChart: function() {
@@ -77,8 +77,8 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
 
   didInsertElement: function() {
     this._super();
-    this.addObserver('model.' + this.get('modelFieldMax'), this, this.calc);
-    this.addObserver('model.' + this.get('modelFieldUsed'), this, this.calc);
+    this.addObserver('modelValueMax', this, this.calc);
+    this.addObserver('modelValueUsed', this, this.calc);
   },
 
   content: App.ChartPieView.extend({

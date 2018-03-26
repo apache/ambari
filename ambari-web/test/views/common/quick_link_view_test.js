@@ -840,6 +840,28 @@ describe('App.QuickViewLinks', function () {
     });
   });
 
+  describe('#resolvePlaceholders', function() {
+    beforeEach(function() {
+      quickViewLinks.setProperties({
+      configProperties: [{
+          'type': 'config-type1',
+          'properties': {'property1': 'value1'}
+        }],
+        actualTags: [""],
+        quickLinks: [{}]
+      });
+    }),
+    it("replaces placeholders from config", function () {
+      expect(quickViewLinks.resolvePlaceholders('${config-type1/property1}')).to.equal('value1');
+    }),
+    it("leaves url as it is if config-type was not found", function () {
+      expect(quickViewLinks.resolvePlaceholders('${unknown-config-type/property1}')).to.equal('${unknown-config-type/property1}');
+    }),
+    it("leaves url as it is if property was not found", function () {
+      expect(quickViewLinks.resolvePlaceholders('${config-type1/unknown-property}')).to.equal('${config-type1/unknown-property}');
+    })
+  }),
+
   describe('#setPort', function () {
     var testData = [
       Em.Object.create({

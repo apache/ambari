@@ -10,7 +10,7 @@
 # copyright notice, this list of conditions and the following disclaimer
 # in the documentation and/or other materials provided with the
 # distribution.
-#     * Neither the name of ambari_ws4py nor the names of its
+#     * Neither the name of ws4py nor the names of its
 # contributors may be used to endorse or promote products derived from
 # this software without specific prior written permission.
 #
@@ -30,7 +30,7 @@ import logging
 import logging.handlers as handlers
 
 __author__ = "Sylvain Hellegouarch"
-__version__ = "0.4.2"
+__version__ = "0.5.1"
 __all__ = ['WS_KEY', 'WS_VERSION', 'configure_logger', 'format_addresses']
 
 WS_KEY = b"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"

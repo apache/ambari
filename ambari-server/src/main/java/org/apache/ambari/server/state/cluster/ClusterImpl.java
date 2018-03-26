@@ -1953,14 +1953,19 @@ public class ClusterImpl implements Cluster {
   //TODO this needs to be reworked to support multiple instance of same service
   @Override
   public Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions() {
-    return getDesiredConfigs(true);
+    return getDesiredConfigs(true, true);
   }
 
 
   //TODO this needs to be reworked to support multiple instance of same service
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
-    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false);
+    return getDesiredConfigs(true);
+  }
+
+  @Override
+  public Map<String, DesiredConfig> getDesiredConfigs(boolean cachedConfigEntities) {
+    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false, cachedConfigEntities);
     return Maps.transformEntries(
       activeConfigsByType,
       new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
@@ -1976,16 +1981,20 @@ public class ClusterImpl implements Cluster {
    * @param allVersions specifies if all versions of the desired configurations to be returned
    *                    or only the active ones. It is expected that there is one and only one active
    *                    desired configuration per config type.
+   * @param cachedConfigEntities retrieves cluster config entities from the cache if true, otherwise from the DB directly.
    * @return a map of type-to-configuration information.
    */
-  //TODO this needs to be reworked to support multiple instance of same service
-  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions) {
+  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions, boolean cachedConfigEntities) {
     clusterGlobalLock.readLock().lock();
     try {
       Map<String, Set<DesiredConfig>> map = new HashMap<>();
       Collection<String> types = new HashSet<>();
-      Collection<ClusterConfigEntity> entities = getClusterEntity().getClusterConfigEntities();
-
+      Collection<ClusterConfigEntity> entities;
+      if (cachedConfigEntities) {
+        entities = getClusterEntity().getClusterConfigEntities();
+      } else {
+        entities = clusterDAO.getEnabledConfigs(clusterId);
+      }
       for (ClusterConfigEntity configEntity : entities) {
         if (allVersions || configEntity.isSelected()) {
           DesiredConfig desiredConfig = new DesiredConfig();
@@ -3216,7 +3225,7 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
    *
    * @return
    */
-  private ClusterEntity getClusterEntity() {
+  public ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }
 

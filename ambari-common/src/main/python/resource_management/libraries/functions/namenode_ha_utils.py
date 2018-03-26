@@ -28,7 +28,7 @@ from resource_management.libraries.functions.hdfs_utils import is_https_enabled_
 
 
 __all__ = ["get_namenode_states", "get_active_namenode",
-           "get_property_for_active_namenode", "get_nameservices"]
+           "get_property_for_active_namenodes", "get_property_for_active_namenode", "get_nameservices"]
 
 HDFS_NN_STATE_ACTIVE = 'active'
 HDFS_NN_STATE_STANDBY = 'standby'
@@ -161,21 +161,34 @@ def get_active_namenode(hdfs_site, security_enabled, run_user):
     return active_namenodes[0]
 
   raise Fail('No active NameNode was found.')
+  
+def get_property_for_active_namenodes(hdfs_site, property_name, security_enabled, run_user):
+  """
+  Return format: {'ns1': 'value1', 'ns2', 'value2'}
+  """
+  result = {}
 
-def get_property_for_active_namenode(hdfs_site, property_name, security_enabled, run_user):
+  name_services = get_nameservices(hdfs_site)
+  for name_service in name_services:
+    result[name_service] = get_property_for_active_namenode(hdfs_site, name_service, property_name, security_enabled, run_user)
+
+  return result
+
+
+def get_property_for_active_namenode(hdfs_site, name_service, property_name, security_enabled, run_user):
   """
   For dfs.namenode.rpc-address:
     - In non-ha mode it will return hdfs_site[dfs.namenode.rpc-address]
     - In ha-mode it will return hdfs_site[dfs.namenode.rpc-address.nnha.nn2], where nnha is the name of HA, and nn2 is id of active NN
-    - In federated mode it fails since there is more than one active namenode
   """
   value = None
   rpc_key = None
   if _is_ha_config(hdfs_site):
     name_services = get_nameservices(hdfs_site)
-    if len(name_services) > 1:
-      raise Fail('Multiple name services not supported by this function')
-    name_service = name_services[0]
+
+    if name_service not in name_services:
+     raise Fail('Trying to get property for non-existing ns=\'{1}\'. Valid namespaces are {2}'.format(property_name, name_service, ','.join(name_services)))
+
     active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
 
     if not len(active_namenodes):

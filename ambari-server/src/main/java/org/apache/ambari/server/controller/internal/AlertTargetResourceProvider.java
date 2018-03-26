@@ -70,17 +70,28 @@ public class AlertTargetResourceProvider extends
  AbstractAuthorizedResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlertTargetResourceProvider.class);
-
+    
   public static final String ALERT_TARGET = "AlertTarget";
-  public static final String ALERT_TARGET_ID = "AlertTarget/id";
-  public static final String ALERT_TARGET_NAME = "AlertTarget/name";
-  public static final String ALERT_TARGET_DESCRIPTION = "AlertTarget/description";
-  public static final String ALERT_TARGET_NOTIFICATION_TYPE = "AlertTarget/notification_type";
-  public static final String ALERT_TARGET_PROPERTIES = "AlertTarget/properties";
-  public static final String ALERT_TARGET_GROUPS = "AlertTarget/groups";
-  public static final String ALERT_TARGET_STATES = "AlertTarget/alert_states";
-  public static final String ALERT_TARGET_GLOBAL = "AlertTarget/global";
-  public static final String ALERT_TARGET_ENABLED = "AlertTarget/enabled";
+
+  public static final String ID_PROPERTY_ID = "id";
+  public static final String NAME_PROPERTY_ID = "name";
+  public static final String DESCRIPTION_PROPERTY_ID = "description";
+  public static final String NOTIFICATION_TYPE_PROPERTY_ID = "notification_type";
+  public static final String PROPERTIES_PROPERTY_ID = "properties";
+  public static final String GROUPS_PROPERTY_ID = "groups";
+  public static final String STATES_PROPERTY_ID = "alert_states";
+  public static final String GLOBAL_PROPERTY_ID = "global";
+  public static final String ENABLED_PROPERTY_ID = "enabled";
+
+  public static final String ALERT_TARGET_ID = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + ID_PROPERTY_ID;
+  public static final String ALERT_TARGET_NAME = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + NAME_PROPERTY_ID;
+  public static final String ALERT_TARGET_DESCRIPTION = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + DESCRIPTION_PROPERTY_ID;
+  public static final String ALERT_TARGET_NOTIFICATION_TYPE = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + NOTIFICATION_TYPE_PROPERTY_ID;
+  public static final String ALERT_TARGET_PROPERTIES = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + PROPERTIES_PROPERTY_ID;
+  public static final String ALERT_TARGET_GROUPS = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + GROUPS_PROPERTY_ID;
+  public static final String ALERT_TARGET_STATES = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + STATES_PROPERTY_ID;
+  public static final String ALERT_TARGET_GLOBAL = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + GLOBAL_PROPERTY_ID;
+  public static final String ALERT_TARGET_ENABLED = ALERT_TARGET + PropertyHelper.EXTERNAL_PATH_SEP + ENABLED_PROPERTY_ID;
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
       Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
