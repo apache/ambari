@@ -47,12 +47,12 @@ JWT_PUBLIC_KEY_FILENAME = "jwt-cert.pem"
 JWT_PUBLIC_KEY_HEADER = "-----BEGIN CERTIFICATE-----\n"
 JWT_PUBLIC_KEY_FOOTER = "\n-----END CERTIFICATE-----\n"
 
-REGEX_URL = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+REGEX_URL = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+\S*$"
 
 
 def validateOptions(options):
   errors = []
-  if options.sso_enabled and not re.search(REGEX_TRUE_FALSE, options.sso_enabled):
+  if options.sso_enabled and not re.match(REGEX_TRUE_FALSE, options.sso_enabled):
     errors.append("--sso-enabled should be to either 'true' or 'false'")
 
   if options.sso_enabled == 'true':
@@ -60,7 +60,7 @@ def validateOptions(options):
       errors.append("Missing option: --sso-provider-url")
     if not options.sso_public_cert_file:
       errors.append("Missing option: --sso-public-cert-file")
-    if options.sso_provider_url and not re.search(REGEX_URL, options.sso_provider_url):
+    if options.sso_provider_url and not re.match(REGEX_URL, options.sso_provider_url):
       errors.append("Invalid --sso-provider-url")
 
   if len(errors) > 0:
@@ -71,7 +71,7 @@ def validateOptions(options):
 def populateSsoProviderUrl(options, properties):
   if not options.sso_provider_url:
       provider_url = get_value_from_properties(properties, JWT_AUTH_PROVIDER_URL, JWT_AUTH_PROVIDER_URL_DEFAULT)
-      provider_url = get_validated_string_input("Provider URL [URL] ({0}):".format(provider_url), provider_url, REGEX_HOSTNAME_PORT,
+      provider_url = get_validated_string_input("Provider URL [URL] ({0}):".format(provider_url), provider_url, REGEX_URL,
                                                 "Invalid provider URL", False)
   else:
     provider_url = options.sso_provider_url

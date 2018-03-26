@@ -188,6 +188,22 @@ class TestSetupSso(unittest.TestCase):
       self.assertTrue("Invalid --sso-provider-url" in e.reason)
       pass
 
+    options.sso_provider_url = 'The SSO provider URL is https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso'
+    try:
+      setup_sso(options)
+      self.fail("Should fail with fatal exception")
+    except FatalException as e:
+      self.assertTrue("Invalid --sso-provider-url" in e.reason)
+      pass
+
+    options.sso_provider_url = 'https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso is the SSO provider URL'
+    try:
+      setup_sso(options)
+      self.fail("Should fail with fatal exception")
+    except FatalException as e:
+      self.assertTrue("Invalid --sso-provider-url" in e.reason)
+      pass
+
     sys.stdout = sys.__stdout__
     pass
 
