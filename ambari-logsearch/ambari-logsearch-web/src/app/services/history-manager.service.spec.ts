@@ -40,12 +40,17 @@ import {HistoryManagerService} from './history-manager.service';
 
 import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
 describe('HistoryService', () => {
   beforeEach(() => {
 
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         ...TranslationModules,
         StoreModule.provideStore({
           auditLogs,
@@ -81,7 +86,10 @@ describe('HistoryService', () => {
         HostsService,
         ServiceLogsTruncatedService,
         TabsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ]
     });
   });

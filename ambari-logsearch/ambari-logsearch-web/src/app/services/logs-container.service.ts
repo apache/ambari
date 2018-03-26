@@ -45,11 +45,11 @@ import {ComponentsService} from '@app/services/storage/components.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {
-  FilterCondition, TimeUnitListItem, SortingListItem, SearchBoxParameter, SearchBoxParameterTriggered
+  FilterCondition, TimeUnitListItem, SearchBoxParameter, SearchBoxParameterTriggered
 } from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
-import {LogsType, ScrollType, SortingType} from '@app/classes/string';
+import {DataAvailability, DataAvailabilityValues, LogsType, ScrollType} from '@app/classes/string';
 import {Tab} from '@app/classes/models/tab';
 import {AuditFieldsDefinitionSet} from '@app/classes/object';
 import {AuditLog} from '@app/classes/models/audit-log';
@@ -58,7 +58,7 @@ import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
 import {CommonEntry} from '@app/classes/models/common-entry';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
-import {ActivatedRoute, Router, RoutesRecognized} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
@@ -677,20 +677,22 @@ export class LogsContainerService {
    * @param filters {object}
    */
   syncFiltersToFiltersForms(filters): void {
-    this.filtersFormSyncInProgress.next(true);
-    // this.filtersForm.reset(filters, {emitEvent: false});
-    const controls = this.filtersForm.controls;
-    Object.keys(controls).forEach((controlName: string) => {
-      controls[controlName].setValue(filters[controlName], {emitEvent: false, onlySelf: true});
-    });
-    this.filtersFormSyncInProgress.next(false);
+    this.appState.getParameter('baseDataSetState')
+    // do it only when the base data set is available so that the dropdowns can set the selections
+      .filter((dataSetState: DataAvailability) => dataSetState === DataAvailabilityValues.AVAILABLE)
+      .first()
+      .subscribe(() => {
+        this.filtersFormSyncInProgress.next(true);
+        this.filtersForm.reset(filters, {emitEvent: false});
+        this.filtersFormSyncInProgress.next(false);
+      });
   }
 
   /**
    * Sync the given filters into the active tab activeFilters property.
    * @param filters
    */
-  private syncFiltersToActiveTabFilters(filters): void {
+  syncFiltersToActiveTabFilters(filters): void {
     this.tabsStorage.mapCollection((tab: Tab): Tab => {
       const changes = tab.isActive ? {
         activeFilters: filters
@@ -1092,6 +1094,14 @@ export class LogsContainerService {
       id: log.id || `${log.host}-${log.type}`,
       isCloseable: true,
       label: `${log.host} >> ${log.type}`,
+      activeFilters: Object.assign(this.getFiltersData('serviceLogs'), {
+        components: this.filters.components.options.find((option: ListItem): boolean => {
+          return option.value === log.type;
+        }),
+        hosts: this.filters.hosts.options.find((option: ListItem): boolean => {
+          return option.value === log.host;
+        })
+      }),
       appState: {
         activeLogsType: 'serviceLogs',
         isServiceLogsFileView: true,
@@ -1099,19 +1109,13 @@ export class LogsContainerService {
           id: log.id,
           host_name: log.host,
           component_name: log.type
-        },
-        activeFilters: Object.assign(this.getFiltersData('serviceLogs'), {
-          components: this.filters.components.options.find((option: ListItem): boolean => {
-            return option.value === log.type;
-          }),
-          hosts: this.filters.hosts.options.find((option: ListItem): boolean => {
-            return option.value === log.host;
-          })
-        })
+        }
       }
     };
     this.tabsStorage.addInstance(tab);
-    this.switchTab(tab);
+    this.router.navigate(['/logs', tab.id], {
+      queryParams: this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(tab.activeFilters, 'serviceLogs')
+    });
   }
 
 }

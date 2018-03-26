@@ -18,11 +18,51 @@
 import {TestBed, inject} from '@angular/core/testing';
 
 import { LogsBreadcrumbsResolverService } from './logs-breadcrumbs-resolver.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {tabs, TabsService} from '@app/services/storage/tabs.service';
+import {StoreModule} from '@ngrx/store';
+import {serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {serviceLogs} from '@app/services/storage/service-logs.service';
+import {hosts} from '@app/services/storage/hosts.service';
+import {auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
+import {TranslationModules} from '@app/test-config.spec';
+import {serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {clusters} from '@app/services/storage/clusters.service';
+import {auditLogs} from '@app/services/storage/audit-logs.service';
+import {appState} from '@app/services/storage/app-state.service';
+import {components} from '@app/services/storage/components.service';
+import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
+import {appSettings} from '@app/services/storage/app-settings.service';
+import {auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 
 describe('LogsBreadcrumbsResolverService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [LogsBreadcrumbsResolverService]
+      imports: [
+        RouterTestingModule,
+        StoreModule.provideStore({
+          auditLogs,
+          serviceLogs,
+          auditLogsFields,
+          auditLogsGraphData,
+          serviceLogsFields,
+          serviceLogsHistogramData,
+          appSettings,
+          appState,
+          clusters,
+          components,
+          hosts,
+          serviceLogsTruncated,
+          tabs
+        }),
+        ...TranslationModules
+      ],
+      providers: [
+        LogsBreadcrumbsResolverService,
+        RoutingUtilsService,
+        TabsService
+      ]
     });
   });
 

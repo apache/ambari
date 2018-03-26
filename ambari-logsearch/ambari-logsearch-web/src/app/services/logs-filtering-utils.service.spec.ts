@@ -18,11 +18,50 @@
 import { TestBed, inject } from '@angular/core/testing';
 
 import { LogsFilteringUtilsService } from './logs-filtering-utils.service';
+import {StoreModule} from '@ngrx/store';
+import {serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {serviceLogs} from '@app/services/storage/service-logs.service';
+import {hosts} from '@app/services/storage/hosts.service';
+import {auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
+import {TranslationModules} from '@app/test-config.spec';
+import {tabs} from '@app/services/storage/tabs.service';
+import {serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {clusters} from '@app/services/storage/clusters.service';
+import {auditLogs} from '@app/services/storage/audit-logs.service';
+import {appState} from '@app/services/storage/app-state.service';
+import {components} from '@app/services/storage/components.service';
+import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
+import {appSettings} from '@app/services/storage/app-settings.service';
+import {UtilsService} from '@app/services/utils.service';
 
 describe('LogsFilteringUtilsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [LogsFilteringUtilsService]
+      imports: [
+        RouterTestingModule,
+        StoreModule.provideStore({
+          auditLogs,
+          serviceLogs,
+          auditLogsFields,
+          auditLogsGraphData,
+          serviceLogsFields,
+          serviceLogsHistogramData,
+          appSettings,
+          appState,
+          clusters,
+          components,
+          hosts,
+          serviceLogsTruncated,
+          tabs
+        }),
+        ...TranslationModules
+      ],
+      providers: [
+        LogsFilteringUtilsService,
+        UtilsService
+      ]
     });
   });
 

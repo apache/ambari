@@ -70,7 +70,7 @@ export class DropdownButtonComponent {
   }
 
   set selection(items: ListItem[]) {
-    this.selectedItems = items || [];
+    this.selectedItems = items;
   }
 
   // TODO handle case of selections with multiple items

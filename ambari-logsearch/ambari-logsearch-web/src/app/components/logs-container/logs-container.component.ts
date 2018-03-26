@@ -51,7 +51,14 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
 
   private isFilterPanelFixedPostioned: boolean = false;
 
-  tabs: Observable<Tab[]> = this.tabsStorage.getAll();
+  tabs: Observable<Tab[]> = this.tabsStorage.getAll().map((tabs: Tab[]) => {
+    return tabs.map((tab: Tab) => {
+      const queryParams = this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
+        tab.activeFilters, tab.appState.activeLogsType
+      );
+      return Object.assign({}, tab, {queryParams});
+    });
+  });
 
   private logsType: LogsType;
 
@@ -87,8 +94,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     private auditLogsGraphStorage: AuditLogsGraphDataService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private logsStateService: LogsStateService,
-    private changeDetectorRef: ChangeDetectorRef
+    private logsStateService: LogsStateService
   ) {}
 
   ngOnInit() {
@@ -130,11 +136,7 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.activatedRoute.queryParams.filter(() => !this.queryParamsSyncInProgress.getValue()).subscribe(this.onQueryParamsChange)
     );
-    if (this.activatedRoute.queryParams && Object.keys(this.activatedRoute.queryParams).length) {
-      this.activatedRoute.queryParams.first().subscribe((queryParams): void => {
-        this.syncQueryParamsToFiltersForms(queryParams);
-      });
-    } else {
+    if (!this.activatedRoute.queryParams || !Object.keys(this.activatedRoute.queryParams).length) {
       this.syncFiltersToQueryParams(this.filtersForm.value);
     }
 
@@ -317,9 +319,14 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
   }
 
   onCloseTab(activeTab: Tab, newActiveTab: Tab): void {
+    const activateNewTab: boolean = activeTab.isActive;
     this.tabsStorage.deleteObjectInstance(activeTab);
-    if (newActiveTab) {
-      this.onSwitchTab(newActiveTab);
+    if (activateNewTab && newActiveTab) {
+      this.router.navigate(['/logs', newActiveTab.id], {
+        queryParams: this.logsFilteringUtilsService.getQueryParamsFromActiveFilter(
+          newActiveTab.activeFilters, newActiveTab.appState.activeLogsType
+        )
+      });
     }
   }
 }

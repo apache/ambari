@@ -128,65 +128,6 @@ export class HistoryManagerService {
       .filter(() => !this.logsContainerService.filtersFormSyncInProgress.getValue())
       .distinctUntilChanged(this.isHistoryUnchanged)
       .subscribe(this.onFormValueChanges);
-
-    // set current history items after switching tabs
-    // appState.getParameter('history').subscribe((history: History): void => {
-    //   const filtersForm = logsContainerService.filtersForm;
-    //   let defaultState;
-    //   if (history.items.length === 0) {
-    //     defaultState = filtersForm.value;
-    //   }
-    //   this.activeHistory = history.items.slice();
-    //   this.currentHistoryItemId = history.currentId;
-    //   // handle filtering values changes
-    //   filtersForm.valueChanges
-    //     .distinctUntilChanged(this.isHistoryUnchanged)
-    //     .filter(() => !this.logsContainerService.filtersFormSyncInProgress.getValue())
-    //     .subscribe((value): void => {
-    //       if (this.hasNoPendingUndoOrRedo) {
-    //         const currentHistory = this.activeHistory;
-    //         const previousValue = this.activeHistory.length ? this.activeHistory[0].value.currentValue : defaultState;
-    //         const isUndoOrRedo = value.isUndoOrRedo;
-    //         const previousChangeId = this.currentHistoryItemId;
-    //         if (isUndoOrRedo) {
-    //           this.hasNoPendingUndoOrRedo = false;
-    //           filtersForm.patchValue({
-    //             isUndoOrRedo: false
-    //           });
-    //           this.hasNoPendingUndoOrRedo = true;
-    //         } else {
-    //           this.currentHistoryItemId = currentHistory.length;
-    //         }
-    //         this.activeHistory = [
-    //           {
-    //             value: {
-    //               currentValue: Object.assign({}, value),
-    //               previousValue: Object.assign({}, previousValue),
-    //               changeId: this.currentHistoryItemId,
-    //               previousChangeId,
-    //               isUndoOrRedo
-    //             },
-    //             label: this.getHistoryItemLabel(previousValue, value)
-    //           },
-    //           ...currentHistory
-    //         ].slice(0, this.maxHistoryItemsCount);
-    //
-    //         // update history for active tab
-    //         this.tabs.mapCollection((tab: Tab): Tab => {
-    //           const currentTabAppState = tab.appState || {};
-    //           const nextTabAppState = Object.assign({}, currentTabAppState, tab.isActive ? {
-    //               history: {
-    //                 items: this.activeHistory.slice(),
-    //                 currentId: this.currentHistoryItemId
-    //               }
-    //             } : {});
-    //           return Object.assign({}, tab, {
-    //             appState: nextTabAppState
-    //           });
-    //         });
-    //       }
-    //   });
-    // });
   }
 
   /**

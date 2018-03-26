@@ -42,6 +42,10 @@ import {UtilsService} from '@app/services/utils.service';
 
 import {DropdownListComponent} from './dropdown-list.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('DropdownListComponent', () => {
   let component: DropdownListComponent;
@@ -53,12 +57,13 @@ describe('DropdownListComponent', () => {
         return {
           subscribe: () => {
           }
-        }
+        };
       }
     };
     TestBed.configureTestingModule({
       declarations: [DropdownListComponent],
       imports: [
+        RouterTestingModule,
         ...TranslationModules,
         StoreModule.provideStore({
           hosts,
@@ -96,7 +101,10 @@ describe('DropdownListComponent', () => {
         TabsService,
         AuthService,
         UtilsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ]
     })
     .compileComponents();

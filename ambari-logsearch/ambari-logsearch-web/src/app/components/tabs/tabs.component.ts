@@ -59,7 +59,9 @@ export class TabsComponent {
   constructor() {}
 
   switchTab(tab: Tab, event?: MouseEvent): void {
-    event && event.preventDefault();
+    if (event) {
+      event.preventDefault();
+    }
     this.items.forEach((item: Tab) => item.isActive = item.id === tab.id);
     this.tabSwitched.emit(tab);
   }

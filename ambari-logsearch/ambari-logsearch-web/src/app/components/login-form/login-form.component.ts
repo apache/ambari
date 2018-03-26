@@ -30,7 +30,7 @@ import {Subscription} from "rxjs/Subscription";
 })
 export class LoginFormComponent implements OnInit, OnDestroy {
 
-  private subscriptions: Subscription[];
+  private subscriptions: Subscription[] = [];
 
   username: string;
 

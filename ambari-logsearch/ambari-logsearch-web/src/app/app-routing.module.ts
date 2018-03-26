@@ -38,7 +38,7 @@ const appRoutes: Routes = [{
       multiClusterFilter: true
     },
     resolve: {
-      breadcrumbs: LogsBreadcrumbsResolverService,
+      breadcrumbs: LogsBreadcrumbsResolverService
     },
     canActivate: [AuthGuardService, TabGuard]
   }, {
