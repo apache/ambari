@@ -1589,7 +1589,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           name: 'common.service.create.configs',
           data: {
             serviceName: service.get('serviceName'),
-            serviceGroupName: `${service.get('stackName')}-${service.get('stackVersion')}`,
+            serviceGroupName: service.get('stackName'),
             data: serviceConfigData
           }
         });    
