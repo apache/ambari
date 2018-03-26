@@ -1204,6 +1204,7 @@ Em.I18n.translations = {
   'alerts.definition.details.notification': 'Notification',
   'alerts.definition.details.noAlerts': 'No alert instances to display',
   'alerts.definition.details.configs.thresholdsErrorMsg': 'Critical threshold should be larger than warning threshold',
+  'alerts.definition.details.infoSection': 'Alert Info',
 
   'alerts.notifications.error.email': 'Must be a valid email address',
   'alerts.notifications.error.integer': 'Must be an integer',
