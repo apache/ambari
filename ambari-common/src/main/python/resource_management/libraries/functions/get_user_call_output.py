@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 import os
+import pwd
 import sys
 import tempfile
 from resource_management.core import shell
@@ -40,10 +41,11 @@ def get_user_call_output(command, user, quiet=False, is_checked_call=True, **cal
   try:
     out_files.append(tempfile.NamedTemporaryFile())
     out_files.append(tempfile.NamedTemporaryFile())
-    
+    uid = pwd.getpwnam(user).pw_uid
     # other user should be able to write to it
     for f in out_files:
-      os.chmod(f.name, 0666)
+      os.chown(f.name,uid,-1)
+      os.chmod(f.name, 0644)
     
     command_string += " 1>" + out_files[0].name
     command_string += " 2>" + out_files[1].name
