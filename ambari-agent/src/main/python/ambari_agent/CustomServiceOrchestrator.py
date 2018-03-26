@@ -365,7 +365,7 @@ class CustomServiceOrchestrator():
       if 'serviceLevelParams' in command and 'credentialStoreEnabled' in command['serviceLevelParams']:
         credentialStoreEnabled = command['serviceLevelParams']['credentialStoreEnabled']
 
-      if credentialStoreEnabled == True:
+      if credentialStoreEnabled and command_name != self.COMMAND_NAME_STATUS:
         if 'commandBeingRetried' not in command['agentLevelParams'] or command['agentLevelParams']['commandBeingRetried'] != "true":
           self.generateJceks(command)
         else:
