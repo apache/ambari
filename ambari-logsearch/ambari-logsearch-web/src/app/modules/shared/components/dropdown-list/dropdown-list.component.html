@@ -19,6 +19,16 @@
   <i class="fa fa-search"></i>
   <i class="fa fa-times-circle-o clear-filter" [class.hide]="!filterRegExp" (click)="clearFilter($event)"></i>
 </li>
+<li class="selection-all">
+  <label *ngIf="isMultipleChoice && items && items.length" class="list-item-label" (click)="changeAllSelection($event)">
+    <input type="checkbox" #selectAll [value]="items && items.length"
+           [checked]="items && (items.length === itemsSelected.length)">
+    <label class="label-container">
+      <span>{{'dropdown.selection.all' | translate:({total: items && items.length, listName: ''})}}</span>
+    </label>
+  </label>
+</li>
+<li *ngIf="isMultipleChoice && items && items.length" class="divider"></li>
 <li class="selections" *ngIf="itemsSelected.length>0">
   <span>{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
   <a href="#" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>

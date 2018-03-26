@@ -18,7 +18,7 @@
 
 import {
   Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
-  QueryList, ChangeDetectorRef, ElementRef
+  QueryList, ChangeDetectorRef, ElementRef, ViewChild
 } from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
@@ -60,11 +60,15 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   @Input()
   useLocalFilter = true;
 
-  @ViewChildren('filter')
+  @ViewChild('filter')
   filterRef: ElementRef;
 
   @Input()
   filterStr = '';
+
+
+  @ViewChild('selectAll')
+  selectAllRef: ElementRef;
 
   private filterRegExp: RegExp;
 
@@ -88,6 +92,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   private separateSelections() {
     this.itemsSelected = this.items ? this.items.filter((item: ListItem) => item.isChecked) : [];
     this.itemsUnSelected = this.items ? this.items.filter((item: ListItem) => !item.isChecked) : [];
+    this.shouldRenderAdditionalComponents = true;
   }
 
   private clearSelection() {
@@ -99,6 +104,24 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     event.preventDefault();
     event.stopPropagation();
     this.clearSelection();
+  }
+
+  private changeAllSelection(event) {
+    event.stopPropagation();
+    if (!this.selectAllRef.nativeElement.checked) {
+      this.selectAll();
+    } else {
+      this.unSelectAll();
+    }
+    this.separateSelections();
+  }
+
+  selectAll() {
+    this.items.forEach((item: ListItem) => item.isChecked = true);
+  }
+
+  unSelectAll() {
+    this.items.forEach((item: ListItem) => item.isChecked = false);
   }
 
   private onFilterInputKeyUp(event) {
