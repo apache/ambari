@@ -132,7 +132,7 @@ public class StackComponentResolver implements ComponentResolver {
   // if component references a specific mpack instance, filter the stream by the name of that mpack
   private static Stream<Pair<StackId, ServiceInfo>> filterByMpackName(Component comp, Stream<Pair<StackId, ServiceInfo>> stream) {
     if (comp.getStackId() != null) {
-      return stream.filter(pair -> pair.getLeft().getStackName().equals(comp.getStackId()));
+      return stream.filter(pair -> pair.getLeft().equals(comp.getStackId()));
     }
     return stream;
   }

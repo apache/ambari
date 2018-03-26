@@ -259,7 +259,8 @@ CREATE TABLE repo_os (
   ambari_managed NUMBER(1) DEFAULT 1,
   CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
   CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT FK_repo_os_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id));
+  CONSTRAINT FK_repo_os_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id),
+  CONSTRAINT UQ_repo_os_family_mpack_id UNIQUE (mpack_id, family));
 
 CREATE TABLE repo_definition (
   id NUMBER(19) NOT NULL,
@@ -272,7 +273,8 @@ CREATE TABLE repo_definition (
   unique_repo NUMBER(1) DEFAULT 1,
   mirrors CLOB,
   CONSTRAINT PK_repo_definition_id PRIMARY KEY (id),
-  CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
+  CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id),
+  CONSTRAINT UQ_repo_def_os_id_repo_id UNIQUE (repo_os_id, repo_id));
 
 CREATE TABLE repo_tags (
   repo_definition_id NUMBER(19) NOT NULL,
@@ -1046,8 +1048,8 @@ CREATE TABLE upgrade_plan (
   cluster_id NUMBER(19) NOT NULL,
   upgrade_type VARCHAR2(255) DEFAULT 'ROLLING' NOT NULL,
   direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
-  skip_failures SMALLINT DEFAULT 0 NOT NULL, 
-  skip_sc_failures SMALLINT DEFAULT 0 NOT NULL, 
+  skip_failures SMALLINT DEFAULT 0 NOT NULL,
+  skip_sc_failures SMALLINT DEFAULT 0 NOT NULL,
   skip_prechecks SMALLINT DEFAULT 0 NOT NULL,
   fail_on_precheck_warnings SMALLINT DEFAULT 0 NOT NULL,
   skip_service_checks SMALLINT DEFAULT 0 NOT NULL,
