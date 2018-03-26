@@ -38,6 +38,45 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     return this.get('widgetsDefinition').toMapByProperty('id');
   }.property('widgetsDefinition.[]'),
 
+  widgetGroups: [],
+
+  widgetGroupsDeferred: $.Deferred(),
+
+  setWidgetGroups: function () {
+    if (App.get('router.clusterController.isHDFSNameSpacesLoaded')) {
+      let groups = [];
+      const hdfsMasterGroups = App.HDFSService.find().objectAt(0).get('masterComponentGroups');
+      this.removeObserver('App.router.clusterController.isHDFSNameSpacesLoaded', this, 'setWidgetGroups');
+      if (hdfsMasterGroups.length > 1) {
+        const nameSpacesListItems = hdfsMasterGroups.map(nameSpace => {
+          const {name, title} = nameSpace;
+          return {
+            name,
+            title,
+            isActive: false
+          };
+        });
+        groups.push(Em.Object.create({
+          name: 'nn',
+          title: Em.I18n.t('dashboard.widgets.nameSpace'),
+          serviceName: 'HDFS',
+          subGroups: [
+            {
+              name: '*',
+              title: Em.I18n.t('common.all'),
+              isActive: true
+            },
+            ...nameSpacesListItems
+          ],
+          activeSubGroup: Em.computed.findBy('subGroups', 'isActive', true),
+          allWidgets: this.get('allNameNodeWidgets')
+        }));
+      }
+      this.set('widgetGroups', groups);
+      this.get('widgetGroupsDeferred').resolve();
+    }
+  },
+
   /**
    * List of services
    * @type {Ember.Enumerable}
@@ -65,6 +104,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
    * @type {WidgetObject[]}
    */
   allWidgets: [],
+
+  allNameNodeWidgets: [],
 
   /**
    * List of visible widgets
@@ -99,12 +140,19 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
 
   didInsertElement: function () {
     this._super();
+    if (App.get('router.clusterController.isHDFSNameSpacesLoaded')) {
+      this.setWidgetGroups();
+    } else {
+      this.addObserver('App.router.clusterController.isHDFSNameSpacesLoaded', this, 'setWidgetGroups');
+    }
     this.loadWidgetsSettings().complete(() => {
-      this.checkServicesChange();
-      this.renderWidgets();
-      this.set('isDataLoaded', true);
-      App.loadTimer.finish('Dashboard Metrics Page');
-      Em.run.next(this, 'makeSortable');
+      this.get('widgetGroupsDeferred').done(() => {
+        this.checkServicesChange();
+        this.renderWidgets();
+        this.set('isDataLoaded', true);
+        App.loadTimer.finish('Dashboard Metrics Page');
+        Em.run.next(this, 'makeSortable');
+      });
     });
   },
 
@@ -126,7 +174,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     let newSettings = {
       visible: [],
       hidden: [],
-      threshold: {}
+      threshold: {},
+      groups: {}
     };
     if (arguments.length === 1) {
       newSettings = settings;
@@ -137,6 +186,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
         let key = widget.get('isVisible') ? 'visible' : 'hidden';
         newSettings[key].push(widget.get('id'));
       });
+      //TODO handle grouped widgets
     }
     this.set('userPreferences', newSettings);
     this.setDBProperty(this.get('persistKey'), newSettings);
@@ -169,16 +219,43 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     var preferences = {
       visible: [],
       hidden: [],
-      threshold: {}
+      threshold: {},
+      groups: {}
     };
 
     this.resolveConfigDependencies(widgetsDefinition);
-    widgetsDefinition.forEach(function(widget) {
-      if (App.Service.find(widget.sourceName).get('isLoaded') || widget.sourceName === 'HOST_METRICS') {
-        let state = widget.isHiddenByDefault ? 'hidden' : 'visible';
-        preferences[state].push(widget.id);
+    widgetsDefinition.forEach(widget => {
+      const {sourceName, id} = widget,
+        widgetGroups = this.get('widgetGroups');
+      if (App.Service.find(sourceName).get('isLoaded') || sourceName === 'HOST_METRICS') {
+        const state = widget.isHiddenByDefault ? 'hidden' : 'visible',
+          {threshold} = widget,
+          widgetGroup = widgetGroups.findProperty('serviceName', sourceName);
+        if (widgetGroup) {
+          const widgetGroupName = widgetGroup.get('name'),
+            subGroups = widgetGroup.get('subGroups'),
+            existingEntry = preferences.groups[widgetGroupName],
+            currentEntry = existingEntry || subGroups.reduce((current, subGroup) => {
+                return Object.assign({}, current, {
+                  [subGroup.name]: {
+                    visible: [],
+                    hidden: [],
+                    threshold: {}
+                  }
+                });
+              }, {});
+          subGroups.forEach(subGroup => {
+            const {name} = subGroup;
+            currentEntry[name][state].push(id);
+            currentEntry[name].threshold[id] = threshold;
+          });
+          if (!existingEntry) {
+            preferences.groups[widgetGroupName] = currentEntry;
+          }
+        }
+        preferences[state].push(id);
       }
-      preferences.threshold[widget.id] = widget.threshold;
+      preferences.threshold[id] = widget.threshold;
     });
 
     return preferences;
@@ -190,6 +267,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
    * @param {number} id
    */
   hideWidget(id) {
+    // TODO handle grouped widgets
     this.get('allWidgets').findProperty('id', id).set('isVisible', false);
     this.saveWidgetsSettings();
   },
@@ -214,12 +292,88 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
   },
 
   /**
+   *
+   * @param {number} id
+   * @param {string} groupId
+   * @param {string} subGroupId
+   * @param {boolean} isVisible
+   * @returns {WidgetObject}
+   * @private
+   */
+  _createGroupWidgetObj(id, groupId, subGroupId, isVisible) {
+    var widget = this.get('widgetsDefinitionMap')[id];
+    return WidgetObject.create({
+      id: `${id}-${groupId}-${subGroupId}`,
+      threshold: this.get('userPreferences.groups')[groupId][subGroupId].threshold[id],
+      viewClass: App[widget.viewName].extend({
+        subGroupId
+      }),
+      sourceName: widget.sourceName,
+      title: `${widget.title} - ${subGroupId}`,
+      isVisible
+    });
+  },
+
+  /**
    * set widgets to view in order to render
    */
   renderWidgets: function () {
-    var userPreferences = this.get('userPreferences');
-    var newVisibleWidgets = userPreferences.visible.map(id => this._createWidgetObj(id, true));
-    var newHiddenWidgets = userPreferences.hidden.map(id => this._createWidgetObj(id, false));
+    const userPreferences = this.get('userPreferences'),
+      widgetsDefinition = this.get('widgetsDefinition'),
+      widgetGroups = this.get('widgetGroups');
+    let newVisibleWidgets = [],
+      newHiddenWidgets = [];
+    widgetGroups.forEach(group => group.get('allWidgets').clear());
+    widgetsDefinition.forEach(widget => {
+      const {id, groupName} = widget;
+      if (groupName && widgetGroups.someProperty('name', groupName)) {
+        const widgetGroup = widgetGroups.findProperty('name', groupName),
+          groupPreferences = userPreferences.groups[groupName];
+        if (groupPreferences) {
+          const allWidgets = widgetGroup.get('allWidgets'),
+            subGroupNames = widgetGroup.get('subGroups').mapProperty('name');
+          subGroupNames.forEach(subGroupName => {
+            const subGroupPreferences = groupPreferences[subGroupName],
+              existingSubGroup = allWidgets.findProperty('subGroupName', subGroupName),
+              currentSubGroup = existingSubGroup || Em.Object.create({
+                  subGroupName,
+                  parentGroup: widgetGroup,
+                  isActive: Em.computed.equal('parentGroup.activeSubGroup.name', subGroupName),
+                  widgets: []
+                });
+            if (!existingSubGroup) {
+              allWidgets.pushObject(currentSubGroup);
+            }
+            if (subGroupName === '*') {
+              subGroupNames.forEach(name => {
+                if (name !== '*') {
+                  if (subGroupPreferences.visible.contains(id)) {
+                    currentSubGroup.get('widgets').push(this._createGroupWidgetObj(id, groupName, name, true));
+                  }
+                  if (subGroupPreferences.hidden.contains(id)) {
+                    currentSubGroup.get('widgets').push(this._createGroupWidgetObj(id, groupName, name, false));
+                  }
+                }
+              });
+            } else {
+              if (subGroupPreferences.visible.contains(id)) {
+                currentSubGroup.get('widgets').push(this._createGroupWidgetObj(id, groupName, subGroupName, true));
+              }
+              if (subGroupPreferences.hidden.contains(id)) {
+                currentSubGroup.get('widgets').push(this._createGroupWidgetObj(id, groupName, subGroupName, false));
+              }
+            }
+          });
+        }
+      } else {
+        if (userPreferences.visible.contains(id)) {
+          newVisibleWidgets.push(this._createWidgetObj(id, true));
+        }
+        if (userPreferences.hidden.contains(id)) {
+          newHiddenWidgets.push(this._createWidgetObj(id, false));
+        }
+      }
+    });
     this.set('allWidgets', newVisibleWidgets.concat(newHiddenWidgets));
   },
 
@@ -228,14 +382,15 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
    * Update the value on server if true.
    */
   checkServicesChange: function () {
-    var userPreferences = this.get('userPreferences');
-    var defaultPreferences = this.generateDefaultUserPreferences();
-    var newValue = {
-      visible: userPreferences.visible.slice(0),
-      hidden: userPreferences.hidden.slice(0),
-      threshold: userPreferences.threshold
-    };
-    var isChanged = false;
+    const userPreferences = this.get('userPreferences'),
+      defaultPreferences = this.generateDefaultUserPreferences();
+    let newValue = {
+        visible: userPreferences.visible.slice(0),
+        hidden: userPreferences.hidden.slice(0),
+        threshold: userPreferences.threshold,
+        groups: userPreferences.groups || {}
+      },
+      isChanged = false;
 
     ['visible', 'hidden'].forEach(state => {
       defaultPreferences[state].forEach(id => {
@@ -243,6 +398,30 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
           isChanged = true;
           newValue[state].push(id);
         }
+      });
+      Object.keys(defaultPreferences.groups).forEach(groupName => {
+        const groupPreferences = defaultPreferences.groups[groupName];
+        Object.keys(groupPreferences).forEach(subGroupName => {
+          groupPreferences[subGroupName][state].forEach(id => {
+            if (!newValue.groups[groupName] || !newValue.groups[groupName][subGroupName]) {
+              isChanged = true;
+              $.extend(true, newValue.groups, {
+                [groupName]: {
+                  [subGroupName]: {
+                    visible: [],
+                    hidden: [],
+                    threshold: {}
+                  }
+                }
+              });
+            }
+            const subGroupPreferences = newValue.groups[groupName][subGroupName];
+            if (!subGroupPreferences.visible.contains(id) && !subGroupPreferences.hidden.contains(id)) {
+              isChanged = true;
+              subGroupPreferences[state].push(id);
+            }
+          });
+        });
       });
     });
     if (isChanged) {
@@ -325,6 +504,11 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     }
   }),
 
-  showAlertsPopup: Em.K
+  showAlertsPopup: Em.K,
+
+  setActiveSubGroup: function (event) {
+    const subGroups = event.contexts[0] || [];
+    subGroups.forEach(subGroup => Em.set(subGroup, 'isActive', Em.get(subGroup, 'name') === event.contexts[1]));
+  }
 
 });

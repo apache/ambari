@@ -3005,6 +3005,7 @@ Em.I18n.translations = {
   'dashboard.widgets.HawqSegmentUp': 'HAWQ Segments Live',
   'dashboard.widgets.PxfUp': 'PXF Agents Live',
   'dashboard.widgets.PXFAgents': 'PXF Agents',
+  'dashboard.widgets.nameSpace': 'Namespace',
 
   'dashboard': {
     'widgets': {

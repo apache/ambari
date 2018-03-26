@@ -30,11 +30,12 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   maxValue: 'infinity',
 
   component: null,
+
   /**
-   * Model's field that used to calculate data and content
+   * Value received from model that's used to calculate data and content
    * Should be defined in every child
    */
-  modelField: null,
+  modelValue: null,
 
   data: null,
 
@@ -65,11 +66,11 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   didInsertElement: function () {
     this._super();
     this.calculate();
-    this.addObserver('model.' + this.get('modelField'), this, this.calculate);
+    this.addObserver('modelValue', this, this.calculate);
   },
 
   calculate: function () {
-    const uptime = this.get('model').get(this.get('modelField'));
+    const uptime = this.get('modelValue');
     if (uptime) {
       let diff = App.dateTimeWithTimeZone() - App.dateTimeWithTimeZone(uptime);
       diff = diff < 0 ? 0 : diff;

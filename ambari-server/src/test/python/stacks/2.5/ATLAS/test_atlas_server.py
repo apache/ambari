@@ -122,7 +122,7 @@ class TestAtlasServer(RMFTestCase):
                               properties=app_props,
                               owner=u'atlas',
                               group=u'hadoop',
-                              mode=0644,
+                              mode=0600,
                               )
     self.assertResourceCalled('Directory', '/var/log/ambari-infra-solr-client',
                               create_parents=True,

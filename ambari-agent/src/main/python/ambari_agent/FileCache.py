@@ -25,6 +25,8 @@ import shutil
 import zipfile
 import urllib2
 import urllib
+import time
+import threading
 
 from ambari_agent.Utils import execute_with_retries
 
@@ -63,6 +65,8 @@ class FileCache():
     # from the server is not possible or agent should rollback to local copy
     self.tolerate_download_failures = \
           config.get('agent','tolerate_download_failures').lower() == 'true'
+    self.currently_providing_dict_lock = threading.RLock()
+    self.currently_providing = {}
     self.reset()
 
 
@@ -74,7 +78,10 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    service_subpath = command['serviceLevelParams']['service_package_folder']
+    if 'service_package_folder' in command['commandParams']:
+      service_subpath = command['commandParams']['service_package_folder']
+    else:
+      service_subpath = command['serviceLevelParams']['service_package_folder']
     return self.provide_directory(self.cache_dir, service_subpath,
                                   server_url_prefix)
 
@@ -141,12 +148,22 @@ class FileCache():
       subdirectory: subpath inside cache
       server_url_prefix: url of "resources" folder at the server
     """
-
     full_path = os.path.join(cache_path, subdirectory)
     logger.debug("Trying to provide directory {0}".format(subdirectory))
 
     if not self.auto_cache_update_enabled():
       logger.debug("Auto cache update is disabled.")
+      return full_path
+
+    wait_for_another_execution_event = None
+    with self.currently_providing_dict_lock:
+      if full_path in self.currently_providing:
+        wait_for_another_execution_event = self.currently_providing[full_path]
+      else:
+        self.currently_providing[full_path] = threading.Event()
+
+    if wait_for_another_execution_event:
+      wait_for_another_execution_event.wait()
       return full_path
 
     try:
@@ -185,6 +202,10 @@ class FileCache():
                     "Error details: {0}".format(str(e)))
       else:
         raise # we are not tolerant to exceptions, command execution will fail
+    finally:
+      self.currently_providing[full_path].set()
+      del self.currently_providing[full_path]
+
     return full_path
 
 
@@ -247,7 +268,7 @@ class FileCache():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-      os.chmod(hash_file, 0o666)
+      os.chmod(hash_file, 0o644)
     except Exception, err:
       raise CachingException("Can not write to file {0} : {1}".format(hash_file,
                                                                  str(err)))
@@ -277,6 +298,7 @@ class FileCache():
         # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception, err:
+      logger.exception("Can not invalidate cache directory {0}".format(directory))
       raise CachingException("Can not invalidate cache directory {0}: {1}",
                              directory, str(err))
 

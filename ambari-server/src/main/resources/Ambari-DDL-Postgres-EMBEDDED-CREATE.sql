@@ -26,4 +26,4 @@ GRANT ALL PRIVILEGES ON DATABASE :dbname TO :username;
 CREATE SCHEMA ambari AUTHORIZATION :username;
 ALTER SCHEMA ambari OWNER TO :username;
 ALTER ROLE :username SET search_path TO 'ambari';
-------all table creation located in Ambari-DLLPostgres-CREATE.sql---------
+------all table creation located in Ambari-DDL-Postgres-CREATE.sql---------

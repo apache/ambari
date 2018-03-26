@@ -164,6 +164,8 @@ import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -174,11 +176,9 @@ import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
-import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -311,6 +311,7 @@ public class UpgradeCatalog270Test {
     Method addUserAuthenticationSequence = UpgradeCatalog270.class.getDeclaredMethod("addUserAuthenticationSequence");
     Method renameAmbariInfra = UpgradeCatalog270.class.getDeclaredMethod("renameAmbariInfra");
     Method updateKerberosDescriptorArtifacts = UpgradeCatalog270.class.getSuperclass().getDeclaredMethod("updateKerberosDescriptorArtifacts");
+    Method updateSolrConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateSolrConfigurations");
     UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
         .addMockedMethod(showHcatDeletedUserMessage)
         .addMockedMethod(addNewConfigurationsFromXml)
@@ -323,6 +324,7 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(addUserAuthenticationSequence)
         .addMockedMethod(renameAmbariInfra)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
+        .addMockedMethod(updateSolrConfigurations)
         .createMock();
 
 
@@ -355,6 +357,9 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.updateKerberosDescriptorArtifacts();
+    expectLastCall().once();
+
+    upgradeCatalog270.updateSolrConfigurations();
     expectLastCall().once();
 
     replay(upgradeCatalog270);
@@ -1157,7 +1162,7 @@ public class UpgradeCatalog270Test {
 
     expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
     final Map<String, String> properties = new HashMap<>();
-    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    properties.put(AmbariServerConfigurationKey.LDAP_ENABLED.key(), "true");
     expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
     replay(entityManager, ambariConfigurationDao);
 
@@ -1173,7 +1178,7 @@ public class UpgradeCatalog270Test {
     final Module module = getTestGuiceModule();
     expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
     final Map<String, String> properties = new HashMap<>();
-    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    properties.put(AmbariServerConfigurationKey.LDAP_ENABLED.key(), "true");
     expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
     replay(entityManager, ambariConfigurationDao);
 
@@ -1217,5 +1222,70 @@ public class UpgradeCatalog270Test {
       ++count;
     }
     return count;
+  }
+
+  @Test
+  public void testupdateLuceneMatchVersion() throws Exception {
+    String solrConfigXml = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("org/apache/ambari/server/upgrade/solrconfig-v500.xml.j2"), "UTF-8");
+
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
+            .createMock();
+
+    replay(upgradeCatalog270);
+
+    String updated = upgradeCatalog270.updateLuceneMatchVersion(solrConfigXml,"7.2.1");
+
+    assertThat(updated.contains("<luceneMatchVersion>7.2.1</luceneMatchVersion>"), is(true));
+    assertThat(updated.contains("<luceneMatchVersion>5.0.0</luceneMatchVersion>"), is(false));
+    verify(upgradeCatalog270);
+  }
+
+  @Test
+  public void testupdateMergeFactor() throws Exception {
+    String solrConfigXml = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("org/apache/ambari/server/upgrade/solrconfig-v500.xml.j2"), "UTF-8");
+
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
+            .createMock();
+
+    replay(upgradeCatalog270);
+
+    String updated = upgradeCatalog270.updateMergeFactor(solrConfigXml, "logsearch_service_logs_merge_factor");
+
+    assertThat(updated.contains("<int name=\"maxMergeAtOnce\">{{logsearch_service_logs_merge_factor}}</int>"), is(true));
+    assertThat(updated.contains("<int name=\"segmentsPerTier\">{{logsearch_service_logs_merge_factor}}</int>"), is(true));
+    assertThat(updated.contains("<mergeFactor>{{logsearch_service_logs_merge_factor}}</mergeFactor>"), is(false));
+    verify(upgradeCatalog270);
+  }
+
+  @Test
+  public void testupdateInfraSolrEnv() {
+    String solrConfigXml = "#SOLR_HOST=\"192.168.1.1\"\n" +
+            "SOLR_HOST=\"192.168.1.1\"\n" +
+            "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"\n" +
+            "SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\"org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer\"";
+
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
+            .createMock();
+
+    replay(upgradeCatalog270);
+
+    String updated = upgradeCatalog270.updateInfraSolrEnv(solrConfigXml);
+
+    assertThat(updated, is("SOLR_HOST=`hostname -f`\nSOLR_HOST=`hostname -f`\n\nSOLR_AUTH_TYPE=\"kerberos\""));
+    verify(upgradeCatalog270);
+  }
+
+  @Test
+  public void testRemoveAdminHandlers() {
+    UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
+            .createMock();
+
+    replay(upgradeCatalog270);
+
+    String updated = upgradeCatalog270.removeAdminHandlers("<requestHandler name=\"/admin/\"\n" +
+            "                  class=\"solr.admin.AdminHandlers\"/>");
+
+    assertThat(updated, is(""));
+    verify(upgradeCatalog270);
   }
 }

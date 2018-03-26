@@ -309,7 +309,7 @@
           <summary>Calculating Yarn Properties for Spark Shuffle</summary>
         </task>
       </execute-stage>
-      
+
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Validate Root Queue Ordering Policy">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
           <summary>Validate Root Queue Ordering Policy</summary>
@@ -1133,7 +1133,7 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -1152,7 +1152,7 @@
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
-          <task xsi:type="restart-task"/>
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
@@ -1490,7 +1490,7 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -1506,7 +1506,7 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -1518,9 +1518,9 @@
             <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
           </task>
         </post-upgrade>
-        
+
         <post-downgrade copy-upgrade="true" />
-        
+
       </component>
     </service>
 

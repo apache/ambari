@@ -20,8 +20,8 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.ldap.service.ads.LdapConnectionTemplateFactory;
 import org.apache.ambari.server.ldap.service.ads.detectors.AttributeDetectorFactory;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -111,19 +111,19 @@ public class LdapModuleFunctionalTest {
   private static Map<String, String> getProps() {
     Map<String, String> ldapPropsMap = Maps.newHashMap();
 
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.ANONYMOUS_BIND.key(), "true");
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.SERVER_HOST.key(), "ldap.forumsys.com");
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.SERVER_PORT.key(), "389");
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.BIND_DN.key(), "cn=read-only-admin,dc=example,dc=com");
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.BIND_PASSWORD.key(), "password");
+    ldapPropsMap.put(AmbariServerConfigurationKey.ANONYMOUS_BIND.key(), "true");
+    ldapPropsMap.put(AmbariServerConfigurationKey.SERVER_HOST.key(), "ldap.forumsys.com");
+    ldapPropsMap.put(AmbariServerConfigurationKey.SERVER_PORT.key(), "389");
+    ldapPropsMap.put(AmbariServerConfigurationKey.BIND_DN.key(), "cn=read-only-admin,dc=example,dc=com");
+    ldapPropsMap.put(AmbariServerConfigurationKey.BIND_PASSWORD.key(), "password");
 //    ldapPropsMap.put(AmbariLdapConfigKeys.USE_SSL.key(), "true");
 
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS.key(), SchemaConstants.PERSON_OC);
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key(), SchemaConstants.UID_AT);
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.USER_SEARCH_BASE.key(), "dc=example,dc=com");
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.DN_ATTRIBUTE.key(), SchemaConstants.UID_AT);
+    ldapPropsMap.put(AmbariServerConfigurationKey.USER_OBJECT_CLASS.key(), SchemaConstants.PERSON_OC);
+    ldapPropsMap.put(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE.key(), SchemaConstants.UID_AT);
+    ldapPropsMap.put(AmbariServerConfigurationKey.USER_SEARCH_BASE.key(), "dc=example,dc=com");
+    ldapPropsMap.put(AmbariServerConfigurationKey.DN_ATTRIBUTE.key(), SchemaConstants.UID_AT);
 //    ldapPropsMap.put(AmbariLdapConfigKeys.TRUST_STORE.key(), "custom");
-    ldapPropsMap.put(AmbariLdapConfigurationKeys.TRUST_STORE_TYPE.key(), "JKS");
+    ldapPropsMap.put(AmbariServerConfigurationKey.TRUST_STORE_TYPE.key(), "JKS");
 //    ldapPropsMap.put(AmbariLdapConfigKeys.TRUST_STORE_PATH.key(), "/Users/lpuskas/my_truststore/KeyStore.jks");
 
 

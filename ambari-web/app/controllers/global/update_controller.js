@@ -685,43 +685,47 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateHDFSNameSpaces: function () {
-    const siteName = 'hdfs-site',
-      storedHdfsSiteconfigs = App.db.getConfigs().findProperty('type', siteName),
-      tagName = storedHdfsSiteconfigs && storedHdfsSiteconfigs.tag;
-    App.router.get('configurationController').getConfigsByTags([{
-      siteName,
-      tagName
-    }]).done(configs => {
-      const properties = configs && configs[0] && configs[0].properties;
-      if (properties) {
-        const nameSpaceProperty = properties['dfs.nameservices'];
-        if (nameSpaceProperty) {
-          const nameSpaces = nameSpaceProperty.split(',').map(nameSpace => {
-              const nameNodeIdsProperty = properties[`dfs.ha.namenodes.${nameSpace}`];
-              if (nameNodeIdsProperty) {
-                const nameNodeIds = nameNodeIdsProperty.split(','),
-                  hostNames = nameNodeIds.map(id => {
-                    const propertyValue = properties[`dfs.namenode.http-address.${nameSpace}.${id}`],
-                      matches = propertyValue && propertyValue.match(/([\D\d]+)\:\d+$/),
-                      hostName = matches && matches[1];
-                    return hostName;
-                  });
-                return {
-                  nameSpace,
-                  hostNames
-                };
+    if (App.Service.find().someProperty('serviceName', 'HDFS') && App.get('isHaEnabled')) {
+      const siteName = 'hdfs-site',
+        storedHdfsSiteconfigs = App.db.getConfigs().findProperty('type', siteName),
+        tagName = storedHdfsSiteconfigs && storedHdfsSiteconfigs.tag;
+      App.router.get('configurationController').getConfigsByTags([{
+        siteName,
+        tagName
+      }]).done(configs => {
+        const properties = configs && configs[0] && configs[0].properties;
+        if (properties) {
+          const nameSpaceProperty = properties['dfs.nameservices'];
+          if (nameSpaceProperty) {
+            const nameSpaces = nameSpaceProperty.split(',').map(nameSpace => {
+                const nameNodeIdsProperty = properties[`dfs.ha.namenodes.${nameSpace}`];
+                if (nameNodeIdsProperty) {
+                  const nameNodeIds = nameNodeIdsProperty.split(','),
+                    hostNames = nameNodeIds.map(id => {
+                      const propertyValue = properties[`dfs.namenode.http-address.${nameSpace}.${id}`],
+                        matches = propertyValue && propertyValue.match(/([\D\d]+)\:\d+$/),
+                        hostName = matches && matches[1];
+                      return hostName;
+                    });
+                  return {
+                    nameSpace,
+                    hostNames
+                  };
+                }
+              }),
+              allNameNodes = App.HDFSService.find().objectAt(0).get('hostComponents').filterProperty('componentName', 'NAMENODE');
+            allNameNodes.forEach(component => {
+              const nameSpaceObject = nameSpaces.find(ns => ns && ns.hostNames && ns.hostNames.contains(component.get('hostName')));
+              if (nameSpaceObject) {
+                component.set('haNameSpace', nameSpaceObject.nameSpace);
               }
-            }),
-            allNameNodes = App.HDFSService.find().objectAt(0).get('hostComponents').filterProperty('componentName', 'NAMENODE');
-          allNameNodes.forEach(component => {
-            const nameSpaceObject = nameSpaces.find(ns => ns && ns.hostNames && ns.hostNames.contains(component.get('hostName')));
-            if (nameSpaceObject) {
-              component.set('haNameSpace', nameSpaceObject.nameSpace);
-            }
-          });
-          App.set('router.clusterController.isHDFSNameSpacesLoaded', true);
+            });
+            App.set('router.clusterController.isHDFSNameSpacesLoaded', true);
+          }
         }
-      }
-    })
+      })
+    } else {
+      App.set('router.clusterController.isHDFSNameSpacesLoaded', true);
+    }
   }
 });

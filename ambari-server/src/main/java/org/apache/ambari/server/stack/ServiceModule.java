@@ -285,6 +285,14 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setCredentialStoreInfo(parent.getCredentialStoreInfo());
     }
 
+    /*
+     * If current stack version does not specify the single sign-on support details for the service,
+     * then use parent definition.
+     */
+    if (serviceInfo.getSingleSignOnInfo() == null) {
+      serviceInfo.setSingleSignOnInfo(parent.getSingleSignOnInfo());
+    }
+
     if (serviceInfo.isSelectionEmpty()) {
       serviceInfo.setSelection(parent.getSelection());
     }

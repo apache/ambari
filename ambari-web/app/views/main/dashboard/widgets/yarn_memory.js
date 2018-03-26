@@ -21,8 +21,8 @@ var App = require('app');
 App.YARNMemoryPieChartView = App.PieChartDashboardWidgetView.extend({
 
   widgetHtmlId: 'widget-yarn-memory',
-  modelFieldUsed: 'allocatedMemory',
-  modelFieldMax: 'maxMemory',
+  modelValueUsed: Em.computed.alias('model.allocatedMemory'),
+  modelValueMax: Em.computed.alias('model.maxMemory'),
 
   didInsertElement: function() {
     this._super();
