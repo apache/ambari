@@ -128,6 +128,7 @@ def run_schema_upgrade(args):
   default_value = silent
   confirm = get_YN_input("Ambari Server configured for %s. Confirm "
                          "you have made a backup of the Ambari Server database [y/n] (%s)? " % (db_title, default_answer), default_value)
+
   if not confirm:
     print_error_msg("Database backup is not confirmed")
     return 1
