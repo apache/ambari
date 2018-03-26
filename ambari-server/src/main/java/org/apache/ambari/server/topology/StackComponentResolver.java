@@ -67,7 +67,7 @@ public class StackComponentResolver implements ComponentResolver {
         } else {
           Pair<StackId, ServiceInfo> stackService = serviceMatches.iterator().next();
           StackId stackId = stackService.getLeft();
-          String serviceType = stackService.getRight().getServiceType();
+          String serviceType = stackService.getRight().getName();
 
           ResolvedComponent resolved = ResolvedComponent.builder(comp)
             .stackId(stackId)
@@ -122,7 +122,7 @@ public class StackComponentResolver implements ComponentResolver {
       if (service != null) {
         String serviceType = service.getType();
 
-        return stream.filter(pair -> pair.getRight().getServiceType().equals(serviceType));
+        return stream.filter(pair -> pair.getRight().getName().equals(serviceType));
       }
     }
 
