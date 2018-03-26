@@ -32,6 +32,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_defaultPort(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -45,22 +46,19 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'OK'
     expected_text = 'TCP OK - 0.2010 response on port 80'
     time.side_effect = [123, 324, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -72,6 +70,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_warning(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -85,22 +84,19 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'WARNING'
     expected_text = 'TCP OK - 3.1170 response on port 8080'
     time.side_effect = [123, 3240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
-
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
+    
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -112,6 +108,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_connectionTimeout(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -125,22 +122,20 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to 192.168.0.1:8080'
     time.side_effect = [123, 5240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
+      print data
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -152,6 +147,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_noUrl(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -164,22 +160,19 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to host1:80'
     time.side_effect = [123, 5240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -191,6 +184,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_exception(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -204,23 +198,20 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: exception message to 192.168.0.1:8080'
     time.side_effect = [123, 345, 567]
     socket.side_effect = Exception('exception message')
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -232,6 +223,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_warningTimeoutChanged(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -250,22 +242,19 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'OK'
     expected_text = 'TCP OK - 3.1170 response on port 8080'
     time.side_effect = [123, 3240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
-
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
+    
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -277,6 +266,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_criticalTimeoutChanged(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -295,22 +285,20 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to 192.168.0.1:8080'
     time.side_effect = [123, 3240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
-
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
+    
+    
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -322,6 +310,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_criticalTimeoutTooBig(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'alert1',
       'label': 'label1',
       'serviceName': 'service1',
@@ -340,22 +329,19 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to 192.168.0.1:8080'
     time.side_effect = [120, 123, 5240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
-
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
+    
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -367,6 +353,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_zookeeper(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'zookeeper_server_process',
       'label': 'label1',
       'serviceName': 'service1',
@@ -398,24 +385,21 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'OK'
     expected_text = 'TCP OK - 0.2010 response on port 2181'
     time.side_effect = [123, 324, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
     s = socket()
     s.recv.return_value = "imok"
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -427,6 +411,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_zookeeper_warning(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'zookeeper_server_process',
       'label': 'label1',
       'serviceName': 'service1',
@@ -458,24 +443,21 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'WARNING'
     expected_text = 'TCP OK - 3.1170 response on port 2181'
     time.side_effect = [123, 3240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
     s = socket()
     s.recv.return_value = "imok"
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()
@@ -487,6 +469,7 @@ class TestPortAlert(TestCase):
   @patch("time.time")
   def test_collect_zookeeper_connectionTimeout(self, time, socket):
     alert_meta = {
+      'definitionId': 1,
       'name': 'zookeeper_server_process',
       'label': 'label1',
       'serviceName': 'service1',
@@ -518,24 +501,22 @@ class TestPortAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_state = 'CRITICAL'
     expected_text = 'Connection failed: Socket Timeout to 192.168.0.1:2181'
     time.side_effect = [123, 5240, 567]
     alert = PortAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
+    alert.configuration_builder = MagicMock()
+    
     s = socket()
     s.recv.return_value = "imok"
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
       self.assertEquals(data['state'], expected_state)
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     alert.collector = MagicMock()

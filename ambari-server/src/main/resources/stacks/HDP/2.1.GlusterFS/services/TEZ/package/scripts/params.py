@@ -26,7 +26,7 @@ config = Script.get_config()
 config_dir = "/etc/tez/conf"
 
 hadoop_home = '/usr'
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 
 tez_user = config['configurations']['tez-env']['tez_user']
 user_group = config['configurations']['cluster-env']['user_group']

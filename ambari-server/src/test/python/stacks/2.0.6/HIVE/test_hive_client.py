@@ -49,7 +49,7 @@ class TestHiveClient(RMFTestCase):
         group = 'hadoop',
         conf_dir = '/usr/hdp/current/hive-client/conf',
         mode = 0644,
-        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
+        configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site'],
         owner = 'hive',
         configurations = self.getConfig()['configurations']['mapred-site'],
     )
@@ -79,7 +79,7 @@ class TestHiveClient(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hive-client/conf',
                               mode = 0644,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hive-site'],
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )
@@ -130,7 +130,7 @@ class TestHiveClient(RMFTestCase):
         group = 'hadoop',
         conf_dir = '/usr/hdp/current/hive-client/conf',
         mode = 0644,
-        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
+        configuration_attributes = self.getConfig()['configurationAttributes']['mapred-site'],
         owner = 'hive',
         configurations = self.getConfig()['configurations']['mapred-site'],
     )
@@ -160,7 +160,7 @@ class TestHiveClient(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hive-client/conf',
                               mode = 0644,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hive-site'],
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )

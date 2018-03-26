@@ -104,6 +104,9 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
       final Host host = hostEntry.getValue();
       if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.ON && hostsWithMasterComponent.contains(host.getHostName())) {
         prerequisiteCheck.getFailedOn().add(host.getHostName());
+
+        prerequisiteCheck.getFailedDetail().add(
+            new HostDetail(host.getHostId(), host.getHostName()));
       }
     }
 

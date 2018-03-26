@@ -85,7 +85,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     interval: 'AlertDefinition.source.ams.interval'
   },
 
-  map: function (json) {
+  map: function (json, ignoreDelete) {
     console.time('App.alertDefinitionsMapper execution time');
     if (json && json.items) {
       var self = this,
@@ -223,9 +223,11 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-      alertDefinitionsToDelete.forEach(function(definitionId) {
-        self.deleteRecord(existingAlertDefinitions.findProperty('id', definitionId));
-      });
+      if (!ignoreDelete) {
+        alertDefinitionsToDelete.forEach(function(definitionId) {
+          self.deleteRecord(existingAlertDefinitions.findProperty('id', definitionId));
+        });
+      }
 
       // load all mapped data to model
       App.store.safeLoadMany(this.get('reportModel'), alertReportDefinitions);

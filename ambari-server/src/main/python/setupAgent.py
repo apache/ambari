@@ -23,7 +23,7 @@ import time
 import sys
 import logging
 import os
-import subprocess
+from ambari_commons import subprocess32
 
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -109,7 +109,7 @@ def execOsCommand(osCommand, tries=1, try_sleep=0, ret=None, cwd=None):
     if i>0:
       time.sleep(try_sleep)
 
-    osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE, cwd=cwd)
+    osStat = subprocess32.Popen(osCommand, stdout=subprocess32.PIPE, cwd=cwd)
     log = osStat.communicate(0)
     ret = {"exitstatus": osStat.returncode, "log": log}
 
@@ -169,7 +169,7 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
     vo = " -v"
   cmd = ['su', user_run_as, '-l', '-c', '/usr/sbin/ambari-agent restart --expected-hostname=%1s %2s' % (expected_hostname, vo)]
   log = ""
-  p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+  p = subprocess32.Popen(cmd, stdout=subprocess32.PIPE)
   p.communicate()
   agent_retcode = p.returncode
   for i in range(3):

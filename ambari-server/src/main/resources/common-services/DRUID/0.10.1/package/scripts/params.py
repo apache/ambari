@@ -47,18 +47,18 @@ config = Script.get_config()
 stack_root = Script.get_stack_root()
 tmp_dir = Script.get_tmp_dir()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 
 # stack version
 stack_version = default("/commandParams/version", None)
 
 # un-formatted stack version
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 
 # default role to coordinator needed for service checks
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "DRUID_COORDINATOR")
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 sudo = AMBARI_SUDO_BINARY
 
 # default druid parameters
@@ -89,7 +89,7 @@ druid_security_extensions_load_list = config['configurations']['druid-common']['
 # status params
 druid_pid_dir = status_params.druid_pid_dir
 user_group = config['configurations']['cluster-env']['user_group']
-java8_home = config['hostLevelParams']['java_home']
+java8_home = config['ambariLevelParams']['java_home']
 druid_env_sh_template = config['configurations']['druid-env']['content']
 
 # log4j params
@@ -109,9 +109,9 @@ metadata_storage_db_name = config['configurations']['druid-common']['database_na
 metadata_storage_db_name = config['configurations']['druid-common']['database_name']
 metadata_storage_type = config['configurations']['druid-common']['druid.metadata.storage.type']
 metadata_storage_url = config['configurations']['druid-common']['druid.metadata.storage.connector.connectURI']
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 if 'mysql' == metadata_storage_type:
-  jdbc_driver_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
   connector_curl_source = format("{jdk_location}/{jdbc_driver_jar}")
   connector_download_dir=format("{druid_extensions_dir}/mysql-metadata-storage")
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
@@ -193,7 +193,7 @@ if has_metric_collector:
     pass
 
 # Create current Hadoop Clients  Libs
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
 lzo_enabled = should_install_lzo()
 hadoop_lib_home = stack_root + '/' + stack_version + '/hadoop/lib'

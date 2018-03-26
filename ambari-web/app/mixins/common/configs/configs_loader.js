@@ -78,9 +78,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * @method loadPreSelectedConfigVersion
    */
   loadPreSelectedConfigVersion: function() {
-    var preSelectedId = App.serviceConfigVersionsMapper.makeId(this.get('preSelectedConfigVersion.serviceName'), this.get('preSelectedConfigVersion.version'));
-    var defaultConfigVersion = App.ServiceConfigVersion.find(App.serviceConfigVersionsMapper.makeId(this.get('content.serviceName'), this.get('currentDefaultVersion')));
-    var preSelectedVersion = App.ServiceConfigVersion.find().someProperty('id', preSelectedId) ? this.get('preSelectedConfigVersion') : defaultConfigVersion;
+    var preSelectedVersion = this.get('preSelectedConfigVersion');
 
     this.set('selectedVersion', this.get('preSelectedConfigVersion.version'));
     /** handling redirecting from config history page **/

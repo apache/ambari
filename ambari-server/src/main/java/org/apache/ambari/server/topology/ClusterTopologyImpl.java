@@ -22,6 +22,7 @@ package org.apache.ambari.server.topology;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+import static org.apache.ambari.server.state.ServiceInfo.HADOOP_COMPATIBLE_FS;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -367,6 +368,12 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public String getDefaultPassword() {
     return defaultPassword;
+  }
+
+  @Override
+  public boolean isComponentHadoopCompatible(String component) {
+    return getStack().getServicesForComponent(component)
+      .anyMatch(stackIdService -> HADOOP_COMPATIBLE_FS.equals(stackIdService.getRight().getServiceType()));
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {

@@ -16,22 +16,33 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Response} from '@angular/http';
 import 'rxjs/add/operator/finally';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
+import {Subscription} from "rxjs/Subscription";
+import {TakeUntilDestroy} from "angular2-take-until-destroy";
 
 @Component({
   selector: 'login-form',
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.less']
 })
-export class LoginFormComponent {
+export class LoginFormComponent implements OnInit, OnDestroy {
 
-  constructor(private authService: AuthService, private appState: AppStateService) {
-    appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value);
+  constructor(private authService: AuthService, private appState: AppStateService) {}
+
+  ngOnInit() {
+    this.appStateIsLoginInProgressSubscription = this.appState.getParameter('isLoginInProgress')
+      .subscribe(value => this.isLoginInProgress = value);
   }
+
+  ngOnDestroy(){
+    this.appStateIsLoginInProgressSubscription.unsubscribe();
+  }
+
+  private appStateIsLoginInProgressSubscription: Subscription;
 
   username: string;
 

@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UriInfo;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.slf4j.Logger;
@@ -157,6 +158,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
     List<PropertyProvider> additional = new ArrayList<>();
     Map<String, String> overriddenHosts = new HashMap<>();
+    Map<String, UriInfo> overriddenJmxUris = new HashMap<>();
 
     try {
       for (Resource r : resources) {
@@ -194,6 +196,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
             m.getOverriddenHosts().ifPresent(host -> overriddenHosts.put(componentName, host));
           } else if (m.getType().equals("jmx")) {
             jmxMap.put(componentName, getPropertyInfo(m));
+            m.getJmxSourceUri().ifPresent(uri -> overriddenJmxUris.put(componentName, uri));
           } else {
             PropertyProvider pp = getDelegate(m,
                 streamProvider, metricHostProvider,
@@ -228,7 +231,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       if (jmxMap.size() > 0) {
         JMXPropertyProvider jpp = metricPropertyProviderFactory.createJMXPropertyProvider(jmxMap,
             streamProvider,
-            jmxHostProvider, metricHostProvider,
+            jmxHostProvider(overriddenJmxUris, jmxHostProvider, injector.getInstance(ConfigHelper.class)), metricHostProvider,
             clusterNamePropertyId, hostNamePropertyId,
             componentNamePropertyId, resourceStatePropertyId);
 
@@ -251,6 +254,10 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     }
 
     return resources;
+  }
+
+  private JMXHostProvider jmxHostProvider(Map<String, UriInfo> overriddenJmxUris, JMXHostProvider defaultProvider, ConfigHelper configHelper) {
+    return overriddenJmxUris.isEmpty() ? defaultProvider : new ConfigBasedJmxHostProvider(overriddenJmxUris, defaultProvider, configHelper);
   }
 
   private MetricHostProvider metricHostProvider(Map<String, String> overriddenHosts) {

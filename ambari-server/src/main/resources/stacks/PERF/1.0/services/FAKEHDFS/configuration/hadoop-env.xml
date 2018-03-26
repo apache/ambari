@@ -224,6 +224,7 @@
   </property>
   <property>
     <name>namenode_backup_dir</name>
+    <display-name>NameNode Backup directory</display-name>
     <description>Local directory for storing backup copy of FAKEHNameNode images during upgrade</description>
     <value>/tmp/upgrades</value>
     <on-ambari-upgrade add="false"/>

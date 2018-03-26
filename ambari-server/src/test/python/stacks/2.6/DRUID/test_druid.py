@@ -691,7 +691,7 @@ class TestDruid(RMFTestCase):
                               dfs_type = '',
                               mode=0755
                               )
-
+                              
     self.assertResourceCalled('File', format("/usr/lib/ambari-agent/DBConnectionVerification.jar"),
                               content= DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar')
                               )

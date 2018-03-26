@@ -136,6 +136,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.log-dirs</name>
+    <display-name>YARN NodeManager Log directories</display-name>
     <value/>
     <description>
       Where to store container logs. An application's localized log directory
@@ -148,6 +149,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.local-dirs</name>
+    <display-name>YARN NodeManager Local directories</display-name>
     <value/>
     <description>
       List of directories to store localized files in. An

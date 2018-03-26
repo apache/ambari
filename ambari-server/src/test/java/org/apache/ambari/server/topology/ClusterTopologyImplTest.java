@@ -18,20 +18,28 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import org.apache.ambari.server.controller.internal.StackDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -53,7 +61,10 @@ public class ClusterTopologyImplTest {
   private static final HostGroup group2 = createNiceMock(HostGroup.class);
   private static final HostGroup group3 = createNiceMock(HostGroup.class);
   private static final HostGroup group4 = createNiceMock(HostGroup.class);
+  private static final StackId STACK_ID = new StackId("HDP", "2.6");
+  private static final ImmutableSet<StackId> STACK_IDS = ImmutableSet.of(STACK_ID);
   private final AmbariContext ambariContext = createNiceMock(AmbariContext.class);
+  private final StackDefinition stack = createNiceMock(StackDefinition.class);
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
 
@@ -62,7 +73,6 @@ public class ClusterTopologyImplTest {
 
   @Before
   public void setUp() throws Exception {
-
     configuration = new Configuration(new HashMap<>(),
       new HashMap<>());
     bpconfiguration = new Configuration(new HashMap<>(),
@@ -100,7 +110,7 @@ public class ClusterTopologyImplTest {
     group4Info.setPredicate(predicate);
 
     expect(blueprint.getConfiguration()).andReturn(bpconfiguration).anyTimes();
-    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(new StackId("HDP", "2.6"))).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(STACK_IDS).anyTimes();
 
     hostGroupMap.put("group1", group1);
     hostGroupMap.put("group2", group2);
@@ -122,6 +132,8 @@ public class ClusterTopologyImplTest {
     Set<Component> group4Components = new HashSet<>();
     group4Components.add(new Component("component5"));
 
+    expect(ambariContext.composeStacks(STACK_IDS)).andReturn(stack).anyTimes();
+
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
@@ -139,15 +151,15 @@ public class ClusterTopologyImplTest {
     expect(group4.getComponents()).andReturn(group4Components).anyTimes();
 
     expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
-    expect(group2.getComponentNames()).andReturn(Collections.singletonList("component3")).anyTimes();
-    expect(group3.getComponentNames()).andReturn(Collections.singletonList("component4")).anyTimes();
-    expect(group4.getComponentNames()).andReturn(Collections.singletonList("NAMENODE")).anyTimes();
+    expect(group2.getComponentNames()).andReturn(singletonList("component3")).anyTimes();
+    expect(group3.getComponentNames()).andReturn(singletonList("component4")).anyTimes();
+    expect(group4.getComponentNames()).andReturn(singletonList("NAMENODE")).anyTimes();
   }
 
   @After
   public void tearDown() {
-    verify(blueprint, group1, group2, group3, group4);
-    reset(blueprint, group1, group2, group3, group4);
+    verify(ambariContext, stack, blueprint, group1, group2, group3, group4);
+    reset(ambariContext, stack, blueprint, group1, group2, group3, group4);
 
 
     hostGroupInfoMap.clear();
@@ -155,7 +167,7 @@ public class ClusterTopologyImplTest {
   }
 
   private void replayAll() {
-    replay(blueprint, group1, group2, group3, group4);
+    replay(ambariContext, stack, blueprint, group1, group2, group3, group4);
   }
 
 
@@ -227,6 +239,34 @@ public class ClusterTopologyImplTest {
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
     replayAll();
     new ClusterTopologyImpl(ambariContext, request);
+  }
+
+  @Test
+  public void testDecidingIfComponentIsHadoopCompatible() throws Exception {
+    expect(stack.getServicesForComponent("ONEFS_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aHCFSWith(aComponent("ONEFS_CLIENT"))))).anyTimes();
+    expect(stack.getServicesForComponent("ZOOKEEPER_CLIENT")).andAnswer(() -> Stream.of(Pair.of(STACK_ID, aServiceWith(aComponent("ZOOKEEPER_CLIENT"))))).anyTimes();
+    replayAll();
+    ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, new TestTopologyRequest(TopologyRequest.Type.PROVISION));
+    assertTrue(topology.isComponentHadoopCompatible("ONEFS_CLIENT"));
+    assertFalse(topology.isComponentHadoopCompatible("ZOOKEEPER_CLIENT"));
+  }
+
+  private ServiceInfo aHCFSWith(ComponentInfo... components) {
+    ServiceInfo service = aServiceWith(components);
+    service.setServiceType(ServiceInfo.HADOOP_COMPATIBLE_FS);
+    return service;
+  }
+
+  private ServiceInfo aServiceWith(ComponentInfo... components) {
+    ServiceInfo service = new ServiceInfo();
+    service.getComponents().addAll(asList(components));
+    return service;
+  }
+
+  private ComponentInfo aComponent(String name) {
+    ComponentInfo component = new ComponentInfo();
+    component.setName(name);
+    return component;
   }
 
   private class TestTopologyRequest implements TopologyRequest {

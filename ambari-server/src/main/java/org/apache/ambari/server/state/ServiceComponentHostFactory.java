@@ -20,10 +20,14 @@ package org.apache.ambari.server.state;
 
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 
 public interface ServiceComponentHostFactory {
 
   ServiceComponentHost createNew(ServiceComponent serviceComponent, String hostName);
+
+  ServiceComponentHost createNew(ServiceComponent serviceComponent, String hostName,
+                                 ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity);
 
   ServiceComponentHost createExisting(ServiceComponent serviceComponent,
                                       HostComponentStateEntity stateEntity,

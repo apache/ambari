@@ -1012,7 +1012,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     if (mpacks) {
       const serviceGroups = mpacks.map(mpack => ({
           "ServiceGroupInfo": {
-            "service_group_name": `${mpack.name}-${mpack.version}`,
+            "service_group_name": mpack.name,
           }
         })
       );
@@ -1053,7 +1053,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           "service_type": service.get('serviceName'),
           //TODO: mpacks - needs to be revisited when we are no longer hard coding service groups to be named 
           //               for mpacks and when the concept of a "selected stack" is no longer a thing
-          "service_group_name": `${service.get('stackName')}-${service.get('stackVersion')}`,
+          "service_group_name": service.get('stackName'),
           "desired_stack": `${service.get('stackName')}-${service.get('stackVersion')}`,
         }
       })
@@ -1477,7 +1477,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     this.get('selectedServices').forEach( function (service) {
       if (service.get('serviceComponents').findProperty('componentName', componentName)) {
         serviceName = service.get('serviceName');
-        serviceGroupName = service.get('stackName') + "-" + service.get('stackVersion');
+        serviceGroupName = service.get('stackName');
       }
     });
 
@@ -1568,39 +1568,33 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   applyConfigurationsToCluster: function (serviceConfigTags) {
     var allServices = this.get('installedServices').concat(this.get('selectedServices'));
-    var allConfigData = [];
+    
     allServices.forEach(function (service) {
       var serviceConfigData = [];
+     
       Object.keys(service.get('configTypesRendered')).forEach(function (type) {
         var serviceConfigTag = serviceConfigTags.findProperty('type', type);
         if (serviceConfigTag) {
           serviceConfigData.pushObject(serviceConfigTag);
         }
       }, this);
+      
       if (serviceConfigData.length) {
-        allConfigData.pushObject(JSON.stringify({
-          Clusters: {
-            desired_config: serviceConfigData.map(function(item) {
-              var props = {};
-              Em.keys(item.properties).forEach(function(propName) {
-                if (item.properties[propName] !== null) {
-                  props[propName] = item.properties[propName];
-                }
-              });
-              item.properties = props;
-              return item;
-            })
+        //TODO: Remove this delete call when the API supports service_config_version_note
+        serviceConfigData.forEach(scd => {
+          delete scd.service_config_version_note;
+        })
+
+        this.addRequestToAjaxQueue({
+          name: 'common.service.create.configs',
+          data: {
+            serviceName: service.get('serviceName'),
+            serviceGroupName: `${service.get('stackName')}-${service.get('stackVersion')}`,
+            data: serviceConfigData
           }
-        }));
+        });    
       }
     }, this);
-
-    this.addRequestToAjaxQueue({
-      name: 'common.across.services.configurations',
-      data: {
-        data: '[' + allConfigData.toString() + ']'
-      }
-    });
   },
 
   /**

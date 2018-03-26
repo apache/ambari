@@ -27,11 +27,15 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   attributes: null,
 
   /**
-   * Contain array with list of master components from <code>App.Service.hostComponets</code> which are
+   * Contain array with list of groups of master components from <code>App.Service.hostComponets</code> which are
    * <code>App.HostComponent</code> models.
-   * @type {App.HostComponent[]}
+   * @type {{title: String, hosts: String[], components: App.HostComponent[]}[]}
    */
-  mastersObj: [],
+  mastersObj: [
+    {
+      components: []
+    }
+  ],
   mastersLength: 0,
 
   /**
@@ -74,6 +78,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {
       HBASE: App.MainDashboardServiceHbaseView,
       HDFS: App.MainDashboardServiceHdfsView,
+      ONEFS: App.MainDashboardServiceHdfsView,
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       RANGER: App.MainDashboardServiceRangerView,
@@ -155,6 +160,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {};
   }.property('controller.content'),
 
+  showComponentsTitleForNonMasters: Em.computed.or('!mastersLength', 'hasMultipleMasterGroups'),
 
   componentsLengthDidChange: function() {
     var self = this;
@@ -213,7 +219,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       var clients = this.get('service.clientComponents').toArray();
 
       if (this.get('mastersLength') !== masters.length) {
-        this.updateComponentList(this.get('mastersObj'), masters);
+        const mastersInit = this.get('mastersObj').mapProperty('components').reduce((acc, group) => {
+          return [...acc, ...group];
+        }, []);
+        this.updateComponentList(mastersInit, masters);
+        this.set('mastersObj', this.getGroupedMasterComponents(mastersInit));
         this.set('mastersLength', masters.length);
       }
       if (this.get('slavesLength') !== slaves.length) {
@@ -410,5 +420,59 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   rollingRestartStaleConfigSlaveComponents: function (componentName) {
     batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('service.displayName'), this.get('service.passiveState') === "ON", true);
+  },
+
+  hasMultipleMasterGroups: Em.computed.gt('mastersObj.length', 1),
+
+  getGroupedMasterComponents: function (components) {
+    switch (this.get('serviceName')) {
+      case 'HDFS':
+        const masterComponentGroups = this.get('service.masterComponentGroups'),
+          hostComponents = this.get('service.hostComponents'),
+          zkfcs = hostComponents.filterProperty('componentName', 'ZKFC'),
+          hasNameNodeFederation = this.get('service.hasMultipleMasterComponentGroups');
+        let groups = [];
+        hostComponents.forEach(component => {
+          if (component.get('isMaster') && component.get('componentName') !== 'JOURNALNODE') {
+            const hostName = component.get('hostName'),
+              zkfc = zkfcs.findProperty('hostName', hostName);
+            if (hasNameNodeFederation) {
+              const name = component.get('haNameSpace'),
+                existingGroup = groups.findProperty('name', name),
+                currentGroup = existingGroup || Object.assign({}, masterComponentGroups.findProperty('name', name));
+              if (!existingGroup) {
+                groups.push(currentGroup);
+                Em.setProperties(currentGroup, {
+                  components: []
+                });
+              }
+              currentGroup.components.push(component);
+              if (zkfc) {
+                zkfc.set('isSubComponent', true);
+                currentGroup.components.push(zkfc);
+              }
+            } else {
+              if (!groups.length) {
+                groups.push({
+                  components: []
+                });
+              }
+              const defaultGroupComponents = groups[0].components;
+              defaultGroupComponents.push(component);
+              if (zkfc) {
+                zkfc.set('isSubComponent', true);
+                defaultGroupComponents.push(zkfc);
+              }
+            }
+          }
+        });
+        return groups;
+      default:
+        return [
+          {
+            components
+          }
+        ];
+    }
   }
 });

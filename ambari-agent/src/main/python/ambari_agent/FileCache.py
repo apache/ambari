@@ -25,7 +25,8 @@ import shutil
 import zipfile
 import urllib2
 import urllib
-from AmbariConfig import AmbariConfig
+
+from ambari_agent.Utils import execute_with_retries
 
 logger = logging.getLogger()
 
@@ -39,7 +40,7 @@ class FileCache():
   downloads relevant files from the server.
   """
 
-  CLUSTER_CONFIGURATION_CACHE_DIRECTORY="cluster_configuration"
+  CLUSTER_CACHE_DIRECTORY="cluster_cache"
   ALERTS_CACHE_DIRECTORY="alerts"
   RECOVERY_CACHE_DIRECTORY="recovery"
   STACKS_CACHE_DIRECTORY="stacks"
@@ -73,7 +74,7 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    service_subpath = command['commandParams']['service_package_folder']
+    service_subpath = command['serviceLevelParams']['service_package_folder']
     return self.provide_directory(self.cache_dir, service_subpath,
                                   server_url_prefix)
 
@@ -83,7 +84,7 @@ class FileCache():
     Returns a base directory for hooks
     """
     try:
-      hooks_path = command['commandParams']['hooks_folder']
+      hooks_path = command['clusterLevelParams']['hooks_folder']
     except KeyError:
       return None
     return self.provide_directory(self.cache_dir, hooks_path,
@@ -124,6 +125,7 @@ class FileCache():
 
 
   def auto_cache_update_enabled(self):
+    from AmbariConfig import AmbariConfig
     if self.config and \
         self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY) and \
             self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY).lower() == "false":
@@ -257,13 +259,21 @@ class FileCache():
     directory and any parent directories if needed. May throw exceptions
     on permission problems
     """
+    CLEAN_DIRECTORY_TRIES = 5
+    CLEAN_DIRECTORY_TRY_SLEEP = 0.25
+
     logger.debug("Invalidating directory {0}".format(directory))
     try:
       if os.path.exists(directory):
         if os.path.isfile(directory): # It would be a strange situation
           os.unlink(directory)
         elif os.path.isdir(directory):
-          shutil.rmtree(directory)
+          """
+          Execute shutil.rmtree(directory) multiple times.
+          Reason: race condition, where a file (e.g. *.pyc) in deleted directory
+          is created during function is running, causing it to fail.
+          """
+          execute_with_retries(CLEAN_DIRECTORY_TRIES, CLEAN_DIRECTORY_TRY_SLEEP, OSError, shutil.rmtree, directory)
         # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception, err:

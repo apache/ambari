@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import subprocess
+from ambari_commons import subprocess32
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import print_warning_msg
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -82,7 +82,7 @@ class FirewallChecks(object):
 
   def run_command(self):
     try:
-      retcode, out, err = shell.call(self.get_command(), stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
+      retcode, out, err = shell.call(self.get_command(), stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = 5, quiet = True)
       self.returncode = retcode
       self.stdoutdata = out
       self.stderrdata = err

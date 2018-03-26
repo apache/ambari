@@ -280,6 +280,17 @@ module.exports = {
     result.dbType = this.getJDBCAlias(this.getJDBCProviderName(jdbcUrl)) || null;
     result.location = this.getDBLocationFromJDBC(jdbcUrl);
     return result;
+  },
+
+  /**
+   * Convert db config value to db type string
+   * @param displayName
+   * @returns {String|null}
+   */
+  getDBType: function (displayName) {
+    var type = displayName.toUpperCase().match(/DERBY|POSTGRES|ORACLE|MYSQL|MSSQL|ANYWHERE/);
+    type = type && type[0];
+    return type;
   }
 
 };

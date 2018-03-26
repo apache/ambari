@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -53,10 +55,10 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.utils.SynchronousThreadPoolExecutor;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -76,6 +78,7 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "state");
 
   public static final int NUMBER_OF_RESOURCES = 400;
+  private static final int METRICS_SERVICE_TIMEOUT = 10;
 
   public static final Map<String, Map<String, PropertyInfo>> jmxPropertyIds = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent);
   public static final Map<String, Map<String, PropertyInfo>> jmxPropertyIdsWithHAState;
@@ -86,9 +89,10 @@ public class JMXPropertyProviderTest {
   }
 
   private static MetricPropertyProviderFactory metricPropertyProviderFactory;
+  private static MetricsRetrievalService metricsRetrievalService;
 
   @BeforeClass
-  public static void setupClass() {
+  public static void setupClass() throws TimeoutException {
     Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
 
     // disable request TTL for these tests
@@ -100,11 +104,20 @@ public class JMXPropertyProviderTest {
 
     metricPropertyProviderFactory = injector.getInstance(MetricPropertyProviderFactory.class);
 
-    MetricsRetrievalService metricsRetrievalService = injector.getInstance(
+    metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);
 
-    metricsRetrievalService.start();
+    metricsRetrievalService.startAsync();
+    metricsRetrievalService.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
     metricsRetrievalService.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
+  }
+
+  @AfterClass
+  public static void stopService() throws TimeoutException {
+    if (metricsRetrievalService != null && metricsRetrievalService.isRunning()) {
+      metricsRetrievalService.stopAsync();
+      metricsRetrievalService.awaitTerminated(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
+    }
   }
 
   @Before
@@ -614,18 +627,12 @@ public class JMXPropertyProviderTest {
       return null;
     }
 
-    @Override public Host getHost(final String clusterName, final String hostName) {
-      return null;
-    }
-
     @Override
-    public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
+    public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) {
       return getPort(clusterName, componentName, hostName);
     }
 
-    @Override
-    public String getPort(String clusterName, String componentName, String hostName) throws
-      SystemException {
+    public String getPort(String clusterName, String componentName, String hostName) {
 
       if (unknownPort) {
         return null;

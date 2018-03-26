@@ -22,7 +22,7 @@ import sys
 import logging
 import threading
 import socket
-import subprocess
+from ambari_commons import subprocess32
 
 logger = logging.getLogger(__name__)
 FUSER_CMD = "fuser {0}/tcp 2>/dev/null | awk '{1}'"
@@ -51,9 +51,9 @@ class PingPortListener(threading.Thread):
 
 
   def run_os_command_in_shell(self, command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE,
-              stdin=subprocess.PIPE,
-              stderr=subprocess.PIPE,
+    process = subprocess32.Popen(command, stdout=subprocess32.PIPE,
+              stdin=subprocess32.PIPE,
+              stderr=subprocess32.PIPE,
               shell=True)
     return process.communicate()
 

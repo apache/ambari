@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static edu.emory.mathcs.backport.java.util.Collections.emptyMap;
+import static java.util.Collections.emptyMap;
 import static org.easymock.EasyMock.expect;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;

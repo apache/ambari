@@ -24,6 +24,8 @@ import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.commons.lang.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -39,6 +41,7 @@ import com.google.gson.annotations.SerializedName;
  * When making comparisons for equality for things like stack/database merging,
  * use {@link #deeplyEquals(Object)}.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AlertDefinition {
 
   private long clusterId;
@@ -60,6 +63,12 @@ public class AlertDefinition {
 
   @SerializedName("help_url")
   private String helpURL = null;
+
+  @JsonProperty("repeat_tolerance")
+  private int repeatTolerance;
+
+  @JsonProperty("repeat_tolerance_enabled")
+  private Boolean repeatToleranceEnabled;
 
   /**
    * Gets the cluster ID for this definition.
@@ -178,6 +187,7 @@ public class AlertDefinition {
   /**
    * @return {@code true} if the host is ignored.
    */
+  @JsonProperty("ignore_host")
   public boolean isHostIgnored() {
     return ignoreHost;
   }
@@ -213,6 +223,7 @@ public class AlertDefinition {
   /**
    * @return the help url for this definition or {@code null} if none.
    */
+  @JsonProperty("help_url")
   public String getHelpURL() {
     return helpURL;
   }
@@ -258,6 +269,22 @@ public class AlertDefinition {
    */
   public String getUuid() {
     return uuid;
+  }
+
+  public int getRepeatTolerance() {
+    return repeatTolerance;
+  }
+
+  public void setRepeatTolerance(int repeatTolerance) {
+    this.repeatTolerance = repeatTolerance;
+  }
+
+  public Boolean getRepeatToleranceEnabled() {
+    return repeatToleranceEnabled;
+  }
+
+  public void setRepeatToleranceEnabled(Boolean repeatToleranceEnabled) {
+    this.repeatToleranceEnabled = repeatToleranceEnabled;
   }
 
   /**

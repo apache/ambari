@@ -105,6 +105,7 @@
   </property>
   <property>
     <name>*.falcon.graph.storage.directory</name>
+    <display-name>Falcon Graph Storage directory</display-name>
     <value>/hadoop/falcon/data/lineage/graphdb</value>
     <description/>
     <value-attributes>

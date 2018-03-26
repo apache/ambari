@@ -130,10 +130,18 @@ public class BlueprintImpl implements Blueprint {
     return setting;
   }
 
+  @Override
   public Collection<MpackInstance> getMpacks() {
     return mpacks;
   }
 
+  /**
+   * Get host groups which contain a component.
+   *
+   * @param component   component name
+   *
+   * @return collection of host groups which contain the specified component
+   */
   @Override
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
     Collection<HostGroup> resultGroups = new HashSet<>();
@@ -422,6 +430,7 @@ public class BlueprintImpl implements Blueprint {
   /**
    * Parse stack repo info stored in the blueprint_settings table
    */
+
   private List<RepositorySetting> processRepoSettings() {
     return setting != null ? setting.processRepoSettings() : Collections.emptyList();
   }

@@ -20,13 +20,11 @@ package org.apache.ambari.server.topology;
 import java.util.Optional;
 
 import org.apache.ambari.server.state.StackId;
-import org.inferred.freebuilder.FreeBuilder;
 
 /**
  * I provide additional information for a component specified in the blueprint,
  * based on values resolved from the stack and sensible defaults.
  */
-@FreeBuilder
 public interface ResolvedComponent {
 
   StackId stackId();

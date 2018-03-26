@@ -67,6 +67,7 @@
   </property>
   <property>
     <name>spark.history.fs.logDirectory</name>
+    <display-name>Spark History FS Log directory</display-name>
     <value>hdfs:///spark2-history/</value>
     <description>
       Base directory for history spark application log.
@@ -100,6 +101,7 @@
   </property>
   <property>
     <name>spark.eventLog.dir</name>
+    <display-name>Spark Eventlog directory</display-name>
     <value>hdfs:///spark2-history/</value>
     <description>
         Base directory in which Spark events are logged, if spark.eventLog.enabled is true.

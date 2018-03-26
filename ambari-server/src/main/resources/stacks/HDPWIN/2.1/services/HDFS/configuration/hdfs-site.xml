@@ -94,6 +94,7 @@
   </property>
   <property>
     <name>dfs.journalnode.edits.dir</name>
+    <display-name>JournalNode Edits directory</display-name>
     <value>c:\hadoop\hdfs\journalnode</value>
     <description>The path where the JournalNode daemon will store its local state. </description>
     <on-ambari-upgrade add="true"/>

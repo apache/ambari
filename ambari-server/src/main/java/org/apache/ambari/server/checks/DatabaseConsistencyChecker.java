@@ -22,6 +22,7 @@ import java.util.Enumeration;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.log4j.FileAppender;
@@ -98,7 +99,7 @@ public class DatabaseConsistencyChecker {
     DatabaseConsistencyChecker databaseConsistencyChecker = null;
     try {
 
-      Injector injector = Guice.createInjector(new CheckHelperControllerModule(), new CheckHelperAuditModule());
+      Injector injector = Guice.createInjector(new CheckHelperControllerModule(), new CheckHelperAuditModule(), new LdapModule());
       databaseConsistencyChecker = injector.getInstance(DatabaseConsistencyChecker.class);
 
       databaseConsistencyChecker.startPersistenceService();

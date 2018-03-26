@@ -53,7 +53,7 @@ describe('App.HighAvailabilityWizardStep7Controller', function() {
 
     it('startServices should be called', function() {
       controller.startAmbariInfra();
-      expect(controller.startServices.calledWith(false, ['AMBARI_INFRA'], true)).to.be.true;
+      expect(controller.startServices.calledWith(false, ['AMBARI_INFRA_SOLR'], true)).to.be.true;
     });
   });
 

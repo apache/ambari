@@ -41,7 +41,7 @@ def get_stack_tool(name):
   """
   from resource_management.libraries.functions.default import default
 
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack tools cannot be loaded")
     return None, None, None

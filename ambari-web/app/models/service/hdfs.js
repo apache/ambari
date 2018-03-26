@@ -21,9 +21,18 @@ App.HDFSService = App.Service.extend({
   version: DS.attr('string'),
   nameNode: DS.belongsTo('App.HostComponent'),
   snameNode: DS.belongsTo('App.HostComponent'),
+
+  // TODO remove after implementing widgets changes
   activeNameNode: DS.belongsTo('App.HostComponent'),
   standbyNameNode: DS.belongsTo('App.HostComponent'),
   standbyNameNode2: DS.belongsTo('App.HostComponent'),
+
+  activeNameNodes: DS.hasMany('App.HostComponent', {
+    defaultValue: []
+  }),
+  standbyNameNodes: DS.hasMany('App.HostComponent', {
+    defaultValue: []
+  }),
   isNnHaEnabled: function() {
     return !this.get('snameNode') && this.get('hostComponents').filterProperty('componentName', 'NAMENODE').length > 1;
   }.property('snameNode','hostComponents'),
@@ -52,7 +61,30 @@ App.HDFSService = App.Service.extend({
   upgradeStatus: DS.attr('string'),
   safeModeStatus: DS.attr('string'),
   nameNodeRpc: DS.attr('number'),
-  metricsNotAvailable: DS.attr('boolean')
+  metricsNotAvailable: DS.attr('boolean'),
+  masterComponentGroups: function () {
+    let result = [];
+    this.get('hostComponents').forEach(component => {
+      const nameSpace = component.get('haNameSpace');
+      if (nameSpace) {
+        const hostName = component.get('hostName'),
+          existingNameSpace = result.findProperty('name', nameSpace),
+          currentNameSpace = existingNameSpace || {
+              name: nameSpace,
+              title: nameSpace,
+              hosts: [],
+              components: ['NAMENODE', 'ZKFC']
+            };
+        if (!existingNameSpace) {
+          result.push(currentNameSpace);
+        }
+        if (!currentNameSpace.hosts.contains(hostName)) {
+          currentNameSpace.hosts.push(hostName);
+        }
+      }
+    });
+    return result;
+  }.property('hostComponents.length')
 });
 
 App.HDFSService.FIXTURES = [];

@@ -20,8 +20,7 @@
 package org.apache.ambari.infra.solr;
 
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.HttpClientUtil;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.solr.common.cloud.SolrZkClient;
 
 public class AmbariSolrCloudClientBuilder {
@@ -31,7 +30,9 @@ public class AmbariSolrCloudClientBuilder {
   private static final String TRUSTSTORE_LOCATION_ARG = "javax.net.ssl.trustStore";
   private static final String TRUSTSTORE_PASSWORD_ARG = "javax.net.ssl.trustStorePassword";
   private static final String TRUSTSTORE_TYPE_ARG = "javax.net.ssl.trustStoreType";
-  
+  private static final String JAVA_SECURITY_AUTH_LOGIN_CONFIG = "java.security.auth.login.config";
+  private static final String SOLR_HTTPCLIENT_BUILDER_FACTORY = "solr.httpclient.builder.factory";
+
   String zkConnectString;
   String collection;
   String configSet;
@@ -45,7 +46,7 @@ public class AmbariSolrCloudClientBuilder {
   String routerField = "_router_field_";
   CloudSolrClient solrCloudClient;
   SolrZkClient solrZkClient;
-  boolean splitting;
+  boolean implicitRouting;
   String jaasFile;
   String znode;
   String saslUsers;
@@ -53,6 +54,9 @@ public class AmbariSolrCloudClientBuilder {
   String propValue;
   String securityJsonLocation;
   boolean secure;
+  String transferMode;
+  String copySrc;
+  String copyDest;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -113,8 +117,8 @@ public class AmbariSolrCloudClientBuilder {
     return this;
   }
 
-  public AmbariSolrCloudClientBuilder withSplitting(boolean splitting) {
-    this.splitting = splitting;
+  public AmbariSolrCloudClientBuilder isImplicitRouting(boolean implicitRouting) {
+    this.implicitRouting = implicitRouting;
     return this;
   }
 
@@ -196,6 +200,21 @@ public class AmbariSolrCloudClientBuilder {
     return this;
   }
 
+  public AmbariSolrCloudClientBuilder withTransferMode(String transferMode) {
+    this.transferMode = transferMode;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withCopySrc(String copySrc) {
+    this.copySrc = copySrc;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withCopyDest(String copyDest) {
+    this.copyDest = copyDest;
+    return this;
+  }
+
   public AmbariSolrCloudClientBuilder withSecurityJsonLocation(String securityJson) {
     this.securityJsonLocation = securityJson;
     return this;
@@ -208,8 +227,8 @@ public class AmbariSolrCloudClientBuilder {
 
   private void setupSecurity(String jaasFile) {
     if (jaasFile != null) {
-      System.setProperty("java.security.auth.login.config", jaasFile);
-      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+      System.setProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG, jaasFile);
+      System.setProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY, Krb5HttpClientBuilder.class.getCanonicalName());
     }
   }
 }

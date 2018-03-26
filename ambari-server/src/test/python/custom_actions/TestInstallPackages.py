@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import json
 import os
-import subprocess
+from ambari_commons import subprocess32
 import select
 
 from mock.mock import patch
@@ -50,7 +50,7 @@ subproc_mock.return_value.stdout = subproc_stdout
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch("pty.openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())
-@patch.object(subprocess, "Popen", new=subproc_mock)
+@patch.object(subprocess32, "Popen", new=subproc_mock)
 class TestInstallPackages(RMFTestCase):
 
   def setUp(self):

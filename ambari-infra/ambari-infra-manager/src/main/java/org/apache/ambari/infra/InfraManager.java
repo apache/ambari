@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.rest.RepositoryRestMvcAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.system.ApplicationPidFileWriter;
@@ -35,7 +36,8 @@ import org.springframework.boot.system.ApplicationPidFileWriter;
     WebMvcAutoConfiguration.class,
     BatchAutoConfiguration.class,
     SecurityAutoConfiguration.class,
-    DataSourceAutoConfiguration.class
+    DataSourceAutoConfiguration.class,
+    SolrAutoConfiguration.class
   }
 )
 public class InfraManager {

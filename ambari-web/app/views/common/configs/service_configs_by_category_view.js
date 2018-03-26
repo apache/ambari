@@ -193,14 +193,14 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
     const isCustomPropertiesCategory = this.get('category.customCanAddProperty');
     const isCompareMode = this.get('controller.isCompareMode');
     const hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {
-        return config.get('isHiddenByFilter') === false && Em.isNone(config.get('widget'));
+        return config.get('isHiddenByFilter') === false && Em.isNone(config.get('isInDefaultTheme'));
       }, this).length > 0;
     return (isCustomPropertiesCategory && !isCompareMode && isFilterEmpty && !isFilterActive) ||
       hasFilteredAdvancedConfigs;
   }.property(
     'category.customCanAddProperty',
     'categoryConfigs.@each.isHiddenByFilter',
-    'categoryConfigs.@each.widget',
+    'categoryConfigs.@each.isInDefaultTheme',
     'controller.filter',
     'controller.isCompareMode',
     'mainView.columns.@each.selected'),
@@ -787,7 +787,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
       if (serviceConfigProperty.get('displayType') === 'password') {
         serviceConfigProperty.set('retypedPassword', savedValue);
       }
+      serviceConfigProperty.set('changedViaUndoValue', true);
       serviceConfigProperty.set('value', savedValue);
+      serviceConfigProperty.set('changedViaUndoValue', false);
     }
     if (supportsFinal) {
       serviceConfigProperty.set('isFinal', savedIsFinal);

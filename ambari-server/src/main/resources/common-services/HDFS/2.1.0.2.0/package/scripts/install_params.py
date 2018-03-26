@@ -26,4 +26,4 @@ else:
   from resource_management.libraries.script.script import Script
 
   _config = Script.get_config()
-  stack_version_unformatted = str(_config['hostLevelParams']['stack_version'])
+  stack_version_unformatted = str(_config['clusterLevelParams']['stack_version'])

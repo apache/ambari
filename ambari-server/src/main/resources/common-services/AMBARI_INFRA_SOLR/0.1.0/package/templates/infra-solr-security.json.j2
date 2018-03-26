@@ -1,0 +1,72 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+{
+  "authentication": {
+    "class": "org.apache.solr.security.KerberosPlugin"
+  },
+  "authorization": {
+    "class": "org.apache.solr.security.InfraRuleBasedAuthorizationPlugin",
+    "user-role": {
+      "{{infra_solr_kerberos_service_user}}@{{kerberos_realm}}": "admin",
+{% if infra_solr_logsearch_service_users %}
+{%   for logsearch_kerberos_service_user in infra_solr_logsearch_service_users %}
+      "{{logsearch_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_logsearch}}", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_dev}}"],
+{%   endfor %}
+{% endif %}
+      "{{logfeeder_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_logfeeder}}", "{{infra_solr_role_dev}}"],
+      "{{atlas_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_atlas}}", "{{infra_solr_role_ranger_audit}}", "{{infra_solr_role_dev}}"],
+{% if infra_solr_ranger_audit_service_users %}
+{%   for ranger_audit_service_user in infra_solr_ranger_audit_service_users %}
+      "{{ranger_audit_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_ranger_audit}}", "{{infra_solr_role_dev}}"],
+{%   endfor %}
+{% endif %}
+      "{{ranger_admin_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_ranger_audit}}", "{{infra_solr_role_dev}}"]
+    },
+    "permissions": [
+    {
+      "name" : "collection-admin-read",
+      "role" :null
+    },
+    {
+      "name" : "collection-admin-edit",
+      "role" : ["admin", "{{infra_solr_role_logsearch}}", "{{infra_solr_role_logfeeder}}", "{{infra_solr_role_atlas}}", "{{infra_solr_role_ranger_admin}}"]
+    },
+    {
+      "name":"read",
+      "role": "{{infra_solr_role_dev}}"
+    },
+    {
+      "collection": ["{{logsearch_service_logs_collection}}", "{{logsearch_audit_logs_collection}}", "history"],
+      "role": ["admin", "{{infra_solr_role_logsearch}}", "{{infra_solr_role_logfeeder}}"],
+      "name": "logsearch-manager",
+      "path": "/*"
+    },
+    {
+       "collection": ["vertex_index", "edge_index", "fulltext_index"],
+       "role": ["admin", "{{infra_solr_role_atlas}}"],
+       "name": "atlas-manager",
+       "path": "/*"
+    },
+    {
+       "collection": "{{ranger_solr_collection_name}}",
+       "role": ["admin", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_ranger_audit}}"],
+       "name": "ranger-manager",
+       "path": "/*"
+    }]
+  }
+}

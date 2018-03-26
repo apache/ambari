@@ -49,7 +49,7 @@ class TestOozieClient(RMFTestCase):
                               mode = 0664,
                               conf_dir = '/etc/oozie/conf',
                               configurations = self.getConfig()['configurations']['oozie-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['oozie-site']
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
                               owner = 'oozie',
@@ -115,7 +115,7 @@ class TestOozieClient(RMFTestCase):
                               mode = 0664,
                               conf_dir = '/etc/oozie/conf',
                               configurations = self.getConfig()['configurations']['oozie-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['oozie-site']
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
                               owner = 'oozie',
@@ -168,7 +168,7 @@ class TestOozieClient(RMFTestCase):
       default_json = json.load(f)
 
 
-    default_json['hostLevelParams']['stack_version']= '2.2'
+    default_json['clusterLevelParams']['stack_version']= '2.2'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_client.py",
                        classname = "OozieClient",
                        command = "configure",
@@ -187,7 +187,7 @@ class TestOozieClient(RMFTestCase):
                               mode = 0664,
                               conf_dir = '/usr/hdp/current/oozie-client/conf',
                               configurations = self.getConfig()['configurations']['oozie-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['oozie-site']
     )
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/oozie-env.sh',
                               owner = 'oozie',

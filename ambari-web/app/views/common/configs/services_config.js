@@ -25,7 +25,12 @@ App.ServicesConfigView = Em.View.extend({
   classNames: ['accordion'],
 
   didInsertElement: function () {
-    this.get('controller').loadStep();
+    if (!this.get('controller.isInstallWizard')) {
+      this.get('controller').loadStep();
+    } else {
+      this.get('controller').selectProperService();
+      this.get('controller').selectedServiceObserver();
+    }
   }
 
 });

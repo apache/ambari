@@ -144,13 +144,13 @@ CREATE TABLE servicegroups (
 CREATE TABLE servicegroupdependencies (
   id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
-  service_group_cluster_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
   dependent_service_group_id BIGINT NOT NULL,
-  dependent_service_group_cluster_id BIGINT NOT NULL,
+  dependent_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
-  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
-  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, cluster_id, dependent_service_group_id, dependent_cluster_id),
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
@@ -316,12 +316,13 @@ CREATE TABLE hostcomponentdesiredstate (
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
-  host_component_desired_state_id BIGINT NOT NULL,
+  host_comp_desired_state_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   component_type VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_state VARCHAR(255) NOT NULL,
+  last_live_state VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
   host_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
@@ -329,7 +330,7 @@ CREATE TABLE hostcomponentstate (
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT UQ_hostcomponentstate_name UNIQUE (component_name, service_id, host_id, service_group_id, cluster_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_component_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
+  CONSTRAINT FK_hostcomponentstate_ds_id FOREIGN KEY (host_comp_desired_state_id) REFERENCES hostcomponentdesiredstate (id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_id, service_group_id, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_id, service_group_id, cluster_id));
 
 CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_id, cluster_id);
@@ -452,6 +453,7 @@ CREATE TABLE request (
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   cluster_host_info BYTEA NOT NULL,
+  user_name VARCHAR(255),
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -623,6 +625,18 @@ CREATE TABLE blueprint (
   security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
+
+CREATE TABLE topology_request (
+  id BIGINT NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties TEXT,
+  cluster_attributes TEXT,
+  description VARCHAR(1024),
+  provision_action VARCHAR(255),
+  CONSTRAINT PK_topology_request PRIMARY KEY (id),
+  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
 
 CREATE TABLE mpack_instance(
   id BIGINT NOT NULL,
@@ -882,18 +896,6 @@ CREATE TABLE artifact (
   foreign_keys VARCHAR(255) NOT NULL,
   CONSTRAINT PK_artifact PRIMARY KEY (artifact_name, foreign_keys));
 
-CREATE TABLE topology_request (
-  id BIGINT NOT NULL,
-  action VARCHAR(255) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  bp_name VARCHAR(100) NOT NULL,
-  cluster_properties TEXT,
-  cluster_attributes TEXT,
-  description VARCHAR(1024),
-  provision_action VARCHAR(255),
-  CONSTRAINT PK_topology_request PRIMARY KEY (id),
-  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
-
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -1042,6 +1044,28 @@ CREATE TABLE upgrade_history(
   CONSTRAINT FK_upgrade_hist_src_mpack_id FOREIGN KEY (source_mpack_id) REFERENCES mpacks (id),
   CONSTRAINT FK_upgrade_hist_tgt_mpack_id FOREIGN KEY (target_mpack_id) REFERENCES mpacks (id),
   CONSTRAINT UQ_upgrade_hist_srvc_grp UNIQUE (upgrade_id, service_group_id)
+);
+
+CREATE TABLE upgrade_plan (
+  id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  upgrade_type VARCHAR(255) DEFAULT 'ROLLING' NOT NULL,
+  direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  skip_failures SMALLINT DEFAULT 0 NOT NULL, 
+  skip_sc_failures SMALLINT DEFAULT 0 NOT NULL, 
+  skip_prechecks SMALLINT DEFAULT 0 NOT NULL,
+  fail_on_precheck_warnings SMALLINT DEFAULT 0 NOT NULL,
+  skip_service_checks SMALLINT DEFAULT 0 NOT NULL,
+  CONSTRAINT PK_upgrade_plan PRIMARY KEY (id)
+);
+
+CREATE TABLE upgrade_plan_detail (
+  id BIGINT NOT NULL,
+  upgrade_plan_id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  mpack_target_id BIGINT NOT NULL,
+  CONSTRAINT PK_upgrade_plan_detail PRIMARY KEY (id),
+  CONSTRAINT FK_upgrade_det_upgrade_plan FOREIGN KEY (upgrade_plan_id) REFERENCES upgrade_plan (id)
 );
 
 CREATE TABLE ambari_operation_history(
@@ -1272,9 +1296,11 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('service_config_id_seq', 1),
   ('upgrade_id_seq', 0),
   ('upgrade_group_id_seq', 0),
+  ('upgrade_item_id_seq', 0),
+  ('upgrade_plan_id_seq', 0),
+  ('upgrade_plan_detail_id_seq', 0),
   ('widget_id_seq', 0),
   ('widget_layout_id_seq', 0),
-  ('upgrade_item_id_seq', 0),
   ('stack_id_seq', 0),
   ('mpack_id_seq',0),
   ('registry_id_seq',0),
@@ -1298,6 +1324,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('mpack_inst_svc_id_seq', 0),
   ('mpack_instance_id_seq', 0),
   ('hostgroup_component_id_seq', 0),
+  ('servicecomponent_version_id_seq', 0),
   ('repo_os_id_seq', 0),
   ('repo_definition_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0);

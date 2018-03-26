@@ -18,11 +18,11 @@ limitations under the License.
 # Task Resources
  
  
-###API Summary 
+### API Summary
 
 - [List tasks](tasks.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>
@@ -84,7 +84,7 @@ limitations under the License.
 </table>
 
 
-###Status
+### Status
 
 The current status of a task resource can be determined by looking at the Tasks/status property.
 
