@@ -19,7 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.STALE_CONFIGS;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -1178,7 +1178,7 @@ public class RequestResourceProviderTest {
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
 
     Set<Map<String, Object>> filterSet = new HashSet<>();
-    String predicateProperty = HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID + "=true";
+    String predicateProperty = STALE_CONFIGS + "=true";
     Map<String, Object> filterMap = new HashMap<>();
     filterMap.put(RequestResourceProvider.HOSTS_PREDICATE, predicateProperty);
     filterSet.add(filterMap);
@@ -1206,7 +1206,7 @@ public class RequestResourceProviderTest {
     String propertyIdToAssert = null;
     Object propertyValueToAssert = null;
     for (Map.Entry<String, Object> predicateEntry : predicateProperties.entrySet()) {
-      if (predicateEntry.getKey().equals(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID)) {
+      if (predicateEntry.getKey().equals(STALE_CONFIGS)) {
         propertyIdToAssert = predicateEntry.getKey();
         propertyValueToAssert = predicateEntry.getValue();
       }
