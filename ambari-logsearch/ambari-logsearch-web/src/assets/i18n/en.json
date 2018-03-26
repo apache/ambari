@@ -10,6 +10,9 @@
 
   "common.form.errors.required": "This field is required",
 
+  "dropdown.selection": "Selected ({{total}})",
+  "dropdown.selection.clear": "(Clear)",
+
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
   "modal.apply": "Apply",

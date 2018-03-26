@@ -19,7 +19,31 @@
   <i class="fa fa-search"></i>
   <i class="fa fa-times-circle-o clear-filter" [class.hide]="!filterRegExp" (click)="clearFilter($event)"></i>
 </li>
-<li *ngFor="let item of items" [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
+<li class="selections" *ngIf="itemsSelected.length>0">
+  <span>{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
+  <a href="#" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>
+</li>
+<li *ngFor="let item of itemsSelected" [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
+    [attr.role]="item.isDivider ? 'separator' : null">
+  <ng-container *ngIf="!item.isDivider">
+    <label class="list-item-label" *ngIf="isMultipleChoice">
+      <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
+             (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked})">
+      <label [attr.for]="item.id || item.value" class="label-container">
+        <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
+        {{item.label | translate}}
+        <span #additionalComponent></span>
+      </label>
+    </label>
+    <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item)">
+      <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
+      {{item.label | translate}}
+      <span #additionalComponent></span>
+    </span>
+  </ng-container>
+</li>
+<li *ngIf="itemsSelected.length && itemsUnSelected.length" class="divider"></li>
+<li *ngFor="let item of itemsUnSelected" [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
     [attr.role]="item.isDivider ? 'separator' : null">
   <ng-container *ngIf="!item.isDivider">
     <label class="list-item-label" *ngIf="isMultipleChoice">

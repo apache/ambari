@@ -35,7 +35,10 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   private shouldRenderAdditionalComponents: boolean = false;
 
   @Input()
-  items: ListItem[];
+  items: ListItem[] = [];
+
+  private itemsSelected: ListItem[] = [];
+  private itemsUnSelected: ListItem[] = [];
 
   @Input()
   isMultipleChoice?: boolean = false;
@@ -73,12 +76,29 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.hasOwnProperty('items')) {
+      this.separateSelections();
       this.shouldRenderAdditionalComponents = true;
     }
   }
 
   ngAfterViewChecked() {
     this.renderAdditionalComponents();
+  }
+
+  private separateSelections() {
+    this.itemsSelected = this.items ? this.items.filter((item: ListItem) => item.isChecked) : [];
+    this.itemsUnSelected = this.items ? this.items.filter((item: ListItem) => !item.isChecked) : [];
+  }
+
+  private clearSelection() {
+    this.items.forEach((item: ListItem) => item.isChecked = false);
+    this.separateSelections();
+  }
+
+  private onClearSelectionClick = (event): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearSelection();
   }
 
   private onFilterInputKeyUp(event) {
@@ -115,6 +135,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     if (options.onSelect) {
       options.onSelect(...this.actionArguments);
     }
+    this.separateSelections();
     this.selectedItemChange.emit(options);
   }
 
