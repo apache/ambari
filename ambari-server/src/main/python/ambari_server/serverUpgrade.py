@@ -123,13 +123,11 @@ def change_objects_owner(args):
 
 def run_schema_upgrade(args):
   db_title = get_db_type(get_ambari_properties()).title
-  if not get_silent():
-    confirm = get_YN_input("Ambari Server configured for %s. Confirm "
-                        "you have made a backup of the Ambari Server database [y/n] (n)? " % db_title, False)
-  else:
-    confirm = get_YN_input("Ambari Server configured for %s. Confirm "
-                        "you have made a backup of the Ambari Server database [y/n] (y)? " % db_title, True)
-
+  silent = get_silent()
+  default_answer = 'y' if silent else 'n'
+  default_value = silent
+  confirm = get_YN_input("Ambari Server configured for %s. Confirm "
+                         "you have made a backup of the Ambari Server database [y/n] (%s)? " % (db_title, default_answer), default_value)
   if not confirm:
     print_error_msg("Database backup is not confirmed")
     return 1
