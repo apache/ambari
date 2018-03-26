@@ -18,10 +18,12 @@
 
 import {
   Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
-  QueryList, ChangeDetectorRef
+  QueryList, ChangeDetectorRef, ElementRef
 } from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
+import {TranslateService} from '@ngx-translate/core';
+import {Observable} from 'rxjs/Observable';
 
 @Component({
   selector: 'ul[data-component="dropdown-list"]',
@@ -30,20 +32,7 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 })
 export class DropdownListComponent implements OnChanges, AfterViewChecked {
 
-  constructor(private componentGenerator: ComponentGeneratorService, private changeDetector: ChangeDetectorRef) {
-  }
-
   private shouldRenderAdditionalComponents: boolean = false;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.hasOwnProperty('items')) {
-      this.shouldRenderAdditionalComponents = true;
-    }
-  }
-
-  ngAfterViewChecked() {
-    this.renderAdditionalComponents();
-  }
 
   @Input()
   items: ListItem[];
@@ -64,6 +53,53 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     read: ViewContainerRef
   })
   containers: QueryList<ViewContainerRef>;
+
+  @Input()
+  useLocalFilter = true;
+
+  @ViewChildren('filter')
+  filterRef: ElementRef;
+
+  @Input()
+  filterStr = '';
+
+  private filterRegExp: RegExp;
+
+  constructor(
+    private componentGenerator: ComponentGeneratorService,
+    private changeDetector: ChangeDetectorRef,
+    private translateService: TranslateService
+  ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.hasOwnProperty('items')) {
+      this.shouldRenderAdditionalComponents = true;
+    }
+  }
+
+  ngAfterViewChecked() {
+    this.renderAdditionalComponents();
+  }
+
+  private onFilterInputKeyUp(event) {
+    if (this.useLocalFilter) {
+      this.filterRegExp = event.target.value ? new RegExp(`${event.target.value}`, 'gi') : null;
+      this.filterStr = event.target.value;
+    }
+  }
+
+  private isFiltered = (item: ListItem): boolean => {
+    return this.useLocalFilter && this.filterRegExp && (
+      !this.filterRegExp.test(item.value)
+      &&
+      !this.filterRegExp.test(item.label)
+    );
+  }
+
+  private clearFilter = (event: MouseEvent): void => {
+    this.filterRegExp = null;
+    this.filterStr = '';
+  }
 
   private renderAdditionalComponents(): void {
     const setter = this.additionalLabelComponentSetter,

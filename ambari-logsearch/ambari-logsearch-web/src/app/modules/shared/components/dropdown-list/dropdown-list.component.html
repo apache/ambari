@@ -14,8 +14,13 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
-<li *ngFor="let item of items" [class.divider]="item.isDivider" [attr.role]="item.isDivider ? 'separator' : null">
+<li *ngIf="useLocalFilter" class="filter">
+  <input #filter [value]="filterStr" (keyup)="onFilterInputKeyUp($event)" class="form-control">
+  <i class="fa fa-search"></i>
+  <i class="fa fa-times-circle-o clear-filter" [class.hide]="!filterRegExp" (click)="clearFilter($event)"></i>
+</li>
+<li *ngFor="let item of items" [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
+    [attr.role]="item.isDivider ? 'separator' : null">
   <ng-container *ngIf="!item.isDivider">
     <label class="list-item-label" *ngIf="isMultipleChoice">
       <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
