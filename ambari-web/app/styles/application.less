@@ -79,6 +79,9 @@ footer {
   color: #666;
   margin-top: -1 * @footer-height - 1;
   height: @footer-height - 60px;
+  .footer-links {
+    font-size: @smaller-font-size;
+  }
 }
 
 .editable-list-container {
@@ -386,6 +389,11 @@ table.diff {
     padding-left: 1px;
     padding-right: 1px;
   }
+}
+
+.row.no-vertical-padding {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .ru-badge {
@@ -853,7 +861,7 @@ a:focus {
   }
 
   .col-md-3 {
-    min-height: 100px;
+    min-height: 80px;
     margin-left: 2px;
     min-width: 180px;
   }
