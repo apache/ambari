@@ -59,7 +59,7 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
 
-    Execute("hdfs zkfc -formatZK",
+    Execute("hdfs zkfc -formatZK -nonInteractive",
             user=params.hdfs_user,
             logoutput=True
     )
