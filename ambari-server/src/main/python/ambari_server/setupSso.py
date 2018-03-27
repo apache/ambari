@@ -22,11 +22,12 @@ import base64
 import logging
 import re
 import sys
+import time
 import urllib2
 
 from ambari_commons.os_utils import is_root, run_os_command, copy_file, set_file_permissions, remove_file
 from ambari_commons.exceptions import FatalException, NonFatalException
-from ambari_commons.logging_utils import get_silent, print_warning_msg, print_error_msg
+from ambari_commons.logging_utils import get_silent, print_info_msg
 from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, get_ambari_admin_username_password_pair, get_cluster_name, perform_changes_via_rest_api
 from ambari_server.setupSecurity import REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE
@@ -53,8 +54,10 @@ JWT_PUBLIC_KEY_FILENAME = "jwt-cert.pem"
 JWT_PUBLIC_KEY_HEADER = "-----BEGIN CERTIFICATE-----\n"
 JWT_PUBLIC_KEY_FOOTER = "\n-----END CERTIFICATE-----\n"
 
+SSO_MANAGE_SERVICES = "ambari.sso.manage_services"
 SSO_ENABLED_SERVICES = "ambari.sso.enabled_services"
 WILDCARD_FOR_ALL_SERVICES = "*"
+SERVICE_NAME_AMBARI = 'Ambari'
 
 URL_TO_FETCH_SERVICES_ELIGIBLE_FOR_SSO = "clusters/:CLUSTER_NAME/services?ServiceInfo/sso_integration_supported=true" ## :CLUSTER_NAME should be replaced
 SETUP_SSO_CONFIG_URL = 'services/AMBARI/components/AMBARI_SERVER/configurations/sso-configuration'
@@ -78,7 +81,7 @@ def validate_options(options):
     raise FatalException(1, error_msg.format(str(errors)))
 
 
-def populate_sso_provide_url(options, properties):
+def populate_sso_provider_url(options, properties):
   if not options.sso_provider_url:
       provider_url = get_value_from_properties(properties, JWT_AUTH_PROVIDER_URL, JWT_AUTH_PROVIDER_URL_DEFAULT)
       provider_url = get_validated_string_input("Provider URL [URL] ({0}):".format(provider_url), provider_url, REGEX_HOSTNAME_PORT,
@@ -127,14 +130,15 @@ def populate_jwt_audiences(options, properties):
   properties.process_pair(JWT_AUDIENCES, audiences)
   
 def get_eligible_services(properties, admin_login, admin_password, cluster_name):
-  url = get_ambari_server_api_base(properties) + URL_TO_FETCH_SERVICES_ELIGIBLE_FOR_SSO.replace(":CLUSTER_NAME", cluster_name)
+  safe_cluster_name = urllib2.quote(cluster_name)
+  url = get_ambari_server_api_base(properties) + URL_TO_FETCH_SERVICES_ELIGIBLE_FOR_SSO.replace(":CLUSTER_NAME", safe_cluster_name)
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   request.get_method = lambda: 'GET'
 
-  services = []
+  services = [SERVICE_NAME_AMBARI]
   sys.stdout.write('\nFetching SSO enabled services')
   numOfTries = 0
   request_in_progress = True
@@ -158,8 +162,10 @@ def get_eligible_services(properties, admin_login, admin_password, cluster_name)
             if len(items) > 0:
               for item in items:
                 services.append(item['ServiceInfo']['service_name'])
-            if not items:
-              time.sleep(1)
+              if not services:
+                time.sleep(1)
+              else:
+                request_in_progress = False
             else:
               request_in_progress = False
 
@@ -193,9 +199,54 @@ def get_services_requires_sso(options, properties, admin_login, admin_password):
 
   return services
 
+def get_sso_property_from_db(properties, admin_login, admin_password, property_name):
+  sso_property = None
+  url = get_ambari_server_api_base(properties) + SETUP_SSO_CONFIG_URL
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  request.get_method = lambda: 'GET'
+  request_in_progress = True
 
-def update_sso_conf(properties, services, admin_login, admin_password):
+  sys.stdout.write('\nFetching SSO configuration from DB')
+  numOfTries = 0
+  while request_in_progress:
+    numOfTries += 1
+    if (numOfTries == 60):
+      raise FatalException(1, "Could not fetch SSO configuration within a minute; giving up!")
+    sys.stdout.write('.')
+    sys.stdout.flush()
+
+    try:
+      with closing(urllib2.urlopen(request)) as response:
+        response_status_code = response.getcode()
+        if response_status_code != 200:
+          request_in_progress = False
+          if response_status_code == 404:
+            ## This means that there is no SSO configuration in the database yet -> we can not fetch the property (but this is NOT an error)
+            sso_property = None
+          else:
+            err = 'Error while fetching SSO configuration. Http status code - ' + str(response_status_code)
+            raise FatalException(1, err)
+        else:
+            response_body = json.loads(response.read())
+            sso_properties = response_body['Configuration']['properties']
+            sso_property = sso_properties[property_name]
+            if not sso_property:
+              time.sleep(1)
+            else:
+              request_in_progress = False
+    except Exception as e:
+      request_in_progress = False
+      err = 'Error while fetching SSO configuration. Error details: %s' % e
+      raise FatalException(1, err)
+
+  return sso_property
+
+def update_sso_conf(properties, enable_sso, services, admin_login, admin_password):
   sso_configuration_properties = {}
+  sso_configuration_properties[SSO_MANAGE_SERVICES] = "true" if enable_sso else "false"
   sso_configuration_properties[SSO_ENABLED_SERVICES] = services
   request_data = {
     "Configuration": {
@@ -223,32 +274,34 @@ def setup_sso(options):
 
     properties = get_ambari_properties()
 
-    must_setup_params = False
+    admin_login, admin_password = get_ambari_admin_username_password_pair(options)
+
     if not options.sso_enabled:
-      sso_enabled = properties.get_property(JWT_AUTH_ENBABLED).lower() in ['true']
+      sso_enabled_from_db = get_sso_property_from_db(properties, admin_login, admin_password, SSO_MANAGE_SERVICES)
+      sso_enabled = sso_enabled_from_db == None or sso_enabled_from_db in ['true']
+      print_info_msg("SSO is currently {0}".format("not configured" if sso_enabled_from_db == None else ("enabled" if sso_enabled else "disabled")), True)
       if sso_enabled:
-        if get_YN_input("Do you want to disable SSO authentication [y/n] (n)?", False):
-          properties.process_pair(JWT_AUTH_ENBABLED, "false")
+        enable_sso = not get_YN_input("Do you want to disable SSO authentication [y/n] (n)? ", False)
       else:
-        if get_YN_input("Do you want to configure SSO authentication [y/n] (y)?", True):
-          properties.process_pair(JWT_AUTH_ENBABLED, "true")
-          must_setup_params = True
+        if get_YN_input("Do you want to configure SSO authentication [y/n] (y)? ", True):
+          enable_sso = True
         else:
           return False
     else:
-      properties.process_pair(JWT_AUTH_ENBABLED, options.sso_enabled)
-      must_setup_params = options.sso_enabled == 'true'
+      enable_sso = options.sso_enabled == 'true'
 
-    if must_setup_params:
-      populate_sso_provide_url(options, properties)
+    services = ''
+    if enable_sso:
+      populate_sso_provider_url(options, properties)
       populate_sso_public_cert(options, properties)
       populate_jwt_cookie_name(options, properties)
       populate_jwt_audiences(options, properties)
-
-      admin_login, admin_password = get_ambari_admin_username_password_pair(options)
       services = get_services_requires_sso(options, properties, admin_login, admin_password)
-      update_sso_conf(properties, services, admin_login, admin_password)
 
+    update_sso_conf(properties, enable_sso, services, admin_login, admin_password)
+
+    enable_jwt_auth = WILDCARD_FOR_ALL_SERVICES == services or SERVICE_NAME_AMBARI in services
+    properties.process_pair(JWT_AUTH_ENBABLED, "true" if enable_jwt_auth else "false")
     update_properties(properties)
 
     pass

@@ -241,7 +241,7 @@ class TestSetupSso(unittest.TestCase):
     get_ambari_properties_mock.return_value = properties
 
     sso_enabled = 'true'
-    sso_enabled_services = 'SERVICE1, SERVICE2'
+    sso_enabled_services = 'Ambari, SERVICE1, SERVICE2'
     sso_provider_url = 'http://testHost:8080'
     sso_public_cert_file = '/test/file/path'
     sso_jwt_cookie_name = 'test_cookie'
@@ -268,13 +268,13 @@ class TestSetupSso(unittest.TestCase):
     pass
 
 
-
+  @patch("urllib2.urlopen")
   @patch("ambari_server.setupSso.update_properties")
   @patch("ambari_server.setupSso.get_ambari_properties")
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   @patch("ambari_server.setupSso.is_root")
-  def test_only_sso_enabled_cli_option_is_collected_when_disabling_sso(self, is_root_mock, is_server_runing_mock, get_silent_mock, get_ambari_properties_mock, update_properties_mock):
+  def test_only_sso_enabled_cli_option_is_collected_when_disabling_sso(self, is_root_mock, is_server_runing_mock, get_silent_mock, get_ambari_properties_mock, update_properties_mock, urlopen_mock):
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -296,6 +296,10 @@ class TestSetupSso(unittest.TestCase):
     options.sso_public_cert_file = sso_public_cert_file
     options.sso_jwt_cookie_name = sso_jwt_cookie_name
     options.sso_jwt_audience_list = sso_jwt_audience_list
+
+    response = MagicMock()
+    response.getcode.return_value = 200
+    urlopen_mock.return_value = response
 
     setup_sso(options)
 
@@ -350,7 +354,7 @@ class TestSetupSso(unittest.TestCase):
     self.assertTrue(isinstance(requestData, dict))
     ssoProperties = requestData['Configuration']['properties'];
     properties_updated_in_ambari_db = sorted(ssoProperties.iteritems(), key=operator.itemgetter(0))
-    properties_should_be_updated_in_ambari_db = sorted({"ambari.sso.enabled_services": "*"}.iteritems(), key=operator.itemgetter(0))
+    properties_should_be_updated_in_ambari_db = sorted({"ambari.sso.enabled_services": "*", "ambari.sso.manage_services": "true"}.iteritems(), key=operator.itemgetter(0))
     self.assertEqual(properties_should_be_updated_in_ambari_db, properties_updated_in_ambari_db)
 
     sys.stdout = sys.__stdout__
@@ -428,7 +432,7 @@ class TestSetupSso(unittest.TestCase):
     self.assertTrue(isinstance(requestData, dict))
     ssoProperties = requestData['Configuration']['properties'];
     properties_updated_in_ambari_db = sorted(ssoProperties.iteritems(), key=operator.itemgetter(0))
-    properties_should_be_updated_in_ambari_db = sorted({"ambari.sso.enabled_services": "HDFS, ZOOKEPER"}.iteritems(), key=operator.itemgetter(0))
+    properties_should_be_updated_in_ambari_db = sorted({"ambari.sso.enabled_services": "Ambari, HDFS, ZOOKEPER", "ambari.sso.manage_services": "true"}.iteritems(), key=operator.itemgetter(0))
     self.assertEqual(properties_should_be_updated_in_ambari_db, properties_updated_in_ambari_db)
 
     sys.stdout = sys.__stdout__
