@@ -9,7 +9,7 @@ __all__ = ['TornadoWebSocketClient']
 
 class TornadoWebSocketClient(WebSocketBaseClient):
     def __init__(self, url, protocols=None, extensions=None,
-                 io_loop=None, ssl_options=None, headers=None):
+                 io_loop=None, ssl_options=None, headers=None, exclude_headers=None):
         """
         .. code-block:: python
 
@@ -32,7 +32,7 @@ class TornadoWebSocketClient(WebSocketBaseClient):
             ioloop.IOLoop.instance().start()
         """
         WebSocketBaseClient.__init__(self, url, protocols, extensions,
-                                     ssl_options=ssl_options, headers=headers)
+                                     ssl_options=ssl_options, headers=headers, exclude_headers=exclude_headers)
         if self.scheme == "wss":
             self.sock = ssl.wrap_socket(self.sock, do_handshake_on_connect=False, **self.ssl_options)
             self._is_secure = True

@@ -162,10 +162,17 @@ class DBMSConfig(object):
     pass
 
   def ensure_jdbc_driver_installed(self, properties):
+    # check default driver is already in classpath, will be passed for postgres only, because its driver is built-in
+    is_driver_in_classpath = self._is_jdbc_driver_installed(properties)
+    if is_driver_in_classpath == 0:
+      return True
+
+    # check driver is available via driver path property
     server_jdbc_path = properties.get_property(JDBC_DRIVER_PATH_PROPERTY)
     if server_jdbc_path and os.path.isfile(server_jdbc_path):
       return True
 
+    # check driver is present by default driver path
     default_driver_path = self._get_default_driver_path(properties)
     if default_driver_path and os.path.isfile(default_driver_path):
       ambari_should_use_existing_default_jdbc = get_YN_input("Should ambari use existing default jdbc {0} [y/n] (y)? ".format(default_driver_path), True)
@@ -174,6 +181,9 @@ class DBMSConfig(object):
         update_properties(properties)
         return True
 
+    if get_silent():
+      print_error_msg(self.JDBC_DRIVER_INSTALL_MSG)
+      return False
     path_to_custom_jdbc_driver = get_validated_string_input("Enter full path to custom jdbc driver: ", None, None, None, False, False)
     if path_to_custom_jdbc_driver and os.path.isfile(path_to_custom_jdbc_driver):
       try:

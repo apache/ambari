@@ -56,7 +56,7 @@ class Message(object):
 
     def fragment(self, first=False, last=False, mask=False):
         """
-        Returns a :class:`ambari_ws4py.framing.Frame` bytes.
+        Returns a :class:`ws4py.framing.Frame` bytes.
 
         The behavior depends on the given flags:
 

@@ -18,13 +18,19 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationCategory.SSO_CONFIGURATION;
+import static org.apache.ambari.server.configuration.AmbariServerConfigurationKey.SSO_ENABED_SERVICES;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
@@ -49,11 +55,11 @@ import com.google.inject.Inject;
  * AmbariServerConfigurationHandler handles Ambari server specific configuration properties.
  */
 @StaticallyInject
-class AmbariServerConfigurationHandler extends RootServiceComponentConfigurationHandler {
+public class AmbariServerConfigurationHandler extends RootServiceComponentConfigurationHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerConfigurationHandler.class);
 
   @Inject
-  private static AmbariConfigurationDAO ambariConfigurationDAO;
+  static AmbariConfigurationDAO ambariConfigurationDAO;
 
   @Inject
   private static AmbariEventPublisher publisher;
@@ -187,5 +193,33 @@ class AmbariServerConfigurationHandler extends RootServiceComponentConfiguration
                                           boolean mergeExistingProperties, String operation,
                                           Map<String, Object> operationParameters) throws SystemException {
     throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName));
+  }
+
+  public SsoEnabledServices getSsoEnabledSevices() {
+    return new SsoEnabledServices(
+      ambariConfigurationDAO.findByCategory(SSO_CONFIGURATION.getCategoryName()).stream()
+      .filter(each -> SSO_ENABED_SERVICES.key().equalsIgnoreCase(each.getPropertyName()))
+      .findFirst()
+      .map(entity -> entity.getPropertyValue())
+      .orElse(""));
+  }
+
+  public static class SsoEnabledServices {
+    private final String commaSeparatedServices;
+
+    SsoEnabledServices(String commaSeparatedServices) {
+      this.commaSeparatedServices = commaSeparatedServices.trim();
+    }
+
+    public boolean contains(String serviceName) {
+      return "*".equals(commaSeparatedServices) || serviceList().contains(serviceName.toUpperCase());
+    }
+
+    private Set<String> serviceList() {
+      return Arrays.asList(commaSeparatedServices.split(",")).stream()
+        .map(String::trim)
+        .map(String::toUpperCase)
+        .collect(Collectors.toSet());
+    }
   }
 }

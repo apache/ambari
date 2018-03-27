@@ -24,21 +24,20 @@ import re
 import ambari_simplejson as json
 
 from ambari_commons.os_check import OSCheck
+from ambari_commons.shell import RepoCallContext
 from ambari_commons.str_utils import cbool, cint
+from ambari_commons.repo_manager import ManagerFactory
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources import Package
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
 from resource_management.libraries.functions.repo_version_history \
     import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
-from resource_management.core.providers import get_provider
 from resource_management.core.resources.system import Link
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.repository_util import CommandRepository
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.resources.repository import Repository
 from resource_management.libraries.script.script import Script
 from resource_management.core import sudo
 
@@ -56,9 +55,8 @@ class InstallPackages(Script):
   def __init__(self):
     super(InstallPackages, self).__init__()
 
-    self.pkg_provider = get_provider("Package")
+    self.repo_mgr = ManagerFactory.get()
     self.repo_files = {}
-
 
   def actionexecute(self, env):
     num_errors = 0
@@ -121,8 +119,8 @@ class InstallPackages(Script):
 
     try:
       # check package manager non-completed transactions
-      if self.pkg_provider.check_uncompleted_transactions():
-        self.pkg_provider.print_uncompleted_transaction_hint()
+      if self.repo_mgr.check_uncompleted_transactions():
+        self.repo_mgr.print_uncompleted_transaction_hint()
         num_errors += 1
     except Exception as e:  # we need to ignore any exception
       Logger.warning("Failed to check for uncompleted package manager transactions: " + str(e))
@@ -231,7 +229,6 @@ class InstallPackages(Script):
     if self.stack_name.upper() == "HDF" \
             and not sudo.path_exists("/usr/bin/conf-select") and sudo.path_exists("/usr/bin/hdfconf-select"):
       Link("/usr/bin/conf-select", to="/usr/bin/hdfconf-select")
-
 
     restricted_packages = conf_select.get_restricted_packages()
 
@@ -398,34 +395,35 @@ class InstallPackages(Script):
         if repo_id in self.repo_files:
           repos_to_use[repo_id] = self.repo_files[repo_id]
 
-      Package(stack_selector_package,
-        action="upgrade",
+      self.repo_mgr.upgrade_package(stack_selector_package, RepoCallContext(
         use_repos=repos_to_use,
         retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-        retry_count=agent_stack_retry_count)
-      
-      packages_installed_before = self.pkg_provider.all_installed_packages()
+        retry_count=agent_stack_retry_count))
+
+      packages_installed_before = self.repo_mgr.installed_packages()
       packages_installed_before = [package[0] for package in packages_installed_before]
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       try:
-        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(command_repos)
+        available_packages_in_repos = self.repo_mgr.get_available_packages_in_repos(command_repos)
       except Exception:
         available_packages_in_repos = []
       for package in filtered_package_list:
         name = self.get_package_from_available(package['name'], available_packages_in_repos)
-        Package(name,
-          action="upgrade", # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated     
+
+        # This enables upgrading non-versioned packages, despite the fact they exist.
+        # Needed by 'mahout' which is non-version but have to be updated
+        self.repo_mgr.upgrade_package(name, RepoCallContext(
           retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
           retry_count=agent_stack_retry_count
-        )
+        ))
     except Exception as err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))
 
       # Remove already installed packages in case of fail
       if packages_were_checked and packages_installed_before:
-        packages_installed_after = self.pkg_provider.all_installed_packages()
+        packages_installed_after = self.repo_mgr.installed_packages()
         packages_installed_after = [package[0] for package in packages_installed_after]
         packages_installed_before = set(packages_installed_before)
         new_packages_installed = [package for package in packages_installed_after if package not in packages_installed_before]
@@ -438,9 +436,9 @@ class InstallPackages(Script):
 
         for package in new_packages_installed:
           if package_version_string and (package_version_string in package):
-            Package(package, action="remove")
+            self.repo_mgr.remove_package(package, RepoCallContext())
 
-    if not self.pkg_provider.verify_dependencies():
+    if not self.repo_mgr.verify_dependencies():
       ret_code = 1
       Logger.logger.error("Failure while verifying dependencies")
       Logger.logger.error("*******************************************************************************")

@@ -171,7 +171,7 @@ public class IPAKerberosOperationHandler extends KDCKerberosOperationHandler {
     } else {
       String principalName = deconstructedPrincipal.getPrincipalName();
 
-      if (!principalName.equals(principal.toLowerCase())) {
+      if (!principalName.equals(principalName.toLowerCase())) {
         LOG.warn("{} is not in lowercase. FreeIPA does not recognize user " +
             "principals that are not entirely in lowercase. This can lead to issues with kinit and keytabs. Make " +
             "sure users are in lowercase.", principalName);
@@ -185,6 +185,8 @@ public class IPAKerberosOperationHandler extends KDCKerberosOperationHandler {
           "--first",
           deconstructedPrincipal.getPrimary(),
           "--last",
+          deconstructedPrincipal.getPrimary(),
+          "--cn",
           deconstructedPrincipal.getPrimary()
       };
     }

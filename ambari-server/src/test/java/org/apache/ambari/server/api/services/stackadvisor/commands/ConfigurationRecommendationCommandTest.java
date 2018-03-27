@@ -44,7 +44,7 @@ public class ConfigurationRecommendationCommandTest {
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     File file = mock(File.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(file, "1w", ServiceInfo.ServiceAdvisorType.PYTHON, 1, saRunner, metaInfo);
+    ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(file, "1w", ServiceInfo.ServiceAdvisorType.PYTHON, 1, saRunner, metaInfo, null);
 
     StackAdvisorRequest request = mock(StackAdvisorRequest.class);
     Map<String, Set<String>> componentHostGroupMap = new HashMap<>();
