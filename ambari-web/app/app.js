@@ -250,7 +250,7 @@ module.exports = Em.Application.create({
 
   hasNameNodeFederation: function () {
     return App.HDFSService.find().objectAt(0).get('masterComponentGroups.length') > 1;
-  }.property('router.clusterController.isHDFSNameSpacesLoaded'),
+  }.property('router.clusterController.isHostComponentMetricsLoaded', 'router.clusterController.isHDFSNameSpacesLoaded'),
 
   /**
    * If ResourceManager High Availability is enabled

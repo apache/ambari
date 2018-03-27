@@ -403,7 +403,7 @@ module.exports = App.WizardRoute.extend({
     back: Em.Router.transitionTo('step6'),
     complete: function (router, context) {
       var addServiceController = router.get('addServiceController');
-      addServiceController.get('popup').onClose();
+      addServiceController.get('popup').onPrimary();
     }
   }),
 

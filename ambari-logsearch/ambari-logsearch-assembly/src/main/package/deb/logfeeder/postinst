@@ -21,7 +21,7 @@ LOGFEEDER_CONF_LINK="/etc/ambari-logsearch-logfeeder/conf"
 LOGFEEDER_CONF_SOURCE="/usr/lib/ambari-logsearch-logfeeder/conf"
 
 ln -s $LOGFEEDER_SCRIPT_SOURCE $LOGFEEDER_SCRIPT_LINK_NAME
-ln -s $LOGFEEDER_CONF_SOURCE $LOGFEEDER_CONF_LINK
+#ln -s $LOGFEEDER_CONF_SOURCE $LOGFEEDER_CONF_LINK
 
 # handle old checkpoint & keys folder
 

@@ -41,13 +41,6 @@ class TestAlertSchedulerHandler(TestCase):
   def setUp(self):
     self.config = AmbariConfig()
 
-  def test_load_definitions(self):
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None)
-
-    definitions = scheduler._AlertSchedulerHandler__load_definitions()
-
-    self.assertEquals(len(definitions), 1)
-
   @patch("ambari_commons.network.reconfigure_urllib2_opener")
   def test_job_context_injector(self, reconfigure_urllib2_opener_mock):
     self.config.use_system_proxy_setting = lambda: False
@@ -302,7 +295,8 @@ class TestAlertSchedulerHandler(TestCase):
   def test_load_definitions_noFile(self):
     initializer_module = InitializerModule()
     initializer_module.init()
-    
+    initializer_module.alert_definitions_cache.rewrite_cluster_cache('0', {'alertDefinitions':[]})
+
     scheduler = AlertSchedulerHandler(initializer_module)
     #('wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', None, self.config, None)
     scheduler._AlertSchedulerHandler__config_maps = {

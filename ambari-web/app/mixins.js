@@ -32,6 +32,7 @@ require('mixins/common/track_request_mixin');
 require('mixins/common/loading_overlay_support');
 require('mixins/main/dashboard/widgets/editable');
 require('mixins/main/dashboard/widgets/editable_with_limit');
+require('mixins/main/dashboard/widgets/namenode_widget');
 require('mixins/main/dashboard/widgets/single_numeric_threshold');
 require('mixins/main/host/details/host_components/decommissionable');
 require('mixins/main/host/details/host_components/install_component');

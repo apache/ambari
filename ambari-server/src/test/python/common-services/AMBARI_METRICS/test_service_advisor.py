@@ -26,13 +26,18 @@ from mock.mock import patch, MagicMock
 
 class TestAMBARI_METRICS010ServiceAdvisor(TestCase):
 
-  testDirectory = os.path.dirname(os.path.abspath(__file__))
-  stack_advisor_path = os.path.join(testDirectory, '../../../../main/resources/stacks/stack_advisor.py')
+  test_directory = os.path.dirname(os.path.abspath(__file__))
+  resources_path = os.path.join(test_directory, '../../../../main/resources')
+
+  ambari_configuration_path = os.path.abspath(os.path.join(resources_path, 'stacks/ambari_configuration.py'))
+  with open(ambari_configuration_path, 'rb') as fp:
+    imp.load_module('ambari_configuration', fp, ambari_configuration_path, ('.py', 'rb', imp.PY_SOURCE))
+
+  stack_advisor_path = os.path.join(resources_path, 'stacks/stack_advisor.py')
   with open(stack_advisor_path, 'rb') as fp:
     imp.load_module('stack_advisor', fp, stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
 
-  serviceAdvisorPath = '../../../../main/resources/common-services/AMBARI_METRICS/0.1.0/service_advisor.py'
-  ambariMetrics010ServiceAdvisorPath = os.path.join(testDirectory, serviceAdvisorPath)
+  ambariMetrics010ServiceAdvisorPath = os.path.join(resources_path, 'common-services/AMBARI_METRICS/0.1.0/service_advisor.py')
   with open(ambariMetrics010ServiceAdvisorPath, 'rb') as fp:
     service_advisor_impl = imp.load_module('service_advisor_impl', fp, ambariMetrics010ServiceAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
 

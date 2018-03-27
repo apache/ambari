@@ -31,12 +31,6 @@
   <description>Service Advisor</description>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-assembly-plugin</artifactId>
-      <version>2.6</version>
-    </dependency>
-
     <!-- Log Factory logging
     The main class is expected to write to stdout and stderr appropriately.
     -->

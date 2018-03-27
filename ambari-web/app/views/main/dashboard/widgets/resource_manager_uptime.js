@@ -21,6 +21,6 @@ var App = require('app');
 App.ResourceManagerUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
   component: 'ResourceManager',
-  modelField: 'resourceManagerStartTime'
+  modelValue: Em.computed.alias('model.resourceManagerStartTime')
 
 });

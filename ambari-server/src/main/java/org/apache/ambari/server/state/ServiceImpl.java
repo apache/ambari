@@ -40,6 +40,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -88,6 +89,8 @@ public class ServiceImpl implements Service {
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
+  private final boolean ssoIntegrationSupported;
+  private final String ssoEnabledConfiguration;
   private AmbariMetaInfo ambariMetaInfo;
   private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
@@ -96,6 +99,12 @@ public class ServiceImpl implements Service {
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
+  @Inject
+  private ConfigHelper configHelper;
+
+  @Inject
+  private AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -197,6 +206,8 @@ public class ServiceImpl implements Service {
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
+    ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
+    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
 
     persist(serviceEntity);
   }
@@ -252,6 +263,8 @@ public class ServiceImpl implements Service {
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
+    ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
+    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
   }
 
 
@@ -517,7 +530,8 @@ public class ServiceImpl implements Service {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
         getServiceId(), getName(), getServiceType(), serviceGroup.getStackId(), module.getVersion(),
-        getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
+        getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
+        ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -911,5 +925,23 @@ public class ServiceImpl implements Service {
   // Refresh the cached reference on setters
   private ServiceDesiredStateEntity getServiceDesiredStateEntity() {
     return serviceDesiredStateDAO.findByPK(serviceDesiredStateEntityPK);
+  }
+
+  public boolean isSsoIntegrationDesired() {
+    return ambariServerConfigurationHandler.getSsoEnabledSevices().contains(serviceName);
+  }
+
+  public boolean isSsoIntegrationEnabled() {
+    return ssoIntegrationSupported && ssoEnabledConfigValid() && "true".equalsIgnoreCase(ssoEnabledConfigValue());
+  }
+
+  private boolean ssoEnabledConfigValid() {
+    return ssoEnabledConfiguration != null && ssoEnabledConfiguration.split("/").length == 2;
+  }
+
+  private String ssoEnabledConfigValue() {
+    String configType = ssoEnabledConfiguration.split("/")[0];
+    String propertyName = ssoEnabledConfiguration.split("/")[1];
+    return configHelper.getValueFromDesiredConfigurations(cluster, configType, propertyName);
   }
 }

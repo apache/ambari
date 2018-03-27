@@ -85,17 +85,17 @@ public class LogFeederProps implements LogFeederProperties {
   @LogSearchPropertyDescription(
     name = LogFeederConstants.CONFIG_DIR_PROPERTY,
     description = "The directory where shipper configuration files are looked for.",
-    examples = {"/etc/ambari-logsearch-logfeeder/conf"},
-    defaultValue = "etc/ambari-logsearch-logfeeder/conf",
+    examples = {"/usr/lib/ambari-logsearch-logfeeder/conf"},
+    defaultValue = "/usr/lib/ambari-logsearch-logfeeder/conf",
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
-  @Value("${"+ LogFeederConstants.CONFIG_DIR_PROPERTY + ":/etc/ambari-logsearch-logfeeder/conf}")
+  @Value("${"+ LogFeederConstants.CONFIG_DIR_PROPERTY + ":/usr/lib/ambari-logsearch-logfeeder/conf}")
   private String confDir;
 
   @LogSearchPropertyDescription(
     name = LogFeederConstants.CONFIG_FILES_PROPERTY,
     description = "Comma separated list of the config files containing global / output configurations.",
-    examples = {"global.json,output.json", "/etc/ambari-logsearch-logfeeder/conf/global.json"},
+    examples = {"global.json,output.json", "/usr/lib/ambari-logsearch-logfeeder/conf/global.config.json"},
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
   @Value("${"+ LogFeederConstants.CONFIG_FILES_PROPERTY + ":}")
@@ -114,10 +114,10 @@ public class LogFeederProps implements LogFeederProperties {
   @LogSearchPropertyDescription(
     name = LogFeederConstants.CHECKPOINT_FOLDER_PROPERTY,
     description = "The folder where checkpoint files are stored.",
-    examples = {"/etc/ambari-logsearch-logfeeder/conf/checkpoints"},
+    examples = {"/usr/lib/ambari-logsearch-logfeeder/conf/checkpoints"},
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
-  @Value("${" + LogFeederConstants.CHECKPOINT_FOLDER_PROPERTY + ":/etc/ambari-logsearch-logfeeder/conf/checkpoints}")
+  @Value("${" + LogFeederConstants.CHECKPOINT_FOLDER_PROPERTY + ":/usr/lib/ambari-logsearch-logfeeder/conf/checkpoints}")
   public String checkpointFolder;
 
   @Inject

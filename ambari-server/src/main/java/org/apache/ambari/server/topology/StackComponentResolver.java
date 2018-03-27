@@ -95,8 +95,8 @@ public class StackComponentResolver implements ComponentResolver {
       .append(" found for component ").append(comp.getName())
       .append(" in host group " ).append(hg.getName());
 
-    if (!Strings.isNullOrEmpty(comp.getMpackInstance())) {
-      sb.append(" mpack: ").append(comp.getMpackInstance());
+    if (!Strings.isNullOrEmpty(comp.getStackIdAsString())) {
+      sb.append(" mpack: ").append(comp.getStackIdAsString());
     }
     if (!Strings.isNullOrEmpty(comp.getServiceInstance())) {
       sb.append(" service: ").append(comp.getServiceInstance());
@@ -113,7 +113,7 @@ public class StackComponentResolver implements ComponentResolver {
     Map<String, Map<String, ServiceInstance>> mpackServices, Map<String, ServiceInstance> uniqueServices
   ) {
     if (!Strings.isNullOrEmpty(comp.getServiceInstance())) {
-      String mpackName = comp.getMpackInstance();
+      String mpackName = comp.getStackIdAsString();
       Map<String, ServiceInstance> services = !Strings.isNullOrEmpty(mpackName)
         ? mpackServices.get(mpackName)
         : uniqueServices;
@@ -131,10 +131,9 @@ public class StackComponentResolver implements ComponentResolver {
 
   // if component references a specific mpack instance, filter the stream by the name of that mpack
   private static Stream<Pair<StackId, ServiceInfo>> filterByMpackName(Component comp, Stream<Pair<StackId, ServiceInfo>> stream) {
-    if (!Strings.isNullOrEmpty(comp.getMpackInstance())) {
-      return stream.filter(pair -> pair.getLeft().getStackName().equals(comp.getMpackInstance()));
+    if (comp.getStackId() != null) {
+      return stream.filter(pair -> pair.getLeft().equals(comp.getStackId()));
     }
-
     return stream;
   }
 
