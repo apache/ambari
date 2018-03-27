@@ -34,7 +34,7 @@ class AgentActionsListener(EventListener):
   ACTION_NAME = 'actionName'
   RESTART_AGENT_ACTION = 'RESTART_AGENT'
   
-  def __init(self, initializer_module):
+  def __init__(self, initializer_module):
     self.initializer_module = initializer_module
     self.stop_event = initializer_module.stop_event
 
