@@ -39,7 +39,10 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.rest.AgentResource;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.MethodOverrideFilter;
@@ -912,6 +915,10 @@ public class AmbariServer {
 
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    HostResourceProvider.setRecoveryConfigHelper(injector.getInstance(RecoveryConfigHelper.class));
+    HostResourceProvider.setHostLevelParamsHolder(injector.getInstance(HostLevelParamsHolder.class));
+    HostResourceProvider.setTopologyHolder(injector.getInstance(TopologyHolder.class));
+
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
