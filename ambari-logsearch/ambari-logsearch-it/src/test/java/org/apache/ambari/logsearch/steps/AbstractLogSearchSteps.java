@@ -49,9 +49,11 @@ public class AbstractLogSearchSteps {
       URL location = LogSearchDockerSteps.class.getProtectionDomain().getCodeSource().getLocation();
       String ambariFolder = new File(location.toURI()).getParentFile().getParentFile().getParentFile().getParent();
       StoryDataRegistry.INSTANCE.setAmbariFolder(ambariFolder);
-      String shellScriptLocation = ambariFolder + "/ambari-logsearch/docker/logsearch-docker.sh";
+      String scriptFolder = ambariFolder + "/ambari-logsearch/docker/";
+      StoryDataRegistry.INSTANCE.setShellScriptFolder(scriptFolder);
+      String shellScriptLocation = scriptFolder + "logsearch-docker.sh";
       StoryDataRegistry.INSTANCE.setShellScriptLocation(shellScriptLocation);
-      String output = runCommand(new String[]{StoryDataRegistry.INSTANCE.getShellScriptLocation(), "start"});
+      String output = runCommand(scriptFolder, new String[]{StoryDataRegistry.INSTANCE.getShellScriptLocation(), "start"});
       LOG.info("Command output: {}", output);
       StoryDataRegistry.INSTANCE.setLogsearchContainerStarted(true);
 
@@ -74,7 +76,7 @@ public class AbstractLogSearchSteps {
     for (int tries = 1; tries < maxTries; tries++) {
       try {
         SolrClient solrClient = new LBHttpSolrClient.Builder()
-          .withBaseSolrUrl(String.format("http://%s:%d/solr/%s_shard0_replica1",
+          .withBaseSolrUrl(String.format("http://%s:%d/solr/%s_shard0_replica_n1",
             StoryDataRegistry.INSTANCE.getDockerHost(),
             StoryDataRegistry.INSTANCE.getSolrPort(),
             StoryDataRegistry.INSTANCE.getServiceLogsCollection()))
@@ -105,6 +107,7 @@ public class AbstractLogSearchSteps {
     boolean solrHasData = false;
     int maxTries = 60;
     String lastExceptionMessage = null;
+
     for (int tries = 1; tries < maxTries; tries++) {
       try {
         SolrClient solrClient = StoryDataRegistry.INSTANCE.getSolrClient();
@@ -150,10 +153,10 @@ public class AbstractLogSearchSteps {
   }
 
 
-  protected String runCommand(String[] command) {
+  protected String runCommand(String location, String[] command) {
     try {
       LOG.info("Exec command: {}", StringUtils.join(command, " "));
-      Process process = Runtime.getRuntime().exec(command);
+      Process process = Runtime.getRuntime().exec(command, null, new File(location));
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       return reader.readLine();
     } catch (Exception e) {
