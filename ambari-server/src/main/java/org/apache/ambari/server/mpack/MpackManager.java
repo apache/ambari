@@ -135,6 +135,7 @@ public class MpackManager {
                   existingMpack.setResourceId(mpackEntity.getId());
                   existingMpack.setMpackUri(mpackEntity.getMpackUri());
                   existingMpack.setRegistryId(mpackEntity.getRegistryId());
+                  existingMpack.populateModuleMap();
 
                   RepositoryXml repositoryXml = RepoUtil.getRepositoryXml(file);
                   if (null == repositoryXml) {
@@ -262,6 +263,7 @@ public class MpackManager {
     //Read the mpack.json file into Mpack Object for further use.
     Gson gson = new Gson();
     Mpack mpack = gson.fromJson(new FileReader(targetPath.toString()), Mpack.class);
+    mpack.populateModuleMap();
     return mpack;
   }
 
