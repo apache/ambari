@@ -148,7 +148,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
       configuration_attributes=plugin_audit_attributes,
       owner = component_user,
       group = component_group,
-      mode=0744)
+      mode=0644)
 
     XmlConfig(format('ranger-{service_name}-security.xml'),
       conf_dir=component_conf_dir,
@@ -156,7 +156,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
       configuration_attributes=plugin_security_attributes,
       owner = component_user,
       group = component_group,
-      mode=0744)
+      mode=0644)
 
     # remove plain-text password from xml configs
     plugin_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
@@ -174,7 +174,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
-        mode=0744) 
+        mode=0644)
     else:
       XmlConfig("ranger-policymgr-ssl.xml",
         conf_dir=component_conf_dir,
@@ -182,7 +182,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
-        mode=0744) 
+        mode=0644)
 
     # creating symblink should be done by rpm package
     # setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
