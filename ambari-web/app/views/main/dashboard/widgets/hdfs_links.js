@@ -22,9 +22,9 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend(App.NameNodeWidgetMixin, 
 
   templateName: require('templates/main/dashboard/widgets/hdfs_links'),
 
-  activeNameNode: Em.computed.findByKey('model.activeNameNodes', 'haNameSpace', 'clusterId'),
+  activeNameNode: Em.computed.findByKey('model.activeNameNodes', 'haNameSpace', 'subGroupId'),
 
-  standbyNameNodes: Em.computed.filterByKey('model.standbyNameNodes', 'haNameSpace', 'clusterId'),
+  standbyNameNodes: Em.computed.filterByKey('model.standbyNameNodes', 'haNameSpace', 'subGroupId'),
 
   port: '50070',
 

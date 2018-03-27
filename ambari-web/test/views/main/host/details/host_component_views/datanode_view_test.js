@@ -41,7 +41,7 @@ describe('App.DataNodeComponentView', function () {
       this.stub.returns([
         Em.Object.create({
           snameNode: null,
-          activeNameNode: null,
+          activeNameNodes: [],
           nameNode: {hostName: 'host1'}
         })
       ]);
@@ -49,7 +49,7 @@ describe('App.DataNodeComponentView', function () {
       var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_status_datanode');
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
-        "hostName": "host1",
+        "hostNames": "host1",
         "componentName": "NAMENODE"
       });
     });
@@ -58,7 +58,7 @@ describe('App.DataNodeComponentView', function () {
       this.stub.returns([
         Em.Object.create({
           snameNode: {},
-          activeNameNode: null,
+          activeNameNodes: [],
           nameNode: {hostName: 'host1'}
         })
       ]);
@@ -66,7 +66,7 @@ describe('App.DataNodeComponentView', function () {
       var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_status_datanode');
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
-        "hostName": "host1",
+        "hostNames": "host1",
         "componentName": "NAMENODE"
       });
     });
@@ -75,7 +75,7 @@ describe('App.DataNodeComponentView', function () {
       this.stub.returns([
         Em.Object.create({
           snameNode: null,
-          activeNameNode: {hostName: 'host2'},
+          activeNameNodes: [{hostName: 'host2'}],
           nameNode: {hostName: 'host1'}
         })
       ]);
@@ -83,7 +83,7 @@ describe('App.DataNodeComponentView', function () {
       var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_status_datanode');
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
-        "hostName": "host2",
+        "hostNames": "host2",
         "componentName": "NAMENODE"
       });
     });
@@ -100,24 +100,24 @@ describe('App.DataNodeComponentView', function () {
     });
     it("metric null", function () {
       var data = {
-        metrics: {
-          dfs: {
-            namenode: null
-          }
-        }
+        items: null
       };
-      expect(view.getDNDecommissionStatusSuccessCallback(data)).to.equal(null);
+      view.getDNDecommissionStatusSuccessCallback(data);
       expect(view.computeStatus.calledOnce).to.be.false;
     });
     it("metric valid", function () {
       var data = {
-        metrics: {
-          dfs: {
-            namenode: "status"
+        items: [
+          {
+            metrics: {
+              dfs: {
+                namenode: "status"
+              }
+            }
           }
-        }
+        ]
       };
-      expect(view.getDNDecommissionStatusSuccessCallback(data)).to.equal("status");
+      view.getDNDecommissionStatusSuccessCallback(data);
       expect(view.computeStatus.calledOnce).to.be.true;
     });
   });
@@ -169,9 +169,7 @@ describe('App.DataNodeComponentView', function () {
     var testCases = [
       {
         title: 'No live nodes',
-        data: {
-          curObj: {},
-        },
+        data: [],
         result: {
           getDesiredAdminStateCalled: true,
           status: "",
@@ -180,15 +178,22 @@ describe('App.DataNodeComponentView', function () {
       },
       {
         title: 'Live nodes In Service',
-        data: {
-          "curObj": {
+        data: [
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "In Service"
+              }
+            }
+          },
+          {
             "LiveNodes": {
               "host1": {
                 "adminState": "In Service"
               }
             }
           }
-        },
+        ],
         result: {
           getDesiredAdminStateCalled: false,
           status: "INSERVICE",
@@ -197,15 +202,84 @@ describe('App.DataNodeComponentView', function () {
       },
       {
         title: 'Live nodes In Progress',
-        data: {
-          "curObj": {
+        data: [
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommission In Progress"
+              }
+            }
+          },
+          {
             "LiveNodes": {
               "host1": {
                 "adminState": "Decommission In Progress"
               }
             }
           }
-        },
+        ],
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "DECOMMISSIONING",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'Live nodes In Progress with some In Service',
+        data: [
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommission In Progress"
+              }
+            }
+          },
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommission In Progress"
+              }
+            }
+          },
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "In Service"
+              }
+            }
+          }
+        ],
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "DECOMMISSIONING",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'Live nodes In Progress with some Decommissioned',
+        data: [
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommission In Progress"
+              }
+            }
+          },
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommission In Progress"
+              }
+            }
+          },
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommissioned"
+              }
+            }
+          }
+        ],
         result: {
           getDesiredAdminStateCalled: false,
           status: "DECOMMISSIONING",
@@ -214,15 +288,22 @@ describe('App.DataNodeComponentView', function () {
       },
       {
         title: 'Live nodes Decommissioned',
-        data: {
-          "curObj": {
+        data: [
+          {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommissioned"
+              }
+            }
+          },
+          {
             "LiveNodes": {
               "host1": {
                 "adminState": "Decommissioned"
               }
             }
           }
-        },
+        ],
         result: {
           getDesiredAdminStateCalled: false,
           status: "DECOMMISSIONED",
@@ -232,14 +313,14 @@ describe('App.DataNodeComponentView', function () {
     ];
     testCases.forEach(function (test) {
       it(test.title, function () {
-        view.computeStatus(test.data.curObj);
+        view.computeStatus(test.data);
         expect(view.getDesiredAdminState.called).to.equal(test.result.getDesiredAdminStateCalled);
         expect(view.setStatusAs.calledWith(test.result.status)).to.equal(test.result.setStatusAsCalled);
       });
     }, this);
-    it("data is null", function () {
-      view.computeStatus(null);
-      expect(view.getDesiredAdminState.called).to.be.false;
+    it("empty data", function () {
+      view.computeStatus([]);
+      expect(view.getDesiredAdminState.called).to.be.true;
       expect(view.setStatusAs.called).to.be.false;
     });
   });
