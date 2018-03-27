@@ -16,7 +16,7 @@
 -->
 <ng-template #listItem let-item let-isMultipleChoice="isMultipleChoice">
   <li [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
-      [attr.role]="item.isDivider ? 'separator' : null">
+      [attr.role]="item.isDivider ? 'separator' : null" [class]="(item.cssClass || '')">
     <ng-container *ngIf="!item.isDivider">
       <label class="list-item-label" *ngIf="isMultipleChoice">
         <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
