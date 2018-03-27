@@ -65,6 +65,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -369,27 +370,13 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         }
         osFamily = clusters.getHost(hostName).getOsFamily();
 
-        TreeMap<String, String> hostLevelParams = new TreeMap<>();
-        StageUtils.useStackJdkIfExists(hostLevelParams, configs);
-        hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
-        hostLevelParams.put(STACK_NAME, stackId.getStackName());
-        hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
-        hostLevelParams.put(DB_NAME, managementController.getServerDB());
-        hostLevelParams.put(MYSQL_JDBC_URL, managementController.getMysqljdbcUrl());
-        hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
-        hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
-        hostLevelParams.putAll(managementController.getRcaParameters());
-        hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
-        hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
-        hostLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
-
         // Write down os specific info for the service
         ServiceOsSpecific anyOs = null;
         if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
           anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
         }
 
-        ServiceOsSpecific hostOs = populateServicePackagesInfo(serviceInfo, hostLevelParams, osFamily);
+        ServiceOsSpecific hostOs = populateServicePackagesInfo(serviceInfo, osFamily);
 
         // Build package list that is relevant for host
         List<ServiceOsSpecific.Package> packages =
@@ -402,25 +389,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           packages.addAll(hostOs.getPackages());
         }
         String packageList = gson.toJson(packages);
-
-        Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredClusterConfigs);
-        String userList = gson.toJson(userSet);
-        hostLevelParams.put(USER_LIST, userList);
-
-        //Create a user_group mapping and send it as part of the hostLevelParams
-        Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
-          stackId, cluster, desiredClusterConfigs);
-        String userGroups = gson.toJson(userGroupsMap);
-        hostLevelParams.put(USER_GROUPS,userGroups);
-
-        Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredClusterConfigs);
-        String groupList = gson.toJson(groupSet);
-        hostLevelParams.put(GROUP_LIST, groupList);
-
-        Map<org.apache.ambari.server.state.PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredClusterConfigs);
-        Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
-        String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-        hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
         String jsonConfigurations = null;
         Map<String, Object> commandParams = new HashMap<>();
@@ -441,6 +409,18 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           }
         }
 
+        TreeMap<String, String> clusterLevelParams = null;
+        TreeMap<String, String> ambariLevelParams = null;
+        if (getManagementController() instanceof AmbariManagementControllerImpl){
+          AmbariManagementControllerImpl controller = ((AmbariManagementControllerImpl)getManagementController());
+          clusterLevelParams = controller.getMetadataClusterLevelParams(cluster, stackId);
+          ambariLevelParams = controller.getMetadataAmbariLevelParams();
+        }
+        TreeMap<String, String> agentLevelParams = new TreeMap<>();
+        agentLevelParams.put("hostname", hostName);
+        agentLevelParams.put("public_hostname", publicHostName);
+        agentLevelParams.put("agentCacheDir", "/var/lib/ambari-agent/cache");
+
         commandParams.put(PACKAGE_LIST, packageList);
         commandParams.put("xml_configs_list", xmlConfigs);
         commandParams.put("env_configs_list", envConfigs);
@@ -452,7 +432,9 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("configuration_attributes", configurationAttributes);
         jsonContent.put("commandParams", commandParams);
         jsonContent.put("clusterHostInfo", clusterHostInfo);
-        jsonContent.put("hostLevelParams", hostLevelParams);
+        jsonContent.put("ambariLevelParams", ambariLevelParams);
+        jsonContent.put("clusterLevelParams", clusterLevelParams);
+        jsonContent.put("agentLevelParams", agentLevelParams);
         jsonContent.put("hostname", hostName);
         jsonContent.put("public_hostname", publicHostName);
         jsonContent.put("clusterName", cluster.getClusterName());
@@ -926,19 +908,12 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   }
 
 
-  protected ServiceOsSpecific populateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
-                                                          String osFamily) {
+  protected ServiceOsSpecific populateServicePackagesInfo(ServiceInfo serviceInfo, String osFamily) {
     ServiceOsSpecific hostOs = new ServiceOsSpecific(osFamily);
     List<ServiceOsSpecific> foundedOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
     if (!foundedOSSpecifics.isEmpty()) {
       for (ServiceOsSpecific osSpecific : foundedOSSpecifics) {
         hostOs.addPackages(osSpecific.getPackages());
-      }
-      // Choose repo that is relevant for host
-      ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
-      if (serviceRepo != null) {
-        String serviceRepoInfo = gson.toJson(serviceRepo);
-        hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
       }
     }
 
