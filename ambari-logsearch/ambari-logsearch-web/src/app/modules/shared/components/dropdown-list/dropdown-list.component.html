@@ -14,6 +14,28 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+<ng-template #listItem let-item let-isMultipleChoice="isMultipleChoice">
+  <li [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
+      [attr.role]="item.isDivider ? 'separator' : null">
+    <ng-container *ngIf="!item.isDivider">
+      <label class="list-item-label" *ngIf="isMultipleChoice">
+        <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
+               (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked}, $event)">
+        <label [attr.for]="item.id || item.value" class="label-container">
+          <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
+          {{item.label | translate}}
+          <span #additionalComponent></span>
+        </label>
+      </label>
+      <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item, $event)">
+        <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
+        {{item.label | translate}}
+        <span #additionalComponent></span>
+      </span>
+    </ng-container>
+  </li>
+</ng-template>
+
 <li *ngIf="useLocalFilter" class="filter">
   <input #filter [value]="filterStr" (keyup)="onFilterInputKeyUp($event)" class="form-control">
   <i class="fa fa-search"></i>
@@ -33,42 +55,14 @@
   <span>{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
   <a href="#" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>
 </li>
-<li *ngFor="let item of itemsSelected" [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
-    [attr.role]="item.isDivider ? 'separator' : null">
-  <ng-container *ngIf="!item.isDivider">
-    <label class="list-item-label" *ngIf="isMultipleChoice">
-      <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
-             (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked})">
-      <label [attr.for]="item.id || item.value" class="label-container">
-        <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
-        {{item.label | translate}}
-        <span #additionalComponent></span>
-      </label>
-    </label>
-    <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item)">
-      <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
-      {{item.label | translate}}
-      <span #additionalComponent></span>
-    </span>
-  </ng-container>
-</li>
+
+<ng-container *ngFor="let item of itemsSelected">
+  <ng-container
+    *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+</ng-container>
+
 <li *ngIf="itemsSelected.length && itemsUnSelected.length" class="divider"></li>
-<li *ngFor="let item of itemsUnSelected" [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
-    [attr.role]="item.isDivider ? 'separator' : null">
-  <ng-container *ngIf="!item.isDivider">
-    <label class="list-item-label" *ngIf="isMultipleChoice">
-      <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
-             (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked})">
-      <label [attr.for]="item.id || item.value" class="label-container">
-        <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
-        {{item.label | translate}}
-        <span #additionalComponent></span>
-      </label>
-    </label>
-    <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item)">
-      <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
-      {{item.label | translate}}
-      <span #additionalComponent></span>
-    </span>
-  </ng-container>
-</li>
+<ng-container *ngFor="let item of itemsUnSelected">
+  <ng-container
+    *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+</ng-container>

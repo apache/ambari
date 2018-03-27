@@ -59,6 +59,9 @@ export class MenuButtonComponent {
   @Input()
   caretClass: string = 'fa-caret-down';
 
+  @Input()
+  useDropDownLocalFilter: boolean = false;
+
   /**
    * The minimum time to handle a mousedown as a longclick. Default is 500 ms (0.5sec)
    * @default 500

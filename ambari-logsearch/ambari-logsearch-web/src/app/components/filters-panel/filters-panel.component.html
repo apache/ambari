@@ -35,16 +35,19 @@
     <filter-button *ngIf="isFilterConditionDisplayed('hosts')" formControlName="hosts"
                    label="{{filters.hosts.label | translate}}" [iconClass]="filters.hosts.iconClass"
                    [subItems]="filters.hosts.options" [isMultipleChoice]="true" [isRightAlign]="true"
-                   additionalLabelComponentSetter="getDataForHostsNodeBar"></filter-button>
+                   additionalLabelComponentSetter="getDataForHostsNodeBar"
+                   [useDropDownLocalFilter]="true"></filter-button>
     <filter-button *ngIf="isFilterConditionDisplayed('users')" formControlName="users"
                    label="{{filters.users.label | translate}}" [iconClass]="filters.users.iconClass"
-                   [subItems]="filters.users.options" [isMultipleChoice]="true" [isRightAlign]="true"></filter-button>
-    <filter-button *ngIf="isFilterConditionDisplayed('components')" formControlName="components"
+                   [subItems]="filters.users.options" [isMultipleChoice]="true" [isRightAlign]="true"
+                   [useDropDownLocalFilter]="true"></filter-button>
+    <filter-button *ngIf="isFilterConditionDisplayed('components')" formControlName="components"  [useDropDownLocalFilter]="true"
                    label="{{filters.components.label | translate}}" [iconClass]="filters.components.iconClass"
                    [subItems]="filters.components.options" [isMultipleChoice]="true" [isRightAlign]="true"
                    additionalLabelComponentSetter="getDataForComponentsNodeBar"></filter-button>
     <filter-button *ngIf="isFilterConditionDisplayed('levels')" formControlName="levels"
                    label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
-                   [subItems]="filters.levels.options" [isMultipleChoice]="true" [isRightAlign]="true"></filter-button>
+                   [subItems]="filters.levels.options" [isMultipleChoice]="true" [isRightAlign]="true"
+                   [useDropDownLocalFilter]="true"></filter-button>
   </div>
 </form>

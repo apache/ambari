@@ -27,5 +27,6 @@
       (selectedItemChange)="onDropdownItemChange($event)" [isMultipleChoice]="isMultipleChoice"
       [additionalLabelComponentSetter]="additionalLabelComponentSetter"
       [ngClass]="'dropdown-menu' + (isRightAlign ? ' dropdown-menu-right' : '') + (listClass ? ' ' + listClass : '')"
+      [useLocalFilter]="useDropDownLocalFilter"
   ></ul>
 </div>

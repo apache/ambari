@@ -38,6 +38,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   items: ListItem[] = [];
 
   private itemsSelected: ListItem[] = [];
+
   private itemsUnSelected: ListItem[] = [];
 
   @Input()
@@ -58,7 +59,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   containers: QueryList<ViewContainerRef>;
 
   @Input()
-  useLocalFilter = true;
+  useLocalFilter = false;
 
   @ViewChild('filter')
   filterRef: ElementRef;
@@ -74,8 +75,7 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
 
   constructor(
     private componentGenerator: ComponentGeneratorService,
-    private changeDetector: ChangeDetectorRef,
-    private translateService: TranslateService
+    private changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -145,8 +145,8 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
   }
 
   private renderAdditionalComponents(): void {
-    const setter = this.additionalLabelComponentSetter,
-      containers = this.containers;
+    const setter = this.additionalLabelComponentSetter;
+    const containers = this.containers;
     if (this.shouldRenderAdditionalComponents && setter && containers) {
       containers.forEach((container, index) => this.componentGenerator[setter](this.items[index].value, container));
       this.shouldRenderAdditionalComponents = false;
@@ -154,12 +154,16 @@ export class DropdownListComponent implements OnChanges, AfterViewChecked {
     }
   }
 
-  changeSelectedItem(options: ListItem): void {
+  changeSelectedItem(options: ListItem, event?: MouseEvent): void {
     if (options.onSelect) {
       options.onSelect(...this.actionArguments);
     }
     this.separateSelections();
     this.selectedItemChange.emit(options);
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 
 }
