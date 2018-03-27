@@ -60,7 +60,8 @@ public abstract class AmbariUpdateEvent {
     UI_ALERT_DEFINITIONS("events.alert_definitions"),
     ALERT_DEFINITIONS("alert_definitions"),
     UPGRADE("events.upgrade"),
-    COMMAND("events.commands");
+    COMMAND("events.commands"),
+    AGENT_ACTIONS("events.agentactions");
 
     /**
      * Is used to collect info about event appearing frequency.
