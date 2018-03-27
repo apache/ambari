@@ -8694,11 +8694,11 @@ class TestAmbariServer(TestCase):
 
     properties = Properties()
     timeout = get_web_server_startup_timeout(properties)
-    self.assertEquals(50, timeout)
+    self.assertEquals(90, timeout)
 
     properties.process_pair(WEB_SERVER_STARTUP_TIMEOUT, "")
     timeout = get_web_server_startup_timeout(properties)
-    self.assertEquals(50, timeout)
+    self.assertEquals(90, timeout)
 
     properties.process_pair(WEB_SERVER_STARTUP_TIMEOUT, "120")
     timeout = get_web_server_startup_timeout(properties)
