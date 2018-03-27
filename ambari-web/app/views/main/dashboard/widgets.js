@@ -46,7 +46,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     if (App.get('router.clusterController.isHDFSNameSpacesLoaded')) {
       let groups = [];
       const hdfsService = App.HDFSService.find().objectAt(0),
-        hdfsMasterGroups = hdfsService ? [] : hdfsService.get('masterComponentGroups');
+        hdfsMasterGroups = hdfsService ? hdfsService.get('masterComponentGroups') : [];
       this.removeObserver('App.router.clusterController.isHDFSNameSpacesLoaded', this, 'setWidgetGroups');
       if (hdfsMasterGroups.length > 1) {
         const nameSpacesListItems = hdfsMasterGroups.map(nameSpace => {
