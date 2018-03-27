@@ -116,7 +116,7 @@ module_name = config_helper.get_module_name(config)
 component_type = config_helper.get_component_type(config)
 component_instance_name = config_helper.get_component_instance_name(config)
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 stack_name = stack_name.lower()
 component_directory = "namenode"
 
