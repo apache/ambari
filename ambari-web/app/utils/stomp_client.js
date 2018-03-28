@@ -18,6 +18,18 @@
 
 var App = require('app');
 
+/**
+ * Example:
+ *
+ * stompClient.connect();
+ * stompClient.subscribe('topic1', handlerFunc1);
+ * stompClient.addHandler('topic1', 'handler2-name', handlerFunc2);
+ * stompClient.removeHandler('topic1', 'handler2-name');
+ * stompClient.unsubscribe('topic1');
+ * stompClient.disconnect();
+ *
+ */
+
 module.exports = Em.Object.extend({
   /**
    * @type {Stomp}
@@ -171,15 +183,20 @@ module.exports = Em.Object.extend({
     if (!this.get('client.connected')) {
       return null;
     }
-    const subscription = this.get('client').subscribe(destination, (message) => {
-      for (var i in handlers) {
-        handlers[i](JSON.parse(message.body));
-      }
-    });
-    subscription.destination = destination;
-    subscription.handlers = handlers;
-    this.get('subscriptions')[destination] = subscription;
-    return subscription;
+    if (this.get('subscriptions')[destination]) {
+      console.error(`Subscription with default handler for ${destination} already exists`);
+      return this.get('subscriptions')[destination];
+    } else {
+      const subscription = this.get('client').subscribe(destination, (message) => {
+        for (const i in handlers) {
+          handlers[i](JSON.parse(message.body));
+        }
+      });
+      subscription.destination = destination;
+      subscription.handlers = handlers;
+      this.get('subscriptions')[destination] = subscription;
+      return subscription;
+    }
   },
 
   /**

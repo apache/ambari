@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 var stompClientClass = require('utils/stomp_client');
 
 describe('App.StompClient', function () {
@@ -173,6 +172,13 @@ describe('App.StompClient', function () {
       stomp.set('client', client);
       expect(stomp.subscribe('foo')).to.be.null;
       expect(stomp.get('subscriptions')).to.be.empty;
+    });
+    it('should not subscribe when subscription already exist', function() {
+      stomp.set('client', {connected: true});
+      stomp.set('subscriptions', {
+        'foo': {}
+      });
+      expect(stomp.subscribe('foo')).to.be.eql({});
     });
     it('should subscribe when client connected', function() {
       var client = {
