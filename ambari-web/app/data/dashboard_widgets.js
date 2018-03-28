@@ -98,14 +98,16 @@ module.exports = [
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.HDFSLinks'),
     threshold: [],
-    groupName: 'nn'
+    groupName: 'nn',
+    isHiddenByDefault: true
   },
   {
     id: 12,
     viewName: 'HBaseLinksView',
     sourceName: 'HBASE',
     title: Em.I18n.t('dashboard.widgets.HBaseLinks'),
-    threshold: []
+    threshold: [],
+    isHiddenByDefault: true
   },
   {
     id: 13,
@@ -126,8 +128,7 @@ module.exports = [
     viewName: 'HBaseRegionsInTransitionView',
     sourceName: 'HBASE',
     title: Em.I18n.t('dashboard.widgets.HBaseRegionsInTransition'),
-    threshold: [3, 10],
-    isHiddenByDefault: true
+    threshold: [3, 10]
   },
   {
     id: 16,
@@ -148,7 +149,8 @@ module.exports = [
     viewName: 'ResourceManagerUptimeView',
     sourceName: 'YARN',
     title: Em.I18n.t('dashboard.widgets.ResourceManagerUptime'),
-    threshold: []
+    threshold: [],
+    isHiddenByDefault: true
   },
   {
     id: 19,
@@ -183,7 +185,8 @@ module.exports = [
     viewName: 'YARNLinksView',
     sourceName: 'YARN',
     title: Em.I18n.t('dashboard.widgets.YARNLinks'),
-    threshold: []
+    threshold: [],
+    isHiddenByDefault: true
   },
   {
     id: 24,
