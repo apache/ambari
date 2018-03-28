@@ -228,7 +228,7 @@
         <!--Stub execution on direct plugin call - workaround for ambari rpm build process-->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.1.5</version>
+        <version>2.0.1</version>
         <executions>
           <execution>
             <id>stub-execution</id>
@@ -251,7 +251,7 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.6</version>
+        <version>1.0.1</version>
         <executions>
           <execution>
             <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
