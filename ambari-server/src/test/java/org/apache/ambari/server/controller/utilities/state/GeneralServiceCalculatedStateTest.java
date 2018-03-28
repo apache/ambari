@@ -27,7 +27,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -81,14 +80,11 @@ public abstract class GeneralServiceCalculatedStateTest {
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
 
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stack211,
-        version);
-
     clusters.addCluster(clusterName, stack211);
     cluster = clusters.getCluster(clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stack211.getStackId());
-    service = cluster.addService(serviceGroup, getServiceName(), getServiceName(), repositoryVersion);
+    service = cluster.addService(serviceGroup, getServiceName(), getServiceName());
 
     createComponentsAndHosts();
 

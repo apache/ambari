@@ -588,8 +588,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     //create client service
     OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.6"), "2.0.6-1234");
-    createService("c1", "CORE", "HADOOP_CLIENTS", repositoryVersion);
+    createService("c1", "CORE", "HADOOP_CLIENTS");
     createServiceComponent("c1", "CORE", "HADOOP_CLIENTS", "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", State.INIT);
     createServiceComponentHost("c1", "CORE", "HADOOP_CLIENTS", 1L, "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", "c1-c6403", State.INIT);
 
@@ -746,15 +745,10 @@ public class AmbariCustomCommandExecutionHelperTest {
     StackEntity stackEntity = stackDAO.find(cluster.getDesiredStackVersion().getStackName(),
         cluster.getDesiredStackVersion().getStackVersion());
 
-    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity(stackEntity,
-        "2.1.1.1-1234", "2.1.1.1-1234", operatingSystems);
-    repositoryVersion = repoVersionDAO.merge(repositoryVersion);
-
     // add a repo version associated with a component
     ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(), serviceYARN.getServiceGroupId(),
         serviceYARN.getServiceId(), componentRM.getName(), componentRM.getType());
 
-    componentEntity.setDesiredRepositoryVersion(repositoryVersion);
     componentDAO.merge(componentEntity);
 
     // !!! make sure the override is set
@@ -793,11 +787,11 @@ public class AmbariCustomCommandExecutionHelperTest {
     String serviceGroupName = "CORE";
     cluster.addServiceGroup(serviceGroupName, stackId.getStackId());
 
-    createService(clusterName, serviceGroupName, "HDFS", repositoryVersion);
-    createService(clusterName, serviceGroupName, "YARN", repositoryVersion);
-    createService(clusterName, serviceGroupName, "GANGLIA", repositoryVersion);
-    createService(clusterName, serviceGroupName, "ZOOKEEPER", repositoryVersion);
-    createService(clusterName, serviceGroupName, "FLUME", repositoryVersion);
+    createService(clusterName, serviceGroupName, "HDFS");
+    createService(clusterName, serviceGroupName, "YARN");
+    createService(clusterName, serviceGroupName, "GANGLIA");
+    createService(clusterName, serviceGroupName, "ZOOKEEPER");
+    createService(clusterName, serviceGroupName, "FLUME");
 
     createServiceComponent(clusterName, serviceGroupName, "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", State.INIT);
     createServiceComponent(clusterName, serviceGroupName, "YARN", "NODEMANAGER", "NODEMANAGER", State.INIT);
@@ -847,11 +841,10 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   private void createService(
-    String clusterName, String serviceGroupName, String serviceName, RepositoryVersionEntity repositoryVersion
+    String clusterName, String serviceGroupName, String serviceName
   ) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
-    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, repositoryVersion.getId(), null, null, null);
-    ServiceResourceProviderTest.createServices(ambariManagementController,
-        injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(request));
+    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, null, null);
+    ServiceResourceProviderTest.createServices(ambariManagementController,Collections.singleton(request));
   }
 
   private void createServiceComponent(

@@ -81,7 +81,7 @@ public class RoleGraphTest {
     when(cluster.getClusterId()).thenReturn(1L);
 
     Service hdfsService = mock(Service.class);
-    when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hdfsService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
     when (cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build());
@@ -174,13 +174,13 @@ public class RoleGraphTest {
     when(cluster.getClusterId()).thenReturn(1L);
 
     Service hdfsService = mock(Service.class);
-    when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hdfsService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service zkService = mock(Service.class);
-    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service hbaseService = mock(Service.class);
-    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)

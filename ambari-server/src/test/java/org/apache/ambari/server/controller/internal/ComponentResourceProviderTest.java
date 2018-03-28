@@ -146,7 +146,7 @@ public class ComponentResourceProviderTest {
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
-    expect(service.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(service.getStackId()).andReturn(stackId).anyTimes();
     expect(service.getName()).andReturn("Service100").anyTimes();
     expect(service.getServiceType()).andReturn("Service100").anyTimes();
 
@@ -247,11 +247,11 @@ public class ComponentResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(serviceComponent1.getType()).andReturn("Component100");
-    expect(serviceComponent1.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(serviceComponent1.getStackId()).andReturn(stackId).anyTimes();
     expect(serviceComponent2.getType()).andReturn("Component101");
-    expect(serviceComponent2.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(serviceComponent2.getStackId()).andReturn(stackId).anyTimes();
     expect(serviceComponent3.getType()).andReturn("Component102");
-    expect(serviceComponent3.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(serviceComponent3.getStackId()).andReturn(stackId).anyTimes();
 
     expect(cluster.getServices()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
 
@@ -419,11 +419,11 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponent("Component103")).andReturn(serviceComponent2).anyTimes();
 
     expect(serviceComponent1.getType()).andReturn("Component101").anyTimes();
-    expect(serviceComponent1.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(serviceComponent1.getStackId()).andReturn(stackId).anyTimes();
     expect(serviceComponent2.getType()).andReturn("Component102").anyTimes();
-    expect(serviceComponent2.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(serviceComponent2.getStackId()).andReturn(stackId).anyTimes();
     expect(serviceComponent3.getType()).andReturn("Component103").anyTimes();
-    expect(serviceComponent3.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(serviceComponent3.getStackId()).andReturn(stackId).anyTimes();
 
     expect(cluster.getServices()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
@@ -761,7 +761,7 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.getType()).andReturn("Component101").atLeastOnce();
     expect(serviceComponent1.isRecoveryEnabled()).andReturn(false).atLeastOnce();
-    expect(serviceComponent1.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(serviceComponent1.getStackId()).andReturn(stackId).anyTimes();
     serviceComponent1.setRecoveryEnabled(true);
     expectLastCall().once();
 
@@ -862,7 +862,7 @@ public class ComponentResourceProviderTest {
     expect(ambariMetaInfo.getComponent("stackName", "1", "service1", "component1")).andReturn(componentInfo);
     expect(componentInfo.getCategory()).andReturn(null);
 
-    expect(component.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(component.getStackId()).andReturn(stackId).anyTimes();
     expect(component.convertToResponse()).andReturn(response);
     // replay mocks
     replay(clusters, cluster, service, componentInfo, component, response, ambariMetaInfo, stackId, managementController);
@@ -935,9 +935,9 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponent("component4")).andReturn(component2);
 
     expect(component1.convertToResponse()).andReturn(response1);
-    expect(component1.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(component1.getStackId()).andReturn(stackId).anyTimes();
     expect(component2.convertToResponse()).andReturn(response2);
-    expect(component2.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(component2.getStackId()).andReturn(stackId).anyTimes();
     // replay mocks
     replay(clusters, cluster, service, component3Info, component4Info, component1,  component2, response1,
         response2, ambariMetaInfo, stackId, managementController);

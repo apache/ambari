@@ -19,9 +19,6 @@ package org.apache.ambari.server.controller;
 
 import java.util.Objects;
 
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.StackId;
-
 import io.swagger.annotations.ApiModelProperty;
 
 public class ServiceRequest {
@@ -35,41 +32,24 @@ public class ServiceRequest {
   private String credentialStoreEnabled; // CREATE/UPDATE/GET
   private String credentialStoreSupported; //GET
 
-  private StackId desiredStackId;
-
-  private Long desiredRepositoryVersionId;
-  /**
-   * Short-lived object that gets set while validating a request
-   */
-  private RepositoryVersionEntity resolvedRepository;
-
-  public ServiceRequest(String clusterName, String serviceGroupName, String serviceName,
-      Long desiredRepositoryVersionId, String desiredState, StackId desiredStackId) {
-    this(clusterName, serviceGroupName, serviceName, serviceName, desiredRepositoryVersionId, desiredState, null,desiredStackId );
-  }
-
   public ServiceRequest(String clusterName,
                         String serviceGroupName,
                         String serviceName,
                         String serviceType,
-                        Long desiredRepositoryVersionId,
                         String desiredState,
-                        String credentialStoreEnabled,
-                        StackId desiredStackId) {
+                        String credentialStoreEnabled) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
     this.desiredState = desiredState;
 
-    this.desiredRepositoryVersionId = desiredRepositoryVersionId;
-
     this.serviceType = serviceType;
     this.desiredState = desiredState;
-    this.credentialStoreEnabled = credentialStoreEnabled;
+
     // Credential store supported cannot be changed after
     // creation since it comes from the stack definition.
     // We can update credential store enabled alone.
-    this.desiredStackId = desiredStackId;
+    this.credentialStoreEnabled = credentialStoreEnabled;
   }
 
   /**
@@ -114,8 +94,6 @@ public class ServiceRequest {
    * @param desiredState the desiredState to set
    */
   public void setDesiredState(String desiredState) { this.desiredState = desiredState; }
-
-  public Long getDesiredRepositoryVersionId() { return desiredRepositoryVersionId; }
 
   /**
    * @return the clusterName
@@ -162,22 +140,6 @@ public class ServiceRequest {
   @ApiModelProperty(name = "credential_store_supporteds")
   public void setCredentialStoreSupported(String credentialStoreSupported) { this.credentialStoreSupported = credentialStoreSupported; }
 
-
-  /***
-   *
-   * @return associated stackid with the service
-   */
-  public StackId getDesiredStackId() {
-    return desiredStackId;
-  }
-
-  /***
-   * @param desiredStackId associated with the service
-   */
-  public void setDesiredStackId(StackId desiredStackId) {
-    this.desiredStackId = desiredStackId;
-  }
-
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -187,17 +149,9 @@ public class ServiceRequest {
       + ", desiredState=" + desiredState
       + ", maintenanceState=" + maintenanceState
       + ", credentialStoreEnabled=" + credentialStoreEnabled
-      + ", credentialStoreSupported=" + credentialStoreSupported
-      + ", desiredStackId=" + desiredStackId);
+        + ", credentialStoreSupported=" + credentialStoreSupported);
     return sb.toString();
   }
-
-  /**
-   * @param repositoryVersion
-   */
-  public void setResolvedRepository(RepositoryVersionEntity repositoryVersion) { resolvedRepository = repositoryVersion; }
-
-  public RepositoryVersionEntity getResolvedRepository() { return resolvedRepository; }
 
   @Override
   public boolean equals(Object obj) {
@@ -217,13 +171,12 @@ public class ServiceRequest {
       Objects.equals(desiredState, other.desiredState) &&
       Objects.equals(maintenanceState, other.maintenanceState) &&
       Objects.equals(credentialStoreEnabled, other.credentialStoreEnabled) &&
-      Objects.equals(credentialStoreSupported, other.credentialStoreSupported) &&
-      Objects.equals(desiredStackId, other.desiredStackId) &&
-      Objects.equals(desiredRepositoryVersionId, other.desiredRepositoryVersionId);
+        Objects.equals(credentialStoreSupported, other.credentialStoreSupported);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(clusterName, serviceGroupName, serviceType, serviceName, desiredState, maintenanceState, credentialStoreEnabled, credentialStoreSupported, desiredStackId, desiredRepositoryVersionId);
+    return Objects.hash(clusterName, serviceGroupName, serviceType, serviceName, desiredState,
+        maintenanceState, credentialStoreEnabled, credentialStoreSupported);
   }
 }

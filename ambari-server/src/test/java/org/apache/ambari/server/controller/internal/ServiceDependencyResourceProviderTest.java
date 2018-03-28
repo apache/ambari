@@ -227,24 +227,16 @@ public class ServiceDependencyResourceProviderTest {
     controller.createCluster(r);
   }
 
-  private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState) throws Exception {
-    createService(clusterName, serviceGroupName, serviceName, repositoryVersion206, desiredState);
-  }
-
-  private void createService(String clusterName, String serviceGroupName, String serviceName,
-                             RepositoryVersionEntity repositoryVersion, State desiredState
-  )
+  private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
           throws Exception {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName,
-            repositoryVersion.getId(), dStateStr,
-            null);
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, dStateStr, null);
 
-    ServiceResourceProviderTest.createServices(controller, repositoryVersionDAO, Collections.singleton(r1));
+    ServiceResourceProviderTest.createServices(controller, Collections.singleton(r1));
   }
 
   private void createServiceComponent(String clusterName,
@@ -291,7 +283,7 @@ public class ServiceDependencyResourceProviderTest {
   )
           throws Exception {
 
-    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, repositoryVersion206.getId(),
+    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName,
             State.INSTALLED.toString(), null);
 
     Set<ServiceRequest> requests = new HashSet<>();
@@ -348,14 +340,12 @@ public class ServiceDependencyResourceProviderTest {
     cluster.setDesiredStackVersion(new StackId(stackId));
     cluster.setCurrentStackVersion(new StackId(stackId));
 
-    RepositoryVersionEntity repositoryVersion = repositoryVersion206;
-
     ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE, stackId);
     ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST, stackId);
 
-    Service hdfs = cluster.addService(serviceGroupCore, SERVICE_NAME_HDFS, SERVICE_NAME_HDFS, repositoryVersion);
-    Service yarn = cluster.addService(serviceGroupCore, SERVICE_NAME_YARN, SERVICE_NAME_YARN, repositoryVersion);
-    Service zookeeper = cluster.addService(serviceGroupTest, SERVICE_NAME_ZOOKEEPER, SERVICE_NAME_ZOOKEEPER, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroupCore, SERVICE_NAME_HDFS, SERVICE_NAME_HDFS);
+    Service yarn = cluster.addService(serviceGroupCore, SERVICE_NAME_YARN, SERVICE_NAME_YARN);
+    Service zookeeper = cluster.addService(serviceGroupTest, SERVICE_NAME_ZOOKEEPER, SERVICE_NAME_ZOOKEEPER);
 
     return cluster;
   }

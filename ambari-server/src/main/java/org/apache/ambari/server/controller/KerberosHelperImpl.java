@@ -473,7 +473,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     // If Ambari is managing it own identities then add AMBARI to the set of installed service so
     // that its Kerberos descriptor entries will be included.
     if (createAmbariIdentities(existingConfigurations.get(KERBEROS_ENV))) {
-      installedServices = new HashMap<String, Set<String>>(installedServices);
+      installedServices = new HashMap<>(installedServices);
       installedServices.put(RootService.AMBARI.name(), Collections.singleton(RootComponent.AMBARI_SERVER.name()));
     }
 
@@ -726,7 +726,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           continue;
         }
 
-        StackId stackId = service.getDesiredStackId();
+        StackId stackId = service.getStackId();
 
         if (visitedStacks.contains(stackId)) {
           continue;
@@ -1384,7 +1384,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     Set<StackId> stackIds = new HashSet<>();
 
     for (Service service : cluster.getServices().values()) {
-      stackIds.add(service.getDesiredStackId());
+      stackIds.add(service.getStackId());
     }
 
     if (1 != stackIds.size()) {
@@ -2541,6 +2541,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @return a File pointing to the new temporary directory, or null if one was not created
    * @throws AmbariException if a new temporary directory cannot be created
    */
+  @Override
   public File createTemporaryDirectory() throws AmbariException {
     try {
       File temporaryDirectory = getConfiguredTemporaryDirectory();

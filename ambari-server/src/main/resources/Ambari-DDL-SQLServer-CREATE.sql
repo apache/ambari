@@ -302,13 +302,11 @@ CREATE TABLE servicecomponentdesiredstate (
   cluster_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
-  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
   repo_state VARCHAR(255) NOT NULL DEFAULT 'NOT_REQUIRED',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_id, service_group_id, cluster_id),
-  CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE hostcomponentdesiredstate (
@@ -365,12 +363,10 @@ CREATE TABLE servicedesiredstate (
   service_group_id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
   desired_host_role_mapping INTEGER NOT NULL,
-  desired_repo_version_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL,
   credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY CLUSTERED (cluster_id, service_group_id, service_id),
-  CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_group_id, service_id, cluster_id) REFERENCES clusterservices (service_group_id, id, cluster_id));
 
 CREATE TABLE adminprincipaltype (

@@ -58,7 +58,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -136,31 +135,28 @@ public class StackDefinedPropertyProviderTest {
     helper = injector.getInstance(OrmTestHelper.class);
 
     clusters = injector.getInstance(Clusters.class);
-    StackId stackId = new StackId("HDP-2.0.5");
+    StackId stackId = new StackId("HDP-2.1.1");
 
     clusters.addCluster("c2", stackId);
 
     Cluster cluster = clusters.getCluster("c2");
 
     cluster.setDesiredStackVersion(stackId);
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service service = cluster.addService(serviceGroup, "HDFS", "HDFS");
     service.addServiceComponent("NAMENODE", "NAMENODE");
     service.addServiceComponent("DATANODE", "DATANODE");
     service.addServiceComponent("JOURNALNODE", "JOURNALNODE");
 
-    service = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
+    service = cluster.addService(serviceGroup, "YARN", "YARN");
     service.addServiceComponent("RESOURCEMANAGER", "RESOURCEMANAGER");
 
-    service = cluster.addService(serviceGroup, "HBASE", "HBASE", repositoryVersion);
+    service = cluster.addService(serviceGroup, "HBASE", "HBASE");
     service.addServiceComponent("HBASE_MASTER", "HBASE_MASTER");
     service.addServiceComponent("HBASE_REGIONSERVER", "HBASE_REGIONSERVER");
 
-    stackId = new StackId("HDP-2.1.1");
-    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-
-    service = cluster.addService(serviceGroup, "STORM", "STORM", repositoryVersion);
+    service = cluster.addService(serviceGroup, "STORM", "STORM");
     service.addServiceComponent("STORM_REST_API", "STORM_REST_API");
 
     clusters.addHost("h1");

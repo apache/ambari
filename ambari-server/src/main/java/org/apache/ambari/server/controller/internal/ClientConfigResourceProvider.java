@@ -245,7 +245,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
         Service service = cluster.getService(serviceName);
         ServiceComponent component = service.getServiceComponent(componentName);
-        StackId stackId = component.getDesiredStackId();
+        StackId stackId = component.getStackId();
 
         componentInfo = managementController.getAmbariMetaInfo().
           getComponent(stackId.getStackName(), stackId.getStackVersion(), service.getServiceType(), componentName);

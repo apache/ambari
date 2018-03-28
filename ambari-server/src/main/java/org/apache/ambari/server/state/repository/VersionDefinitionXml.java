@@ -56,6 +56,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -322,7 +323,8 @@ public class VersionDefinitionXml {
       ServiceVersionSummary summary = new ServiceVersionSummary();
       summaries.put(service.getName(), summary);
 
-      String serviceVersion = service.getDesiredRepositoryVersion().getVersion();
+      ServiceGroup serviceGroup = cluster.getServiceGroup(service.getServiceGroupId());
+      String serviceVersion = serviceGroup.getStackId().getStackVersion();
 
       // !!! currently only one version is supported (unique service names)
       ManifestService manifest = manifests.get(serviceName);

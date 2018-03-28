@@ -160,9 +160,9 @@ public class ServicesUpCheckTest {
     Mockito.when(amsService.getName()).thenReturn("AMBARI_METRICS");
 
     StackId stackId = new StackId("HDP", "2.2");
-    Mockito.when(hdfsService.getDesiredStackId()).thenReturn(stackId);
-    Mockito.when(tezService.getDesiredStackId()).thenReturn(stackId);
-    Mockito.when(amsService.getDesiredStackId()).thenReturn(stackId);
+    Mockito.when(hdfsService.getStackId()).thenReturn(stackId);
+    Mockito.when(tezService.getStackId()).thenReturn(stackId);
+    Mockito.when(amsService.getStackId()).thenReturn(stackId);
 
     Mockito.when(hdfsService.isClientOnlyService()).thenReturn(false);
     Mockito.when(tezService.isClientOnlyService()).thenReturn(true);

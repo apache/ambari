@@ -20,7 +20,7 @@ package org.apache.ambari.server.state.svccomphost;
 
 import java.util.Collections;
 import java.util.HashSet;
- import java.util.List;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,7 +57,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -790,7 +789,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       throw new RuntimeException(e);
     }
 
-    StackId stackId = serviceComponent.getDesiredStackId();
+    StackId stackId = serviceComponent.getStackId();
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
         stackId.getStackVersion());
 
@@ -1276,13 +1275,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     String publicHostName = hostEntity.getPublicHostName();
     String state = getState().toString();
     String desiredState = (hostComponentDesiredStateEntity == null) ? null : hostComponentDesiredStateEntity.getDesiredState().toString();
-    String desiredStackId = serviceComponent.getDesiredStackId().getStackId();
+    String desiredStackId = serviceComponent.getStackId().getStackId();
     HostComponentAdminState componentAdminState = getComponentAdminStateFromDesiredStateEntity(hostComponentDesiredStateEntity);
     UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
 
     String displayName = null;
     try {
-      StackId stackVersion = serviceComponent.getDesiredStackId();
+      StackId stackVersion = serviceComponent.getStackId();
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackVersion.getStackName(),
               stackVersion.getStackVersion(), service.getServiceType(), serviceComponentName);
       displayName = compInfo.getDisplayName();
@@ -1290,16 +1289,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       displayName = serviceComponentName;
     }
 
-    String desiredRepositoryVersion = null;
-    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
-    if (null != repositoryVersion) {
-      desiredRepositoryVersion = repositoryVersion.getVersion();
-    }
-
     ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterId, clusterName, service.getServiceGroupId(),
             service.getServiceGroupName(), service.getServiceId(), service.getName(), service.getServiceType(),
             hostComponentId, serviceComponentName, serviceComponentType, displayName, hostName, publicHostName, state,
-            getVersion(), desiredState, desiredStackId, desiredRepositoryVersion, componentAdminState);
+            getVersion(), desiredState, desiredStackId, componentAdminState);
 
     r.setActualConfigs(actualConfigs);
     r.setUpgradeState(upgradeState);
@@ -1324,7 +1317,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     ServiceComponentHostResponse r = new ServiceComponentHostResponse(serviceComponent.getClusterId(), clusterName, serviceComponent.getServiceGroupId(),
             getServiceGroupName(), serviceComponent.getServiceId(), serviceName, serviceComponent.getServiceType(), getHostComponentId(),
         serviceComponentName, null, serviceComponentName,  hostName, null, state, null,
-        null, null, null, null);
+        null, null, null);
 
     if (collectStaleConfigsStatus) {
 
@@ -1368,7 +1361,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     .append(", serviceName=")
     .append(serviceComponent.getServiceName())
     .append(", desiredStackVersion=")
-    .append(serviceComponent.getDesiredStackId())
+    .append(serviceComponent.getStackId())
     .append(", desiredState=")
     .append(getDesiredState())
     .append(", version=")
@@ -1436,7 +1429,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     // completed, but only if it was persisted
     if (fireRemovalEvent) {
       long clusterId = getClusterId();
-      StackId stackId = serviceComponent.getDesiredStackId();
+      StackId stackId = serviceComponent.getStackId();
       String stackVersion = stackId.getStackVersion();
       String stackName = stackId.getStackName();
       String serviceName = getServiceName();
@@ -1600,7 +1593,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    */
   @Override
   public StackId getDesiredStackId() {
-    return serviceComponent.getDesiredStackId();
+    return serviceComponent.getStackId();
   }
 
 }

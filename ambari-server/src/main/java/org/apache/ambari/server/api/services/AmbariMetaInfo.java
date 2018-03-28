@@ -595,7 +595,7 @@ public class AmbariMetaInfo {
    * @throws AmbariException
    */
   public ServiceInfo getService(Service service) throws AmbariException {
-    StackId stackId = service.getDesiredStackId();
+    StackId stackId = service.getStackId();
     return getService(stackId.getStackName(), stackId.getStackVersion(), service.getServiceType());
   }
 
@@ -1273,8 +1273,8 @@ public class AmbariMetaInfo {
       List<AlertDefinition> stackDefinitions = new ArrayList<>(50);
 
       for (Service service : cluster.getServices().values()) {
-        ServiceInfo stackService = getService(service.getDesiredStackId().getStackName(),
-            service.getDesiredStackId().getStackVersion(), service.getServiceType());
+        ServiceInfo stackService = getService(service.getStackId().getStackName(),
+            service.getStackId().getStackVersion(), service.getServiceType());
 
         if (null == stackService) {
           continue;
@@ -1389,7 +1389,7 @@ public class AmbariMetaInfo {
           definitionsToDisable.add(definition);
         } else if (null != componentName && !stackComponentMap.containsKey(componentName)) {
 
-          StackId stackId = cluster.getService(serviceName).getDesiredStackId();
+          StackId stackId = cluster.getService(serviceName).getStackId();
           LOG.info( "The {} component {} has been marked as deleted for stack {}, disabling alert {}",
               serviceName, componentName, stackId, definition.getDefinitionName());
 
@@ -1557,8 +1557,9 @@ public class AmbariMetaInfo {
    */
   private synchronized void ensureVersionDefinitions() {
     if (null != versionDefinitions) {
-      if(versionDefinitions.size() > 0)
+      if(versionDefinitions.size() > 0) {
         return;
+      }
     }
 
     versionDefinitions = new HashMap<>();
@@ -1569,7 +1570,7 @@ public class AmbariMetaInfo {
           versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
             stack.getVersion(), definition.release.version), definition);
         }
-        
+
         try {
           // !!! check for a "latest-vdf" one.  This will be used for the default if one is not found.
           VersionDefinitionXml xml = stack.getLatestVersionDefinition();

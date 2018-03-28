@@ -160,7 +160,7 @@ public class AmbariActionExecutionHelper {
 
       if (StringUtils.isNotBlank(targetService)) {
         Service service = cluster.getService(targetService);
-        StackId stackId = service.getDesiredStackId();
+        StackId stackId = service.getStackId();
 
         ServiceInfo serviceInfo;
         try {
@@ -196,7 +196,7 @@ public class AmbariActionExecutionHelper {
       if (StringUtils.isNotBlank(targetComponent)) {
         Service service = cluster.getService(targetService);
         ServiceComponent component = service.getServiceComponent(targetComponent);
-        StackId stackId = component.getDesiredStackId();
+        StackId stackId = component.getStackId();
 
         ComponentInfo compInfo;
         try {
@@ -293,7 +293,7 @@ public class AmbariActionExecutionHelper {
         if (componentName != null && !componentName.isEmpty()) {
           Service service = cluster.getService(serviceGroupName, serviceName);
           ServiceComponent component = service.getServiceComponent(componentName);
-          StackId stackId = component.getDesiredStackId();
+          StackId stackId = component.getStackId();
 
           Map<String, ServiceComponentHost> componentHosts = component.getServiceComponentHosts();
           candidateHosts.addAll(componentHosts.keySet());

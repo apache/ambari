@@ -35,7 +35,6 @@ import org.apache.ambari.server.events.listeners.upgrade.MpackInstallStateListen
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -354,13 +353,10 @@ public class ClustersDeadlockTest {
   private Service installService(String serviceName, ServiceGroup serviceGroup) throws AmbariException {
     Service service;
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
-        stackId, REPO_VERSION);
-
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
       cluster.addService(service);
     }
 

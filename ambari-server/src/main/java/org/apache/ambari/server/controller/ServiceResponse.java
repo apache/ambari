@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -35,9 +32,6 @@ public class ServiceResponse {
   private String serviceName;
   private String serviceType;
   private StackId desiredStackId;
-  private String desiredRepositoryVersion;
-  private Long desiredRepositoryVersionId;
-  private RepositoryVersionState repositoryVersionState;
   private String desiredState;
   private String maintenanceState;
   private boolean credentialStoreSupported;
@@ -46,11 +40,12 @@ public class ServiceResponse {
   private final boolean ssoIntegrationDesired;
   private final boolean ssoIntegrationEnabled;
 
-  public ServiceResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
-                         Long serviceId, String serviceName, String serviceType,
-                         StackId desiredStackId, String desiredRepositoryVersion,
-                         RepositoryVersionState repositoryVersionState, String desiredState,
-                         boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported, boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled) {
+  public ServiceResponse(Long clusterId, String clusterName, Long serviceGroupId,
+      String serviceGroupName, Long serviceId, String serviceName, String serviceType,
+      StackId desiredStackId, String desiredRepositoryVersion, String desiredState,
+      boolean credentialStoreSupported, boolean credentialStoreEnabled,
+      boolean ssoIntegrationSupported, boolean ssoIntegrationDesired,
+      boolean ssoIntegrationEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceGroupId = serviceGroupId;
@@ -59,12 +54,10 @@ public class ServiceResponse {
     this.serviceName = serviceName;
     this.serviceType = serviceType;
     this.desiredStackId = desiredStackId;
-    this.repositoryVersionState = repositoryVersionState;
     this.ssoIntegrationSupported = ssoIntegrationSupported;
     this.ssoIntegrationDesired = ssoIntegrationDesired;
     this.ssoIntegrationEnabled = ssoIntegrationEnabled;
     setDesiredState(desiredState);
-    this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
   }
@@ -177,25 +170,6 @@ public class ServiceResponse {
   public String getDesiredStackId() {
     return desiredStackId.getStackId();
 
-  }
-
-  /**
-   * Gets the desired repository version.
-   *
-   * @return the desired repository version.
-   */
-  public String getDesiredRepositoryVersion() {
-    return desiredRepositoryVersion;
-  }
-
-  /**
-   * Gets the calculated repository version state from the components of this
-   * service.
-   *
-   * @return the desired repository version state
-   */
-  public RepositoryVersionState getRepositoryVersionState() {
-    return repositoryVersionState;
   }
 
   @Override
@@ -335,22 +309,4 @@ public class ServiceResponse {
     @ApiModelProperty(name = "ServiceInfo")
     ServiceResponse getServiceResponse();
   }
-
-  /**
-   * @param id
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setDesiredRepositoryVersionId(Long id) {
-    desiredRepositoryVersionId = id;
-  }
-
-  /**
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public Long getDesiredRepositoryVersionId() {
-    return desiredRepositoryVersionId;
-  }
-
 }

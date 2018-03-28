@@ -201,7 +201,7 @@ public class AmbariCustomCommandExecutionHelper {
     Cluster cluster = clusters.getCluster(clusterName);
     Service service = cluster.getService(serviceGroupName, serviceName);
     ServiceComponent component = service.getServiceComponent(componentName);
-    StackId stackId = component.getDesiredStackId();
+    StackId stackId = component.getStackId();
 
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
         stackId.getStackName(), stackId.getStackVersion(),
@@ -326,7 +326,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     Service service = cluster.getService(serviceGroupName, serviceName);
-    StackId stackId = service.getDesiredStackId();
+    StackId stackId = service.getStackId();
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
@@ -856,7 +856,7 @@ public class AmbariCustomCommandExecutionHelper {
     if (null != componentName) {
       component = service.getServiceComponent(componentName);
     }
-    StackId stackId = (null != component) ? component.getDesiredStackId() : service.getDesiredStackId();
+    StackId stackId = (null != component) ? component.getStackId() : service.getStackId();
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
@@ -1387,7 +1387,7 @@ public class AmbariCustomCommandExecutionHelper {
       if (serviceName != null && componentName != null) {
         Service service = cluster.getService(serviceName);
         ServiceComponent component = service.getServiceComponent(componentName);
-        stackId = component.getDesiredStackId();
+        stackId = component.getStackId();
 
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(
                 stackId.getStackName(), stackId.getStackVersion(),
@@ -1489,7 +1489,7 @@ public class AmbariCustomCommandExecutionHelper {
 //      if (serviceGroupName != null) {
       if (serviceName != null) {
         Service service = cluster.getService(serviceGroupName, serviceName);
-        stackId = service.getDesiredStackId();
+        stackId = service.getStackId();
         serviceType = service.getServiceType();
       }
 

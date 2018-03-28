@@ -256,7 +256,7 @@ public class CreateAndConfigureActionTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
       cluster.addService(service);
     }
 
@@ -324,7 +324,7 @@ public class CreateAndConfigureActionTest {
         history.setUpgrade(upgradeEntity);
         history.setServiceName(serviceName);
         history.setComponentName(componentName);
-        history.setFromRepositoryVersion(service.getDesiredRepositoryVersion());
+        history.setFromRepositoryVersion(repositoryVersion);
         history.setTargetRepositoryVersion(repositoryVersion);
         upgradeEntity.addHistory(history);
       }

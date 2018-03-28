@@ -124,7 +124,7 @@ public class ServiceComponentHostTest {
 
     StackId stackId = new StackId("HDP-2.0.6");
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    createCluster(stackId, clusterName, repositoryVersion.getVersion());
+    createCluster(stackId, clusterName);
 
 
     serviceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "test_group", stackId, new HashSet<>());
@@ -141,7 +141,7 @@ public class ServiceComponentHostTest {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
-  private ClusterEntity createCluster(StackId stackId, String clusterName, String repoVersion) throws AmbariException {
+  private ClusterEntity createCluster(StackId stackId, String clusterName) throws AmbariException {
     helper.createStack(stackId);
     clusters.addCluster(clusterName, stackId);
     ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
@@ -188,7 +188,7 @@ public class ServiceComponentHostTest {
     } catch (ServiceNotFoundException e) {
       LOG.debug("Calling service create, serviceName={}", svc);
 
-      s = serviceFactory.createNew(c, customServiceGroup, Collections.emptyList(), svc, svc, repositoryVersion);
+      s = serviceFactory.createNew(c, customServiceGroup, Collections.emptyList(), svc, svc);
       c.addService(s);
     }
 
@@ -213,8 +213,6 @@ public class ServiceComponentHostTest {
 
     Assert.assertNotNull(c.getServiceComponentHosts(hostName));
 
-    Assert.assertNotNull(sc.getDesiredRepositoryVersion());
-
     return impl;
   }
 
@@ -232,7 +230,7 @@ public class ServiceComponentHostTest {
       case HOST_SVCCOMP_INSTALL:
         return new ServiceComponentHostInstallEvent(
             impl.getServiceComponentName(), impl.getHostName(), timestamp,
-            impl.getServiceComponent().getDesiredStackId().toString());
+            impl.getServiceComponent().getStackId().toString());
       case HOST_SVCCOMP_START:
         return new ServiceComponentHostStartEvent(
             impl.getServiceComponentName(), impl.getHostName(), timestamp);
@@ -292,7 +290,7 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(inProgressState,
         impl.getState());
     if (checkStack) {
-      Assert.assertNotNull(impl.getServiceComponent().getDesiredStackId());
+      Assert.assertNotNull(impl.getServiceComponent().getStackId());
     }
 
     ServiceComponentHostEvent installEvent2 = createEvent(impl, ++timestamp,
@@ -709,7 +707,7 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName, "");
+    createCluster(stackId, clusterName);
 
     ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", stackId, new HashSet<>());
 
@@ -904,7 +902,7 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName, "");
+    createCluster(stackId, clusterName);
 
     ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", stackId, new HashSet<>());
 
@@ -1033,7 +1031,7 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName, "");
+    createCluster(stackId, clusterName);
 
     ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", stackId, new HashSet<>());
 

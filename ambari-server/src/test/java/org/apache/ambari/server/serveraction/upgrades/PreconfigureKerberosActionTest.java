@@ -533,7 +533,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
     Service service = createMock(Service.class);
     expect(service.getName()).andReturn(name).anyTimes();
     expect(service.getServiceComponents()).andReturn(components).anyTimes();
-    expect(service.getDesiredStackId()).andReturn(desiredStackId).anyTimes();
+    expect(service.getStackId()).andReturn(desiredStackId).anyTimes();
     return service;
   }
 

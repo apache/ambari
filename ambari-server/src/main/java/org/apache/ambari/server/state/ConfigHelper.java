@@ -940,7 +940,7 @@ public class ConfigHelper {
     Set<StackId> stackIds = new HashSet<>();
 
     for (Service service : cluster.getServices().values()) {
-      stackIds.add(service.getDesiredStackId());
+      stackIds.add(service.getStackId());
     }
 
     for (StackId stackId : stackIds) {
@@ -1021,7 +1021,7 @@ public class ConfigHelper {
   public ServiceInfo getPropertyOwnerService(Cluster cluster, String configType, String propertyName) throws AmbariException {
 
     for (Service service : cluster.getServices().values()) {
-      StackId stackId = service.getDesiredStackId();
+      StackId stackId = service.getStackId();
       StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
 
       for (ServiceInfo serviceInfo : stack.getServices()) {
@@ -1046,7 +1046,7 @@ public class ConfigHelper {
     // below, no attempt will be made to remove properties that exist in excluded types.
     Service service = cluster.getService(serviceName);
 
-    return getServiceProperties(service.getDesiredStackId(), service.getServiceType(), false);
+    return getServiceProperties(service.getStackId(), service.getServiceType(), false);
   }
 
   /**
@@ -1098,7 +1098,7 @@ public class ConfigHelper {
 
     Set<StackId> stackIds = new HashSet<>();
     for (Service service : cluster.getServices().values()) {
-      stackIds.add(service.getDesiredStackId());
+      stackIds.add(service.getStackId());
     }
 
     Set<PropertyInfo> propertySets = new HashSet<>();
@@ -1429,7 +1429,7 @@ public class ConfigHelper {
 
     stale = false;
 
-    StackId stackId = sch.getServiceComponent().getDesiredStackId();
+    StackId stackId = sch.getServiceComponent().getStackId();
 
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
 
@@ -1476,7 +1476,7 @@ public class ConfigHelper {
       }
       stale = stale | staleEntry;
     }
-    
+
     String refreshCommand = calculateRefreshCommand(stackInfo.getRefreshCommandConfiguration(), sch, changedProperties);
 
     if (STALE_CONFIGS_CACHE_ENABLED) {
@@ -1587,7 +1587,7 @@ public class ConfigHelper {
 
     Cluster cluster = clusters.getClusterById(sch.getClusterId());
 
-    StackId stackId = sch.getServiceComponent().getDesiredStackId();
+    StackId stackId = sch.getServiceComponent().getStackId();
 
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
 
