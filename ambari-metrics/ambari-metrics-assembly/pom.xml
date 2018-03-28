@@ -197,6 +197,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>rpm-maven-plugin</artifactId>
+            <version>2.0.1</version>
             <configuration>
               <group>Development</group>
               <needarch>x86_64</needarch>
@@ -690,6 +691,7 @@
           <plugin>
             <artifactId>jdeb</artifactId>
             <groupId>org.vafer</groupId>
+            <version>1.0.1</version>
             <executions>
               <execution>
                 <phase>package</phase>
