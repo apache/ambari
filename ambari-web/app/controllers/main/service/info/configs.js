@@ -352,7 +352,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   loadStep: function () {
     var serviceName = this.get('content.serviceName'), self = this;
-    App.router.get('mainController').stopPolling();
     this.clearStep();
     this.set('dependentServiceNames', this.getServicesDependencies(serviceName));
     this.trackRequestChain(this.loadConfigTheme(serviceName).always(function () {
@@ -364,16 +363,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       self.trackRequest(self.loadServiceConfigVersions());
     }));
   },
-
-  /**
-   * Turn on polling when all requests are finished
-   */
-  trackRequestsDidChange: function() {
-    var allCompleted = this.get('requestsInProgress').everyProperty('completed', true);
-    if (this.get('requestsInProgress').length && allCompleted) {
-      App.router.get('mainController').startPolling();
-    }
-  }.observes('requestsInProgress.@each.completed'),
 
   /**
    * Generate "finger-print" for current <code>stepConfigs[0]</code>
