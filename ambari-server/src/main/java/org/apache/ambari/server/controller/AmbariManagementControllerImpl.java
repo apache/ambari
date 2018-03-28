@@ -2764,11 +2764,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Map<String, String> hostParams = new TreeMap<>();
 
-    List<OsSpecific.Package> packages =
-        getPackagesForStackServiceHost(ambariMetaInfo.getStack(stackId), serviceInfo, hostParams, osFamily);
-    String packageList = gson.toJson(packages);
-    commandParams.put(PACKAGE_LIST, packageList);
-
+    if (roleCommand.equals(RoleCommand.INSTALL)) {
+      List<OsSpecific.Package> packages =
+              getPackagesForStackServiceHost(ambariMetaInfo.getStack(stackId), serviceInfo, hostParams, osFamily);
+      String packageList = gson.toJson(packages);
+      commandParams.put(PACKAGE_LIST, packageList);
+    }
     Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stackInfo.getName(), stackInfo.getVersion());
 
     Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();

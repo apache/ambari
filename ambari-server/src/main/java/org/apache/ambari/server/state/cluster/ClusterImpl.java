@@ -3394,6 +3394,4 @@ Long serviceName = getServiceForConfigTypes( configs.stream().map(Config::getTyp
 
     return componentVersionMap;
   }
-
-
 }
