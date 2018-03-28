@@ -16,24 +16,18 @@
  * limitations under the License.
  */
 
-import { NgModule, APP_INITIALIZER } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {defaultState} from '@app/classes/models/logs-state';
+import {AppStore, ObjectModelService, getObjectReducer} from '@app/classes/models/store';
 
-import { AppLoadService } from './services/app-load.service';
+export const modelName = 'logsState';
 
-export function check_if_authorized(appLoadService: AppLoadService) {
-  return () => appLoadService.syncAuthorizedStateWithBackend();
+@Injectable()
+export class LogsStateService extends ObjectModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
+  }
 }
-export function set_translation_service(appLoadService: AppLoadService) {
-  return () => appLoadService.setTranslationService();
-}
 
-@NgModule({
-  imports: [HttpClientModule],
-  providers: [
-    AppLoadService,
-    { provide: APP_INITIALIZER, useFactory: check_if_authorized, deps: [AppLoadService], multi: true },
-    { provide: APP_INITIALIZER, useFactory: set_translation_service, deps: [AppLoadService], multi: true }
-  ]
-})
-export class AppLoadModule { }
+export const logsState = getObjectReducer(modelName, defaultState);

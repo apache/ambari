@@ -63,7 +63,6 @@ export const mockDataGet = {
       currentObj[key] = value;
       return currentObj;
     }, {});
-    console.info(params);
     const pageSize = params.pageSize || 50;
     const intervalSteps = params.to.diff(params.from) / pageSize;
     const startTime = params.from.valueOf();

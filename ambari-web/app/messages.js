@@ -1668,6 +1668,7 @@ Em.I18n.translations = {
 
   'admin.nameNodeFederation.button.enable':'Add New HDFS Namespace',
   'admin.nameNodeFederation.wizard.header': 'Add New HDFS Namespace',
+  'admin.nameNodeFederation.closePopup': 'Add New HDFS Namespace Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert Add New HDFS Namespace as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
   'admin.nameNodeFederation.wizard.step1.header': 'Get Started',
   'admin.nameNodeFederation.wizard.step1.body':'This wizard will walk you through the process of setting up a new Highly Available NameNode pair that will be used to create a new HDFS namespace, allowing you to use Ambari to manage multiple HDFS namespaces and take advantage of HDFS Federation.',
   'admin.nameNodeFederation.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',

@@ -45,6 +45,10 @@ import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dr
 
 import {LogIndexFilterComponent} from './log-index-filter.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('LogIndexFilterComponent', () => {
   let component: LogIndexFilterComponent;
@@ -53,6 +57,7 @@ describe('LogIndexFilterComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         FormsModule,
         ...TranslationModules,
         StoreModule.provideStore({
@@ -95,7 +100,10 @@ describe('LogIndexFilterComponent', () => {
         HostsService,
         ServiceLogsTruncatedService,
         TabsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

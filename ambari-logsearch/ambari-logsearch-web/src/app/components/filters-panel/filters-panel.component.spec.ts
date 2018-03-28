@@ -41,6 +41,10 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 
 import {FiltersPanelComponent} from './filters-panel.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('FiltersPanelComponent', () => {
   let component: FiltersPanelComponent;
@@ -60,6 +64,7 @@ describe('FiltersPanelComponent', () => {
         FiltersPanelComponent
       ],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           clusters,
@@ -94,7 +99,10 @@ describe('FiltersPanelComponent', () => {
         TabsService,
         LogsContainerService,
         UtilsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

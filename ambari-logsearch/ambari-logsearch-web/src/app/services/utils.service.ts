@@ -21,8 +21,6 @@ import * as moment from 'moment-timezone';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogField} from '@app/classes/object';
 import {NodeItem} from '@app/classes/models/node-item';
-import {Http} from "@angular/http";
-import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 
 @Injectable()
 export class UtilsService {
@@ -76,7 +74,7 @@ export class UtilsService {
       }
     }
     return true;
-  };
+  }
 
   isEnterPressed(event: KeyboardEvent): boolean {
     return event.keyCode === 13;

@@ -15,37 +15,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.events;
 
-import {HomogeneousObject} from '@app/classes/object';
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-export interface Tab {
-  id: string;
-  isActive?: boolean;
-  isCloseable?: boolean;
-  label: string;
-  activeFilters?: object;
-  appState?: HomogeneousObject<any>;
-}
+/**
+ * Event to send action commands to agent.
+ */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class AgentActionEvent extends AmbariHostUpdateEvent {
 
-export const initialTabs: Tab[] = [
-  {
-    id: 'serviceLogs',
-    isActive: true,
-    label: 'common.serviceLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'serviceLogs',
-      isServiceLogsFileView: false
-    }
-  },
-  {
-    id: 'auditLogs',
-    isActive: false,
-    label: 'common.auditLogs',
-    activeFilters: null,
-    appState: {
-      activeLogsType: 'auditLogs',
-      isServiceLogsFileView: false
-    }
+  /**
+   * Host id with agent action commands will be send to.
+   */
+  private Long hostId;
+
+  @JsonProperty("actionName")
+  private AgentAction agentAction;
+
+  public AgentActionEvent(AgentAction agentAction, Long hostId) {
+    super(Type.AGENT_ACTIONS);
+    this.agentAction = agentAction;
+    this.hostId = hostId;
   }
-];
+
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
+  }
+
+  @Override
+  public Long getHostId() {
+    return hostId;
+  }
+
+  public enum AgentAction {
+    RESTART_AGENT
+  }
+}

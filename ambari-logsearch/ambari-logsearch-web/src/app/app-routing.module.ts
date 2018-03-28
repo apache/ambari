@@ -21,6 +21,8 @@ import {RouterModule, Routes} from '@angular/router';
 import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
 import {LoginFormComponent} from '@app/components/login-form/login-form.component';
 import {AuthGuardService} from '@app/services/auth-guard.service';
+import {TabGuard} from '@app/services/tab.guard';
+import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
 
 const appRoutes: Routes = [{
     path: 'login',
@@ -29,13 +31,24 @@ const appRoutes: Routes = [{
       breadcrumbs: 'login.title'
     }
   }, {
+    path: 'logs/:activeTab',
+    component: LogsContainerComponent,
+    data: {
+      breadcrumbs: 'logs.title',
+      multiClusterFilter: true
+    },
+    resolve: {
+      breadcrumbs: LogsBreadcrumbsResolverService
+    },
+    canActivate: [AuthGuardService, TabGuard]
+  }, {
     path: 'logs',
     component: LogsContainerComponent,
     data: {
       multiClusterFilter: true,
       breadcrumbs: 'logs.title'
     },
-    canActivate: [AuthGuardService]
+    canActivate: [AuthGuardService, TabGuard]
   }, {
     path: '',
     redirectTo: '/logs',
@@ -50,7 +63,7 @@ const appRoutes: Routes = [{
   imports: [
     RouterModule.forRoot(
       appRoutes,
-      { enableTracing: false } // <-- debugging purposes only
+      { enableTracing: false, useHash: true }
     )
   ],
   exports: [
