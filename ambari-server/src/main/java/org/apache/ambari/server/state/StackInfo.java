@@ -619,7 +619,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   /**
    * @return names of each service in the stack
    */
-  public List<String> getServiceNames() {
-    return getServices().stream().map(ServiceInfo::getName).collect(Collectors.toList());
+  public Set<String> getServiceNames() {
+    return getServices().stream().map(ServiceInfo::getName).collect(Collectors.toSet());
   }
 }
