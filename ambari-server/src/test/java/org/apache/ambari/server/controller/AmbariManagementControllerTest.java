@@ -112,7 +112,6 @@ import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -875,7 +874,7 @@ public class AmbariManagementControllerTest {
     for (ServiceResponse svc : response) {
       Assert.assertTrue(svc.getServiceName().equals(serviceName)
           || svc.getServiceName().equals(serviceName2));
-      Assert.assertEquals("HDP-0.2", svc.getDesiredStackId());
+      Assert.assertEquals(HDP_0_1, svc.getDesiredStackId());
       Assert.assertEquals(State.INIT.toString(), svc.getDesiredState());
     }
   }
@@ -1033,9 +1032,6 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster(cluster1);
     StackId stackId = new StackId(HDP_0_1);
     c1.setDesiredStackVersion(stackId);
-
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName, stackId.getStackId());
     Service s1 = serviceFactory.createNew(c1, serviceGroup, new ArrayList<>(), "HDFS", "HDFS");
@@ -1354,8 +1350,6 @@ public class AmbariManagementControllerTest {
 
     Cluster c1 = clusters.getCluster(cluster1);
     StackId stackId = new StackId("HDP-0.2");
-
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     String serviceGroupName = "CORE";
     ServiceGroup serviceGroup = c1.addServiceGroup(serviceGroupName, stackId.getStackId());
@@ -1782,7 +1776,6 @@ public class AmbariManagementControllerTest {
     StackId stackId = new StackId(HDP_0_1);
     c.setDesiredStackVersion(stackId);
     c.setCurrentStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     HostResourceProviderTest.createHosts(controller, requests);
 
@@ -1809,7 +1802,6 @@ public class AmbariManagementControllerTest {
     StackId stackID = new StackId(HDP_0_1);
     c.setDesiredStackVersion(stackID);
     c.setCurrentStackVersion(stackID);
-    helper.getOrCreateRepositoryVersion(stackID, stackID.getStackVersion());
 
     setOsFamily(clusters.getHost(host1), "redhat", "5.9");
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
@@ -2207,8 +2199,6 @@ public class AmbariManagementControllerTest {
     String cluster1 = getUniqueName();
 
     StackId stackId = new StackId(HDP_0_1);
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     clusters.addCluster(cluster1, stackId);
     Cluster c1 = clusters.getCluster(cluster1);
@@ -2238,8 +2228,6 @@ public class AmbariManagementControllerTest {
     String cluster2 = getUniqueName();
 
     StackId stackId = new StackId("HDP-0.2");
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     clusters.addCluster(cluster1, stackId);
     clusters.addCluster(cluster2, stackId);
@@ -2356,8 +2344,6 @@ public class AmbariManagementControllerTest {
     String cluster2 = getUniqueName();
 
     StackId stackId = new StackId("HDP-0.2");
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     clusters.addCluster(cluster1, stackId);
     clusters.addCluster(cluster2, stackId);
@@ -3120,6 +3106,10 @@ public class AmbariManagementControllerTest {
     createCluster(cluster1);
     String cluster2 = getUniqueName();
     createCluster(cluster2);
+    String cluster3 = getUniqueName();
+    createCluster(cluster3);
+    String cluster4 = getUniqueName();
+    createCluster(cluster4);
 
     String serviceGroupName = "CORE";
     ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster1, serviceGroupName, HDP_0_1);
@@ -3140,20 +3130,19 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.getCluster(cluster1).setDesiredStackVersion(
-        new StackId("HDP-0.2"));
-    clusters.getCluster(cluster2).setDesiredStackVersion(
-        new StackId("HDP-0.2"));
-    createService(cluster1, serviceGroupName, serviceName2, null);
-    createService(cluster2, serviceGroupName, serviceName3, null);
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster3, serviceGroupName, "HDP-0.2");
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, cluster4, serviceGroupName, "HDP-0.2");
+
+    createService(cluster3, serviceGroupName, serviceName2, null);
+    createService(cluster4, serviceGroupName, serviceName3, null);
 
     Set<ServiceRequest> reqs = new HashSet<>();
     ServiceRequest req1, req2;
     try {
       reqs.clear();
-      req1 = new ServiceRequest(cluster1, serviceGroupName, serviceName1, null,
+      req1 = new ServiceRequest(cluster3, serviceGroupName, serviceName1, null,
           State.INSTALLED.toString(), null);
-      req2 = new ServiceRequest(cluster2, serviceGroupName, serviceName2, null,
+      req2 = new ServiceRequest(cluster4, serviceGroupName, serviceName2, null,
           State.INSTALLED.toString(), null);
       reqs.add(req1);
       reqs.add(req2);
@@ -3165,9 +3154,9 @@ public class AmbariManagementControllerTest {
 
     try {
       reqs.clear();
-      req1 = new ServiceRequest(cluster1, serviceGroupName, serviceName1, null,
+      req1 = new ServiceRequest(cluster4, serviceGroupName, serviceName1, null,
           State.INSTALLED.toString(), null);
-      req2 = new ServiceRequest(cluster1, serviceGroupName, serviceName1, null,
+      req2 = new ServiceRequest(cluster4, serviceGroupName, serviceName1, null,
           State.STARTED.toString(), null);
       reqs.add(req1);
       reqs.add(req2);
@@ -3177,14 +3166,14 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.getCluster(cluster1).getService(serviceName2)
+    clusters.getCluster(cluster4).getService(serviceName2)
         .setDesiredState(State.INSTALLED);
 
     try {
       reqs.clear();
-      req1 = new ServiceRequest(cluster1, serviceGroupName, serviceName1, null,
+      req1 = new ServiceRequest(cluster4, serviceGroupName, serviceName1, null,
           State.INSTALLED.toString(), null);
-      req2 = new ServiceRequest(cluster1, serviceGroupName, serviceName2, null,
+      req2 = new ServiceRequest(cluster4, serviceGroupName, serviceName2, null,
           State.STARTED.toString(), null);
       reqs.add(req1);
       reqs.add(req2);

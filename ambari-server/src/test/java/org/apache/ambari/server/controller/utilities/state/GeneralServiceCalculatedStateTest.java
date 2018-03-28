@@ -61,14 +61,9 @@ public abstract class GeneralServiceCalculatedStateTest {
   @Inject
   protected Clusters clusters;
 
-  @Inject
-  private OrmTestHelper ormTestHelper;
-
   @Before
   public void setup() throws Exception {
     final StackId stack211 = new StackId("HDP-2.1.1");
-    final String version = "2.1.1-1234";
-
     injector = Guice.createInjector(Modules.override(
       new InMemoryDefaultTestModule()).with(new Module() {
       @Override
@@ -79,6 +74,9 @@ public abstract class GeneralServiceCalculatedStateTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+
+    OrmTestHelper ormHelper = injector.getInstance(OrmTestHelper.class);
+    ormHelper.createMpack(stack211);
 
     clusters.addCluster(clusterName, stack211);
     cluster = clusters.getCluster(clusterName);
