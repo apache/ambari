@@ -43,6 +43,8 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_L
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
@@ -6218,6 +6220,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   public TreeMap<String, String> getMetadataClusterLevelParams(Cluster cluster, StackId stackId) throws AmbariException {
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
+    clusterLevelParams.put(STACK_NAME, stackId.getStackName());
+    clusterLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     if (MapUtils.isNotEmpty(desiredConfigs)) {
 
@@ -6310,35 +6315,35 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   public TreeMap<String, String> getMetadataAmbariLevelParams() throws AmbariException {
-    TreeMap<String, String> clusterLevelParams = new TreeMap<>();
-    clusterLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
-    clusterLevelParams.put(JAVA_HOME, getJavaHome());
-    clusterLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
-    clusterLevelParams.put(JDK_NAME, getJDKName());
-    clusterLevelParams.put(JCE_NAME, getJCEName());
-    clusterLevelParams.put(DB_NAME, getServerDB());
-    clusterLevelParams.put(MYSQL_JDBC_URL, getMysqljdbcUrl());
-    clusterLevelParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
-    clusterLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
-    clusterLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
-    clusterLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
-    clusterLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
+    TreeMap<String, String> ambariLevelParams = new TreeMap<>();
+    ambariLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
+    ambariLevelParams.put(JAVA_HOME, getJavaHome());
+    ambariLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
+    ambariLevelParams.put(JDK_NAME, getJDKName());
+    ambariLevelParams.put(JCE_NAME, getJCEName());
+    ambariLevelParams.put(DB_NAME, getServerDB());
+    ambariLevelParams.put(MYSQL_JDBC_URL, getMysqljdbcUrl());
+    ambariLevelParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
+    ambariLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
+    ambariLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
+    ambariLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
+    ambariLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
 
     boolean serverUseSsl = configs.getApiSSLAuthentication();
     int port = serverUseSsl ? configs.getClientSSLApiPort() : configs.getClientApiPort();
-    clusterLevelParams.put(AMBARI_SERVER_HOST, StageUtils.getHostName());
-    clusterLevelParams.put(AMBARI_SERVER_PORT, Integer.toString(port));
-    clusterLevelParams.put(AMBARI_SERVER_USE_SSL, Boolean.toString(serverUseSsl));
+    ambariLevelParams.put(AMBARI_SERVER_HOST, StageUtils.getHostName());
+    ambariLevelParams.put(AMBARI_SERVER_PORT, Integer.toString(port));
+    ambariLevelParams.put(AMBARI_SERVER_USE_SSL, Boolean.toString(serverUseSsl));
 
     for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
-      clusterLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
+      ambariLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
     }
     for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
-      clusterLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
+      ambariLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
     }
-    clusterLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
+    ambariLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
 
-    return clusterLevelParams;
+    return ambariLevelParams;
   }
 
   @Override
