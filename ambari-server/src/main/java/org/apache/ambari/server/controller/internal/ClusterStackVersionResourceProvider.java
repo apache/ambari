@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -77,6 +78,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -625,6 +627,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
         ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(cluster);
         serviceNames.addAll(clusterSummary.getAvailableServiceNames());
+      } else {
+        serviceNames.addAll(ami.getStack(stackId).getServices().stream().map(ServiceInfo::getName).collect(Collectors.toList()));
       }
 
       // Populate with commands for host
