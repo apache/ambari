@@ -16,24 +16,10 @@
  * limitations under the License.
  */
 
-import { NgModule, APP_INITIALIZER } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
-
-import { AppLoadService } from './services/app-load.service';
-
-export function check_if_authorized(appLoadService: AppLoadService) {
-  return () => appLoadService.syncAuthorizedStateWithBackend();
-}
-export function set_translation_service(appLoadService: AppLoadService) {
-  return () => appLoadService.setTranslationService();
+export interface LogsState {
+  activeTabId: string;
 }
 
-@NgModule({
-  imports: [HttpClientModule],
-  providers: [
-    AppLoadService,
-    { provide: APP_INITIALIZER, useFactory: check_if_authorized, deps: [AppLoadService], multi: true },
-    { provide: APP_INITIALIZER, useFactory: set_translation_service, deps: [AppLoadService], multi: true }
-  ]
-})
-export class AppLoadModule { }
+export const defaultState: LogsState = {
+  activeTabId: ''
+};

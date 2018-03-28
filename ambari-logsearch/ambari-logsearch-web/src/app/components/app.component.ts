@@ -16,11 +16,9 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {Component} from '@angular/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {TakeUntilDestroy} from "angular2-take-until-destroy";
-import {Observable} from "rxjs/Observable";
+import {Observable} from 'rxjs/Observable';
 import {Options} from 'angular2-notifications/src/options.type';
 
 @Component({
@@ -28,7 +26,7 @@ import {Options} from 'angular2-notifications/src/options.type';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.less']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
   isAuthorized$: Observable<boolean> = this.appState.getParameter('isAuthorized');
 
@@ -40,14 +38,7 @@ export class AppComponent implements OnInit {
   };
 
   constructor(
-    private translate: TranslateService,
     private appState: AppStateService
   ) {}
-
-  ngOnInit() {
-    this.appState.setParameter('isInitialLoading', true);
-    this.translate.setDefaultLang('en');
-    this.translate.use('en');
-  }
 
 }

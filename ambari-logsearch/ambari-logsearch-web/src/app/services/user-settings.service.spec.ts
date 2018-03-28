@@ -39,11 +39,16 @@ import {UtilsService} from '@app/services/utils.service';
 
 import {UserSettingsService} from './user-settings.service';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
 describe('UserSettingsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           auditLogs,
           serviceLogs,
@@ -79,7 +84,10 @@ describe('UserSettingsService', () => {
         HostsService,
         ServiceLogsTruncatedService,
         TabsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ]
     });
   });
