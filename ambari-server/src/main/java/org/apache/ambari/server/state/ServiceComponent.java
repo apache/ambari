@@ -66,18 +66,9 @@ public interface ServiceComponent {
 
   void setDesiredState(State state);
 
-  /**
-   * Gets the desired repository for this service component.
-   *
-   * @return
-   */
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  RepositoryVersionEntity getDesiredRepositoryVersion();
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  StackId getDesiredStackId();
+  StackId getStackId();
 
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)

@@ -2522,7 +2522,7 @@ public class AmbariManagementControllerImplTest {
 
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
-    expect(service.getDesiredStackId()).andReturn(stackId).atLeastOnce();
+    expect(service.getStackId()).andReturn(stackId).atLeastOnce();
 
     expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
 

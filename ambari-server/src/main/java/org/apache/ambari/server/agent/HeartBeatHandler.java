@@ -432,7 +432,7 @@ public class HeartBeatHandler {
       componentsMap.put(service.getName(), new HashMap<>());
 
       for (ServiceComponent component : service.getServiceComponents().values()) {
-        StackId stackId = component.getDesiredStackId();
+        StackId stackId = component.getStackId();
 
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(
             stackId.getStackName(), stackId.getStackVersion(), service.getServiceType(), component.getName());

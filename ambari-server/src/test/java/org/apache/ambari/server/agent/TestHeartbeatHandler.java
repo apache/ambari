@@ -82,7 +82,6 @@ import org.apache.ambari.server.events.publishers.AgentCommandsPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
@@ -1335,13 +1334,13 @@ public class TestHeartbeatHandler {
     Map<String, ServiceComponent> componentMap = new HashMap<>();
     ServiceComponent nnComponent = EasyMock.createNiceMock(ServiceComponent.class);
     expect(nnComponent.getName()).andReturn("NAMENODE").atLeastOnce();
-    expect(nnComponent.getDesiredStackId()).andReturn(dummyStackId).atLeastOnce();
+    expect(nnComponent.getStackId()).andReturn(dummyStackId).atLeastOnce();
     componentMap.put("NAMENODE", nnComponent);
 
     expect(service.getServiceComponents()).andReturn(componentMap);
     expect(service.getServiceId()).andReturn(1L).atLeastOnce();
     expect(service.getServiceType()).andReturn("HDFS").atLeastOnce();
-    expect(service.getDesiredStackId()).andReturn(dummyStackId).atLeastOnce();
+    expect(service.getStackId()).andReturn(dummyStackId).atLeastOnce();
 
     replay(service, nnComponent);
 
@@ -1594,9 +1593,8 @@ public class TestHeartbeatHandler {
    * @throws AmbariException
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", DummyStackId);
-    return cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    return cluster.addService(serviceGroup, serviceName, serviceName);
   }
 
 }

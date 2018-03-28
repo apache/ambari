@@ -41,7 +41,6 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -111,8 +110,8 @@ public class JMXHostProviderTest {
 
   private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
       throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
-    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, m_repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
-    ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(r));
+    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, desiredState != null ? desiredState.toString() : null, null);
+    ServiceResourceProviderTest.createServices(controller, Collections.singleton(r));
   }
 
   private void createServiceComponent(String clusterName, String serviceGroupName,
@@ -563,7 +562,6 @@ public class JMXHostProviderTest {
 
     Injector injector = createNiceMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
 
     {
       expect(injector.getInstance(Clusters.class)).andReturn(null);
@@ -571,7 +569,7 @@ public class JMXHostProviderTest {
     }
 
     ResourceProvider serviceResourceProvider = new ServiceResourceProvider(controller,
-        maintenanceStateHelper, repositoryVersionDAO);
+        maintenanceStateHelper);
 
     ResourceProvider hostCompResourceProvider = new
       HostComponentResourceProvider(controller, injector);

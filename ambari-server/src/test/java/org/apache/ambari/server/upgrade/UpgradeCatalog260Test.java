@@ -1075,7 +1075,7 @@ public class UpgradeCatalog260Test {
     }}).anyTimes();
     expect(cluster.getServices()).andReturn(Collections.singletonMap("HDFS", service)).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
-    expect(service.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(service.getStackId()).andReturn(stackId).anyTimes();
     expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo).anyTimes();

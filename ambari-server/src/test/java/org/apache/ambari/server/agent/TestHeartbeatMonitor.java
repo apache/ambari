@@ -157,9 +157,6 @@ public class TestHeartbeatMonitor {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
-
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
       add(hostname2);
@@ -173,7 +170,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name(), Role.NAMENODE.name());
@@ -276,7 +273,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
     (hostname1);
@@ -386,7 +383,7 @@ public class TestHeartbeatMonitor {
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name(), Role.NAMENODE.name());
@@ -469,7 +466,7 @@ public class TestHeartbeatMonitor {
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name(), Role.NAMENODE.name());
@@ -587,7 +584,7 @@ public class TestHeartbeatMonitor {
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
 
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);

@@ -167,7 +167,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
 
           if (!visitedServices.contains(serviceName)) {
             ServiceComponent serviceComponent = sch.getServiceComponent();
-            StackId stackVersion = serviceComponent.getDesiredStackId();
+            StackId stackVersion = serviceComponent.getStackId();
 
             visitedServices.add(serviceName);
 

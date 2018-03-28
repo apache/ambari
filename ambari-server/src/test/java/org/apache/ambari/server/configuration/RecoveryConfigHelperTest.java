@@ -39,9 +39,6 @@ import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -73,12 +70,6 @@ public class RecoveryConfigHelperTest {
 
   @Inject
   private RecoveryConfigHelper recoveryConfigHelper;
-
-  @Inject
-  private RepositoryVersionDAO repositoryVersionDAO;
-
-  @Inject
-  private OrmTestHelper helper;
 
   private final String STACK_VERSION = "0.1";
   private final String REPO_VERSION = "0.1-1234";
@@ -150,9 +141,8 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -179,9 +169,8 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentUninstalled()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -210,9 +199,8 @@ public class RecoveryConfigHelperTest {
   public void testClusterEnvConfigChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -245,9 +233,8 @@ public class RecoveryConfigHelperTest {
   public void testMaintenanceModeChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -275,9 +262,8 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentRecoveryChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -311,11 +297,9 @@ public class RecoveryConfigHelperTest {
     // Create a cluster with 2 hosts
     Cluster cluster = getDummyCluster(hostNames);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-
     // Add HDFS service with DATANODE component to the cluster
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, HDFS, HDFS);
 
     hdfs.addServiceComponent(DATANODE, DATANODE).setRecoveryEnabled(true);
 

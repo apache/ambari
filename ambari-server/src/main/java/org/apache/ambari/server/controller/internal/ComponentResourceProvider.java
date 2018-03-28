@@ -453,7 +453,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         // Expected
       }
 
-      StackId stackId = s.getDesiredStackId();
+      StackId stackId = s.getStackId();
       if (!ambariMetaInfo.isValidServiceComponent(stackId.getStackName(),
           stackId.getStackVersion(), s.getServiceType(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
@@ -478,7 +478,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName(), request.getComponentType());
-      sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
@@ -496,7 +495,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setRecoveryEnabled(recoveryEnabled);
         LOG.info("Component: {}, recovery_enabled from request: {}", request.getComponentName(), recoveryEnabled);
       } else {
-        StackId stackId = s.getDesiredStackId();
+        StackId stackId = s.getStackId();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), s.getServiceType(), request.getComponentType());
         if (componentInfo == null) {
@@ -548,7 +547,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final Service s = getServiceFromCluster(request, cluster);
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
-      StackId stackId = sc.getDesiredStackId();
+      StackId stackId = sc.getStackId();
 
       ServiceGroup sg = null;
       try {
@@ -588,7 +587,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           continue;
         }
 
-        StackId stackId = sc.getDesiredStackId();
+        StackId stackId = sc.getStackId();
 
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {

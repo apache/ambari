@@ -30,7 +30,6 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.junit.Test;
 
 import junit.framework.Assert;
@@ -46,17 +45,16 @@ public class AbstractControllerResourceProviderTest {
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
 
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
 
     ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController,
-        maintenanceStateHelper, repositoryVersionDAO);
+        maintenanceStateHelper);
 
     expect(factory.getServiceResourceProvider(managementController)).andReturn(
         serviceResourceProvider);
 
     AbstractControllerResourceProvider.init(factory);
 
-    replay(managementController, factory, maintenanceStateHelper, repositoryVersionDAO);
+    replay(managementController, factory, maintenanceStateHelper);
 
     AbstractResourceProvider provider =
         (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(

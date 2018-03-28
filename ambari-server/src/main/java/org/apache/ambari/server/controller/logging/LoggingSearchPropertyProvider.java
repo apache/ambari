@@ -190,7 +190,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
       Cluster cluster = controller.getClusters().getCluster(clusterName);
       String serviceName = controller.findServiceName(cluster, componentName);
       Service service = cluster.getService(serviceName);
-      StackId stackId = service.getDesiredStackId();
+      StackId stackId = service.getStackId();
 
       final String stackName = stackId.getStackName();
       final String stackVersion = stackId.getStackVersion();

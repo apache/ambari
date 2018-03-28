@@ -180,22 +180,20 @@ public class HostComponentResourceProviderTest {
     StackId stackId = new StackId("HDP-0.1");
     StackId stackId2 = new StackId("HDP-0.2");
 
-    String repositoryVersion2 = "0.2-1234";
-
     allResponse.add(new ServiceComponentHostResponse(
         1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), repositoryVersion2, null));
+        stackId2.getStackId(), null));
 
     allResponse.add(new ServiceComponentHostResponse(
         1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component101", "Component 101", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), repositoryVersion2, null));
+        stackId2.getStackId(), null));
 
     allResponse.add(new ServiceComponentHostResponse(
         1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component102", "Component 102", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), repositoryVersion2, null));
+        stackId2.getStackId(), null));
 
     Map<String, String> expectedNameValues = new HashMap<>();
     expectedNameValues.put(
@@ -203,9 +201,7 @@ public class HostComponentResourceProviderTest {
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.toString());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
-    expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId.getStackVersion());
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.toString());
     expectedNameValues.put(
@@ -225,7 +221,6 @@ public class HostComponentResourceProviderTest {
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID);
 
@@ -244,10 +239,9 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource1.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     Resource hostsComponentResource2 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -258,10 +252,9 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource2.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     Resource hostsComponentResource3 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -272,10 +265,9 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource3.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
+        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, stackId2.getStackVersion());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     hostsComponentResources.add(hostsComponentResource1);
     hostsComponentResources.add(hostsComponentResource2);
@@ -350,7 +342,7 @@ public class HostComponentResourceProviderTest {
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
         1L, "Cluster102", 1L, "ServiceGroup100", 1L, "Service100", "", 1L, "Component100", "Component100","Component 100", "Host100", "Host100",
-        "INSTALLED", "", "", "", "", null));
+        "INSTALLED", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -536,7 +528,7 @@ public class HostComponentResourceProviderTest {
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
         1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component100", "Component 100", "Host100", "Host100",
-        "INSTALLED", "", "", "", "", null));
+        "INSTALLED", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();

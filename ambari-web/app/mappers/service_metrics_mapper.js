@@ -36,8 +36,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     installed_clients: 'installed_clients',
     client_components: 'client_components',
     slave_components: 'slave_components',
-    master_components: 'master_components',
-    desired_repository_version_id: 'ServiceInfo.desired_repository_version_id'
+    master_components: 'master_components'
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',

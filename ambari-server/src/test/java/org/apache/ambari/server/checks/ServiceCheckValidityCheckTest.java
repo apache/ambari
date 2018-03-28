@@ -110,7 +110,7 @@ public class ServiceCheckValidityCheckTest {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     when(service.getName()).thenReturn(SERVICE_NAME);
     when(service.getServiceId()).thenReturn(SERVICE_ID);
-    when(service.getDesiredStackId()).thenReturn(new StackId("HDP", "2.2"));
+    when(service.getStackId()).thenReturn(new StackId("HDP", "2.2"));
 
 
     serviceCheckValidityCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {

@@ -448,9 +448,8 @@ public class UpgradeContext {
      */
     String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-    RepositoryVersionEntity upgradeFromRepositoryVersion = cluster.getService(
-        m_services.iterator().next()).getDesiredRepositoryVersion();
+    @Experimental(feature= ExperimentalFeature.REPO_VERSION_REMOVAL)
+    RepositoryVersionEntity upgradeFromRepositoryVersion = m_repositoryVersion;
 
     m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
         upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
@@ -1047,7 +1046,7 @@ public class UpgradeContext {
         serviceName = iterator.next();
         Service service = cluster.getService(serviceName);
 
-        m_sourceRepositoryMap.put(serviceName, service.getDesiredRepositoryVersion());
+        m_sourceRepositoryMap.put(serviceName, null);
         m_targetRepositoryMap.put(serviceName, repositoryVersion);
       } catch (ServiceNotFoundException e) {
         // remove the service which is not part of the cluster - this should

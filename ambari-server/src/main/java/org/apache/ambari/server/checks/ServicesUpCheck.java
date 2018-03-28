@@ -131,7 +131,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
         // non-master, "true" slaves with cardinality 1+
         boolean checkThreshold = false;
         if (!serviceComponent.isMasterComponent()) {
-          StackId stackId = service.getDesiredStackId();
+          StackId stackId = service.getStackId();
           ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(stackId.getStackName(),
               stackId.getStackVersion(), serviceComponent.getServiceType(),
               serviceComponent.getName());
