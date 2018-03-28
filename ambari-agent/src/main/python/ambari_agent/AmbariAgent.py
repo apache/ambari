@@ -22,7 +22,8 @@ import os
 import sys
 from ambari_commons import subprocess32
 import signal
-from Controller import AGENT_AUTO_RESTART_EXIT_CODE
+
+AGENT_AUTO_RESTART_EXIT_CODE = 77
 
 if os.environ.has_key("PYTHON_BIN"):
   AGENT_SCRIPT = os.path.join(os.environ["PYTHON_BIN"],"site-packages/ambari_agent/main.py")
