@@ -1602,7 +1602,6 @@ public class AmbariManagementControllerTest {
     Cluster c2 = clusters.getCluster(cluster2);
 
     StackId stackId = new StackId("HDP-0.2");
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     foo.setDesiredStackVersion(stackId);
     foo.setCurrentStackVersion(stackId);
