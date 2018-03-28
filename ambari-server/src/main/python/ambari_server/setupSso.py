@@ -30,7 +30,7 @@ from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import get_silent, print_info_msg
 from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, get_ambari_admin_username_password_pair, get_cluster_name, perform_changes_via_rest_api
-from ambari_server.setupSecurity import REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE
+from ambari_server.setupSecurity import REGEX_TRUE_FALSE
 from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, update_properties, \
   store_password_file
 from contextlib import closing
@@ -54,6 +54,8 @@ JWT_PUBLIC_KEY_FILENAME = "jwt-cert.pem"
 JWT_PUBLIC_KEY_HEADER = "-----BEGIN CERTIFICATE-----\n"
 JWT_PUBLIC_KEY_FOOTER = "\n-----END CERTIFICATE-----\n"
 
+REGEX_URL = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+\S*$"
+
 SSO_MANAGE_SERVICES = "ambari.sso.manage_services"
 SSO_ENABLED_SERVICES = "ambari.sso.enabled_services"
 WILDCARD_FOR_ALL_SERVICES = "*"
@@ -65,7 +67,7 @@ SETUP_SSO_CONFIG_URL = 'services/AMBARI/components/AMBARI_SERVER/configurations/
 
 def validate_options(options):
   errors = []
-  if options.sso_enabled and not re.search(REGEX_TRUE_FALSE, options.sso_enabled):
+  if options.sso_enabled and not re.match(REGEX_TRUE_FALSE, options.sso_enabled):
     errors.append("--sso-enabled should be to either 'true' or 'false'")
 
   if options.sso_enabled == 'true':
@@ -73,7 +75,7 @@ def validate_options(options):
       errors.append("Missing option: --sso-provider-url")
     if not options.sso_public_cert_file:
       errors.append("Missing option: --sso-public-cert-file")
-    if options.sso_provider_url and not re.search(REGEX_HOSTNAME_PORT, options.sso_provider_url):
+    if options.sso_provider_url and not re.match(REGEX_URL, options.sso_provider_url):
       errors.append("Invalid --sso-provider-url")
 
   if len(errors) > 0:
@@ -84,7 +86,7 @@ def validate_options(options):
 def populate_sso_provider_url(options, properties):
   if not options.sso_provider_url:
       provider_url = get_value_from_properties(properties, JWT_AUTH_PROVIDER_URL, JWT_AUTH_PROVIDER_URL_DEFAULT)
-      provider_url = get_validated_string_input("Provider URL [URL] ({0}):".format(provider_url), provider_url, REGEX_HOSTNAME_PORT,
+      provider_url = get_validated_string_input("Provider URL [URL] ({0}):".format(provider_url), provider_url, REGEX_URL,
                                                 "Invalid provider URL", False)
   else:
     provider_url = options.sso_provider_url

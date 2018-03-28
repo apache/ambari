@@ -218,6 +218,22 @@ class TestSetupSso(unittest.TestCase):
       self.assertTrue("Invalid --sso-provider-url" in e.reason)
       pass
 
+    options.sso_provider_url = 'The SSO provider URL is https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso'
+    try:
+      setup_sso(options)
+      self.fail("Should fail with fatal exception")
+    except FatalException as e:
+      self.assertTrue("Invalid --sso-provider-url" in e.reason)
+      pass
+
+    options.sso_provider_url = 'https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso is the SSO provider URL'
+    try:
+      setup_sso(options)
+      self.fail("Should fail with fatal exception")
+    except FatalException as e:
+      self.assertTrue("Invalid --sso-provider-url" in e.reason)
+      pass
+
     sys.stdout = sys.__stdout__
     pass
 
@@ -242,7 +258,7 @@ class TestSetupSso(unittest.TestCase):
 
     sso_enabled = 'true'
     sso_enabled_services = 'Ambari, SERVICE1, SERVICE2'
-    sso_provider_url = 'http://testHost:8080'
+    sso_provider_url = 'https://c7402.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso'
     sso_public_cert_file = '/test/file/path'
     sso_jwt_cookie_name = 'test_cookie'
     sso_jwt_audience_list = 'test, audience, list'
