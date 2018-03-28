@@ -137,10 +137,7 @@ public class Module {
    * @return
    */
   public ModuleComponent getModuleComponent(String moduleComponentName) {
-    if(componentHashMap.containsKey(moduleComponentName)){
-      return componentHashMap.get(moduleComponentName);
-    }
-    return null;
+   return componentHashMap.get(moduleComponentName);
   }
 
   @Override

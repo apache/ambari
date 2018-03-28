@@ -207,12 +207,10 @@ public class Mpack {
    * @return the component or {@code null}.
    */
   public ModuleComponent getModuleComponent(String moduleName, String moduleComponentName) {
-    if(moduleHashMap.containsKey(moduleName)){
-      Module module = moduleHashMap.get(moduleName);
-      if(module.getModuleComponent(moduleComponentName) != null){
+   Module module = moduleHashMap.get(moduleName);
+      if(module !=null){
         return module.getModuleComponent(moduleComponentName);
       }
-    }
     return null;
   }
 
