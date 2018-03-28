@@ -50,7 +50,7 @@ from ambari_server.serverConfiguration import configDefaults, parse_properties_f
   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY, \
   SSL_API, SSL_API_PORT, DEFAULT_SSL_API_PORT, CLIENT_API_PORT, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, JAVA_HOME_PROPERTY, \
   get_resources_location, SECURITY_MASTER_KEY_LOCATION, SETUP_OR_UPGRADE_MSG, CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY
-from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
+from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, get_ambari_admin_username_password_pair, perform_changes_via_rest_api
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, quit_if_has_answer
 from ambari_server.serverClassPath import ServerClassPath
@@ -349,6 +349,7 @@ def sync_ldap(options):
     err = 'Must specify a sync option (all, existing, users or groups).  Please invoke ambari-server.py --help to print the options.'
     raise FatalException(1, err)
 
+  #TODO: use serverUtils.get_ambari_admin_username_password_pair (requires changes in ambari-server.py too to modify option names)
   admin_login = ldap_sync_options.ldap_sync_admin_name\
     if ldap_sync_options.ldap_sync_admin_name is not None and ldap_sync_options.ldap_sync_admin_name \
     else get_validated_string_input(prompt="Enter Ambari Admin login: ", default=None,
@@ -673,39 +674,17 @@ def init_ldap_properties_list_reqd(properties, options):
   ]
   return ldap_properties
 
-def get_ambari_admin_username_password_pair(options):
-  admin_login = options.ambari_admin_username if options.ambari_admin_username is not None else get_validated_string_input("Enter Ambari Admin login: ", None, None, None, False, False)
-  admin_password = options.ambari_admin_password if options.ambari_admin_password is not None else get_validated_string_input("Enter Ambari Admin password: ", None, None, None, True, False)
-
-  return admin_login, admin_password
-
 def update_ldap_configuration(options, properties, ldap_property_value_map):
   admin_login, admin_password = get_ambari_admin_username_password_pair(options)
-  url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
-  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
-  request = urllib2.Request(url)
-  request.add_header('Authorization', 'Basic %s' % admin_auth)
-  request.add_header('X-Requested-By', 'ambari')
-  data = {
+  request_data = {
     "Configuration": {
       "category": "ldap-configuration",
       "properties": {
       }
     }
   }
-  data['Configuration']['properties'] = ldap_property_value_map
-  request.add_data(json.dumps(data))
-  request.get_method = lambda: 'PUT'
-
-  try:
-    with closing(urllib2.urlopen(request)) as response:
-      response_status_code = response.getcode()
-      if response_status_code != 200:
-        err = 'Error during setup-ldap. Http status code - ' + str(response_status_code)
-        raise FatalException(1, err)
-  except Exception as e:
-    err = 'Updating LDAP configuration failed. Error details: %s' % e
-    raise FatalException(1, err)
+  request_data['Configuration']['properties'] = ldap_property_value_map
+  perform_changes_via_rest_api(properties, admin_login, admin_password, SETUP_LDAP_CONFIG_URL, 'PUT', request_data)
 
 def setup_ldap(options):
   logger.info("Setup LDAP.")
