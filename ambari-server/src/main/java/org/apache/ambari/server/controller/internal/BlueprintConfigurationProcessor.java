@@ -409,8 +409,8 @@ public class BlueprintConfigurationProcessor {
       // if the active/stanbdy namenodes are not specified, assign them automatically
       if (! isNameNodeHAInitialActiveNodeSet(clusterProps) && ! isNameNodeHAInitialStandbyNodeSet(clusterProps)) {
         Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
-        if (nnHosts.size() != 2) {
-          throw new ConfigurationTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
+        if (nnHosts.size() < 2) {
+          throw new ConfigurationTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
               nnHosts.size() + " Hosts: " + nnHosts);
         }
 
@@ -1467,7 +1467,7 @@ public class BlueprintConfigurationProcessor {
           if (matchingGroupCount == 0 && cardinality.isValidCount(0)) {
             return origValue;
           } else {
-            if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroupCount == 2)) {
+            if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroupCount >= 2)) {
               // if this is the defaultFS property, it should reflect the nameservice name,
               // rather than a hostname (used in non-HA scenarios)
               if (properties.containsKey("core-site") && properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
