@@ -47,7 +47,7 @@ class PhoenixQueryServer(Script):
     self.configure(env)
     phoenix_service('start')
 
-  @retry(times=3, sleep_time=5, err_class=Fail)
+  @retry(times=3, sleep_time=5, err_class=Fail) # XXX PID file is not always created in time. Should be idempotent.
   def post_start(self, env=None):
     return super(PhoenixQueryServer, self).post_start(env)
 
