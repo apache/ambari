@@ -2767,19 +2767,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<OsSpecific.Package> packages =
         getPackagesForStackServiceHost(ambariMetaInfo.getStack(stackId), serviceInfo, hostParams, osFamily);
     String packageList = gson.toJson(packages);
-    hostParams.put(PACKAGE_LIST, packageList);
+    commandParams.put(PACKAGE_LIST, packageList);
 
     Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stackInfo.getName(), stackInfo.getVersion());
 
-    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
+
+    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
     String userList = gson.toJson(userSet);
     hostParams.put(USER_LIST, userList);
 
     //Create a user_group mapping and send it as part of the hostLevelParams
     Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
-      cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+      cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
     String userGroups = gson.toJson(userGroupsMap);
     hostParams.put(USER_GROUPS, userGroups);
+
 
     // Set exec command with 'ClusterSettings' map
     execCmd.setClusterSettings(cluster.getClusterSettingsNameValueMap());
@@ -2787,11 +2790,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Set exec command with 'StackSettings' map
     execCmd.setStackSettings(ambariMetaInfo.getStackSettingsNameValueMap(stackId));
 
-    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
 
-    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties, clusterProperties);
     Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
