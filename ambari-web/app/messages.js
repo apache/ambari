@@ -1693,9 +1693,10 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step4.task6.title': 'Start ZKFC',
   'admin.nameNodeFederation.wizard.step4.task7.title': 'Start NameNode',
   'admin.nameNodeFederation.wizard.step4.task8.title': 'Bootstrap NameNode',
-  'admin.nameNodeFederation.wizard.step4.task9.title': 'Start ZKFC',
-  'admin.nameNodeFederation.wizard.step4.task10.title': 'Start NameNode',
-  'admin.nameNodeFederation.wizard.step4.task11.title': 'Start All Services',
+  'admin.nameNodeFederation.wizard.step4.task9.title': 'Create widgets',
+  'admin.nameNodeFederation.wizard.step4.task10.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task11.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task12.title': 'Start All Services',
 
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',

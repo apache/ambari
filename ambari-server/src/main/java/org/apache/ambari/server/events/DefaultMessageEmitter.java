@@ -45,6 +45,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         put(AmbariUpdateEvent.Type.ALERT_DEFINITIONS, "/alert_definitions");
         put(AmbariUpdateEvent.Type.UI_ALERT_DEFINITIONS, "/events/alert_definitions");
         put(AmbariUpdateEvent.Type.UPGRADE, "/events/upgrade");
+        put(AmbariUpdateEvent.Type.AGENT_ACTIONS, "/agent_actions");
   }});
 
   public DefaultMessageEmitter(AgentSessionManager agentSessionManager, SimpMessagingTemplate simpMessagingTemplate) {

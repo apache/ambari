@@ -41,8 +41,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
-    // TODO renove active_name_node_id after activeNameNode property becomes unused
-    active_name_node_id: 'active_name_node_id',
     active_name_nodes: 'active_name_nodes',
     standby_name_nodes: 'standby_name_nodes',
     journal_nodes: 'journal_nodes',
@@ -545,41 +543,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           activeNameNodeConfigKeys.forEach(key => {
             item[key].default = Em.get(firstHostComponent, activeNameNodeConfig[key]);
           });
-        }
-
-        // TODO remove after activeNameNode property becomes unused
-        if (hostComponents.length === 2) {
-          const haState1 = Em.get(firstHostComponent, 'metrics.dfs.FSNamesystem.HAState'),
-            haState2 = Em.get(hostComponents[1], 'metrics.dfs.FSNamesystem.HAState'),
-            namenodeName1 = firstHostComponent.HostRoles.host_name,
-            namenodeName2 = hostComponents[1].HostRoles.host_name;
-          let active_name_node = [],
-            standby_name_nodes = [];
-
-          switch (haState1) {
-            case "active":
-              active_name_node.push(namenodeName1);
-              break;
-            case "standby":
-              standby_name_nodes.push(namenodeName1);
-              break;
-          }
-          switch (haState2) {
-            case "active":
-              active_name_node.push(namenodeName2);
-              break;
-            case "standby":
-              standby_name_nodes.push(namenodeName2);
-              break;
-          }
-          item.active_name_node_id = null;
-          switch (active_name_node.length) {
-            case 1:
-              item.active_name_node_id = `NAMENODE_${active_name_node[0]}`;
-              break;
-          }
-          var activeHostComponentIndex = haState2 == "active" ? 1 : 0;
-          this.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
         }
 
         item.nameNodeComponent = component;

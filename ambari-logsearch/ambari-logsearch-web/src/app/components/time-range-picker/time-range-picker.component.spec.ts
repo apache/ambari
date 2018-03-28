@@ -41,6 +41,10 @@ import {UtilsService} from '@app/services/utils.service';
 
 import {TimeRangePickerComponent} from './time-range-picker.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('TimeRangePickerComponent', () => {
   let component: TimeRangePickerComponent;
@@ -50,6 +54,7 @@ describe('TimeRangePickerComponent', () => {
     TestBed.configureTestingModule({
       declarations: [TimeRangePickerComponent],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           appState,
@@ -84,7 +89,10 @@ describe('TimeRangePickerComponent', () => {
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
         TabsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

@@ -51,8 +51,13 @@
     {{else}}
       <span {{bindAttr title="component.displayName"}}>{{component.getDisplayName}}&nbsp;/</span>
     {{/if}}
-    <span class="hidden-lg"><br/></span> <a href="#" {{action routeToService component.service}} {{bindAttr
-    title="component.service.displayName"}}>{{component.serviceDisplayName}}</a>
+    <span class="hidden-lg"><br/></span>
+    <a href="#" {{action routeToService component.service}} {{bindAttr title="component.service.displayName"}}>
+      {{component.serviceDisplayName}}
+    </a>
+    {{#if component.haNameSpace}}
+      - <span></span>{{component.haNameSpace}}
+    {{/if}}
   </span>
 </td>
 

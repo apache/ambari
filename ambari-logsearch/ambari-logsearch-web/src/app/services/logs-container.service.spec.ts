@@ -38,11 +38,16 @@ import {UtilsService} from '@app/services/utils.service';
 
 import {LogsContainerService} from './logs-container.service';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
 describe('LogsContainerService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           auditLogs,
           serviceLogs,
@@ -77,7 +82,10 @@ describe('LogsContainerService', () => {
         TabsService,
         LogsContainerService,
         UtilsService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ]
     });
   });

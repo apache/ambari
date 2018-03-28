@@ -22,9 +22,6 @@ App.HDFSService = App.Service.extend({
   nameNode: DS.belongsTo('App.HostComponent'),
   snameNode: DS.belongsTo('App.HostComponent'),
 
-  // TODO remove after implementing widgets changes
-  activeNameNode: DS.belongsTo('App.HostComponent'),
-
   activeNameNodes: DS.hasMany('App.HostComponent', {
     defaultValue: []
   }),
@@ -116,7 +113,7 @@ App.HDFSService = App.Service.extend({
             };
         if (!existingNameSpace) {
           result.push(currentNameSpace);
-        }
+    }
         if (!currentNameSpace.hosts.contains(hostName)) {
           currentNameSpace.hosts.push(hostName);
         }

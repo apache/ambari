@@ -216,13 +216,23 @@ describe('App.QuickViewLinks', function () {
     beforeEach(function () {
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
-          isMaster: true,
+          componentName: 'HBASE_MASTER',
           hostName: 'host1'
         })
+      ]);
+      sinon.stub(App.QuickLinksConfig, 'find').returns([
+        {
+          links: [
+            {
+              component_name: 'HBASE_MASTER'
+            }
+          ]
+        }
       ]);
     });
     afterEach(function () {
       App.HostComponent.find.restore();
+      App.QuickLinksConfig.find.restore();
     });
     it("call $.ajax", function () {
       quickViewLinks.getQuickLinksHosts();
@@ -231,7 +241,7 @@ describe('App.QuickViewLinks', function () {
       expect(args[0].sender).to.be.eql(quickViewLinks);
       expect(args[0].data).to.be.eql({
         clusterName: App.get('clusterName'),
-        masterHosts: 'host1',
+        hosts: 'host1',
         urlParams: ''
       });
     });
@@ -243,7 +253,7 @@ describe('App.QuickViewLinks', function () {
       expect(args[0].sender).to.be.eql(quickViewLinks);
       expect(args[0].data).to.be.eql({
         clusterName: App.get('clusterName'),
-        masterHosts: 'host1',
+        hosts: 'host1',
         urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
       });
     });

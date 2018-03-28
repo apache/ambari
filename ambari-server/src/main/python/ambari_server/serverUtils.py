@@ -17,9 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import base64
 import os
+import sys
 import time
+import urllib2
+
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import get_verbose
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -28,6 +32,8 @@ from ambari_commons.os_utils import run_os_command
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 from ambari_server.serverConfiguration import configDefaults, PID_NAME, get_resources_location, get_stack_location, \
   CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
+from ambari_server.userInput import get_validated_string_input
+from contextlib import closing
 
 
 # Ambari server API properties
@@ -133,3 +139,85 @@ def get_ambari_server_api_base(properties):
     if api_port_prop is not None:
       api_port = api_port_prop
   return '{0}://{1}:{2!s}/api/v1/'.format(api_protocol, SERVER_API_HOST, api_port)
+
+
+def get_ambari_admin_username_password_pair(options):
+  """
+  Returns the Ambari administrator credential.
+  If not supplied via command line options, the user is queried for the username and password.
+  :param options: the collected command line options
+  :return: the Ambari admin credentials
+  """
+  admin_login = options.ambari_admin_username \
+    if hasattr(options, 'ambari_admin_username') and options.ambari_admin_username is not None \
+    else get_validated_string_input("Enter Ambari Admin login: ", None, None, None, False, False)
+  admin_password = options.ambari_admin_password \
+    if hasattr(options, 'ambari_admin_password') and options.ambari_admin_password is not None \
+    else get_validated_string_input("Enter Ambari Admin password: ", None, None, None, True, False)
+  return admin_login, admin_password
+
+
+def get_cluster_name(properties, admin_login, admin_password):
+  """
+  Fetches the name of the first cluster (in case there are more)
+  from the response of host:port/api/v1/clusters call
+  """
+  url = get_ambari_server_api_base(properties) + 'clusters'
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  request.get_method = lambda: 'GET'
+
+  request_in_progress = True
+  cluster_name = None
+  sys.stdout.write('\nFetching cluster name')
+  numOfTries = 0
+  while request_in_progress:
+    numOfTries += 1
+    if (numOfTries == 60):
+      raise FatalException(1, "Could not fetch cluster name within a minute; giving up!")
+    sys.stdout.write('.')
+    sys.stdout.flush()
+
+    try:
+      with closing(urllib2.urlopen(request)) as response:
+        response_status_code = response.getcode()
+        if response_status_code != 200:
+          request_in_progress = False
+          err = 'Error while fetching cluster name. Http status code - ' + str(response_status_code)
+          raise FatalException(1, err)
+        else:
+            response_body = json.loads(response.read())
+            items = response_body['items']
+            if len(items) > 0:
+               cluster_name = items[0]['Clusters']['cluster_name']
+               sys.stdout.write('\nFound cluster name: {0}'.format(cluster_name))
+            if not cluster_name:
+              time.sleep(1)
+            else:
+              request_in_progress = False
+    except Exception as e:
+      request_in_progress = False
+      err = 'Error while fetching cluster name. Error details: %s' % e
+      raise FatalException(1, err)
+
+    return cluster_name
+
+
+def perform_changes_via_rest_api(properties, admin_login, admin_password, url_postfix, get_method, request_data = None):
+  url = get_ambari_server_api_base(properties) + url_postfix
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  if request_data is not None:
+    request.add_data(json.dumps(request_data))
+  request.get_method = lambda: get_method
+
+  with closing(urllib2.urlopen(request)) as response:
+    response_status_code = response.getcode()
+    if response_status_code not in (200, 201):
+      err = 'Error while performing changes via Ambari REST API. Http status code - ' + str(response_status_code)
+      raise FatalException(1, err)
+

@@ -18,7 +18,7 @@
 
 import {Component, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {ListItem} from "@app/classes/list-item";
+import {ListItem} from '@app/classes/list-item';
 import {UtilsService} from '@app/services/utils.service';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 
@@ -36,13 +36,13 @@ import {MenuButtonComponent} from '@app/components/menu-button/menu-button.compo
 })
 export class FilterButtonComponent extends MenuButtonComponent implements ControlValueAccessor {
 
-  constructor(private utils: UtilsService) {
-    super();
-  }
-
   private selectedItems: ListItem[] = [];
 
   private onChange: (fn: any) => void;
+
+  constructor(private utils: UtilsService) {
+    super();
+  }
 
   get selection(): ListItem[] {
     return this.selectedItems;
@@ -57,18 +57,27 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
 
   updateSelection(item: ListItem): void {
     if (this.isMultipleChoice) {
-      this.subItems.find((option: ListItem): boolean => {
+      const itemIndex = this.subItems.findIndex((option: ListItem): boolean => {
         return this.utils.isEqual(option.value, item.value);
-      }).isChecked = item.isChecked;
-      const checkedItems = this.subItems.filter((option: ListItem): boolean => option.isChecked);
-      this.selection = checkedItems;
+      });
+      if (itemIndex > -1) {
+        this.subItems[itemIndex].isChecked = item.isChecked;
+        this.selection = this.subItems.filter((option: ListItem): boolean => option.isChecked);
+      }
     } else if (!this.utils.isEqual(this.selection[0], item)) {
       this.selection = [item];
     }
   }
 
   writeValue(items: ListItem[]) {
-    this.selection = items;
+    if (items && items.length) {
+      items.forEach((item) => {
+        this.updateSelection({
+          ...item,
+          isChecked: true
+        });
+      });
+    }
   }
 
   registerOnChange(callback: any): void {

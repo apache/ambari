@@ -33,7 +33,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        from ambari_server.serverUtils import get_ambari_server_api_base
+        from ambari_server.serverUtils import get_ambari_server_api_base, get_ambari_admin_username_password_pair
         from ambari_server.serverConfiguration import CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
 
 @patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
@@ -67,6 +67,32 @@ class TestServerUtils(TestCase):
     self.assertEquals(result, 'https://127.0.0.1:8443/api/v1/')
 
 
+  def test_get_ambari_admin_credentials_from_cli_options(self):
+    user_name = "admin"
+    password = "s#perS3cr3tP4ssw0d!"
+    options = MagicMock()
+    options.ambari_admin_username = user_name
+    options.ambari_admin_password = password
+    user, pw = get_ambari_admin_username_password_pair(options)
+    self.assertEquals(user, user_name)
+    self.assertEquals(pw, password)
+    
+  @patch("ambari_server.serverUtils.get_validated_string_input")
+  def test_get_ambari_admin_credentials_from_user_input(self, get_validated_string_input_mock):
+    user_name = "admin"
+    password = "s#perS3cr3tP4ssw0d!"
+    options = MagicMock()
+    options.ambari_admin_username = None
+    options.ambari_admin_password = None
+
+    def valid_input_side_effect(*args, **kwargs):
+      return user_name if 'Ambari Admin login' in args[0] else password
+
+    get_validated_string_input_mock.side_effect = valid_input_side_effect
+
+    user, pw = get_ambari_admin_username_password_pair(options)
+    self.assertEquals(user, user_name)
+    self.assertEquals(pw, password)
 
 class FakeProperties(object):
   def __init__(self, prop_map):

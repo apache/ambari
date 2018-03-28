@@ -521,7 +521,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.1.4</version>
+        <version>2.1.5</version>
         <executions>
           <execution>
             <!-- unbinds rpm creation from maven lifecycle -->
@@ -535,7 +535,7 @@
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
-          <autoRequires>no</autoRequires>
+          <autoRequires>false</autoRequires>
           <prefix>/</prefix>
           <requires>
             <require>${rpm.dependency.list}</require>
@@ -626,7 +626,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.4</version>
         <executions>
           <execution>
             <!-- unbinds rpm creation from maven lifecycle -->

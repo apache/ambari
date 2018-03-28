@@ -160,7 +160,7 @@ App.ServiceConfigGroup = DS.Model.extend({
 App.ServiceConfigGroup.FIXTURES = [];
 
 App.ServiceConfigGroup.getParentConfigGroupId = function(serviceName) {
-  return App.ServiceConfigGroup.groupId(serviceName, 'Default');
+  return App.ServiceConfigGroup.groupId(serviceName, App.ServiceConfigGroup.defaultGroupName);
 };
 
 App.ServiceConfigGroup.groupId = function(serviceName, groupName) {
