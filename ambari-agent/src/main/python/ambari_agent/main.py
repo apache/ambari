@@ -142,8 +142,6 @@ SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
 _file_logging_handlers ={}
 
-EXIT_CODE_ON_STOP = 0
-
 def setup_logging(logger, filename, logging_level):
   logger.propagate = False
   formatter = logging.Formatter(formatstr)
@@ -518,7 +516,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
       # Clean up if not Windows OS
       #
       if connected or stopped:
-        ExitHelper().exit(EXIT_CODE_ON_STOP)
+        ExitHelper().exit()
         logger.info("finished")
         break
     pass # for server_hostname in server_hostnames
