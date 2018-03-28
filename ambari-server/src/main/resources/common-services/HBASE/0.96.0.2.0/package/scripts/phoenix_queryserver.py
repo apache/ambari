@@ -23,6 +23,8 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.script import Script
 from phoenix_service import phoenix_service
 from hbase import hbase
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.decorator import retry
 
 # Note: Phoenix Query Server is only applicable to stack version supporting Phoenix.
 class PhoenixQueryServer(Script):
@@ -45,6 +47,9 @@ class PhoenixQueryServer(Script):
     self.configure(env)
     phoenix_service('start')
 
+  @retry(times=3, sleep_time=5, err_class=Fail)
+  def post_start(self, env=None):
+    return super(PhoenixQueryServer, self).post_start(env)
 
   def stop(self, env, upgrade_type=None):
     import params
