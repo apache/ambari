@@ -358,15 +358,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * @method loadAlertNotifications
    */
   loadAlertNotifications: function () {
-    var self = this;
     this.set('isLoaded', false);
-    App.router.get('updateController').updateAlertGroups(function () {
-      App.ajax.send({
-        name: 'alerts.notifications',
-        sender: self,
-        success: 'getAlertNotificationsSuccessCallback',
-        error: 'getAlertNotificationsErrorCallback'
-      });
+    return App.ajax.send({
+      name: 'alerts.notifications',
+      sender: this,
+      success: 'getAlertNotificationsSuccessCallback',
+      error: 'getAlertNotificationsErrorCallback'
     });
   },
 

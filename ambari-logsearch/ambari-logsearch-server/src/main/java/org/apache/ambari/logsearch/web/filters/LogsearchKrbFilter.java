@@ -27,8 +27,6 @@ import org.apache.hadoop.security.authentication.server.AuthenticationToken;
 import org.apache.hadoop.security.authentication.server.KerberosAuthenticationHandler;
 import org.apache.hadoop.security.authentication.server.PseudoAuthenticationHandler;
 import org.apache.hadoop.security.authentication.util.*;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +49,6 @@ import java.util.*;
 
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
 
-@InterfaceAudience.Private
-@InterfaceStability.Unstable
 public class LogsearchKrbFilter implements Filter {
 
   private static Logger logger = LoggerFactory.getLogger(LogsearchKrbFilter.class);

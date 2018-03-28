@@ -26,7 +26,7 @@ view and update all authentication source resources.  Any other user can only vi
 update their own authentication source resources. For example a user may change their own password
 by updating the relevant authentication source resource.  
 
-###API Summary
+### API Summary
 
 - [List authentication sources](authentication-source-list.md)
 - [Get authentication source](authentication-source-get.md)
@@ -34,7 +34,7 @@ by updating the relevant authentication source resource.
 - [Update authentication source](authentication-source-update.md)
 - [Delete authentication source](authenticationsource-delete.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>

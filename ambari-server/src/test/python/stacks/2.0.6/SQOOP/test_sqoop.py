@@ -46,7 +46,7 @@ class TestSqoop(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/usr/lib/sqoop/conf',
                               configurations = self.getConfig()['configurations']['sqoop-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['sqoop-site'])
+                              configuration_attributes = self.getConfig()['configurationAttributes']['sqoop-site'])
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
                               owner = 'sqoop',
                               group = 'hadoop',
@@ -102,7 +102,7 @@ class TestSqoop(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/usr/lib/sqoop/conf',
                               configurations = self.getConfig()['configurations']['sqoop-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['sqoop-site'])
+                              configuration_attributes = self.getConfig()['configurationAttributes']['sqoop-site'])
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['sqoop-env']['content']),
                               owner = 'sqoop',

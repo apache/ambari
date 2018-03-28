@@ -765,6 +765,7 @@ public class OrmTestHelper {
 
         operatingSystems = mpackEntity.getRepositoryOperatingSystems();
 
+
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
 

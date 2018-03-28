@@ -57,6 +57,10 @@
     margin-top: 0;
   }
 
+  ul.with-overrides {
+    margin-top: 20px;
+  }
+
   #get-started {
     .cluster-name-input {
       padding: 4px 0px;
@@ -76,7 +80,7 @@
         padding-right: 0;
         border-radius: 4px;
         float: left;
-        input[type="radio"] + label, p, .repo-group, {
+        input[type="radio"] + label, p, .repo-group {
           cursor: default;
         }
         input[type="radio"] + label:before {
@@ -268,12 +272,10 @@
         max-width: 290px;
       }
       td.host .trim_hostname {
+        .ellipsis-overflow-nowrap;
         max-width: 97% !important;
         display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
         float:left;
-        white-space: nowrap;
       }
       #display-action {
         visibility:visible;
@@ -323,17 +325,21 @@
     .pre-scrollable {
       max-height: 440px;
       position: relative;
+      display: flex;
+      overflow-y: visible;
       #component_assign_table {
+        display: inline-block;
+        overflow-x: scroll;
+        margin-left: 190px;
+        margin-bottom: 30px;
         tbody td, th {
           white-space: nowrap;
         }
         .trim_hostname {
+          .ellipsis-overflow-nowrap;
           max-width: 180px;
           float:left;
-          white-space: nowrap;
           display: block;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
         .checkbox {
           margin: 0;
@@ -342,6 +348,26 @@
           line-height: 17px;
           font-size: 12px;
           top: 0px;
+        }
+        .freeze {
+          position: absolute;
+          left: 0px;
+          width: 210px;
+          border-top-color: #eee;
+          border-bottom: 1px solid #eee;
+        }
+        td.freeze {
+          padding-bottom: 11px;
+        }
+        tr.last-row {
+          td {
+            border-bottom: 2px solid #eee;
+          }
+        }
+        .static-pagination {
+          position: absolute;
+          bottom: 0px;
+          right: 0px;
         }
       }
     }
@@ -444,12 +470,10 @@
         max-width: 290px;
       }
       td.host .trim_hostname {
+        .ellipsis-overflow-nowrap;
         max-width: 97% !important;
         display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
         float:left;
-        white-space: nowrap;
       }
       .progress-wrapper {
         width: 73%;
@@ -521,14 +545,14 @@
       margin-left: 0;
     }
   }
-  #ha-step1, #ha-step4, #ha-step8, #mjn-step7 {
+  #ha-step1, #ha-step4, #ha-step8, #manage-journal-node-step7 {
     .alert.alert-warn {
       margin-top: 10px;
       margin-bottom: 10px;
     }
   }
 
-  #ha-step4 li, #ha-step6 li, #ha-step8 li, #mjn-step7 li {
+  #ha-step4 li, #ha-step6 li, #ha-step8 li, #manage-journal-node-step7 li {
     margin-top: 8px;
   }
 
@@ -574,11 +598,10 @@
         text-align: left;
         padding: 10px;
         .selected-item {
+          .ellipsis-overflow;
           width: 95%;
           margin-right: 5px;
           float: left;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
       }
     }
@@ -1042,6 +1065,26 @@
   }
 }
 
+.config-groups-dropdown {
+  margin-right: 10px;
+  button.first {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.select-service-dropdown {
+  width: 170px;
+  text-align: left;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  padding-left: 8px;
+}
+
+.config-actions {
+  height: 34px;
+}
+
 .install-wizard-content {
   #top-nav .navbar.navbar-static-top {
     margin-bottom: 0;
@@ -1093,3 +1136,4 @@
 .filter-input {
   margin: 15px;
 }
+

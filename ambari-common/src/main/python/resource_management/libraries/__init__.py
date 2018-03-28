@@ -20,6 +20,7 @@ Ambari Agent
 
 """
 
+from resource_management.libraries.execution_command import *
 from resource_management.libraries.functions import *
 from resource_management.libraries.resources import *
 from resource_management.libraries.providers import *

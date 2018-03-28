@@ -16,11 +16,15 @@
 * limitations under the License.
 }}
 
-<div class="row">
-  <div class="col-md-12 component-summary">
-    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
+<div class="row component-summary">
+  {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
+  <div class="col-md-12">
+    <div class="col-md-2">
+      {{#if view.parentView.showComponentsTitleForNonMasters}}
+        {{t dashboard.services.hdfs.summary.components}}
+      {{/if}}
+    </div>
     <div class="col-md-10">
-      {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
       {{view App.SummarySlaveComponentsView slavesObjBinding="view.parentView.slavesObj"}}
       {{view App.SummaryClientComponentsView clientsObjBinding="view.parentView.clientObj"}}
     </div>

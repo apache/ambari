@@ -34,18 +34,21 @@
   </property>
   <property>
     <name>hbase_log_dir</name>
+    <display-name>HBase Log Dir Prefix</display-name>
     <value>/var/log/hbase</value>
     <description>Log Directories for HBase.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_pid_dir</name>
+    <display-name>HBase PID Dir</display-name>
     <value>/var/run/hbase</value>
     <description>Log Directories for HBase.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_log_dir</name>
+    <display-name>HBase Log Dir Prefix</display-name>
     <value>/var/log/hbase</value>
     <description>Log Directories for HBase.</description>
     <on-ambari-upgrade add="true"/>

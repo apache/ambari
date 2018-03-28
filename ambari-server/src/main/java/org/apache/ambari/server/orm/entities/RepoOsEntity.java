@@ -32,17 +32,26 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 
 import com.google.common.base.Objects;
 
+
+
+
+
 /**
  * Represents a Repository operation system type.
  */
 @Entity
-@Table(name = "repo_os")
+@Table(
+    name = "repo_os",
+    uniqueConstraints = @UniqueConstraint(
+        name = "UQ_repo_os_family_mpack_id",
+        columnNames = { "mpack_id", "family" }))
 @TableGenerator(name = "repo_os_id_generator",
     table = "ambari_sequences",
     pkColumnName = "sequence_name",
@@ -94,9 +103,17 @@ public class RepoOsEntity {
   }
 
   /**
+   * @return repoDefinitionEntities
+   */
+  public void setRepoDefinitionEntities(List<RepoDefinitionEntity> repoDefinitionEntities) {
+    this.repoDefinitionEntities = repoDefinitionEntities;
+  }
+
+  /**
    * Update one-to-many relation without rebuilding the whole entity
    *
-   * @param repoDefinitionEntities list of many-to-one entities
+   * @param repoDefinitionEntities
+   *          list of many-to-one entities
    */
   public void addRepoDefinitionEntities(List<RepoDefinitionEntity> repoDefinitionEntities) {
     this.repoDefinitionEntities.addAll(repoDefinitionEntities);
@@ -222,7 +239,7 @@ public class RepoOsEntity {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return com.google.common.base.MoreObjects.toStringHelper(this)
         .add("mpackId", mpackId)
         .add("family", family)
         .add("isManagedByAmbari", ambariManaged)

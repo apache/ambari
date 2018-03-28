@@ -29,7 +29,7 @@ from resource_management.core.shell import preexec_fn
 
 import os
 import select
-import subprocess
+from ambari_commons import subprocess32
 
 if get_platform() != PLATFORM_WINDOWS:
   import grp
@@ -47,7 +47,7 @@ subproc_stdout = MagicMock()
 class TestGroupResource(TestCase):
 
   @patch("grp.getgrnam")
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   def test_action_create_nonexistent(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -68,7 +68,7 @@ class TestGroupResource(TestCase):
 
 
   @patch("grp.getgrnam")
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   def test_action_create_existent(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -90,7 +90,7 @@ class TestGroupResource(TestCase):
 
 
   @patch("grp.getgrnam")
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   def test_action_create_fail(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 1
@@ -115,7 +115,7 @@ class TestGroupResource(TestCase):
 
 
   @patch("grp.getgrnam")
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   def test_action_remove(self, popen_mock, getgrnam_mock):
 
     subproc_mock = MagicMock()
@@ -136,7 +136,7 @@ class TestGroupResource(TestCase):
 
 
   @patch("grp.getgrnam")
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   def test_action_remove_fail(self, popen_mock, getgrnam_mock):
 
     subproc_mock = MagicMock()

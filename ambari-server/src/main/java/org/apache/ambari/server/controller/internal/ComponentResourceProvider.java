@@ -64,12 +64,14 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -88,14 +90,14 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   // Components
 
   protected static final String COMPONENT_CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_id";
-  protected static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
+  public static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
   protected static final String COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
   protected static final String COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
   protected static final String COMPONENT_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
-  protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
-  protected static final String COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
+  public static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
+  public static final String COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
   protected static final String COMPONENT_COMPONENT_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
-  protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
+  public static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
   protected static final String COMPONENT_COMPONENT_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_type";
   protected static final String COMPONENT_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "display_name";
   protected static final String COMPONENT_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
@@ -108,7 +110,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_INIT_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "init_count";
   protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "unknown_count";
   protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "install_failed_count";
-  protected static final String COMPONENT_RECOVERY_ENABLED_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "recovery_enabled";
+  public static final String COMPONENT_RECOVERY_ENABLED_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "recovery_enabled";
   protected static final String COMPONENT_DESIRED_STACK = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
   protected static final String COMPONENT_DESIRED_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_version";
   protected static final String COMPONENT_REPOSITORY_STATE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_state";
@@ -174,6 +176,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   private MaintenanceStateHelper maintenanceStateHelper;
+
+  @Inject
+  private TopologyDeleteFormer topologyDeleteFormer;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -588,7 +593,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {
           ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-              stackId.getStackVersion(), s.getServiceType(), sc.getName());
+              stackId.getStackVersion(), s.getServiceType(), sc.getType());
           category = componentInfo.getCategory();
           if (category != null) {
             serviceComponentResponse.setCategory(category);
@@ -860,6 +865,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected RequestStatusResponse deleteComponents(Set<ServiceComponentRequest> requests) throws AmbariException, AuthorizationException {
     Clusters clusters = getManagementController().getClusters();
     AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
 
     for (ServiceComponentRequest request : requests) {
       Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
@@ -872,28 +878,32 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
 
       if (sc != null) {
-        deleteHostComponentsForServiceComponent(sc, request);
+        deleteHostComponentsForServiceComponent(sc, request, deleteMetaData);
+        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
         sc.setDesiredState(State.DISABLED);
-        s.deleteServiceComponent(request.getComponentName());
+        s.deleteServiceComponent(request.getComponentName(), deleteMetaData);
+        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
       }
     }
+    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
     return null;
   }
 
-  private void deleteHostComponentsForServiceComponent(ServiceComponent sc, ServiceComponentRequest request) throws AmbariException {
+  private void deleteHostComponentsForServiceComponent(ServiceComponent sc, ServiceComponentRequest request,
+                                                       DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException {
     for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
       if (!sch.getDesiredState().isRemovableState()) {
-        throw new AmbariException("Found non removable host component when trying to delete service component." +
+        deleteMetaData.setAmbariException(new AmbariException("Found non removable host component when trying to delete service component." +
             " To remove host component, it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN" +
             "/UNINSTALLED/INSTALLING state."
-            + ", request=" + request
-            + ", current state=" + sc.getDesiredState() + ".");
-
+            + ", request=" + request.toString()
+            + ", current state=" + sc.getDesiredState() + "."));
+        return;
       }
     }
 
     for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-      sch.delete();
+      sch.delete(deleteMetaData);
     }
   }
   private Cluster getClusterForRequest(final ServiceComponentRequest request, final Clusters clusters) throws AmbariException {
@@ -942,7 +952,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       String componentName = request.getComponentName();
       String componentType = request.getComponentType();
 
-      String serviceName = getManagementController().findService(cluster, componentType);
+      String serviceName = getManagementController().findServiceName(cluster, componentType);
 
       debug("Looking up service name for component, componentType={}, serviceName={}", componentType, serviceName);
 

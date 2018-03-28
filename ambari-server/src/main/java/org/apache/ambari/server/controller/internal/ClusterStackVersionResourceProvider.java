@@ -114,8 +114,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   protected static final String CLUSTER_STACK_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "id");
   protected static final String CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "cluster_name");
-  protected static final String CLUSTER_STACK_VERSION_STACK_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "stack");
-  protected static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
+  public static final String CLUSTER_STACK_VERSION_STACK_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "stack");
+  public static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
+  public static final String CLUSTER_STACK_VERSION_MPACK_URI_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "mpack_uri");
   protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
   protected static final String CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_summary");
@@ -159,9 +160,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   private static Set<String> propertyIds = Sets.newHashSet(CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
-      CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
-      CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
-      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR,
+      CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_MPACK_URI_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID, CLUSTER_STACK_VERSION_STATE_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR,
       CLUSTER_STACK_VERSION_FORCE, CLUSTER_STACK_VERSION_REPO_SUMMARY_PROPERTY_ID,
       CLUSTER_STACK_VERSION_REPO_SUPPORTS_REVERT, CLUSTER_STACK_VERSION_REPO_REVERT_UPGRADE_ID);
 
@@ -296,6 +297,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       StackEntity repoVersionStackEntity = repositoryVersion.getStack();
       StackId repoVersionStackId = new StackId(repoVersionStackEntity);
+
+      AmbariMetaInfo ami = getManagementController().getAmbariMetaInfo();
+      ami.getMpacks().stream().
+        filter(mp -> mp.getName().equals(repoVersionStackId.getStackName()) && mp.getVersion().equals(repoVersionStackId.getStackVersion())).
+        findFirst().
+        ifPresent(mpack -> setResourceProperty(resource, CLUSTER_STACK_VERSION_MPACK_URI_PROPERTY_ID, mpack.getMpackUri(), requestedIds));
 
       try {
         MpackHostStateDAO mpackHostStateDAO = mpackHostStateDAOProvider.get();

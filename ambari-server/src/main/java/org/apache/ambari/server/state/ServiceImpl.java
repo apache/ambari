@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -39,6 +40,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
@@ -86,13 +89,22 @@ public class ServiceImpl implements Service {
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
+  private final boolean ssoIntegrationSupported;
+  private final String ssoEnabledConfiguration;
   private AmbariMetaInfo ambariMetaInfo;
+  private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
   @Inject
   private Clusters clusters;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
+  @Inject
+  private ConfigHelper configHelper;
+
+  @Inject
+  private AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -194,6 +206,8 @@ public class ServiceImpl implements Service {
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
+    ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
+    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
 
     persist(serviceEntity);
   }
@@ -249,6 +263,8 @@ public class ServiceImpl implements Service {
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
+    ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
+    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
   }
 
 
@@ -308,6 +324,15 @@ public class ServiceImpl implements Service {
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
     return new HashMap<>(componentsByName);
+  }
+
+  @Override
+  public Set<String> getServiceHosts() {
+    Set<String> hostNames = new HashSet<>();
+    for (ServiceComponent serviceComponent  : getServiceComponents().values()) {
+      hostNames.addAll(serviceComponent.getServiceComponentsHosts());
+    }
+    return hostNames;
   }
 
   @Override
@@ -500,12 +525,13 @@ public class ServiceImpl implements Service {
   public ServiceResponse convertToResponse() {
     RepositoryVersionEntity desiredRespositoryVersion = getDesiredRepositoryVersion();
     Mpack mpack = ambariMetaInfo.getMpack(serviceGroup.getMpackId());
-    Module module = mpack.getModule(getName());
+    Module module = mpack.getModule(getServiceType());
 
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
         getServiceId(), getName(), getServiceType(), serviceGroup.getStackId(), module.getVersion(),
-        getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
+        getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
+        ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled());
 
     r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
@@ -757,7 +783,7 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  public void deleteAllComponents() throws AmbariException {
+  public void deleteAllComponents(DeleteHostComponentStatusMetaData deleteMetaData) {
     lock.lock();
     try {
       LOG.info("Deleting all componentsByName for service" + ", clusterName=" + cluster.getClusterName()
@@ -765,14 +791,18 @@ public class ServiceImpl implements Service {
       // FIXME check dependencies from meta layer
       for (ServiceComponent component : componentsByName.values()) {
         if (!component.canBeRemoved()) {
-          throw new AmbariException("Found non removable component when trying to"
+          deleteMetaData.setAmbariException(new AmbariException("Found non removable component when trying to"
               + " delete all componentsByName from service" + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName() + ", componentName=" + component.getName());
+              + ", serviceName=" + getName() + ", componentName=" + component.getName()));
+          return;
         }
       }
 
       for (ServiceComponent serviceComponent : componentsByName.values()) {
-        serviceComponent.delete();
+        serviceComponent.delete(deleteMetaData);
+        if (deleteMetaData.getAmbariException() != null) {
+          return;
+        }
       }
 
       componentsByName.clear();
@@ -782,7 +812,7 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public void deleteServiceComponent(String componentName)
+  public void deleteServiceComponent(String componentName, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException {
     lock.lock();
     try {
@@ -797,8 +827,9 @@ public class ServiceImpl implements Service {
             + ", componentName=" + componentName);
       }
 
-      component.delete();
+      component.delete(deleteMetaData);
       componentsByName.remove(componentName);
+
     } finally {
       lock.unlock();
     }
@@ -811,14 +842,22 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  public void delete() throws AmbariException {
+  public void delete(DeleteHostComponentStatusMetaData deleteMetaData) {
     List<Component> componentsByName = getComponents(); // XXX temporal coupling, need to call this BEFORE deletingAllComponents
-    deleteAllComponents();
-    deleteAllServiceConfigs();
+    deleteAllComponents(deleteMetaData);
+    if (deleteMetaData.getAmbariException() != null) {
+      return;
+    }
 
     StackId stackId = getDesiredStackId();
+    try {
+      deleteAllServiceConfigs();
 
-    removeEntities();
+      removeEntities();
+    } catch (AmbariException e) {
+      deleteMetaData.setAmbariException(e);
+      return;
+    }
 
     // publish the service removed event
     if (null == stackId) {
@@ -852,7 +891,7 @@ public class ServiceImpl implements Service {
   public void setMaintenanceState(MaintenanceState state) {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     serviceDesiredStateEntity.setMaintenanceState(state);
-    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+    maintenanceState.set(serviceDesiredStateDAO.merge(serviceDesiredStateEntity).getMaintenanceState());
 
     // broadcast the maintenance mode change
     MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
@@ -861,7 +900,10 @@ public class ServiceImpl implements Service {
 
   @Override
   public MaintenanceState getMaintenanceState() {
-    return getServiceDesiredStateEntity().getMaintenanceState();
+    if (maintenanceState.get() == null) {
+      maintenanceState.set(getServiceDesiredStateEntity().getMaintenanceState());
+    }
+    return maintenanceState.get();
   }
 
   private ClusterServiceEntityPK getServiceEntityPK(ClusterServiceEntity serviceEntity) {
@@ -883,5 +925,23 @@ public class ServiceImpl implements Service {
   // Refresh the cached reference on setters
   private ServiceDesiredStateEntity getServiceDesiredStateEntity() {
     return serviceDesiredStateDAO.findByPK(serviceDesiredStateEntityPK);
+  }
+
+  public boolean isSsoIntegrationDesired() {
+    return ambariServerConfigurationHandler.getSsoEnabledSevices().contains(serviceName);
+  }
+
+  public boolean isSsoIntegrationEnabled() {
+    return ssoIntegrationSupported && ssoEnabledConfigValid() && "true".equalsIgnoreCase(ssoEnabledConfigValue());
+  }
+
+  private boolean ssoEnabledConfigValid() {
+    return ssoEnabledConfiguration != null && ssoEnabledConfiguration.split("/").length == 2;
+  }
+
+  private String ssoEnabledConfigValue() {
+    String configType = ssoEnabledConfiguration.split("/")[0];
+    String propertyName = ssoEnabledConfiguration.split("/")[1];
+    return configHelper.getValueFromDesiredConfigurations(cluster, configType, propertyName);
   }
 }

@@ -364,9 +364,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   cantBeUndone: Em.computed.existsIn('displayType', ["componentHost", "componentHosts", "radio button"]),
 
   validate: function () {
-    if (!this.get('isEditable')) {
-      this.set('errorMessage', ''); // do not perform validation for not editable configs
-    } else if ((typeof this.get('value') != 'object') && ((this.get('value') + '').length === 0)) {
+    if ((typeof this.get('value') != 'object') && ((this.get('value') + '').length === 0)) {
       var widgetType = this.get('widgetType');
       this.set('errorMessage', (this.get('isRequired') && (!['test-db-connection','label'].contains(widgetType))) ? Em.I18n.t('errorMessage.config.required') : '');
     } else {

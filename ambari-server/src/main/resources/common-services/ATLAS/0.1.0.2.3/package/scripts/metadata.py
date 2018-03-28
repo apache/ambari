@@ -129,7 +129,7 @@ def metadata(type='server'):
     # Needed by both Server and Client
     PropertiesFile(format('{conf_dir}/{conf_file}'),
          properties = params.application_properties,
-         mode=0644,
+         mode=0600,
          owner=params.metadata_user,
          group=params.user_group
     )
@@ -189,7 +189,7 @@ def metadata(type='server'):
       XmlConfig("hdfs-site.xml",
                 conf_dir=params.conf_dir,
                 configurations=params.config['configurations']['hdfs-site'],
-                configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+                configuration_attributes=params.config['configurationAttributes']['hdfs-site'],
                 owner=params.metadata_user,
                 group=params.user_group,
                 mode=0644
@@ -208,7 +208,7 @@ def metadata(type='server'):
       XmlConfig("core-site.xml",
         conf_dir=params.conf_dir,
         configurations=params.config['configurations']['core-site'],
-        configuration_attributes=params.config['configuration_attributes']['core-site'],
+        configuration_attributes=params.config['configurationAttributes']['core-site'],
         owner=params.metadata_user,
         group=params.user_group,
         mode=0644

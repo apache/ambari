@@ -50,7 +50,7 @@
     <div class="tab-content">
       <div class="panel panel-default details-panel">
         <div class="panel-body">
-          <div class="col-sm-3 .pull-left" id="current-stack-details" ng-if="editController"> 
+          <div class="col-sm-3" id="current-stack-details" ng-if="editController"> 
             <table class='table table-borderless alert alert-info'>
               <tr>
                 <td>{{'common.stack' | translate}}</td>
@@ -88,13 +88,11 @@
               </ul>
             </div>
             <div class="pull-right form-inline repo-version-inline" ng-if="activeStackVersion.isNonXMLdata">
-              <label class="control-label col-sm-1 repo-version-label">{{'common.name' | translate}}:</label>
-              <div class="col-sm-11">
-                <span class="control-label">
-                  {{activeStackVersion.stackNameVersion}}
-                </span>
-                <span class="dot">.</span>
-                <div class="form-group" ng-class="{'has-error' : versionRegForm.version.$error.pattern}">
+              <div>
+                <label class="control-label repo-version-label">
+                  {{'common.name' | translate}}:&nbsp;{{activeStackVersion.stackNameVersion}}&nbsp;.
+                </label>
+                <div class="form-group reset-horizontal-margin" ng-class="{'has-error' : versionRegForm.version.$error.pattern}">
                   <input class="form-control" name="version" type="text" ng-model="activeStackVersion.editableDisplayName" ng-pattern="activeStackVersion.subVersionPattern"
                          placeholder="{{'versions.placeholder' | translate:{pattern: activeStackVersion.pattern} }}" ng-change="updateCurrentVersionInput()" required/>
                 </div>
@@ -104,7 +102,6 @@
               </div>
             </div>
           </div>
-          <br>
           <div class="version-contents-section" ng-class="{'version-contents-section-register-version': createController}">
             <table class="table table-striped table-condensed">
               <tr ng-repeat="service in activeStackVersion.services">
@@ -187,7 +184,7 @@
                         <input type="text" class="form-control"
                                placeholder="{{(repository.Repositories.repo_name.indexOf('UTILS') < 0 )?('versions.repository.placeholder' | translate) : ''}}"
                                ng-model="repository.Repositories.base_url"
-                               ng-change="onRepoUrlChange(repository)" ng-disabled="useRedhatSatellite">
+                               ng-change="onRepoUrlChange(repository)" ng-disabled="useRedhatSatellite && os.OperatingSystems.os_type.indexOf('redhat') === -1">
                       </div>
                       <i class="fa fa-undo orange-icon cursor-pointer"
                          ng-if="selectedOption.index == 1 && repository.Repositories.base_url != repository.Repositories.initial_base_url
@@ -199,8 +196,10 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-sm-1 remove-icon" ng-click="removeOS()" ng-class="{'disabled' : useRedhatSatellite}"><i
-                        class="fa fa-minus" aria-hidden="true"></i>{{'common.controls.remove' | translate}}
+                <div class="col-sm-1 remove-icon" ng-click="removeOS()" ng-class="{'disabled' : useRedhatSatellite}">
+                  <span>
+                    <i class="fa fa-minus display-inline" aria-hidden="true"></i>&nbsp;{{'common.controls.remove' | translate}}
+                  </span>
                 </div>
               </div>
             </div>

@@ -22,6 +22,7 @@
 <configuration supports_adding_forbidden="true">
   <property require-input="false">
     <name>metadata_log_dir</name>
+    <display-name>Metadata Log directory</display-name>
     <value>/var/log/atlas</value>
     <description>Atlas log directory.</description>
     <value-attributes>
@@ -31,6 +32,7 @@
   </property>
   <property require-input="false">
     <name>metadata_pid_dir</name>
+    <display-name>Metadata PID directory</display-name>
     <value>/var/run/atlas</value>
     <description>Atlas pid-file directory.</description>
     <value-attributes>
@@ -70,6 +72,7 @@
   </property>
   <property require-input="false">
     <name>metadata_data_dir</name>
+    <display-name>Metadata Data directory</display-name>
     <value>/var/lib/atlas/data</value>
     <description>Atlas data directory.</description>
     <value-attributes>
@@ -79,6 +82,7 @@
   </property>
   <property require-input="false">
     <name>metadata_expanded_war_dir</name>
+    <display-name>Metadata Expanded War directory</display-name>
     <value>./server/webapp</value>
     <description>Atlas expanded WAR directory.</description>
     <on-ambari-upgrade add="true"/>

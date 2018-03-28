@@ -98,16 +98,20 @@ public class ExportBlueprintRequestTest {
   //todo: test configuration processing
 
   @Test
+
   public void testExport_noConfigs() throws Exception {
     Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, CLUSTER_ID);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "TEST-1.0");
 
+
     TreeNode<Resource> clusterNode = new TreeNodeImpl<>(null, clusterResource, "cluster");
     // add empty config child resource
     Resource configResource = new ResourceImpl(Resource.Type.Configuration);
     clusterNode.addChild(configResource, "configurations");
+
+    clusterNode.addChild(new ResourceImpl(Resource.Type.ServiceGroup), "servicegroups");
 
     Resource hostsResource = new ResourceImpl(Resource.Type.Host);
     Resource host1Resource = new ResourceImpl(Resource.Type.Host);

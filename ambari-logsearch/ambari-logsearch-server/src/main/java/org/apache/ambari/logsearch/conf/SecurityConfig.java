@@ -156,7 +156,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogsearchAuthenticationEntryPoint logsearchAuthenticationEntryPoint() {
-    LogsearchAuthenticationEntryPoint entryPoint = new LogsearchAuthenticationEntryPoint("/login");
+    LogsearchAuthenticationEntryPoint entryPoint = new LogsearchAuthenticationEntryPoint("/login", authPropsConfig);
     entryPoint.setForceHttps(false);
     entryPoint.setUseForward(authPropsConfig.isRedirectForward());
     return entryPoint;

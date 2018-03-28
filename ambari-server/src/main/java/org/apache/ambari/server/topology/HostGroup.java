@@ -84,5 +84,7 @@ public interface HostGroup {
    * @return the cardinality specified for the hostgroup
    */
   String getCardinality();
+
+
 }
 

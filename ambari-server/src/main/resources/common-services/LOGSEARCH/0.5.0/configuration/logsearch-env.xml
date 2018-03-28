@@ -106,6 +106,19 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>logsearch_kerberos_service_users</name>
+    <display-name>Log Search service users</display-name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description>
+      List of comma separated kerberos service users who can read from logsearch collections if the cluster is
+      secure. (logsearch user supported by default)
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>logsearch_truststore_location</name>
     <value>/usr/lib/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
     <display-name>Log Search trust store location</display-name>

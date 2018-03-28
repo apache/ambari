@@ -40,7 +40,7 @@ App.MainAlertDefinitionSearchBoxView = App.SearchBoxView.extend({
     },
     {
       label: Em.I18n.t('common.service'),
-      key: 'serviceName',
+      key: 'serviceDisplayName',
       type: 'select',
       column: 3
     },
@@ -99,7 +99,7 @@ App.MainAlertDefinitionSearchBoxView = App.SearchBoxView.extend({
       case 'label':
         this.getLabelAvailableValues(facetValue, callback);
         break;
-      case 'serviceName':
+      case 'serviceDisplayName':
         this.getServiceAvailableValues(facetValue, callback);
         break;
       case 'lastTriggered':

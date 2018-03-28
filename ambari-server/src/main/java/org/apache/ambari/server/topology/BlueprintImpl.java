@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +43,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 
@@ -133,10 +130,18 @@ public class BlueprintImpl implements Blueprint {
     return setting;
   }
 
+  @Override
   public Collection<MpackInstance> getMpacks() {
     return mpacks;
   }
 
+  /**
+   * Get host groups which contain a component.
+   *
+   * @param component   component name
+   *
+   * @return collection of host groups which contain the specified component
+   */
   @Override
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
     Collection<HostGroup> resultGroups = new HashSet<>();
@@ -324,15 +329,9 @@ public class BlueprintImpl implements Blueprint {
       componentEntity.setHostGroupEntity(group);
       componentEntity.setHostGroupName(group.getName());
       componentEntity.setServiceName(component.getServiceInstance());
-      if (null != component.getMpackInstance()) {
-        Preconditions.checkArgument(component.getMpackInstance().contains("-"),
-          "Invalid mpack instance specified for component %s: %s. Must be in {name}-{version} format.",
-          component.getName(),
-          component.getMpackInstance());
-        Iterator<String> mpackNameAndVersion =
-          Splitter.on('-').split(component.getMpackInstance()).iterator();
-        componentEntity.setMpackName(mpackNameAndVersion.next());
-        componentEntity.setMpackVersion(mpackNameAndVersion.next());
+      if (null != component.getStackId()) {
+        componentEntity.setMpackName(component.getStackId().getStackName());
+        componentEntity.setMpackVersion(component.getStackId().getStackVersion());
       }
 
       // add provision action (if specified) to entity type
@@ -431,6 +430,7 @@ public class BlueprintImpl implements Blueprint {
   /**
    * Parse stack repo info stored in the blueprint_settings table
    */
+
   private List<RepositorySetting> processRepoSettings() {
     return setting != null ? setting.processRepoSettings() : Collections.emptyList();
   }

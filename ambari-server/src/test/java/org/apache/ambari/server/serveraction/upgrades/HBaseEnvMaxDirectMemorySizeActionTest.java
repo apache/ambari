@@ -18,12 +18,16 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -33,6 +37,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -50,12 +55,15 @@ import junit.framework.Assert;
 public class HBaseEnvMaxDirectMemorySizeActionTest {
   private Injector injector;
   private Clusters clusters;
+  private AgentConfigsHolder agentConfigsHolder;
   private Field m_clusterField;
+  private Field agentConfigsHolderField;
 
   @Before
   public void setup() throws Exception {
     injector = EasyMock.createMock(Injector.class);
     clusters = EasyMock.createMock(Clusters.class);
+    agentConfigsHolder = createMock(AgentConfigsHolder.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
     Config hbaseEnv = EasyMock.createNiceMock(Config.class);
 
@@ -134,12 +142,19 @@ public class HBaseEnvMaxDirectMemorySizeActionTest {
     expect(cluster.getDesiredConfigByType("hbase-env")).andReturn(hbaseEnv).atLeastOnce();
 
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
+    expect(cluster.getHosts()).andReturn(Collections.emptyList()).atLeastOnce();
+    agentConfigsHolder.updateData(eq(1L), eq(Collections.emptyList()));
+    expectLastCall().atLeastOnce();
+
     expect(injector.getInstance(Clusters.class)).andReturn(clusters).atLeastOnce();
 
-    replay(injector, clusters, cluster, hbaseEnv);
+    replay(injector, clusters, cluster, hbaseEnv, agentConfigsHolder);
 
     m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
+    agentConfigsHolderField = AbstractUpgradeServerAction.class.getDeclaredField("agentConfigsHolder");
+    agentConfigsHolderField.setAccessible(true);
   }
 
 
@@ -162,6 +177,7 @@ public class HBaseEnvMaxDirectMemorySizeActionTest {
     HBaseEnvMaxDirectMemorySizeAction action = new HBaseEnvMaxDirectMemorySizeAction();
 
     m_clusterField.set(action, clusters);
+    agentConfigsHolderField.set(action, agentConfigsHolder);
 
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);

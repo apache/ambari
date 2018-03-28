@@ -371,7 +371,6 @@ public class RepositoryVersionHelper {
    */
   public CommandRepository getCommandRepository(Mpack mpack, RepoOsEntity osEntity)
       throws AmbariException {
-
     final CommandRepository commandRepo = new CommandRepository();
     final boolean sysPreppedHost = configuration.get().areHostsSysPrepped().equalsIgnoreCase("true");
 
@@ -449,5 +448,18 @@ public class RepositoryVersionHelper {
     } catch (AmbariException ambariException) {
       throw new SystemException(ambariException.getMessage(), ambariException);
     }
+  }
+
+  /** Get repository info given a cluster and host.
+   *
+   * @param cluster  the cluster
+   * @param host     the host
+   *
+   * @return the repo info
+   *
+   * @throws AmbariException if the repository information can not be obtained
+   */
+  public String getRepoInfoString(Cluster cluster, ServiceComponent component, Host host) throws AmbariException, SystemException {
+    return gson.toJson(getCommandRepository(cluster, component, host));
   }
 }

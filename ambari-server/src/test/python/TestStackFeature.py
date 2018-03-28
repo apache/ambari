@@ -34,22 +34,22 @@ class TestStackFeature(TestCase):
   """
   EU Upgrade (HDP 2.5 to HDP 2.6)
     - STOP
-      hostLevelParams/stack_name = HDP
-      hostLevelParams/stack_version = 2.5
+      clusterLevelParams/stack_name = HDP
+      clusterLevelParams/stack_version = 2.5
       commandParams/version = 2.5.0.0-1237
     - START
-      hostLevelParams/stack_name = HDP
-      hostLevelParams/stack_version = 2.6
+      clusterLevelParams/stack_name = HDP
+      clusterLevelParams/stack_version = 2.6
       commandParams/version = 2.6.0.0-334
 
   EU Downgrade (HDP 2.6 to HDP 2.5)
     - STOP
-    hostLevelParams/stack_name = HDP
-    hostLevelParams/stack_version = 2.6
+    clusterLevelParams/stack_name = HDP
+    clusterLevelParams/stack_version = 2.6
     commandParams/version = 2.6.0.0-334
     - START
-    hostLevelParams/stack_name = HDP
-    hostLevelParams/stack_version = 2.5
+    clusterLevelParams/stack_name = HDP
+    clusterLevelParams/stack_version = 2.5
     commandParams/version = 2.5.0.0-1237
   """
 
@@ -151,7 +151,7 @@ class TestStackFeature(TestCase):
     return {
       "serviceName":"HDFS",
       "roleCommand": "ACTIONEXECUTE",
-      "hostLevelParams": {
+      "clusterLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
       },
@@ -171,7 +171,7 @@ class TestStackFeature(TestCase):
     return {
       "serviceName":"HDFS",
       "roleCommand":"ACTIONEXECUTE",
-      "hostLevelParams": {
+      "clusterLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
       },
@@ -208,7 +208,7 @@ class TestStackFeature(TestCase):
     return {
       "serviceName":"HDFS",
       "roleCommand":"ACTIONEXECUTE",
-      "hostLevelParams":{
+      "clusterLevelParams":{
         "stack_name":"HDP",
         "stack_version":"2.4"
       },
@@ -246,7 +246,7 @@ class TestStackFeature(TestCase):
     return {
       "serviceName":"HDFS",
       "roleCommand":"STOP",
-      "hostLevelParams":{
+      "clusterLevelParams":{
         "stack_name":"HDP",
         "stack_version":"2.5",
       },
@@ -283,7 +283,7 @@ class TestStackFeature(TestCase):
     return {
       "serviceName":"HDFS",
       "roleCommand":"CUSTOM_COMMAND",
-      "hostLevelParams":{
+      "clusterLevelParams":{
         "stack_name":"HDP",
         "stack_version":"2.5",
         "custom_command":"STOP"

@@ -40,6 +40,7 @@ require('models/quicklinks/quick_links_config');
 require('models/service');
 require('models/service_audit');
 require('models/service/hdfs');
+require('models/service/onefs');
 require('models/service/yarn');
 require('models/service/mapreduce2');
 require('models/service/hbase');

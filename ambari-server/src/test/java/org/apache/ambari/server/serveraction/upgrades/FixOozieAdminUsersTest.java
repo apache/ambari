@@ -18,12 +18,16 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +35,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -46,14 +51,17 @@ import com.google.inject.Injector;
 public class FixOozieAdminUsersTest {
   private Injector injector;
   private Clusters clusters;
+  private AgentConfigsHolder agentConfigsHolder;
   private Cluster cluster;
   private Field clustersField;
+  private Field agentConfigsHolderField;
 
   @Before
   public void setup() throws Exception {
     injector = EasyMock.createMock(Injector.class);
     clusters = EasyMock.createMock(Clusters.class);
     cluster = EasyMock.createMock(Cluster.class);
+    agentConfigsHolder = createMock(AgentConfigsHolder.class);
 
     Map<String, String> mockProperties = new HashMap<String, String>() {{
       put("falcon_user", "falcon");
@@ -73,13 +81,19 @@ public class FixOozieAdminUsersTest {
 
     expect(cluster.getDesiredConfigByType("falcon-env")).andReturn(falconEnvConfig).atLeastOnce();
     expect(cluster.getDesiredConfigByType("oozie-env")).andReturn(oozieEnvConfig).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
+    expect(cluster.getHosts()).andReturn(Collections.emptyList()).atLeastOnce();
+    agentConfigsHolder.updateData(eq(1L), eq(Collections.emptyList()));
+    expectLastCall().atLeastOnce();
 
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(injector.getInstance(Clusters.class)).andReturn(clusters).atLeastOnce();
-    replay(injector, clusters, falconEnvConfig, oozieEnvConfig);
+    replay(injector, clusters, falconEnvConfig, oozieEnvConfig, agentConfigsHolder);
 
     clustersField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     clustersField.setAccessible(true);
+    agentConfigsHolderField = AbstractUpgradeServerAction.class.getDeclaredField("agentConfigsHolder");
+    agentConfigsHolderField.setAccessible(true);
 
   }
 
@@ -105,6 +119,7 @@ public class FixOozieAdminUsersTest {
 
     FixOozieAdminUsers action = new FixOozieAdminUsers();
     clustersField.set(action, clusters);
+    agentConfigsHolderField.set(action, agentConfigsHolder);
 
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);

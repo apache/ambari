@@ -27,7 +27,7 @@ from resource_management.core import Environment, Fail
 from resource_management.core.system import System
 from resource_management.core.resources import User
 from resource_management.core.shell import preexec_fn
-import subprocess
+from ambari_commons import subprocess32
 import os
 import select
 
@@ -46,7 +46,7 @@ subproc_stdout = MagicMock()
 @patch.object(os, "close", new=MagicMock())
 class TestUserResource(TestCase):
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_action_create_nonexistent(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -60,7 +60,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E useradd -m -s /bin/bash mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
     
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_action_create_existent(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -75,7 +75,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/bash mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_action_delete(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -90,7 +90,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E userdel mapred'], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_attribute_comment(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -106,7 +106,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -c testComment -s /bin/bash mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_attribute_home(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -122,7 +122,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/bash -d /test/home mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_attribute_password(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -138,7 +138,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/bash -p secure mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_attribute_shell(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -153,7 +153,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/sh mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_attribute_uid(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -168,7 +168,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/bash -u 1 mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_attribute_gid(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
@@ -184,7 +184,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch('resource_management.core.providers.accounts.UserProvider.user_groups', new_callable=PropertyMock)
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_attribute_groups(self, getpwnam_mock, popen_mock, user_groups_mock):
     subproc_mock = MagicMock()
@@ -201,7 +201,7 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/bash -G 1,2,3,hadoop mapred'], shell=False, preexec_fn=preexec_fn, env={'PATH': '/bin'}, close_fds=True, stdout=-1, stderr=-2, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
-  @patch.object(subprocess, "Popen")
+  @patch.object(subprocess32, "Popen")
   @patch("pwd.getpwnam")
   def test_missing_shell_argument(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()

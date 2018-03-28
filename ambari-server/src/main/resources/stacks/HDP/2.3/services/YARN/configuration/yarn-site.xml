@@ -79,12 +79,14 @@
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.active-dir</name>
+    <display-name>YARN Timeline Service Entity Group FS Store Active directory</display-name>
     <value>/ats/active/</value>
     <description>DFS path to store active application&#x2019;s timeline data</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.done-dir</name>
+    <display-name>YARN Timeline Service Entity Group FS Store Done directory</display-name>
     <value>/ats/done/</value>
     <description>DFS path to store done application&#x2019;s timeline data</description>
     <on-ambari-upgrade add="true"/>

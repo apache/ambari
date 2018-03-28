@@ -111,7 +111,7 @@
           id="role"
           name="role"
           ng-model="formData.role"
-          required>
+          ng-required="cluster">
           <option value="" class="hide">{{'common.select' | translate}}</option>
           <option ng-repeat="role in roleOptions" value="{{role.permission_name}}">{{role.permission_label}}</option>
         </select>

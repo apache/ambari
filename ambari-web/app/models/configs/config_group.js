@@ -150,7 +150,7 @@ App.ServiceConfigGroup = DS.Model.extend({
 
     if (Array.isArray(this.get('properties'))) {
       this.get('properties').forEach(function (item) {
-        result += item.name + " : " + item.value + '<br/>';
+        result += item.name + " : " + item.value + '\n';
       }, this);
     }
     return result;
