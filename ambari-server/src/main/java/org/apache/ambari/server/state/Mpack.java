@@ -191,10 +191,7 @@ public class Mpack {
    * @return the module or {@code null}.
    */
   public Module getModule(String moduleName) {
-    if(moduleHashMap.containsKey(moduleName)){
-      return moduleHashMap.get(moduleName);
-    }
-    return null;
+     return moduleHashMap.get(moduleName);
   }
 
   /**
