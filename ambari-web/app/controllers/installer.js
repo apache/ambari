@@ -221,49 +221,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   /**
-   * Load data for stacks from selected mpacks. This just tells the server to populate the version_definitions endpoint for the mpack that was registered.
-   *
-   * @param  {string} stackName
-   * @param  {string} stackVersion
-   * @param  {string} serviceName
-   */
-  createMpackStackVersion: function (stackName, stackVersion) {
-    return App.ajax.send({
-      name: 'mpack.create_version_definition',
-      sender: this,
-      data: {
-        name: stackName,
-        version: stackVersion
-      }
-    })
-  },
-
-  /**
-   * Loads stack version data (including supported OSes and repos) from the version_definitions endpoint
-   */
-  getMpackStackVersions: function () {
-    return App.ajax.send({
-      name: 'mpack.get_version_definitions',
-      sender: this
-    })
-  },
-
-  loadMpackStackInfoSuccess: function (versionDefinition) {
-    App.stackMapper.map(versionDefinition);
-  },
-
-  loadMpackStackInfoError: function(request, status, error) {
-    const message = Em.I18n.t('installer.error.mpackStackInfo');
-
-    App.showAlertPopup(
-      Em.I18n.t('common.error'), //header
-      message //body
-    );
-
-    console.log(`${message} ${status} - ${error}`);
-  },
-
-  /**
    * Load data for services selected from mpacks. Will be used at <code>Download Mpacks</code> step submit action.
    *
    * @param  {string} stackName
@@ -926,59 +883,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.showAlertPopup(header, body);
   },
 
-  updateRepoOSInfo: function (repoToUpdate, repo) {
-    var deferred = $.Deferred();
-    var repoVersion = this.prepareRepoForSaving(repo);
-    App.ajax.send({
-      name: 'admin.stack_versions.edit.repo',
-      sender: this,
-      data: {
-        stackName: repoToUpdate.stackName,
-        stackVersion: repoToUpdate.stackVersion,
-        repoVersionId: repoToUpdate.id,
-        repoVersion: repoVersion
-      }
-    }).success(function() {
-      deferred.resolve([]);
-    }).error(function() {
-      deferred.resolve([]);
-    });
-    return deferred.promise();
-  },
-
-  /**
-   * transform repo data into json for
-   * saving changes to repository version
-   * @param {Em.Object} repo
-   * @returns {{operating_systems: Array}}
-   */
-  prepareRepoForSaving: function(repo) {
-    var repoVersion = { "operating_systems": [] };
-    var ambariManagedRepositories = !repo.get('useRedhatSatellite');
-    repo.get('operatingSystems').forEach(function (os, k) {
-      repoVersion.operating_systems.push({
-        "OperatingSystems": {
-          "os_type": os.get("osType"),
-          "ambari_managed_repositories": ambariManagedRepositories
-        },
-        "repositories": []
-      });
-      os.get('repositories').forEach(function (repository) {
-        repoVersion.operating_systems[k].repositories.push({
-          "Repositories": {
-            "public_url": repository.get('baseUrlInit'),
-            "base_url": repository.get('baseUrl'),
-            "repo_id": repository.get('repoId'),
-            "repo_name": repository.get('repoName'),
-            "unique": repository.get('unique'),
-            "tags": repository.get('tags'),
-          }
-        })
-      })
-    });
-    return repoVersion;
-  },
-
   /**
    * Check validation of the customized local urls
    */
@@ -1116,7 +1020,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       {
         type: 'async',
         callback: function () {
-          return this.finishRegisteringMpacks(this.getStepSavedState('customProductRepos'));
+          return this.loadSelectedServiceInfo(this.getStepSavedState('customProductRepos'));
         }
       },
     ],
@@ -1499,28 +1403,18 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   /**
-   * This runs when the step after Download Mpacks loads and completes the mpack registration process that was begun in the Download Mpacks step.
-   * It populates the StackService model from the stack version definitions.
-   * Then, it persists info about the selected services and the selected stack.
+   * Populates the StackService model from the "stack" info that was created when mpacks were registered in the Download Mpack step.
+   * Then, it locally persists info about the selected services.
    *
    * @param {Boolean} keepStackServices If true, previously loaded stack services are retained.
    *                                    This is to support back/forward navigation in the wizard
    *                                    and should correspond to the saved state of the step after Download Mpacks.
    * @return {object} a promise
    */
-  finishRegisteringMpacks: function (keepStackServices) {
+  loadSelectedServiceInfo: function (keepStackServices) {
     var dfd = $.Deferred();
 
-    this.getMpackStackVersions()
-    .fail(errors => {
-      this.addErrors(errors);
-      dfd.reject();
-    })
-    .always(data => {
-      data.items.forEach(versionDefinition => App.stackMapper.map(versionDefinition));
-      return this.clearStackServices(!keepStackServices);
-    })
-    .then(() => {
+    this.clearStackServices(!keepStackServices).then(() => {
       //get info about services from specific stack versions and save to StackService model
       const selectedServices = this.get('content.selectedServices');
       const servicePromises = selectedServices.map(service =>
@@ -1529,8 +1423,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       );
 
       return $.when(...servicePromises);
-    })
-    .then(() => {
+    }).then(() => {
       const services = App.StackService.find();
       this.set('content.services', services);
 
@@ -1547,12 +1440,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       });
       this.set('content.clients', clients);
       this.save('clients');
-
-      //TODO: mpacks - hard coding this to use the name and version of the first stack/mpack for now. We need to get rid of the concept of "selected stack".
-      const stacks = App.Stack.find();
-      const selectedStack = stacks.objectAtContent(0);
-      this.set('content.selectedStack', { name: selectedStack.get('stackName'), version: selectedStack.get('stackVersion') });
-      this.save('selectedStack');
 
       dfd.resolve();
     });

@@ -45,32 +45,35 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
   setWidgetGroups: function () {
     if (App.get('router.clusterController.isHDFSNameSpacesLoaded')) {
       let groups = [];
-      const hdfsMasterGroups = App.HDFSService.find().objectAt(0).get('masterComponentGroups');
-      this.removeObserver('App.router.clusterController.isHDFSNameSpacesLoaded', this, 'setWidgetGroups');
-      if (hdfsMasterGroups.length > 1) {
-        const nameSpacesListItems = hdfsMasterGroups.map(nameSpace => {
-          const {name, title} = nameSpace;
-          return {
-            name,
-            title,
-            isActive: false
-          };
-        });
-        groups.push(Em.Object.create({
-          name: 'nn',
-          title: Em.I18n.t('dashboard.widgets.nameSpace'),
-          serviceName: 'HDFS',
-          subGroups: [
-            {
-              name: '*',
-              title: Em.I18n.t('common.all'),
-              isActive: true
-            },
-            ...nameSpacesListItems
-          ],
-          activeSubGroup: Em.computed.findBy('subGroups', 'isActive', true),
-          allWidgets: this.get('allNameNodeWidgets')
-        }));
+      const hdfsServices = App.HDFSService.find();
+      if(hdfsServices.length > 0) {
+        const hdfsMasterGroups = hdfsServices.objectAt(0).get('masterComponentGroups');
+        this.removeObserver('App.router.clusterController.isHDFSNameSpacesLoaded', this, 'setWidgetGroups');
+        if (hdfsMasterGroups.length > 1) {
+          const nameSpacesListItems = hdfsMasterGroups.map(nameSpace => {
+            const { name, title } = nameSpace;
+            return {
+              name,
+              title,
+              isActive: false
+            };
+          });
+          groups.push(Em.Object.create({
+            name: 'nn',
+            title: Em.I18n.t('dashboard.widgets.nameSpace'),
+            serviceName: 'HDFS',
+            subGroups: [
+              {
+                name: '*',
+                title: Em.I18n.t('common.all'),
+                isActive: true
+              },
+              ...nameSpacesListItems
+            ],
+            activeSubGroup: Em.computed.findBy('subGroups', 'isActive', true),
+            allWidgets: this.get('allNameNodeWidgets')
+          }));
+        }
       }
       this.set('widgetGroups', groups);
       this.get('widgetGroupsDeferred').resolve();
