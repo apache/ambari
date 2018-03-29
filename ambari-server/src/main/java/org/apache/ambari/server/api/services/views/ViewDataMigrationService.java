@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewDataMigrationUtility;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.view.migration.ViewDataMigrationException;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +41,8 @@ import io.swagger.annotations.ApiResponses;
 /**
  * Service responsible for data migration between view instances.
  */
-@Api(tags = "Views", description = "Endpoint for view specific operations")
 @Path("/views/{viewName}/versions/{version}/instances/{instanceName}/migrate")
+@Api(tags = "Views", description = "Endpoint for view specific operations")
 public class ViewDataMigrationService extends BaseService {
   /**
    * Logger.
@@ -70,11 +71,15 @@ public class ViewDataMigrationService extends BaseService {
    */
   @PUT
   @Path("{originVersion}/{originInstanceName}")
-  @ApiOperation(value = "Migrate view instance data", nickname = "ViewDataMigrationService#migrateData", notes = "Migrates view instance persistence data from origin view instance specified in the path params.")
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+  @ApiOperation(value = "Migrate view instance data", notes = "Migrates view instance persistence data from origin view instance specified in the path params.")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response migrateData( @ApiParam(value = "view name") @PathParam("viewName") String viewName,
                                @ApiParam(value = "view version") @PathParam("version") String viewVersion,
                                @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName,

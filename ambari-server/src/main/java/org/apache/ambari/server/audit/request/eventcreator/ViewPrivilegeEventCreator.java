@@ -93,9 +93,9 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID))
-      .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID))
-      .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID))
+      .withType(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.VIEW_NAME))
+      .withVersion(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.VERSION))
+      .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.INSTANCE_NAME))
       .withUsers(users)
       .withGroups(groups)
       .withRoles(roles)
@@ -113,10 +113,10 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
     Map<String, List<String>> entities = new HashMap<>();
 
     for (Map<String, Object> propertyMap : request.getBody().getPropertySets()) {
-      String ptype = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
+      String ptype = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE));
       if (type.equals(ptype)) {
-        String role = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-        String name = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
+        String role = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PERMISSION_NAME));
+        String name = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PRINCIPAL_NAME));
         if (!entities.containsKey(role)) {
           entities.put(role, new LinkedList<>());
         }

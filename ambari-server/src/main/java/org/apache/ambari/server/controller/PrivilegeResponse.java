@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
+import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.ViewResourceProvider;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity.PrincipalType;
 import org.apache.ambari.server.security.authorization.ResourceType;
 
@@ -42,7 +45,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns permission label
    * @return permission label
    */
-  @ApiModelProperty(name = "PrivilegeInfo/permission_label")
+  @ApiModelProperty(name = PrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID)
   public String getPermissionLabel() {
     return permissionLabel;
   }
@@ -51,7 +54,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns principal name
    * @return principal name
    */
-  @ApiModelProperty(name = "PrivilegeInfo/principal_name")
+  @ApiModelProperty(name = PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID)
   public String getPrincipalName() {
     return principalName;
   }
@@ -68,7 +71,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns privilege id
    * @return  privilege id
    */
-  @ApiModelProperty(name = "PrivilegeInfo/privilege_id")
+  @ApiModelProperty(name = PrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID)
   public Integer getPrivilegeId() {
     return privilegeId;
   }
@@ -77,7 +80,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns permission name
    * @return permission name
    */
-  @ApiModelProperty(name = "PrivilegeInfo/permission_name")
+  @ApiModelProperty(name = PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID)
   public String getPermissionName() {
     return permissionName;
   }
@@ -86,7 +89,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns principal type
    * @return principal type
    */
-  @ApiModelProperty(name = "PrivilegeInfo/principal_type")
+  @ApiModelProperty(name = PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID)
   public PrincipalType getPrincipalType() {
     return principalType;
   }
@@ -95,7 +98,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns resource type
    * @return resource type
    */
-  @ApiModelProperty(name = "PrivilegeInfo/type")
+  @ApiModelProperty(name = PrivilegeResourceProvider.TYPE_PROPERTY_ID)
   public ResourceType getType() {
     return type;
   }
@@ -112,7 +115,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns cluster name
    * @return cluster name
    */
-  @ApiModelProperty(name = "PrivilegeInfo/cluster_name")
+  @ApiModelProperty(name = ClusterResourceProvider.CLUSTER_NAME)
   public String getClusterName() {
     return clusterName;
   }
@@ -129,7 +132,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns view name
    * @return view name
    */
-  @ApiModelProperty(name = "PrivilegeInfo/view_name")
+  @ApiModelProperty(name = ViewResourceProvider.VIEW_NAME_PROPERTY_ID)
   public String getViewName() {
     return viewName;
   }
@@ -146,7 +149,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns view version
    * @return view version
    */
-  @ApiModelProperty(name = "PrivilegeInfo/version")
+  @ApiModelProperty(name = PrivilegeResourceProvider.VERSION_PROPERTY_ID)
   public String getVersion() {
     return version;
   }
@@ -163,7 +166,7 @@ public abstract class PrivilegeResponse implements ApiModel {
    * Returns view instance name
    * @return view instance name
    */
-  @ApiModelProperty(name = "PrivilegeInfo/instance_name")
+  @ApiModelProperty(name = ViewPrivilegeResourceProvider.INSTANCE_NAME_PROPERTY_ID)
   public String getInstanceName() {
     return instanceName;
   }

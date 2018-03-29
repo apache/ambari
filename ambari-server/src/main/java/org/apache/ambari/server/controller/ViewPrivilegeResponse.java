@@ -22,6 +22,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.services.views.ViewPrivilegeService;
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
+import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider;
 import org.apache.ambari.server.security.authorization.ResourceType;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -36,7 +39,7 @@ public class ViewPrivilegeResponse extends PrivilegeResponse implements ApiModel
    * @return cluster name
    */
   @Override
-  @ApiModelProperty(name = "PrivilegeInfo/cluster_name", hidden = true)
+  @ApiModelProperty(name = ClusterResourceProvider.CLUSTER_NAME, hidden = true)
   public String getClusterName() {
     return clusterName;
   }
@@ -46,10 +49,15 @@ public class ViewPrivilegeResponse extends PrivilegeResponse implements ApiModel
    * @return resource type
    */
   @Override
-  @ApiModelProperty(name = "PrivilegeInfo/type", hidden = true)
+  @ApiModelProperty(name = PrivilegeResourceProvider.TYPE_PROPERTY_ID, hidden = true)
   public ResourceType getType() {
     return type;
   }
 
+  public interface Wrapper extends ApiModel {
+    @ApiModelProperty(name = ViewPrivilegeResourceProvider.PRIVILEGE_INFO)
+    @SuppressWarnings("unused")
+    ViewPrivilegeResponse getViewPrivilegeResponse();
+  }
 
 }
