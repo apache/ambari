@@ -840,8 +840,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // set restartRequired flag for  monitoring services
     setMonitoringServicesRestartRequired(requests);
     // now doing actual work
-    return persistServiceComponentHosts(requests);
-
+    Set<ServiceComponentHostResponse> responses = persistServiceComponentHosts(requests);
+    m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
+    return responses;
   }
 
   Set<ServiceComponentHostResponse> persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
@@ -1066,6 +1067,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
     Service service = cluster.getServiceByConfigType(configType);
+
+
     // Get the changes so that the user's intention can be determined. For example, maybe
     // the user wants to change the run-as user for a service or maybe the the cluster-wide
     // recovery mode setting.
