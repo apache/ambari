@@ -25,6 +25,12 @@
       <name>RANGER</name>
       <extends>common-services/RANGER/0.7.0</extends>
       <version>0.7.0</version>
+
+      <sso>
+        <supported>true</supported>
+        <enabledConfiguration>ranger-admin-site/ranger.sso.enabled</enabledConfiguration>
+      </sso>
+
     </service>
   </services>
 </metainfo>
