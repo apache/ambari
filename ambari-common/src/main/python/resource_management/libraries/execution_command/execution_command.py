@@ -54,24 +54,40 @@ class ExecutionCommand(object):
     except:
       return default_value
 
+  """
+  Global variables section
+  """
+
+  def get_module_configs(self):
+    return self.__module_configs
+
   def get_module_name(self):
     return self.__get_value("serviceName")
 
-  def get_stack_name(self):
-    return self.__get_value("hostLevelParams/stack_name")
+  def get_component_type(self):
+    return self.__get_value("role")
 
-  def get_stack_version(self):
-    return self.__get_value("hostLevelParams/stack_version")
+  def get_component_instance_default_name(self):
+    return self.__get_value("default")
 
-  def get_new_stack_version_for_upgrade(self):
-    """
-    New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
-    :return:
-    """
-    return self.__get_value("commandParams/version")
+  def get_servicegroup_name(self):
+    return self.__get_value("serviceGroupName")
 
   def get_host_name(self):
     return self.__get_value("hostname")
+
+  def get_cluster_name(self):
+    return self.__get_value("clusterName")
+
+  """
+  Host related variables section
+  """
+
+  def get_mpack_name(self):
+    return self.__get_value("hostLevelParams/stack_name")
+
+  def get_mpack_version(self):
+    return self.__get_value("hostLevelParams/stack_version")
 
   def get_java_home(self):
     return self.__get_value("hostLevelParams/java_home")
@@ -80,6 +96,55 @@ class ExecutionCommand(object):
     java_version = self.__get_value("hostLevelParams/java_version")
     return int(java_version) if java_version else None
 
-  def get_module_configs(self):
-    return self.__module_configs
+  def get_jdk_location(self):
+    java_version = self.__get_value("hostLevelParams/jdk_location")
+    return int(java_version) if java_version else None
 
+  def check_agent_stack_want_retry_on_unavailability(self):
+    return bool('hostLevelParams/agent_stack_retry_on_unavailability')
+
+  def get_agent_stack_retry_count_on_unavailability(self):
+    return int('hostLevelParams/agent_stack_retry_count')
+
+  """
+  Cluster related variables section
+  """
+
+  def get_ambari_server_host(self):
+    return self.__get_value("clusterHostInfo/ambari_server_host")
+
+  """
+  Command related variables section
+  """
+
+  def get_new_mpack_version_for_upgrade(self):
+    """
+    New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+    :return:
+    """
+    return self.__get_value("commandParams/version")
+
+  def check_command_retry_enabled(self):
+    return self.__get_value('commandParams/command_retry_enabled', False)
+
+  def check_upgrade_direction(self):
+    return self.__get_value('commandParams/upgrade_direction')
+
+  def check_upgrade_direction(self):
+    return self.__get_value('commandParams/upgrade_direction')
+
+  def is_rolling_restart_in_upgrade(self):
+    return self.__get_value('commandParams/rolling_restart', False)
+
+  def is_update_files_only(self):
+    return self.__get_value('commandParams/update_files_only', False)
+
+  def get_deploy_phase(self):
+    return self.__get_value('commandParams/phase', '')
+
+  """
+  Role related variables section
+  """
+
+  def is_upgrade_suspended(self):
+    return self.__get_value('roleParams/upgrade_suspended', False)
