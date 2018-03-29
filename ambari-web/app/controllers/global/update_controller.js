@@ -214,6 +214,37 @@ App.UpdateController = Em.Controller.extend({
 
   /**
    *
+   * @param {boolean} loadMetricsSeparately
+   * @returns {string|*}
+   */
+  getUpdateHostUrlWithParams: function (loadMetricsSeparately) {
+    let url = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,' +
+      'Hosts/cpu_count,Hosts/ph_cpu_count,<lastAgentEnv>alerts_summary,Hosts/host_status,Hosts/host_state,' +
+      'Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,' +
+      'host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,' +
+      'host_components/HostRoles/service_name,host_components/HostRoles/display_name,' +
+      'host_components/HostRoles/desired_admin_state,<nameNodeMetrics>' +
+      '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true';
+    const stackVersionInfo = ',stack_versions/HostStackVersions,' +
+      'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
+      'stack_versions/repository_versions/RepositoryVersions/display_name',
+      loggingResource = ',host_components/logging',
+      isHostDetailPage = App.router.get('currentState.parentState.name') === 'hostDetails',
+      isHostsPage = App.router.get('currentState.parentState.name') === 'hosts',
+      hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
+      nameNodeMetrics = 'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,';
+
+    url = url.replace("<stackVersions>", stackVersionInfo);
+    url = url.replace("<metrics>", loadMetricsSeparately ? "" : "metrics/disk,metrics/load/load_one,");
+    url = url.replace('<hostDetailsParams>', isHostsPage ? '' : hostDetailsParams);
+    url = url.replace('<lastAgentEnv>', isHostDetailPage ? 'Hosts/last_agent_env,' : '');
+    url = url.replace('<nameNodeMetrics>', App.Service.find('HDFS').get('isLoaded') ? nameNodeMetrics : '');
+    url = App.get('supports.logSearch') ? url + loggingResource : url;
+    return url;
+  },
+
+  /**
+   *
    * @param {Function} callback
    * @param {Function} error
    * @param {boolean} lazyLoadMetrics
@@ -222,25 +253,14 @@ App.UpdateController = Em.Controller.extend({
     var testUrl = this.get('HOSTS_TEST_URL'),
         self = this,
         hostDetailsFilter = '',
-        realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,' +
-            'alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-            'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,' +
-            (App.Service.find().someProperty('serviceName', 'HDFS') ? 'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,host_components/metrics/dfs/FSNamesystem/CapacityUsed,host_components/metrics/dfs/FSNamesystem/CapacityTotal,host_components/metrics/dfs/FSNamesystem/CapacityRemaining,host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed,host_components/metrics/rpc/client/RpcQueueTime/avg_time,host_components/metrics/runtime/StartTime,' : '') +
-            '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
-        hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
-        stackVersionInfo = ',stack_versions/HostStackVersions,' +
-            'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
-            'stack_versions/repository_versions/RepositoryVersions/display_name',
         mainHostController = App.router.get('mainHostController'),
         sortProperties = mainHostController.getSortProps(),
-        loggingResource = ',host_components/logging',
         isHostsLoaded = false,
         // load hosts metrics separately of lazyLoadMetrics=true, but metrics in current request if we are sorting
         loadMetricsSeparately = lazyLoadMetrics && !(sortProperties.length && ['loadAvg', 'diskUsage'].contains(sortProperties[0].name));
     this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     if (App.router.get('currentState.parentState.name') === 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
-      hostDetailsParams = '';
     }
     else {
       if (App.router.get('currentState.parentState.name') === 'hostDetails') {
@@ -266,12 +286,7 @@ App.UpdateController = Em.Controller.extend({
       }
     }
 
-    realUrl = realUrl.replace("<stackVersions>", stackVersionInfo);
-    realUrl = realUrl.replace("<metrics>", loadMetricsSeparately ? "" : "metrics/disk,metrics/load/load_one,");
-    realUrl = realUrl.replace('<hostDetailsParams>', hostDetailsParams);
-    if (App.get('supports.logSearch')) {
-      realUrl += loggingResource;
-    }
+    let realUrl = this.getUpdateHostUrlWithParams(loadMetricsSeparately);
 
     var clientCallback = function (skipCall, queryParams, itemTotal) {
       var completeCallback = function () {
