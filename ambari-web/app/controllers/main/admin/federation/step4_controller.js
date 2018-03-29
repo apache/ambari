@@ -22,7 +22,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['stopAllServices', 'reconfigureHDFS', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'startAllServices'],
+  commands: ['reconfigureHDFS', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
 
@@ -50,10 +50,6 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     var jnHostNames = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
     var hostNames = nnHostNames.concat(jnHostNames).uniq();
     this.createInstallComponentTask('HDFS_CLIENT', hostNames, 'HDFS');
-  },
-
-  stopAllServices: function () {
-    this.stopServices([], true, true);
   },
 
   installNameNode: function () {
@@ -184,8 +180,13 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.updateComponent('NAMENODE', this.get('newNameNodeHosts')[1], "HDFS", "Start");
   },
 
-  startAllServices: function () {
-    this.startServices(false);
+  restartAllServices: function () {
+    App.ajax.send({
+      name: 'restart.allServices',
+      sender: this,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   },
 
   getNameNodeWidgets: function () {
