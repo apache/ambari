@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Event to send execution commands to agent.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExecutionCommandEvent extends AmbariHostUpdateEvent {
+public class ExecutionCommandEvent extends STOMPHostEvent {
 
   /**
    * Host id with agent execution commands will be send to.

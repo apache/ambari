@@ -37,7 +37,7 @@ import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -97,7 +97,7 @@ public class AlertReceivedListener {
   private Provider<Clusters> m_clusters;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   /**
    * Used to calculate the maintenance state of new alerts being created.
@@ -384,7 +384,7 @@ public class AlertReceivedListener {
       m_alertEventPublisher.publish(eventToFire);
     }
     if (!alertUpdates.isEmpty()) {
-      stateUpdateEventPublisher.publish(new AlertUpdateEvent(alertUpdates));
+      STOMPUpdatePublisher.publish(new AlertUpdateEvent(alertUpdates));
     }
   }
 
