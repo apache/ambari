@@ -51,6 +51,7 @@
   </property>
   <property>
     <name>kafka_log_dir</name>
+    <display-name>Kafka Log directory</display-name>
     <value>/var/log/kafka</value>
     <description/>
     <on-ambari-upgrade add="true"/>

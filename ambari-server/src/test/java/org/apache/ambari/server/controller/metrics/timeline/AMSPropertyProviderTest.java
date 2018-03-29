@@ -555,7 +555,7 @@ public class AMSPropertyProviderTest {
     }
 
     Service amsService = createNiceMock(Service.class);
-    expect(amsService.getDesiredStackId()).andReturn(stackId);
+    expect(amsService.getStackId()).andReturn(stackId);
     expect(amsService.getName()).andReturn("AMS");
     expect(amsService.getServiceType()).andReturn("AMS");
     expect(cluster.getServiceByComponentName("METRICS_COLLECTOR")).andReturn(amsService);
@@ -636,7 +636,7 @@ public class AMSPropertyProviderTest {
     }
 
     Service hbaseService = createNiceMock(Service.class);
-    expect(hbaseService.getDesiredStackId()).andReturn(stackId);
+    expect(hbaseService.getStackId()).andReturn(stackId);
     expect(hbaseService.getName()).andReturn("HBASE");
     expect(hbaseService.getServiceType()).andReturn("HBASE");
     expect(cluster.getServiceByComponentName("HBASE_REGIONSERVER")).andReturn(hbaseService);

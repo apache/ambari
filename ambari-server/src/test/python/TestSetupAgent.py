@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import subprocess
+from ambari_commons import subprocess32
 from mock.mock import MagicMock
 from unittest import TestCase
 from mock.mock import patch
@@ -62,7 +62,7 @@ class TestSetupAgent(TestCase):
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(setup_agent, 'execOsCommand')
   @patch("os.environ")
-  @patch("subprocess.Popen")
+  @patch("subprocess32.Popen")
   @patch("time.sleep")
   def test_runAgent(self, sleep_mock, popen_mock, environ_mock, execOsCommand_mock):
     expected_hostname = "test.hst"
@@ -305,13 +305,13 @@ class TestSetupAgent(TestCase):
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch.object(subprocess, 'Popen')
+  @patch.object(subprocess32, 'Popen')
   def test_execOsCommand(self, Popen_mock):
     self.assertIsNone(setup_agent.execOsCommand("hostname -f"))
 
   @only_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch.object(subprocess, 'Popen')
+  @patch.object(subprocess32, 'Popen')
   def test_execOsCommand(self, Popen_mock):
     p = MagicMock()
     p.communicate.return_value = ("", "")

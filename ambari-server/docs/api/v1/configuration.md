@@ -172,7 +172,7 @@ To list the desired configs for a host:
 
 Notice overrides for a configuration type are listed with the key as the config group id and value is the tag identifying the configuration resource.
 
-##Actual Configuration
+## Actual Configuration
 Actual configuration represents the set of `tag`s that identify the cluster's current configuration.  When configurations are changed, they are saved into the backing database, even if the host has not yet received the change.  When a 
 host receives the desired configuration changes AND applies them, it will respond with the applied tags. This is called the actual configuration.
 

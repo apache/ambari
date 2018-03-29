@@ -22,14 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {
 
@@ -58,6 +56,8 @@ public interface Service {
 
   Map<String, ServiceComponent> getServiceComponents();
 
+  Set<String> getServiceHosts();
+
   void addServiceComponents(Map<String, ServiceComponent> components)
       throws AmbariException;
 
@@ -68,7 +68,7 @@ public interface Service {
 
   void setDesiredState(State state);
 
-  StackId getDesiredStackId();
+  StackId getStackId();
 
   ServiceResponse convertToResponse();
 
@@ -84,9 +84,9 @@ public interface Service {
    */
   boolean canBeRemoved();
 
-  void deleteAllComponents() throws AmbariException;
+  void deleteAllComponents(DeleteHostComponentStatusMetaData deleteMetaData);
 
-  void deleteServiceComponent(String componentName)
+  void deleteServiceComponent(String componentName, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException;
 
   boolean isClientOnlyService();
@@ -95,7 +95,7 @@ public interface Service {
 
   ClusterServiceEntity addDependencyService(Long dependencyServiceId) throws AmbariException;
 
-  void delete() throws AmbariException;
+  void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 
   /**
    * Sets the maintenance state for the service
@@ -144,28 +144,6 @@ public interface Service {
    * @param credentialStoreEnabled - true or false
    */
   void setCredentialStoreEnabled(boolean credentialStoreEnabled);
-
-  /**
-   * @return
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  RepositoryVersionEntity getDesiredRepositoryVersion();
-
-  /**
-   * @param desiredRepositoryVersion
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion);
-
-  /**
-   * Gets the repository for the desired version of this service by consulting
-   * the repository states of all known components.
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  RepositoryVersionState getRepositoryState();
 
   enum Type {
     HDFS,

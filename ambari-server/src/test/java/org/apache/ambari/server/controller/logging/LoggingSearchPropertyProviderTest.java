@@ -198,9 +198,9 @@ public class LoggingSearchPropertyProviderTest {
           mockSupport.createMock(LogDefinition.class);
 
       Service serviceMock = mockSupport.createNiceMock(Service.class);
-      expect(controllerMock.findService(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
-      expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
+      expect(serviceMock.getStackId()).andReturn(stackIdMock).anyTimes();
       expect(serviceMock.getServiceType()).andReturn(expectedServiceName).anyTimes();
 
       expect(controllerMock.getAmbariServerURI(expectedSearchEnginePath)).
@@ -407,9 +407,9 @@ public class LoggingSearchPropertyProviderTest {
           mockSupport.createMock(LoggingRequestHelper.class);
 
       Service serviceMock = mockSupport.createNiceMock(Service.class);
-      expect(controllerMock.findService(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
-      expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
+      expect(serviceMock.getStackId()).andReturn(stackIdMock).anyTimes();
       expect(serviceMock.getServiceType()).andReturn(expectedServiceName).anyTimes();
 
       expect(dataRetrievalServiceMock.getLogFileNames(expectedLogSearchComponentName, "c6401.ambari.apache.org", "clusterone")).andReturn(Collections.singleton(expectedLogFilePath)).atLeastOnce();
@@ -575,9 +575,9 @@ public class LoggingSearchPropertyProviderTest {
           mockSupport.createMock(LoggingRequestHelper.class);
 
       Service serviceMock = mockSupport.createNiceMock(Service.class);
-      expect(controllerMock.findService(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
-      expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
+      expect(serviceMock.getStackId()).andReturn(stackIdMock).anyTimes();
       expect(serviceMock.getServiceType()).andReturn(expectedServiceName).anyTimes();
 
       expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();

@@ -83,6 +83,8 @@ module.exports.config = {
           'vendor/scripts/FileSaver.js',
           'vendor/scripts/Blob.js',
           'vendor/scripts/pluralize.js',
+          'vendor/scripts/sockjs.min.js',
+          'vendor/scripts/stomp.min.js',
           'vendor/scripts/theme/bootstrap-ambari.js'
         ]
       }

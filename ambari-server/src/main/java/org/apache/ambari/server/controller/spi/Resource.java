@@ -108,6 +108,7 @@ public interface Resource {
     ExtensionLink,
     Extension,
     ExtensionVersion,
+    DefaultOperatingSystem,
     OperatingSystem,
     OperatingSystemReadOnly,
     Repository,
@@ -158,6 +159,7 @@ public interface Resource {
     Upgrade,
     UpgradeGroup,
     UpgradeItem,
+    UpgradePlan,
     UpgradeSummary,
     PreUpgradeCheck,
     Stage,
@@ -245,6 +247,7 @@ public interface Resource {
     public static final Type ExtensionLink = InternalType.ExtensionLink.getType();
     public static final Type Extension = InternalType.Extension.getType();
     public static final Type ExtensionVersion = InternalType.ExtensionVersion.getType();
+    public static final Type DefaultOperatingSystem = InternalType.DefaultOperatingSystem.getType();
     public static final Type OperatingSystem = InternalType.OperatingSystem.getType();
     public static final Type OperatingSystemReadOnly = InternalType.OperatingSystemReadOnly.getType();
     public static final Type Repository = InternalType.Repository.getType();
@@ -295,6 +298,7 @@ public interface Resource {
     public static final Type Upgrade = InternalType.Upgrade.getType();
     public static final Type UpgradeGroup = InternalType.UpgradeGroup.getType();
     public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
+    public static final Type UpgradePlan = InternalType.UpgradePlan.getType();
     public static final Type UpgradeSummary = InternalType.UpgradeSummary.getType();
     public static final Type PreUpgradeCheck = InternalType.PreUpgradeCheck.getType();
     public static final Type Stage = InternalType.Stage.getType();

@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
@@ -204,10 +205,10 @@ public interface StackDefinition {
   String getServiceForComponent(String component);
 
   /**
-   * Get (stackID, service) pairs which contain the specified component in this stack.
+   * Get (stackID, service info) pairs which contain the specified component in this stack.
    */
   @Nonnull
-  Stream<Pair<StackId, String>> getServicesForComponent(String component);
+  Stream<Pair<StackId, ServiceInfo>> getServicesForComponent(String component);
 
   /**
    * Obtain the service name which corresponds to the specified configuration.

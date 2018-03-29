@@ -33,7 +33,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.QueryInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
@@ -47,7 +46,10 @@ import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterSettingResourceProvider;
+import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
+import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -60,7 +62,6 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
@@ -84,12 +85,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * Management Controller used to get stack information.
    */
   private AmbariManagementController controller = AmbariServer.getController();
-
-
-  /**
-   * MetaInfo used to get stack and mpack information.
-   */
-  private AmbariMetaInfo metaInfo = controller.getAmbariMetaInfo();
 
 //  /**
 //   * Map of configuration type to configuration properties which are required that a user
@@ -119,13 +114,23 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     TreeNode<Set<String>> serviceGroupNode = ensureChild(resultTree, Resource.Type.ServiceGroup);
     TreeNode<Set<String>> serviceNode = ensureChild(serviceGroupNode, Resource.Type.Service);
     ensureChild(serviceNode, Resource.Type.Component,
-      "ServiceComponentInfo/cluster_name",
-      "ServiceComponentInfo/service_name",
-      "ServiceComponentInfo/component_name",
-      "ServiceComponentInfo/recovery_enabled");
+      ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID,
+      ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID,
+      ComponentResourceProvider.COMPONENT_SERVICE_TYPE_PROPERTY_ID,
+      ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+      ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
+
+    ensureChild(resultTree, Resource.Type.ClusterStackVersion,
+      ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
+      ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
+      ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_MPACK_URI_PROPERTY_ID);
 
     TreeNode<Set<String>> hostNode = ensureChild(resultTree, Resource.Type.Host);
-    ensureChild(hostNode, Resource.Type.HostComponent, "HostRoles/component_name");
+    ensureChild(hostNode, Resource.Type.HostComponent,
+      HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+      HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID,
+      HostComponentResourceProvider.HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID,
+      HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
 
     return resultTree;
   }
@@ -198,11 +203,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    Set<StackId> stackIds = topology.getStackIds();
-    // TODO: mpacks should come from service groups once https://github.com/apache/ambari/pull/234 will be committed
-    Collection<Map<String, String>> mpackInstances = stackIds.stream().
-      map( stackId -> ImmutableMap.of("name", stackId.getStackName(), "version", stackId.getStackVersion())).collect(toList());
-    blueprintResource.setProperty(BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID, mpackInstances);
+    addMpackInstances(blueprintResource, clusterNode);
 
     if (topology.isClusterKerberosEnabled()) {
       Map<String, Object> securityConfigMap = new LinkedHashMap<>();
@@ -219,6 +220,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       }
       blueprintResource.setProperty(BlueprintResourceProvider.BLUEPRINT_SECURITY_PROPERTY_ID, securityConfigMap);
     }
+    // This is needed so that exported 3.0+ blueprints have a "Blueprints" section in all cases (previously
+    // Blueprints/stack_name, Blueprints/stack_version provided this but in 3.0 we have mpacks instead of stacks.)
+    else {
+      blueprintResource.setProperty(BlueprintResourceProvider.BLUEPRINT_SECURITY_PROPERTY_ID,
+        ImmutableMap.of(SecurityConfigurationFactory.TYPE_PROPERTY_ID, SecurityType.NONE.name()));
+    }
 
     List<Map<String, Object>> groupList = formatGroupsAsList(topology);
     blueprintResource.setProperty("host_groups", groupList);
@@ -232,6 +239,22 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     blueprintResource.setProperty("settings", getSettings(clusterNode));
 
     return blueprintResource;
+  }
+
+  /**
+   * Adds mpack instances to the exported blueprint resource.
+   */
+  private void addMpackInstances(Resource blueprintResource, TreeNode<Resource> clusterNode) {
+    List<Map<String, Object>> mpackInstances = clusterNode.getChild("stack_versions").getChildren().stream().map(
+      child -> {
+        Map<String, Object> stackVersionProps = child.getObject().getPropertiesMap().get("ClusterStackVersions");
+        return ImmutableMap.of(
+          "name", stackVersionProps.get("stack"),
+          "version", stackVersionProps.get("version"),
+          "url", stackVersionProps.get("mpack_uri"));
+      }).
+      collect(toList());
+    blueprintResource.setProperty(BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID, mpackInstances);
   }
 
   /***
@@ -464,8 +487,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
   protected ClusterTopology createClusterTopology(TreeNode<Resource> clusterNode)
       throws InvalidTopologyTemplateException, InvalidTopologyException {
-
-    return new ClusterTopologyImpl(new AmbariContext(), new ExportBlueprintRequest(clusterNode));
+    return new ClusterTopologyImpl(controller.getAmbariContext(), new ExportBlueprintRequest(clusterNode));
   }
 
   /**

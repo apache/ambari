@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -94,7 +95,7 @@ public class ServiceComponentTest {
         stackId.getStackVersion());
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service s = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
     cluster.addService(s);
     service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -123,7 +124,7 @@ public class ServiceComponentTest {
         sc.getClusterName());
     Assert.assertEquals(State.INIT, sc.getDesiredState());
     Assert.assertFalse(
-        sc.getDesiredStackId().getStackId().isEmpty());
+        sc.getStackId().getStackId().isEmpty());
   }
 
 
@@ -146,7 +147,7 @@ public class ServiceComponentTest {
         newStackId.getStackVersion());
 
     sc.setDesiredRepositoryVersion(repositoryVersion);
-    Assert.assertEquals(newStackId.toString(), sc.getDesiredStackId().getStackId());
+    Assert.assertEquals(newStackId.toString(), sc.getStackId().getStackId());
 
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO =
         injector.getInstance(ServiceComponentDesiredStateDAO.class);
@@ -162,7 +163,7 @@ public class ServiceComponentTest {
     Assert.assertNotNull(sc1);
     Assert.assertEquals(State.INSTALLED, sc1.getDesiredState());
     Assert.assertEquals("HDP-1.2.0",
-        sc1.getDesiredStackId().getStackId());
+        sc1.getStackId().getStackId());
 
   }
 
@@ -259,8 +260,6 @@ public class ServiceComponentTest {
     Assert.assertNotNull(sch);
     Assert.assertEquals(State.STARTING, sch.getState());
     Assert.assertEquals(State.STARTED, sch.getDesiredState());
-    Assert.assertEquals(service.getDesiredRepositoryVersion().getVersion(),
-        sch.getServiceComponent().getDesiredVersion());
   }
 
   @Test
@@ -302,7 +301,7 @@ public class ServiceComponentTest {
     Assert.assertTrue(sc.getClusterId().equals(r.getClusterId()));
     Assert.assertEquals(sc.getName(), r.getComponentName());
     Assert.assertEquals(sc.getServiceName(), r.getServiceName());
-    Assert.assertEquals(sc.getDesiredStackId().getStackId(), r.getDesiredStackId());
+    Assert.assertEquals(sc.getStackId().getStackId(), r.getDesiredStackId());
     Assert.assertEquals(sc.getDesiredState().toString(), r.getDesiredState());
 
     int totalCount = r.getServiceComponentStateCount().get("totalCount");
@@ -394,17 +393,14 @@ public class ServiceComponentTest {
     sch1.setState(State.STARTED);
     sch2.setState(State.STARTED);
 
-    try {
-      // delete the SC
-      sc.delete();
-      Assert.assertTrue("Delete must fail as some SCH are in STARTED state", false);
-    }catch(AmbariException e) {
-      // expected
-    }
+    // delete the SC
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
+    sc.delete(deleteMetaData);
+    Assert.assertNotNull("Delete must fail as some SCH are in STARTED state", deleteMetaData.getAmbariException());
 
     sch1.setState(State.INSTALLED);
     sch2.setState(State.INSTALL_FAILED);
-    sc.delete();
+    sc.delete(new DeleteHostComponentStatusMetaData());
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
@@ -412,4 +408,5 @@ public class ServiceComponentTest {
 
     Assert.assertNull(serviceComponentDesiredStateEntity);
  }
+
 }

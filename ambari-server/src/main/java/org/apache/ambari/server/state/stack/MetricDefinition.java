@@ -24,8 +24,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.ambari.server.state.UriInfo;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Used to represent metrics for a stack component.
@@ -35,6 +38,8 @@ public class MetricDefinition {
   private String type = null;
   private Map<String, String> properties = null;
   private Map<String, Map<String, Metric>> metrics = null;
+  @SerializedName("jmx_source_uri")
+  private UriInfo jmxSourceUri;
 
   public MetricDefinition(String type, Map<String, String> properties, Map<String, Map<String, Metric>> metrics) {
     this.type = type;
@@ -81,5 +86,9 @@ public class MetricDefinition {
     return properties == null
       ? Optional.empty()
       : Optional.ofNullable(properties.get(OVERRIDDEN_HOST_PROP));
+  }
+
+  public Optional<UriInfo> getJmxSourceUri() {
+    return !"jmx".equalsIgnoreCase(type) ? Optional.empty() : Optional.ofNullable(jmxSourceUri);
   }
 }

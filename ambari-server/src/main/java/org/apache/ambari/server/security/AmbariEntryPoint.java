@@ -27,7 +27,9 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AmbariEntryPoint implements AuthenticationEntryPoint {
 
   /**

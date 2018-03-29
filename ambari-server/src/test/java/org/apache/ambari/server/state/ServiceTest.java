@@ -32,12 +32,12 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.ServiceGroupKey;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +62,6 @@ public class ServiceTest {
   private final String STACK_VERSION = "0.1";
   private final String REPO_VERSION = "0.1-1234";
   private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-  private RepositoryVersionEntity repositoryVersion;
 
   @Before
   public void setup() throws Exception {
@@ -75,7 +74,7 @@ public class ServiceTest {
     serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
 
     ormTestHelper = injector.getInstance(OrmTestHelper.class);
-    repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
+    ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
 
     clusterName = "foo";
     clusters.addCluster(clusterName, STACK_ID);
@@ -91,7 +90,7 @@ public class ServiceTest {
   @Test
   public void testCanBeRemoved() throws Exception{
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", STACK_ID.getStackId());
-    Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service service = cluster.addService(serviceGroup, "HDFS", "HDFS");
 
     for (State state : State.values()) {
       service.setDesiredState(state);
@@ -134,26 +133,16 @@ public class ServiceTest {
   public void testGetAndSetServiceInfo() throws AmbariException {
     String serviceName = "HDFS";
     ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>());
-    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName);
     cluster.addService(s);
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
-    StackId desiredStackId = new StackId("HDP-1.2.0");
-    String desiredVersion = "1.2.0-1234";
-
-    RepositoryVersionEntity desiredRepositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
-        desiredStackId, desiredVersion);
-
-    service.setDesiredRepositoryVersion(desiredRepositoryVersion);
-    Assert.assertEquals(desiredStackId, service.getDesiredStackId());
-
     service.setDesiredState(State.INSTALLING);
     Assert.assertEquals(State.INSTALLING, service.getDesiredState());
 
     // FIXME todo use DAO to verify persisted object maps to inmemory state
-
   }
 
 
@@ -161,7 +150,7 @@ public class ServiceTest {
   public void testAddGetDeleteServiceComponents() throws AmbariException {
     String serviceName = "HDFS";
     ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>() );
-    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName);
     cluster.addService(s);
 
     Service service = cluster.getService(serviceName);
@@ -174,7 +163,7 @@ public class ServiceTest {
             service.getCluster().getClusterName());
     Assert.assertEquals(State.INIT, service.getDesiredState());
     Assert.assertFalse(
-            service.getDesiredStackId().getStackId().isEmpty());
+            service.getStackId().getStackId().isEmpty());
 
     Assert.assertTrue(s.getServiceComponents().isEmpty());
 
@@ -225,7 +214,7 @@ public class ServiceTest {
         s.getServiceComponent("HDFS_CLIENT").getDesiredState());
 
     // delete service component
-    s.deleteServiceComponent("NAMENODE");
+    s.deleteServiceComponent("NAMENODE", new DeleteHostComponentStatusMetaData());
 
     assertEquals(3, s.getServiceComponents().size());
   }
@@ -244,7 +233,7 @@ public class ServiceTest {
   public void testConvertToResponse() throws AmbariException {
     String serviceName = "HDFS";
     ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>());
-    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -252,21 +241,14 @@ public class ServiceTest {
     ServiceResponse r = s.convertToResponse();
     Assert.assertEquals(s.getName(), r.getServiceName());
     Assert.assertEquals(s.getCluster().getClusterName(), r.getClusterName());
-    Assert.assertEquals(s.getDesiredStackId().getStackId(), r.getDesiredStackId());
+    Assert.assertEquals(s.getStackId().getStackId(), r.getDesiredStackId());
     Assert.assertEquals(s.getDesiredState().toString(), r.getDesiredState());
 
-    StackId desiredStackId = new StackId("HDP-1.2.0");
-    String desiredVersion = "1.2.0-1234";
-
-    RepositoryVersionEntity desiredRepositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
-        desiredStackId, desiredVersion);
-
-    service.setDesiredRepositoryVersion(desiredRepositoryVersion);
     service.setDesiredState(State.INSTALLING);
     r = s.convertToResponse();
     Assert.assertEquals(s.getName(), r.getServiceName());
     Assert.assertEquals(s.getCluster().getClusterName(), r.getClusterName());
-    Assert.assertEquals(s.getDesiredStackId().getStackId(), r.getDesiredStackId());
+    Assert.assertEquals(s.getStackId().getStackId(), r.getDesiredStackId());
     Assert.assertEquals(s.getDesiredState().toString(), r.getDesiredState());
     // FIXME add checks for configs
 
@@ -281,7 +263,7 @@ public class ServiceTest {
   public void testServiceMaintenance() throws Exception {
     String serviceName = "HDFS";
     ServiceGroup serviceGroup = serviceGroupFactory.createNew(cluster, "service_group", STACK_ID, new HashSet<ServiceGroupKey>());
-    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName);
     cluster.addService(s);
 
     Service service = cluster.getService(serviceName);

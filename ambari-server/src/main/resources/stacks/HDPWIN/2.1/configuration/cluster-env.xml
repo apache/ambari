@@ -61,13 +61,13 @@
   </property>
   <property>
     <name>ignore_groupsusers_create</name>
-    <display-name>Skip group modifications during install</display-name>
+    <display-name>Use Ambari to Manage Group Memberships</display-name>
     <property-type>ADDITIONAL_USER_PROPERTY</property-type>
     <value>false</value>
-    <description>Whether to ignore failures on users and group creation</description>
+    <description>Ambari will add or remove service accounts from groups.</description>
     <value-attributes>
       <visible>false</visible>
-      <type>boolean</type>
+      <type>boolean-inverted</type>
       <overridable>false</overridable>
     </value-attributes>
     <on-ambari-upgrade add="true"/>

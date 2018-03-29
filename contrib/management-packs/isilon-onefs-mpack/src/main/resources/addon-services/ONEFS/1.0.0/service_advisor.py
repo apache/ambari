@@ -113,6 +113,24 @@ else:
       putCoreSiteProperty("fs.defaultFS", Uri.default_fs(services).fix_host(onefs_host))
       putHdfsSiteProperty("dfs.namenode.http-address", Uri.http_namenode(services).fix_host(onefs_host))
       putHdfsSiteProperty("dfs.namenode.https-address", Uri.https_namenode(services).fix_host(onefs_host))
+      # self.updateYarnConfig(configs, services) TODO doesn't work possibly due to a UI bug (Couldn't retrieve 'capacity-scheduler' from services)
+
+    def updateYarnConfig(self, configs, services):
+      if not 'YARN' in self.installedServices(services): return
+      capacity_scheduler_dict, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
+      if capacity_scheduler_dict:
+        putCapSchedProperty = self.putProperty(configs, 'capacity-scheduler', services)
+        if received_as_key_value_pair:
+          capacity_scheduler_dict['yarn.scheduler.capacity.node-locality-delay'] = '0'
+          putCapSchedProperty('capacity-scheduler', self.concatenated(capacity_scheduler_dict))
+        else:
+          putCapSchedProperty('yarn.scheduler.capacity.node-locality-delay', '0')
+
+    def concatenated(self, capacity_scheduler_dict):
+      return ''.join('%s=%s\n' % (k,v) for k,v in capacity_scheduler_dict.items())
+
+    def installedServices(self, services):
+      return [service['StackServices']['service_name'] for service in services['services']]
 
     def getServiceConfigurationsValidationItems(self, configs, recommendedDefaults, services, hosts):
       validation_errors = []

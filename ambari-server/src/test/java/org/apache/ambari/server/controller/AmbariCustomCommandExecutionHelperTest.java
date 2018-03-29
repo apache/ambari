@@ -138,11 +138,21 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariManagementController = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
 
+    EasyMock.expect(configHelper.getPropertyValuesWithPropertyType(EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(PropertyInfo.PropertyType.class),
+        EasyMock.anyObject(Cluster.class),
+        EasyMock.anyObject(Map.class))).andReturn(Collections.EMPTY_SET);
+
+    EasyMock.replay(configHelper);
+
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     createClusterFixture("c1", new StackId("HDP-2.0.6"), "2.0.6-1234", "c1");
+
+    EasyMock.verify(configHelper);
+    EasyMock.reset(configHelper);
 
     EasyMock.expect(hostRoleCommand.getTaskId()).andReturn(1L);
     EasyMock.expect(hostRoleCommand.getStageId()).andReturn(1L);
@@ -578,8 +588,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     //create client service
     OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.6"), "2.0.6-1234");
-    createService("c1", "CORE", "HADOOP_CLIENTS", repositoryVersion);
+    createService("c1", "CORE", "HADOOP_CLIENTS");
     createServiceComponent("c1", "CORE", "HADOOP_CLIENTS", "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", State.INIT);
     createServiceComponentHost("c1", "CORE", "HADOOP_CLIENTS", 1L, "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", "c1-c6403", State.INIT);
 
@@ -713,14 +722,12 @@ public class AmbariCustomCommandExecutionHelperTest {
     ServiceComponent componentZKC = serviceZK.getServiceComponent("ZOOKEEPER_CLIENT");
     Host host = clusters.getHost("c1-c6401");
 
-    AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
-    RepositoryVersionHelper repoHelper = injector.getInstance(RepositoryVersionHelper.class);
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     RepositoryVersionDAO repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     ServiceComponentDesiredStateDAO componentDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     RepositoryVersionHelper repoVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
 
-    CommandRepository commandRepo = repoHelper.getCommandRepository(cluster, componentRM, host);
+    CommandRepository commandRepo = repoVersionHelper.getCommandRepository(cluster, componentRM, host);
     Assert.assertEquals(2, commandRepo.getRepositories().size());
 
 
@@ -738,31 +745,26 @@ public class AmbariCustomCommandExecutionHelperTest {
     StackEntity stackEntity = stackDAO.find(cluster.getDesiredStackVersion().getStackName(),
         cluster.getDesiredStackVersion().getStackVersion());
 
-    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity(stackEntity,
-        "2.1.1.1-1234", "2.1.1.1-1234", operatingSystems);
-    repositoryVersion = repoVersionDAO.merge(repositoryVersion);
-
     // add a repo version associated with a component
     ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(), serviceYARN.getServiceGroupId(),
         serviceYARN.getServiceId(), componentRM.getName(), componentRM.getType());
 
-    componentEntity.setDesiredRepositoryVersion(repositoryVersion);
     componentDAO.merge(componentEntity);
 
     // !!! make sure the override is set
-    commandRepo = repoHelper.getCommandRepository(cluster, componentRM, host);
+    commandRepo = repoVersionHelper.getCommandRepository(cluster, componentRM, host);
 
     Assert.assertEquals(1, commandRepo.getRepositories().size());
     CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
     Assert.assertEquals("http://foo", repo.getBaseUrl());
 
     // verify that ZK has no repositories, since we haven't defined a repo version for ZKC
-    commandRepo = repoHelper.getCommandRepository(cluster, componentZKC, host);
+    commandRepo = repoVersionHelper.getCommandRepository(cluster, componentZKC, host);
     Assert.assertEquals(2, commandRepo.getRepositories().size());
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,
-    String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException {
+    String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
 
     String hostC6401 = hostPrefix + "-c6401";
     String hostC6402 = hostPrefix + "-c6402";
@@ -776,17 +778,20 @@ public class AmbariCustomCommandExecutionHelperTest {
     addHost(hostC6401, clusterName);
     addHost(hostC6402, clusterName);
 
+    clusters.updateHostMappings(clusters.getHost(hostC6401));
+    clusters.updateHostMappings(clusters.getHost(hostC6402));
+
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
 
     String serviceGroupName = "CORE";
     cluster.addServiceGroup(serviceGroupName, stackId.getStackId());
 
-    createService(clusterName, serviceGroupName, "HDFS", repositoryVersion);
-    createService(clusterName, serviceGroupName, "YARN", repositoryVersion);
-    createService(clusterName, serviceGroupName, "GANGLIA", repositoryVersion);
-    createService(clusterName, serviceGroupName, "ZOOKEEPER", repositoryVersion);
-    createService(clusterName, serviceGroupName, "FLUME", repositoryVersion);
+    createService(clusterName, serviceGroupName, "HDFS");
+    createService(clusterName, serviceGroupName, "YARN");
+    createService(clusterName, serviceGroupName, "GANGLIA");
+    createService(clusterName, serviceGroupName, "ZOOKEEPER");
+    createService(clusterName, serviceGroupName, "FLUME");
 
     createServiceComponent(clusterName, serviceGroupName, "YARN", "RESOURCEMANAGER", "RESOURCEMANAGER", State.INIT);
     createServiceComponent(clusterName, serviceGroupName, "YARN", "NODEMANAGER", "NODEMANAGER", State.INIT);
@@ -836,11 +841,10 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   private void createService(
-    String clusterName, String serviceGroupName, String serviceName, RepositoryVersionEntity repositoryVersion
-  ) throws AmbariException, AuthorizationException {
-    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, repositoryVersion.getId(), null, null, null);
-    ServiceResourceProviderTest.createServices(ambariManagementController,
-        injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(request));
+    String clusterName, String serviceGroupName, String serviceName
+  ) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
+    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, null, null);
+    ServiceResourceProviderTest.createServices(ambariManagementController,Collections.singleton(request));
   }
 
   private void createServiceComponent(

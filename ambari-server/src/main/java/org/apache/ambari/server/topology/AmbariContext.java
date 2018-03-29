@@ -224,7 +224,6 @@ public class AmbariContext {
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
                                     String repoVersionString, Long repoVersionId) {
-    Map<StackId, Long> repoVersionByStack = new HashMap<>();
 
     Set<StackId> stackIds = topology.getStackIds();
     for (StackId stackId : stackIds) {
@@ -246,7 +245,7 @@ public class AmbariContext {
     }
 
     createAmbariClusterResource(clusterName, topology.getStackIds(), securityType);
-    createAmbariServiceAndComponentResources(topology, clusterName, repoVersionByStack);
+    createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
   private RepositoryVersionEntity findRepoForStack(StackId stackId) {
@@ -358,16 +357,15 @@ public class AmbariContext {
     }
   }
 
-  private void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName, Map<StackId, Long> repoVersionByStack) {
+  private void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName) {
     Set<ServiceGroupRequest> serviceGroupRequests = topology.getComponents()
       .map(c -> new ServiceGroupRequest(clusterName, c.effectiveServiceGroupName(), c.stackId().getStackId()))
       .collect(toSet());
 
     Set<ServiceRequest> serviceRequests = topology.getComponents()
       .map(c -> new ServiceRequest(
-          clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.serviceType(), repoVersionByStack.get(c.stackId()), null,
-          topology.getSetting().getCredentialStoreEnabled(c.effectiveServiceName()), // FIXME settings by service type or name?
-          c.stackId()
+          clusterName, c.effectiveServiceGroupName(), c.effectiveServiceName(), c.serviceType(), null,
+            topology.getSetting().getCredentialStoreEnabled(c.effectiveServiceName())
         ))
       .collect(toSet());
 

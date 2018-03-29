@@ -59,9 +59,9 @@ class TestStackSelect(TestCase):
 
     Script.config = dict()
     Script.config.update(command_json)
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "hostLevelParams": {} } )
+    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages()
-    Script.config["hostLevelParams"] = { "stack_name" : "HDP" }
+    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
 
     stack_select.select_packages(version)
 
@@ -85,9 +85,9 @@ class TestStackSelect(TestCase):
 
     Script.config = dict()
     Script.config.update(command_json)
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "hostLevelParams": {} } )
+    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages()
-    Script.config["hostLevelParams"] = { "stack_name" : "HDP" }
+    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
 
     stack_select.select_packages(version)
 
@@ -119,9 +119,9 @@ class TestStackSelect(TestCase):
 
     Script.config = dict()
     Script.config.update(command_json)
-    Script.config.update( { "configurations" : { "cluster-env" : {} }, "hostLevelParams": {} } )
+    Script.config.update( { "configurations" : { "cluster-env" : {} }, "clusterLevelParams": {} } )
     Script.config["configurations"]["cluster-env"]["stack_packages"] = self._get_stack_packages_with_legacy()
-    Script.config["hostLevelParams"] = { "stack_name" : "HDP" }
+    Script.config["clusterLevelParams"] = { "stack_name" : "HDP" }
 
     stack_select.select_packages(version)
 
@@ -136,7 +136,7 @@ class TestStackSelect(TestCase):
     """
     return {
       "roleCommand":"ACTIONEXECUTE",
-      "hostLevelParams": {
+      "clusterLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
       },
@@ -174,7 +174,7 @@ class TestStackSelect(TestCase):
       "roleCommand":"ACTIONEXECUTE",
       "serviceName": "FOO_SERVICE",
       "role": "FOO_MASTER",
-      "hostLevelParams": {
+      "clusterLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
       },

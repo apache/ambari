@@ -22,12 +22,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 import org.apache.commons.lang.StringUtils;
 
 
@@ -71,6 +73,7 @@ public class FixLzoCodecPath extends AbstractUpgradeServerAction {
       }
       config.setProperties(properties);
       config.save();
+      agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
     }
     if (modifiedProperties.isEmpty()) {
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",

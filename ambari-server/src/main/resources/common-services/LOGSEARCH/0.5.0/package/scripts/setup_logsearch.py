@@ -142,7 +142,7 @@ def setup_logsearch():
   if params.security_enabled and not params.logsearch_use_external_solr:
     solr_cloud_util.add_solr_roles(params.config,
                                    roles = [params.infra_solr_role_logsearch, params.infra_solr_role_ranger_admin, params.infra_solr_role_dev],
-                                   new_service_principals = [params.logsearch_kerberos_principal])
+                                   new_service_principals = params.logsearch_solr_service_users)
     solr_cloud_util.add_solr_roles(params.config,
                                    roles = [params.infra_solr_role_logfeeder, params.infra_solr_role_dev],
                                    new_service_principals = [params.logfeeder_kerberos_principal])

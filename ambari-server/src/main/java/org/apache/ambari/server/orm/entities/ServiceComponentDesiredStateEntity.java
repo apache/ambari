@@ -33,7 +33,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
@@ -106,20 +105,6 @@ public class ServiceComponentDesiredStateEntity {
   @Enumerated(EnumType.STRING)
   private RepositoryVersionState repoState = RepositoryVersionState.NOT_REQUIRED;
 
-  /**
-   * Unidirectional one-to-one association to {@link RepositoryVersionEntity}
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  @OneToOne
-  @JoinColumn(
-      name = "desired_repo_version_id",
-      unique = false,
-      nullable = false,
-      insertable = true,
-      updatable = true)
-  private RepositoryVersionEntity desiredRepositoryVersion;
-
   @ManyToOne
   @JoinColumns(
     {
@@ -179,30 +164,6 @@ public class ServiceComponentDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionEntity getDesiredRepositoryVersion() {
-    return desiredRepositoryVersion;
-  }
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
-    this.desiredRepositoryVersion = desiredRepositoryVersion;
-  }
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public StackEntity getDesiredStack() {
-    return desiredRepositoryVersion.getStack();
-  }
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public String getDesiredVersion() {
-    return desiredRepositoryVersion.getVersion();
-  }
-
   public boolean isRecoveryEnabled() {
     return recoveryEnabled != 0;
   }
@@ -247,10 +208,6 @@ public class ServiceComponentDesiredStateEntity {
     if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
       return false;
     }
-    if (desiredRepositoryVersion != null ? !desiredRepositoryVersion.equals(that.desiredRepositoryVersion)
-      : that.desiredRepositoryVersion != null) {
-      return false;
-    }
     return true;
   }
 
@@ -263,7 +220,6 @@ public class ServiceComponentDesiredStateEntity {
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (componentType != null ? componentType.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
-    result = 31 * result + (desiredRepositoryVersion != null ? desiredRepositoryVersion.hashCode() : 0);
 
     return result;
   }

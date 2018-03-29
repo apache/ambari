@@ -245,7 +245,7 @@ public class ClientConfigResourceProviderTest {
     serviceOsSpecificHashMap.put("key", osSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
-        componentName, componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
+        componentName, componentName, displayName, hostName, publicHostname, desiredState, "", null, null,
         null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
@@ -321,7 +321,7 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
     expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
-    expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
+    expect(serviceComponent.getStackId()).andReturn(stackId).atLeastOnce();
 
     expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
@@ -499,7 +499,7 @@ public class ClientConfigResourceProviderTest {
     serviceOsSpecificHashMap.put("key", osSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
-        componentName, componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
+        componentName, componentName, displayName, hostName, publicHostName, desiredState, "", null, null,
         null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
@@ -576,7 +576,7 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
     expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
-    expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
+    expect(serviceComponent.getStackId()).andReturn(stackId).atLeastOnce();
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");

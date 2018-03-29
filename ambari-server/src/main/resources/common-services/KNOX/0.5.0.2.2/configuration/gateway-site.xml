@@ -34,6 +34,7 @@ limitations under the License.
   </property>
   <property>
     <name>gateway.gateway.conf.dir</name>
+    <display-name>Gateway Conf directory</display-name>
     <value>deployments</value>
     <description>The directory within GATEWAY_HOME that contains gateway topology files and deployments.</description>
     <on-ambari-upgrade add="true"/>

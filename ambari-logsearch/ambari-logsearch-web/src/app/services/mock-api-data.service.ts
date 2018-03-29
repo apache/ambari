@@ -20,8 +20,10 @@ import {URLSearchParams, Response, ResponseOptions} from '@angular/http';
 import {InMemoryDbService, InMemoryBackendService, createErrorResponse} from 'angular-in-memory-web-api';
 import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
+import 'rxjs/add/operator/delay';
 import * as moment from 'moment';
-import {mockData} from '@app/mock-data';
+import {mockDataGet} from "@mockdata/mock-data-get";
+import {mockDataPost} from "@mockdata/mock-data-post";
 
 export class mockBackendService extends InMemoryBackendService {
   getLocation(url: string): any {
@@ -123,24 +125,30 @@ export class mockApiDataService implements InMemoryDbService {
     };
   }
 
+  private findDataByUrlPatter(path: string, mockDataObj: {[key: string]: any}): {[key: string]: any} | undefined | Function {
+    const paths: string[] = Object.keys(mockDataObj);
+    const matchedPath:string = paths.find((key:string):boolean => {
+      const test:RegExp = new RegExp(key);
+      return test.test(path);
+    });
+    return mockDataObj[matchedPath];
+  }
+
   get(interceptorArgs: any): Observable<Response> {
-    const query = interceptorArgs.requestInfo.query,
-      path = interceptorArgs.requestInfo.base + interceptorArgs.requestInfo.collectionName,
-      pathArray = path.split('/').filter(part => part !== '');
+    const query = interceptorArgs.requestInfo.query;
+    const path = interceptorArgs.requestInfo.base + interceptorArgs.requestInfo.collectionName;
     if (query && query.paramsMap.has('static') && interceptorArgs.passThruBackend) {
       return interceptorArgs.passThruBackend.createConnection(interceptorArgs.requestInfo.req).response;
     } else {
-      let is404 = false;
-      const allData = pathArray.reduce((currentObject, currentKey, index, array) => {
-        if (!currentObject && index < array.length - 1) {
-          return {};
-        } else if (currentObject.hasOwnProperty(currentKey)) {
-          return currentObject[currentKey];
-        } else {
-          is404 = true;
-          return {};
-        }
-      }, interceptorArgs.db);
+      let allData = mockDataGet[path];
+      if (!allData) {
+        allData = this.findDataByUrlPatter(path, mockDataGet);
+      }
+      if (typeof allData === 'function') {
+        allData = allData(query, interceptorArgs.requestInfo.req);
+      }
+      let is404 = !allData;
+
       if (is404) {
         return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
           new Response(createErrorResponse(
@@ -211,11 +219,41 @@ export class mockApiDataService implements InMemoryDbService {
   }
 
   post(interceptorArgs: any): Observable<Response> {
-    // TODO implement posting data to mock object except login call
-    return this.get(interceptorArgs);
+    const query = interceptorArgs.requestInfo.query;
+    const path = interceptorArgs.requestInfo.base + interceptorArgs.requestInfo.collectionName;
+    if (query && query.paramsMap.has('static') && interceptorArgs.passThruBackend) {
+      return interceptorArgs.passThruBackend.createConnection(interceptorArgs.requestInfo.req).response;
+    }
+    let responseBody = mockDataPost[path];
+    if (!responseBody) {
+      responseBody = this.findDataByUrlPatter(path, mockDataPost);
+    }
+    if (typeof responseBody === 'function') {
+      responseBody = responseBody(query, interceptorArgs.requestInfo.req);
+    }
+    let is404 = !responseBody;
+
+    if (is404) {
+      return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
+        new Response(createErrorResponse(
+          interceptorArgs.requestInfo.req, 404, 'Not found'
+        )))
+      );
+    } else {
+      return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.next(
+        new Response(new ResponseOptions({
+          status: 200,
+          body: responseBody
+        })))
+      );
+    }
+  }
+
+  put(interceptorArgs: any): Observable<Response> {
+    return this.post(interceptorArgs);
   }
 
   createDb() {
-    return mockData;
+    return {};
   }
 }

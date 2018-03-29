@@ -93,6 +93,8 @@ public class H2DatabaseCleaner {
         sequenceList.add("host_role_command_id_seq");
         sequenceList.add("alert_definition_id_seq");
         sequenceList.add("resource_type_id_seq");
+        sequenceList.add("mpack_inst_svc_id_seq");
+        sequenceList.add("mpack_instance_id_seq");
   }
 
   public static void clearDatabaseAndStopPersistenceService(Injector injector) throws AmbariException, SQLException {

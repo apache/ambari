@@ -26,6 +26,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.kerberos.authentication.KerberosTicketValidation;
 import org.springframework.security.kerberos.authentication.KerberosTicketValidator;
 import org.springframework.security.kerberos.authentication.sun.SunJaasKerberosTicketValidator;
+import org.springframework.stereotype.Component;
 
 /**
  * AmbariKerberosTicketValidator is a {@link KerberosTicketValidator} implementation that delegates
@@ -37,6 +38,7 @@ import org.springframework.security.kerberos.authentication.sun.SunJaasKerberosT
  * <li>{@link SunJaasKerberosTicketValidator#setKeyTabLocation(Resource)} using the Ambari server property from {@link Configuration#KERBEROS_AUTH_SPNEGO_KEYTAB_FILE}</li>
  * </ul>
  */
+@Component
 public class AmbariKerberosTicketValidator implements KerberosTicketValidator, InitializingBean {
 
   private final SunJaasKerberosTicketValidator kerberosTicketValidator;

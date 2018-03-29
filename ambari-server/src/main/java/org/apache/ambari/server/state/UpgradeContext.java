@@ -47,6 +47,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.PreUpgradeCheckResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -263,6 +264,12 @@ public class UpgradeContext {
   private RepositoryType m_orchestration = RepositoryType.STANDARD;
 
   /**
+   * Used to lookup overridable settings like default task parallelism
+   */
+  @Inject
+  private Configuration configuration;
+
+  /**
    * Reading upgrade type from provided request  or if nothing were provided,
    * from previous upgrade for downgrade direction.
    *
@@ -441,9 +448,8 @@ public class UpgradeContext {
      */
     String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-    RepositoryVersionEntity upgradeFromRepositoryVersion = cluster.getService(
-        m_services.iterator().next()).getDesiredRepositoryVersion();
+    @Experimental(feature= ExperimentalFeature.REPO_VERSION_REMOVAL)
+    RepositoryVersionEntity upgradeFromRepositoryVersion = m_repositoryVersion;
 
     m_upgradePack = m_upgradeHelper.suggestUpgradePack(m_cluster.getClusterName(),
         upgradeFromRepositoryVersion.getStackId(), m_repositoryVersion.getStackId(), m_direction,
@@ -932,6 +938,13 @@ public class UpgradeContext {
   }
 
   /**
+   * @return default value of number of tasks to run in parallel during upgrades
+   */
+  public int getDefaultMaxDegreeOfParallelism() {
+    return configuration.getDefaultMaxParallelismForUpgrades();
+  }
+
+  /**
    * Gets a POJO of the upgrade suitable to serialize.
    *
    * @return the upgrade summary as a POJO.
@@ -1033,7 +1046,7 @@ public class UpgradeContext {
         serviceName = iterator.next();
         Service service = cluster.getService(serviceName);
 
-        m_sourceRepositoryMap.put(serviceName, service.getDesiredRepositoryVersion());
+        m_sourceRepositoryMap.put(serviceName, null);
         m_targetRepositoryMap.put(serviceName, repositoryVersion);
       } catch (ServiceNotFoundException e) {
         // remove the service which is not part of the cluster - this should

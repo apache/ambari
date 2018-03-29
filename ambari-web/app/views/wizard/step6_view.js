@@ -102,6 +102,8 @@ App.WizardStep6HostView = Em.View.extend({
 
   'data-qa': 'hostname-block',
 
+  classNames: ['freeze'],
+
   tagName: 'td',
 
   /**

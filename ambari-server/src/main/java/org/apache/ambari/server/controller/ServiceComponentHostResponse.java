@@ -46,7 +46,6 @@ public class ServiceComponentHostResponse {
   private String liveState;
   private String version;
   private String desiredStackVersion;
-  private String desiredRepositoryVersion;
   private String desiredState;
   private boolean staleConfig = false;
   private boolean reloadConfig = false;
@@ -58,8 +57,7 @@ public class ServiceComponentHostResponse {
                                       Long serviceId, String serviceName, String serviceType, Long hostComponentId,
                                       String componentName, String componentType, String displayName, String hostname,
                                       String publicHostname, String liveState, String version, String desiredState,
-                                      String desiredStackVersion, String desiredRepositoryVersion,
-                                      HostComponentAdminState adminState) {
+                                      String desiredStackVersion, HostComponentAdminState adminState) {
     this.clusterId = clusterId;
     this.serviceGroupId = serviceGroupId;
     this.serviceGroupName = serviceGroupName;
@@ -77,7 +75,6 @@ public class ServiceComponentHostResponse {
     this.version = version;
     this.desiredState = desiredState;
     this.desiredStackVersion = desiredStackVersion;
-    this.desiredRepositoryVersion = desiredRepositoryVersion;
     if (adminState != null) {
       this.adminState = adminState.name();
     }
@@ -257,15 +254,6 @@ public class ServiceComponentHostResponse {
    */
   public void setDesiredStackVersion(String desiredStackVersion) {
     this.desiredStackVersion = desiredStackVersion;
-  }
-
-  /**
-   * Gets the desired repository of the component.
-   *
-   * @return the desired repository.
-   */
-  public String getDesiredRepositoryVersion() {
-    return desiredRepositoryVersion;
   }
 
   /**

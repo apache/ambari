@@ -20,8 +20,8 @@ limitations under the License.
 from resource_management import *
 
 config = Script.get_config()
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
-jdk_location = config['hostLevelParams']['jdk_location']
+jce_location = config['ambariLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']

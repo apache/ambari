@@ -28,7 +28,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 config = Script.get_config()
 
 pxf_service_name = pxf_constants.pxf_service_name
-stack_name = str(config["hostLevelParams"]["stack_name"])
+stack_name = str(config["clusterLevelParams"]["stack_name"])
 
 # Users and Groups
 pxf_user = pxf_constants.pxf_user
@@ -46,7 +46,7 @@ pxf_instance_dir = "/var/pxf"
 exec_tmp_dir = Script.get_tmp_dir()
 
 # Java home path
-java_home = config["hostLevelParams"]["java_home"] if "java_home" in config["hostLevelParams"] else None
+java_home = config["ambariLevelParams"]["java_home"] if "java_home" in config["ambariLevelParams"] else None
 
 # Timeouts
 default_exec_timeout = 600
@@ -59,7 +59,7 @@ realm_name = config['configurations']['kerberos-env']['realm']
 is_hbase_installed = default("/clusterHostInfo/hbase_master_hosts", None) is not None
 
 #Hive
-is_hive_installed = default("/clusterHostInfo/hive_server_host", None) is not None
+is_hive_installed = default("/clusterHostInfo/hive_server_hosts", None) is not None
 
 # HDFS
 hdfs_site = config['configurations']['hdfs-site']

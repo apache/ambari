@@ -1903,7 +1903,7 @@ public class ViewRegistryTest {
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
-    expect(service.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(service.getStackId()).andReturn(stackId).anyTimes();
 
     Capture<ViewInstanceEntity> viewInstanceCapture = EasyMock.newCapture();
 

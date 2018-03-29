@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -80,7 +79,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.gson.Gson;
-
 
 /**
  * ClusterResourceProvider tests.
@@ -155,7 +153,7 @@ public class ClusterResourceProviderTest {
 
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
       .once();
-    expect(topologyFactory.createProvisionClusterRequest("{}", properties, null)).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
@@ -185,7 +183,7 @@ public class ClusterResourceProviderTest {
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
 
-    expect(topologyFactory.createProvisionClusterRequest(anyString(), eq(properties), eq(securityConfiguration))).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
@@ -209,7 +207,7 @@ public class ClusterResourceProviderTest {
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     // throw exception from topology request factory an assert that the correct exception is thrown from resource provider
-    expect(topologyFactory.createProvisionClusterRequest(null, properties, null)).andThrow(new InvalidTopologyException
+    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andThrow(new InvalidTopologyException
       ("test"));
 
     replayAll();
@@ -473,7 +471,7 @@ public class ClusterResourceProviderTest {
 
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
-    expect(topologyFactory.createProvisionClusterRequest(anyString(), eq(properties), anyObject())).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(eq(properties), anyObject())).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
@@ -804,7 +802,7 @@ public class ClusterResourceProviderTest {
 
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn(null)
         .once();
-    expect(topologyFactory.createProvisionClusterRequest("{}", properties, null)).andReturn(topologyRequest).once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 

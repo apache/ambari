@@ -48,6 +48,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -60,7 +61,6 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -1716,7 +1716,6 @@ public class AmbariMetaInfoTest {
   @Test
   public void testAlertDefinitionMerging() throws Exception {
     final String stackVersion = "2.0.6";
-    final String repoVersion = "2.0.6-1234";
 
     Injector injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
@@ -1744,10 +1743,8 @@ public class AmbariMetaInfoTest {
     StackId stackId = new StackId(STACK_NAME_HDP, stackVersion);
     cluster.setDesiredStackVersion(stackId);
 
-    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
-        cluster.getCurrentStackVersion(), repoVersion);
     ServiceGroup sg = cluster.addServiceGroup("core", stackId.getStackId());
-    cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
+    cluster.addService(sg, "HDFS", "HDFS");
 
     metaInfo.reconcileAlertDefinitions(clusters, false);
 
@@ -1829,7 +1826,6 @@ public class AmbariMetaInfoTest {
    */
   @Test
   public void testAlertDefinitionMergingRemoveScenario() throws Exception {
-    final String repoVersion = "2.0.6-1234";
     final String stackVersion = "2.0.6";
 
     Injector injector = Guice.createInjector(Modules.override(
@@ -1858,11 +1854,8 @@ public class AmbariMetaInfoTest {
     cluster.setDesiredStackVersion(
       new StackId(STACK_NAME_HDP, stackVersion));
 
-    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
-      cluster.getCurrentStackVersion(), repoVersion);
-
     ServiceGroup sg = cluster.addServiceGroup("core", "HDP-2.0.6");
-    cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
+    cluster.addService(sg, "HDFS", "HDFS");
 
     metaInfo.reconcileAlertDefinitions(clusters, false);
 
@@ -1870,7 +1863,7 @@ public class AmbariMetaInfoTest {
     List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
     assertEquals(13, definitions.size());
 
-    cluster.deleteService("HDFS");
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
     metaInfo.reconcileAlertDefinitions(clusters, false);
     List<AlertDefinitionEntity> updatedDefinitions = dao.findAll(clusterId);
     assertEquals(7, updatedDefinitions.size());

@@ -55,25 +55,25 @@ public class ServiceGroupDependencyEntity {
   @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false)
   private long serviceGroupId;
 
-  @Column(name = "service_group_cluster_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false)
   private long serviceGroupClusterId;
 
   @Column(name = "dependent_service_group_id", nullable = false, insertable = false, updatable = false)
   private long dependentServiceGroupId;
 
-  @Column(name = "dependent_service_group_cluster_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "dependent_cluster_id", nullable = false, insertable = false, updatable = false)
   private long dependentServiceGroupClusterId;
 
   @ManyToOne
   @JoinColumns({
           @JoinColumn(name = "service_group_id", referencedColumnName = "id", nullable = false),
-          @JoinColumn(name = "service_group_cluster_id", referencedColumnName = "cluster_id", nullable = false) })
+          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false) })
   private ServiceGroupEntity serviceGroup;
 
   @ManyToOne
   @JoinColumns({
           @JoinColumn(name = "dependent_service_group_id", referencedColumnName = "id", nullable = false),
-          @JoinColumn(name = "dependent_service_group_cluster_id", referencedColumnName = "cluster_id", nullable = false) })
+          @JoinColumn(name = "dependent_cluster_id", referencedColumnName = "cluster_id", nullable = false) })
   private ServiceGroupEntity serviceGroupDependency;
 
   public ServiceGroupEntity getServiceGroup() {

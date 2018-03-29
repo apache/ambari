@@ -122,3 +122,4 @@ class StackFeature:
   ATLAS_CORE_SITE_SUPPORT="atlas_core_site_support"
   KAFKA_EXTENDED_SASL_SUPPORT = "kafka_extended_sasl_support"
   OOZIE_EXTJS_INCLUDED = "oozie_extjs_included"
+  MULTIPLE_ENV_SH_FILES_SUPPORT = "multiple_env_sh_files_support"

@@ -29,7 +29,7 @@ import static org.junit.Assert.assertNull;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpSession;
 
-import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.junit.Test;
 
 public class AmbariSessionManagerTest {
@@ -55,21 +55,21 @@ public class AmbariSessionManagerTest {
 
   @Test
   public void testGetSessionCookie() throws Exception {
-    SessionManager sessionManager = createNiceMock(SessionManager.class);
+    SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
     SessionCookieConfig sessionCookieConfig = createNiceMock(SessionCookieConfig.class);
 
     AmbariSessionManager ambariSessionManager = new AmbariSessionManager();
 
-    ambariSessionManager.sessionManager = sessionManager;
+    ambariSessionManager.sessionHandler = sessionHandler;
 
     expect(sessionCookieConfig.getName()).andReturn("SESSION_COOKIE").anyTimes();
-    expect(sessionManager.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
+    expect(sessionHandler.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
 
-    replay(sessionManager, sessionCookieConfig);
+    replay(sessionHandler, sessionCookieConfig);
 
     assertEquals("SESSION_COOKIE", ambariSessionManager.getSessionCookie());
 
-    verify(sessionManager, sessionCookieConfig);
+    verify(sessionHandler, sessionCookieConfig);
   }
 
   @Test

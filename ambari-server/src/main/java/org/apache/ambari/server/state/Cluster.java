@@ -31,10 +31,11 @@ import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -71,8 +72,8 @@ public interface Cluster {
    */
   void addService(Service service);
 
-  Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType,
-                     RepositoryVersionEntity repositoryVersion) throws AmbariException;
+  Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType)
+      throws AmbariException;
 
   Service addDependencyToService(String  serviceGroupName, String serviceName,
                                         Long dependencyServiceId) throws AmbariException;
@@ -300,6 +301,14 @@ public interface Cluster {
    * @return Host info {@link Host}
    */
   Host getHost(String hostName);
+
+  /**
+   * Get specific host info using host id.
+   *
+   * @param hostId the host id
+   * @return Host info {@link Host}
+   */
+  Host getHost(Long hostId);
 
 
   /**
@@ -572,6 +581,15 @@ public interface Cluster {
   Map<String, DesiredConfig> getDesiredConfigs();
 
   /**
+   * Gets the active desired configurations for the cluster.
+   * @param cachedConfigEntities retrieves cluster config entities from the cache if true, otherwise from the DB directly.
+   * @return a map of type-to-configuration information.
+   */
+  Map<String, DesiredConfig> getDesiredConfigs(boolean cachedConfigEntities);
+
+  ClusterEntity getClusterEntity();
+
+  /**
    * Gets all versions of the desired configurations for the cluster.
    *
    * @return a map of type-to-configuration information.
@@ -612,7 +630,7 @@ public interface Cluster {
    * @param serviceName
    * @throws AmbariException
    */
-  void deleteService(String serviceName) throws AmbariException;
+  void deleteService(String serviceName, DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException;
 
   /**
    * Delete all the service groups associated with this cluster

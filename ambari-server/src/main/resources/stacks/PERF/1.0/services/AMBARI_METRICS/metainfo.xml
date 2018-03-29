@@ -27,7 +27,7 @@
                     <displayName>Metrics Monitor</displayName>
                     <category>SLAVE</category>
                     <cardinality>0+</cardinality>
-                    <versionAdvertised>false</versionAdvertised>
+                    <versionAdvertised>true</versionAdvertised>
                     <commandScript>
                         <script>scripts/metrics_monitor.py</script>
                         <scriptType>PYTHON</scriptType>

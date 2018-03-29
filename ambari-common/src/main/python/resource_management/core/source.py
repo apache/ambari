@@ -112,7 +112,7 @@ else:
       else:
         basedir = self.env.config.basedir
         path = os.path.join(basedir, "templates", template_name)
-      
+
       if not os.path.exists(path):
         raise TemplateNotFound("%s at %s" % (template_name, path))
       mtime = os.path.getmtime(path)

@@ -15,7 +15,7 @@
 version: '3.3'
 services:
   solr:
-    image: solr:${SOLR_VERSION:-6.6.2}
+    image: solr:${SOLR_VERSION:-7.2.1}
     restart: always
     networks:
       - logsearch-network

@@ -41,7 +41,7 @@ def knox():
   XmlConfig("gateway-site.xml",
             conf_dir=params.knox_conf_dir,
             configurations=params.config['configurations']['gateway-site'],
-            configuration_attributes=params.config['configuration_attributes']['gateway-site'],
+            configuration_attributes=params.config['configurationAttributes']['gateway-site'],
             owner=params.knox_user
   )
 
@@ -105,7 +105,7 @@ def knox():
     XmlConfig("gateway-site.xml",
               conf_dir=params.knox_conf_dir,
               configurations=params.config['configurations']['gateway-site'],
-              configuration_attributes=params.config['configuration_attributes']['gateway-site'],
+              configuration_attributes=params.config['configurationAttributes']['gateway-site'],
               owner=params.knox_user,
               group=params.knox_group,
     )

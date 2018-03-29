@@ -25,9 +25,15 @@ class TestStackAdvisorInitialization(TestCase):
     import imp
 
     self.test_directory = os.path.dirname(os.path.abspath(__file__))
-    stack_advisor_path = os.path.join(self.test_directory, '../../main/resources/scripts/stack_advisor.py')
+    resources_path = os.path.join(self.test_directory, '../../main/resources')
+    stack_advisor_path = os.path.abspath(os.path.join(resources_path, 'scripts/stack_advisor.py'))
+
+    ambari_configuration_path = os.path.abspath(os.path.join(resources_path, 'stacks/ambari_configuration.py'))
+    with open(ambari_configuration_path, 'rb') as fp:
+      imp.load_module('ambari_configuration', fp, ambari_configuration_path, ('.py', 'rb', imp.PY_SOURCE))
+
     with open(stack_advisor_path, 'rb') as fp:
-        self.stack_advisor = imp.load_module( 'stack_advisor', fp, stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE) )
+      self.stack_advisor = imp.load_module( 'stack_advisor', fp, stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE) )
 
   def test_stackAdvisorLoadedForNotHDPStack(self):
     path_template = os.path.join(self.test_directory, '../resources/stacks/{0}/{1}/services/stack_advisor.py')

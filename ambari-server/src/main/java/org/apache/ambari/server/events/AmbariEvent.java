@@ -109,11 +109,6 @@ public abstract class AmbariEvent {
     MAINTENANCE_MODE,
 
     /**
-     * Received a final command report for some action
-     */
-    ACTION_EXECUTION_FINISHED,
-
-    /**
      * Sent when request finishes
      */
     REQUEST_FINISHED,
@@ -154,6 +149,21 @@ public abstract class AmbariEvent {
     USER_CREATED,
 
     /**
+     * Host status has been changed.
+     */
+    HOST_STATUS_CHANGE,
+
+    /**
+     * Host state has been changed.
+     */
+    HOST_STATE_CHANGE,
+
+    /**
+     * Received new heartbeat with host info.
+     */
+    HOST_HEARTBEAT_UPDATED,
+
+    /**
      * Ambari configuration changed event;
      */
     AMBARI_CONFIGURATION_CHANGED,
@@ -171,8 +181,17 @@ public abstract class AmbariEvent {
     /**
      * A management pack was removed from the system.
      */
-    MPACK_REMOVED
+    MPACK_REMOVED,
 
+    /**
+     * Host component's stale config status has been changed.
+     */
+    STALE_CONFIGS_UPDATE,
+
+    /**
+     * Service component's repo has been changed..
+     */
+    SERVICE_COMPONENT_REPO_CHANGE;
   }
 
   /**

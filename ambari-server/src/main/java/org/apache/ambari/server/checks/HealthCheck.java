@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -108,8 +109,13 @@ public class HealthCheck extends AbstractCheckDescriptor {
    * Used to represent specific detail about alert.
    */
   private static class AlertDetail {
+    @JsonProperty("state")
     public String state;
+
+    @JsonProperty("label")
     public String label;
+
+    @JsonProperty("host_name")
     public String hostName;
 
     AlertDetail(String state, String label, String hostName) {

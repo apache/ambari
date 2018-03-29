@@ -21,7 +21,7 @@
 
 import os
 import fnmatch
-import subprocess
+from ambari_commons import subprocess32
 
 def find(pattern, classPaths):
     paths = classPaths.split(os.pathsep)
@@ -62,7 +62,7 @@ def which(file):
 def findClasspath(file):
     aPath = which(file)
     command = "%s%s" %(aPath, ' classpath')
-    return subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read()
+    return subprocess32.Popen(command, shell=True, stdout=subprocess32.PIPE).stdout.read()
 
 def setPath():
     PHOENIX_CLIENT_JAR_PATTERN = "phoenix-*-client.jar"
@@ -167,8 +167,8 @@ def shell_quote(args):
     :return: shell quoted string
     """
     if os.name == 'nt':
-        import subprocess
-        return subprocess.list2cmdline(args)
+        from ambari_commons import subprocess32
+        return subprocess32.list2cmdline(args)
     else:
         # pipes module isn't available on Windows
         import pipes

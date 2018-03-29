@@ -31,20 +31,22 @@ public class HostRegistrationRequestEvent extends HostEvent {
   final AgentVersion agentVersion;
   final String publicHostName;
   final AgentEnv agentEnv;
+  final long agentStartTime;
 
   public HostRegistrationRequestEvent(String hostName,
-      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo, AgentEnv env) {
-    this(hostName, hostName, agentVersion, registrationTime, hostInfo, env);
+      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo, AgentEnv env, long agentStartTime) {
+    this(hostName, hostName, agentVersion, registrationTime, hostInfo, env, agentStartTime);
   }
   
   public HostRegistrationRequestEvent(String hostName, String publicName,
-      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo, AgentEnv env) {
+      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo, AgentEnv env, long agentStartTime) {
     super(hostName, HostEventType.HOST_REGISTRATION_REQUEST);
     this.registrationTime = registrationTime;
     this.hostInfo = hostInfo;
     this.agentVersion = agentVersion;
     this.publicHostName = (null == publicName) ? hostName : publicName;
     this.agentEnv = env;
+    this.agentStartTime = agentStartTime;
   }
 
 

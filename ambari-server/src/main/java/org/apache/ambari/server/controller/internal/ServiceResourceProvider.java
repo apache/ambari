@@ -56,8 +56,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.ServiceCalculatedStateFactory;
 import org.apache.ambari.server.controller.utilities.state.ServiceCalculatedState;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -68,7 +66,6 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCreden
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -76,7 +73,7 @@ import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
@@ -106,9 +103,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_supported";
   public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "credential_store_enabled";
   public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = "Services" + PropertyHelper.EXTERNAL_PATH_SEP + "attributes";
-  public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
-  public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_repository_version_id";
-  protected static final String SERVICE_REPOSITORY_STATE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_state";
+  private static final String SSO_INTEGRATION_SUPPORTED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "sso_integration_supported";
+  private static final String SSO_INTEGRATION_ENABLED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "sso_integration_enabled";
+  private static final String SSO_INTEGRATION_DESIRED_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "sso_integration_desired";
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceResourceProvider.class);
 
@@ -147,13 +144,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_ATTRIBUTES_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_DESIRED_STACK_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(SERVICE_REPOSITORY_STATE);
 
     PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
     PROPERTY_IDS.add(QUERY_PARAMETERS_RECONFIGURE_CLIENT);
     PROPERTY_IDS.add(QUERY_PARAMETERS_START_DEPENDENCIES);
+
+    PROPERTY_IDS.add(SSO_INTEGRATION_SUPPORTED_PROPERTY_ID);
+    PROPERTY_IDS.add(SSO_INTEGRATION_ENABLED_PROPERTY_ID);
+    PROPERTY_IDS.add(SSO_INTEGRATION_DESIRED_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_NAME_PROPERTY_ID);
@@ -169,10 +167,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private KerberosHelper kerberosHelper;
 
-  /**
-   * Used to lookup the repository when creating services.
-   */
-  private final RepositoryVersionDAO repositoryVersionDAO;
+  @Inject
+  private TopologyDeleteFormer topologyDeleteFormer;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -184,10 +180,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @AssistedInject
   public ServiceResourceProvider(
       @Assisted AmbariManagementController managementController,
-      MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
+      MaintenanceStateHelper maintenanceStateHelper) {
     super(Resource.Type.Service, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
-    this.repositoryVersionDAO = repositoryVersionDAO;
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
     setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_SERVICE);
@@ -231,9 +226,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         resource.setProperty(SERVICE_SERVICE_TYPE_PROPERTY_ID, response.getServiceType());
         resource.setProperty(SERVICE_SERVICE_STATE_PROPERTY_ID, response.getDesiredState());
         resource.setProperty(SERVICE_MAINTENANCE_STATE_PROPERTY_ID, response.getMaintenanceState());
-        resource.setProperty(SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, response.getDesiredRepositoryVersion());
-        resource.setProperty(SERVICE_DESIRED_STACK_PROPERTY_ID, response.getDesiredStackId());
-        resource.setProperty(SERVICE_REPOSITORY_STATE, response.getRepositoryVersionState());
         resource.setProperty(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID, response.isCredentialStoreSupported());
         resource.setProperty(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID, response.isCredentialStoreEnabled());
 
@@ -289,18 +281,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID,
           String.valueOf(response.isCredentialStoreEnabled()), requestedIds);
 
-      RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByPK(response.getDesiredRepositoryVersionId());
-
-      // !!! TODO is the UI using this?
-      if (null != repoVersion) {
-        setResourceProperty(resource, SERVICE_DESIRED_STACK_PROPERTY_ID, repoVersion.getStackId(), requestedIds);
-      }
-
-      setResourceProperty(resource, SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID,
-          response.getDesiredRepositoryVersionId(), requestedIds);
-
-      setResourceProperty(resource, SERVICE_REPOSITORY_STATE,
-          response.getRepositoryVersionState(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_SUPPORTED_PROPERTY_ID,
+        response.isSsoIntegrationSupported(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_ENABLED_PROPERTY_ID,
+        response.isSsoIntegrationEnabled(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_DESIRED_PROPERTY_ID,
+        response.isSsoIntegrationDesired(), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);
@@ -430,18 +416,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    */
   private ServiceRequest getRequest(Map<String, Object> properties) {
 
-    String desiredRepoId = (String) properties.get(SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID);
-    String stackid = (String) properties.get(SERVICE_DESIRED_STACK_PROPERTY_ID);
-
     ServiceRequest svcRequest = new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_TYPE_PROPERTY_ID),
-        null == desiredRepoId ? null : Long.valueOf(desiredRepoId),
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID),
-        (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID),
-            null == stackid ? null : new StackId(stackid));
+        (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID));
 
     Object o = properties.get(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
@@ -450,7 +431,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     o = properties.get(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
     if (null != o) {
-      svcRequest.setMaintenanceState(o.toString());
+      svcRequest.setCredentialStoreSupported(o.toString());
     }
 
     return svcRequest;
@@ -478,25 +459,15 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         request.setServiceType(request.getServiceName());
       }
 
-      RepositoryVersionEntity repositoryVersion = request.getResolvedRepository();
+      Service s = cluster.addService(sg, request.getServiceName(), request.getServiceType());
 
-      if (null == repositoryVersion) {
-        throw new AmbariException("Could not find any repository on the request.");
-      }
-
-      Service s = cluster.addService(sg, request.getServiceName(), request.getServiceType(), repositoryVersion);
-      if (repositoryVersion.getType() != RepositoryType.STANDARD
-          && cluster.getProvisioningState() == State.INIT) {
-        throw new AmbariException(String.format(
-            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: %s",
-            request.getServiceName(), cluster.getClusterName(), RepositoryType.STANDARD,
-            repositoryVersion));
-      }
       /*
        * Get the credential_store_supported field only from the stack definition.
        * Not possible to update the value through a request.
        */
-      StackId stackId = repositoryVersion.getStackId();
+      ServiceGroup serviceGroup = cluster.getServiceGroup(s.getServiceGroupId());
+      StackId stackId = serviceGroup.getStackId();
+
       AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), request.getServiceType());
@@ -922,7 +893,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState;
-          StackId sid = service.getDesiredStackId();
+          StackId sid = service.getStackId();
 
           if ( ambariMetaInfo.getComponent(
               sid.getStackName(), sid.getStackVersion(), sc.getServiceType(),
@@ -1001,9 +972,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
     for (Service service : removable) {
-      service.getCluster().deleteService(service.getName());
+      service.getCluster().deleteService(service.getName(), deleteMetaData);
+      topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
     }
+    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
 
     return null;
   }
@@ -1094,7 +1068,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       final String serviceGroupName = request.getServiceGroupName();
       final String serviceName = request.getServiceName();
       final String serviceType = request.getServiceType();
-      final StackId desiredStackId = request.getDesiredStackId();
       Validate.notNull(clusterName, "Cluster name should be provided when creating a service");
       Validate.notNull(serviceGroupName, "Service group name should be provided when creating a service");
       Validate.notEmpty(serviceName, "Service name should be provided when creating a service");
@@ -1127,7 +1100,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
       }
 
-      Cluster cluster;
+      final Cluster cluster;
       try {
         cluster = clusters.getCluster(clusterName);
       } catch (ClusterNotFoundException e) {
@@ -1144,61 +1117,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         // Expected
       }
 
-      Long desiredRepositoryVersion = request.getDesiredRepositoryVersionId();
-
-      if (null == desiredRepositoryVersion) {
-        Set<Long> repoIds = new HashSet<>();
-
-        if (desiredStackId != null) {
-          //Todo : How to filter out the right repoversion entity based on the stack id?
-          List<RepositoryVersionEntity> list = repositoryVersionDAO.findByStack(desiredStackId);
-          RepositoryVersionEntity serviceRepo = list.remove(0);
-          if (null != serviceRepo.getParentId()) {
-            repoIds.add(serviceRepo.getParentId());
-          } else {
-            repoIds.add(serviceRepo.getId());
-          }
-        } else { //Todo : Remove after UI is ready
-          for (Service service : cluster.getServices().values()) {
-            RepositoryVersionEntity serviceRepo = service.getDesiredRepositoryVersion();
-            if (null != serviceRepo.getParentId()) {
-              repoIds.add(serviceRepo.getParentId());
-            } else {
-              repoIds.add(serviceRepo.getId());
-            }
-          }
-        }
-
-        LOG.info("{} was not specified; the following repository ids were found: {}",
-          SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, StringUtils.join(repoIds, ',')
-        );
-
-        if (CollectionUtils.isEmpty(repoIds)) {
-          throw new IllegalArgumentException("No repositories were found for service installation");
-        } else if (repoIds.size() > 1) {
-          throw new IllegalArgumentException(String.format("%s was not specified, and the cluster " +
-            "contains more than one standard-type repository", SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID));
-        } else {
-          desiredRepositoryVersion = repoIds.iterator().next();
-        }
-      }
-
-      if (null == desiredRepositoryVersion) {
-        throw new IllegalArgumentException(String.format("%s is required when adding a service.", SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID));
-      }
-
-      RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(desiredRepositoryVersion);
-
-      if (null == repositoryVersion) {
-        throw new IllegalArgumentException(String.format("Could not find any repositories defined by %d", desiredRepositoryVersion));
-      }
-
-      StackId stackId = desiredStackId;
-      if (stackId == null) {
-        stackId = repositoryVersion.getStackId();
-      }
-
-      request.setResolvedRepository(repositoryVersion);
+      ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
+      StackId stackId = serviceGroup.getStackId();
 
       String stackServiceName = serviceType;
       if(StringUtils.isBlank(serviceType)) {

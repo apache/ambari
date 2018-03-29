@@ -28,6 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
@@ -38,6 +39,7 @@ import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
@@ -55,6 +57,7 @@ import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Module;
@@ -72,6 +75,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.topology.AmbariContext;
 
 
 /**
@@ -191,6 +195,9 @@ public interface AmbariManagementController {
    */
   Set<ServiceComponentHostResponse> getHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException;
+
+  Set<ServiceComponentHostResponse> getHostComponents(
+      Set<ServiceComponentHostRequest> requests, boolean statusOnly) throws AmbariException;
 
   /**
    * Gets the configurations identified by the given request objects.
@@ -507,7 +514,7 @@ public interface AmbariManagementController {
    *
    * @throws  AmbariException if service name is null or empty
    */
-  String findService(Cluster cluster, String componentName) throws AmbariException;
+  String findServiceName(Cluster cluster, String componentName) throws AmbariException;
 
   /**
    * Get service name by cluster instance and component id
@@ -520,7 +527,22 @@ public interface AmbariManagementController {
    * @throws  AmbariException if service name is null or empty
    */
 
-  String findService(Cluster cluster, Long componentId) throws AmbariException;
+  String findServiceName(Cluster cluster, Long componentId) throws AmbariException;
+
+
+  /**
+   * Get Service by cluster instance and component id
+   *
+   * @param cluster the cluster instance
+   * @param componentId the component id in Long type
+   *
+   * @return a service instance
+   *
+   * @throws  AmbariException if service name is null or empty
+   */
+
+  Service findService(Cluster cluster, Long componentId) throws AmbariException;
+
 
   /**
    * Get the clusters for this management controller.
@@ -542,6 +564,13 @@ public interface AmbariManagementController {
    * @return the meta info
    */
   AmbariMetaInfo getAmbariMetaInfo();
+
+  /**
+   * Get the ambari context for this management controller.
+   *
+   * @return the ambari context
+   */
+  AmbariContext getAmbariContext();
 
   /**
    * Get the service factory for this management controller.
@@ -1010,5 +1039,10 @@ public interface AmbariManagementController {
    * @return
    */
   MpackResponse getMpack(Long mpackId);
+
+  HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException;
+
+  MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cluster) throws AmbariException;
+
 }
 

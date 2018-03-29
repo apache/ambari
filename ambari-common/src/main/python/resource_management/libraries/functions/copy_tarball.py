@@ -291,7 +291,7 @@ SERVICE_TO_CONFIG_MAP = {
 
 def get_sysprep_skip_copy_tarballs_hdfs():
   import params
-  host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+  host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
   # By default, copy the tarballs to HDFS. If the cluster is sysprepped, then set based on the config.
   sysprep_skip_copy_tarballs_hdfs = False
@@ -395,7 +395,7 @@ def _get_single_version_from_stack_select():
   Call "<stack-selector> versions" and return the version string if only one version is available.
   :return: Returns a version string if successful, and None otherwise.
   """
-  # Ubuntu returns: "stdin: is not a tty", as subprocess output, so must use a temporary file to store the output.
+  # Ubuntu returns: "stdin: is not a tty", as subprocess32 output, so must use a temporary file to store the output.
   tmpfile = tempfile.NamedTemporaryFile()
   tmp_dir = Script.get_tmp_dir()
   tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")

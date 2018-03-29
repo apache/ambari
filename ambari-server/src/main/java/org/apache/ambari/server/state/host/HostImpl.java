@@ -18,7 +18,6 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +36,9 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.events.HostStateUpdateEvent;
+import org.apache.ambari.server.events.HostStatusUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
@@ -51,8 +53,6 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -68,8 +68,10 @@ import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -140,6 +142,12 @@ public class HostImpl implements Host {
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
 
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
+
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
+
   /**
    * The ID of the host which is to retrieve it from JPA.
    */
@@ -152,6 +160,12 @@ public class HostImpl implements Host {
   private final String hostName;
 
   private long lastHeartbeatTime = 0L;
+
+  /**
+   * An agent can re-register several times without restarting.
+   * We should save the agent start time to timeout execution commands only on restart, not re-register.
+   */
+  private long lastAgentStartTime = 0L;
   private AgentEnv lastAgentEnv = null;
   private List<DiskInfo> disksInfo = new CopyOnWriteArrayList<>();
   private RecoveryReport recoveryReport = new RecoveryReport();
@@ -318,14 +332,7 @@ public class HostImpl implements Host {
     @Override
     public void transition(HostImpl host, HostEvent event) {
       HostRegistrationRequestEvent e = (HostRegistrationRequestEvent) event;
-      host.importHostInfo(e.hostInfo);
-      host.setLastRegistrationTime(e.registrationTime);
-      //Initialize heartbeat time and timeInState with registration time.
-      host.setLastHeartbeatTime(e.registrationTime);
-      host.setLastAgentEnv(e.agentEnv);
-      host.setTimeInState(e.registrationTime);
-      host.setAgentVersion(e.agentVersion);
-      host.setPublicHostName(e.publicHostName);
+      host.updateHost(e);
 
       String agentVersion = null;
       if (e.agentVersion != null) {
@@ -350,6 +357,11 @@ public class HostImpl implements Host {
       }
 
       host.topologyManager.onHostRegistered(host, associatedWithCluster);
+      try {
+        host.restoreComponentsStatuses();
+      } catch (AmbariException e1) {
+        LOG.error("Unable to restore last valid host components status for host", e1);
+      }
     }
   }
 
@@ -435,7 +447,7 @@ public class HostImpl implements Host {
       // TODO Audit logs
       LOG.debug("Host transitioned to heartbeat lost state, host={}, lastHeartbeatTime={}", e.getHostName(), host.getLastHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
-
+      host.setLastAgentStartTime(0);
       host.topologyManager.onHostHeartBeatLost(host);
     }
   }
@@ -553,12 +565,19 @@ public class HostImpl implements Host {
   public void setState(HostState state) {
     stateMachine.setCurrentState(state);
     HostStateEntity hostStateEntity = getHostStateEntity();
+    ambariEventPublisher.publish(new HostStateUpdateEvent(getHostName(), state));
 
     if (hostStateEntity != null) {
       hostStateEntity.setCurrentState(state);
       hostStateEntity.setTimeInState(System.currentTimeMillis());
       hostStateDAO.merge(hostStateEntity);
     }
+  }
+
+  @Override
+  public void setStateMachineState(HostState state) {
+    stateMachine.setCurrentState(state);
+    ambariEventPublisher.publish(new HostStateUpdateEvent(getHostName(), state));
   }
 
   @Override
@@ -585,6 +604,7 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
     if (oldState != getState()) {
+      ambariEventPublisher.publish(new HostStateUpdateEvent(getHostName(), getState()));
       if (LOG.isDebugEnabled()) {
         LOG.debug("Host transitioned to a new state, host={}, oldState={}, currentState={}, eventType={}, event={}",
           getHostName(), oldState, getState(), event.getType().name(), event);
@@ -863,6 +883,16 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public long getLastAgentStartTime() {
+    return lastAgentStartTime;
+  }
+
+  @Override
+  public void setLastAgentStartTime(long lastAgentStartTime) {
+    this.lastAgentStartTime = lastAgentStartTime;
+  }
+
+  @Override
   public AgentVersion getAgentVersion() {
     HostStateEntity hostStateEntity = getHostStateEntity();
     if (hostStateEntity != null) {
@@ -904,6 +934,9 @@ public class HostImpl implements Host {
 
   @Override
   public void setStatus(String status) {
+    if (this.status != status) {
+      ambariEventPublisher.publish(new HostStatusUpdateEvent(getHostName(), status));
+    }
     this.status = status;
   }
 
@@ -1173,46 +1206,92 @@ public class HostImpl implements Host {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  public void restoreComponentsStatuses() throws AmbariException {
+    Long clusterId = null;
+    for (Cluster cluster : clusters.getClustersForHost(getHostName())) {
+      clusterId = cluster.getClusterId();
+      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(getHostName())) {
+        Service s = cluster.getService(sch.getServiceName());
+        ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
+        if (!sc.isClientComponent() &&
+            sch.getState().equals(State.UNKNOWN)) {
+          State lastValidState = sch.getLastValidState();
+          LOG.warn("Restore component state to last valid state for component " + sc.getName() + " on " +
+              getHostName() + " to " + lastValidState);
+          sch.setState(lastValidState);
+        }
+      }
+    }
+    //TODO
+    if (clusterId != null) {
+      calculateHostStatus(clusterId);
+    }
+  }
+
   @Override
-  public boolean isRepositoryVersionCorrect(RepositoryVersionEntity repositoryVersion)
-      throws AmbariException {
-    HostEntity hostEntity = getHostEntity();
-    Collection<HostComponentStateEntity> hostComponentStates = hostEntity.getHostComponentStateEntities();
+  public void calculateHostStatus(Long clusterId) throws AmbariException {
+    //Use actual component status to compute the host status
+    int masterCount = 0;
+    int mastersRunning = 0;
+    int slaveCount = 0;
+    int slavesRunning = 0;
 
-    // for every host component, if it matches the desired repo and has reported
-    // the correct version then we're good
-    for (HostComponentStateEntity hostComponentState : hostComponentStates) {
-      ServiceComponentDesiredStateEntity desiredComponmentState = hostComponentState.getServiceComponentDesiredStateEntity();
-      RepositoryVersionEntity desiredRepositoryVersion = desiredComponmentState.getDesiredRepositoryVersion();
+    StackId stackId;
+    Cluster cluster = clusters.getCluster(clusterId);
+    stackId = cluster.getDesiredStackVersion();
 
-      Long clusterId = hostComponentState.getClusterId();
-      Cluster cluster = clusters.getCluster(clusterId);
-      Service s = cluster.getService(hostComponentState.getServiceId());
-      ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-          desiredRepositoryVersion.getStackName(), desiredRepositoryVersion.getStackVersion(),
-          s.getServiceType(), hostComponentState.getComponentName());
 
-      // skip components which don't advertise a version
-      if (!componentInfo.isVersionAdvertised()) {
-        continue;
-      }
+    List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostName);
+    for (ServiceComponentHost scHost : scHosts) {
+      ComponentInfo componentInfo =
+          ambariMetaInfo.getComponent(stackId.getStackName(),
+              stackId.getStackVersion(), scHost.getServiceName(),
+              scHost.getServiceComponentName());
 
-      // we only care about checking the specified repo version for this host
-      if (!repositoryVersion.equals(desiredRepositoryVersion)) {
-        continue;
-      }
+      String status = scHost.getState().name();
 
-      String versionAdvertised = hostComponentState.getVersion();
-      if (hostComponentState.getUpgradeState() == UpgradeState.IN_PROGRESS
-          || !StringUtils.equals(versionAdvertised, repositoryVersion.getVersion())) {
-        return false;
+      String category = componentInfo.getCategory();
+
+      if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, this)) {
+        if (category.equals("MASTER")) {
+          ++masterCount;
+          if (status.equals("STARTED")) {
+            ++mastersRunning;
+          }
+        } else if (category.equals("SLAVE")) {
+          ++slaveCount;
+          if (status.equals("STARTED")) {
+            ++slavesRunning;
+          }
+        }
       }
     }
 
-    return true;
+    HostHealthStatus.HealthStatus healthStatus;
+    if (masterCount == mastersRunning && slaveCount == slavesRunning) {
+      healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
+    } else if (masterCount > 0 && mastersRunning < masterCount) {
+      healthStatus = HostHealthStatus.HealthStatus.UNHEALTHY;
+    } else {
+      healthStatus = HostHealthStatus.HealthStatus.ALERT;
+    }
+
+    setStatus(healthStatus.name());
+  }
+
+  @Transactional
+  public void updateHost(HostRegistrationRequestEvent e) {
+    importHostInfo(e.hostInfo);
+    setLastRegistrationTime(e.registrationTime);
+    //Initialize heartbeat time and timeInState with registration time.
+    setLastHeartbeatTime(e.registrationTime);
+    setLastAgentStartTime(e.agentStartTime);
+    setLastAgentEnv(e.agentEnv);
+    setTimeInState(e.registrationTime);
+    setAgentVersion(e.agentVersion);
+    setPublicHostName(e.publicHostName);
+    setTimeInState(System.currentTimeMillis());
+    setState(HostState.INIT);
   }
 }
 

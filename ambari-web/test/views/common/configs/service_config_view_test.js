@@ -165,7 +165,7 @@ describe('App.ServiceConfigView', function () {
     beforeEach(function () {
       sinon.spy(App.ModalPopup, 'show', Em.K);
       sinon.stub(App.ServiceConfigVersion, 'find').returns([
-        { serviceName: 'service'}
+        { serviceName: 'service', version: 1}
       ]);
       sinon.stub(view.get('controller'), 'saveStepConfigs');
     });

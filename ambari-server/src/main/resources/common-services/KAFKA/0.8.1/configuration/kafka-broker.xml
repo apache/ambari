@@ -22,6 +22,7 @@
 <configuration>
   <property>
     <name>log.dirs</name>
+    <display-name>Log directories</display-name>
     <value>/kafka-logs</value>
     <description>
       A comma-separated list of one or more directories in which Kafka data is stored.

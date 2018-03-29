@@ -52,7 +52,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   activeServiceTabs: function () {
     var selectedServiceName = this.get('selectedService.serviceName');
-    return selectedServiceName ? App.Tab.find().filterProperty('serviceName', selectedServiceName) : [];
+    return selectedServiceName ? App.Tab.find().rejectProperty('isCategorized').filterProperty('serviceName', selectedServiceName) : [];
   }.property('selectedService.serviceName'),
 
   /**
@@ -112,7 +112,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    * @type {App.ServiceConfigVersion}
    */
   selectedVersionRecord: function() {
-    return App.ServiceConfigVersion.find().findProperty('version', this.get('selectedVersion'));
+    const id = App.serviceConfigVersionsMapper.makeId(this.get('content.serviceName'), this.get('selectedVersion'));
+    return App.ServiceConfigVersion.find(id);
   }.property('selectedVersion'),
 
   /**
@@ -162,7 +163,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   errorsCount: function() {
     return this.get('selectedService.configsWithErrors').filter(function(c) {
-      return Em.isNone(c.get('widget'));
+      return Em.isNone(c.get('isInDefaultTheme'));
     }).length;
   }.property('selectedService.configsWithErrors'),
 

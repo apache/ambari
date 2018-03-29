@@ -101,7 +101,7 @@ class TestPigClient(RMFTestCase):
     with open(config_file, "r") as f:
       default_json = json.load(f)
 
-    default_json['hostLevelParams']['stack_version'] = '2.2'
+    default_json['clusterLevelParams']['stack_version'] = '2.2'
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pig_client.py",
                        classname = "PigClient",

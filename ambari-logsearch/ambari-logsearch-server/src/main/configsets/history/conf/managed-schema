@@ -79,8 +79,6 @@
   <fieldType name="tlong" class="solr.TrieLongField" positionIncrementGap="0" precisionStep="8"/>
   <fieldType name="tlongs" class="solr.TrieLongField" positionIncrementGap="0" multiValued="true" precisionStep="8"/>
 
-  <solrQueryParser defaultOperator="OR"/>
-
   <field name="_version_" type="long" indexed="true" stored="true"/>
   <field name="filtername" type="key_lower_case" indexed="true" required="true" stored="true"/>
   <field name="id" type="string" required="true"/>

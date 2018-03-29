@@ -18,7 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -40,13 +40,16 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.MpackDAO;
+import org.apache.ambari.server.orm.dao.RepositoryDefinitionDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -57,7 +60,7 @@ import com.google.inject.Inject;
  * capabilities for repositories based on an operating system.
  */
 @StaticallyInject
-public class OperatingSystemResourceProvider extends AbstractControllerResourceProvider {
+public class OperatingSystemResourceProvider extends AbstractAuthorizedResourceProvider {
 
   public static final String OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId("OperatingSystems", "os_type");
   public static final String OPERATING_SYSTEM_IS_AMBARI_MANAGED = PropertyHelper.getPropertyId("OperatingSystems","is_ambari_managed");
@@ -72,12 +75,10 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
       OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID,
       OPERATING_SYSTEM_IS_AMBARI_MANAGED, OPERATING_SYSTEM_REPOS);
 
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Resource.Type.Mpack, OPERATING_SYSTEM_MPACK_ID);
-      put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
-    }
-  };
+  public static Map<Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Mpack, OPERATING_SYSTEM_MPACK_ID)
+      .put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID)
+      .build();
 
   /**
    * Used to update
@@ -86,13 +87,25 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
   private static MpackDAO s_mpackDAO;
 
   /**
+   * Used for removing and updating repositories.
+   */
+  @Inject
+  private static RepositoryDefinitionDAO s_repoDefinitionDAO;
+
+  /**
    * Used to deserialize the repository JSON into an object.
    */
   @Inject
   private static Gson s_gson;
 
-  protected OperatingSystemResourceProvider(AmbariManagementController managementController) {
-    super(Resource.Type.OperatingSystem, propertyIds, keyPropertyIds, managementController);
+  protected OperatingSystemResourceProvider() {
+    super(Resource.Type.OperatingSystem, propertyIds, keyPropertyIds);
+
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(
+        RoleAuthorization.AMBARI_EDIT_STACK_REPOS);
+
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
   }
 
   /**
@@ -107,10 +120,9 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
    * {@inheritDoc}
    */
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
-      throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
-
+  protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException,
+      NoSuchParentResourceException {
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     // use a collection which preserves order since JPA sorts the results
@@ -134,7 +146,8 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
    * {@inheritDoc}
    */
   @Override
-  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException,
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
+      throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -173,21 +186,32 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
    * {@inheritDoc}
    */
   @Override
-  public RequestStatus createResources(final Request request) throws SystemException,
+  public RequestStatus createResourcesAuthorized(final Request request) throws SystemException,
       UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException, AuthorizationException {
+      public Void invoke()
+          throws AmbariException, AuthorizationException {
         createOperatingSystem(request.getProperties());
         return null;
       }
     });
+
     notifyCreate(Resource.Type.OperatingSystem, request);
 
     return getRequestStatus(null);
   }
 
+
+  /**
+   * Creates a {@link RepoOsEntity} entity.
+   *
+   * @param requestMaps
+   * @throws AmbariException
+   * @throws AuthorizationException
+   * @throws ResourceAlreadyExistsException
+   */
   private void createOperatingSystem(Set<Map<String, Object>> requestMaps)
       throws AmbariException, AuthorizationException {
     for (Map<String, Object> requestMap : requestMaps) {
@@ -211,6 +235,14 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
             String.format("The mpack with ID %s was not found", mpackId));
       }
 
+      for (RepoOsEntity operatingSystemEntity : mpackEntity.getRepositoryOperatingSystems()) {
+        if (StringUtils.equals(operatingSystem, operatingSystemEntity.getFamily())) {
+          throw new DuplicateResourceException(
+              String.format("The operating system %s already exists for the mpack %s",
+                  operatingSystem, mpackEntity.getStackId()));
+        }
+      }
+
       RepoOsEntity repositoryOsEntity = new RepoOsEntity();
       repositoryOsEntity.setFamily(operatingSystem);
       repositoryOsEntity.setMpackEntity(mpackEntity);
@@ -227,7 +259,7 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
    * {@inheritDoc}
    */
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException,
+  public RequestStatus updateResourcesAuthorized(Request request, Predicate predicate) throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     for (Map<String, Object> requestPropMap : request.getProperties()) {
@@ -339,6 +371,7 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
       String json = s_gson.toJson(repoMaps);
       List<RepositoryInfo> repositories = s_gson.fromJson(json, listType);
       List<RepoDefinitionEntity> repoDefinitionEntities = entity.getRepoDefinitionEntities();
+      s_repoDefinitionDAO.remove(repoDefinitionEntities);
       repoDefinitionEntities.clear();
 
       for (RepositoryInfo repositoryInfo : repositories) {
@@ -346,6 +379,8 @@ public class OperatingSystemResourceProvider extends AbstractControllerResourceP
         repoDefinitionEntity.setRepoOs(entity);
         repoDefinitionEntities.add(repoDefinitionEntity);
       }
+
+      entity.setRepoDefinitionEntities(repoDefinitionEntities);
     }
   }
 }

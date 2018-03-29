@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -97,6 +98,17 @@ public class HostComponentDesiredStateDAO {
     query.setParameter("id", componentId);
 
     return daoUtils.selectSingle(query);
+  }
+
+  @RequiresSession
+  public List<HostComponentDesiredStateEntity> findByHostsAndCluster(Collection<Long> hostIds, Long clusterId) {
+    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
+      .createNamedQuery("HostComponentDesiredStateEntity.findByHostsAndCluster", HostComponentDesiredStateEntity.class);
+
+    query.setParameter("hostIds", hostIds);
+    query.setParameter("clusterId", clusterId);
+
+    return daoUtils.selectList(query);
   }
 
   @Transactional

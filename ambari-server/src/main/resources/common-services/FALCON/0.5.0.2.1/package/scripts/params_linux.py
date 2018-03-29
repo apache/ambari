@@ -35,15 +35,15 @@ config = Script.get_config()
 stack_root = status_params.stack_root
 stack_name = status_params.stack_name
 
-agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
 version = stack_features.get_stack_feature_version(config)
 
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 
 etc_prefix_dir = "/etc/falcon"
@@ -87,7 +87,7 @@ server_pid_file = status_params.server_pid_file
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 falcon_local_dir = config['configurations']['falcon-env']['falcon_local_dir']
 falcon_log_dir = config['configurations']['falcon-env']['falcon_log_dir']
 
@@ -120,7 +120,7 @@ falcon_log4j=config['configurations']['falcon-log4j']['content']
 falcon_apps_dir = config['configurations']['falcon-env']['falcon_apps_hdfs_dir']
 #for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-hostname = config["hostname"]
+hostname = config['agentLevelParams']['hostname']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

@@ -19,14 +19,16 @@
 var App = require('app');
 var numberUtils = require('utils/number_utils');
 
-App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
+App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNodeWidgetMixin, {
 
-  modelFieldMax: 'capacityTotal',
+  modelValueMax: Em.computed.getByKey('model.capacityTotalValues', 'clusterId'),
   /**
    * HDFS model has 'remaining' value, but not 'used'
    */
-  modelFieldUsed: 'capacityRemaining',
-  widgetHtmlId: 'widget-nn-capacity',
+  modelValueUsed: Em.computed.getByKey('model.capacityRemainingValues', 'clusterId'),
+  modelValueCapacityUsed: Em.computed.getByKey('model.capacityUsedValues', 'clusterId'),
+  modelValueNonDfsUsed: Em.computed.getByKey('model.capacityNonDfsUsedValues', 'clusterId'),
+  widgetHtmlId: Em.computed.format('widget-nn-capacity-{0}', 'subGroupId'),
   hiddenInfoClass: "hidden-info-six-line",
 
   didInsertElement: function() {
@@ -35,10 +37,10 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
   },
 
   calcHiddenInfo: function () {
-    var total = this.get('model').get(this.get('modelFieldMax')) + 0;
-    var remaining = this.get('model.capacityRemaining');
-    var dfsUsed = this.get('model.capacityUsed');
-    var nonDfsUsed = this.get('model.capacityNonDfsUsed');
+    var total = this.get('modelValueMax') + 0;
+    var remaining = this.get('modelValueUsed');
+    var dfsUsed = this.get('modelValueCapacityUsed');
+    var nonDfsUsed = this.get('modelValueNonDfsUsed');
     var dfsPercent = total > 0 ? (dfsUsed * 100 / total).toFixed(2) : 0;
     var nonDfsPercent = total > 0 ? (nonDfsUsed * 100 / total).toFixed(2) : 0;
     var remainingPercent = total > 0 ? (remaining * 100 / total).toFixed(2) : 0;
@@ -62,8 +64,8 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
   },
 
   calcDataForPieChart: function() {
-    var total = this.get('model').get(this.get('modelFieldMax')) * 1024 * 1024;
-    var used = total - this.get('model').get(this.get('modelFieldUsed')) * 1024 * 1024;
+    var total = this.get('modelValueMax') * 1024 * 1024;
+    var used = total - this.get('modelValueUsed') * 1024 * 1024;
     var percent = total > 0 ? (used * 100 / total).toFixed() : 0;
     var percentPrecise = total > 0 ? (used * 100 / total).toFixed(1) : 0;
     return [percent, percentPrecise];

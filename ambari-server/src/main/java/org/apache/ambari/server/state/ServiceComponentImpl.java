@@ -19,8 +19,10 @@
 package org.apache.ambari.server.state;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -35,6 +37,7 @@ import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
@@ -48,7 +51,6 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,7 +125,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity.setServiceId(service.getServiceId());
     desiredStateEntity.setClusterId(service.getClusterId());
     desiredStateEntity.setRecoveryEnabled(false);
-    desiredStateEntity.setDesiredRepositoryVersion(service.getDesiredRepositoryVersion());
 
     updateComponentInfo();
 
@@ -133,7 +134,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public void updateComponentInfo() throws AmbariException {
-    StackId stackId = service.getDesiredStackId();
+    StackId stackId = service.getStackId();
     try {
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
           stackId.getStackVersion(), service.getServiceType(), componentType);
@@ -182,10 +183,10 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       try {
         hostComponents.put(hostComponentStateEntity.getHostName(),
-          serviceComponentHostFactory.createExisting(this,
-            hostComponentStateEntity, hostComponentDesiredStateEntity));
+                serviceComponentHostFactory.createExisting(this,
+                        hostComponentStateEntity, hostComponentDesiredStateEntity));
       } catch(ProvisionException ex) {
-        StackId currentStackId = getDesiredStackId();
+        StackId currentStackId = getStackId();
         LOG.error(String.format("Cannot get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, " +
                         "componentType=%s, hostname=%s",
           currentStackId.getStackName(), currentStackId.getStackVersion(), service.getName(),
@@ -278,6 +279,15 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public Map<String, ServiceComponentHost> getServiceComponentHosts() {
     return new HashMap<>(hostComponents);
+  }
+
+  @Override
+  public Set<String> getServiceComponentsHosts() {
+    Set<String> serviceComponentsHosts = new HashSet<>();
+    for (ServiceComponentHost serviceComponentHost : getServiceComponentHosts().values()) {
+      serviceComponentsHosts.add(serviceComponentHost.getHostName());
+    }
+    return serviceComponentsHosts;
   }
 
   @Override
@@ -384,14 +394,13 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public StackId getDesiredStackId() {
-    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
+  public StackId getStackId() {
+    Cluster cluster = service.getCluster();
 
-    StackEntity stackEntity = desiredStateEntity.getDesiredStack();
-    if (null != stackEntity) {
-      return new StackId(stackEntity.getStackName(), stackEntity.getStackVersion());
-    } else {
+    try {
+      ServiceGroup serviceGroup = cluster.getServiceGroup(service.getServiceGroupId());
+      return serviceGroup.getStackId();
+    } catch (ServiceGroupNotFoundException serviceGroupNotFoundException) {
       return null;
     }
   }
@@ -403,39 +412,21 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
-    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
-
-    if (desiredStateEntity != null) {
-      desiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
-      desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-          + "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
-    }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionEntity getDesiredRepositoryVersion() {
-    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
-
-    return desiredStateEntity.getDesiredRepositoryVersion();
-  }
 
   @Override
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
   public String getDesiredVersion() {
-    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
+    Cluster cluster = service.getCluster();
 
-    return desiredStateEntity.getDesiredVersion();
+    try {
+      ServiceGroup serviceGroup = cluster.getServiceGroup(service.getServiceGroupId());
+      return serviceGroup.getStackId().getStackVersion();
+    } catch (ServiceGroupNotFoundException serviceGroupNotFoundException) {
+      return null;
+    }
   }
 
   @Override
@@ -450,10 +441,9 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
 
     String serviceName = service.getName();
-    String componentName = getName();
 
     Mpack mpack = ambariMetaInfo.getMpack(sg.getMpackId());
-    ModuleComponent moduleComponent = mpack.getModuleComponent(serviceName, componentName);
+    ModuleComponent moduleComponent = mpack.getModuleComponent(service.getServiceType(), getType());
 
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), sg.getServiceGroupId(), sg.getServiceGroupName(), service.getServiceId(),
@@ -477,7 +467,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       .append(", clusterName=").append(service.getCluster().getClusterName())
       .append(", clusterId=").append(service.getCluster().getClusterId())
       .append(", serviceName=").append(service.getName())
-      .append(", desiredStackVersion=").append(getDesiredStackId())
+      .append(", desiredStackVersion=").append(getStackId())
       .append(", desiredState=").append(getDesiredState())
       .append(", hostcomponents=[ ");
     boolean first = true;
@@ -542,7 +532,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   @Transactional
-  public void deleteAllServiceComponentHosts() throws AmbariException {
+  public void deleteAllServiceComponentHosts(DeleteHostComponentStatusMetaData deleteMetaData) {
     readWriteLock.writeLock().lock();
     try {
       LOG.info("Deleting all servicecomponenthosts for component" + ", clusterName="
@@ -550,15 +540,15 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", componentType=" + getType() + ", recoveryEnabled=" + isRecoveryEnabled());
       for (ServiceComponentHost sch : hostComponents.values()) {
         if (!sch.canBeRemoved()) {
-          throw new AmbariException("Found non removable hostcomponent " + " when trying to delete"
+          deleteMetaData.setAmbariException(new AmbariException("Found non removable hostcomponent " + " when trying to delete"
               + " all hostcomponents from servicecomponent" + ", clusterName=" + getClusterName()
               + ", serviceName=" + getServiceName() + ", componentName=" + getName() + ", componentType=" + getType()
-              + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName());
+              + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName()));
         }
       }
 
       for (ServiceComponentHost serviceComponentHost : hostComponents.values()) {
-        serviceComponentHost.delete();
+        serviceComponentHost.delete(deleteMetaData);
       }
 
       hostComponents.clear();
@@ -568,7 +558,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public void deleteServiceComponentHosts(String hostname) throws AmbariException {
+  public void deleteServiceComponentHosts(String hostname, DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException {
     readWriteLock.writeLock().lock();
     try {
       ServiceComponentHost sch = getServiceComponentHost(hostname);
@@ -584,7 +574,7 @@ public class ServiceComponentImpl implements ServiceComponent {
             + ", recoveryEnabled=" + isRecoveryEnabled()
             + ", hostname=" + sch.getHostName());
       }
-      sch.delete();
+      sch.delete(deleteMetaData);
       hostComponents.remove(hostname);
 
     } finally {
@@ -594,10 +584,13 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   @Transactional
-  public void delete() throws AmbariException {
+  public void delete(DeleteHostComponentStatusMetaData deleteMetaData) {
     readWriteLock.writeLock().lock();
     try {
-      deleteAllServiceComponentHosts();
+      deleteAllServiceComponentHosts(deleteMetaData);
+      if (deleteMetaData.getAmbariException() != null) {
+        return;
+      }
 
       ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
           desiredStateEntityId);

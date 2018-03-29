@@ -12,6 +12,12 @@
       ],
       "@vendor/*": [
         "vendor/*"
+      ],
+      "@modules/*": [
+        "app/modules/*"
+      ],
+      "@mockdata/*": [
+        "mockdata/*"
       ]
     },
     "sourceMap": true,

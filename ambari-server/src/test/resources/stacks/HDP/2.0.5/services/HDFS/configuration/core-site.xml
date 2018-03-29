@@ -70,6 +70,7 @@
   </property>
   <property>
     <name>dfs.namenode.checkpoint.edits.dir</name>
+    <display-name>NameNode Checkpoint Edits directory</display-name>
     <value>${dfs.namenode.checkpoint.dir}</value>
     <description>Determines where on the local filesystem the DFS secondary
         name node should store the temporary edits to merge.

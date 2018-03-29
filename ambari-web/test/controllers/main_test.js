@@ -33,13 +33,19 @@ describe('App.MainController', function () {
           initialize = true;
         }
       });
+      sinon.stub(App.StompClient, 'connect');
     });
     afterEach(function () {
       App.router.get.restore();
+      App.StompClient.connect.restore();
     });
     it ('Should return true', function() {
       mainController.initialize();
       expect(initialize).to.be.true;
+    });
+    it ('App.StompClient.connect should be called', function() {
+      mainController.initialize();
+      expect(App.StompClient.connect.calledOnce).to.be.true;
     });
   });
 
@@ -93,6 +99,39 @@ describe('App.MainController', function () {
       mainController.updateTitle();
       expect($('title').text()).to.be.equal('Ambari - c1');
       $('body').remove('#title-id');
+    });
+  });
+
+  describe('#startPolling', function() {
+    var mock,
+        updateController = Em.Object.create({
+          startSubscriptions: sinon.spy(),
+          isWorking: false
+        }),
+        backgroundOperationsController = Em.Object.create({
+          isWorking: false
+        });
+    beforeEach(function() {
+      mock = sinon.stub(App.router, 'get');
+      mock.withArgs('applicationController.isExistingClusterDataLoaded').returns(true);
+      mock.withArgs('updateController').returns(updateController);
+      mock.withArgs('backgroundOperationsController').returns(backgroundOperationsController);
+      mainController.startPolling();
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+
+    it('updateController should be working', function() {
+      expect(updateController.get('isWorking')).to.be.true;
+    });
+
+    it('backgroundOperationsController should be working', function() {
+      expect(backgroundOperationsController.get('isWorking')).to.be.true;
+    });
+
+    it('startSubscriptions should be called', function() {
+      expect(updateController.startSubscriptions.called).to.be.true;
     });
   });
 

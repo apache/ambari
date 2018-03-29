@@ -437,7 +437,7 @@ public class ConfigGroupImpl implements ConfigGroup {
           Service service = cluster.getService(serviceId);
 
           //TODO check the serviceid = null for the right use case
-          config = configFactory.createNew(service.getDesiredStackId(), cluster, config.getType(),
+          config = configFactory.createNew(service.getStackId(), cluster, config.getType(),
               config.getTag(), config.getProperties(), config.getPropertiesAttributes(), null);
 
           entry.setValue(config);
@@ -548,7 +548,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setServiceGroupId(serviceGroupId);
     configGroupDAO.merge(configGroupEntity);
 
-    this.serviceId = serviceGroupId;
+    serviceId = serviceGroupId;
   }
 
   /**

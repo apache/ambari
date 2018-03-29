@@ -33,7 +33,7 @@ else:
 # server configurations
 config = Script.get_config()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -49,6 +49,6 @@ smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 slider_env_sh_template = config['configurations']['slider-env']['content']
 
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 log4j_props = config['configurations']['slider-log4j']['content']
 slider_cmd = format("{slider_bin_dir}/slider")

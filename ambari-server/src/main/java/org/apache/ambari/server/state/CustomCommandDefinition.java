@@ -33,6 +33,7 @@ public class CustomCommandDefinition {
   private String opsDisplayName;
   private CommandScriptDefinition commandScript;
   private boolean background = false;
+  private boolean hidden = false;
 
   public String getName() {
     return name;
@@ -40,6 +41,14 @@ public class CustomCommandDefinition {
   
   public boolean isBackground() {
     return background;
+  }
+
+  public boolean isHidden() {
+    return hidden;
+  }
+
+  public void setHidden(boolean hidden) {
+    this.hidden = hidden;
   }
 
   public String getOpsDisplayName() {

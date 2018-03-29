@@ -26,6 +26,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import org.apache.ambari.logsearch.auth.model.JWTAuthenticationToken;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -63,6 +65,7 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
 
   private static final String PEM_HEADER = "-----BEGIN CERTIFICATE-----\n";
   private static final String PEM_FOOTER = "\n-----END CERTIFICATE-----";
+  private static final String PROXY_LOGSEARCH_URL_PATH = "/logsearch";
 
   protected AbstractJWTFilter(RequestMatcher requestMatcher) {
     super(requestMatcher);
@@ -116,7 +119,7 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
     super.successfulAuthentication(request, response, chain, authResult);
     String ajaxRequestHeader = request.getHeader("X-Requested-With");
     if (isWebUserAgent(request.getHeader("User-Agent")) && !"XMLHttpRequest".equals(ajaxRequestHeader)) {
-      response.sendRedirect(request.getRequestURL().toString() + getOriginalQueryString(request));
+      response.sendRedirect(createForwardableURL(request) + getOriginalQueryString(request));
     }
     // chain.doFilter(request, response); TODO: check
   }
@@ -195,7 +198,30 @@ public abstract class AbstractJWTFilter extends AbstractAuthenticationProcessing
     }
     return getProvidedUrl() + delimiter
       + getOriginalUrlQueryParam() + "="
-      + request.getRequestURL().toString() + getOriginalQueryString(request);
+      + createForwardableURL(request) + getOriginalQueryString(request);
+  }
+
+  private String createForwardableURL(HttpServletRequest request) {
+    String xForwardedProto = request.getHeader("x-forwarded-proto");
+    String xForwardedHost = request.getHeader("x-forwarded-host");
+    String xForwardedContext = request.getHeader("x-forwarded-context");
+    if (StringUtils.isNotBlank(xForwardedProto)
+      && StringUtils.isNotBlank(xForwardedHost)
+      && StringUtils.isNotBlank(xForwardedContext)) {
+      try {
+        URIBuilder builder = new URIBuilder();
+        builder.setScheme(xForwardedProto)
+          .setHost(xForwardedHost)
+          .setPath(xForwardedContext + PROXY_LOGSEARCH_URL_PATH + request.getRequestURI());
+
+        return builder.build().toString();
+      } catch (URISyntaxException ue) {
+        LOG.error("URISyntaxException while build xforward url ", ue);
+        return request.getRequestURL().toString();
+      }
+    } else {
+      return request.getRequestURL().toString();
+    }
   }
 
   private String getOriginalQueryString(HttpServletRequest request) {

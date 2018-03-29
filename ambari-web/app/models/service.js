@@ -41,6 +41,12 @@ App.Service = DS.Model.extend({
   slaveComponents: DS.hasMany('App.SlaveComponent'),
   masterComponents: DS.hasMany('App.MasterComponent'),
 
+  masterComponentGroups: DS.attr('array', {
+    defaultValue: []
+  }),
+
+  hasMultipleMasterComponentGroups: Em.computed.gt('masterComponentGroups.length', 1),
+
   /**
    * Check master/slave component state of service
    * and general services state to define if it can be removed
@@ -96,7 +102,7 @@ App.Service = DS.Model.extend({
   serviceTypes: function() {
     var typeServiceMap = {
       GANGLIA: ['MONITORING'],
-      HDFS: ['HA_MODE'],
+      HDFS: ['HA_MODE', 'FEDERATION'],
       YARN: ['HA_MODE'],
       RANGER: ['HA_MODE'],
       HAWQ: ['HA_MODE']
@@ -248,6 +254,7 @@ App.Service.Health = {
  */
 App.Service.extendedModel = {
   'HDFS': 'HDFSService',
+  'ONEFS' : 'ONEFSService',
   'HBASE': 'HBaseService',
   'YARN': 'YARNService',
   'MAPREDUCE2': 'MapReduce2Service',

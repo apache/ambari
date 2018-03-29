@@ -47,6 +47,15 @@ App.ReassignMasterWizardStep2Controller = Em.Controller.extend(App.AssignMasterC
     return [];
   }.property('content.reassign.component_name', 'servicesMastersToShow.length'),
 
+  renderComponents: function(masterComponents) {
+    this._super(masterComponents);
+    const currentMasterHost = this.get('content.reassign.host_id');
+    const currentServiceMaster = this.get('selectedServicesMasters').findProperty('selectedHost', currentMasterHost);
+    const freeHosts = this.get('hosts').rejectProperty('host_name', this.get('content.reassign.host_id'));
+    currentServiceMaster.set('selectedHost', freeHosts.mapProperty('host_name')[0]);
+    this.set('hosts', freeHosts);
+  },
+
   /**
    * Assignment is valid only if for one master component host was changed
    * @returns {boolean}

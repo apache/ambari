@@ -148,13 +148,6 @@ public class UpgradeSummaryResourceProviderTest {
   public void createCluster() throws Exception {
     StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
 
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
-    repoVersionEntity.addRepoOsEntities(new ArrayList<>());
-    repoVersionEntity.setStack(stackEntity);
-    repoVersionEntity.setVersion("2.2.0.0");
-    repoVersionDAO.create(repoVersionEntity);
-
     clusters = injector.getInstance(Clusters.class);
 
     StackId stackId = new StackId("HDP-2.2.0");
@@ -175,7 +168,7 @@ public class UpgradeSummaryResourceProviderTest {
 
     // add a single ZOOKEEPER server
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service service = cluster.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER", repoVersionEntity);
+    Service service = cluster.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER");
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER", "ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

@@ -144,6 +144,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.exec.scratchdir</name>
+    <display-name>Hive Exec Scratchdir</display-name>
     <value>/tmp/hive</value>
     <description>HDFS root scratch dir for Hive jobs which gets created with write all (733) permission. For each connecting user, an HDFS scratch dir: ${hive.exec.scratchdir}/&lt;username&gt; is created, with ${hive.scratch.dir.permission}.</description>
     <on-ambari-upgrade add="true"/>
@@ -340,6 +341,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.metastore.warehouse.dir</name>
+    <display-name>Hive Metastore Warehouse directory</display-name>
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
     <property-type>NOT_MANAGED_HDFS_PATH</property-type>
@@ -1093,6 +1095,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.logging.operation.log.location</name>
+    <display-name>HiveServer2 Logging Operation Log Location</display-name>
     <value>/tmp/hive/operation_logs</value>
     <description>Top level directory where operation logs are stored if logging functionality is enabled</description>
     <on-ambari-upgrade add="true"/>
@@ -1289,6 +1292,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.user.install.directory</name>
+    <display-name>Hive User Install directory</display-name>
     <value>/user/</value>
     <description>
       If hive (in tez mode only) cannot find a usable hive jar in "hive.jar.directory",

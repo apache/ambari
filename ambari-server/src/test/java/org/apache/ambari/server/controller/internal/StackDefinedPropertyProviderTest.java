@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -57,7 +58,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -90,6 +90,7 @@ public class StackDefinedPropertyProviderTest {
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = "HostRoles/component_name";
   private static final String HOST_COMPONENT_STATE_PROPERTY_ID = "HostRoles/state";
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
+  private static final int METRICS_SERVICE_TIMEOUT = 10;
 
   private Clusters clusters = null;
   private Injector injector = null;
@@ -97,6 +98,7 @@ public class StackDefinedPropertyProviderTest {
 
   private static TimelineMetricCacheEntryFactory cacheEntryFactory;
   private static TimelineMetricCacheProvider cacheProvider;
+  private static MetricsRetrievalService metricsRetrievalService;
 
   @BeforeClass
   public static void setupCache() {
@@ -123,40 +125,38 @@ public class StackDefinedPropertyProviderTest {
     injector.getInstance(GuiceJpaInitializer.class);
     StackDefinedPropertyProvider.init(injector);
 
-    MetricsRetrievalService metricsRetrievalService = injector.getInstance(
+    metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);
 
-    metricsRetrievalService.start();
+    metricsRetrievalService.startAsync();
+    metricsRetrievalService.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
     metricsRetrievalService.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
 
     helper = injector.getInstance(OrmTestHelper.class);
 
     clusters = injector.getInstance(Clusters.class);
-    StackId stackId = new StackId("HDP-2.0.5");
+    StackId stackId = new StackId("HDP-2.1.1");
 
     clusters.addCluster("c2", stackId);
 
     Cluster cluster = clusters.getCluster("c2");
 
     cluster.setDesiredStackVersion(stackId);
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service service = cluster.addService(serviceGroup, "HDFS", "HDFS");
     service.addServiceComponent("NAMENODE", "NAMENODE");
     service.addServiceComponent("DATANODE", "DATANODE");
     service.addServiceComponent("JOURNALNODE", "JOURNALNODE");
 
-    service = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
+    service = cluster.addService(serviceGroup, "YARN", "YARN");
     service.addServiceComponent("RESOURCEMANAGER", "RESOURCEMANAGER");
 
-    service = cluster.addService(serviceGroup, "HBASE", "HBASE", repositoryVersion);
+    service = cluster.addService(serviceGroup, "HBASE", "HBASE");
     service.addServiceComponent("HBASE_MASTER", "HBASE_MASTER");
     service.addServiceComponent("HBASE_REGIONSERVER", "HBASE_REGIONSERVER");
 
-    stackId = new StackId("HDP-2.1.1");
-    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-
-    service = cluster.addService(serviceGroup, "STORM", "STORM", repositoryVersion);
+    service = cluster.addService(serviceGroup, "STORM", "STORM");
     service.addServiceComponent("STORM_REST_API", "STORM_REST_API");
 
     clusters.addHost("h1");
@@ -190,6 +190,10 @@ public class StackDefinedPropertyProviderTest {
 
   @After
   public void teardown() throws Exception {
+    if (metricsRetrievalService != null && metricsRetrievalService.isRunning()) {
+      metricsRetrievalService.stopAsync();
+      metricsRetrievalService.awaitTerminated(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
+    }
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 

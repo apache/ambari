@@ -40,30 +40,27 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
-import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -114,8 +111,6 @@ public class ConfigHelperTest {
       OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
       helper.createStack(stackId);
 
-      RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, "2.0.6");
-
       clusterName = "c1";
       clusters.addCluster(clusterName, stackId);
       cluster = clusters.getCluster(clusterName);
@@ -123,6 +118,8 @@ public class ConfigHelperTest {
       clusters.addHost("h1");
       clusters.addHost("h2");
       clusters.addHost("h3");
+      clusters.getHosts().forEach(h -> clusters.updateHostMappings(h));
+
       Assert.assertNotNull(clusters.getHost("h1"));
       Assert.assertNotNull(clusters.getHost("h2"));
       Assert.assertNotNull(clusters.getHost("h3"));
@@ -160,9 +157,9 @@ public class ConfigHelperTest {
       cr2.setVersionTag("version1");
 
       ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-      cluster.addService(serviceGroup, "FLUME", "FLUME", repositoryVersion);
-      cluster.addService(serviceGroup, "OOZIE", "OOZIE", repositoryVersion);
-      cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+      cluster.addService(serviceGroup, "FLUME", "FLUME");
+      cluster.addService(serviceGroup, "OOZIE", "OOZIE");
+      cluster.addService(serviceGroup, "HDFS", "HDFS");
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -979,7 +976,7 @@ public class ConfigHelperTest {
 
       // set up mocks
       ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-      expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+      expect(sc.getStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
 
       // set up expectations
       expect(sch.getActualConfigs()).andReturn(schReturn).times(6);
@@ -1055,7 +1052,7 @@ public class ConfigHelperTest {
 
     // set up mocks
     ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-    expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+    expect(sc.getStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
 
     // set up expectations
     expect(sch.getActualConfigs()).andReturn(schReturn).anyTimes();
@@ -1088,25 +1085,22 @@ public class ConfigHelperTest {
           final AmbariMetaInfo mockMetaInfo = createNiceMock(AmbariMetaInfo.class);
           final ClusterController clusterController = createStrictMock(ClusterController.class);
 
-          bind(UpgradeContextFactory.class).toInstance(createNiceMock(UpgradeContextFactory.class));
+          PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding().addFactoriesInstallBinding().build().configure(binder());
 
           bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
           bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-          bind(ClusterFactory.class).toInstance(createNiceMock(ClusterFactory.class));
-          bind(HostFactory.class).toInstance(createNiceMock(HostFactory.class));
           bind(SecurityHelper.class).toInstance(createNiceMock(SecurityHelper.class));
           bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
           bind(AmbariCustomCommandExecutionHelper.class).toInstance(createNiceMock(AmbariCustomCommandExecutionHelper.class));
-          bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
           bind(AmbariMetaInfo.class).toInstance(mockMetaInfo);
-          bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
           bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
           bind(ClusterController.class).toInstance(clusterController);
           bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-          bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactory.class));
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
           bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
           bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+          bind(StateUpdateEventPublisher.class).toInstance(createNiceMock(StateUpdateEventPublisher.class));
+
         }
       });
 
@@ -1135,7 +1129,7 @@ public class ConfigHelperTest {
       List<PropertyInfo> serviceProperties = Arrays.asList(mockPropertyInfo1, mockPropertyInfo2);
 
       expect(mockCluster.getService("SERVICE")).andReturn(mockService).once();
-      expect(mockService.getDesiredStackId()).andReturn(mockStackVersion).once();
+      expect(mockService.getStackId()).andReturn(mockStackVersion).once();
       expect(mockService.getServiceType()).andReturn("SERVICE").once();
       expect(mockStackVersion.getStackName()).andReturn("HDP").once();
       expect(mockStackVersion.getStackVersion()).andReturn("2.2").once();
