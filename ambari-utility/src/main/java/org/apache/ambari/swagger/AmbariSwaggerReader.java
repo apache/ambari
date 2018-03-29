@@ -126,12 +126,11 @@ public class AmbariSwaggerReader extends JaxrsReader {
                 continue;
               } else {
                 nestedAPIs.remove(returnType);
-                cls = preferredParentClass;
               }
 
               logger.info("Registering nested API: {}", returnType);
-              NestedApiRecord nar = new NestedApiRecord(returnType, cls, validateParentApiPath(cls), method,
-                      methodPath.value());
+              NestedApiRecord nar = new NestedApiRecord(returnType, preferredParentClass,
+                      validateParentApiPath(preferredParentClass), method, methodPath.value());
               nestedAPIs.put(returnType, nar);
             }
           }
