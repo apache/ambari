@@ -30,6 +30,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import org.apache.ambari.annotations.SwaggerPreferredParent;
 import org.apache.commons.collections.set.ListOrderedSet;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
@@ -89,6 +90,61 @@ public class AmbariSwaggerReaderTest {
   }
 
   /**
+   * Test conflicting nested API's (the same API's are returned from different top level API's) with
+   * {@link SwaggerPreferredParent} annotation.
+   * In this case the nested API should be associated to the preferred top level API.
+   */
+  @Test
+  public void swaggerConflictingNestedApisWithPreferredParent() {
+    AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
+    ListOrderedSet classes = ListOrderedSet.decorate(
+            Lists.newArrayList(TopLevelAPI.class, AnotherTopLevelAPI.class, NestedWithPreferredParentAPI.class));
+    Swagger swagger = asr.read(classes);
+    assertEquals(
+            ImmutableSet.of("/toplevel/top", "/toplevel2/{param}/nestedWithPreferredParent/list",
+                    "/toplevel2/anotherTop"),
+            swagger.getPaths().keySet());
+    assertPathParamsExist(swagger, "/toplevel2/{param}/nestedWithPreferredParent/list", "param");
+  }
+
+  /**
+   * Test conflicting nested API's (the same API's are returned from different top level API's) with
+   * {@link SwaggerPreferredParent} annotation.
+   * In this case the preferred parent API is the same as the one otherwise would have been set.
+   */
+  @Test
+  public void swaggerConflictingNestedApisWithSamePreferredParent() {
+    AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
+    ListOrderedSet classes = ListOrderedSet.decorate(
+            Lists.newArrayList(TopLevelAPI.class, AnotherTopLevelAPI.class, NestedWithSamePreferredParentAPI.class));
+    Swagger swagger = asr.read(classes);
+    assertEquals(
+            ImmutableSet.of("/toplevel/top", "/toplevel/{param}/nestedWithSamePreferredParent/list",
+                    "/toplevel2/anotherTop"),
+            swagger.getPaths().keySet());
+    assertPathParamsExist(swagger, "/toplevel/{param}/nestedWithSamePreferredParent/list", "param");
+  }
+
+  /**
+   * Test conflicting nested API's (the same API's are returned from different top level API's) with
+   * {@link SwaggerPreferredParent} annotation.
+   * In this case we expect an ignore since NestedWithBadPreferredParentAPI set a preferred parent which
+   * does not have it as a child.
+   */
+  @Test
+  public void swaggerConflictingNestedApisWithBadPreferredParent() {
+    AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
+    ListOrderedSet classes = ListOrderedSet.decorate(
+            Lists.newArrayList(TopLevelAPI.class, AnotherTopLevelAPI.class, NestedWithBadPreferredParentAPI.class));
+    Swagger swagger = asr.read(classes);
+    assertEquals(
+            ImmutableSet.of("/toplevel/top", "/toplevel2/{param}/nestedWithBadPreferredParent/list",
+                    "/toplevel2/anotherTop"),
+            swagger.getPaths().keySet());
+    assertPathParamsExist(swagger, "/toplevel2/{param}/nestedWithBadPreferredParent/list", "param");
+  }
+
+  /**
    * If an API is both top level (the class has a @Path annotation) and nested (class is a return type of an
    * API operation) then it should be treated as top level.
    */
@@ -130,6 +186,14 @@ abstract class TopLevelAPI {
 
   @Path("{param}/nested")
   public abstract NestedAPI getNested(@ApiParam @PathParam(value = "param") String param);
+
+  @Path("{param}/nestedWithPreferredParent")
+  public abstract NestedWithPreferredParentAPI getNestedWithPreferredParent(@ApiParam @PathParam(value = "param")
+                                                                                      String param);
+
+  @Path("{param}/nestedWithSamePreferredParent")
+  public abstract NestedWithSamePreferredParentAPI getNestedWithSamePreferredParent(@ApiParam @PathParam(value =
+          "param") String param);
 }
 
 @Path("/toplevel2")
@@ -144,6 +208,17 @@ abstract class AnotherTopLevelAPI {
   @Path("{param}/anotherNested")
   public abstract NestedAPI getSecondNested(@ApiParam @PathParam(value = "param") String param);
 
+  @Path("{param}/nestedWithPreferredParent")
+  public abstract NestedWithPreferredParentAPI getNestedWithPreferredParent(@ApiParam @PathParam(value = "param")
+                                                                                      String param);
+
+  @Path("{param}/nestedWithSamePreferredParent")
+  public abstract NestedWithSamePreferredParentAPI getNestedWithSamePreferredParent(@ApiParam @PathParam(value =
+          "param") String param);
+
+  @Path("{param}/nestedWithBadPreferredParent")
+  public abstract NestedWithBadPreferredParentAPI getNestedWithBadPreferredParent(@ApiParam @PathParam(value =
+          "param") String param);
 }
 
 @Path("/toplevel3")
@@ -173,6 +248,39 @@ abstract class NestedAPI {
 @Path("/canBeReachedFromTopToo")
 @Api(value = "Nested and Top Level", description = "An API that is both nested and top level")
 abstract class NestedAndTopLevelAPI {
+
+  @GET
+  @Path("/list")
+  @ApiOperation(value = "list")
+  public abstract Response getList();
+
+}
+
+@Api(value = "Nested", description = "A nested API")
+@SwaggerPreferredParent(preferredParent = AnotherTopLevelAPI.class)
+abstract class NestedWithPreferredParentAPI {
+
+  @GET
+  @Path("/list")
+  @ApiOperation(value = "list")
+  public abstract Response getList();
+
+}
+
+@Api(value = "SameNested", description = "A nested API")
+@SwaggerPreferredParent(preferredParent = TopLevelAPI.class)
+abstract class NestedWithSamePreferredParentAPI {
+
+  @GET
+  @Path("/list")
+  @ApiOperation(value = "list")
+  public abstract Response getList();
+
+}
+
+@Api(value = "BadNested", description = "A nested API")
+@SwaggerPreferredParent(preferredParent = YetAnotherTopLevelAPI.class)
+abstract class NestedWithBadPreferredParentAPI {
 
   @GET
   @Path("/list")
