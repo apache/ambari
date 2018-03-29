@@ -22,7 +22,9 @@ import static org.junit.Assert.assertEquals ;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,12 +33,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import org.apache.ambari.annotations.SwaggerPreferredParent;
-import org.apache.commons.collections.set.ListOrderedSet;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import io.swagger.annotations.Api;
@@ -80,8 +80,8 @@ public class AmbariSwaggerReaderTest {
   @Test
   public void swaggerConflictingNestedApis() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
-    ListOrderedSet classes = ListOrderedSet.decorate(
-        Lists.newArrayList(TopLevelAPI.class, AnotherTopLevelAPI.class, NestedAPI.class));
+    Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
+            NestedAPI.class));
     Swagger swagger = asr.read(classes);
     assertEquals(
         ImmutableSet.of("/toplevel/top", "/toplevel/{param}/nested/list", "/toplevel2/anotherTop"),
@@ -97,8 +97,8 @@ public class AmbariSwaggerReaderTest {
   @Test
   public void swaggerConflictingNestedApisWithPreferredParent() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
-    ListOrderedSet classes = ListOrderedSet.decorate(
-            Lists.newArrayList(TopLevelAPI.class, AnotherTopLevelAPI.class, NestedWithPreferredParentAPI.class));
+    Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
+            NestedWithPreferredParentAPI.class));
     Swagger swagger = asr.read(classes);
     assertEquals(
             ImmutableSet.of("/toplevel/top", "/toplevel2/{param}/nestedWithPreferredParent/list",
@@ -115,8 +115,8 @@ public class AmbariSwaggerReaderTest {
   @Test
   public void swaggerConflictingNestedApisWithSamePreferredParent() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
-    ListOrderedSet classes = ListOrderedSet.decorate(
-            Lists.newArrayList(TopLevelAPI.class, AnotherTopLevelAPI.class, NestedWithSamePreferredParentAPI.class));
+    Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
+            NestedWithSamePreferredParentAPI.class));
     Swagger swagger = asr.read(classes);
     assertEquals(
             ImmutableSet.of("/toplevel/top", "/toplevel/{param}/nestedWithSamePreferredParent/list",
@@ -134,8 +134,8 @@ public class AmbariSwaggerReaderTest {
   @Test
   public void swaggerConflictingNestedApisWithBadPreferredParent() {
     AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
-    ListOrderedSet classes = ListOrderedSet.decorate(
-            Lists.newArrayList(TopLevelAPI.class, AnotherTopLevelAPI.class, NestedWithBadPreferredParentAPI.class));
+    Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(TopLevelAPI.class, AnotherTopLevelAPI.class,
+            NestedWithBadPreferredParentAPI.class));
     Swagger swagger = asr.read(classes);
     assertEquals(
             ImmutableSet.of("/toplevel/top", "/toplevel2/{param}/nestedWithBadPreferredParent/list",

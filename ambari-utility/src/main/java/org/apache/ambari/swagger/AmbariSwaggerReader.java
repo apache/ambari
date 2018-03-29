@@ -93,7 +93,7 @@ public class AmbariSwaggerReader extends JaxrsReader {
                   returnType.getName());
             }
             else {
-              Boolean skipAdd = false;
+              boolean skipAdd = false;
               Class<?> preferredParentClass = cls;
 
               // API is a nested API of multiple top level APIs
