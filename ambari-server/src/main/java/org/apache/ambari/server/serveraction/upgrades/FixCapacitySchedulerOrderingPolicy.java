@@ -23,12 +23,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 
 /**
  * In HDP-2.6, the parent queue's cannot have a ordering-policy other than {@code utilization} or
@@ -109,6 +111,7 @@ public class FixCapacitySchedulerOrderingPolicy extends AbstractUpgradeServerAct
 
     config.setProperties(properties);
     config.save();
+    agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", stdout.toString(), "");
   }

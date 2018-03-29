@@ -22,6 +22,7 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
+    <display-name>HBase root directory</display-name>
     <value/>
     <description>The directory shared by region servers and into
     which HBase persists.  The URL should be 'fully-qualified'
@@ -378,6 +379,7 @@
   </property>
   <property>
     <name>zookeeper.znode.parent</name>
+    <display-name>ZooKeeper Znode Parent</display-name>
     <value/>
     <description>Root ZNode for HBase in ZooKeeper. All of HBase's ZooKeeper
       files that are configured with a relative path will go under this node.

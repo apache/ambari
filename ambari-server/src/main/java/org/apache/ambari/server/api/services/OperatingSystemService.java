@@ -29,6 +29,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -49,13 +50,38 @@ public class OperatingSystemService extends BaseService {
   private final String m_mpackId;
 
   /**
+   * Instructs the service to instantiate the
+   * {@link Resource.Type#DefaultOperatingSystem} resource provider.
+   */
+  private final boolean m_isDefaultOnly;
+
+  private final Resource.Type m_resourceType;
+
+  /**
    * Constructor.
    *
-   * @param parentKeyProperties
-   *          extra properties to be inserted into created resource
+   * @param mpackId
+   *          the ID of the mpack to get operating system resources for.
    */
   public OperatingSystemService(String mpackId) {
+    this(mpackId, false);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param mpackId
+   *          the ID of the mpack to get operating system resources for.
+   * @param isDefaultOnly
+   *          {@code true} to retrieve the original values for the operating
+   *          systems of an mpack.
+   */
+  public OperatingSystemService(String mpackId, boolean isDefaultOnly) {
     m_mpackId = mpackId;
+    m_isDefaultOnly = isDefaultOnly;
+
+    m_resourceType = m_isDefaultOnly ? Resource.Type.DefaultOperatingSystem
+        : Resource.Type.OperatingSystem;
   }
 
   /**
@@ -68,7 +94,7 @@ public class OperatingSystemService extends BaseService {
    */
   @GET
   @ApiIgnore
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response getOperatingSystems(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
   }
@@ -88,7 +114,7 @@ public class OperatingSystemService extends BaseService {
   @GET
   @ApiIgnore
   @Path("{osType}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response getOperatingSystem(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("osType") String osType) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(osType));
@@ -108,10 +134,27 @@ public class OperatingSystemService extends BaseService {
   @POST
   @ApiIgnore
   @Path("{osType}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response createOperatingSystem(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("osType") String osType) {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(osType));
+  }
+
+  /**
+   * Creates the repositories and properties of all specified operating systems.
+   *
+   * @param headers
+   *          http headers
+   * @param ui
+   *          uri info
+   * @return information regarding the specified operating system
+   */
+  @POST
+  @ApiIgnore
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response createOperatingSystem(String body, @Context HttpHeaders headers,
+      @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.POST, createResource(null));
   }
 
   /**
@@ -128,7 +171,7 @@ public class OperatingSystemService extends BaseService {
   @PUT
   @ApiIgnore
   @Path("{osType}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response updateOperatingSystem(String body, @Context HttpHeaders headers,
       @Context UriInfo ui,
       @PathParam("osType") String osType) {
@@ -149,7 +192,7 @@ public class OperatingSystemService extends BaseService {
   @DELETE
   @ApiIgnore
   @Path("{osType}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response deleteOperatingSystem(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("osType") String osType) {
     return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(osType));
@@ -166,7 +209,7 @@ public class OperatingSystemService extends BaseService {
   private ResourceInstance createResource(String osType) {
     final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Mpack, m_mpackId);
-    mapIds.put(Resource.Type.OperatingSystem, osType);
-    return createResource(Resource.Type.OperatingSystem, mapIds);
+    mapIds.put(m_resourceType, osType);
+    return createResource(m_resourceType, mapIds);
   }
 }

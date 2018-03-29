@@ -36,10 +36,8 @@ import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.MockEventListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -49,12 +47,12 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ModuleComponent;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -66,6 +64,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+
 
 /**
  * Tests {@link ComponentVersionAlertRunnable}.
@@ -98,7 +97,6 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
 
   private Collection<Host> m_hosts;
   private Map<String, List<ServiceComponentHost>> m_hostComponentMap = new HashMap<>();
-  private StackId m_desidredStackId;
 
   /**
    *
@@ -139,38 +137,22 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     m_hostComponentMap.put(HOSTNAME_1, new ArrayList<>());
     m_hostComponentMap.put(HOSTNAME_2, new ArrayList<>());
 
-    // desired stack
-    m_desidredStackId = createNiceMock(StackId.class);
-    expect(m_desidredStackId.getStackName()).andReturn("SOME-STACK").atLeastOnce();
-    expect(m_desidredStackId.getStackVersion()).andReturn("STACK-VERSION").atLeastOnce();
-
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersionEntity.getVersion()).andReturn(EXPECTED_VERSION).anyTimes();
-
-    // services
-    Service service = createNiceMock(Service.class);
-    expect(service.getDesiredRepositoryVersion()).andReturn(repositoryVersionEntity).atLeastOnce();
-
-    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
-    expect(serviceComponent.getDesiredStackId()).andReturn(m_desidredStackId).atLeastOnce();
-    expect(service.getServiceComponent(EasyMock.anyString())).andReturn(serviceComponent).atLeastOnce();
-
     // components
     ServiceComponentHost sch1_1 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHost sch1_2 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHost sch2_1 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHost sch2_2 = createNiceMock(ServiceComponentHost.class);
 
-    expect(sch1_1.getServiceName()).andReturn("FOO").atLeastOnce();
+    expect(sch1_1.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch1_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch1_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch1_2.getServiceName()).andReturn("BAR").atLeastOnce();
+    expect(sch1_2.getServiceType()).andReturn("BAR").atLeastOnce();
     expect(sch1_2.getServiceComponentName()).andReturn("BAR_COMPONENT").atLeastOnce();
     expect(sch1_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch2_1.getServiceName()).andReturn("FOO").atLeastOnce();
+    expect(sch2_1.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch2_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch2_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch2_2.getServiceName()).andReturn("BAZ").atLeastOnce();
+    expect(sch2_2.getServiceType()).andReturn("BAZ").atLeastOnce();
     expect(sch2_2.getServiceComponentName()).andReturn("BAZ_COMPONENT").atLeastOnce();
     expect(sch2_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
 
@@ -186,11 +168,14 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     expect(m_definition.getLabel()).andReturn(DEFINITION_LABEL).atLeastOnce();
     expect(m_definition.getEnabled()).andReturn(true).atLeastOnce();
 
+    // mock the service group
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
+    expect(serviceGroup.getMpackId()).andReturn(1L).atLeastOnce();
+
     // mock the cluster
     expect(m_cluster.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
-    expect(m_cluster.getClusterName()).andReturn(CLUSTER_NAME).atLeastOnce();
     expect(m_cluster.getHosts()).andReturn(m_hosts).atLeastOnce();
-    expect(m_cluster.getService(EasyMock.anyString())).andReturn(service).atLeastOnce();
+    expect(m_cluster.getServiceGroup(EasyMock.anyString())).andReturn(serviceGroup).atLeastOnce();
 
     // mock clusters
     expect(m_clusters.getClusters()).andReturn(clusterMap).atLeastOnce();
@@ -198,6 +183,17 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     // mock the definition DAO
     expect(m_definitionDao.findByName(CLUSTER_ID, DEFINITION_NAME)).andReturn(
         m_definition).atLeastOnce();
+
+    // mock the module component
+    ModuleComponent moduleComponent = createNiceMock(ModuleComponent.class);
+    expect(moduleComponent.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
+
+    // mock the mpack
+    Mpack mpack = createNiceMock(Mpack.class);
+    expect(mpack.getModuleComponent(EasyMock.anyString(), EasyMock.anyString())).andReturn(
+        moduleComponent).atLeastOnce();
+
+    expect(m_metaInfo.getMpack(1L)).andReturn(mpack).atLeastOnce();
 
     m_metaInfo.init();
     EasyMock.expectLastCall().anyTimes();
@@ -301,11 +297,11 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
    * Tests that the alert which fires when there is a mismatch is a WARNING.
    */
   @Test
-  public void testomponentVersionMismatch() throws Exception {
+  public void testComponentVersionMismatch() throws Exception {
     // reset expectation so that it returns a wrong version
     ServiceComponentHost sch = m_hostComponentMap.get(HOSTNAME_1).get(0);
     EasyMock.reset(sch);
-    expect(sch.getServiceName()).andReturn("FOO").atLeastOnce();
+    expect(sch.getServiceType()).andReturn("FOO").atLeastOnce();
     expect(sch.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch.getVersion()).andReturn(WRONG_VERSION).atLeastOnce();
 
@@ -352,9 +348,13 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     public void configure(Binder binder) {
       Cluster cluster = createNiceMock(Cluster.class);
 
-      binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+      PartialNiceMockBinder.newBuilder(ComponentVersionAlertRunnableTest.this).addConfigsBindings()
+          .addDBAccessorBinding()
+          .addFactoriesInstallBinding()
+          .addAmbariMetaInfoBinding()
+          .build().configure(binder);
+
+      binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
       binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
       binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));

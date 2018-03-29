@@ -48,6 +48,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.recovery.dir</name>
+    <display-name>YARN NodeManager Recovery directory</display-name>
     <value>{{yarn_log_dir_prefix}}/nodemanager/recovery-state</value>
     <description>
       The local filesystem directory in which the node manager will store
@@ -386,23 +387,24 @@
   <property>
     <name>yarn.resourcemanager.bind-host</name>
     <value>0.0.0.0</value>
-    <description>Default value is 0.0.0.0, when this is set the service will bind on all interfaces.  I think these two options (blank, "0.0.0.0" sans quotes) should be the two available values, with blank as the default.</description>
+    <description>Default value is 0.0.0.0, when this is set the service will bind on all interfaces. If this optional address is set, the RPC and webapp servers will bind to this address and the port specified in yarn.resourcemanager.address and yarn.resourcemanager.webapp.address, respectively.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.bind-host</name>
     <value>0.0.0.0</value>
-    <description>Default value is 0.0.0.0, when this is set the service will bind on all interfaces.  I think these two options (blank, "0.0.0.0" sans quotes) should be the two available values, with blank as the default.</description>
+    <description>Default value is 0.0.0.0, when this is set the service will bind on all interfaces. If this optional address is set, the RPC and webapp servers will bind to this address and the port specified in yarn.nodemanager.address and yarn.nodemanager.webapp.address, respectively.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.timeline-service.bind-host</name>
     <value>0.0.0.0</value>
-    <description>Default value is 0.0.0.0, when this is set the service will bind on all interfaces.  I think these two options (blank, "0.0.0.0" sans quotes) should be the two available values, with blank as the default.</description>
+    <description>Default value is 0.0.0.0, when this is set the service will bind on all interfaces. If this optional address is set, the RPC and webapp servers will bind to this address and the port specified in yarn.timeline-service.address and yarn.timeline-service.webapp.address, respectively.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.node-labels.fs-store.root-dir</name>
+    <display-name>YARN Node Labels FS Store Root directory</display-name>
     <value>/system/yarn/node-labels</value>
     <description>
       URI for NodeLabelManager.

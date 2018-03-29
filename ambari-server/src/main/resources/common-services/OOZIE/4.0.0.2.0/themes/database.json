@@ -1,0 +1,140 @@
+{
+  "name": "database",
+  "configuration": {
+    "placement": {
+      "configs": [
+        {
+          "config": "oozie-env/oozie_database",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.db.schema.name",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.username",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.url",
+          "subsection-name": "oozie-database-configurations-col-1"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.driver",
+          "subsection-name": "oozie-database-configurations-col-2"
+        },
+        {
+          "config": "oozie-site/oozie.service.JPAService.jdbc.password",
+          "subsection-name": "oozie-database-configurations-col-2"
+        },
+        {
+          "config": "oozie-env/test_db_connection",
+          "subsection-name": "oozie-database-configurations-col-2",
+          "property_value_attributes": {
+            "ui_only_property": true
+          }
+        }
+      ],
+      "configuration-layout": "database"
+    },
+    "widgets": [
+      {
+        "config": "oozie-env/oozie_database",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.username",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.driver",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.service.JPAService.jdbc.url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "oozie-site/oozie.db.schema.name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "oozie-env/test_db_connection",
+        "widget": {
+          "type": "test-db-connection",
+          "display-name": "Test Connection",
+          "required-properties": {
+            "jdbc.driver.class": "oozie-site/oozie.service.JPAService.jdbc.driver",
+            "jdbc.driver.url": "oozie-site/oozie.service.JPAService.jdbc.url",
+            "db.connection.source.host": "oozie-site/oozie_server_hosts",
+            "db.type": "oozie-env/oozie_database",
+            "db.connection.user": "oozie-site/oozie.service.JPAService.jdbc.username",
+            "db.connection.password": "oozie-site/oozie.service.JPAService.jdbc.password",
+            "db.type.label": "oozie-env/oozie_database"
+          }
+        }
+      }
+    ],
+    "layouts": [
+      {
+        "name": "database",
+        "tabs": [
+          {
+            "name": "oozie_database",
+            "display-name": "Oozie",
+            "layout": {
+              "sections": [
+                {
+                  "subsections": [
+                    {
+                      "name": "oozie-database-configurations-col-1",
+                      "removed": false,
+                      "row-index": "0",
+                      "column-span": "1",
+                      "row-span": "1",
+                      "column-index": "0"
+                    },
+                    {
+                      "name": "oozie-database-configurations-col-2",
+                      "removed": false,
+                      "row-index": "0",
+                      "column-span": "1",
+                      "row-span": "1",
+                      "column-index": "1"
+                    }
+                  ],
+                  "name": "oozie-database-configurations",
+                  "removed": false,
+                  "row-index": "0",
+                  "section-rows": "1",
+                  "column-span": "0",
+                  "section-columns": "2",
+                  "column-index": "0",
+                  "row-span": "0"
+                }
+              ],
+              "tab-rows": "1",
+              "tab-columns": "1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

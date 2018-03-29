@@ -68,7 +68,9 @@ App.FilterComboCleanableView = Ember.View.extend({
    * @method clearFilterColumn
    */
   clearFilterColumn: function() {
-    this.get('columns').filterProperty('isDisabled', false).setEach('selected', false);
+    this.get('columns').filter(function (column) {
+      return !column.get('isDisabled');
+    }).setEach('selected', false);
   },
 
   /**

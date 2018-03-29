@@ -54,7 +54,7 @@ except:
 
 knox_host_port = config['configurations']['gateway-site']['gateway.port']
 knox_host_name = config['clusterHostInfo']['knox_gateway_hosts'][0]
-knox_host_name_in_cluster = config['hostname']
+knox_host_name_in_cluster = config['agentLevelParams']['hostname']
 knox_master_secret = config['configurations']['knox-env']['knox_master_secret']
 topology_template = config['configurations']['topology']['content']
 admin_topology_template = default('/configurations/admin-topology/content', None)

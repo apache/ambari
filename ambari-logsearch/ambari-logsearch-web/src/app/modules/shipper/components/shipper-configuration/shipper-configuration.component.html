@@ -1,0 +1,52 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1 shipper-configuration">
+      <h1>
+        {{'shipperConfiguration.title' | translate}}
+        <a [routerLink]="getRouterLink([(clusterName$ | async), 'add'])" class="btn btn-primary pull-right">
+          {{'shipperConfiguration.addConfigurationBtn' | translate}}
+        </a>
+      </h1>
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-2">
+            <shipper-cluster-service-list *ngIf="clusterName$ | async"
+              [clusterName]="clusterName$ | async"
+              [serviceNamesList]="serviceNamesList$ | async"
+              [selectedServiceName]="serviceName$ | async"
+              [basePath]="routerPath"
+              (selectionChange)="onShipperClusterServiceSelected($event)"
+            ></shipper-cluster-service-list>
+          </div>
+          <div class="col-md-10">
+            <shipper-configuration-form *ngIf="clusterName$ | async"
+              [clusterName]="clusterName$ | async"
+              [serviceName]="serviceName$ | async"
+              [configuration]="configuration$ | async"
+              [existingServiceNames]="serviceNamesList$"
+              [validationResponse]="validationResponse"
+              (configurationSubmit)="onConfigurationFormSubmit($event)"
+              (validationSubmit)="onValidationFormSubmit($event)"
+            ></shipper-configuration-form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

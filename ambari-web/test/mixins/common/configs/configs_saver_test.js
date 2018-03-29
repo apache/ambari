@@ -1030,7 +1030,6 @@ describe('App.ConfigsSaverMixin', function() {
   describe("#onDoPUTClusterConfigurations", function () {
     var mockController = {
       updateClusterData: Em.K,
-      updateComponentConfig: Em.K,
       triggerQuickLinksUpdate: Em.K,
       loadConfigs: Em.K
     };
@@ -1039,7 +1038,6 @@ describe('App.ConfigsSaverMixin', function() {
       sinon.stub(App.router, 'get').returns(mockController);
       sinon.stub(App.Service, 'find').returns({});
       sinon.stub(mockController, 'updateClusterData');
-      sinon.stub(mockController, 'updateComponentConfig');
       sinon.stub(mockController, 'triggerQuickLinksUpdate');
       sinon.stub(mockController, 'loadConfigs');
       sinon.stub(mixin, 'showSaveConfigsPopup');
@@ -1059,7 +1057,6 @@ describe('App.ConfigsSaverMixin', function() {
       App.Service.find.restore();
       App.router.get.restore();
       mockController.updateClusterData.restore();
-      mockController.updateComponentConfig.restore();
       mockController.triggerQuickLinksUpdate.restore();
       mockController.loadConfigs.restore();
       mixin.showSaveConfigsPopup.restore();
@@ -1069,10 +1066,6 @@ describe('App.ConfigsSaverMixin', function() {
 
     it("updateClusterData should be called", function() {
       expect(mockController.updateClusterData.calledOnce).to.be.true;
-    });
-
-    it("updateComponentConfig should be called", function() {
-      expect(mockController.updateComponentConfig.calledOnce).to.be.true;
     });
 
     it("triggerQuickLinksUpdate should be called", function() {

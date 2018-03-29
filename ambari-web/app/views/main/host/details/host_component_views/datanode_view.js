@@ -29,6 +29,7 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
   getDNDecommissionStatus: function () {
     // always get datanode decommission status from active namenode (if NN HA enabled)
     var hdfs = App.HDFSService.find().objectAt(0);
+    // TODO rewrite considering federation case and using activeNameNodes array
     var activeNNHostName = (!hdfs.get('snameNode') && hdfs.get('activeNameNode')) ? hdfs.get('activeNameNode.hostName') : hdfs.get('nameNode.hostName');
     return App.ajax.send({
       name: 'host.host_component.decommission_status_datanode',

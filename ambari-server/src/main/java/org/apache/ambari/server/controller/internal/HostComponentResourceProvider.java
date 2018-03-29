@@ -105,7 +105,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_state";
   public static final String HOST_COMPONENT_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "version";
   public static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack_id";
-  public static final String HOST_COMPONENT_DESIRED_REPOSITORY_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_repository_version";
   public static final String HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "actual_configs";
   public static final String HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stale_configs";
   public static final String HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "reload_configs");
@@ -148,7 +147,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID,
       HOST_COMPONENT_VERSION_PROPERTY_ID,
       HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID,
-      HOST_COMPONENT_DESIRED_REPOSITORY_VERSION,
       HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID,
       HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
       HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID,
@@ -224,7 +222,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, response.getLiveState());
         resource.setProperty(HOST_COMPONENT_VERSION_PROPERTY_ID, response.getVersion());
         resource.setProperty(HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, response.getDesiredStackVersion());
-        resource.setProperty(HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, response.getDesiredRepositoryVersion());
         resource.setProperty(HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID, response.getActualConfigs());
         resource.setProperty(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID, response.isStaleConfig());
         resource.setProperty(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID, response.getAdminState());
@@ -289,7 +286,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID, response.isStaleConfig(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID, response.isReloadConfig(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, response.getUpgradeState(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, response.getDesiredRepositoryVersion(), requestedIds);
 
       if (response.getAdminState() != null) {
         setResourceProperty(resource, HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
@@ -545,7 +541,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
       if (StringUtils.isEmpty(request.getServiceName())) {
-        request.setServiceName(getManagementController().findService(cluster, request.getComponentName()));
+        request.setServiceName(getManagementController().findServiceName(cluster, request.getComponentName()));
       }
 
       ServiceComponent sc = getServiceComponent(
@@ -1081,7 +1077,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           String serviceGroupName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
           if (StringUtils.isEmpty(serviceName)) {
             Cluster cluster = managementController.getClusters().getCluster(clusterName);
-            serviceName = managementController.findService(cluster, componentName);
+            serviceName = managementController.findServiceName(cluster, componentName);
             //TODO : What if SG name is empty.
           }
 

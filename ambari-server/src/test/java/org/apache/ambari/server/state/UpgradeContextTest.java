@@ -152,10 +152,6 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(m_completedRevertableUpgrade.getHistory()).andReturn(m_upgradeHistory).anyTimes();
     expect(m_completedRevertableUpgrade.getUpgradePackage()).andReturn(null).anyTimes();
 
-    RepositoryVersionEntity hdfsRepositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-
-    expect(m_hdfsService.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).anyTimes();
-    expect(m_zookeeperService.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).anyTimes();
     expect(m_cluster.getService(HDFS_SERVICE_NAME)).andReturn(m_hdfsService).anyTimes();
     m_services.put(HDFS_SERVICE_NAME, m_hdfsService);
 

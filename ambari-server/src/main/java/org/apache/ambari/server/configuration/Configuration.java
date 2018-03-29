@@ -58,14 +58,12 @@ import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
@@ -78,7 +76,6 @@ import org.apache.ambari.server.upgrade.AbstractUpgradeCatalog;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.ambari.server.utils.HostUtils;
-import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
@@ -1865,6 +1862,70 @@ public class Configuration {
       "agent.threadpool.size.max", 25);
 
   /**
+   * The thread pool size for spring messaging.
+   */
+  @Markdown(description = "Thread pool size for spring messaging")
+  public static final ConfigurationProperty<Integer> MESSAGING_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "messaging.threadpool.size", 1);
+
+  /**
+   * The thread pool size for agents registration.
+   */
+  @Markdown(description = "Thread pool size for agents registration")
+  public static final ConfigurationProperty<Integer> REGISTRATION_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "registration.threadpool.size", 10);
+
+  /**
+   * Maximal cache size for spring subscription registry.
+   */
+  @Markdown(description = "Maximal cache size for spring subscription registry.")
+  public static final ConfigurationProperty<Integer> SUBSCRIPTION_REGISTRY_CACHE_MAX_SIZE = new ConfigurationProperty<>(
+      "subscription.registry.cache.size", 1500);
+
+  /**
+   * Queue size for agents in registration.
+   */
+  @Markdown(description = "Queue size for agents in registration.")
+  public static final ConfigurationProperty<Integer> AGENTS_REGISTRATION_QUEUE_SIZE = new ConfigurationProperty<>(
+      "agents.registration.queue.size", 200);
+
+
+  /**
+   * Period in seconds with agents reports will be processed.
+   */
+  @Markdown(description = "Period in seconds with agents reports will be processed.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_PROCESSING_PERIOD = new ConfigurationProperty<>(
+      "agents.reports.processing.period", 1);
+
+  /**
+   * Timeout in seconds before start processing of agents' reports.
+   */
+  @Markdown(description = "Timeout in seconds before start processing of agents' reports.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_PROCESSING_START_TIMEOUT = new ConfigurationProperty<>(
+      "agents.reports.processing.start.timeout", 5);
+
+  /**
+   * Thread pool size for agents reports processing.
+   */
+  @Markdown(description = "Thread pool size for agents reports processing.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "agents.reports.thread.pool.size", 10);
+
+  /**
+   * Server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  @Markdown(description = "Server to API STOMP endpoint heartbeat interval in milliseconds.")
+  public static final ConfigurationProperty<Integer> API_HEARTBEAT_INTERVAL = new ConfigurationProperty<>(
+      "api.heartbeat.interval", 10000);
+
+  /**
+   * The maximum size of a stomp text message. Default is 2 MB.
+   */
+  @Markdown(description = "The maximum size of a stomp text message. Default is 2 MB.")
+  public static final ConfigurationProperty<Integer> STOMP_MAX_MESSAGE_SIZE = new ConfigurationProperty<>(
+      "stomp.max.message.size", 2*1024*1024);
+
+  /**
    * The maximum number of threads used to extract Ambari Views when Ambari
    * Server is starting up.
    */
@@ -2041,16 +2102,6 @@ public class Configuration {
   @Markdown(description = "Determines whether to use to SSL to connect to Ambari Metrics when retrieving metric data.")
   public static final ConfigurationProperty<Boolean> AMBARI_METRICS_HTTPS_ENABLED = new ConfigurationProperty<>(
       "server.timeline.metrics.https.enabled", Boolean.FALSE);
-
-  /**
-   * Governs the use of {@link Parallel} to process {@link StageEntity}
-   * instances into {@link Stage}.
-   */
-  @Markdown(
-      internal = true,
-      description = "Determines whether to allow stages retrieved from the database to be processed by multiple threads.")
-  public static final ConfigurationProperty<Boolean> EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED = new ConfigurationProperty<>(
-      "experimental.concurrency.stage_processing.enabled", Boolean.FALSE);
 
   /**
    * The full path to the XML file that describes the different alert templates.
@@ -2530,7 +2581,7 @@ public class Configuration {
           "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
 
   @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
-  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<Boolean>("security.passwords.encryption.enabled", false);
+  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<>("security.passwords.encryption.enabled", false);
 
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
@@ -2553,6 +2604,12 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> SERVER_SIDE_ALERTS_CORE_POOL_SIZE = new ConfigurationProperty<>(
           "alerts.server.side.scheduler.threadpool.size.core", 4);
 
+  /**
+   * Default value of Max number of tasks to schedule in parallel for upgrades.
+   */
+  @Markdown(description = "Default value of max number of tasks to schedule in parallel for upgrades. Upgrade packs can override this value.")
+  public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
+    "stack.upgrade.default.parallelism", 100);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -4520,6 +4577,70 @@ public class Configuration {
   }
 
   /**
+   * @return max thread pool size for clients, default 25
+   */
+  public int getSpringMessagingThreadPoolSize() {
+    return Integer.parseInt(getProperty(MESSAGING_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return max thread pool size for agents registration, default 10
+   */
+  public int getRegistrationThreadPoolSize() {
+    return Integer.parseInt(getProperty(REGISTRATION_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return max cache size for spring subscription registry.
+   */
+  public int getSubscriptionRegistryCacheSize() {
+    return Integer.parseInt(getProperty(SUBSCRIPTION_REGISTRY_CACHE_MAX_SIZE));
+  }
+
+  /**
+   * @return queue size for agents in registration.
+   */
+  public int getAgentsRegistrationQueueSize() {
+    return Integer.parseInt(getProperty(AGENTS_REGISTRATION_QUEUE_SIZE));
+  }
+
+
+  /**
+   * @return period in seconds with agents reports will be processed.
+   */
+  public int getAgentsReportProcessingPeriod() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_PROCESSING_PERIOD));
+  }
+
+  /**
+   * @return timeout in seconds before start processing of agents' reports.
+   */
+  public int getAgentsReportProcessingStartTimeout() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_PROCESSING_START_TIMEOUT));
+  }
+
+  /**
+   * @return thread pool size for agents reports processing.
+   */
+  public int getAgentsReportThreadPoolSize() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  public int getAPIHeartbeatInterval() {
+    return Integer.parseInt(getProperty(API_HEARTBEAT_INTERVAL));
+  }
+
+  /**
+   * @return the maximum size of a stomp text message. Default is 2 MB.
+   */
+  public int getStompMaxMessageSize() {
+    return Integer.parseInt(getProperty(STOMP_MAX_MESSAGE_SIZE));
+  }
+
+  /**
    * @return max thread pool size for agents, default 25
    */
   public int getAgentThreadPoolSize() {
@@ -5076,19 +5197,6 @@ public class Configuration {
   }
 
   /**
-   * Gets whether to use experiemental concurrent processing to convert
-   * {@link StageEntity} instances into {@link Stage} instances. The default is
-   * {@code false}.
-   *
-   * @return {code true} if the experimental feature is enabled, {@code false}
-   *         otherwise.
-   */
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
-  public boolean isExperimentalConcurrentStageProcessingEnabled() {
-    return Boolean.parseBoolean(getProperty(EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED));
-  }
-
-  /**
    * If {@code true}, then alerts processed by the {@link AlertReceivedListener}
    * will not write alert data to the database on every event. Instead, data
    * like timestamps and text will be kept in a cache and flushed out
@@ -5413,6 +5521,13 @@ public class Configuration {
    */
   public boolean isSecurityPasswordEncryptionEnabled() {
     return Boolean.parseBoolean(getProperty(SECURITY_PASSWORD_ENCRYPTON_ENABLED));
+  }
+
+  /**
+   * @return default value of number of tasks to run in parallel during upgrades
+   */
+  public int getDefaultMaxParallelismForUpgrades() {
+    return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
   }
 
   /**

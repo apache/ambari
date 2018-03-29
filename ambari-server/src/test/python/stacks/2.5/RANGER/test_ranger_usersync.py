@@ -143,7 +143,7 @@ class TestRangerUsersync(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-usersync/conf',
       configurations = ranger_ugsync_site_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-ugsync-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-ugsync-site'],
       mode = 0644
     )
 
@@ -205,6 +205,6 @@ class TestRangerUsersync(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-usersync/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       mode = 0644
     )

@@ -18,28 +18,34 @@
 
 <div class="row">
   <div class="col-md-12 component-summary">
-    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
-    <div class="col-md-10">
-      {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
-      {{#if view.isSupervisorCreated}}
-        <div class="row col-md-3 component SUPERVISOR">
-          <div class="summary-value main-info">
-            {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-              {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal" tagName="span"}}
-                {{view.liveComponents}}/{{view.totalComponents}}
-              {{/view}}
-              {{t common.live}}
-            {{else}}
-              {{t common.loading.eclipses}}
-            {{/if}}
+    {{view view.dashboardMasterComponentView}}
+    <div class="col-md-12">
+      <div class="col-md-2">
+        {{#if view.hasMultipleMasterGroups}}
+          {{t dashboard.services.hdfs.summary.components}}
+        {{/if}}
+      </div>
+      <div class="col-md-10">
+        {{#if view.isSupervisorCreated}}
+          <div class="row col-md-3 component SUPERVISOR">
+            <div class="summary-value main-info">
+              {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+                {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal" tagName="span"}}
+                  {{view.liveComponents}}/{{view.totalComponents}}
+                {{/view}}
+                {{t common.live}}
+              {{else}}
+                {{t common.loading.eclipses}}
+              {{/if}}
+            </div>
+            <div class="summary-label">
+              <a href="#" {{action filterHosts view.filterComponent}}>
+                {{t dashboard.services.storm.supervisors}}
+              </a>
+            </div>
           </div>
-          <div class="summary-label">
-            <a href="#" {{action filterHosts view.filterComponent}}>
-              {{t dashboard.services.storm.supervisors}}
-            </a>
-          </div>
-        </div>
-      {{/if}}
+        {{/if}}
+      </div>
     </div>
   </div>
   <div class="col-md-12 metrics-summary">

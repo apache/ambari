@@ -96,7 +96,7 @@ public class RoleCommandOrderTest {
     StackId stackId = new StackId("HDP", "2.0.6");
     ClusterImpl cluster = createMock(ClusterImpl.class);
     Service service = createMock(Service.class);
-    expect(service.getDesiredStackId()).andReturn(stackId);
+    expect(service.getStackId()).andReturn(stackId);
     expect(service.getServiceComponents()).andReturn(Collections.emptyMap());
     expect(cluster.getClusterId()).andReturn(1L);
     expect(cluster.getService("GLUSTERFS")).andReturn(service);
@@ -152,7 +152,7 @@ public class RoleCommandOrderTest {
     expect(cluster.getService("YARN")).andReturn(null).atLeastOnce();
     expect(hdfsService.getServiceComponents()).andReturn(Collections.emptyMap());
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
-    expect(hdfsService.getDesiredStackId()).andReturn(new StackId("HDP", "2.0.6"));
+    expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.0.6"));
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
@@ -200,7 +200,7 @@ public class RoleCommandOrderTest {
     expect(cluster.getService("YARN")).andReturn(null);
     expect(hdfsService.getServiceComponents()).andReturn(Collections.emptyMap());
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(journalnodeSC);
-    expect(hdfsService.getDesiredStackId()).andReturn(new StackId("HDP", "2.0.6"));
+    expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.0.6"));
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
@@ -252,7 +252,7 @@ public class RoleCommandOrderTest {
     expect(yarnService.getServiceComponent("RESOURCEMANAGER")).andReturn(resourcemanagerSC).anyTimes();
     expect(resourcemanagerSC.getServiceComponentHosts()).andReturn(hostComponents).anyTimes();
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
-    expect(yarnService.getDesiredStackId()).andReturn(new StackId("HDP", "2.0.6"));
+    expect(yarnService.getStackId()).andReturn(new StackId("HDP", "2.0.6"));
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
         .put("YARN", yarnService)
         .build()).anyTimes();
@@ -307,7 +307,7 @@ public class RoleCommandOrderTest {
     expect(cluster.getService("HDFS")).andReturn(null);
     expect(yarnService.getServiceComponents()).andReturn(Collections.emptyMap());
     expect(yarnService.getServiceComponent("RESOURCEMANAGER")).andReturn(resourcemanagerSC).anyTimes();
-    expect(yarnService.getDesiredStackId()).andReturn(new StackId("HDP", "2.0.6")).anyTimes();
+    expect(yarnService.getStackId()).andReturn(new StackId("HDP", "2.0.6")).anyTimes();
     expect(resourcemanagerSC.getServiceComponentHosts()).andReturn(hostComponents).anyTimes();
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
@@ -407,7 +407,7 @@ public class RoleCommandOrderTest {
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
     //There is no rco file in this stack, should use default
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.5"));
-    expect(hdfsService.getDesiredStackId()).andReturn(new StackId("HDP", "2.0.5"));
+    expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.0.5"));
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build()).anyTimes();
@@ -455,8 +455,8 @@ public class RoleCommandOrderTest {
     expect(cluster.getService("YARN")).andReturn(null);
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
 //    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.5"));
-    expect(hdfsService.getDesiredStackId()).andReturn(new StackId("HDP", "2.0.5"));
-    expect(hbaseService.getDesiredStackId()).andReturn(new StackId("HDP", "2.0.5"));
+    expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.0.5"));
+    expect(hbaseService.getStackId()).andReturn(new StackId("HDP", "2.0.5"));
 
     //replay
     replay(cluster, hdfsService, hbaseService, hbaseMaster, namenode);
@@ -498,7 +498,7 @@ public class RoleCommandOrderTest {
     expect(cluster.getService("YARN")).andReturn(null).atLeastOnce();
     expect(hdfsService.getServiceComponents()).andReturn(Collections.emptyMap()).anyTimes();
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
-    expect(hdfsService.getDesiredStackId()).andReturn(new StackId("HDP", "2.2.0")).anyTimes();
+    expect(hdfsService.getStackId()).andReturn(new StackId("HDP", "2.2.0")).anyTimes();
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
         .build()).anyTimes();

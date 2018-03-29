@@ -36,8 +36,8 @@ describe('App.MainConfigHistoryView', function() {
           name: 'startIndex'
         }
       ],
-      doPolling: Em.K,
-      updateFilter: Em.K,
+      subscribeToUpdates: Em.K,
+      unsubscribeOfUpdates: Em.K,
       load: function () {
         return {done: Em.K};
       },
@@ -109,13 +109,13 @@ describe('App.MainConfigHistoryView', function() {
 
     beforeEach(function () {
       sinon.stub(view, 'addObserver', Em.K);
-      sinon.spy(view.get('controller'), 'doPolling');
+      sinon.stub(view.get('controller'), 'subscribeToUpdates');
       view.didInsertElement();
     });
 
     afterEach(function () {
+      view.get('controller').subscribeToUpdates.restore();
       view.addObserver.restore();
-      view.get('controller').doPolling.restore();
     });
 
     it('addObserver is called twice', function() {
@@ -126,19 +126,22 @@ describe('App.MainConfigHistoryView', function() {
       expect(view.get('isInitialRendering')).to.be.true;
     });
 
-    it('controller.isPolling is true', function() {
-      expect(view.get('controller.isPolling')).to.be.true;
-    });
-
-    it('controller.doPolling is true', function() {
-      expect(view.get('controller').doPolling.calledOnce).to.be.true;
+    it('subscribeToUpdates should be called', function() {
+      expect(view.get('controller').subscribeToUpdates.calledOnce).to.be.true;
     });
   });
 
   describe('#willDestroyElement()', function() {
-    it('controller.isPolling is false', function() {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'unsubscribeOfUpdates');
+    });
+    afterEach(function () {
+      view.get('controller').unsubscribeOfUpdates.restore();
+    });
+
+    it('unsubscribeOfUpdates should be called', function() {
       view.willDestroyElement();
-      expect(view.get('controller.isPolling')).to.be.false;
+      expect(view.get('controller').unsubscribeOfUpdates.calledOnce).to.be.true;
     });
   });
 

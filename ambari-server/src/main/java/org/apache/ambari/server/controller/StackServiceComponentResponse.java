@@ -109,6 +109,11 @@ public class StackServiceComponentResponse {
   private List<String> customCommands;
 
   /**
+   * The names of the custom commands defined for the component which are hidden=false
+   */
+  private List<String> visibleCustomCommands;
+
+  /**
    * Enabled for auto start or not.
    */
   private boolean recoveryEnabled;
@@ -156,10 +161,15 @@ public class StackServiceComponentResponse {
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
     if (null == definitions || definitions.size() == 0) {
       customCommands = Collections.emptyList();
+      visibleCustomCommands = Collections.emptyList();
     } else {
       customCommands = new ArrayList<>(definitions.size());
+      visibleCustomCommands = new ArrayList<>();
       for (CustomCommandDefinition command : definitions) {
         customCommands.add(command.getName());
+        if(!command.isHidden()) {
+          visibleCustomCommands.add(command.getName());
+        }
       }
     }
   }
@@ -523,9 +533,13 @@ public class StackServiceComponentResponse {
    *
    * @return the commands or an empty list (never {@code null}).
    */
-  @ApiModelProperty(name = "custom_commands")
   public List<String> getCustomCommands() {
     return customCommands;
+  }
+
+  @ApiModelProperty(name = "custom_commands")
+  public List<String> getVisibleCustomCommands() {
+    return visibleCustomCommands;
   }
 
   @ApiModelProperty(name = "has_bulk_commands_definition")

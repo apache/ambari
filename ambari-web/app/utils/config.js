@@ -551,6 +551,8 @@ App.config = Em.Object.create({
       case 'checkbox':
       case 'boolean':
         return dependentConfigPattern ? App.ServiceConfigCheckboxWithDependencies : App.ServiceConfigCheckbox;
+      case 'boolean-inverted':
+        return App.ServiceConfigCheckbox;
       case 'password':
         return App.ServiceConfigPasswordField;
       case 'combobox':
@@ -914,7 +916,7 @@ App.config = Em.Object.create({
    */
   getPropertiesFromTheme: function (serviceName) {
     var properties = [];
-    App.Tab.find().forEach(function (t) {
+    App.Tab.find().rejectProperty('isCategorized').forEach(function (t) {
       if (!t.get('isAdvanced') && t.get('serviceName') === serviceName) {
         t.get('sections').forEach(function (s) {
           s.get('subSections').forEach(function (ss) {

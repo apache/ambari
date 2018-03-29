@@ -73,10 +73,12 @@ public class AbstractLogSearchSteps {
     String lastExceptionMessage = null;
     for (int tries = 1; tries < maxTries; tries++) {
       try {
-        SolrClient solrClient = new LBHttpSolrClient(String.format("http://%s:%d/solr/%s_shard0_replica1",
-          StoryDataRegistry.INSTANCE.getDockerHost(),
-          StoryDataRegistry.INSTANCE.getSolrPort(),
-          StoryDataRegistry.INSTANCE.getServiceLogsCollection()));
+        SolrClient solrClient = new LBHttpSolrClient.Builder()
+          .withBaseSolrUrl(String.format("http://%s:%d/solr/%s_shard0_replica1",
+            StoryDataRegistry.INSTANCE.getDockerHost(),
+            StoryDataRegistry.INSTANCE.getSolrPort(),
+            StoryDataRegistry.INSTANCE.getServiceLogsCollection()))
+          .build();
         StoryDataRegistry.INSTANCE.setSolrClient(solrClient);
         SolrPingResponse pingResponse = solrClient.ping();
         if (pingResponse.getStatus() != 0) {

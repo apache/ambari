@@ -200,11 +200,15 @@ describe('App.ComponentLiveTextView', function () {
 describe('App.MainDashboardServiceView', function () {
   var view;
 
-  beforeEach(function() {
-    view = App.MainDashboardServiceView.create({
+  function getView() {
+    return App.MainDashboardServiceView.create({
       controller: Em.Object.create(),
       service: Em.Object.create()
     });
+  }
+
+  beforeEach(function() {
+    view = getView();
   });
 
   describe('#data', function() {
@@ -261,4 +265,6 @@ describe('App.MainDashboardServiceView', function () {
       expect(view.isServiceComponentCreated('S1')).to.be.true;
     });
   });
+
+  App.TestAliases.testAsComputedGt(getView(), 'hasMultipleMasterGroups', 'parentView.mastersObj.length', 1);
 });

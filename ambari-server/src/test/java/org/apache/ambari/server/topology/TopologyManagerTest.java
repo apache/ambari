@@ -584,7 +584,7 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).anyTimes();
     replayAll();
     topologyManager.provisionCluster(request);
-    topologyManager.scaleHosts(new ScaleClusterRequest("{}", propertySet));
+    topologyManager.scaleHosts(new ScaleClusterRequest(propertySet));
     Assert.fail("InvalidTopologyException should have been thrown");
   }
 

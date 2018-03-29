@@ -31,6 +31,7 @@ Em.I18n.translations = {
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
     '<a href="{0}" target="_blank">{0}</a>',
 
+  'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
   'app.versionMismatchAlert.body': 'Ambari Server and Web Client versions do not match:<br> ' +
     '<br>Ambari Server: <strong>{0}</strong>' +
@@ -118,12 +119,14 @@ Em.I18n.translations = {
   'common.configGroup': 'Config Group',
   'common.configs': "Configs",
   'common.configuration': "Configuration",
+  'common.confirm.password': 'Confirm Password',
   'common.confirm': 'Confirm',
   'common.continueAnyway': 'Continue Anyway',
   'common.copy':'Copy',
   'common.cores.cpu': 'Cores (CPU)',
   'common.cores': 'Cores',
   'common.cpu':'CPU',
+  'common.critical.error': 'Critical',
   'common.critical': 'Critical',
   'common.csv': 'Save as CSV',
   'common.current': 'Current',
@@ -179,6 +182,7 @@ Em.I18n.translations = {
   'common.filters': 'Filters',
   'common.finalize': "Finalize",
   'common.free': 'free',
+  'common.freeStorage': 'Free Storage',
   'common.from.version': 'From Version',
   'common.fullLogPopup.clickToCopy': 'Click to Copy',
   'common.generate.blueprint':'Generate Blueprint',
@@ -229,18 +233,18 @@ Em.I18n.translations = {
   'common.message':'Message',
   'common.metrics':'Metrics',
   'common.milliseconds': "Milliseconds",
+  'common.minute.ago': 'less than a minute ago',
   'common.minutes': "Minutes",
   'common.misc': 'Misc',
   'common.more': 'More...',
   'common.move':'Move',
   'common.mpack': 'Management Pack',
-  'common.freeStorage': 'Free Storage',
-  'common.noHostsFound': 'No Hosts found.',
   'common.na': 'n/a',
   'common.name':'Name',
   'common.new': 'New',
   'common.next': 'Next',
   'common.noData': 'No Data',
+  'common.noHostsFound': 'No Hosts found.',
   'common.noLink': 'No Links',
   'common.notAvailable': 'Not Available',
   'common.notes': 'Notes',
@@ -297,6 +301,7 @@ Em.I18n.translations = {
   'common.retry':'Retry',
   'common.reUpgrade': 'Retry Upgrade',
   'common.revert': 'Revert',
+  'common.review': 'Review',
   'common.rollBack':'Rollback',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.rolling': 'Rolling',
@@ -363,6 +368,7 @@ Em.I18n.translations = {
   'common.use': 'Use',
   'common.used': 'used',
   'common.user': 'User',
+  'common.username': 'Username',
   'common.users': 'Users',
   'common.userSettings': 'User Settings',
   'common.value': 'Value',
@@ -376,7 +382,6 @@ Em.I18n.translations = {
   'common.warning': 'Warning',
   'common.with': 'with',
   'common.zookeeper':'ZooKeeper',
-  'common.critical.error': 'Critical',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -440,6 +445,7 @@ Em.I18n.translations = {
   'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes. Should be less than 255 symbols.',
   'hostPopup.RackId': 'Rack',
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
+  'hostPopup.default.userName': 'none',
 
   'question.sure':'Are you sure?',
   'question.sure.regenerateKeytab.host': 'Are you sure you want to regenerate keytab file operations for a {0} host?',
@@ -508,6 +514,7 @@ Em.I18n.translations = {
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.initValue': 'Initial value',
   'popup.dependent.configs.table.currentValue': 'Current Value',
+  'popup.dependent.configs.table.originalValue': 'Original Value',
   'popup.dependent.configs.table.recommendedValue': 'Recommended Value',
   'popup.dependent.configs.table.newValue': 'New Value',
   'popup.dependent.configs.table.undefined': 'Property undefined',
@@ -1024,6 +1031,13 @@ Em.I18n.translations = {
 
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',
+  'installer.step7.credentialsTab.body':'Please provide credentials for these services',
+  'installer.step7.databasesTab.body':'Please choose and configure the appropriate databases for these services',
+  'installer.step7.databasesTab.radioButton.default':'Use Ambari Database',
+  'installer.step7.databasesTab.radioButton.custom':'Use Custom Database',
+  'installer.step7.credentialsTab.usersGroups':'Users/Groups',
+  'installer.step7.credentialsTab.usernames':'Usernames',
+  'installer.step7.accountsTab.body': 'Please review these settings for Service Accounts',
   'installer.step7.attentionNeeded':'<b>Attention:</b> Some configurations need your attention before you can proceed.',
   'installer.step7.noIssues':'All configurations have been addressed.',
   'installer.step7.showPropertiesWithIssues':'Show me properties with issues',
@@ -1048,7 +1062,8 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.failed.body': 'Some services are not properly configured. You have to change the highlighted configs according to the recommended values.',
   'installer.step7.popup.validation.request.failed.body': 'The configuration changes could not be validated for consistency due to an unknown error.  Your changes have not been saved yet.  Would you like to proceed and save the changes?',
   'installer.step7.popup.validation.warning.header': 'Configurations',
-  'installer.step7.popup.validation.issues.body': 'The following configuration changes are highly recommended, but can be skipped.',
+  'installer.step7.popup.validation.issues.title': 'Highly Recommended Configurations',
+  'installer.step7.popup.validation.issues.body': 'Please review the folowing recommended changes, and click on the property name to change its value.',
   'installer.step7.popup.validation.criticalIssues.body': 'You must correct the following critical issues before proceeding:',
   'installer.step7.popup.oozie.derby.warning': 'Derby is not recommended for production use. With Derby, Oozie Server HA and concurrent connection support will not be available.',
   'installer.step7.oozie.database.new': 'New Derby Database',
@@ -1074,7 +1089,10 @@ Em.I18n.translations = {
   'installer.step7.missing.service.body': '{0} service should be added to the cluster to {1}.',
   'assign.master.popup.header':'Select {0} host',
   'assign.master.popup.cancel.body':'Not selecting {0} host will disable interactive query.',
-
+  'installer.step7.recommendations.popover.header': 'Review Recommendations',
+  'installer.step7.recommendations.popover.message': '<p>Based on your configuration changes, Ambari is recommending the following dependent configuration changes. Ambari has updated all checked configuration changes to the <strong>Recommended Value</strong>. Uncheck any configuration to retain the <strong>Original Value</strong>.</p>',
+  'installer.step7.requirements.popover.header': 'Required Configurations',
+  'installer.step7.requirements.popover.message': '<p>The following properties must be set to proceed with the install.</p>',
 
   'installer.step8.header': 'Review',
   'installer.step8.body': 'Please review the configuration before installation',
@@ -1736,6 +1754,37 @@ Em.I18n.translations = {
   'admin.ra_highAvailability.closePopup':'Enable Ranger Admin HA Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. ' +
   'If you choose to quit, you must follow manual instructions to complete or revert enabling Ranger Admin HA as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
+  'admin.nameNodeFederation.button.enable':'Add New HDFS Namespace',
+  'admin.nameNodeFederation.wizard.header': 'Add New HDFS Namespace',
+  'admin.nameNodeFederation.wizard.step1.header': 'Get Started',
+  'admin.nameNodeFederation.wizard.step1.body':'This wizard will walk you through the process of setting up a new Highly Available NameNode pair that will be used to create a new HDFS namespace, allowing you to use Ambari to manage multiple HDFS namespaces and take advantage of HDFS Federation.',
+  'admin.nameNodeFederation.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
+  'admin.nameNodeFederation.wizard.step1.nameserviceid':'New Nameservice ID',
+  'admin.nameNodeFederation.wizard.step1.nameserviceid.existing':'Existing Nameservice ID',
+  'admin.nameNodeFederation.wizard.step1.nameserviceid.error':'Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
+  'admin.nameNodeFederation.wizard.step2.header': 'Select Hosts',
+  'admin.nameNodeFederation.wizard.step3.header': 'Review',
+  'admin.nameNodeFederation.wizard.step3.confirm.config.body': '<div class="alert alert-info">' +
+    '<p><b>Review Configuration Changes.</b></p>' +
+    'The following lists the configuration changes that will be made by the Wizard to enable NameNode Federation. This information is for <b> review only </b> and is not editable except for the  <b>dfs.journalnode.edits.dir</b> properties' +
+    '</div>',
+  'admin.nameNodeFederation.wizard.step4.header': 'Configure Components',
+  'admin.nameNodeFederation.wizard,step4.save.configuration.note':'This configuration is created by Enable NameNode Federation wizard',
+  'admin.nameNodeFederation.wizard.step4.notice.inProgress':'Please wait while NameNode Federation Wizard is being deployed.',
+  'admin.nameNodeFederation.wizard.step4.notice.completed':'NameNode Federation Wizard has been enabled successfully.',
+  'admin.nameNodeFederation.wizard.step4.task0.title': 'Stop All Services',
+  'admin.nameNodeFederation.wizard.step4.task1.title': 'Reconfigure HDFS',
+  'admin.nameNodeFederation.wizard.step4.task2.title': 'Install Additional NameNodes',
+  'admin.nameNodeFederation.wizard.step4.task3.title': 'Install Additional ZKFCs',
+  'admin.nameNodeFederation.wizard.step4.task4.title': 'Format NameNode',
+  'admin.nameNodeFederation.wizard.step4.task5.title': 'Format ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task6.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task7.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task8.title': 'Bootstrap NameNode',
+  'admin.nameNodeFederation.wizard.step4.task9.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task10.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task11.title': 'Start All Services',
+
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
   'admin.security.disabled': 'Kerberos security is disabled',
@@ -1820,10 +1869,10 @@ Em.I18n.translations = {
   'admin.misc.nothingToShow': 'No user accounts to display',
 
   'admin.serviceAutoStart.title': "Service Auto Start",
-  'admin.serviceAutoStart.header': "Service Auto Start Configuration",
   'admin.serviceAutoStart.header.text': "Ambari services can be configured to start automatically on system boot. Each service can be configured to start all components, masters and workers, or selectively.",
-  'admin.serviceAutoStart.body.text': "Auto-Start Services",
+  'admin.serviceAutoStart.general.switcher': "Auto Start Settings",
   'admin.serviceAutoStart.tooltip.text': "{0} components enabled",
+  'admin.serviceAutoStart.column.autoStart': "Auto Start",
 
   'admin.stackVersions.filter.notInstalled': "Not Installed ({0})",
   'admin.stackVersions.filter.all': "All ({0})",
@@ -2049,6 +2098,7 @@ Em.I18n.translations = {
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',
+  'services.service.allComponents':'All Components',
   'services.service.metrics':'Metrics',
   'services.nothingToAdd':'Nothing to add',
   'services.service.summary.version':'Version',
@@ -2399,6 +2449,8 @@ Em.I18n.translations = {
   'services.service.add':'Add Service',
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
+  'services.service.startAllComponents': 'Start all components for {0}',
+  'services.service.stopAllComponents': 'Stop all components for {0}',
   'services.service.restartAllRequired':'Restart All Required',
   'services.service.downloadAllClientConfigs':'Download All Client Configs',
   'services.service.startAll.confirmMsg' : 'You are about to start all services',
@@ -2410,20 +2462,25 @@ Em.I18n.translations = {
   'services.service.stop.confirmButton': 'Confirm Stop',
   'services.service.start.confirmButton' : 'Confirm Start',
   'services.service.stop.warningMsg.turnOnMM': 'This will generate alerts as the service is stopped. To suppress alerts, turn on Maintenance Mode for {0} prior to stopping.',
+  'services.service.stopCertain.warningMsg.turnOnMM': 'This will generate alerts as components are stopped. To suppress alerts, turn on Maintenance Mode for {0} prior to stopping.',
   'services.service.stop.warningMsg.dependent.services': 'Stopping {0} may impair the functioning of its dependent service(s): {1}.',
   'services.service.restartAll.confirmButton': 'Confirm Restart All',
   'services.service.restartAll.confirmMsg': 'You are about to restart {0}',
   'services.service.restartAll.warningMsg.turnOnMM': 'This will trigger alerts as the service is restarted. To suppress alerts, turn on Maintenance Mode for {0} prior to running restart all',
+  'services.service.restartCertain.warningMsg.turnOnMM': 'This will trigger alerts as components are restarted. To suppress alerts, turn on Maintenance Mode for {0} prior to running restart all',
+  'services.service.componentsInNameSpace': 'components in {0} namespace',
   'services.service.stop.HDFS.warningMsg.checkPointNA': 'Could not determine the age of the last HDFS checkpoint. Please ensure that you have a recent checkpoint. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login': '<br><ol><li>Login to the NameNode host <b>{0}</b>.</li>',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.multipleHosts.login': '<ol><li>Login to the NameNode hosts {0}.</li>',
   'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions':
-    '<br><ol>' +
-    '<li>Login to the NameNode host <b>{0}</b>.</li>' +
     '<li>Put the NameNode in Safe Mode (read-only mode):' +
-    '<div class="code-snippet">sudo su {1} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
     '<li>Once in Safe Mode, create a Checkpoint:' +
-    '<div class="code-snippet">sudo su {1} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
     '</ol>',
-  'services.service.stop.HDFS.warningMsg.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours. Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours. ',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure': 'Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.nameSpaces.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours for the following namespaces:',
   'services.service.config_groups_popup.header':'Manage {0} Configuration Groups',
   'services.service.config_groups_popup.notice':'You can apply different sets of {{serviceName}} configurations to groups of hosts by managing {{serviceName}} Configuration Groups and their host membership.  Hosts belonging to a {{serviceName}} Configuration Group have the same set of configurations for {{serviceName}}. Each host belongs to one {{serviceName}} Configuration Group.',
   'services.service.config_groups_popup.rename':'Rename',
@@ -3065,6 +3122,7 @@ Em.I18n.translations = {
   'dashboard.widgets.HawqSegmentUp': 'HAWQ Segments Live',
   'dashboard.widgets.PxfUp': 'PXF Agents Live',
   'dashboard.widgets.PXFAgents': 'PXF Agents',
+  'dashboard.widgets.nameSpace': 'Namespace',
 
   'dashboard': {
     'widgets': {

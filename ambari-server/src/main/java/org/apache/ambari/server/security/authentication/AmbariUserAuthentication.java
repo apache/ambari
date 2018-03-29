@@ -24,6 +24,8 @@ import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserIdAuthentication;
 import org.springframework.security.core.Authentication;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class AmbariUserAuthentication implements Authentication, UserIdAuthentication {
 
   private String serializedToken;
@@ -38,6 +40,7 @@ public class AmbariUserAuthentication implements Authentication, UserIdAuthentic
   }
 
   @Override
+  @JsonIgnore
   public Collection<? extends AmbariGrantedAuthority> getAuthorities() {
     return userAuthorities;
   }

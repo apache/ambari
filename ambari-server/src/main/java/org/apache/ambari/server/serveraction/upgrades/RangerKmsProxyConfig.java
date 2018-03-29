@@ -20,12 +20,14 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 
 /**
@@ -76,6 +78,8 @@ public class RangerKmsProxyConfig extends AbstractUpgradeServerAction {
       targetValues.put(hostProp, "*");
       kmsSite.setProperties(targetValues);
       kmsSite.save();
+      agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream()
+          .map(Host::getHostId).collect(Collectors.toList()));
       outputMsg = outputMsg + MessageFormat.format("Successfully added properties to {0}", RANGER_KMS_SITE_CONFIG_TYPE);
     } else {
       outputMsg = outputMsg +  MessageFormat.format("Kerberos not enable, not setting proxy properties to {0}", RANGER_KMS_SITE_CONFIG_TYPE);

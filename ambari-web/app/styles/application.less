@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-@import 'bootstrap_overrides.less';
 @import 'common.less';
 
 body {
@@ -354,6 +353,10 @@ footer {
 
 .badge-important {
   background-color: #b94a48!important;
+}
+
+.badge-warning {
+  background-color: #e98a41!important;
 }
 
 table.diff {
@@ -865,6 +868,9 @@ a:focus {
       display: inline-block;
     }
   }
+  .master-group-title {
+    .ellipsis-overflow-nowrap;
+  }
 }
 
 .faintText {
@@ -1282,16 +1288,43 @@ table.graphs {
    margin-left: 20px
  }
 
-.admin-auto-start {
-  .nav i {
-    margin-top: 0;
-    color: @green;
+#admin-auto-start {
+  background-color: #fff;
+  padding: 30px;
+  .description {
+    color: @gray-text;
   }
-  .services-heading {
-    padding: 8px;
-    color: #999;
-    font-size: 13px;
-    font-weight: bold;
+  .table {
+    th {
+      font-weight: normal;
+    }
+    th:first-child {
+      color: #666;
+    }
+    th:first-child,
+    td:first-child,
+    th:first-child + th,
+    td:first-child + td {
+      line-height: 24px;
+      min-width: 200px;
+      width: 20%;
+    }
+    th:first-child + th + th,
+    td:first-child + td + td {
+      width: 15%;
+      text-align: center;
+    }
+    .skip-border {
+      border: none;
+    }
+    .all-checkbox {
+      display: inline-block;
+      top: 2px;
+    }
+  }
+  .general-auto-start {
+    display: inline-block;
+    margin-left: 15px;
   }
 }
 
@@ -1543,9 +1576,7 @@ ul.inline li {
 }
 
 .rack-id {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  .ellipsis-overflow-nowrap;
 }
 
 .advanced-header-table {
@@ -1851,20 +1882,15 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 
 #config-group-select-create-dialog {
   .select-create-config-group-div {
+    margin: 0 0 20px 20px;
     .dropdown-menu {
       max-height: 160px;
       max-width: 300px;
       overflow-y: auto;
     }
   }
-  .message{
-    color: #777;
-  }
-}
-
-#config-group-confirm-save {
-  .message{
-    color: #777;
+  .radio, .checkbox {
+    margin-bottom: 5px;
   }
 }
 
@@ -1929,7 +1955,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 }
 
 #cleanerContainer {
-  z-index: 2;
+  z-index: 3;
   position: absolute;
   left: -20px;
   width: 16px;
@@ -2099,6 +2125,21 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
           }
           .property-description {
             font-size: 0.9em;
+          }
+          .big-checkbox {
+            text-align: center;
+            label {
+              &:before {
+                width: 16px;
+                height: 16px;
+              }
+              &:after {
+                font-size: 11px;
+                top:2px;
+                left: 3px;
+              }
+              top: 0;
+            }
           }
         }
       }

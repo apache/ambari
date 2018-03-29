@@ -32,7 +32,9 @@ describe('App.NameNodeRpcView', function() {
   var tests = [
     {
       model: {
-        nameNodeRpc: 1
+        nameNodeRpcValues: {
+          c: 1
+        }
       },
       e: {
         isNA: false,
@@ -42,7 +44,9 @@ describe('App.NameNodeRpcView', function() {
     },
     {
       model: {
-        nameNodeRpc: 10
+        nameNodeRpcValues: {
+          c: 10
+        }
       },
       e: {
         isNA: false,
@@ -52,7 +56,9 @@ describe('App.NameNodeRpcView', function() {
     },
     {
       model: {
-        nameNodeRpc: 0
+        nameNodeRpcValues: {
+          c: 0
+        }
       },
       e: {
         isNA: false,
@@ -62,7 +68,9 @@ describe('App.NameNodeRpcView', function() {
     },
     {
       model: {
-        nameNodeRpc: null
+        nameNodeRpcValues: {
+          c: null
+        }
       },
       e: {
         isNA: true,
@@ -74,7 +82,10 @@ describe('App.NameNodeRpcView', function() {
 
   tests.forEach(function(test) {
     describe('nameNodeRpc - ' + test.model.nameNodeRpc, function() {
-      var jobTrackerRpcView = App.NameNodeRpcView.create({model: test.model});
+      var jobTrackerRpcView = App.NameNodeRpcView.create({
+        clusterId: 'c',
+        model: test.model
+      });
       it('content', function() {
         expect(jobTrackerRpcView.get('content')).to.equal(test.e.content);
       });

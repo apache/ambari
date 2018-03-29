@@ -23,6 +23,7 @@ import utils from 'hive/utils/functions';
 export default Ember.ArrayController.extend({
   fileService: Ember.inject.service(constants.namingConventions.file),
   databaseService: Ember.inject.service(constants.namingConventions.database),
+  showQueryEditor:true,
 
   needs: [ constants.namingConventions.jobResults,
            constants.namingConventions.jobExplain,
@@ -41,6 +42,11 @@ export default Ember.ArrayController.extend({
 
     this.set('queryTabs', Ember.ArrayProxy.create({ content: Ember.A([])}));
   },
+  index: Ember.inject.controller(),
+  settingsService: Ember.inject.service(constants.namingConventions.settings),
+  parseGlobalSettings: function () {
+    this.get('settingsService').parseGlobalSettings(this.get('currentQuery'), this.get('index.model'));
+  }.observes('currentQuery', 'currentQuery.fileContent', 'tabUpdated').on('init'),
 
   pushObject: function (queryFile, model) {
     return this._super(queryFile || Ember.Object.create({
@@ -338,6 +344,12 @@ export default Ember.ArrayController.extend({
   },
 
   actions: {
+    showQueryTab:function (tab) {
+      this.set('showQueryEditor',true);
+    },
+    showSettingTab:function (tab) {
+      this.set('showQueryEditor',false);
+    },
     removeQueryTab: function (tab) {
       var self = this,
           defer;

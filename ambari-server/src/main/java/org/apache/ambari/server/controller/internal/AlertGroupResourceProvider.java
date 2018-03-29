@@ -21,6 +21,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.agent.stomp.dto.AlertGroupUpdate;
 import org.apache.ambari.server.controller.AlertDefinitionResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -40,6 +42,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -66,12 +72,20 @@ public class AlertGroupResourceProvider extends
   private static final Logger LOG = LoggerFactory.getLogger(AlertGroupResourceProvider.class);
 
   public static final String ALERT_GROUP = "AlertGroup";
-  public static final String ALERT_GROUP_ID = "AlertGroup/id";
-  public static final String ALERT_GROUP_CLUSTER_NAME = "AlertGroup/cluster_name";
-  public static final String ALERT_GROUP_NAME = "AlertGroup/name";
-  public static final String ALERT_GROUP_DEFAULT = "AlertGroup/default";
-  public static final String ALERT_GROUP_DEFINITIONS = "AlertGroup/definitions";
-  public static final String ALERT_GROUP_TARGETS = "AlertGroup/targets";
+
+  public static final String ID_PROPERTY_ID = "id";
+  public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
+  public static final String NAME_PROPERTY_ID = "name";
+  public static final String DEFAULT_PROPERTY_ID = "default";
+  public static final String DEFINITIONS_PROPERTY_ID = "definitions";
+  public static final String TARGETS_PROPERTY_ID = "targets";
+
+  public static final String ALERT_GROUP_ID = ALERT_GROUP + PropertyHelper.EXTERNAL_PATH_SEP + ID_PROPERTY_ID;
+  public static final String ALERT_GROUP_CLUSTER_NAME = ALERT_GROUP + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME_PROPERTY_ID;
+  public static final String ALERT_GROUP_NAME = ALERT_GROUP + PropertyHelper.EXTERNAL_PATH_SEP + NAME_PROPERTY_ID;
+  public static final String ALERT_GROUP_DEFAULT = ALERT_GROUP + PropertyHelper.EXTERNAL_PATH_SEP + DEFAULT_PROPERTY_ID;
+  public static final String ALERT_GROUP_DEFINITIONS = ALERT_GROUP + PropertyHelper.EXTERNAL_PATH_SEP + DEFINITIONS_PROPERTY_ID;
+  public static final String ALERT_GROUP_TARGETS = ALERT_GROUP + PropertyHelper.EXTERNAL_PATH_SEP + TARGETS_PROPERTY_ID;
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
     Arrays.asList(ALERT_GROUP_ID, ALERT_GROUP_CLUSTER_NAME));
@@ -111,6 +125,9 @@ public class AlertGroupResourceProvider extends
    */
   @Inject
   private static AlertDefinitionDAO s_definitionDao;
+
+  @Inject
+  private static StateUpdateEventPublisher stateUpdateEventPublisher;
 
   /**
    * Constructor.
@@ -395,6 +412,10 @@ public class AlertGroupResourceProvider extends
       }
 
       s_dao.merge(entity);
+      AlertGroupsUpdateEvent alertGroupsUpdateEvent = new AlertGroupsUpdateEvent(Collections.singletonList(
+          new AlertGroupUpdate(entity)),
+          UpdateEventType.UPDATE);
+      stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
     }
   }
 

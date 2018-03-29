@@ -266,7 +266,7 @@ class DeleteIdentityHandler {
     private Set<String> configTypesOfService(String serviceName) {
       try {
         Service service = getCluster().getService(serviceName);
-        StackId stackId = service.getDesiredStackId();
+        StackId stackId = service.getStackId();
         StackServiceRequest stackServiceRequest = new StackServiceRequest(stackId.getStackName(), stackId.getStackVersion(), serviceName);
         return AmbariServer.getController().getStackServices(singleton(stackServiceRequest)).stream()
           .findFirst()

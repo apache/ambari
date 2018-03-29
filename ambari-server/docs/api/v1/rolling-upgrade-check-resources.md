@@ -17,7 +17,7 @@ limitations under the License.
 
 # Rolling Upgrade Check Resources
 
-#####Get Check Results
+##### Get Check Results
 Retrieves results of rolling upgrade checks. All checks should have status PASS before running rolling upgrade.
 
     GET http://<server>:8080/api/v1/clusters/<cluster_name>/rolling_upgrades_check/
@@ -42,7 +42,7 @@ Retrieves results of rolling upgrade checks. All checks should have status PASS 
       ]
     }
 
-#####Example of checks execution
+##### Example of checks execution
 Successful and unsuccessful check.
 
     {

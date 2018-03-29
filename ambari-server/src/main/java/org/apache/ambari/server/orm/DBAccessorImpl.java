@@ -35,8 +35,10 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -1446,41 +1448,73 @@ public class DBAccessorImpl implements DBAccessor {
    * {@inheritDoc}
    */
   @Override
-  public List<Integer> getIntColumnValues(String tableName, String columnName, String[] ConditionColumnNames,
+  public List<Integer> getIntColumnValues(String tableName, String columnName, String[] conditionColumnNames,
                                           String[] values, boolean ignoreFailure) throws SQLException {
+    return executeQuery(tableName, new String[]{columnName}, conditionColumnNames, values, ignoreFailure,
+        new ResultGetter<List<Integer>>() {
+          private List<Integer> results = new ArrayList<>();
 
-    if (!tableExists(tableName)) {
-      throw new IllegalArgumentException(String.format("%s table does not exist", tableName));
-    }
-    if (!tableHasColumn(tableName, columnName)) {
-      throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, columnName));
-    }
-    StringBuilder builder = new StringBuilder();
-    builder.append("SELECT ").append(columnName).append(" FROM ").append(tableName);
-    if (ConditionColumnNames != null && ConditionColumnNames.length > 0) {
-      for (String name : ConditionColumnNames) {
-        if (!tableHasColumn(tableName, name)) {
-          throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, name));
-        }
-      }
-      if (ConditionColumnNames.length != values.length) {
-        throw new IllegalArgumentException("number of columns should be equal to number of values");
-      }
-      builder.append(" WHERE ").append(ConditionColumnNames[0]).append("='").append(values[0]).append("'");
-      for (int i = 1; i < ConditionColumnNames.length; i++) {
-        builder.append(" AND ").append(ConditionColumnNames[i]).append("='").append(values[i]).append("'");
-      }
-    }
+          @Override
+          public void collect(ResultSet resultSet) throws SQLException {
+            results.add(resultSet.getInt(1));
+          }
 
-    List<Integer> result = new ArrayList<>();
+          @Override
+          public List<Integer> getResult() {
+            return results;
+          }
+        });
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<Long, String> getKeyToStringColumnMap(String tableName, String keyColumnName, String valueColumnName,
+                                            String[] conditionColumnNames, String[] values, boolean ignoreFailure) throws SQLException {
+    return executeQuery(tableName, new String[]{keyColumnName, valueColumnName}, conditionColumnNames, values, ignoreFailure,
+        new ResultGetter<Map<Long, String>>() {
+          Map<Long, String> map = new HashMap<>();
+
+          @Override
+          public void collect(ResultSet resultSet) throws SQLException {
+            map.put(resultSet.getLong(1), resultSet.getString(2));
+          }
+
+          @Override
+          public Map<Long, String> getResult() {
+            return map;
+          }
+        });
+  }
+
+  /**
+   * Executes a query returning data as specified by the {@link ResultGetter} implementation.
+   *
+   * @param tableName            the table name
+   * @param requestedColumnNames an array of column names to select
+   * @param conditionColumnNames an array of column names to use in the where clause
+   * @param conditionValues      an array of value to pair with the column names in conditionColumnNames
+   * @param ignoreFailure        true to ignore failures executing the query; false otherwise (errors building the query will be thrown, however)
+   * @param resultGetter         a {@link ResultGetter} implementation used to format the data into the expected return value
+   * @return the result from the resultGetter
+   * @throws SQLException
+   */
+  protected <T> T executeQuery(String tableName, String[] requestedColumnNames,
+                               String[] conditionColumnNames, String[] conditionValues,
+                               boolean ignoreFailure, ResultGetter<T> resultGetter) throws SQLException {
+
+    // Build the query...
+    String query = buildQuery(tableName, requestedColumnNames, conditionColumnNames, conditionValues);
+
+    // Execute the query
     Statement statement = getConnection().createStatement();
     ResultSet resultSet = null;
-    String query = builder.toString();
     try {
       resultSet = statement.executeQuery(query);
       if (resultSet != null) {
         while (resultSet.next()) {
-          result.add(resultSet.getInt(1));
+          resultGetter.collect(resultSet);
         }
       }
     } catch (SQLException e) {
@@ -1496,7 +1530,72 @@ public class DBAccessorImpl implements DBAccessor {
         statement.close();
       }
     }
-    return result;
+
+    return resultGetter.getResult();
+  }
+
+  /**
+   * Build a SELECT statement using the supplied table name, request columns and conditional column/value pairs.
+   * <p>
+   * The conditional pairs are optional but multiple pairs will be ANDed together.
+   * <p>
+   * Examples:
+   * <ul>
+   * <li>SELECT id FROM table1</li>
+   * <li>SELECT id FROM table1 WHERE name='value1'</li>
+   * <li>SELECT id FROM table1 WHERE name='value1' AND key='key1'</li>
+   * <li>SELECT id, name FROM table1 WHERE key='key1'</li>
+   * <li>SELECT id, name FROM table1 WHERE key='key1' AND allowed='1'</li>
+   * </ul>
+   *
+   * @param tableName            the table name
+   * @param requestedColumnNames an array of column names to select
+   * @param conditionColumnNames an array of column names to use in the where clause
+   * @param conditionValues      an array of value to pair with the column names in conditionColumnNames
+   * @return a query string
+   * @throws SQLException
+   */
+  protected String buildQuery(String tableName, String[] requestedColumnNames, String[] conditionColumnNames, String[] conditionValues) throws SQLException {
+    if (!tableExists(tableName)) {
+      throw new IllegalArgumentException(String.format("%s table does not exist", tableName));
+    }
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT ");
+
+    // Append the requested column names:
+    if ((requestedColumnNames == null) || (requestedColumnNames.length == 0)) {
+      throw new IllegalArgumentException("no columns for the select have been set");
+    }
+    for (String name : requestedColumnNames) {
+      if (!tableHasColumn(tableName, name)) {
+        throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, name));
+      }
+    }
+    builder.append(requestedColumnNames[0]);
+    for (int i = 1; i < requestedColumnNames.length; i++) {
+      builder.append(", ").append(requestedColumnNames[1]);
+    }
+
+    // Append the source table
+    builder.append(" FROM ").append(tableName);
+
+    // Add the WHERE clause using the conditionColumnNames and the conditionValues
+    if (conditionColumnNames != null && conditionColumnNames.length > 0) {
+      for (String name : conditionColumnNames) {
+        if (!tableHasColumn(tableName, name)) {
+          throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, name));
+        }
+      }
+      if (conditionColumnNames.length != conditionValues.length) {
+        throw new IllegalArgumentException("number of columns should be equal to number of values");
+      }
+      builder.append(" WHERE ").append(conditionColumnNames[0]).append("='").append(conditionValues[0]).append("'");
+      for (int i = 1; i < conditionColumnNames.length; i++) {
+        builder.append(" AND ").append(conditionColumnNames[i]).append("='").append(conditionValues[i]).append("'");
+      }
+    }
+
+    return builder.toString();
   }
 
   /**
@@ -1581,5 +1680,26 @@ public class DBAccessorImpl implements DBAccessor {
     } else {
       LOG.warn("{} table doesn't exists, skipping", tableName);
     }
+  }
+
+  /**
+   * {@link ResultGetter} is an interface to implement to help compile results
+   * from a SQL query.
+   */
+  private interface ResultGetter<T> {
+    /**
+     * Collect results from the query's {@link ResultSet}
+     *
+     * @param resultSet the result set
+     * @throws SQLException
+     */
+    void collect(ResultSet resultSet) throws SQLException;
+
+    /**
+     * Return the compiled results in the expected data type
+     *
+     * @return the results
+     */
+    T getResult();
   }
 }

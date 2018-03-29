@@ -20,6 +20,7 @@ package org.apache.ambari.server.state;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -78,35 +79,35 @@ public class ServiceInfoTest {
         "    </service>\n" +
         "  </services>\n" +
         "</metainfo>\n";
-    
+
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
 
     assertTrue(serviceInfoMap.get("RESTART").isRestartRequiredAfterRackChange());
     assertFalse(serviceInfoMap.get("NO_RESTART").isRestartRequiredAfterRackChange());
     assertNull(serviceInfoMap.get("DEFAULT_RESTART").isRestartRequiredAfterRackChange());
-    assertEquals(serviceInfoMap.get("HCFS_SERVICE").getServiceType(),"HCFS");
+    assertEquals(serviceInfoMap.get("HCFS_SERVICE").getServiceType(), "HCFS");
   }
 
   @Test
   public void testCustomMetricsWidgetsFiles() throws Exception {
 
     String serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>CUSTOM</name>\n" +
-            "      <displayName>CUSTOM</displayName>\n" +
-            "      <metricsFileName>CUSTOM_metrics.json</metricsFileName>\n" +
-            "      <widgetsFileName>CUSTOM_widgets.json</widgetsFileName>\n" +
-            "    </service>\n" +
-            "    <service>\n" +
-            "      <name>DEFAULT</name>\n" +
-            "      <displayName>DEFAULT</displayName>\n" +
-            "      <comment>Apache Hadoop Distributed File System</comment>\n" +
-            "      <version>2.1.0.2.0</version>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>CUSTOM</name>\n" +
+        "      <displayName>CUSTOM</displayName>\n" +
+        "      <metricsFileName>CUSTOM_metrics.json</metricsFileName>\n" +
+        "      <widgetsFileName>CUSTOM_widgets.json</widgetsFileName>\n" +
+        "    </service>\n" +
+        "    <service>\n" +
+        "      <name>DEFAULT</name>\n" +
+        "      <displayName>DEFAULT</displayName>\n" +
+        "      <comment>Apache Hadoop Distributed File System</comment>\n" +
+        "      <version>2.1.0.2.0</version>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
 
@@ -250,26 +251,27 @@ public class ServiceInfoTest {
 
   /**
    * Tests the presence and absence of the credential-store block.
+   *
    * @throws Exception
-     */
+   */
   @Test
   public void testCredentialStoreFields() throws Exception {
     /*
      * <credential-store> supported and enabled.
      */
     String serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>true</supported>\n" +
-            "          <enabled>true</enabled>\n" +
-            "          <required>true</required>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>true</supported>\n" +
+        "          <enabled>true</enabled>\n" +
+        "          <required>true</required>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
     ServiceInfo service = serviceInfoMap.get("RANGER");
     assertTrue(service.isCredentialStoreSupported());
@@ -280,18 +282,18 @@ public class ServiceInfoTest {
      * <credential-store> supported but not enabled.
      */
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>HIVE</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>true</supported>\n" +
-            "          <enabled>false</enabled>\n" +
-            "          <required>false</required>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>HIVE</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>true</supported>\n" +
+        "          <enabled>false</enabled>\n" +
+        "          <required>false</required>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     service = serviceInfoMap.get("HIVE");
     assertTrue(service.isCredentialStoreSupported());
@@ -302,13 +304,13 @@ public class ServiceInfoTest {
      * <credential-store> is missing
      */
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>AMBARI_METRICS</name>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>AMBARI_METRICS</name>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     service = serviceInfoMap.get("AMBARI_METRICS");
     assertFalse(service.isCredentialStoreSupported());
@@ -319,16 +321,16 @@ public class ServiceInfoTest {
      * scenario. So both values should be false.
      */
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>HBASE</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>true</supported>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>HBASE</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>true</supported>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     service = serviceInfoMap.get("HBASE");
     assertTrue(service.isCredentialStoreSupported());
@@ -336,21 +338,20 @@ public class ServiceInfoTest {
   }
 
   @Test
-  public void testCredentialStoreInfoValidity() throws Exception
-  {
+  public void testCredentialStoreInfoValidity() throws Exception {
     // Valid: Supported->True, Enabled->False
     String serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>true</supported>\n" +
-            "          <enabled>false</enabled>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>true</supported>\n" +
+        "          <enabled>false</enabled>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
     ServiceInfo serviceInfo = serviceInfoMap.get("RANGER");
@@ -358,17 +359,17 @@ public class ServiceInfoTest {
 
     // Valid: Supported->True, Enabled->True
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>true</supported>\n" +
-            "          <enabled>true</enabled>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>true</supported>\n" +
+        "          <enabled>true</enabled>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     serviceInfo = serviceInfoMap.get("RANGER");
@@ -376,17 +377,17 @@ public class ServiceInfoTest {
 
     // Valid: Supported->False, Enabled->False
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>false</supported>\n" +
-            "          <enabled>false</enabled>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>false</supported>\n" +
+        "          <enabled>false</enabled>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     serviceInfo = serviceInfoMap.get("RANGER");
@@ -394,13 +395,13 @@ public class ServiceInfoTest {
 
     // Valid: credential-store not specified
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     serviceInfo = serviceInfoMap.get("RANGER");
@@ -409,17 +410,17 @@ public class ServiceInfoTest {
     // Specified but invalid
     // Invalid: Supported->False, Enabled->True
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>false</supported>\n" +
-            "          <enabled>true</enabled>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>false</supported>\n" +
+        "          <enabled>true</enabled>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     serviceInfo = serviceInfoMap.get("RANGER");
@@ -427,15 +428,15 @@ public class ServiceInfoTest {
 
     // Invalid: Supported->Unspecified, Enabled->Unspecified
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     serviceInfo = serviceInfoMap.get("RANGER");
@@ -443,16 +444,16 @@ public class ServiceInfoTest {
 
     // Invalid: Supported->Specified, Enabled->Unspecified
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "          <supported>true</supported>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "          <supported>true</supported>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     serviceInfo = serviceInfoMap.get("RANGER");
@@ -460,16 +461,16 @@ public class ServiceInfoTest {
 
     // Invalid: Supported->Unspecified, Enabled->Specified
     serviceInfoXml = "<metainfo>\n" +
-            "  <schemaVersion>2.0</schemaVersion>\n" +
-            "  <services>\n" +
-            "    <service>\n" +
-            "      <name>RANGER</name>\n" +
-            "      <credential-store>\n" +
-            "          <enabled>true</enabled>\n" +
-            "      </credential-store>\n" +
-            "    </service>\n" +
-            "  </services>\n" +
-            "</metainfo>\n";
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>RANGER</name>\n" +
+        "      <credential-store>\n" +
+        "          <enabled>true</enabled>\n" +
+        "      </credential-store>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
 
     serviceInfoMap = getServiceInfo(serviceInfoXml);
     serviceInfo = serviceInfoMap.get("RANGER");
@@ -490,25 +491,25 @@ public class ServiceInfoTest {
   @Test
   public void testServiceProperties() throws Exception {
     String serviceInfoXml =
-      "<metainfo>" +
-      "  <schemaVersion>2.0</schemaVersion>" +
-      "  <services>" +
-      "    <service>" +
-      "      <name>WITH_PROPS</name>" +
-      "      <displayName>WITH_PROPS</displayName>" +
-      "      <properties>" +
-      "        <property>" +
-      "          <name>PROP1</name>" +
-      "          <value>VAL1</value>" +
-      "        </property>" +
-      "        <property>" +
-      "          <name>PROP2</name>" +
-      "          <value>VAL2</value>" +
-      "        </property>" +
-      "      </properties>" +
-      "    </service>" +
-      "  </services>" +
-      "</metainfo>";
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>WITH_PROPS</name>" +
+            "      <displayName>WITH_PROPS</displayName>" +
+            "      <properties>" +
+            "        <property>" +
+            "          <name>PROP1</name>" +
+            "          <value>VAL1</value>" +
+            "        </property>" +
+            "        <property>" +
+            "          <name>PROP2</name>" +
+            "          <value>VAL2</value>" +
+            "        </property>" +
+            "      </properties>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
 
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
 
@@ -527,25 +528,25 @@ public class ServiceInfoTest {
   public void testDefaultVisibilityServiceProperties() throws Exception {
     // Given
     String serviceInfoXml =
-      "<metainfo>" +
-        "  <schemaVersion>2.0</schemaVersion>" +
-        "  <services>" +
-        "    <service>" +
-        "      <name>WITH_PROPS</name>" +
-        "      <displayName>WITH_PROPS</displayName>" +
-        "      <properties>" +
-        "        <property>" +
-        "          <name>PROP1</name>" +
-        "          <value>VAL1</value>" +
-        "        </property>" +
-        "        <property>" +
-        "          <name>PROP2</name>" +
-        "          <value>VAL2</value>" +
-        "        </property>" +
-        "      </properties>" +
-        "    </service>" +
-        "  </services>" +
-        "</metainfo>";
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>WITH_PROPS</name>" +
+            "      <displayName>WITH_PROPS</displayName>" +
+            "      <properties>" +
+            "        <property>" +
+            "          <name>PROP1</name>" +
+            "          <value>VAL1</value>" +
+            "        </property>" +
+            "        <property>" +
+            "          <name>PROP2</name>" +
+            "          <value>VAL2</value>" +
+            "        </property>" +
+            "      </properties>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
 
     // When
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
@@ -563,29 +564,29 @@ public class ServiceInfoTest {
   public void testVisibilityServicePropertyOverride() throws Exception {
     // Given
     String serviceInfoXml =
-      "<metainfo>" +
-        "  <schemaVersion>2.0</schemaVersion>" +
-        "  <services>" +
-        "    <service>" +
-        "      <name>WITH_PROPS</name>" +
-        "      <displayName>WITH_PROPS</displayName>" +
-        "      <properties>" +
-        "        <property>" +
-        "          <name>PROP1</name>" +
-        "          <value>VAL1</value>" +
-        "        </property>" +
-        "        <property>" +
-        "          <name>PROP2</name>" +
-        "          <value>VAL2</value>" +
-        "        </property>" +
-        "        <property>" +
-        "          <name>managed</name>" +
-        "          <value>false</value>" +
-        "        </property>" +
-        "      </properties>" +
-        "    </service>" +
-        "  </services>" +
-        "</metainfo>";
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>WITH_PROPS</name>" +
+            "      <displayName>WITH_PROPS</displayName>" +
+            "      <properties>" +
+            "        <property>" +
+            "          <name>PROP1</name>" +
+            "          <value>VAL1</value>" +
+            "        </property>" +
+            "        <property>" +
+            "          <name>PROP2</name>" +
+            "          <value>VAL2</value>" +
+            "        </property>" +
+            "        <property>" +
+            "          <name>managed</name>" +
+            "          <value>false</value>" +
+            "        </property>" +
+            "      </properties>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
 
     // When
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
@@ -601,34 +602,33 @@ public class ServiceInfoTest {
   }
 
   @Test
-  public void testDuplicateServicePropertyValidationAfterXmlDeserialization() throws Exception
-  {
+  public void testDuplicateServicePropertyValidationAfterXmlDeserialization() throws Exception {
     // Given
     String serviceInfoXml =
-      "<metainfo>" +
-        "  <schemaVersion>2.0</schemaVersion>" +
-        "  <services>" +
-        "    <service>" +
-        "      <version>1.0</version>" +
-        "      <name>WITH_DUPLICATE_PROPS</name>" +
-        "      <displayName>WITH_PROPS</displayName>" +
-        "      <properties>" +
-        "        <property>" +
-        "          <name>PROP1</name>" +
-        "          <value>VAL1</value>" +
-        "        </property>" +
-        "        <property>" +
-        "          <name>PROP1</name>" +
-        "          <value>VAL2</value>" +
-        "        </property>" +
-        "        <property>" +
-        "          <name>managed</name>" +
-        "          <value>false</value>" +
-        "        </property>" +
-        "      </properties>" +
-        "    </service>" +
-        "  </services>" +
-        "</metainfo>";
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <version>1.0</version>" +
+            "      <name>WITH_DUPLICATE_PROPS</name>" +
+            "      <displayName>WITH_PROPS</displayName>" +
+            "      <properties>" +
+            "        <property>" +
+            "          <name>PROP1</name>" +
+            "          <value>VAL1</value>" +
+            "        </property>" +
+            "        <property>" +
+            "          <name>PROP1</name>" +
+            "          <value>VAL2</value>" +
+            "        </property>" +
+            "        <property>" +
+            "          <name>managed</name>" +
+            "          <value>false</value>" +
+            "        </property>" +
+            "      </properties>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
 
     // When
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
@@ -668,45 +668,44 @@ public class ServiceInfoTest {
 
 
   @Test
-  public void testMultiplePimaryLogsValidationAfterXmlDeserialization() throws Exception
-  {
+  public void testMultiplePimaryLogsValidationAfterXmlDeserialization() throws Exception {
     // Given
     String serviceInfoXml =
         "<metainfo>" +
-        "  <schemaVersion>2.0</schemaVersion>" +
-        "  <services>" +
-        "    <service>" +
-        "      <version>1.0</version>" +
-        "      <name>WITH_MULTIPLE_PRIMARY_LOGS</name>" +
-        "      <displayName>WITH_MULTIPLE_PRIMARY_LOGS</displayName>" +
-        "      <properties>" +
-        "        <property>" +
-        "          <name>managed</name>" +
-        "          <value>false</value>" +
-        "        </property>" +
-        "      </properties>" +
-        "      <components> " +
-        "        <component> " +
-        "          <name>COMPONENT_WITH_MULTIPLE_PRIMARY_LOG</name> " +
-        "          <displayName>COMPONENT_WITH_MULTIPLE_PRIMARY_LOG</displayName> " +
-        "          <category>MASTER</category> " +
-        "          <cardinality>0-1</cardinality> " +
-        "          <versionAdvertised>true</versionAdvertised> " +
-        "          <logs> " +
-        "            <log> " +
-        "              <logId>log1</logId> " +
-        "              <primary>true</primary> " +
-        "            </log> " +
-        "            <log> " +
-        "              <logId>log2</logId> " +
-        "              <primary>true</primary> " +
-        "            </log> " +
-        "          </logs> " +
-        "       </component> " +
-        "      </components> " +
-        "    </service>" +
-        "  </services>" +
-        "</metainfo>";
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <version>1.0</version>" +
+            "      <name>WITH_MULTIPLE_PRIMARY_LOGS</name>" +
+            "      <displayName>WITH_MULTIPLE_PRIMARY_LOGS</displayName>" +
+            "      <properties>" +
+            "        <property>" +
+            "          <name>managed</name>" +
+            "          <value>false</value>" +
+            "        </property>" +
+            "      </properties>" +
+            "      <components> " +
+            "        <component> " +
+            "          <name>COMPONENT_WITH_MULTIPLE_PRIMARY_LOG</name> " +
+            "          <displayName>COMPONENT_WITH_MULTIPLE_PRIMARY_LOG</displayName> " +
+            "          <category>MASTER</category> " +
+            "          <cardinality>0-1</cardinality> " +
+            "          <versionAdvertised>true</versionAdvertised> " +
+            "          <logs> " +
+            "            <log> " +
+            "              <logId>log1</logId> " +
+            "              <primary>true</primary> " +
+            "            </log> " +
+            "            <log> " +
+            "              <logId>log2</logId> " +
+            "              <primary>true</primary> " +
+            "            </log> " +
+            "          </logs> " +
+            "       </component> " +
+            "      </components> " +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
 
     // When
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
@@ -757,50 +756,141 @@ public class ServiceInfoTest {
   public void testSupportDeleteViaUI() throws Exception {
     //Explicitly set to true
     String serviceInfoXml =
-      "<metainfo>" +
-      "  <schemaVersion>2.0</schemaVersion>" +
-      "  <services>" +
-      "    <service>" +
-      "      <name>HDFS</name>" +
-      "      <displayName>HDFS</displayName>" +
-      "      <supportDeleteViaUI>true</supportDeleteViaUI>" +
-      "    </service>" +
-      "  </services>" +
-      "</metainfo>";
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>HDFS</name>" +
+            "      <displayName>HDFS</displayName>" +
+            "      <supportDeleteViaUI>true</supportDeleteViaUI>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
     assertTrue(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
 
     //Explicitly set to false
     serviceInfoXml =
         "<metainfo>" +
-        "  <schemaVersion>2.0</schemaVersion>" +
-        "  <services>" +
-        "    <service>" +
-        "      <name>HDFS</name>" +
-        "      <displayName>HDFS</displayName>" +
-        "      <supportDeleteViaUI>false</supportDeleteViaUI>" +
-        "    </service>" +
-        "  </services>" +
-        "</metainfo>";
-      serviceInfoMap = getServiceInfo(serviceInfoXml);
-      assertFalse(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>HDFS</name>" +
+            "      <displayName>HDFS</displayName>" +
+            "      <supportDeleteViaUI>false</supportDeleteViaUI>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertFalse(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
 
-      //Default to true
-      serviceInfoXml =
-          "<metainfo>" +
-          "  <schemaVersion>2.0</schemaVersion>" +
-          "  <services>" +
-          "    <service>" +
-          "      <name>HDFS</name>" +
-          "      <displayName>HDFS</displayName>" +
-          "    </service>" +
-          "  </services>" +
-          "</metainfo>";
-        serviceInfoMap = getServiceInfo(serviceInfoXml);
-        assertTrue(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
+    //Default to true
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>HDFS</name>" +
+            "      <displayName>HDFS</displayName>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertTrue(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
   }
 
-  public static Map<String, ServiceInfo> getServiceInfo(String xml) throws JAXBException {
+  @Test
+  public void testSingleSignOnSupport() throws JAXBException {
+    // Implicit SSO setting
+    String serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertFalse(serviceInfoMap.get("SERVICE").isSingleSignOnSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    SingleSignOnInfo singleSignOnInfo = serviceInfoMap.get("SERVICE").getSingleSignOnInfo();
+    assertNull(singleSignOnInfo);
+
+    // Explicit SSO setting (true)
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <sso>" +
+            "        <supported>true</supported>" +
+            "        <enabledConfiguration>config-type/property_name</enabledConfiguration>" +
+            "      </sso>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertTrue(serviceInfoMap.get("SERVICE").isSingleSignOnSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    singleSignOnInfo = serviceInfoMap.get("SERVICE").getSingleSignOnInfo();
+    assertNotNull(singleSignOnInfo);
+    assertTrue(singleSignOnInfo.isSupported());
+    assertEquals(Boolean.TRUE, singleSignOnInfo.getSupported());
+    assertEquals("config-type/property_name", singleSignOnInfo.getEnabledConfiguration());
+
+    // Explicit SSO setting (false)
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <sso>" +
+            "        <supported>false</supported>" +
+            "      </sso>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertFalse(serviceInfoMap.get("SERVICE").isSingleSignOnSupported());
+    assertTrue(serviceInfoMap.get("SERVICE").isValid());
+
+    singleSignOnInfo = serviceInfoMap.get("SERVICE").getSingleSignOnInfo();
+    assertNotNull(singleSignOnInfo);
+    assertFalse(singleSignOnInfo.isSupported());
+    assertEquals(Boolean.FALSE, singleSignOnInfo.getSupported());
+    assertNull(singleSignOnInfo.getEnabledConfiguration());
+
+    // Explicit SSO setting (invalid)
+    serviceInfoXml =
+        "<metainfo>" +
+            "  <schemaVersion>2.0</schemaVersion>" +
+            "  <services>" +
+            "    <service>" +
+            "      <name>SERVICE</name>" +
+            "      <sso>" +
+            "        <supported>true</supported>" +
+            "      </sso>" +
+            "    </service>" +
+            "  </services>" +
+            "</metainfo>";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertTrue(serviceInfoMap.get("SERVICE").isSingleSignOnSupported());
+    assertFalse(serviceInfoMap.get("SERVICE").isValid());
+    assertEquals(1, serviceInfoMap.get("SERVICE").getErrors().size());
+
+    singleSignOnInfo = serviceInfoMap.get("SERVICE").getSingleSignOnInfo();
+    assertNotNull(singleSignOnInfo);
+    assertTrue(singleSignOnInfo.isSupported());
+    assertEquals(Boolean.TRUE, singleSignOnInfo.getSupported());
+    assertNull(singleSignOnInfo.getEnabledConfiguration());
+  }
+
+  private static Map<String, ServiceInfo> getServiceInfo(String xml) throws JAXBException {
     InputStream configStream = new ByteArrayInputStream(xml.getBytes());
     JAXBContext jaxbContext = JAXBContext.newInstance(ServiceMetainfoXml.class);
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();

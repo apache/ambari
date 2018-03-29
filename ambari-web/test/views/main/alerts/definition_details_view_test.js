@@ -42,13 +42,15 @@ describe('App.MainAlertDefinitionDetailsView', function () {
     beforeEach(function() {
       sinon.spy(view.get('controller'), 'clearStep');
       sinon.spy(view.get('controller'), 'loadAlertInstances');
-      sinon.stub(view, 'loadDefinitionDetails');
+      sinon.stub(App.router, 'get').returns({
+        addObserver: sinon.spy()
+      });
     });
 
     afterEach(function() {
       view.get('controller').clearStep.restore();
       view.get('controller').loadAlertInstances.restore();
-      view.loadDefinitionDetails.restore();
+      App.router.get.restore();
     });
 
     it("clearStep() should be called", function() {
@@ -67,52 +69,36 @@ describe('App.MainAlertDefinitionDetailsView', function () {
       view.set('controller.content.isLoaded', false);
       view.willInsertElement();
       expect(view.get('isLoaded')).to.be.false;
-      expect(view.loadDefinitionDetails.calledOnce).to.be.true;
+      expect(App.router.get('clusterController').addObserver.calledWith('isAlertsLoaded', view, 'loadAfterModelLoaded')).to.be.true;
     });
   });
 
-  describe("#loadDefinitionDetails()", function() {
-    var mock = {
-      updateAlertGroups: function(callback) { callback(); },
-      updateAlertDefinitions: function(callback) { callback(); },
-      updateAlertDefinitionSummary: function(callback) { callback(); }
-    };
-
+  describe('#loadAfterModelLoaded', function() {
     beforeEach(function() {
-      sinon.stub(App.router, 'get').returns(mock);
-      sinon.spy(mock, 'updateAlertGroups');
-      sinon.spy(mock, 'updateAlertDefinitions');
-      sinon.spy(mock, 'updateAlertDefinitionSummary');
+      sinon.stub(App.router, 'get').returns(Em.Object.create({
+        removeObserver: sinon.spy(),
+        isAlertsLoaded: true
+      }));
       sinon.stub(view.get('controller'), 'loadAlertInstances');
       sinon.stub(App.AlertDefinition, 'find').returns({});
-
-      view.loadDefinitionDetails();
+      view.set('isLoaded', false);
+      view.loadAfterModelLoaded();
     });
-
     afterEach(function() {
       App.router.get.restore();
-      mock.updateAlertGroups.restore();
-      mock.updateAlertDefinitions.restore();
-      mock.updateAlertDefinitionSummary.restore();
       view.get('controller').loadAlertInstances.restore();
       App.AlertDefinition.find.restore();
     });
 
-    it("updateAlertGroups() should be called", function() {
-      expect(mock.updateAlertGroups.calledOnce).to.be.true;
-    });
-
-    it("updateAlertDefinitions() should be called", function() {
-      expect(mock.updateAlertDefinitions.calledOnce).to.be.true;
-    });
-
-    it("updateAlertDefinitionSummary() should be called", function() {
-      expect(mock.updateAlertDefinitionSummary.calledOnce).to.be.true;
-    });
-
-    it("loadAlertInstances() should be called", function() {
+    it('isLoaded should be true', function() {
       expect(view.get('isLoaded')).to.be.true;
-      expect(view.get('controller.content')).to.eql({});
+    });
+
+    it('content should be set', function() {
+      expect(view.get('controller.content')).to.be.object;
+    });
+
+    it('loadAlertInstances should be called', function() {
       expect(view.get('controller').loadAlertInstances.calledOnce).to.be.true;
     });
   });

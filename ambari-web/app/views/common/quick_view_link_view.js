@@ -79,6 +79,12 @@ App.QuickLinksView = Em.View.extend({
    */
   servicesSupportsHttps: ["HDFS", "HBASE"],
 
+  masterGroups: [],
+
+  tooltipAttribute: 'quick-links-title-tooltip',
+
+  shouldSetGroupedLinks: false,
+
   /**
    * @type {object}
    */
@@ -287,6 +293,8 @@ App.QuickLinksView = Em.View.extend({
       this.setEmptyLinks();
     } else if (hosts.length === 1 || isMultipleComponentsInLinks || this.hasOverriddenHost()) {
       this.setSingleHostLinks(hosts, response);
+    } else if (this.get('masterGroups.length') > 1 || this.get('shouldSetGroupedLinks')) {
+      this.setMultipleGroupLinks(hosts);
     } else {
       this.setMultipleHostLinks(hosts);
     }
@@ -401,9 +409,24 @@ App.QuickLinksView = Em.View.extend({
         newItem.url = template.fmt(protocol, host, linkPort);
       }
       newItem.label = link.label;
+      newItem.url = this.resolvePlaceholders(newItem.url);
       return newItem;
     }
     return null;
+  },
+
+  /**
+   * Replace placeholders like ${config-type/property-name} in the given URL
+   */
+  resolvePlaceholders: function(url) {
+    return url.replace(/\$\{(\S+)\/(\S+)\}/g, function(match, configType, propertyName) {
+      var config = this.get('configProperties').findProperty('type', configType);
+      if (config) {
+        return config.properties[propertyName] ? config.properties[propertyName] : match;
+      } else {
+        return match;
+      }
+    }.bind(this));
   },
 
   /**
@@ -480,17 +503,9 @@ App.QuickLinksView = Em.View.extend({
     }
   },
 
-  /**
-   * set links that contain multiple hosts
-   *
-   * @param {hostForQuickLink[]} hosts
-   * @method setMultipleHostLinks
-   */
-  setMultipleHostLinks: function (hosts) {
+  getMultipleHostLinks: function (hosts) {
     var quickLinksConfig = this.getQuickLinksConfiguration();
     if (Em.isNone(quickLinksConfig)) {
-      this.set('quickLinksArray', []);
-      this.set('isLoaded', false);
       return;
     }
 
@@ -544,8 +559,50 @@ App.QuickLinksView = Em.View.extend({
       }
       quickLinksArray.push(quickLinks);
     }, this);
-    this.set('quickLinksArray', quickLinksArray);
-    this.set('isLoaded', true);
+    return quickLinksArray;
+  },
+
+  /**
+   * set links that contain multiple hosts
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @method setMultipleHostLinks
+   */
+  setMultipleHostLinks: function (hosts) {
+    const quickLinks = this.getMultipleHostLinks(hosts);
+    this.setProperties({
+      quickLinksArray: [
+        {
+          links: quickLinks || []
+        }
+      ],
+      isLoaded: !!quickLinks
+    });
+  },
+
+  /**
+   * set links that contain for multiple grouped hosts
+   *
+   * @param {hostForQuickLink[]} hosts
+   * @method setMultipleGroupLinks
+   */
+  setMultipleGroupLinks: function (hosts) {
+    let isLoaded = true;
+    const quickLinksArray = this.get('masterGroups').map(group => {
+      const groupHosts = hosts.filter(host => group.hosts.contains(host.hostName)),
+        links = this.getMultipleHostLinks(groupHosts);
+      if (!links) {
+        isLoaded = false;
+      }
+      return {
+        title: group.title,
+        links: links || []
+      };
+    });
+    this.setProperties({
+      quickLinksArray,
+      isLoaded
+    });
   },
 
   /**
@@ -580,20 +637,18 @@ App.QuickLinksView = Em.View.extend({
    * @method hostForQuickLink
    */
   processHdfsHosts: function (hosts) {
-    return hosts.map(function (host) {
-      if (host.hostName === Em.get(this, 'content.activeNameNode.hostName')) {
+    return hosts.map(host => {
+      const {hostName} = host,
+        isActiveNameNode = Em.get(this, 'content.activeNameNodes').someProperty('hostName', hostName),
+        isStandbyNameNode = Em.get(this, 'content.standbyNameNodes').someProperty('hostName', hostName);
+      if (isActiveNameNode) {
         host.status = Em.I18n.t('quick.links.label.active');
       }
-      else
-        if (host.hostName === Em.get(this, 'content.standbyNameNode.hostName')) {
-          host.status = Em.I18n.t('quick.links.label.standby');
-        }
-        else
-          if (host.hostName === Em.get(this, 'content.standbyNameNode2.hostName')) {
-            host.status = Em.I18n.t('quick.links.label.standby');
-          }
+      if (isStandbyNameNode) {
+        host.status = Em.I18n.t('quick.links.label.standby');
+      }
       return host;
-    }, this);
+    });
   },
 
   /**
@@ -851,5 +906,13 @@ App.QuickLinksView = Em.View.extend({
     } else {
       return propertyValue;
     }
-  }
+  },
+
+  setTooltip: function () {
+    Em.run.next(() => {
+      if (this.get('showQuickLinks') && this.get('isLoaded') && this.get('quickLinksArray.length')) {
+        App.tooltip($(`[rel="${this.get('tooltipAttribute')}"]`));
+      }
+    });
+  }.observes('showQuickLinks', 'isLoaded', 'quickLinksArray.length')
 });

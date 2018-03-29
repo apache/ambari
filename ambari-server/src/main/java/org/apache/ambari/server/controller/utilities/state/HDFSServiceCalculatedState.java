@@ -51,13 +51,13 @@ public final class HDFSServiceCalculatedState extends DefaultServiceCalculatedSt
       if (cluster != null && managementControllerProvider != null) {
         AmbariMetaInfo ambariMetaInfo = managementControllerProvider.get().getAmbariMetaInfo();
         Service service = cluster.getService(serviceName);
-        StackId stackId = service.getDesiredStackId();
+        StackId stackId = service.getStackId();
 
         ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName, service.getServiceGroupName(),
           serviceName, null,null, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =
-          managementControllerProvider.get().getHostComponents(Collections.singleton(request));
+          managementControllerProvider.get().getHostComponents(Collections.singleton(request), true);
 
         int     nameNodeCount       = 0;
         int     nameNodeActiveCount = 0;

@@ -49,7 +49,7 @@
                 <span>{{'views.table.viewType' | translate}}</span>
             </th>
             <th class="col-md-2">
-                <span>{{'urls.viewInstance' | translate}}</span>
+                <span>{{'views.urlName' | translate}}</span>
             </th>
             <th class="col-md-2 entity-actions">
                 <span>{{'common.actions' | translate}}</span>
@@ -60,7 +60,7 @@
         <tbody>
         <tr ng-repeat="instance in instances | filter : { isShowed: true }">
             <td>
-                <span>{{instance.short_url_name}}</span>
+                <span>{{instance.instance_name}}</span>
             </td>
             <td>
                 <a target="_blank"
@@ -71,7 +71,7 @@
                 <span>{{instance.view_name}} {{"{"+instance.version+"}"}} </span>
             </td>
             <td>
-                <span>{{instance.instance_name}}</span>
+                <span>{{instance.short_url_name}}</span>
             </td>
             <td class="entity-actions" ng-switch="instance.versionObj.status">
                 <span ng-switch-when="PENDING">

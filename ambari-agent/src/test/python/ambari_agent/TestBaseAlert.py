@@ -80,8 +80,9 @@ class TestBaseAlert(TestCase):
     alert_source_meta = {}
     cluster = 'cluster'
     host = 'host'
+    cluster_id = '0'
 
     alert = BaseAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_cluster(cluster, host)
+    alert.set_cluster(cluster, cluster_id, host)
     self.assertEquals(alert.cluster_name, cluster)
     self.assertEquals(alert.host_name, host)

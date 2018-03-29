@@ -33,8 +33,8 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
@@ -217,33 +217,33 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
   
   private static LdapServerProperties getDefaultLdapServerProperties(boolean forceUsernameToLowerCase) {
     final LdapServerProperties ldapServerProperties = new LdapServerProperties();
-    ldapServerProperties.setPrimaryUrl(AmbariLdapConfigurationKeys.SERVER_HOST.getDefaultValue() + ":" + AmbariLdapConfigurationKeys.SERVER_PORT.getDefaultValue());
-    ldapServerProperties.setSecondaryUrl(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST.getDefaultValue() + ":" + AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT.getDefaultValue());
-    ldapServerProperties.setUseSsl(parseBoolean(AmbariLdapConfigurationKeys.USE_SSL.getDefaultValue()));
-    ldapServerProperties.setAnonymousBind(parseBoolean(AmbariLdapConfigurationKeys.ANONYMOUS_BIND.getDefaultValue()));
-    ldapServerProperties.setManagerDn(AmbariLdapConfigurationKeys.BIND_DN.getDefaultValue());
-    ldapServerProperties.setManagerPassword(AmbariLdapConfigurationKeys.BIND_PASSWORD.getDefaultValue());
-    ldapServerProperties.setBaseDN(AmbariLdapConfigurationKeys.USER_SEARCH_BASE.getDefaultValue());
-    ldapServerProperties.setUsernameAttribute(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setPrimaryUrl(AmbariServerConfigurationKey.SERVER_HOST.getDefaultValue() + ":" + AmbariServerConfigurationKey.SERVER_PORT.getDefaultValue());
+    ldapServerProperties.setSecondaryUrl(AmbariServerConfigurationKey.SECONDARY_SERVER_HOST.getDefaultValue() + ":" + AmbariServerConfigurationKey.SECONDARY_SERVER_PORT.getDefaultValue());
+    ldapServerProperties.setUseSsl(parseBoolean(AmbariServerConfigurationKey.USE_SSL.getDefaultValue()));
+    ldapServerProperties.setAnonymousBind(parseBoolean(AmbariServerConfigurationKey.ANONYMOUS_BIND.getDefaultValue()));
+    ldapServerProperties.setManagerDn(AmbariServerConfigurationKey.BIND_DN.getDefaultValue());
+    ldapServerProperties.setManagerPassword(AmbariServerConfigurationKey.BIND_PASSWORD.getDefaultValue());
+    ldapServerProperties.setBaseDN(AmbariServerConfigurationKey.USER_SEARCH_BASE.getDefaultValue());
+    ldapServerProperties.setUsernameAttribute(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE.getDefaultValue());
     ldapServerProperties.setForceUsernameToLowercase(forceUsernameToLowerCase);
-    ldapServerProperties.setUserBase(AmbariLdapConfigurationKeys.USER_BASE.getDefaultValue());
-    ldapServerProperties.setUserObjectClass(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS.getDefaultValue());
-    ldapServerProperties.setDnAttribute(AmbariLdapConfigurationKeys.DN_ATTRIBUTE.getDefaultValue());
-    ldapServerProperties.setGroupBase(AmbariLdapConfigurationKeys.GROUP_BASE.getDefaultValue());
-    ldapServerProperties.setGroupObjectClass(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS.getDefaultValue());
-    ldapServerProperties.setGroupMembershipAttr(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE.getDefaultValue());
-    ldapServerProperties.setGroupNamingAttr(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE.getDefaultValue());
-    ldapServerProperties.setAdminGroupMappingRules(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES.getDefaultValue());
+    ldapServerProperties.setUserBase(AmbariServerConfigurationKey.USER_BASE.getDefaultValue());
+    ldapServerProperties.setUserObjectClass(AmbariServerConfigurationKey.USER_OBJECT_CLASS.getDefaultValue());
+    ldapServerProperties.setDnAttribute(AmbariServerConfigurationKey.DN_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setGroupBase(AmbariServerConfigurationKey.GROUP_BASE.getDefaultValue());
+    ldapServerProperties.setGroupObjectClass(AmbariServerConfigurationKey.GROUP_OBJECT_CLASS.getDefaultValue());
+    ldapServerProperties.setGroupMembershipAttr(AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setGroupNamingAttr(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setAdminGroupMappingRules(AmbariServerConfigurationKey.GROUP_MAPPING_RULES.getDefaultValue());
     ldapServerProperties.setAdminGroupMappingMemberAttr("");
-    ldapServerProperties.setUserSearchFilter(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER.getDefaultValue());
-    ldapServerProperties.setAlternateUserSearchFilter(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER.getDefaultValue());
-    ldapServerProperties.setGroupSearchFilter(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER.getDefaultValue());
-    ldapServerProperties.setReferralMethod(AmbariLdapConfigurationKeys.REFERRAL_HANDLING.getDefaultValue());
-    ldapServerProperties.setSyncUserMemberReplacePattern(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN.getDefaultValue());
-    ldapServerProperties.setSyncGroupMemberReplacePattern(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN.getDefaultValue());
-    ldapServerProperties.setSyncUserMemberFilter(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER.getDefaultValue());
-    ldapServerProperties.setSyncGroupMemberFilter(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER.getDefaultValue());
-    ldapServerProperties.setPaginationEnabled(parseBoolean(AmbariLdapConfigurationKeys.PAGINATION_ENABLED.getDefaultValue()));
+    ldapServerProperties.setUserSearchFilter(AmbariServerConfigurationKey.USER_SEARCH_FILTER.getDefaultValue());
+    ldapServerProperties.setAlternateUserSearchFilter(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_FILTER.getDefaultValue());
+    ldapServerProperties.setGroupSearchFilter(AmbariServerConfigurationKey.GROUP_SEARCH_FILTER.getDefaultValue());
+    ldapServerProperties.setReferralMethod(AmbariServerConfigurationKey.REFERRAL_HANDLING.getDefaultValue());
+    ldapServerProperties.setSyncUserMemberReplacePattern(AmbariServerConfigurationKey.USER_MEMBER_REPLACE_PATTERN.getDefaultValue());
+    ldapServerProperties.setSyncGroupMemberReplacePattern(AmbariServerConfigurationKey.GROUP_MEMBER_REPLACE_PATTERN.getDefaultValue());
+    ldapServerProperties.setSyncUserMemberFilter(AmbariServerConfigurationKey.USER_MEMBER_FILTER.getDefaultValue());
+    ldapServerProperties.setSyncGroupMemberFilter(AmbariServerConfigurationKey.GROUP_MEMBER_FILTER.getDefaultValue());
+    ldapServerProperties.setPaginationEnabled(parseBoolean(AmbariServerConfigurationKey.PAGINATION_ENABLED.getDefaultValue()));
     return ldapServerProperties;
   }
 }

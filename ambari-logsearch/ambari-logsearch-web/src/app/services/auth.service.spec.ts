@@ -26,6 +26,7 @@ import {StoreModule} from '@ngrx/store';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('AuthService', () => {
 
@@ -65,7 +66,8 @@ describe('AuthService', () => {
         HttpModule,
         StoreModule.provideStore({
           appState
-        })
+        }),
+        RouterTestingModule
       ],
       providers: [
         AuthService,

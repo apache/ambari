@@ -22,16 +22,41 @@ import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.persist.PersistService;
 
 /**
- * This class needs to be instantiated with guice to initialize Guice-persist
+ * This class needs to be instantiated with Guice to initialize Guice-persist
  */
+@Singleton
 public class GuiceJpaInitializer {
-  
+
+  private final AmbariEventPublisher publisher;
+
+  /**
+   * GuiceJpaInitializer constructor.
+   * <p>
+   * Starts the JPA service and holds on to an {@link AmbariEventPublisher} for future use.
+   *
+   * @param service   the persist service
+   * @param publisher the Ambari event publisher
+   */
   @Inject
   public GuiceJpaInitializer(PersistService service, AmbariEventPublisher publisher) {
+    this.publisher = publisher;
     service.start();
+  }
+
+  /**
+   * Called to indicate that the JPA service is initialized and ready for use.
+   * <p>
+   * This means that the schema for the underlying database matches the JPA entity objects expectations
+   * and the PersistService has been started.
+   * <p>
+   * A {@link JpaInitializedEvent} is published so that subscribers can perform database-related tasks
+   * when the infrastructure is ready.
+   */
+  public void setInitialized() {
     publisher.publish(new JpaInitializedEvent());
   }
 

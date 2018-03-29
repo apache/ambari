@@ -457,7 +457,7 @@ public class ComponentVersionCheckActionTest {
   }
 
   private Service installService(Cluster cluster, ServiceGroup serviceGroup, String serviceName, RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    Service service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<>(), serviceName, serviceName, repositoryVersion);
+    Service service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<>(), serviceName, serviceName);
     cluster.addService(service);
     return service;
   }

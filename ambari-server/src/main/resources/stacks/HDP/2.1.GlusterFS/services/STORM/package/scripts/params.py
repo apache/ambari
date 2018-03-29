@@ -30,7 +30,7 @@ pid_dir = status_params.pid_dir
 conf_dir = "/etc/storm/conf"
 local_dir = config['configurations']['storm-site']['storm.local.dir']
 user_group = config['configurations']['cluster-env']['user_group']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 nimbus_host = config['configurations']['storm-site']['nimbus.host']
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 nimbus_host = config['configurations']['storm-site']['nimbus.host']
@@ -38,7 +38,7 @@ rest_api_port = "8745"
 rest_api_admin_port = "8746"
 rest_api_conf_file = format("{conf_dir}/config.yaml")
 rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 
 if 'ganglia_server_host' in config['clusterHostInfo'] and \
     len(config['clusterHostInfo']['ganglia_server_host'])>0:

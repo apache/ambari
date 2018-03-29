@@ -226,7 +226,7 @@ class TestWebHCatServer(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat',
                               configurations = self.getConfig()['configurations']['webhcat-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['webhcat-site']
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-webhcat/etc/webhcat/webhcat-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
@@ -268,7 +268,7 @@ class TestWebHCatServer(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat',
                               configurations = self.getConfig()['configurations']['webhcat-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['webhcat-site']
     )
 
     self.assertResourceCalledIgnoreEarlier('File', '/usr/hdp/current/hive-webhcat/etc/webhcat/webhcat-env.sh',
@@ -294,7 +294,7 @@ class TestWebHCatServer(RMFTestCase):
       json_content = json.load(f)
     version = '2.2.1.0-3242'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "pre_upgrade_restart",
@@ -316,7 +316,7 @@ class TestWebHCatServer(RMFTestCase):
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
@@ -347,7 +347,7 @@ class TestWebHCatServer(RMFTestCase):
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
@@ -383,7 +383,7 @@ class TestWebHCatServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat',
       configurations = self.getConfig()['configurations']['webhcat-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site'])
+      configuration_attributes = self.getConfig()['configurationAttributes']['webhcat-site'])
 
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
         owner = 'hive',

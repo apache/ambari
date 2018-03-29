@@ -29,16 +29,16 @@ from resource_management.libraries.functions import stack_select
 
 config = Script.get_config()
 
-jdk_name = default("/hostLevelParams/jdk_name", None)
-java_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_name = default("/ambariLevelParams/jdk_name", None)
+java_home = config['ambariLevelParams']['java_home']
+java_version = int(config['ambariLevelParams']['java_version'])
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 #hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = functions.get_kinit_path()
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
@@ -46,8 +46,8 @@ smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
 
-java64_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java64_home = config['ambariLevelParams']['java_home']
+java_version = int(config['ambariLevelParams']['java_version'])
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']

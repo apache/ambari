@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestMpackInstanceEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
@@ -174,9 +176,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
    * @param properties  request properties
    * @param securityConfiguration  security config related properties
    */
-  public ProvisionClusterRequest(String rawRequestBody, Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
-    InvalidTopologyTemplateException {
-    this.rawRequestBody = rawRequestBody;
+  public ProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
+      InvalidTopologyTemplateException {
 
     setClusterName(String.valueOf(properties.get(
       ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
@@ -535,4 +536,16 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
   public Collection<MpackInstance> getMpacks() {
     return mpackInstances;
   }
+
+  @Override
+  public TopologyRequestEntity toEntity() {
+    TopologyRequestEntity entity = super.toEntity();
+    mpackInstances.forEach(mpackInstance -> {
+        TopologyRequestMpackInstanceEntity mpackInstanceEntity = mpackInstance.toMpackInstanceEntity(entity);
+        entity.getMpackInstances().add(mpackInstanceEntity);
+      });
+    return entity;
+  }
+
+
 }

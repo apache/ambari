@@ -20,7 +20,7 @@ Credential resources represent named principal/key pairs related to a particular
 
 Credential resources may be stored in the persisted credential store or the temporary credential store. If stored in the persisted credential store, the credential will be stored until deleted. If stored in the temporary credential store, the credential will be stored until a timeout is met (default 90 minutes) or Ambari is restarted. 
 
-###API Summary
+### API Summary
 
 - [List credentials](credential-list.md)
 - [Get credential](credential-get.md)
@@ -28,7 +28,7 @@ Credential resources may be stored in the persisted credential store or the temp
 - [Update credential](credential-update.md)
 - [Delete credential](credential-delete.md)
 
-###Properties
+### Properties
 
 <table>
   <tr>

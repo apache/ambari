@@ -65,9 +65,9 @@ zoo_cfg_properties_map_length = len(zoo_cfg_properties_map)
 zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper@EXAMPLE.COM")
 zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 
-zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts = config['clusterHostInfo']['zookeeper_server_hosts']
 zookeeper_hosts.sort()
 
 zk_keytab_path = config['configurations']['zookeeper-env']['zookeeper_keytab_path']

@@ -190,12 +190,15 @@ public class AlertDefinitionFactory {
     definition.setHelpURL(entity.getHelpURL());
     definition.setDescription(entity.getDescription());
     definition.setUuid(entity.getHash());
+    definition.setRepeatTolerance(entity.getRepeatTolerance());
+    definition.setRepeatToleranceEnabled(entity.isRepeatToleranceEnabled());
 
     try{
       String sourceJson = entity.getSource();
       Source source = m_gson.fromJson(sourceJson, Source.class);
       definition.setSource(source);
     } catch (Exception exception) {
+      LOG.error("Alert defintion is invalid for  Id : " + entity.getDefinitionId() + " Name: "+  entity.getDefinitionName() );
       LOG.error(
           "Unable to deserialize the alert definition source during coercion",
           exception);

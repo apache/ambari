@@ -27,7 +27,7 @@ import re
 import shlex
 import socket
 import multiprocessing
-import subprocess
+from ambari_commons import subprocess32
 from ambari_commons.shell import shellRunner
 import time
 import uuid
@@ -42,11 +42,11 @@ log = logging.getLogger()
 
 def run_os_command(cmd):
   shell = (type(cmd) == str)
-  process = subprocess.Popen(cmd,
+  process = subprocess32.Popen(cmd,
                              shell=shell,
-                             stdout=subprocess.PIPE,
-                             stdin=subprocess.PIPE,
-                             stderr=subprocess.PIPE
+                             stdout=subprocess32.PIPE,
+                             stdin=subprocess32.PIPE,
+                             stderr=subprocess32.PIPE
   )
   (stdoutdata, stderrdata) = process.communicate()
   return process.returncode, stdoutdata, stderrdata
@@ -391,8 +391,8 @@ class FacterLinux(Facter):
   def setDataIfConfigShortOutput():
 
     try:
-      result = os.popen(FacterLinux.GET_IFCONFIG_SHORT_CMD).read()
-      return result
+      return_code, stdout, stderr = run_os_command(FacterLinux.GET_IFCONFIG_SHORT_CMD)
+      return stdout
     except OSError:
       log.warn("Can't execute {0}".format(FacterLinux.GET_IFCONFIG_SHORT_CMD))
     return ""
@@ -402,8 +402,8 @@ class FacterLinux(Facter):
   def setDataIpLinkOutput():
 
     try:
-      result = os.popen(FacterLinux.GET_IP_LINK_CMD).read()
-      return result
+      return_code, stdout, stderr = run_os_command(FacterLinux.GET_IP_LINK_CMD)
+      return stdout
     except OSError:
       log.warn("Can't execute {0}".format(FacterLinux.GET_IP_LINK_CMD))
     return ""
@@ -412,8 +412,8 @@ class FacterLinux(Facter):
   def setDataUpTimeOutput():
 
     try:
-      result = os.popen(FacterLinux.GET_UPTIME_CMD).read()
-      return result
+      return_code, stdout, stderr = run_os_command(FacterLinux.GET_UPTIME_CMD)
+      return stdout
     except OSError:
       log.warn("Can't execute {0}".format(FacterLinux.GET_UPTIME_CMD))
     return ""
@@ -422,8 +422,8 @@ class FacterLinux(Facter):
   def setMemInfoOutput():
 
     try:
-      result = os.popen(FacterLinux.GET_MEMINFO_CMD).read()
-      return result
+      return_code, stdout, stderr = run_os_command(FacterLinux.GET_MEMINFO_CMD)
+      return stdout
     except OSError:
       log.warn("Can't execute {0}".format(FacterLinux.GET_MEMINFO_CMD))
     return ""

@@ -27,8 +27,6 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.version import format_stack_version
@@ -38,7 +36,9 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
-from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.constants import AMBARI_SUDO_BINARY, HADOOP_CLIENTS_MODULE_NAME, HADOOP_CLIENT_COMPONENT_TYPE
+import resource_management.libraries.functions.config_helper as config_helper
+from resource_management.libraries.functions.mpack_manager_helper import get_component_conf_path, get_component_home_path
 
 
 config = Script.get_config()
@@ -51,19 +51,19 @@ architecture = get_architecture()
 dfs_type = default("/commandParams/dfs_type", "")
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
-jdk_name = default("/hostLevelParams/jdk_name", None)
-java_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_name = default("/ambariLevelParams/jdk_name", None)
+java_home = config['ambariLevelParams']['java_home']
+java_version = expect("/ambariLevelParams/java_version", int)
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 hadoop_custom_extensions_enabled = default("/configurations/core-site/hadoop.custom-extensions.enabled", False)
 
 sudo = AMBARI_SUDO_BINARY
 
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+ambari_server_hostname = config['ambariLevelParams']['ambari_server_host']
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
-stack_version_formatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
+stack_version_formatted = config['clusterLevelParams']['stack_version']
 #stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
@@ -109,12 +109,16 @@ def is_secure_port(port):
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
-hadoop_home = stack_select.get_hadoop_dir("home")
-stack_name = default("/hostLevelParams/stack_name", None)
+
+mpack_name = config_helper.get_mpack_name(config)
+mpack_instance_name = config_helper.get_mpack_instance_name(config)
+module_name = config_helper.get_module_name(config)
+component_type = config_helper.get_component_type(config)
+component_instance_name = config_helper.get_component_instance_name(config)
+
+stack_name = default("/clusterLevelParams/stack_name", None)
 stack_name = stack_name.lower()
 component_directory = "namenode"
-hadoop_libexec_dir = format("/usr/hwx/mpacks/{stack_name}/{stack_version_formatted}/{component_directory}/libexec")
-hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 hadoop_dir = "/etc/hadoop"
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
@@ -180,8 +184,8 @@ zeppelin_group = config['configurations']['zeppelin-env']["zeppelin_group"]
 
 user_group = get_cluster_setting_value('user_group')
 
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
@@ -215,7 +219,9 @@ if dfs_ha_namenode_ids:
     dfs_ha_enabled = True
 
 if has_namenode or dfs_type == 'HCFS':
-    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+    hadoop_conf_dir = get_component_conf_path(mpack_name=mpack_name, instance_name=mpack_instance_name,
+                                              module_name=HADOOP_CLIENTS_MODULE_NAME,
+                                              components_instance_type=HADOOP_CLIENT_COMPONENT_TYPE)
     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
@@ -232,14 +238,14 @@ smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},
 if has_hbase_masters:
   hbase_user_dirs = format("/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
 #repo params
-repo_info = config['hostLevelParams']['repo_info']
+repo_info = config['hostLevelParams']['repoInfo']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
 
 user_to_groups_dict = {}
 
 #Append new user-group mapping to the dict
 try:
-  user_group_map = ast.literal_eval(config['hostLevelParams']['user_groups'])
+  user_group_map = ast.literal_eval(config['clusterLevelParams']['user_groups'])
   for key in user_group_map.iterkeys():
     user_to_groups_dict[key] = user_group_map[key]
 except ValueError:
@@ -247,9 +253,9 @@ except ValueError:
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
-user_list = json.loads(config['hostLevelParams']['user_list'])
-group_list = set(json.loads(config['hostLevelParams']['group_list']) + [user_group])
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+user_list = json.loads(config['clusterLevelParams']['user_list'])
+group_list = json.loads(config['clusterLevelParams']['group_list'])
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
 tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
 override_uid = get_cluster_setting_value('override_uid')

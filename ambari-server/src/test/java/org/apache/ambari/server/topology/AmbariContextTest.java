@@ -414,9 +414,9 @@ public class AmbariContextTest {
 
     // test
     Stream<ResolvedComponent> components = Stream.of(
-      ResolvedComponent.builder(new Component("component1", "mpack", "service1", null)).buildPartial(),
-      ResolvedComponent.builder(new Component("component2", "mpack", "service1", null)).buildPartial(),
-      ResolvedComponent.builder(new Component("component3", "mpack", "service2", null)).buildPartial()
+      ResolvedComponent.builder(new Component("component1", new StackId("mpack", "1.0"), "service1", null)).buildPartial(),
+      ResolvedComponent.builder(new Component("component2", new StackId("mpack", "1.0"), "service1", null)).buildPartial(),
+      ResolvedComponent.builder(new Component("component3", new StackId("mpack", "1.0"), "service2", null)).buildPartial()
     );
     context.createAmbariHostResources(CLUSTER_ID, "host1", components);
 

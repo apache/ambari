@@ -28,11 +28,11 @@ import java.util.Properties;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -113,10 +113,10 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
 
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
     final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration();
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "localhost");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, String.valueOf(getLdapServer().getPort()));
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "dc=ambari,dc=the apache,dc=org");
-    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.GROUP_BASE, "ou=the groups,dc=ambari,dc=the apache,dc=org");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.SERVER_HOST, "localhost");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.SERVER_PORT, String.valueOf(getLdapServer().getPort()));
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.USER_SEARCH_BASE, "dc=ambari,dc=the apache,dc=org");
+    ldapConfiguration.setValueFor(AmbariServerConfigurationKey.GROUP_BASE, "ou=the groups,dc=ambari,dc=the apache,dc=org");
     expect(ldapConfigurationProvider.get()).andReturn(ldapConfiguration).anyTimes();
     expect(authoritiesPopulator.getGrantedAuthorities(anyObject(), anyObject())).andReturn(Collections.emptyList()).anyTimes();
     replayAll();

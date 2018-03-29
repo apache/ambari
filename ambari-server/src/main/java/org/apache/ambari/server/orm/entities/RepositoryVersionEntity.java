@@ -85,10 +85,7 @@ import com.google.inject.Provider;
         query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL"),
     @NamedQuery(
         name = "findRepositoryByVersion",
-        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC"),
-    @NamedQuery(
-        name = "findByServiceDesiredVersion",
-        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion IN (SELECT DISTINCT sd1.desiredRepositoryVersion FROM ServiceDesiredStateEntity sd1 WHERE sd1.desiredRepositoryVersion IN ?1)") })
+        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC") })
 @StaticallyInject
 @Deprecated
 @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
@@ -117,6 +114,7 @@ public class RepositoryVersionEntity {
   /**
    * one-to-many association to {@link RepoOsEntity}
    */
+
   @OneToMany(fetch = FetchType.EAGER, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
   private List<RepoOsEntity> repoOsEntities = new ArrayList<>();
 
@@ -350,6 +348,7 @@ public class RepositoryVersionEntity {
    */
   @Override
   public int hashCode() {
+
     return java.util.Objects.hash(stack, version, displayName);
   }
 

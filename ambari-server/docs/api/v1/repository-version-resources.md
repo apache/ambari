@@ -17,7 +17,7 @@ limitations under the License.
 
 # Repository Version Resources
 
-#####Create Instance
+##### Create Instance
 New repository versions may be created through the API. At least one set of base repository URLs should be provided.
 
     POST http://<server>:8080/api/v1/stacks/<stack_name>/versions/<stack_version>/repository_versions/
@@ -51,7 +51,7 @@ New repository versions may be created through the API. At least one set of base
       ]
     }
 
-#####Get Repository Versions
+##### Get Repository Versions
 The user may query for all repository versions of a particular stack.
 
     GET http://<server>:8080/api/v1/stacks/<stack_name>/versions/<stack_version>/repository_versions/
@@ -78,7 +78,7 @@ The user may query for all repository versions of a particular stack.
       ]
     }
 
-#####Get Repository Version
+##### Get Repository Version
 Returns single repository version.
 
     GET http://<server>:8080/api/v1/stacks/<stack_name>/versions/<stack_version>/repository_versions/1
@@ -115,12 +115,12 @@ Returns single repository version.
       ]
     }
     
-#####Delete Repository Version
+##### Delete Repository Version
 Deregisters repository version. It won't be possible to remove repository version which is installed on any of the clusters.
 
     DELETE http://<server>:8080/api/v1/stacks/<stack_name>/versions/<stack_version>/repository_versions/1
 
-#####Update Repository Version
+##### Update Repository Version
 Updates repository version. It is possible to change display name and base URLs. 
 
     PUT http://<server>:8080/api/v1/stacks/<stack_name>/versions/<stack_version>/repository_versions/1
@@ -161,7 +161,7 @@ Updates repository version. It is possible to change display name and base URLs.
       ]
     }
     
-#####Validate Base URL
+##### Validate Base URL
 User may validate URLs of repositories before persisting.
 
     POST http://<server>:8080/api/v1/stacks/<stack_name>/versions/<stack_version>/operating_systems/redhat5/repositories/HDP-UTILS-1.1.0.20?validate_only=true

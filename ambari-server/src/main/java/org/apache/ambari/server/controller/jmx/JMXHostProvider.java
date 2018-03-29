@@ -19,9 +19,6 @@ package org.apache.ambari.server.controller.jmx;
 
 import java.util.Set;
 
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.state.Host;
-
 /**
  * Provider of JMX host information.
  */
@@ -41,28 +38,6 @@ public interface JMXHostProvider {
   Set<String> getHostNames(String clusterName, String componentName);
 
   /**
-   * Get cluster host info given the host name
-   * @param clusterName
-   * @param hostName the host name
-   * @return the host info {@link Host}
-   */
-  Host getHost(String clusterName, String hostName);
-
-  /**
-   * Get the port for the specified cluster name and component.
-   *
-   * @param clusterName    the cluster name
-   * @param componentName  the component name
-   * @param hostName       the component hostName
-   *
-   * @return the port for the specified cluster name and component
-   *
-   * @throws SystemException if unable to get the JMX port
-   */
-  String getPort(String clusterName, String componentName, String hostName)
-      throws SystemException;
-
-  /**
    * Get the port for the specified cluster name and component.
    *
    * @param clusterName    the cluster name
@@ -71,12 +46,9 @@ public interface JMXHostProvider {
    * @param httpsEnabled   https enabled
    *
    * @return the port for the specified cluster name and component
-   *
-   * @throws SystemException if unable to get the JMX port
    */
-  String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled)
-      throws SystemException;
-  
+  String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled);
+
   /**
    * Get the protocol for the specified cluster name and component.
    *

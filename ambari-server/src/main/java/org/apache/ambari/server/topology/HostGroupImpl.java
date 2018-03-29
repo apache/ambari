@@ -20,6 +20,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.StackId;
 
 import com.google.gson.Gson;
 
@@ -132,11 +134,16 @@ public class HostGroupImpl implements HostGroup {
    */
   private void parseComponents(HostGroupEntity entity) {
     for (HostGroupComponentEntity componentEntity : entity.getComponents() ) {
+      StackId stackId =
+        isNotEmpty(componentEntity.getMpackName()) && isNotEmpty(componentEntity.getMpackVersion()) ?
+          new StackId(componentEntity.getMpackName(), componentEntity.getMpackVersion()) : null;
+
       Component component = new Component(
         componentEntity.getName(),
-        componentEntity.getMpackName(),
+        stackId,
         componentEntity.getServiceName(),
         null == componentEntity.getProvisionAction() ? null : ProvisionAction.valueOf(componentEntity.getProvisionAction()));
+
       addComponent(component);
     }
   }

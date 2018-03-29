@@ -45,7 +45,7 @@
   </div>
 
   <div class="dashboard-widgets-box">
-    <div id="dashboard-widgets"  class="widgets-container">
+    <div id="dashboard-widgets" class="widgets-container">
       <div class="thumbnails" id="sortable">
         {{#each widget in view.allWidgets}}
           {{#if widget.isVisible}}
@@ -53,6 +53,47 @@
           {{/if}}
         {{/each}}
       </div>
+      {{#if view.widgetGroups.length}}
+        {{#each group in view.widgetGroups}}
+          <div class="dashboard-widget-groups-container">
+            <div class="col-md-12">
+              <h5 class="widgets-group-title">{{group.title}}</h5>
+              {{#if group.subGroups.length}}
+                <div class="btn-group">
+                  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    {{#if group.activeSubGroup}}
+                      {{group.activeSubGroup.title}}
+                    {{else}}
+                      {{t common.all}}
+                    {{/if}}
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {{#each item in group.subGroups}}
+                      <li>
+                        <a href="#" {{action setActiveSubGroup group.subGroups item.name target="view"}}>
+                          {{item.title}}
+                        </a>
+                      </li>
+                    {{/each}}
+                  </ul>
+                </div>
+              {{/if}}
+            </div>
+            <div class="thumbnails">
+              {{#each groupLayout in group.allWidgets}}
+                {{#if groupLayout.isActive}}
+                  {{#each widget in groupLayout.widgets}}
+                    {{#if widget.isVisible}}
+                      {{view widget.viewClass widgetBinding="widget"}}
+                    {{/if}}
+                  {{/each}}
+                {{/if}}
+              {{/each}}
+            </div>
+          </div>
+        {{/each}}
+      {{/if}}
     </div>
   </div>
 {{else}}

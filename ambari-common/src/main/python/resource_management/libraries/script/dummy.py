@@ -56,7 +56,7 @@ class Dummy(Script):
 
     self.config = Script.get_config()
     # Cannot rely on system hostname since will run multiple Ambari agents on the same host.
-    self.host_name = self.config["hostname"]
+    self.host_name = self.config["agentLevelParams"]["hostname"]
 
     # Should still define self.component_name which is needed for status commands.
     if "role" in self.config:
@@ -74,8 +74,9 @@ class Dummy(Script):
   def install(self, env):
     print "Install"
     self.prepare()
+    """
     component_name = self.get_component_name()
-    repo_info = str(default("/hostLevelParams/repo_info", "1.1.1.1-1"))
+    repo_info = str(default("/hostLevelParams/repoInfo", "1.1.1.1-1"))
     matches = re.findall(r"([\d\.]+\-\d+)", repo_info)
     version = matches[0] if matches and len(matches) > 0 else "1.1.1.1-1"
 
@@ -87,6 +88,7 @@ class Dummy(Script):
     if component_name:
       conf_select.select("PERF", component_name, version)
       stack_select.select(component_name, version)
+    """
 
   def configure(self, env):
     print "Configure"

@@ -19,11 +19,13 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface ServiceComponent {
@@ -64,18 +66,9 @@ public interface ServiceComponent {
 
   void setDesiredState(State state);
 
-  /**
-   * Gets the desired repository for this service component.
-   *
-   * @return
-   */
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  RepositoryVersionEntity getDesiredRepositoryVersion();
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  StackId getDesiredStackId();
+  StackId getStackId();
 
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
@@ -92,6 +85,8 @@ public interface ServiceComponent {
   void updateComponentInfo() throws AmbariException;
 
   Map<String, ServiceComponentHost> getServiceComponentHosts();
+
+  Set<String> getServiceComponentsHosts();
 
   ServiceComponentHost getServiceComponentHost(String hostname)
       throws AmbariException;
@@ -114,15 +109,15 @@ public interface ServiceComponent {
 
   boolean canBeRemoved();
 
-  void deleteAllServiceComponentHosts() throws AmbariException;
+  void deleteAllServiceComponentHosts(DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException;
 
-  void deleteServiceComponentHosts(String hostname)
+  void deleteServiceComponentHosts(String hostname, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException;
 
   ServiceComponentHost addServiceComponentHost(
       String hostName) throws AmbariException;
 
-  void delete() throws AmbariException;
+  void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 
   /**
    * @return the repository state for the desired version

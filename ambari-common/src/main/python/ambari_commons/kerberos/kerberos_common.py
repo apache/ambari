@@ -21,7 +21,7 @@ import base64
 import getpass
 import os
 import stat
-from ambari_agent import Constants
+from ambari_commons.constants import AGENT_TMP_DIR
 from collections import namedtuple
 from resource_management.core import sudo
 from resource_management.core.logger import Logger
@@ -97,7 +97,7 @@ def write_krb5_conf(params):
 
 
 def clear_tmp_cache():
-  tmp_dir = Constants.AGENT_TMP_DIR
+  tmp_dir = AGENT_TMP_DIR
   if tmp_dir is None:
     tmp_dir = gettempdir()
   curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")

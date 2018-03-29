@@ -32,8 +32,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.HttpClientUtil;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
@@ -70,6 +69,9 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
   private static final boolean DEFAULT_SKIP_LOGTIME = false;
 
   private static final int RETRY_INTERVAL = 30;
+
+  private static final String JAVA_SECURITY_AUTH_LOGIN_CONFIG = "java.security.auth.login.config";
+  private static final String SOLR_HTTPCLIENT_BUILDER_FACTORY = "solr.httpclient.builder.factory";
 
   private String type;
   private String collection;
@@ -181,8 +183,8 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
     String jaasFile = logFeederProps.getLogFeederSecurityConfig().getSolrJaasFile();
     boolean securityEnabled = logFeederProps.getLogFeederSecurityConfig().isSolrKerberosEnabled();
     if (securityEnabled) {
-      System.setProperty("java.security.auth.login.config", jaasFile);
-      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+      System.setProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG, jaasFile);
+      System.setProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY, Krb5HttpClientBuilder.class.getCanonicalName());
       LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
     }
   }

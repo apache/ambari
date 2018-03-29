@@ -34,6 +34,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
@@ -210,7 +211,7 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   @Nonnull
-  public Stream<Pair<StackId, String>> getServicesForComponent(String component) {
+  public Stream<Pair<StackId, ServiceInfo>> getServicesForComponent(String component) {
     return stacks.stream()
       .flatMap(stack -> stack.getServicesForComponent(component));
   }

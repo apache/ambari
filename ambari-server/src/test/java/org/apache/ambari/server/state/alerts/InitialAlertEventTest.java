@@ -34,7 +34,6 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
@@ -81,7 +80,6 @@ public class InitialAlertEventTest {
   private static final String STACK_VERSION = "2.0.6";
   private static final String REPO_VERSION = "2.0.6-1234";
   private static final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-  private RepositoryVersionEntity m_repositoryVersion;
 
   @Before
   public void setup() throws Exception {
@@ -107,7 +105,7 @@ public class InitialAlertEventTest {
     m_alertsDao = m_injector.getInstance(AlertsDAO.class);
     m_helper = m_injector.getInstance(OrmTestHelper.class);
 
-    m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
+    m_helper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
 
     m_clusterName = "c1";
     m_clusters.addCluster(m_clusterName, STACK_ID);
@@ -146,7 +144,7 @@ public class InitialAlertEventTest {
         definition.getServiceName(), definition.getComponentName(), null,
         AlertState.CRITICAL);
 
-    alert.setCluster(m_clusterName);
+    alert.setClusterId(m_cluster.getClusterId());
 
     AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
 
@@ -182,7 +180,7 @@ public class InitialAlertEventTest {
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     ServiceGroup serviceGroup = m_cluster.addServiceGroup("CORE", STACK_ID.getStackId());
-    m_serviceFactory.createNew(m_cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, m_repositoryVersion);
+    m_serviceFactory.createNew(m_cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
     Service service = m_cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

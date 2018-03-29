@@ -22,7 +22,7 @@ import time
 import logging
 import traceback
 import json
-import subprocess
+from ambari_commons import subprocess32
 
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
@@ -168,7 +168,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     else:
       llap_status_cmd = STACK_ROOT_DEFAULT + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
 
-    code, output, error = shell.checked_call(llap_status_cmd, user=hive_user, stderr=subprocess.PIPE,
+    code, output, error = shell.checked_call(llap_status_cmd, user=hive_user, stderr=subprocess32.PIPE,
                                              timeout=check_command_timeout,
                                              logoutput=False)
     # Call for getting JSON

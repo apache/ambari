@@ -66,7 +66,10 @@ import com.google.common.base.Objects;
     "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.clusterId=:clusterId AND hcds.serviceGroupId=:serviceGroupId AND hcds.serviceId=:serviceId AND hcds.componentName=:componentName AND hcds.hostEntity.hostName=:hostName"),
 
   @NamedQuery(name = "HostComponentDesiredStateEntity.findByIndex", query =
-    "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.id=:id")
+    "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.id=:id"),
+
+  @NamedQuery(name = "HostComponentDesiredStateEntity.findByHostsAndCluster", query =
+    "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.hostId IN :hostIds AND hcds.clusterId=:clusterId"),
 })
 public class HostComponentDesiredStateEntity {
 
@@ -188,6 +191,10 @@ public class HostComponentDesiredStateEntity {
 
   public void setMaintenanceState(MaintenanceState state) {
     maintenanceState = state;
+  }
+
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   @Override

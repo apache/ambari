@@ -80,7 +80,7 @@ def webhcat():
   XmlConfig("webhcat-site.xml",
             conf_dir=params.config_dir,
             configurations=webhcat_site,
-            configuration_attributes=params.config['configuration_attributes']['webhcat-site'],
+            configuration_attributes=params.config['configurationAttributes']['webhcat-site'],
             owner=params.webhcat_user,
             group=params.user_group,
             )
@@ -91,7 +91,7 @@ def webhcat():
     XmlConfig("hive-site.xml",
       conf_dir = format("{stack_root}/{version}/hive/conf"),
       configurations = params.config['configurations']['hive-site'],
-      configuration_attributes = params.config['configuration_attributes']['hive-site'],
+      configuration_attributes = params.config['configurationAttributes']['hive-site'],
       owner = params.hive_user,
       group = params.user_group,
       )
@@ -99,7 +99,7 @@ def webhcat():
     XmlConfig("yarn-site.xml",
       conf_dir = format("{stack_root}/{version}/hadoop/conf"),
       configurations = params.config['configurations']['yarn-site'],
-      configuration_attributes = params.config['configuration_attributes']['yarn-site'],
+      configuration_attributes = params.config['configurationAttributes']['yarn-site'],
       owner = params.yarn_user,
       group = params.user_group,    
   )

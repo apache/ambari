@@ -36,11 +36,11 @@ tmp_dir = Script.get_tmp_dir()
 dfs_type = default("/commandParams/dfs_type", "")
 
 is_parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 major_stack_version = get_major_version(stack_version_formatted)
 
@@ -50,7 +50,7 @@ service_name = config['serviceName']
 # logsearch configuration
 logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
 
-agent_cache_dir = config['hostLevelParams']['agentCacheDir']
+agent_cache_dir = config['agentLevelParams']['agentCacheDir']
 service_package_folder = config['commandParams']['service_package_folder']
 logsearch_service_name = service_name.lower().replace("_", "-")
 logsearch_config_file_name = 'input.config-' + logsearch_service_name + ".json"
@@ -68,7 +68,7 @@ versioned_stack_root = '/usr/hdp/current'
 security_enabled = get_cluster_setting_value('security_enabled')
 
 #java params
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
@@ -97,7 +97,7 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 user_group = get_cluster_setting_value('user_group')
 
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':

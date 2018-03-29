@@ -59,6 +59,7 @@ public class Request {
   private long startTime;
   private long endTime;
   private String clusterHostInfo;
+  private String userName;
 
   /**
    * If true, this request can not be executed in parallel with any another
@@ -250,6 +251,7 @@ public class Request {
     requestEntity.setStatus(status);
     requestEntity.setDisplayStatus(displayStatus);
     requestEntity.setClusterHostInfo(clusterHostInfo);
+    requestEntity.setUserName(userName);
     //TODO set all fields
 
     if (resourceFilters != null) {
@@ -422,6 +424,20 @@ public class Request {
 
   public void setExclusive(boolean isExclusive) {
     exclusive = isExclusive;
+  }
+
+  /**
+   * Returns the user name associated with the request.
+   */
+  public String getUserName() {
+    return userName;
+  }
+
+  /**
+   * Sets the user name
+   */
+  public void setUserName(String userName) {
+    this.userName = userName;
   }
 
   /**

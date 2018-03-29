@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -372,16 +373,33 @@ public interface DBAccessor {
    * Execute select {@code columnName} from {@code tableName}
    * where {@code columnNames} values = {@code values}
    *
-   * @param tableName
-   * @param columnName
-   * @param columnNames
-   * @param values
-   * @param ignoreFailure
-   * @return
+   * @param tableName            the table name
+   * @param columnName           the name of the column with the data to select
+   * @param conditionColumnNames an array of column names to use in the where clause
+   * @param conditionValues      an array of value to pair with the column names in conditionColumnNames
+   * @param ignoreFailure        true to ignore failures executing the query; false otherwise (errors building the query will be thrown, however)
+   * @return a list of integers
    * @throws SQLException
    */
-  List<Integer> getIntColumnValues(String tableName, String columnName, String[] columnNames,
-                                   String[] values, boolean ignoreFailure) throws SQLException;
+  List<Integer> getIntColumnValues(String tableName, String columnName, String[] conditionColumnNames,
+                                   String[] conditionValues, boolean ignoreFailure) throws SQLException;
+
+  /**
+   * Execute select {@code keyColumnName}, {@code valueColumnName} from {@code tableName}
+   * where {@code columnNames} values = {@code values}
+   *
+   * @param tableName            the table name
+   * @param keyColumnName        the name of the column with the key data to select
+   * @param valueColumnName      the name of the column with the value data to select
+   * @param conditionColumnNames an array of column names to use in the where clause
+   * @param conditionValues      an array of value to pair with the column names in conditionColumnNames
+   * @param ignoreFailure        true to ignore failures executing the query; false otherwise (errors building the query will be thrown, however)
+   * @return a map of key to values
+   * @throws SQLException
+   */
+  Map<Long, String> getKeyToStringColumnMap(String tableName, String keyColumnName, String valueColumnName,
+                                            String[] conditionColumnNames, String[] conditionValues,
+                                            boolean ignoreFailure) throws SQLException;
 
   /**
    * Drop table from schema
