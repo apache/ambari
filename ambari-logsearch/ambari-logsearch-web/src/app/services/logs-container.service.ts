@@ -63,6 +63,7 @@ import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {LogLevelComponent} from '@app/components/log-level/log-level.component';
 
 @Injectable()
 export class LogsContainerService {
@@ -349,9 +350,12 @@ export class LogsContainerService {
       label: 'filter.levels',
       iconClass: 'fa fa-sort-amount-asc',
       options: this.logLevels.map((level: LogLevelObject): ListItem => {
+        const cssClass = (level.name || 'unknown').toLowerCase();
         return {
           label: level.label,
-          value: level.name
+          value: level.name,
+          cssClass: `log-level-item ${cssClass}`,
+          iconClass: `fa ${LogLevelComponent.classMap[cssClass]}`
         };
       }),
       defaultSelection: [],
