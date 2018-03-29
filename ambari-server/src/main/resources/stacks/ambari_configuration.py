@@ -130,6 +130,17 @@ class AmbariConfiguration(object):
     """
     return self.get_category_property_value(self.get_ambari_sso_configuration(), property_name)
 
+  def is_managing_services(self):
+    """
+    Tests the configuration data to determine if Ambari should be configuring servcies to enable SSO integration.
+
+    The relevant property is "sso-configuration/ambari.sso.manage_services", which is expected
+    to be a "true" or "false".
+
+    :return: True, if Ambari should manage services' SSO configurations
+    """
+    return "true" == self.get_ambari_sso_configuration_value("ambari.sso.manage_services")
+
   def get_services_to_enable(self):
     """
     Safely gets the list of services that Ambari should enabled for SSO.
@@ -155,7 +166,7 @@ class AmbariConfiguration(object):
     :param service_name: the name of the service to test
     :return: True, if SSO should be enabled; False, otherwise
     """
-    if "true" == self.get_ambari_sso_configuration_value("ambari.sso.manage_services"):
+    if self.is_managing_services():
       services_to_enable = self.get_services_to_enable()
       return "*" in services_to_enable or service_name.lower() in services_to_enable
     else:
@@ -172,7 +183,7 @@ class AmbariConfiguration(object):
     :param service_name: the name of the service to test
     :return: true, if SSO should be disabled; false, otherwise
     """
-    if "true" == self.get_ambari_sso_configuration_value("ambari.sso.manage_services"):
+    if self.is_managing_services():
       services_to_enable = self.get_services_to_enable()
       return "*" not in services_to_enable and service_name.lower() not in services_to_enable
     else:
