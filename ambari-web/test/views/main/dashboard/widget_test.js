@@ -150,7 +150,8 @@ describe('App.DashboardWidgetView', function () {
       expect(view.get('parentView.userPreferences')).to.be.eql({
         visible: [],
         hidden: [1],
-        threshold: []
+        threshold: [],
+        groups: {}
       });
     });
 

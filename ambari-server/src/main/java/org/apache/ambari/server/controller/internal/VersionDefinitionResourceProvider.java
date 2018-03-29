@@ -495,7 +495,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
       Collection<String> versions = Collections2.transform(matching, function);
 
-      List<RepositoryVersionEntity> used = s_repoVersionDAO.findByServiceDesiredVersion(matching);
+      List<RepositoryVersionEntity> used = s_repoVersionDAO.findAll();
 
       if (used.isEmpty()) {
         throw new IllegalArgumentException(String.format("Could not determine which version " +

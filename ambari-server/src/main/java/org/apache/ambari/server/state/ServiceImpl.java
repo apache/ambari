@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,8 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -40,6 +37,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -54,14 +52,12 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +84,8 @@ public class ServiceImpl implements Service {
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
+  private final boolean ssoIntegrationSupported;
+  private final String ssoEnabledConfiguration;
   private AmbariMetaInfo ambariMetaInfo;
   private AtomicReference<MaintenanceState> maintenanceState = new AtomicReference<>();
 
@@ -96,6 +94,12 @@ public class ServiceImpl implements Service {
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
+  @Inject
+  private ConfigHelper configHelper;
+
+  @Inject
+  private AmbariServerConfigurationHandler ambariServerConfigurationHandler;
 
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -128,7 +132,6 @@ public class ServiceImpl implements Service {
   ServiceImpl(@Assisted Cluster cluster, @Assisted ServiceGroup serviceGroup,
               @Assisted List<ServiceKey> serviceDependencies,
               @Assisted("serviceName") String serviceName, @Assisted("serviceType") String serviceType,
-              @Assisted RepositoryVersionEntity desiredRepositoryVersion,
               ClusterDAO clusterDAO, ServiceGroupDAO serviceGroupDAO,
               ClusterServiceDAO clusterServiceDAO, ServiceDesiredStateDAO serviceDesiredStateDAO,
               ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
@@ -181,14 +184,13 @@ public class ServiceImpl implements Service {
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
     serviceDesiredStateEntity.setClusterId(cluster.getClusterId());
     serviceDesiredStateEntity.setServiceGroupId(serviceGroup.getServiceGroupId());
-    serviceDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
     serviceEntityPK = getServiceEntityPK(serviceEntity);
 
     serviceDesiredStateEntity.setClusterServiceEntity(serviceEntity);
     serviceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
 
-    StackId stackId = desiredRepositoryVersion.getStackId();
+    StackId stackId = serviceGroup.getStackId();
 
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceType);
@@ -197,6 +199,8 @@ public class ServiceImpl implements Service {
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
+    ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
+    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
 
     persist(serviceEntity);
   }
@@ -236,7 +240,7 @@ public class ServiceImpl implements Service {
             componentsById.put(serviceComponentDesiredStateEntity.getId(), svcComponent);
 
         } catch(ProvisionException ex) {
-            StackId stackId = new StackId(serviceComponentDesiredStateEntity.getDesiredStack());
+            StackId stackId = getStackId();
             LOG.error(String.format("Can not get component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s",
               stackId.getStackName(), stackId.getStackVersion(),
               serviceEntity.getServiceName(), serviceComponentDesiredStateEntity.getComponentName()));
@@ -245,13 +249,15 @@ public class ServiceImpl implements Service {
       }
     }
 
-    StackId stackId = getDesiredStackId();
+    StackId stackId = serviceGroup.getStackId();
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), getServiceType());
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
+    ssoIntegrationSupported = sInfo.isSingleSignOnSupported();
+    ssoEnabledConfiguration = sInfo.getSingleSignOnEnabledConfiguration();
   }
 
 
@@ -274,8 +280,7 @@ public class ServiceImpl implements Service {
       throw new RuntimeException("Trying to create a ServiceInfo"
               + " not recognized in stack info"
               + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName()
-              + ", stackInfo=" + getDesiredStackId().getStackName());
+              + ", serviceName=" + getName());
     }
   }
 
@@ -449,77 +454,20 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
-  public StackId getDesiredStackId() {
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-
-    if (null == serviceDesiredStateEntity) {
-      return null;
-    } else {
-      StackEntity desiredStackEntity = serviceDesiredStateEntity.getDesiredStack();
-      return new StackId(desiredStackEntity);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionEntity getDesiredRepositoryVersion() {
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    return serviceDesiredStateEntity.getDesiredRepositoryVersion();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @Transactional
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
-    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
-
-    Collection<ServiceComponent> componentsByName = getServiceComponents().values();
-    for (ServiceComponent component : componentsByName) {
-      component.setDesiredRepositoryVersion(repositoryVersionEntity);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionState getRepositoryState() {
-    if (componentsByName.isEmpty()) {
-      return RepositoryVersionState.NOT_REQUIRED;
-    }
-
-    List<RepositoryVersionState> states = new ArrayList<>();
-    for( ServiceComponent component : componentsByName.values() ){
-      states.add(component.getRepositoryState());
-    }
-
-    return RepositoryVersionState.getAggregateState(states);
+  public StackId getStackId() {
+    return serviceGroup.getStackId();
   }
 
   @Override
   public ServiceResponse convertToResponse() {
-    RepositoryVersionEntity desiredRespositoryVersion = getDesiredRepositoryVersion();
     Mpack mpack = ambariMetaInfo.getMpack(serviceGroup.getMpackId());
     Module module = mpack.getModule(getServiceType());
 
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         serviceGroup.getServiceGroupId(), serviceGroup.getServiceGroupName(),
         getServiceId(), getName(), getServiceType(), serviceGroup.getStackId(), module.getVersion(),
-        getRepositoryState(), getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
-
-    r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
+        getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled(),
+        ssoIntegrationSupported, isSsoIntegrationDesired(), isSsoIntegrationEnabled());
 
     r.setMaintenanceState(getMaintenanceState().name());
     return r;
@@ -668,10 +616,10 @@ public class ServiceImpl implements Service {
   @Override
   public void debugDump(StringBuilder sb) {
     sb.append("Service={ serviceName=").append(getName())
+      .append(", serviceGroup=").append(getServiceGroupName())
       .append(", serviceType=").append(getServiceType())
       .append(", clusterName=").append(cluster.getClusterName())
       .append(", clusterId=").append(cluster.getClusterId())
-      .append(", desiredStackVersion=").append(getDesiredStackId())
       .append(", desiredState=").append(getDesiredState())
       .append(", componentsByName=[ ");
     boolean first = true;
@@ -694,7 +642,7 @@ public class ServiceImpl implements Service {
     persistEntities(serviceEntity);
 
     // publish the service installed event
-    StackId stackId = getDesiredStackId();
+    StackId stackId = serviceGroup.getStackId();
     cluster.addService(this);
 
     ServiceInstalledEvent event = new ServiceInstalledEvent(getClusterId(), stackId.getStackName(),
@@ -835,7 +783,7 @@ public class ServiceImpl implements Service {
       return;
     }
 
-    StackId stackId = getDesiredStackId();
+    StackId stackId = serviceGroup.getStackId();
     try {
       deleteAllServiceConfigs();
 
@@ -911,5 +859,23 @@ public class ServiceImpl implements Service {
   // Refresh the cached reference on setters
   private ServiceDesiredStateEntity getServiceDesiredStateEntity() {
     return serviceDesiredStateDAO.findByPK(serviceDesiredStateEntityPK);
+  }
+
+  public boolean isSsoIntegrationDesired() {
+    return ambariServerConfigurationHandler.getSsoEnabledSevices().contains(serviceName);
+  }
+
+  public boolean isSsoIntegrationEnabled() {
+    return ssoIntegrationSupported && ssoEnabledConfigValid() && "true".equalsIgnoreCase(ssoEnabledConfigValue());
+  }
+
+  private boolean ssoEnabledConfigValid() {
+    return ssoEnabledConfiguration != null && ssoEnabledConfiguration.split("/").length == 2;
+  }
+
+  private String ssoEnabledConfigValue() {
+    String configType = ssoEnabledConfiguration.split("/")[0];
+    String propertyName = ssoEnabledConfiguration.split("/")[1];
+    return configHelper.getValueFromDesiredConfigurations(cluster, configType, propertyName);
   }
 }

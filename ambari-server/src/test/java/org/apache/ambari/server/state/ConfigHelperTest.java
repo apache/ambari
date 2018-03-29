@@ -53,7 +53,6 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -112,8 +111,6 @@ public class ConfigHelperTest {
       OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
       helper.createStack(stackId);
 
-      RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, "2.0.6");
-
       clusterName = "c1";
       clusters.addCluster(clusterName, stackId);
       cluster = clusters.getCluster(clusterName);
@@ -160,9 +157,9 @@ public class ConfigHelperTest {
       cr2.setVersionTag("version1");
 
       ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-      cluster.addService(serviceGroup, "FLUME", "FLUME", repositoryVersion);
-      cluster.addService(serviceGroup, "OOZIE", "OOZIE", repositoryVersion);
-      cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+      cluster.addService(serviceGroup, "FLUME", "FLUME");
+      cluster.addService(serviceGroup, "OOZIE", "OOZIE");
+      cluster.addService(serviceGroup, "HDFS", "HDFS");
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -979,7 +976,7 @@ public class ConfigHelperTest {
 
       // set up mocks
       ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-      expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+      expect(sc.getStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
 
       // set up expectations
       expect(sch.getActualConfigs()).andReturn(schReturn).times(6);
@@ -1055,7 +1052,7 @@ public class ConfigHelperTest {
 
     // set up mocks
     ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-    expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+    expect(sc.getStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
 
     // set up expectations
     expect(sch.getActualConfigs()).andReturn(schReturn).anyTimes();
@@ -1132,7 +1129,7 @@ public class ConfigHelperTest {
       List<PropertyInfo> serviceProperties = Arrays.asList(mockPropertyInfo1, mockPropertyInfo2);
 
       expect(mockCluster.getService("SERVICE")).andReturn(mockService).once();
-      expect(mockService.getDesiredStackId()).andReturn(mockStackVersion).once();
+      expect(mockService.getStackId()).andReturn(mockStackVersion).once();
       expect(mockService.getServiceType()).andReturn("SERVICE").once();
       expect(mockStackVersion.getStackName()).andReturn("HDP").once();
       expect(mockStackVersion.getStackVersion()).andReturn("2.2").once();

@@ -24,6 +24,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
@@ -31,15 +32,19 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 
 public class LogsearchAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
   private static final Logger logger = LoggerFactory.getLogger(LogsearchAuthenticationEntryPoint.class);
+  private final AuthPropsConfig authPropsConfig;
 
-  public LogsearchAuthenticationEntryPoint(String loginFormUrl) {
+  public LogsearchAuthenticationEntryPoint(String loginFormUrl, AuthPropsConfig authPropsConfig) {
     super(loginFormUrl);
+    this.authPropsConfig = authPropsConfig;
   }
 
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
     throws IOException, ServletException {
-    logger.debug("Got 401 from request: {}", request.getRequestURI());
-    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+    if (!authPropsConfig.isAuthJwtEnabled()) { // TODO: find better solution if JWT enabled, as it always causes an basic auth failure before JWT auth
+      logger.debug("Got 401 from request: {}", request.getRequestURI());
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+    }
   }
 }

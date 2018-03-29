@@ -254,7 +254,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
         if (handler != null) {
           try {
             handler.updateCategory(requestDetails.categoryName, requestDetails.properties, removePropertiesIfNotSpecified);
-          } catch (AmbariException e) {
+          } catch (AmbariException | IllegalArgumentException e) {
             throw new SystemException(e.getMessage(), e.getCause());
           }
         } else {

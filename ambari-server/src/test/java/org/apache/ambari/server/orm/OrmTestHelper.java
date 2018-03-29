@@ -341,34 +341,36 @@ public class OrmTestHelper {
       mpackEntity.setMpackVersion(stackId.getStackVersion());
       mpackEntity.setMpackUri("http://mpacks.org/" + stackId.toString() + ".json");
       mpackDAO.create(mpackEntity);
-
-      AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-
-      ArrayList<Module> packletArrayList = new ArrayList<>();
-      ModuleComponent sampleComponent = EasyMock.createNiceMock(ModuleComponent.class);
-      EasyMock.expect(sampleComponent.getName()).andReturn("FOO_COMPONENT").anyTimes();
-      EasyMock.expect(sampleComponent.getVersion()).andReturn("1.0.0-b1").anyTimes();
-
-      Module samplePacklet = EasyMock.createNiceMock(Module.class);
-      EasyMock.expect(samplePacklet.getVersion()).andReturn("1.0.0-b1").anyTimes();
-      EasyMock.expect(samplePacklet.getName()).andReturn("FOO").anyTimes();
-      EasyMock.expect(samplePacklet.getDefinition()).andReturn("foo.tar.gz").anyTimes();
-      EasyMock.expect(samplePacklet.getComponents()).andReturn(Lists.newArrayList(sampleComponent)).anyTimes();
-      EasyMock.expect(samplePacklet.getModuleComponent(EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
-
-      packletArrayList.add(samplePacklet);
-
-      Map<Long, Mpack> mpackMap = ambariMetaInfo.getMpackManager().getMpackMap();
-      Mpack mpack = EasyMock.createNiceMock(Mpack.class);
-      EasyMock.expect(mpack.getMpackId()).andReturn(stackId.getStackName()).anyTimes();
-      EasyMock.expect(mpack.getResourceId()).andReturn(mpackEntity.getId()).anyTimes();
-      EasyMock.expect(mpack.getModules()).andReturn(packletArrayList).anyTimes();
-      EasyMock.expect(mpack.getModule(EasyMock.anyString())).andReturn(samplePacklet).anyTimes();
-      EasyMock.expect(mpack.getModuleComponent(EasyMock.anyString(), EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
-
-      EasyMock.replay(mpack, samplePacklet, sampleComponent);
-      mpackMap.put(mpackEntity.getId(), mpack);
     }
+
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+
+    ArrayList<Module> packletArrayList = new ArrayList<>();
+    ModuleComponent sampleComponent = EasyMock.createNiceMock(ModuleComponent.class);
+    EasyMock.expect(sampleComponent.getName()).andReturn("FOO_COMPONENT").anyTimes();
+    EasyMock.expect(sampleComponent.getVersion()).andReturn("1.0.0-b1").anyTimes();
+
+    Module samplePacklet = EasyMock.createNiceMock(Module.class);
+    EasyMock.expect(samplePacklet.getVersion()).andReturn("1.0.0-b1").anyTimes();
+    EasyMock.expect(samplePacklet.getName()).andReturn("FOO").anyTimes();
+    EasyMock.expect(samplePacklet.getDefinition()).andReturn("foo.tar.gz").anyTimes();
+    EasyMock.expect(samplePacklet.getComponents()).andReturn(Lists.newArrayList(sampleComponent)).anyTimes();
+    EasyMock.expect(samplePacklet.getModuleComponent(EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
+
+    packletArrayList.add(samplePacklet);
+
+    Map<Long, Mpack> mpackMap = ambariMetaInfo.getMpackManager().getMpackMap();
+    Mpack mpack = EasyMock.createNiceMock(Mpack.class);
+    EasyMock.expect(mpack.getMpackId()).andReturn(stackId.toString()).anyTimes();
+    EasyMock.expect(mpack.getName()).andReturn(stackId.getStackName()).anyTimes();
+    EasyMock.expect(mpack.getResourceId()).andReturn(mpackEntity.getId()).anyTimes();
+    EasyMock.expect(mpack.getModules()).andReturn(packletArrayList).anyTimes();
+    EasyMock.expect(mpack.getModule(EasyMock.anyString())).andReturn(samplePacklet).anyTimes();
+    EasyMock.expect(mpack.getModuleComponent(EasyMock.anyString(), EasyMock.anyString())).andReturn(sampleComponent).anyTimes();
+
+    EasyMock.replay(mpack, samplePacklet, sampleComponent);
+    mpackMap.put(mpackEntity.getId(), mpack);
+
     return mpackEntity;
   }
 
@@ -517,11 +519,8 @@ public class OrmTestHelper {
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName, ServiceGroup serviceGroup) throws Exception {
 
-    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(cluster.getDesiredStackVersion(),
-        cluster.getDesiredStackVersion().getStackVersion());
-
     String serviceName = "HDFS";
-    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
     Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -551,11 +550,8 @@ public class OrmTestHelper {
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName, ServiceGroup serviceGroup) throws Exception {
 
-    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(cluster.getDesiredStackVersion(),
-        cluster.getDesiredStackVersion().getStackVersion());
-
     String serviceName = "YARN";
-    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
     Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -757,7 +753,7 @@ public class OrmTestHelper {
         repoOsEntity.setAmbariManaged(true);
         repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
         repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
-        repoOsEntity.setMpackEntity(createMpack(stackId));
+        repoOsEntity.setMpackEntity(mpackEntity);
         operatingSystems.add(repoOsEntity);
 
         mpackEntity.setRepositoryOperatingSystems(operatingSystems);

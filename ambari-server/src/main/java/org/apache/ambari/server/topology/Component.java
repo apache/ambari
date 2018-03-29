@@ -24,11 +24,16 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.state.StackId;
 
 public class Component {
 
   private final String name;
-  private final String mpackInstance;
+
+  @Nullable
+  private final StackId stackId;
+
+  @Nullable
   private final String serviceInstance;
   private final ProvisionAction provisionAction;
 
@@ -37,9 +42,9 @@ public class Component {
     this(name, null, null, null);
   }
 
-  public Component(String name, @Nullable String mpackInstance, @Nullable String serviceInstance, ProvisionAction provisionAction) {
+  public Component(String name, @Nullable StackId stackId, @Nullable String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
-    this.mpackInstance = mpackInstance;
+    this.stackId = stackId;
     this.serviceInstance = serviceInstance;
     this.provisionAction = provisionAction;
   }
@@ -54,11 +59,19 @@ public class Component {
   }
 
   /**
-   * @return the mpack associated with this component (can be {@code null} if component -> mpack mapping is unambiguous)
+   * @return the mpack associated with this component as {@link String} (can be {@code null} if component -> mpack mapping is unambiguous)
    */
-  public String getMpackInstance() {
-    return mpackInstance;
+  public String getStackIdAsString() {
+    return stackId != null ? stackId.toString() : null;
   }
+
+  /**
+   * @return the mpack associated with this component as {@link StackId} (can be {@code null} if component -> mpack mapping is unambiguous)
+   */
+  public StackId getStackId() {
+    return stackId;
+  }
+
 
   /**
    * @return the service instance this component belongs to. Can be {@code null} if component does not belong to a service
@@ -82,7 +95,7 @@ public class Component {
   public String toString() {
     return com.google.common.base.Objects.toStringHelper(this)
       .add("name", name)
-      .add("mpackInstance", mpackInstance)
+      .add("stackId", stackId)
       .add("serviceInstance", serviceInstance)
       .add("provisionAction", provisionAction)
       .toString();
@@ -95,13 +108,13 @@ public class Component {
     if (o == null || getClass() != o.getClass()) return false;
     Component component = (Component) o;
     return Objects.equals(name, component.name) &&
-      Objects.equals(mpackInstance, component.mpackInstance) &&
+      Objects.equals(stackId, component.stackId) &&
       Objects.equals(serviceInstance, component.serviceInstance) &&
       provisionAction == component.provisionAction;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, mpackInstance, serviceInstance, provisionAction);
+    return Objects.hash(name, stackId, serviceInstance, provisionAction);
   }
 }

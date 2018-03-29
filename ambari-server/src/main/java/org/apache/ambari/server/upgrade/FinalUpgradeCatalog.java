@@ -85,7 +85,7 @@ public class FinalUpgradeCatalog extends AbstractFinalUpgradeCatalog {
 
       Set<StackId> stackIds = new HashSet<>();
       for (Service service : cluster.getServices().values()) {
-        stackIds.add(service.getDesiredStackId());
+        stackIds.add(service.getStackId());
       }
 
       for (StackId stackId : stackIds) {

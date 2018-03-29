@@ -31,9 +31,6 @@ import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -45,7 +42,6 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Before;
@@ -64,8 +60,6 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   private AmbariManagementController controller;
   private Clusters clusters;
   private ConfigHelper configHelper;
-  private OrmTestHelper ormTestHelper;
-  private String stackName;
 
   @Before
   public void setup() throws Exception {
@@ -76,7 +70,6 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     controller = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
     configHelper = injector.getInstance(ConfigHelper.class);
-    ormTestHelper = injector.getInstance(OrmTestHelper.class);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -216,9 +209,8 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
 
   private void createService(String clusterName, String serviceGroupName,
       String serviceName, State desiredState) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.7"), "2.0.7-1234");
-    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
-    ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(request));
+    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, desiredState != null ? desiredState.toString() : null, null);
+    ServiceResourceProviderTest.createServices(controller, Collections.singleton(request));
   }
 
   private void createServiceComponent(String clusterName, String serviceGroupName,

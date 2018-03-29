@@ -110,7 +110,7 @@ public class TestActionSchedulerThreading {
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(cluster);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service service = cluster.addService(serviceGroup, serviceName, serviceName);
     String configType = "zoo.cfg";
 
     Map<String, String> properties = new HashMap<>();
@@ -126,7 +126,7 @@ public class TestActionSchedulerThreading {
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
 
     // bump the stack
-    service.setDesiredRepositoryVersion(repoVersion220);
+    serviceGroup.setStack(repoVersion220.getStack());
 
     // save v2
     // zoo-cfg for v2 on new stack
@@ -147,7 +147,7 @@ public class TestActionSchedulerThreading {
     final String hostName = cluster.getHosts().iterator().next().getHostName();
 
     // move the stack back to the old stack
-    service.setDesiredRepositoryVersion(repositoryVersion);
+    serviceGroup.setStack(repositoryVersion.getStack());
 
     // create the semaphores, taking 1 from each to make them blocking from the
     // start

@@ -24,13 +24,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -41,14 +39,10 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.MpackInstanceServiceEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.JsonUtils;
-import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 
@@ -65,7 +59,6 @@ public class BlueprintImpl implements Blueprint {
   private final SecurityConfiguration security;
   private final Setting setting;
   private final List<RepositorySetting> repoSettings;
-  private Stack stack;
 
   public BlueprintImpl(BlueprintEntity entity, Set<StackId> stackIds) throws NoSuchStackException {
     name = entity.getBlueprintName();
@@ -138,139 +131,8 @@ public class BlueprintImpl implements Blueprint {
   }
 
   @Override
-  public Collection<String> getServices() {
-    return null;
-  }
-
-  @Override
-  public Collection<ServiceInfo> getServiceInfos() {
-    return null;
-  }
-
-  @Override
-  public Collection<String> getComponents(String service) {
-    return null;
-  }
-
   public Collection<MpackInstance> getMpacks() {
     return mpacks;
-  }
-
-
-  /**
-   * Get whether the specified component in the service is enabled
-   * for auto start.
-   *
-   * @param serviceName - Service name.
-   * @param componentName - Component name.
-   *
-   * @return null if value is not specified; true or false if specified.
-   */
-  @Override
-  public String getRecoveryEnabled(String serviceName, String componentName) {
-    Set<Map<String, String>> settingValue;
-
-    if (setting == null)
-      return null;
-
-    // If component name was specified in the list of "component_settings",
-    // determine if recovery_enabled is true or false and return it.
-    settingValue = setting.getSettingValue(Setting.SETTING_NAME_COMPONENT_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      String name = setting.get(Setting.SETTING_NAME_NAME);
-      if (StringUtils.equals(name, componentName)) {
-        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
-          return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
-        }
-      }
-    }
-
-    // If component name is not specified, look up it's service.
-    settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
-    for ( Map<String, String> setting : settingValue){
-      String name = setting.get(Setting.SETTING_NAME_NAME);
-      if (StringUtils.equals(name, serviceName)) {
-        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
-          return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
-        }
-      }
-    }
-
-    // If service name is not specified, look up the cluster setting.
-    settingValue = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
-        return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Get whether the specified service is enabled for credential store use.
-   *
-   * <pre>
-   *     {@code
-   *       {
-   *         "service_settings" : [
-   *         { "name" : "RANGER",
-   *           "recovery_enabled" : "true",
-   *           "credential_store_enabled" : "true"
-   *         },
-   *         { "name" : "HIVE",
-   *           "recovery_enabled" : "true",
-   *           "credential_store_enabled" : "false"
-   *         },
-   *         { "name" : "TEZ",
-   *           "recovery_enabled" : "false"
-   *         }
-   *       ]
-   *     }
-   *   }
-   * </pre>
-   *
-   * @param serviceName - Service name.
-   *
-   * @return null if value is not specified; true or false if specified.
-   */
-  @Override
-  public String getCredentialStoreEnabled(String serviceName) {
-    if (setting == null)
-      return null;
-
-    // Look up the service and return the credential_store_enabled value.
-    Set<Map<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      String name = setting.get(Setting.SETTING_NAME_NAME);
-      if (StringUtils.equals(name, serviceName)) {
-        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_CREDENTIAL_STORE_ENABLED))) {
-          return setting.get(Setting.SETTING_NAME_CREDENTIAL_STORE_ENABLED);
-        }
-        break;
-      }
-    }
-
-    return null;
-  }
-
-  @Override
-  public boolean shouldSkipFailure() {
-    if (setting == null) {
-      return false;
-    }
-    Set<Map<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_DEPLOYMENT_SETTINGS);
-    for (Map<String, String> setting : settingValue) {
-      if (setting.containsKey(Setting.SETTING_NAME_SKIP_FAILURE)) {
-        return setting.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true");
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public Stack getStack() {
-    return stack;
   }
 
   /**
@@ -467,15 +329,9 @@ public class BlueprintImpl implements Blueprint {
       componentEntity.setHostGroupEntity(group);
       componentEntity.setHostGroupName(group.getName());
       componentEntity.setServiceName(component.getServiceInstance());
-      if (null != component.getMpackInstance()) {
-        Preconditions.checkArgument(component.getMpackInstance().contains("-"),
-          "Invalid mpack instance specified for component %s: %s. Must be in {name}-{version} format.",
-          component.getName(),
-          component.getMpackInstance());
-        Iterator<String> mpackNameAndVersion =
-          Splitter.on('-').split(component.getMpackInstance()).iterator();
-        componentEntity.setMpackName(mpackNameAndVersion.next());
-        componentEntity.setMpackVersion(mpackNameAndVersion.next());
+      if (null != component.getStackId()) {
+        componentEntity.setMpackName(component.getStackId().getStackName());
+        componentEntity.setMpackVersion(component.getStackId().getStackVersion());
       }
 
       // add provision action (if specified) to entity type

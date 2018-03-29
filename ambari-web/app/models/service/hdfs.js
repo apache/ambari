@@ -24,8 +24,6 @@ App.HDFSService = App.Service.extend({
 
   // TODO remove after implementing widgets changes
   activeNameNode: DS.belongsTo('App.HostComponent'),
-  standbyNameNode: DS.belongsTo('App.HostComponent'),
-  standbyNameNode2: DS.belongsTo('App.HostComponent'),
 
   activeNameNodes: DS.hasMany('App.HostComponent', {
     defaultValue: []
@@ -43,37 +41,78 @@ App.HDFSService = App.Service.extend({
   nfsGatewaysInstalled: DS.attr('number', {defaultValue: 0}),
   nfsGatewaysTotal: DS.attr('number', {defaultValue: 0}),
   journalNodes: DS.hasMany('App.HostComponent'),
-  nameNodeStartTime: DS.attr('number'),
-  jvmMemoryHeapUsed: DS.attr('number'),
-  jvmMemoryHeapMax: DS.attr('number'),
+  nameNodeStartTimeValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  jvmMemoryHeapUsedValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  jvmMemoryHeapMaxValues: DS.attr('object', {
+    defaultValue: {}
+  }),
   decommissionDataNodes: DS.hasMany('App.HostComponent'),
   liveDataNodes: DS.hasMany('App.HostComponent'),
   deadDataNodes: DS.hasMany('App.HostComponent'),
-  capacityUsed: DS.attr('number'),
-  capacityTotal: DS.attr('number'),
-  capacityRemaining: DS.attr('number'),
-  capacityNonDfsUsed: DS.attr('number'),
-  dfsTotalBlocks: DS.attr('number'),
-  dfsCorruptBlocks: DS.attr('number'),
-  dfsMissingBlocks: DS.attr('number'),
-  dfsUnderReplicatedBlocks: DS.attr('number'),
-  dfsTotalFiles: DS.attr('number'),
-  upgradeStatus: DS.attr('string'),
-  safeModeStatus: DS.attr('string'),
-  nameNodeRpc: DS.attr('number'),
+  capacityUsedValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  capacityTotalValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  capacityRemainingValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  capacityNonDfsUsedValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  dfsTotalBlocksValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  dfsCorruptBlocksValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  dfsMissingBlocksValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  dfsUnderReplicatedBlocksValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  dfsTotalFilesValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  workStatusValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  healthStatusValues: function () {
+    const workStatusValues = Object.keys(this.get('workStatusValues'));
+    return workStatusValues.reduce((acc, key) => Object.assign({}, acc, {
+      [key]: this.get('healthStatusMap')[workStatusValues[key]] || 'yellow'
+    }), {});
+  }.property('workStatusValues'),
+  upgradeStatusValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  safeModeStatusValues: DS.attr('object', {
+    defaultValue: {}
+  }),
+  nameNodeRpcValues: DS.attr('object', {
+    defaultValue: {}
+  }),
   metricsNotAvailable: DS.attr('boolean'),
   masterComponentGroups: function () {
     let result = [];
     this.get('hostComponents').forEach(component => {
-      const nameSpace = component.get('haNameSpace');
-      if (nameSpace) {
-        const hostName = component.get('hostName'),
+      if (component.get('componentName') === 'NAMENODE') {
+        const nameSpace = component.get('haNameSpace'),
+          hostName = component.get('hostName'),
+          clusterId = component.get('clusterIdValue'),
           existingNameSpace = result.findProperty('name', nameSpace),
           currentNameSpace = existingNameSpace || {
               name: nameSpace,
               title: nameSpace,
               hosts: [],
-              components: ['NAMENODE', 'ZKFC']
+              components: ['NAMENODE', 'ZKFC'],
+              clusterId
             };
         if (!existingNameSpace) {
           result.push(currentNameSpace);

@@ -1,21 +1,3 @@
-"""
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-"""
 # -*- coding: utf-8 -*-
 import struct
 from struct import unpack
@@ -70,25 +52,25 @@ class Stream(object):
         self.pings = []
         """
         Parsed ping control messages. They are instances of
-        :class:`ambari_ws4py.messaging.PingControlMessage`
+        :class:`ws4py.messaging.PingControlMessage`
         """
 
         self.pongs = []
         """
         Parsed pong control messages. They are instances of
-        :class:`ambari_ws4py.messaging.PongControlMessage`
+        :class:`ws4py.messaging.PongControlMessage`
         """
 
         self.closing = None
         """
         Parsed close control messsage. Instance of
-        :class:`ambari_ws4py.messaging.CloseControlMessage`
+        :class:`ws4py.messaging.CloseControlMessage`
         """
 
         self.errors = []
         """
         Detected errors while parsing. Instances of
-        :class:`ambari_ws4py.messaging.CloseControlMessage`
+        :class:`ws4py.messaging.CloseControlMessage`
         """
 
         self._parser = None
@@ -123,19 +105,19 @@ class Stream(object):
 
     def text_message(self, text):
         """
-        Returns a :class:`ambari_ws4py.messaging.TextMessage` instance
+        Returns a :class:`ws4py.messaging.TextMessage` instance
         ready to be built. Convenience method so
         that the caller doesn't need to import the
-        :class:`ambari_ws4py.messaging.TextMessage` class itself.
+        :class:`ws4py.messaging.TextMessage` class itself.
         """
         return TextMessage(text=text)
 
     def binary_message(self, bytes):
         """
-        Returns a :class:`ambari_ws4py.messaging.BinaryMessage` instance
+        Returns a :class:`ws4py.messaging.BinaryMessage` instance
         ready to be built. Convenience method so
         that the caller doesn't need to import the
-        :class:`ambari_ws4py.messaging.BinaryMessage` class itself.
+        :class:`ws4py.messaging.BinaryMessage` class itself.
         """
         return BinaryMessage(bytes)
 
@@ -153,7 +135,7 @@ class Stream(object):
     def close(self, code=1000, reason=''):
         """
         Returns a close control message built from
-        a :class:`ambari_ws4py.messaging.CloseControlMessage` instance,
+        a :class:`ws4py.messaging.CloseControlMessage` instance,
         using the given status ``code`` and ``reason`` message.
         """
         return CloseControlMessage(code=code, reason=reason)
@@ -161,14 +143,14 @@ class Stream(object):
     def ping(self, data=''):
         """
         Returns a ping control message built from
-        a :class:`ambari_ws4py.messaging.PingControlMessage` instance.
+        a :class:`ws4py.messaging.PingControlMessage` instance.
         """
         return PingControlMessage(data).single(mask=self.always_mask)
 
     def pong(self, data=''):
         """
         Returns a ping control message built from
-        a :class:`ambari_ws4py.messaging.PongControlMessage` instance.
+        a :class:`ws4py.messaging.PongControlMessage` instance.
         """
         return PongControlMessage(data).single(mask=self.always_mask)
 

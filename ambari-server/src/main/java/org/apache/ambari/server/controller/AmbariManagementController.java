@@ -75,6 +75,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.topology.AmbariContext;
 
 
 /**
@@ -563,6 +564,13 @@ public interface AmbariManagementController {
    * @return the meta info
    */
   AmbariMetaInfo getAmbariMetaInfo();
+
+  /**
+   * Get the ambari context for this management controller.
+   *
+   * @return the ambari context
+   */
+  AmbariContext getAmbariContext();
 
   /**
    * Get the service factory for this management controller.

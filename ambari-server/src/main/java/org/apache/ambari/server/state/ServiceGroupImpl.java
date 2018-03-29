@@ -389,4 +389,14 @@ public class ServiceGroupImpl implements ServiceGroup {
     pk.setServiceGroupId(serviceGroupEntity.getServiceGroupId());
     return pk;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setStack(StackEntity stackEntity) {
+    ServiceGroupEntity serviceGroupEntity = getServiceGroupEntity();
+    serviceGroupEntity.setStack(stackEntity);
+    serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
+  }
 }

@@ -103,10 +103,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       hostProvider, clusterNamePropertyId, hostNamePropertyId,
       componentNamePropertyId);
 
-    this.metricCache = cacheProvider.getTimelineMetricsCache();
+    metricCache = cacheProvider.getTimelineMetricsCache();
 
     if (AmbariServer.getController() != null) {
-      this.ambariEventPublisher = AmbariServer.getController().getAmbariEventPublisher();
+      ambariEventPublisher = AmbariServer.getController().getAmbariEventPublisher();
     }
   }
 
@@ -315,7 +315,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
           AmbariManagementController managementController = AmbariServer.getController();
           Cluster cluster = managementController.getClusters().getCluster(clusterName);
           Service service = cluster.getServiceByComponentName(componentName);
-          stackId = service.getDesiredStackId();
+          stackId = service.getStackId();
 
           if (stackId != null) {
             String stackName = stackId.getStackName();
@@ -455,7 +455,9 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
                     String instanceId = metric.getInstanceId();
                     instanceId = instanceId.matches("^\\w+\\..+$") ? instanceId.split("\\.")[1]:"";
                     //propertyId "metrics/flume/flume/CHANNEL/ch1/[ChannelCapacity]"
-                    if(!propertyId.contains(instanceId)) continue;
+                    if(!propertyId.contains(instanceId)) {
+                      continue;
+                    }
                   }
                 }
                 Object value = getValue(metric, temporalInfo);
@@ -564,7 +566,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
 
     Map<String, Map<String, PropertyInfo>> metricPropertyIds;
-    if (this.hostNamePropertyId != null) {
+    if (hostNamePropertyId != null) {
       metricPropertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
     } else {
       metricPropertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Component);

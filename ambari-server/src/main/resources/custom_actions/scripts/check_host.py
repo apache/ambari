@@ -22,13 +22,13 @@ Ambari Agent
 
 import os
 import re
-from ambari_commons import subprocess32
 import socket
 import getpass
 import tempfile
 
 from resource_management.libraries.functions.default import default
 from ambari_commons import os_utils
+from ambari_commons.repo_manager import ManagerFactory
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.inet_utils import download_file
 from resource_management import Script, Execute, format
@@ -39,7 +39,7 @@ from resource_management.core.exceptions import Fail
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from resource_management.core.providers import get_provider
+
 
 # WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
 # It is used by HostCleanup.py
@@ -86,13 +86,13 @@ class CheckHost(Script):
     "^slider.*$", "^sqoop.*$", "^storm.*$", "^flume.*$","^hcatalog.*$", "^phoenix.*$", "^ranger.*$", "^accumulo.*$", "^hive_.*$",
     "^pig[_\-.].*$" # there's a default 'pigz' package which we should avoid
   ]
-
+  
 
   # ignore packages from repos whose names start with these strings
   IGNORE_PACKAGES_FROM_REPOS = [
     "installed"
   ]
-
+  
 
   # ignore required packages
   IGNORE_PACKAGES = [
@@ -100,12 +100,12 @@ class CheckHost(Script):
     # ganglia related:
     "ganglia", "libganglia", "libconfuse", "perl", "rrdtool", "python-rrdtool", "gmetad", "librrd", "rrdcached"
   ]
-
+  
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
     "ambari-log4j"
   ]
-
+  
   # ignore repos from the list of repos to be cleaned
   IGNORE_REPOS = [
     "HDP-UTILS", "AMBARI", "BASE", "EXTRAS"
@@ -113,8 +113,8 @@ class CheckHost(Script):
 
   def __init__(self):
     self.reportFileHandler = HostCheckReportFileHandler()
-    self.pkg_provider = get_provider("Package")
-
+    self.pkg_provider = ManagerFactory.get()
+  
   def actionexecute(self, env):
     Logger.info("Host checks started.")
     config = Script.get_config()
@@ -162,7 +162,7 @@ class CheckHost(Script):
       except Exception, exception :
         Logger.exception("There was an unknown error while checking last host environment details: " + str(exception))
         structured_output[CHECK_LAST_AGENT_ENV] = {"exit_code" : 1, "message": str(exception)}
-
+        
     # CHECK_INSTALLED_PACKAGES and CHECK_EXISTING_REPOS required to run together for
     # reasons of not doing the same common work twice for them as it takes some time, especially on Ubuntu.
     if CHECK_INSTALLED_PACKAGES in check_execute_list and CHECK_EXISTING_REPOS in check_execute_list:
@@ -186,7 +186,7 @@ class CheckHost(Script):
 
     # this is necessary for HostCleanup to know later what were the results.
     self.reportFileHandler.writeHostChecksCustomActionsFile(structured_output)
-
+    
     self.put_structured_out(structured_output)
 
     error_message = ""
@@ -229,9 +229,8 @@ class CheckHost(Script):
 
   def execute_existing_repos_and_installed_packages_check(self, config):
       Logger.info("Installed packages and existing repos checks started.")
-
-      installedPackages = self.pkg_provider.all_installed_packages()
-      availablePackages = self.pkg_provider.all_available_packages()
+      installedPackages = self.pkg_provider.installed_packages()
+      availablePackages = self.pkg_provider.available_packages()
 
       repos = self.pkg_provider.get_installed_repos(self.PACKAGES, installedPackages + availablePackages,
                                                     self.IGNORE_PACKAGES_FROM_REPOS)
@@ -255,7 +254,7 @@ class CheckHost(Script):
     java_bin = "java"
     if OSCheck.is_windows_family():
       java_bin = "java.exe"
-
+  
     if not os.path.isfile(os.path.join(java_home, "bin", java_bin)):
       Logger.warning("Java home doesn't exist!")
       java_home_check_structured_output = {"exit_code" : 1, "message": "Java home doesn't exist!"}
@@ -269,9 +268,9 @@ class CheckHost(Script):
 
   def execute_db_connection_check(self, config, tmp_dir):
     Logger.info("DB connection check started.")
-
+  
     # initialize needed data
-
+  
     ambari_server_hostname = config['commandParams']['ambari_server_host']
     check_db_connection_jar_name = "DBConnectionVerification.jar"
     jdk_location = config['commandParams']['jdk_location']
@@ -420,7 +419,7 @@ class CheckHost(Script):
       Logger.exception(message)
       db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
-
+  
     # download jdbc driver from ambari-server resources
     try:
       download_file(jdbc_url, jdbc_path)
@@ -467,13 +466,13 @@ class CheckHost(Script):
   # check whether each host in the command can be resolved to an IP address
   def execute_host_resolution_check(self, config):
     Logger.info("IP address forward resolution check started.")
-
+    
     FORWARD_LOOKUP_REASON = "FORWARD_LOOKUP"
-
+    
     failedCount = 0
     failures = []
     hosts_with_failures = []
-
+   
     if config['commandParams']['hosts'] is not None :
       hosts = config['commandParams']['hosts'].split(",")
       successCount = len(hosts)

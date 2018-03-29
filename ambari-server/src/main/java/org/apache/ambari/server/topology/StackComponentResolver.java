@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.internal.StackDefinition;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -53,20 +54,20 @@ public class StackComponentResolver implements ComponentResolver {
       result.put(hg.getName(), new HashSet<>());
 
       for (Component comp : hg.getComponents()) {
-        Stream<Pair<StackId, String>> servicesForComponent = stack.getServicesForComponent(comp.getName());
+        Stream<Pair<StackId, ServiceInfo>> servicesForComponent = stack.getServicesForComponent(comp.getName());
         servicesForComponent = filterByMpackName(comp, servicesForComponent);
         servicesForComponent = filterByServiceName(comp, servicesForComponent, mpackServices, uniqueServices);
 
-        Set<Pair<StackId, String>> serviceMatches = servicesForComponent.collect(toSet());
+        Set<Pair<StackId, ServiceInfo>> serviceMatches = servicesForComponent.collect(toSet());
 
         if (serviceMatches.size() != 1) {
           String msg = formatResolutionProblemMessage(hg, comp, serviceMatches);
           LOG.warn("Component resolution failure:" + msg);
           problems.add(msg);
         } else {
-          Pair<StackId, String> stackService = serviceMatches.iterator().next();
+          Pair<StackId, ServiceInfo> stackService = serviceMatches.iterator().next();
           StackId stackId = stackService.getLeft();
-          String serviceType = stackService.getRight();
+          String serviceType = stackService.getRight().getName();
 
           ResolvedComponent resolved = ResolvedComponent.builder(comp)
             .stackId(stackId)
@@ -86,7 +87,7 @@ public class StackComponentResolver implements ComponentResolver {
     return result;
   }
 
-  private static String formatResolutionProblemMessage(HostGroup hg, Component comp, Set<Pair<StackId, String>> serviceMatches) {
+  private static String formatResolutionProblemMessage(HostGroup hg, Component comp, Set<Pair<StackId, ServiceInfo>> serviceMatches) {
     boolean multipleMatches = !serviceMatches.isEmpty();
     String problem = multipleMatches ? "Multiple services" : "No service";
 
@@ -94,8 +95,8 @@ public class StackComponentResolver implements ComponentResolver {
       .append(" found for component ").append(comp.getName())
       .append(" in host group " ).append(hg.getName());
 
-    if (!Strings.isNullOrEmpty(comp.getMpackInstance())) {
-      sb.append(" mpack: ").append(comp.getMpackInstance());
+    if (!Strings.isNullOrEmpty(comp.getStackIdAsString())) {
+      sb.append(" mpack: ").append(comp.getStackIdAsString());
     }
     if (!Strings.isNullOrEmpty(comp.getServiceInstance())) {
       sb.append(" service: ").append(comp.getServiceInstance());
@@ -108,11 +109,11 @@ public class StackComponentResolver implements ComponentResolver {
   }
 
   // if component references a specific service instance, filter the stream by the type of that service
-  private static Stream<Pair<StackId, String>> filterByServiceName(Component comp, Stream<Pair<StackId, String>> stream,
+  private static Stream<Pair<StackId, ServiceInfo>> filterByServiceName(Component comp, Stream<Pair<StackId, ServiceInfo>> stream,
     Map<String, Map<String, ServiceInstance>> mpackServices, Map<String, ServiceInstance> uniqueServices
   ) {
     if (!Strings.isNullOrEmpty(comp.getServiceInstance())) {
-      String mpackName = comp.getMpackInstance();
+      String mpackName = comp.getStackIdAsString();
       Map<String, ServiceInstance> services = !Strings.isNullOrEmpty(mpackName)
         ? mpackServices.get(mpackName)
         : uniqueServices;
@@ -121,7 +122,7 @@ public class StackComponentResolver implements ComponentResolver {
       if (service != null) {
         String serviceType = service.getType();
 
-        return stream.filter(pair -> pair.getRight().equals(serviceType));
+        return stream.filter(pair -> pair.getRight().getName().equals(serviceType));
       }
     }
 
@@ -129,11 +130,10 @@ public class StackComponentResolver implements ComponentResolver {
   }
 
   // if component references a specific mpack instance, filter the stream by the name of that mpack
-  private static Stream<Pair<StackId, String>> filterByMpackName(Component comp, Stream<Pair<StackId, String>> stream) {
-    if (!Strings.isNullOrEmpty(comp.getMpackInstance())) {
-      return stream.filter(pair -> pair.getLeft().getStackName().equals(comp.getMpackInstance()));
+  private static Stream<Pair<StackId, ServiceInfo>> filterByMpackName(Component comp, Stream<Pair<StackId, ServiceInfo>> stream) {
+    if (comp.getStackId() != null) {
+      return stream.filter(pair -> pair.getLeft().equals(comp.getStackId()));
     }
-
     return stream;
   }
 

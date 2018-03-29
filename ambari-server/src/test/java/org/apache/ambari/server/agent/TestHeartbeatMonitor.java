@@ -18,7 +18,6 @@
 package org.apache.ambari.server.agent;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -158,9 +157,6 @@ public class TestHeartbeatMonitor {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
-
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
       add(hostname2);
@@ -174,7 +170,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name(), Role.NAMENODE.name());
@@ -227,7 +223,6 @@ public class TestHeartbeatMonitor {
       assertEquals(isDataNode, execCmd != null);
       if (execCmd != null) {
         Map<String, String> commandParams = execCmd.getCommandParams();
-        assertTrue(SERVICE_PACKAGE_FOLDER + " should be included", commandParams.containsKey(SERVICE_PACKAGE_FOLDER));
         assertTrue(HOOKS_FOLDER + " should be included", commandParams.containsKey(HOOKS_FOLDER));
       }
     }
@@ -278,7 +273,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
     (hostname1);
@@ -388,7 +383,7 @@ public class TestHeartbeatMonitor {
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name(), Role.NAMENODE.name());
@@ -471,7 +466,7 @@ public class TestHeartbeatMonitor {
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name(), Role.NAMENODE.name());
@@ -589,7 +584,7 @@ public class TestHeartbeatMonitor {
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName);
 
     hdfs.addServiceComponent(Role.DATANODE.name(), Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);

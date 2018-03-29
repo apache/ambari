@@ -97,6 +97,7 @@
         <config-type>hdfs-site</config-type>
         <config-type>onefs</config-type>
         <config-type>hadoop-env</config-type>
+        <config-type>capacity-scheduler</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
 

@@ -105,7 +105,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
       if (service.getMaintenanceState() != MaintenanceState.OFF || !hasAtLeastOneComponentVersionAdvertised(service)) {
         continue;
       }
-      StackId stackId = service.getDesiredStackId();
+      StackId stackId = service.getStackId();
       String serviceType = service.getServiceType();
       boolean isServiceWitNoConfigs = ambariMetaInfo.get().isServiceWithNoConfigs(stackId.getStackName(), stackId.getStackVersion(), serviceType);
       if (isServiceWitNoConfigs){

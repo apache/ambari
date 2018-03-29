@@ -206,13 +206,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private static TopologyManager topologyManager;
 
   @Inject
-  private TopologyHolder topologyHolder;
+  private static TopologyHolder topologyHolder;
 
   @Inject
-  private HostLevelParamsHolder hostLevelParamsHolder;
+  private static HostLevelParamsHolder hostLevelParamsHolder;
 
   @Inject
-  private RecoveryConfigHelper recoveryConfigHelper;
+  private static RecoveryConfigHelper recoveryConfigHelper;
 
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
@@ -571,10 +571,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             addedHost.getRackInfo(),
             addedHost.getIPv4()));
         HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(clusterId, new HostLevelParamsCluster(
-            getManagementController().retrieveHostRepositories(cl, addedHost),
-            recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
-                addedHost.getHostName())
-        ));
+            getManagementController().retrieveHostRepositories(cl, addedHost), null));
         hostLevelParamsUpdateEvent.setHostId(addedHost.getHostId());
         hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
       }
@@ -1184,5 +1181,17 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   //todo: proper static injection of topology manager
   public static void setTopologyManager(TopologyManager topologyManager) {
     HostResourceProvider.topologyManager = topologyManager;
+  }
+
+  public static void setRecoveryConfigHelper(RecoveryConfigHelper recoveryConfigHelper) {
+      HostResourceProvider.recoveryConfigHelper = recoveryConfigHelper;
+  }
+
+  public static void setTopologyHolder(TopologyHolder topologyHolder) {
+      HostResourceProvider.topologyHolder = topologyHolder;
+  }
+
+  public static void setHostLevelParamsHolder(HostLevelParamsHolder hostLevelParamsHolder) {
+      HostResourceProvider.hostLevelParamsHolder = hostLevelParamsHolder;
   }
 }

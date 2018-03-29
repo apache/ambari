@@ -42,7 +42,6 @@ import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMet
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -221,9 +220,6 @@ public class ClusterImplTest {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
-        new StackId(stackVersion), repoVersion);
-
     clusters.addHost(hostName1);
     clusters.addHost(hostName2);
 
@@ -236,7 +232,7 @@ public class ClusterImplTest {
     clusters.mapAndPublishHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
-    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS");
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE", "NAMENODE");
     nameNode.addServiceComponentHost(hostName1);
@@ -249,7 +245,7 @@ public class ClusterImplTest {
     hdfsClient.addServiceComponentHost(hostName1);
     hdfsClient.addServiceComponentHost(hostName2);
 
-    Service tez = cluster.addService(serviceGroup, serviceToDelete, serviceToDelete, repositoryVersion);
+    Service tez = cluster.addService(serviceGroup, serviceToDelete, serviceToDelete);
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT", "TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);

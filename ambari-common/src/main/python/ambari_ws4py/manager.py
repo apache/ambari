@@ -1,21 +1,3 @@
-"""
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-"""
 # -*- coding: utf-8 -*-
 __doc__ = """
 The manager module provides a selected classes to
@@ -261,7 +243,7 @@ class WebSocketManager(threading.Thread):
         """
         Manage a new websocket.
 
-        First calls its :meth:`opened() <ambari_ws4py.websocket.WebSocket.opened>`
+        First calls its :meth:`opened() <ws4py.websocket.WebSocket.opened>`
         method and register its socket against the poller
         for reading events.
         """
@@ -279,7 +261,7 @@ class WebSocketManager(threading.Thread):
         """
         Remove the given ``websocket`` from the manager.
 
-        This does not call its :meth:`closed() <ambari_ws4py.websocket.WebSocket.closed>`
+        This does not call its :meth:`closed() <ws4py.websocket.WebSocket.closed>`
         method as it's out-of-band by your application
         or from within the manager's run loop.
         """
@@ -310,8 +292,8 @@ class WebSocketManager(threading.Thread):
         call related websockets' `once` method to
         read and process the incoming data.
 
-        If the :meth:`once() <ambari_ws4py.websocket.WebSocket.once>`
-        method returns a `False` value, its :meth:`terminate() <ambari_ws4py.websocket.WebSocket.terminate>`
+        If the :meth:`once() <ws4py.websocket.WebSocket.once>`
+        method returns a `False` value, its :meth:`terminate() <ws4py.websocket.WebSocket.terminate>`
         method is also applied to properly close
         the websocket and its socket is unregistered from the poller.
 
@@ -353,7 +335,7 @@ class WebSocketManager(threading.Thread):
 
     def close_all(self, code=1001, message='Server is shutting down'):
         """
-        Execute the :meth:`close() <ambari_ws4py.websocket.WebSocket.close>`
+        Execute the :meth:`close() <ws4py.websocket.WebSocket.close>`
         method of each registered websockets to initiate the closing handshake.
         It doesn't wait for the handshake to complete properly.
         """

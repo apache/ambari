@@ -63,7 +63,7 @@ public class Setting {
    *     }
    *   </pre>
    */
-  protected static final String SETTING_NAME_CREDENTIAL_STORE_ENABLED = "credential_store_enabled";
+  private static final String SETTING_NAME_CREDENTIAL_STORE_ENABLED = "credential_store_enabled";
 
   /**
    * Settings.

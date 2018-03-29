@@ -18,7 +18,6 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +53,6 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -75,7 +72,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -886,10 +882,12 @@ public class HostImpl implements Host {
     this.lastHeartbeatTime = lastHeartbeatTime;
   }
 
+  @Override
   public long getLastAgentStartTime() {
     return lastAgentStartTime;
   }
 
+  @Override
   public void setLastAgentStartTime(long lastAgentStartTime) {
     this.lastAgentStartTime = lastAgentStartTime;
   }
@@ -1294,48 +1292,6 @@ public class HostImpl implements Host {
     setPublicHostName(e.publicHostName);
     setTimeInState(System.currentTimeMillis());
     setState(HostState.INIT);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isRepositoryVersionCorrect(RepositoryVersionEntity repositoryVersion)
-      throws AmbariException {
-    HostEntity hostEntity = getHostEntity();
-    Collection<HostComponentStateEntity> hostComponentStates = hostEntity.getHostComponentStateEntities();
-
-    // for every host component, if it matches the desired repo and has reported
-    // the correct version then we're good
-    for (HostComponentStateEntity hostComponentState : hostComponentStates) {
-      ServiceComponentDesiredStateEntity desiredComponmentState = hostComponentState.getServiceComponentDesiredStateEntity();
-      RepositoryVersionEntity desiredRepositoryVersion = desiredComponmentState.getDesiredRepositoryVersion();
-
-      Long clusterId = hostComponentState.getClusterId();
-      Cluster cluster = clusters.getCluster(clusterId);
-      Service s = cluster.getService(hostComponentState.getServiceId());
-      ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-          desiredRepositoryVersion.getStackName(), desiredRepositoryVersion.getStackVersion(),
-          s.getServiceType(), hostComponentState.getComponentName());
-
-      // skip components which don't advertise a version
-      if (!componentInfo.isVersionAdvertised()) {
-        continue;
-      }
-
-      // we only care about checking the specified repo version for this host
-      if (!repositoryVersion.equals(desiredRepositoryVersion)) {
-        continue;
-      }
-
-      String versionAdvertised = hostComponentState.getVersion();
-      if (hostComponentState.getUpgradeState() == UpgradeState.IN_PROGRESS
-          || !StringUtils.equals(versionAdvertised, repositoryVersion.getVersion())) {
-        return false;
-      }
-    }
-
-    return true;
   }
 }
 

@@ -30,12 +30,12 @@
       </ul>
     </div>
     <div class="widget-content" >
-      {{#if view.isHAEnabled }}
+      {{#if view.isHAEnabled}}
         <table>
           <!--Active NameNode-->
           <tr class="active-namenode-link">
             {{#if view.isActiveNNValid}}
-              <td><a href="#" {{action showDetails view.model.activeNameNode.host}}>{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
+              <td><a href="#" {{action showDetails view.activeNameNode.host}}>{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
             {{else}}
               <td><a class="disabled-hdfs-link">{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
             {{/if}}
@@ -48,7 +48,7 @@
                 <td><a href="#" {{action filterHosts view.twoStandbyComponent}}>{{t dashboard.widgets.HDFSLinks.standbyNameNodes}}</a></td>
               {{else}}
                 <!--One Standby NameNode-->
-                <td><a href="#" {{action showDetails view.model.standbyNameNode.host}}>{{t dashboard.widgets.HDFSLinks.standbyNameNode}}</a></td>
+                <td><a href="#" {{action showDetails view.standbyNameNodes.firstObject.host}}>{{t dashboard.widgets.HDFSLinks.standbyNameNode}}</a></td>
               {{/if}}
             {{else}}
               <td><a class="disabled-hdfs-link">{{t dashboard.widgets.HDFSLinks.standbyNameNode}}</a></td>
@@ -84,7 +84,8 @@
 
     <div class="link-button">
       {{#if view.model.quickLinks.length}}
-        {{#view App.QuickLinksView contentBinding="view.model"}}
+        {{#view App.QuickLinksView contentBinding="view.model" masterGroupsBinding="view.masterGroupsArray"
+          shouldSetGroupedLinks=true}}
           <div class="btn-group">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
               {{t common.more}}

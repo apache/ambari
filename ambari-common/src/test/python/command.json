@@ -1,0 +1,93 @@
+{
+  "serviceName": "ZOOKEEPER",
+  "clusterSettings": {
+    "security_enabled": "false",
+    "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
+    "managed_hdfs_resource_property_names": "",
+    "smokeuser": "ambari-qa",
+    "sysprep_skip_copy_fast_jar_hdfs": "false"
+  },
+  "clusterName": "c1",
+  "stackSettings": {
+    "stack_name": "HDP",
+    "stack_root": "{\"HDP\":\"/usr/hdp\"}"
+  },
+  "configurations": {
+    "ranger-hdfs-audit": {
+      "xasecure.audit.destination.solr.zookeepers": "NONE",
+      "xasecure.audit.destination.solr.urls": "",
+      "xasecure.audit.destination.solr": "false",
+      "xasecure.audit.destination.hdfs.batch.filespool.dir": "/var/log/hadoop/hdfs/audit/hdfs/spool",
+      "xasecure.audit.is.enabled": "true"
+    },
+    "ssl-client": {
+      "ssl.client.truststore.reload.interval": "10000",
+      "ssl.client.keystore.password": "bigdata",
+      "ssl.client.truststore.type": "jks",
+      "ssl.client.keystore.location": "/etc/security/clientKeys/keystore.jks",
+      "ssl.client.keystore.type": "jks"
+    },
+    "ssl-server": {
+      "ssl.server.keystore.location": "/etc/security/serverKeys/keystore.jks",
+      "ssl.server.keystore.type": "jks",
+      "ssl.server.truststore.reload.interval": "10000"
+    },
+    "hdfs-site": {
+      "dfs.namenode.checkpoint.period": "21600",
+      "dfs.namenode.avoid.write.stale.datanode": "true",
+      "dfs.namenode.startup.delay.block.deletion.sec": "3600",
+      "dfs.namenode.checkpoint.edits.dir": "${dfs.namenode.checkpoint.dir}",
+      "dfs.namenode.rpc-address": "c7301.ambari.apache.org:8020",
+      "dfs.journalnode.https-address": "0.0.0.0:8481",
+      "dfs.journalnode.http-address": "0.0.0.0:8480",
+      "dfs.domain.socket.path": "/var/lib/hadoop-hdfs/dn_socket"
+    },
+    "hdfs-logsearch-conf": {},
+    "zoo.cfg": {
+      "clientPort": "2181",
+      "autopurge.purgeInterval": "24",
+      "syncLimit": "5",
+      "dataDir": "/hadoop/zookeeper",
+      "initLimit": "10",
+      "tickTime": "3000",
+      "autopurge.snapRetainCount": "30"
+    },
+    "ranger-hdfs-security": {
+      "ranger.plugin.hdfs.policy.source.impl": "org.apache.ranger.admin.client.RangerAdminRESTClient",
+      "ranger.plugin.hdfs.service.name": "{{repo_name}}",
+      "ranger.plugin.hdfs.policy.cache.dir": "/etc/ranger/{{repo_name}}/policycache",
+      "ranger.plugin.hdfs.policy.pollIntervalMs": "30000",
+      "ranger.plugin.hdfs.policy.rest.url": "{{policymgr_mgr_url}}",
+      "ranger.plugin.hdfs.policy.rest.ssl.config.file": "/etc/hadoop/conf/ranger-policymgr-ssl.xml",
+      "xasecure.add-hadoop-authorization": "true"
+    },
+    "core-site": {
+      "hadoop.custom-extensions.root": "/hdp/ext/{{major_stack_version}}/hadoop",
+      "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization",
+      "fs.trash.interval": "360",
+      "hadoop.proxyuser.root.groups": "*",
+      "ipc.client.connection.maxidletime": "30000",
+      "net.topology.script.file.name": "/etc/hadoop/conf/topology_script.py",
+      "ipc.server.tcpnodelay": "true",
+      "fs.defaultFS": "hdfs://c7301.ambari.apache.org:8020"
+    },
+    "hadoop-policy": {
+      "security.job.client.protocol.acl": "*",
+      "security.job.task.protocol.acl": "*"
+    },
+    "zookeeper-env": {
+      "zk_log_dir": "/var/log/zookeeper",
+      "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOOKEEPER_HOME={{zk_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}",
+      "zk_server_heapsize": "1024m",
+      "zk_pid_dir": "/var/run/zookeeper",
+      "zk_user": "zookeeper"
+    }
+  },
+  "hostLevelParams": {
+    "stack_name": "HDPCORE",
+    "group_list": "[\"hdfs\",\"users\"]",
+    "host_sys_prepped": "false",
+    "jdk_name": "jdk-8u112-linux-x64.tar.gz",
+    "stack_version": "1.0.0-b141"
+  }
+}

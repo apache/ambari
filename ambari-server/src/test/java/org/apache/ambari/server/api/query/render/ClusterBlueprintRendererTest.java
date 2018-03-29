@@ -72,6 +72,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -93,6 +94,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -257,7 +259,7 @@ public class ClusterBlueprintRendererTest {
     assertNotNull(propertyTree.getChild("Host"));
     assertTrue(propertyTree.getChild("Host").getObject().isEmpty());
     assertNotNull(propertyTree.getChild("Host/HostComponent"));
-    assertEquals(1, propertyTree.getChild("Host/HostComponent").getObject().size());
+    assertEquals(4, propertyTree.getChild("Host/HostComponent").getObject().size());
     assertTrue(propertyTree.getChild("Host/HostComponent").getObject().contains("HostRoles/component_name"));
   }
 
@@ -268,6 +270,8 @@ public class ClusterBlueprintRendererTest {
     clusterResource.setProperty("Clusters/version", "HDP-1.3.3");
 
     TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
+
+    addStackVersions(clusterTree);
 
     // Add global recovery_enabled as cluster setting
     TreeNode<Resource> settingsNode = clusterTree.addChild(null, "settings");
@@ -364,7 +368,7 @@ public class ClusterBlueprintRendererTest {
   public void testGetSettings_instance(){
     Result result = new ResultImpl(true);
 
-    TreeNode<Resource> resultTree = createResultTreeSettingsObject(result.getResultTree());
+    createResultTreeSettingsObject(result.getResultTree());
 
     ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
     Result blueprintResult = renderer.finalizeResult(result);
@@ -434,7 +438,7 @@ public class ClusterBlueprintRendererTest {
     assertNotNull(propertyTree.getChild("Host"));
     assertTrue(propertyTree.getChild("Host").getObject().isEmpty());
     assertNotNull(propertyTree.getChild("Host/HostComponent"));
-    assertEquals(1, propertyTree.getChild("Host/HostComponent").getObject().size());
+    assertEquals(4, propertyTree.getChild("Host/HostComponent").getObject().size());
     assertTrue(propertyTree.getChild("Host/HostComponent").getObject().contains("HostRoles/component_name"));
   }
 
@@ -459,7 +463,7 @@ public class ClusterBlueprintRendererTest {
 
     Map<String, Object> securityProperties = (Map<String, Object>) properties.get("Blueprints").get("security");
     assertNotNull(securityProperties);
-    assertEquals("KERBEROS", securityProperties.get("type"));
+    assertEquals(SecurityType.KERBEROS.name(), securityProperties.get("type"));
     assertNotNull(((Map<String, Object>) securityProperties.get("kerberos_descriptor")).get("properties"));
   }
 
@@ -526,6 +530,10 @@ public class ClusterBlueprintRendererTest {
         assertEquals(expectedValues, actualValues);
       }
     }
+
+    Map<String, Object> securityProperties = (Map<String, Object>) properties.get("Blueprints").get("security");
+    assertNotNull(securityProperties);
+    assertEquals(SecurityType.NONE.name(), securityProperties.get("type"));
   }
 
   @Test
@@ -683,16 +691,16 @@ public class ClusterBlueprintRendererTest {
           originalMap.put("Clusters/desired_configs", desiredConfig);
         }
 
-
         return originalMap;
       }
-
     };
 
     clusterResource.setProperty("Clusters/cluster_name", "testCluster");
     clusterResource.setProperty("Clusters/version", "HDP-1.3.3");
 
     TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
+
+    addStackVersions(clusterTree);
 
     // add a service group and empty services resource for basic unit testing
     TreeNode<Resource> serviceGroupsTree = clusterTree.addChild(null, "servicegroups");
@@ -803,6 +811,17 @@ public class ClusterBlueprintRendererTest {
     // host 3 components
     host3ComponentsTree.addChild(dnComponentResource, "HostComponent:1");
     host3ComponentsTree.addChild(ttComponentResource, "HostComponent:2");
+  }
+
+  private void addStackVersions(TreeNode<Resource> clusterTree) {
+    ResourceImpl clusterStackVersionResource = new ResourceImpl(Resource.Type.ClusterStackVersion);
+    clusterStackVersionResource.getPropertiesMap().put("ClusterStackVersions",
+      ImmutableMap.of(
+        "cluster_name", "testCluster",
+        "stack", STACK_ID.getStackName(),
+        "version", STACK_ID.getStackVersion(),
+        "mpack_uri", "http://mpacks.org/hdp-1.3.3.json"));
+    clusterTree.addChild(null, "stack_versions").addChild(clusterStackVersionResource, "ClusterStackVersion:1");
   }
 
   private void checkMpackInstance(Map<String, Map<String, Object>> blueprintProperties) {

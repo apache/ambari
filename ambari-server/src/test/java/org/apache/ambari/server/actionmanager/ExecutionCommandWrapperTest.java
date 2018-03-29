@@ -115,9 +115,8 @@ public class ExecutionCommandWrapperTest {
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster1);
     ServiceGroup serviceGroup = cluster1.addServiceGroup("CORE", cluster1.getDesiredStackVersion().getStackId());
-    cluster1.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    cluster1.addService(serviceGroup, "HDFS", "HDFS");
 
     SERVICE_SITE_CLUSTER = new HashMap<>();
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);
@@ -287,14 +286,13 @@ public class ExecutionCommandWrapperTest {
     Cluster cluster = clusters.getCluster(CLUSTER1);
 
     StackId stackId = cluster.getDesiredStackVersion();
-    
+
     // set the repo version resolved state to verify that the version is not sent
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
     repositoryVersion.setResolved(false);
     ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
 
     Service service = cluster.getService("HDFS");
-    service.setDesiredRepositoryVersion(repositoryVersion);
 
     // first try with an INSTALL command - this should not populate version info
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -365,7 +363,6 @@ public class ExecutionCommandWrapperTest {
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
     repositoryVersion.setResolved(true); // has build number
     Service service = cluster.getService("HDFS");
-    service.setDesiredRepositoryVersion(repositoryVersion);
 
     repositoryVersion.addRepoOsEntities(new ArrayList<>());
 

@@ -37,6 +37,7 @@ def get_not_managed_resources():
   not_managed_hdfs_path_list = json.loads(config['clusterLevelParams']['not_managed_hdfs_path_list'])[:]
   if get_cluster_setting_value('managed_hdfs_resource_property_names') is not None:
     managed_hdfs_resource_property_names = get_cluster_setting_value('managed_hdfs_resource_property_names')
+    managed_hdfs_resource_property_list = filter(None, [property.strip() for property in managed_hdfs_resource_property_names.split(',')])
 
     for property_name in managed_hdfs_resource_property_list:
       property_value = default('/configurations/' + property_name, None)

@@ -56,5 +56,8 @@
         {{/each}}
       </div>
     </div>
+    {{#if group.componentWidgetsView}}
+      {{view group.componentWidgetsView}}
+    {{/if}}
   {{/if}}
 {{/each}}

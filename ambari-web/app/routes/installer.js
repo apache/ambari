@@ -303,16 +303,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.save('selectedServices');
         controller.save('selectedMpacks');
         controller.save('advancedMode');
-        var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
+        var wizardStep6Controller = router.get('wizardStep6Controller');
         // Clear subsequent settings if user changed service selections
-        if (!wizardSelectMpacksController.get('isSaved')) {
+        if (!wizardStep6Controller.get('isSaved')) {
           router.get('wizardStep5Controller').clearRecommendations();
           controller.setDBProperty('recommendations', undefined);
           controller.set('content.masterComponentHosts', undefined);
           controller.setDBProperty('masterComponentHosts', undefined);
           controller.clearEnhancedConfigs();
           controller.setDBProperty('slaveComponentHosts', undefined);
-          router.get('wizardStep6Controller').set('isClientsSet', false);
+          wizardStep6Controller.set('isClientsSet', false);
         }
         controller.setStepSaved('selectMpacks');
         const downloadConfig = controller.get('content.downloadConfig');

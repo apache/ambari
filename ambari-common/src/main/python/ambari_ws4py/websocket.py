@@ -1,21 +1,3 @@
-"""
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-"""
 # -*- coding: utf-8 -*-
 import logging
 import socket
@@ -276,7 +258,7 @@ class WebSocket(object):
     def unhandled_error(self, error):
         """
         Called whenever a socket, or an OS, error is trapped
-        by ambari_ws4py but not managed by it. The given error is
+        by ws4py but not managed by it. The given error is
         an instance of `socket.error` or `OSError`.
 
         Note however that application exceptions will not go
@@ -344,7 +326,7 @@ class WebSocket(object):
 
         When data is sent over a SSL connection
         more data may be read than was requested from by
-        the ambari_ws4py websocket object.
+        the ws4py websocket object.
 
         In that case, the data may have been indeed read
         from the underlying real socket, but not read by the
@@ -405,10 +387,12 @@ class WebSocket(object):
             logger.debug("WebSocket is already terminated")
             return False
         try:
-            b = self.sock.recv(self.reading_buffer_size)
+            b = b''
             if self._is_secure:
-                b += self._get_from_pending()
-            if not b:
+                b = self._get_from_pending()
+            if not b and not self.buf:
+                b = self.sock.recv(self.reading_buffer_size)
+            if not b and not self.buf:
                 return False
             self.buf += b
         except (socket.error, OSError, pyOpenSSLError) as e:
@@ -421,9 +405,11 @@ class WebSocket(object):
             # process as much as we can
             # the process will stop either if there is no buffer left
             # or if the stream is closed
-            if not self.process(self.buf):
+            # only pass the requested number of bytes, leave the rest in the buffer
+            requested = self.reading_buffer_size
+            if not self.process(self.buf[:requested]):
                 return False
-            self.buf = b""
+            self.buf = self.buf[requested:]
 
         return True
 

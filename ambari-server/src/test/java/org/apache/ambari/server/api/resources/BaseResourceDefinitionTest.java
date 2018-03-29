@@ -50,7 +50,6 @@ import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Assert;
@@ -90,13 +89,12 @@ public class BaseResourceDefinitionTest {
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
 
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
             anyObject(Service.class))).andReturn(true).anyTimes();
 
     ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController,
-        maintenanceStateHelper, repositoryVersionDAO);
+        maintenanceStateHelper);
 
     expect(
         factory.getServiceResourceProvider(

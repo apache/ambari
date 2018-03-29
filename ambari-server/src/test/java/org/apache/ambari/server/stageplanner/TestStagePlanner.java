@@ -106,9 +106,9 @@ public class TestStagePlanner {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6.1"));
 
     Service hbaseService = mock(Service.class);
-    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
     Service zkService = mock(Service.class);
-    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
@@ -142,11 +142,11 @@ public class TestStagePlanner {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6.1"));
 
     Service hbaseService = mock(Service.class);
-    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
     Service zkService = mock(Service.class);
-    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
     Service yarnService = mock(Service.class);
-    when(yarnService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    when(yarnService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
@@ -185,9 +185,9 @@ public class TestStagePlanner {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6.1"));
 
     Service hbaseService = mock(Service.class);
-    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
     Service zkService = mock(Service.class);
-    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
+    when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6.1"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
@@ -225,9 +225,9 @@ public class TestStagePlanner {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service hbaseService = mock(Service.class);
-    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
     Service zkService = mock(Service.class);
-    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
@@ -264,9 +264,9 @@ public class TestStagePlanner {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service hbaseService = mock(Service.class);
-    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
     Service zkService = mock(Service.class);
-    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HBASE", hbaseService)
@@ -301,7 +301,7 @@ public class TestStagePlanner {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service hiveService = mock(Service.class);
-    when(hiveService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hiveService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HIVE", hiveService)
@@ -338,25 +338,25 @@ public class TestStagePlanner {
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service hdfsService = mock(Service.class);
-    when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hdfsService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service hbaseService = mock(Service.class);
-    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(hbaseService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service zkService = mock(Service.class);
-    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(zkService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service mrService = mock(Service.class);
-    when(mrService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(mrService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service oozieService = mock(Service.class);
-    when(oozieService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(oozieService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service webhcatService = mock(Service.class);
-    when(webhcatService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(webhcatService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     Service gangliaService = mock(Service.class);
-    when(gangliaService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    when(gangliaService.getStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)

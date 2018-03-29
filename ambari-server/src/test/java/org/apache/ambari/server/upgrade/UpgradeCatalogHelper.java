@@ -35,7 +35,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -114,39 +113,6 @@ public class UpgradeCatalogHelper {
   }
 
   /**
-   * Adds the specified service to a cluster. The service must already be part
-   * of the cluster.
-   *
-   * @param injector
-   * @param clusterEntity
-   * @param serviceName
-   * @param desiredRepositoryVersion
-   * @return
-   */
-  protected ClusterServiceEntity addService(Injector injector,
-      ClusterEntity clusterEntity, String serviceName,
-      RepositoryVersionEntity desiredRepositoryVersion) {
-    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
-
-    ClusterServiceEntity clusterServiceEntity = createService(injector,
-        clusterEntity, serviceName);
-
-    ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
-    serviceDesiredStateEntity.setClusterId(1L);
-    serviceDesiredStateEntity.setServiceGroupId(1L);
-    serviceDesiredStateEntity.setServiceId(1L);
-    serviceDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
-
-    clusterServiceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
-    clusterEntity.getClusterServiceEntities().add(clusterServiceEntity);
-
-    clusterDAO.merge(clusterEntity);
-
-    return clusterServiceEntity;
-  }
-
-  /**
    * Create a host in the specified cluster.
    *
    * @param injector
@@ -184,7 +150,6 @@ public class UpgradeCatalogHelper {
     componentDesiredStateEntity.setServiceId(clusterServiceEntity.getServiceId());
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setClusterId(clusterServiceEntity.getClusterId());
-    componentDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
 
     serviceComponentDesiredStateDAO.create(componentDesiredStateEntity);
 

@@ -35,7 +35,6 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -295,12 +294,9 @@ public class AlertEventPublisherTest {
   }
 
   private void installHdfsService() throws Exception {
-    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
-        cluster.getCurrentStackVersion(), REPO_VERSION);
-
     String serviceName = "HDFS";
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", cluster.getDesiredStackVersion().getStackId());
-    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);
     Service service = cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

@@ -103,6 +103,8 @@ class ExecuteUpgradeTasks(Script):
 
     # These 2 variables are optional
     service_package_folder = default('/commandParams/service_package_folder', None)
+    if service_package_folder is None:
+      service_package_folder = default('/serviceLevelParams/service_package_folder', None)
     hooks_folder = default('/commandParams/hooks_folder', None)
 
     tasks = json.loads(config['roleParams']['tasks'])
@@ -119,7 +121,7 @@ class ExecuteUpgradeTasks(Script):
 
           if service_package_folder and hooks_folder:
             command_paths = {
-              "serviceLevelParams": {
+              "commandParams": {
                 "service_package_folder": service_package_folder,
               },
               "clusterLevelParams": {

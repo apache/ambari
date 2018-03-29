@@ -385,10 +385,10 @@ public class Stack implements StackDefinition {
 
   @Override
   @Nonnull
-  public Stream<Pair<StackId, String>> getServicesForComponent(String component) {
+  public Stream<Pair<StackId, ServiceInfo>> getServicesForComponent(String component) {
     String service = getServiceForComponent(component);
     return service != null
-      ? Stream.of(Pair.of(getStackId(), service))
+      ? Stream.of(Pair.of(getStackId(), stackInfo.getService(service)))
       : Stream.empty();
   }
 

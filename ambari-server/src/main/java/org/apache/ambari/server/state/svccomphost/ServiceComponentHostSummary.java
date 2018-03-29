@@ -28,7 +28,6 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
@@ -88,38 +87,5 @@ public class ServiceComponentHostSummary {
 
       haveAdvertisedVersion.add(hostComponentStateEntity);
     }
-  }
-
-  /**
-   * Gets whether all hosts for a service component have reported the correct
-   * version.
-   *
-   * @param repositoryVersion
-   *          the version to report (not {@code null}).
-   * @return {@code true} if all hosts for this service component have reported
-   *         the correct version, {@code false} othwerise.
-   */
-  public boolean isVersionCorrectForAllHosts(RepositoryVersionEntity repositoryVersion) {
-    if (!waitingToAdvertiseVersion.isEmpty()) {
-      return false;
-    }
-
-    for (HostComponentStateEntity hostComponent : haveAdvertisedVersion) {
-      if (UpgradeState.VERSION_NON_ADVERTISED_STATES.contains(hostComponent.getUpgradeState())) {
-        return false;
-      }
-
-      ServiceComponentDesiredStateEntity desiredState = hostComponent.getServiceComponentDesiredStateEntity();
-      RepositoryVersionEntity desiredRepositoryVersion = desiredState.getDesiredRepositoryVersion();
-      if (!desiredRepositoryVersion.equals(repositoryVersion)) {
-        continue;
-      }
-
-      if (!StringUtils.equals(hostComponent.getVersion(), desiredRepositoryVersion.getVersion())) {
-        return false;
-      }
-    }
-
-    return true;
   }
 }

@@ -1,21 +1,3 @@
-"""
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-"""
 # -*- coding: utf-8 -*-
 from base64 import b64encode
 from hashlib import sha1
@@ -32,7 +14,7 @@ __all__ = ['WebSocketBaseClient']
 
 class WebSocketBaseClient(WebSocket):
     def __init__(self, url, protocols=None, extensions=None,
-                 heartbeat_freq=None, ssl_options=None, headers=None):
+                 heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
         """
         A websocket client that implements :rfc:`6455` and provides a simple
         interface to communicate with a websocket server.
@@ -54,7 +36,7 @@ class WebSocketBaseClient(WebSocket):
 
         .. code-block:: python
 
-           >>> from websocket.client import WebSocketBaseClient
+           >>> from ambari_ws4py.client import WebSocketBaseClient
            >>> ws = WebSocketBaseClient('ws://localhost/ws')
 
 
@@ -62,7 +44,7 @@ class WebSocketBaseClient(WebSocket):
 
         .. code-block:: python
 
-           >>> from websocket.client import WebSocketBaseClient
+           >>> from ambari_ws4py.client import WebSocketBaseClient
            >>> ws = WebSocketBaseClient('wss://localhost/ws')
 
 
@@ -70,7 +52,7 @@ class WebSocketBaseClient(WebSocket):
 
         .. code-block:: python
 
-           >>> from websocket.client import WebSocketBaseClient
+           >>> from ambari_ws4py.client import WebSocketBaseClient
            >>> ws = WebSocketBaseClient('ws+unix:///tmp/my.sock')
 
         Note that in this case, the initial Upgrade request
@@ -79,7 +61,7 @@ class WebSocketBaseClient(WebSocket):
 
         .. code-block:: python
 
-           >>> from websocket.client import WebSocketBaseClient
+           >>> from ambari_ws4py.client import WebSocketBaseClient
            >>> ws = WebSocketBaseClient('ws+unix:///tmp/my.sock')
            >>> ws.resource = '/ws'
            >>> ws.connect()
@@ -96,6 +78,8 @@ class WebSocketBaseClient(WebSocket):
         self.resource = None
         self.ssl_options = ssl_options or {}
         self.extra_headers = headers or []
+        self.exclude_headers = exclude_headers or []
+        self.exclude_headers = [x.lower() for x in self.exclude_headers]
 
         if self.scheme == "wss":
             # Prevent check_hostname requires server_hostname (ref #187)
@@ -229,7 +213,7 @@ class WebSocketBaseClient(WebSocket):
             # default port is now 443; upgrade self.sender to send ssl
             self.sock = ssl.wrap_socket(self.sock, **self.ssl_options)
             self._is_secure = True
-            
+
         self.sock.settimeout(10.0)
         self.sock.connect(self.bind_addr)
 
@@ -276,14 +260,15 @@ class WebSocketBaseClient(WebSocket):
             ('Sec-WebSocket-Key', self.key.decode('utf-8')),
             ('Sec-WebSocket-Version', str(max(WS_VERSION)))
             ]
-        
+
         if self.protocols:
             headers.append(('Sec-WebSocket-Protocol', ','.join(self.protocols)))
 
         if self.extra_headers:
             headers.extend(self.extra_headers)
 
-        if not any(x for x in headers if x[0].lower() == 'origin'):
+        if not any(x for x in headers if x[0].lower() == 'origin') and \
+           'origin' not in self.exclude_headers:
 
             scheme, url = self.url.split(":", 1)
             parsed = urlsplit(url, scheme="http")
@@ -295,6 +280,8 @@ class WebSocketBaseClient(WebSocket):
             if parsed.port:
                 origin = origin + ':' + str(parsed.port)
             headers.append(('Origin', origin))
+
+        headers = [x for x in headers if x[0].lower() not in self.exclude_headers]
 
         return headers
 
@@ -347,10 +334,10 @@ class WebSocketBaseClient(WebSocket):
                     raise HandshakeError("Invalid challenge response: %s" % value)
 
             elif header == b'sec-websocket-protocol':
-                protocols = ','.join(value)
+                protocols.extend([x.strip() for x in value.split(b',')])
 
             elif header == b'sec-websocket-extensions':
-                extensions = ','.join(value)
+                extensions.extend([x.strip() for x in value.split(b',')])
 
         return protocols, extensions
 

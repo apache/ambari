@@ -34,8 +34,8 @@ import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -72,8 +72,8 @@ public interface Cluster {
    */
   void addService(Service service);
 
-  Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType,
-                     RepositoryVersionEntity repositoryVersion) throws AmbariException;
+  Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType)
+      throws AmbariException;
 
   Service addDependencyToService(String  serviceGroupName, String serviceName,
                                         Long dependencyServiceId) throws AmbariException;
@@ -516,7 +516,7 @@ public interface Cluster {
    * if the config is already set as the current
    */
   ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) throws AmbariException;
-  
+
   ServiceConfigVersionResponse createServiceConfigVersion(Long serviceId, String user, String note,
                                                           ConfigGroup configGroup) throws AmbariException;
 
@@ -579,6 +579,15 @@ public interface Cluster {
    * @return a map of type-to-configuration information.
    */
   Map<String, DesiredConfig> getDesiredConfigs();
+
+  /**
+   * Gets the active desired configurations for the cluster.
+   * @param cachedConfigEntities retrieves cluster config entities from the cache if true, otherwise from the DB directly.
+   * @return a map of type-to-configuration information.
+   */
+  Map<String, DesiredConfig> getDesiredConfigs(boolean cachedConfigEntities);
+
+  ClusterEntity getClusterEntity();
 
   /**
    * Gets all versions of the desired configurations for the cluster.

@@ -90,14 +90,14 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   // Components
 
   protected static final String COMPONENT_CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_id";
-  protected static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
+  public static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
   protected static final String COMPONENT_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
   protected static final String COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
   protected static final String COMPONENT_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
-  protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
-  protected static final String COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
+  public static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
+  public static final String COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
   protected static final String COMPONENT_COMPONENT_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
-  protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
+  public static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
   protected static final String COMPONENT_COMPONENT_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_type";
   protected static final String COMPONENT_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "display_name";
   protected static final String COMPONENT_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
@@ -110,7 +110,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_INIT_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "init_count";
   protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "unknown_count";
   protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "install_failed_count";
-  protected static final String COMPONENT_RECOVERY_ENABLED_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "recovery_enabled";
+  public static final String COMPONENT_RECOVERY_ENABLED_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "recovery_enabled";
   protected static final String COMPONENT_DESIRED_STACK = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
   protected static final String COMPONENT_DESIRED_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_version";
   protected static final String COMPONENT_REPOSITORY_STATE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_state";
@@ -453,7 +453,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         // Expected
       }
 
-      StackId stackId = s.getDesiredStackId();
+      StackId stackId = s.getStackId();
       if (!ambariMetaInfo.isValidServiceComponent(stackId.getStackName(),
           stackId.getStackVersion(), s.getServiceType(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
@@ -478,7 +478,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName(), request.getComponentType());
-      sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
@@ -496,7 +495,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setRecoveryEnabled(recoveryEnabled);
         LOG.info("Component: {}, recovery_enabled from request: {}", request.getComponentName(), recoveryEnabled);
       } else {
-        StackId stackId = s.getDesiredStackId();
+        StackId stackId = s.getStackId();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), s.getServiceType(), request.getComponentType());
         if (componentInfo == null) {
@@ -548,7 +547,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final Service s = getServiceFromCluster(request, cluster);
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
-      StackId stackId = sc.getDesiredStackId();
+      StackId stackId = sc.getStackId();
 
       ServiceGroup sg = null;
       try {
@@ -588,7 +587,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           continue;
         }
 
-        StackId stackId = sc.getDesiredStackId();
+        StackId stackId = sc.getStackId();
 
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {

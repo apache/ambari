@@ -479,7 +479,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       if (!countTotals.containsKey(status)) {
         countTotals.put(status, Integer.valueOf(0));
       }
-      double countValue = (double) countTotals.get(status);
+      double countValue = countTotals.get(status);
 
       // !!! calculation lifted from CalculatedStatus
       switch (status) {
@@ -498,7 +498,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           break;
         default:
           if (status.isCompletedState()) {
-            percent += countValue / (double) totalTasks;
+            percent += countValue / totalTasks;
           }
           break;
       }
@@ -784,6 +784,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             new StackId(targetStack.getStackName(), targetStack.getStackVersion()));
       }
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
+      s_upgradeHelper.publishDesiredRepositoriesUpdates(upgradeContext);
       if (direction == Direction.DOWNGRADE) {
         StackId targetStack = upgradeContext.getCluster().getCurrentStackVersion();
         cluster.setDesiredStackVersion(targetStack);
@@ -1588,7 +1589,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         // depending on whether this is an upgrade or a downgrade, the history
         // will be different
         if (upgradeContext.getDirection() == Direction.UPGRADE || upgradeContext.isPatchRevert()) {
-          history.setFromRepositoryVersion(component.getDesiredRepositoryVersion());
+          history.setFromRepositoryVersion(null);
           history.setTargetRepositoryVersion(upgradeContext.getRepositoryVersion());
         } else {
           // the target version on a downgrade is the original version that the

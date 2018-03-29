@@ -60,10 +60,11 @@ from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
   get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
+from resource_management.libraries.execution_command.execution_command import ExecutionCommand
+from resource_management.libraries.execution_command.module_configs import ModuleConfigs
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -106,30 +107,7 @@ def get_path_from_configuration(name, configuration):
 def get_config_lock_file():
   return os.path.join(Script.get_tmp_dir(), "link_configs_lock_file")
 
-class LockedConfigureMeta(type):
-  '''
-  This metaclass ensures that Script.configure() is invoked with a fcntl-based process lock
-  if necessary (when Ambari Agent is configured to execute tasks concurrently) for all subclasses.
-  '''
-  def __new__(meta, classname, supers, classdict):
-    if 'configure' in classdict:
-      original_configure = classdict['configure']
-
-      def locking_configure(obj, *args, **kw):
-        # local import to avoid circular dependency (default imports Script)
-        from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(default("/agentLevelParams/agentConfigParams/agent/parallel_execution", 0)) == 1
-        lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
-        with lock:
-          original_configure(obj, *args, **kw)
-
-      classdict['configure'] = locking_configure
-
-    return type.__new__(meta, classname, supers, classdict)
-
 class Script(object):
-  __metaclass__ = LockedConfigureMeta
-
   instance = None
 
   """
@@ -146,6 +124,8 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   config = None
+  execution_command = None
+  module_configs = None
   stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
@@ -339,6 +319,8 @@ class Script(object):
       with open(self.command_data_file) as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
+        Script.execution_command = ExecutionCommand(Script.config)
+        Script.module_configs = Script.execution_command.get_module_configs()
         # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
@@ -488,6 +470,7 @@ class Script(object):
     :return: stack version including the build number. e.g.: 2.3.4.0-1234.
     """
     from resource_management.libraries.functions import stack_select
+    from ambari_commons.repo_manager import ManagerFactory
 
     # preferred way is to get the actual selected version of current component
     stack_select_package_name = stack_select.get_package_name()
@@ -500,7 +483,7 @@ class Script(object):
     if not Script.stack_version_from_distro_select or '*' in Script.stack_version_from_distro_select:
       # FIXME: this method is not reliable to get stack-selector-version
       # as if there are multiple versions installed with different <stack-selector-tool>, we won't detect the older one (if needed).
-      pkg_provider = get_provider("Package")
+      pkg_provider = ManagerFactory.get()
 
       Script.stack_version_from_distro_select = pkg_provider.get_installed_package_version(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
@@ -596,6 +579,22 @@ class Script(object):
      it a configuration instance.
     """
     return Script.config
+
+  @staticmethod
+  def get_execution_command():
+    """
+    The dot access dict object holds command.json
+    :return:
+    """
+    return Script.execution_command
+
+  @staticmethod
+  def get_module_configs():
+    """
+    The dot access dict object holds configurations block in command.json which maps service configurations
+    :return:
+    """
+    return Script.module_configs
 
   @staticmethod
   def get_password(user):
@@ -775,11 +774,12 @@ class Script(object):
     self.install_packages(env)
 
   def load_available_packages(self):
+    from ambari_commons.repo_manager import ManagerFactory
+
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
-
-    pkg_provider = get_provider("Package")
+    pkg_provider = ManagerFactory.get()
     try:
       self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
     except Exception as err:

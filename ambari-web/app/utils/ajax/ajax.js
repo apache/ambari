@@ -232,7 +232,6 @@ var urls = {
     }
   },
 
-  //This is now legacy and should be replaced by common.service.create.configs below
   'common.across.services.configurations': {
     'type': 'PUT',
     'real':'/clusters/{clusterName}',
@@ -241,17 +240,6 @@ var urls = {
       return {
         dataType: 'text',
         data: data.data
-      }
-    }
-  },
-
-  'common.service.create.configs': {
-    'type': 'POST',
-    'real':'/clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/configurations',
-    'format': function(data) {
-      return {
-        apiPrefix: 'api/v2',
-        data: JSON.stringify(data.data)
       }
     }
   },

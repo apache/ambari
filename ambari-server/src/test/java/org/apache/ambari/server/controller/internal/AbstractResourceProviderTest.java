@@ -51,7 +51,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.SecurityType;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
@@ -112,8 +111,7 @@ public class AbstractResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    replay(maintenanceStateHelper, repositoryVersionDAO);
+    replay(maintenanceStateHelper);
 
     AbstractResourceProvider provider = new HostComponentProcessResourceProvider(managementController);
 
@@ -125,11 +123,10 @@ public class AbstractResourceProviderTest {
   public void testGetRequestStatus() {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    replay(maintenanceStateHelper, repositoryVersionDAO);
+    replay(maintenanceStateHelper);
 
     AbstractResourceProvider provider = new ServiceResourceProvider(managementController,
-        maintenanceStateHelper, repositoryVersionDAO);
+        maintenanceStateHelper);
 
     RequestStatus status = provider.getRequestStatus(null);
 

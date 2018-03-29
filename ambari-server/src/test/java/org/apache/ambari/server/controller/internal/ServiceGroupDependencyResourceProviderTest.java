@@ -222,24 +222,16 @@ public class ServiceGroupDependencyResourceProviderTest {
     controller.createCluster(r);
   }
 
-  private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState) throws Exception {
-    createService(clusterName, serviceGroupName, serviceName, repositoryVersion206, desiredState);
-  }
-
-  private void createService(String clusterName, String serviceGroupName, String serviceName,
-                             RepositoryVersionEntity repositoryVersion, State desiredState
-  )
+  private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
           throws Exception {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName,
-            repositoryVersion.getId(), dStateStr,
-            null);
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, dStateStr, null);
 
-    ServiceResourceProviderTest.createServices(controller, repositoryVersionDAO, Collections.singleton(r1));
+    ServiceResourceProviderTest.createServices(controller, Collections.singleton(r1));
   }
 
   private void createServiceComponent(String clusterName,
@@ -286,7 +278,7 @@ public class ServiceGroupDependencyResourceProviderTest {
   )
           throws Exception {
 
-    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, repositoryVersion206.getId(),
+    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName,
             State.INSTALLED.toString(), null);
 
     Set<ServiceRequest> requests = new HashSet<>();

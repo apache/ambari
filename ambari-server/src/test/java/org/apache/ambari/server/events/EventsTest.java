@@ -363,7 +363,7 @@ public class EventsTest {
 
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    m_serviceFactory.createNew(m_cluster, serviceGroup, new ArrayList<>(), serviceName, serviceName, m_repositoryVersion);
+    m_serviceFactory.createNew(m_cluster, serviceGroup, new ArrayList<>(), serviceName, serviceName);
     Service service = m_cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
