@@ -100,9 +100,9 @@ App.HDFSService = App.Service.extend({
     let result = [];
     this.get('hostComponents').forEach(component => {
       if (component.get('componentName') === 'NAMENODE') {
-        const nameSpace = component.get('haNameSpace'),
+        const nameSpace = component.get('haNameSpace') || 'default',
           hostName = component.get('hostName'),
-          clusterId = component.get('clusterIdValue'),
+          clusterId = component.get('clusterIdValue') || 'default',
           existingNameSpace = result.findProperty('name', nameSpace),
           currentNameSpace = existingNameSpace || {
               name: nameSpace,

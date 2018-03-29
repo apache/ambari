@@ -225,7 +225,13 @@ App.UpdateController = Em.Controller.extend({
         realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,' +
             'alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
             'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,' +
-            (App.Service.find().someProperty('serviceName', 'HDFS') ? 'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,host_components/metrics/dfs/FSNamesystem/CapacityUsed,host_components/metrics/dfs/FSNamesystem/CapacityTotal,host_components/metrics/dfs/FSNamesystem/CapacityRemaining,host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed,host_components/metrics/rpc/client/RpcQueueTime/avg_time,host_components/metrics/runtime/StartTime,' : '') +
+            (App.Service.find().someProperty('serviceName', 'HDFS') ?
+              'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/jvm/HeapMemoryMax,' +
+              'host_components/metrics/jvm/HeapMemoryUsed,host_components/metrics/dfs/FSNamesystem/CapacityUsed,host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
+              'host_components/metrics/dfs/FSNamesystem/CapacityRemaining,host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed,' +
+              'host_components/metrics/rpc/client/RpcQueueTime_avg_time,host_components/metrics/runtime/StartTime,' :
+              ''
+            ) +
             '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
         hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
         stackVersionInfo = ',stack_versions/HostStackVersions,' +
