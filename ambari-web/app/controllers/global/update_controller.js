@@ -226,13 +226,23 @@ App.UpdateController = Em.Controller.extend({
       'host_components/HostRoles/desired_admin_state,<nameNodeMetrics>' +
       '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true';
     const stackVersionInfo = ',stack_versions/HostStackVersions,' +
-      'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
+      'stack_versions/repository_versions/RepositoryVersions/repository_version,' +
+      'stack_versions/repository_versions/RepositoryVersions/id,' +
       'stack_versions/repository_versions/RepositoryVersions/display_name',
       loggingResource = ',host_components/logging',
       isHostDetailPage = App.router.get('currentState.parentState.name') === 'hostDetails',
       isHostsPage = App.router.get('currentState.parentState.name') === 'hosts',
-      hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
-      nameNodeMetrics = 'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,';
+      hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
+        'metrics/memory/mem_total,metrics/memory/mem_free',
+      nameNodeMetrics = 'host_components/metrics/dfs/namenode/ClusterId,' +
+        'host_components/metrics/dfs/FSNamesystem/HAState,' +
+        'host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,' +
+        'host_components/metrics/dfs/FSNamesystem/CapacityUsed,' +
+        'host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
+        'host_components/metrics/dfs/FSNamesystem/CapacityRemaining,' +
+        'host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed,' +
+        'host_components/metrics/rpc/client/RpcQueueTime/avg_time,' +
+        'host_components/metrics/runtime/StartTime,';
 
     url = url.replace("<stackVersions>", stackVersionInfo);
     url = url.replace("<metrics>", loadMetricsSeparately ? "" : "metrics/disk,metrics/load/load_one,");
