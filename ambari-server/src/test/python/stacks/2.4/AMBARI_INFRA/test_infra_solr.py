@@ -104,6 +104,11 @@ class TestInfraSolr(RMFTestCase):
                                 content = InlineTemplate(self.getConfig()['configurations']['infra-solr-security-json']['content']),
                                 mode = 0640
                                 )
+      self.assertResourceCalled('File', '/etc/security/limits.d/infra-solr.conf',
+                                owner = 'root',
+                                group='root',
+                                content = Template('infra-solr.conf.j2')
+                                )
 
       self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --create-znode --retry 30 --interval 5')
       self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --remove-admin-handlers --collection hadoop_logs --retry 5 --interval 10')

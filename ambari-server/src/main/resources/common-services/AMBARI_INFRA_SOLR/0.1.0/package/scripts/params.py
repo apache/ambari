@@ -63,6 +63,10 @@ prev_infra_solr_pidfile = status_params.prev_infra_solr_pidfile
 user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
+limits_conf_dir = "/etc/security/limits.d"
+infra_solr_user_nofile_limit = default("/configurations/infra-solr-env/infra_solr_user_nofile_limit", "128000")
+infra_solr_user_nproc_limit = default("/configurations/infra-solr-env/infra_solr_user_nproc_limit", "65536")
+
 # shared configs
 java_home = config['ambariLevelParams']['java_home']
 ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
