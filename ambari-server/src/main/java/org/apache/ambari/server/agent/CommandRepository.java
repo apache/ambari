@@ -41,12 +41,15 @@ public class CommandRepository {
   private List<Repository> m_repositories = new ArrayList<>();
 
   @SerializedName("mpackId")
+  @JsonProperty("mpackId")
   private long m_mpackId;
 
   @SerializedName("mpackName")
+  @JsonProperty("mpackName")
   private String m_mpackName;
 
   @SerializedName("mpackVersion")
+  @JsonProperty("mpackVersion")
   private String m_mpackVersion;
 
   @SerializedName("repoFileName")
