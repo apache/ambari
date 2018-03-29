@@ -188,6 +188,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.set('startIndex', this.get('controller.startIndex'));
     this.set('displayLength', this.get('controller.paginationProps').findProperty('name', 'displayLength').value);
     this.addObserver('pageContent.@each.selected', this, this.selectedHostsObserver);
+    this.selectedHostsObserver();
   },
 
   /**
