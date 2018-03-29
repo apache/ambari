@@ -667,7 +667,7 @@ public class AmbariCustomCommandExecutionHelper {
     Map<String, String> actionParameters = actionExecutionContext.getParameters();
     addServiceCheckAction(stage, preferredHostName, smokeTestRole, nowTimestamp, serviceName, componentName,
         actionParameters, actionExecutionContext.isRetryAllowed(),
-        actionExecutionContext.isFailureAutoSkipped());
+        actionExecutionContext.isFailureAutoSkipped(),false);
   }
 
   /**
@@ -717,7 +717,7 @@ public class AmbariCustomCommandExecutionHelper {
    */
   public void addServiceCheckAction(Stage stage, String hostname, String smokeTestRole,
       long nowTimestamp, String serviceName, String componentName,
-      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure)
+      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure, boolean useLatestConfigs)
           throws AmbariException {
 
     String clusterName = stage.getClusterName();
@@ -825,6 +825,9 @@ public class AmbariCustomCommandExecutionHelper {
 
     if (actionParameters != null) { // If defined
       execCmd.setRoleParams(actionParameters);
+    }
+    if (useLatestConfigs) {
+      execCmd.setUseLatestConfigs(useLatestConfigs);
     }
   }
 

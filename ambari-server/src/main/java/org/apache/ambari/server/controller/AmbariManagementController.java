@@ -609,7 +609,7 @@ public interface AmbariManagementController {
                              Map<State, List<ServiceComponent>> changedComponents,
                              Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
                              Collection<ServiceComponentHost> ignoredHosts,
-                             boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
+                             boolean runSmokeTest, boolean reconfigureClients, boolean useGeneratedConfigs) throws AmbariException;
 
   /**
    * Getter for the url of JDK, stored at server resources folder

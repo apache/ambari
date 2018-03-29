@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.ambari.server.events.AmbariUpdateEvent;
+import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.metrics.system.MetricsSink;
 import org.apache.ambari.server.metrics.system.SingleMetric;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ import com.google.common.eventbus.Subscribe;
 public class StompEventsMetricsSource extends AbstractMetricsSource {
   private static Logger LOG = LoggerFactory.getLogger(StompEventsMetricsSource.class);
 
-  private Map<AmbariUpdateEvent.Type, Long> events = new HashMap<>();
+  private Map<STOMPEvent.Type, Long> events = new HashMap<>();
   private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
   private final String EVENTS_TOTAL_METRIC = "events.total";
@@ -50,7 +50,7 @@ public class StompEventsMetricsSource extends AbstractMetricsSource {
   @Override
   public void init(MetricsConfiguration configuration, MetricsSink sink) {
     super.init(configuration, sink);
-    for (AmbariUpdateEvent.Type type : AmbariUpdateEvent.Type.values()) {
+    for (STOMPEvent.Type type : STOMPEvent.Type.values()) {
       events.put(type, 0L);
     }
 
@@ -79,7 +79,7 @@ public class StompEventsMetricsSource extends AbstractMetricsSource {
     List<SingleMetric> metrics = new ArrayList<>();
     Long totalEventsCounter = 0L;
     synchronized (events) {
-      for (Map.Entry<AmbariUpdateEvent.Type, Long> event : events.entrySet()) {
+      for (Map.Entry<STOMPEvent.Type, Long> event : events.entrySet()) {
         totalEventsCounter += event.getValue();
         metrics.add(new SingleMetric(event.getKey().getMetricName(), event.getValue(), System.currentTimeMillis()));
 
@@ -100,8 +100,8 @@ public class StompEventsMetricsSource extends AbstractMetricsSource {
   }
 
   @Subscribe
-  public void onUpdateEvent(AmbariUpdateEvent ambariUpdateEvent) {
-    AmbariUpdateEvent.Type metricType = ambariUpdateEvent.getType();
+  public void onUpdateEvent(STOMPEvent STOMPEvent) {
+    STOMPEvent.Type metricType = STOMPEvent.getType();
     events.put(metricType, events.get(metricType) + 1);
   }
 }

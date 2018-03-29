@@ -26,7 +26,7 @@ import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.StaleConfigsUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -40,17 +40,17 @@ import com.google.inject.Singleton;
 @EagerSingleton
 public class HostComponentsUpdateListener {
 
-  private final StateUpdateEventPublisher stateUpdateEventPublisher;
+  private final STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private Provider<ConfigHelper> m_configHelper;
 
   @Inject
   public HostComponentsUpdateListener(AmbariEventPublisher ambariEventPublisher,
-                                      StateUpdateEventPublisher stateUpdateEventPublisher) {
+                                      STOMPUpdatePublisher STOMPUpdatePublisher) {
     ambariEventPublisher.register(this);
-    stateUpdateEventPublisher.register(this);
-    this.stateUpdateEventPublisher = stateUpdateEventPublisher;
+    STOMPUpdatePublisher.register(this);
+    this.STOMPUpdatePublisher = STOMPUpdatePublisher;
   }
 
   @Subscribe
@@ -68,7 +68,7 @@ public class HostComponentsUpdateListener {
       HostComponentsUpdateEvent hostComponentsUpdateEvent = new HostComponentsUpdateEvent(
           Collections.singletonList(hostComponentUpdate));
 
-      stateUpdateEventPublisher.publish(hostComponentsUpdateEvent);
+      STOMPUpdatePublisher.publish(hostComponentsUpdateEvent);
     }
   }
 
@@ -80,7 +80,7 @@ public class HostComponentsUpdateListener {
       if (m_configHelper.get().wasStaleConfigsStatusUpdated(serviceComponentHost.getClusterId(),
           serviceComponentHost.getHost().getHostId(), serviceComponentHost.getServiceName(),
           serviceComponentHost.getServiceComponentName(), staleConfigs)) {
-        stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+        STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
             HostComponentUpdate.createHostComponentStaleConfigsStatusUpdate(serviceComponentHost.getClusterId(),
                 serviceComponentHost.getServiceName(), serviceComponentHost.getHostName(),
                 serviceComponentHost.getServiceComponentName(), staleConfigs))));

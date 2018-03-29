@@ -131,7 +131,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         copiedUpdate.getEventType()
       );
       prepareAgentTopology(topologyAgentUpdateEvent);
-      stateUpdateEventPublisher.publish(topologyAgentUpdateEvent);
+      STOMPUpdatePublisher.publish(topologyAgentUpdateEvent);
     }
 
     return changed;

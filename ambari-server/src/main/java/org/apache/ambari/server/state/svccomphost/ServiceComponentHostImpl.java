@@ -48,7 +48,7 @@ import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.StaleConfigsUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -137,7 +137,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private RepositoryVersionHelper repositoryVersionHelper;
 
   @Inject
-  StateUpdateEventPublisher stateUpdateEventPublisher;
+  STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
@@ -909,7 +909,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       }
       stateEntity = hostComponentStateDAO.merge(stateEntity);
       if (!oldState.equals(state)) {
-        stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+        STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
             HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
       }
     } else {
@@ -1040,7 +1040,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         stateEntity.setCurrentState(stateMachine.getCurrentState());
         stateEntity = hostComponentStateDAO.merge(stateEntity);
         if (statusUpdated) {
-          stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+          STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
               HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
         }
         // TODO Audit logs

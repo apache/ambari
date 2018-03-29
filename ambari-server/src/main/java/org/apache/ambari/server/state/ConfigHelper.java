@@ -44,7 +44,7 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.HostComponentUpdate;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
@@ -139,7 +139,7 @@ public class ConfigHelper {
   private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -1525,7 +1525,7 @@ public class ConfigHelper {
           if (wasStaleConfigsStatusUpdated(clusterId, serviceComponentHost.getHost().getHostId(),
               serviceName, serviceComponentHostName, staleConfigs)) {
             serviceComponentHost.setRestartRequiredWithoutEventPublishing(staleConfigs);
-            stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+            STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
                 HostComponentUpdate.createHostComponentStaleConfigsStatusUpdate(clusterId,
                     serviceName, serviceComponentHost.getHostName(),
                     serviceComponentHostName, staleConfigs))));
