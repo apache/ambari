@@ -1286,7 +1286,6 @@ public class ClusterImpl implements Cluster {
     return clusterSetting;
   }
 
-
   @Override
   public ClusterSetting getClusterSetting(Long clusterSettingId) throws ClusterSettingNotFoundException {
     ClusterSetting clusterSetting = clusterSettingsById.get(clusterSettingId);

@@ -692,7 +692,8 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
     Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
-    return createUserGroupsMap(cluster, desiredConfigs, servicesMap, stackProperties);
+    Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
+    return createUserGroupsMap(cluster, desiredConfigs, servicesMap, stackProperties, clusterProperties);
   }
 
   /***
@@ -706,18 +707,18 @@ public class ConfigHelper {
    */
   public Map<String, Set<String>> createUserGroupsMap(
     Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
-    Map<String, ServiceInfo> servicesMap, Set<PropertyInfo> stackProperties) throws AmbariException {
+    Map<String, ServiceInfo> servicesMap, Set<PropertyInfo> stackProperties, Set<PropertyInfo> clusterProperties) throws AmbariException {
 
     Map<String, Set<String>> userGroupsMap = new HashMap<>();
     Map<PropertyInfo, String> userProperties = getPropertiesWithPropertyType(
-      PropertyType.USER, cluster, desiredConfigs, servicesMap, stackProperties);
+      PropertyType.USER, cluster, desiredConfigs, servicesMap, stackProperties, clusterProperties);
     Map<PropertyInfo, String> groupProperties = getPropertiesWithPropertyType(
-      PropertyType.GROUP, cluster, desiredConfigs, servicesMap, stackProperties);
+      PropertyType.GROUP, cluster, desiredConfigs, servicesMap, stackProperties, clusterProperties);
 
     if(userProperties != null && groupProperties != null) {
       for(Map.Entry<PropertyInfo, String> userProperty : userProperties.entrySet()) {
         PropertyInfo userPropertyInfo = userProperty.getKey();
-        String userPropertyValue = userProperty.getValue();
+         String userPropertyValue = userProperty.getValue();
         if(userPropertyInfo.getPropertyValueAttributes() != null
           && userPropertyInfo.getPropertyValueAttributes().getUserGroupEntries() != null) {
           Set<String> groupPropertyValues = new HashSet<>();
@@ -761,8 +762,8 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
     Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
-
-    return getPropertiesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties);
+    Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
+    return getPropertiesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties, clusterProperties);
   }
 
   /***
@@ -776,7 +777,7 @@ public class ConfigHelper {
    */
   public Map<PropertyInfo, String> getPropertiesWithPropertyType(PropertyType propertyType, Cluster cluster,
                                                                  Map<String, DesiredConfig> desiredConfigs, Map<String, ServiceInfo> servicesMap,
-                                                                 Set<PropertyInfo> stackProperties) throws AmbariException {
+                                                                 Set<PropertyInfo> stackProperties, Set<PropertyInfo> clusterProperties) throws AmbariException {
     Map<String, Config> actualConfigs = new HashMap<>();
     Map<PropertyInfo, String> result = new HashMap<>();
 
@@ -822,6 +823,13 @@ public class ConfigHelper {
       }
     }
 
+    //Fetch properties from clustersettings
+    for (PropertyInfo clusterProperty : clusterProperties) {
+      if (clusterProperty.getPropertyTypes().contains(propertyType)) {
+        result.put(clusterProperty, cluster.getClusterSetting(clusterProperty.getName()).getClusterSettingValue());
+        }
+      }
+
     return result;
   }
 
@@ -840,8 +848,9 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
     Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+    Set<PropertyInfo> clusterProperties = ambariMetaInfo.getClusterProperties();
 
-    return getPropertyValuesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties);
+    return getPropertyValuesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties, clusterProperties);
   }
 
   /***
@@ -857,7 +866,7 @@ public class ConfigHelper {
   public Set<String> getPropertyValuesWithPropertyType(PropertyType propertyType,
                                                        Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
                                                        Map<String, ServiceInfo> servicesMap,
-                                                       Set<PropertyInfo> stackProperties) throws AmbariException {
+                                                       Set<PropertyInfo> stackProperties, Set<PropertyInfo> clusterProperties) throws AmbariException {
     Map<String, Config> actualConfigs = new HashMap<>();
     Set<String> result = new HashSet<>();
 
@@ -900,6 +909,13 @@ public class ConfigHelper {
         if (actualConfigs.containsKey(stackPropertyConfigType)) {
           result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
         }
+      }
+    }
+
+    //Fetch all properties from clusterSettings which have given property type
+    for(PropertyInfo clusterProperty : clusterProperties){
+      if(clusterProperty.getPropertyTypes().contains(propertyType)){
+        result.add(cluster.getClusterSetting(clusterProperty.getName()).getClusterSettingValue());
       }
     }
 
