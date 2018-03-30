@@ -308,13 +308,23 @@ describe('App.QuickViewLinks', function () {
         [{hostName: 'host1'}, {hostName: 'host2'}]
       )).to.be.true;
     });
-    it("multiple grouped hosts", function () {
+    it("multiple grouped hosts with shouldSetGroupedLinks", function () {
       this.mock.returns([{hostName: 'host1'}, {hostName: 'host2'}]);
       quickViewLinks.set('masterGroups', [{}, {}]);
+      quickViewLinks.set('shouldSetGroupedLinks', true);
       quickViewLinks.setQuickLinksSuccessCallback();
       expect(quickViewLinks.setMultipleGroupLinks.calledWith(
         [{hostName: 'host1'}, {hostName: 'host2'}]
       )).to.be.true;
+    });
+    it("multiple grouped hosts without shouldSetGroupedLinks", function () {
+      this.mock.returns([{hostName: 'host1'}, {hostName: 'host2'}]);
+      quickViewLinks.set('masterGroups', [{}, {}]);
+      quickViewLinks.set('shouldSetGroupedLinks', false);
+      quickViewLinks.setQuickLinksSuccessCallback();
+      expect(quickViewLinks.setMultipleGroupLinks.calledWith(
+        [{hostName: 'host1'}, {hostName: 'host2'}]
+      )).to.be.false;
     });
   });
 
