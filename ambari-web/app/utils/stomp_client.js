@@ -39,12 +39,22 @@ module.exports = Em.Object.extend({
   /**
    * @type {string}
    */
-  webSocketUrl: '{protocol}://{hostname}:8080/api/stomp/v1/websocket',
+  webSocketUrl: '{protocol}://{hostname}:{port}/api/stomp/v1/websocket',
 
   /**
    * @type {string}
    */
-  sockJsUrl: '{protocol}://{hostname}:8080/api/stomp/v1',
+  sockJsUrl: '{protocol}://{hostname}:{port}/api/stomp/v1',
+
+  /**
+   * @const
+   */
+  PORT: '8080',
+
+  /**
+   * @const
+   */
+  SECURE_PORT: '8443',
 
   /**
    * sockJs should use only alternative options as transport in case when websocket supported but connection fails
@@ -106,21 +116,30 @@ module.exports = Em.Object.extend({
   /**
    *
    * @param {boolean} useSockJS
-   * @returns {*}
+   * @returns {SockJS|WebSocket}
    */
   getSocket: function(useSockJS) {
-    const hostname = window.location.hostname;
-    const isSecure = window.location.protocol === 'https:';
-
     if (!WebSocket || useSockJS) {
       this.set('isWebSocketSupported', false);
-      const protocol = isSecure ? 'https' : 'http';
-      const sockJsUrl = this.get('sockJsUrl').replace('{hostname}', hostname).replace('{protocol}', protocol);
+      const sockJsUrl = this.getSocketUrl(this.get('sockJsUrl'), false);
       return new SockJS(sockJsUrl, null, {transports: this.get('sockJsTransports')});
     } else {
-      const protocol = isSecure ? 'wss' : 'ws';
-      return new WebSocket(this.get('webSocketUrl').replace('{hostname}', hostname).replace('{protocol}', protocol));
+      return new WebSocket(this.getSocketUrl(this.get('webSocketUrl'), true));
     }
+  },
+
+  /**
+   *
+   * @param {string} template
+   * @param {boolean} isWebsocket
+   * @returns {string}
+   */
+  getSocketUrl: function(template, isWebsocket) {
+    const hostname = window.location.hostname;
+    const isSecure = window.location.protocol === 'https:';
+    const protocol = isWebsocket ? (isSecure ? 'wss' : 'ws') : (isSecure ? 'https' : 'http');
+    const port = isSecure ? this.get('SECURE_PORT') : this.get('PORT');
+    return template.replace('{hostname}', hostname).replace('{protocol}', protocol).replace('{port}', port);
   },
 
   onConnectionSuccess: function() {

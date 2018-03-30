@@ -73,6 +73,15 @@ describe('App.StompClient', function () {
     });
   });
 
+  describe('#getSocketUrl', function() {
+    it('should return socket url for websocket', function() {
+      expect(stomp.getSocketUrl('{protocol}://{hostname}:{port}', true)).to.equal('ws://:8080');
+    });
+    it('should return socket url for sockjs', function() {
+      expect(stomp.getSocketUrl('{protocol}://{hostname}:{port}', false)).to.equal('http://:8080');
+    });
+  });
+
   describe('#onConnectionSuccess', function() {
     it('isConnected should be true', function() {
       stomp.onConnectionSuccess();
