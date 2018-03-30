@@ -32,7 +32,7 @@ class ExecutionCommand(object):
 
   def __init__(self, command):
     """
-    __execution_command is an internal dot access dict object maps to command.json
+    __execution_command is an internal dict object maps to command.json
     :param command: json string or a python dict object
     """
     self.__execution_command = command
@@ -54,32 +54,130 @@ class ExecutionCommand(object):
     except:
       return default_value
 
+  """
+  Global variables section
+  """
+
+  def get_module_configs(self):
+    return self.__module_configs
+
   def get_module_name(self):
     return self.__get_value("serviceName")
 
-  def get_stack_name(self):
-    return self.__get_value("hostLevelParams/stack_name")
+  def get_component_type(self):
+    return self.__get_value("role")
 
-  def get_stack_version(self):
-    return self.__get_value("hostLevelParams/stack_version")
+  def get_component_instance_name(self):
+    """
+    At this time it returns hardcoded 'default' name
+    :return:
+    """
+    return self.__get_value("default")
 
-  def get_new_stack_version_for_upgrade(self):
+  def get_servicegroup_name(self):
+    return self.__get_value("serviceGroupName")
+
+  def get_cluster_name(self):
+    return self.__get_value("clusterName")
+
+  """
+  Ambari variables section
+  """
+
+  def get_jdk_location(self):
+    return self.__get_value("ambariLevelParams/jdk_location")
+
+  def get_jdk_name(self):
+    return self.__get_value("ambariLevelParams/jdk_name")
+
+  def get_java_home(self):
+    return self.__get_value("ambariLevelParams/java_home")
+
+  def get_java_version(self):
+    return int(self.__get_value("ambariLevelParams/java_version"))
+
+  def get_jce_name(self):
+    return self.__get_value("ambariLevelParams/jce_name")
+
+  def get_db_driver_file_name(self):
+    return self.__get_value('ambariLevelParams/db_driver_filename')
+
+  def get_db_name(self):
+    return self.__get_value('ambariLevelParams/db_name')
+
+  def get_oracle_jdbc_url(self):
+    return self.__get_value('ambariLevelParams/oracle_jdbc_url')
+
+  def get_mysql_jdbc_url(self):
+    return self.__get_value('ambariLevelParams/mysql_jdbc_url')
+
+  def get_agent_stack_retry_count_on_unavailability(self):
+    return self.__get_value('ambariLevelParams/agent_stack_retry_count', 5)
+
+  def check_agent_stack_want_retry_on_unavailability(self):
+    return self.__get_value('ambariLevelParams/agent_stack_retry_on_unavailability')
+
+  def get_ambari_server_host(self):
+    return self.__get_value("ambariLevelParams/ambari_server_host")
+
+  def get_ambari_server_port(self):
+    return self.__get_value("ambariLevelParams/ambari_server_port")
+
+  def is_ambari_server_use_ssl(self):
+    return self.__get_value("ambariLevelParams/ambari_server_use_ssl", False)
+
+  def is_host_system_prepared(self):
+    return self.__get_value("ambariLevelParams/host_sys_prepped", False)
+
+  def is_gpl_license_accepted(self):
+    return self.__get_value("ambariLevelParams/gpl_license_accepted", False)
+
+  """
+  Cluster related variables section
+  """
+
+  def get_mpack_name(self):
+    return self.__get_value("clusterLevelParams/stack_name")
+
+  def get_mpack_version(self):
+    return self.__get_value("clusterLevelParams/stack_version")
+
+  """
+  Agent related variable section
+  """
+
+  def get_host_name(self):
+    return self.__get_value("agentLevelParams/hostname")
+
+  """
+  Command related variables section
+  """
+
+  def get_new_mpack_version_for_upgrade(self):
     """
     New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
     :return:
     """
     return self.__get_value("commandParams/version")
 
-  def get_host_name(self):
-    return self.__get_value("hostname")
+  def check_command_retry_enabled(self):
+    return self.__get_value('commandParams/command_retry_enabled', False)
 
-  def get_java_home(self):
-    return self.__get_value("hostLevelParams/java_home")
+  def check_upgrade_direction(self):
+    return self.__get_value('commandParams/upgrade_direction')
 
-  def get_java_version(self):
-    java_version = self.__get_value("hostLevelParams/java_version")
-    return int(java_version) if java_version else None
+  def is_rolling_restart_in_upgrade(self):
+    return self.__get_value('commandParams/rolling_restart', False)
 
-  def get_module_configs(self):
-    return self.__module_configs
+  def is_update_files_only(self):
+    return self.__get_value('commandParams/update_files_only', False)
 
+  def get_deploy_phase(self):
+    return self.__get_value('commandParams/phase', '')
+
+  """
+  Role related variables section
+  """
+
+  def is_upgrade_suspended(self):
+    return self.__get_value('roleParams/upgrade_suspended', False)
