@@ -39,7 +39,7 @@
   <property>
     <name>hbase_pid_dir</name>
     <display-name>HBase PID Dir</display-name>
-    <value>/var/run/ambari-metrics-collector/</value>
+    <value>/var/run/ambari-metrics-collector</value>
     <description>Pid Directory for HBase.</description>
     <value-attributes>
       <type>directory</type>
