@@ -54,7 +54,57 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   /**
    * Host metrics panel not displayed when Metrics service (ex:Ganglia) is not in stack definition.
    */
-  isNoHostMetricsService: Em.computed.equal('App.services.hostMetrics.length', 0),
+  hasHostMetricsService: Em.computed.gt('App.services.hostMetrics.length', 0),
+
+  nameNodeComponent: Em.computed.findBy('content.hostComponents', 'componentName', 'NAMENODE'),
+
+  hasNameNode: Em.computed.bool('nameNodeComponent'),
+
+  showHostMetricsBlock: Em.computed.or('hasHostMetricsService', 'hasNameNode'),
+
+  nameNodeWidgets: function () {
+    const hasNameNode = this.get('hasNameNode'),
+      model = this.get('content');
+    let widgets = [];
+    if (hasNameNode) {
+      widgets.pushObjects([
+        App.NameNodeHeapPieChartView.extend({
+          model,
+          widgetHtmlId: 'nn-heap',
+          title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
+          showActions: false,
+          modelValueMax: Em.computed.alias('model.jvmMemoryHeapMax'),
+          modelValueUsed: Em.computed.alias('model.jvmMemoryHeapUsed')
+        }),
+        App.NameNodeCapacityPieChartView.extend({
+          model,
+          widgetHtmlId: 'nn-capacity',
+          title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
+          showActions: false,
+          modelValueMax: Em.computed.alias('model.capacityTotal'),
+          modelValueUsed: Em.computed.alias('model.capacityRemaining'),
+          modelValueCapacityUsed: Em.computed.alias('model.capacityUsed'),
+          modelValueNonDfsUsed: Em.computed.alias('model.capacityNonDfsUsed')
+        }),
+        App.NameNodeCpuPieChartView.extend({
+          widgetHtmlId: 'nn-cpu',
+          title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
+          showActions: false,
+          subGroupId: this.get('nameNodeComponent.haNameSpace'),
+          activeNameNodes: [this.get('nameNodeComponent')],
+          nameNode: this.get('nameNodeComponent')
+        }),
+        App.NameNodeRpcView.extend({
+          model,
+          widgetHtmlId: 'nn-rpc',
+          title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
+          showActions: false,
+          modelValue: Em.computed.alias('model.nameNodeRpc')
+        })
+      ]);
+    }
+    return widgets;
+  }.property('hasNameNode'),
 
   /**
    * Message for "restart" block

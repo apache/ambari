@@ -868,6 +868,7 @@ class DefaultStackAdvisor(StackAdvisor):
       if serviceAdvisor is not None:
         serviceComponents = [component for component in service["components"]]
         serviceAdvisor.colocateService(hostsComponentsMap, serviceComponents)
+        serviceAdvisor.colocateServiceWithServicesInfo(hostsComponentsMap, serviceComponents, services)
 
     #prepare 'host-group's from 'hostsComponentsMap'
     host_groups = recommendations["blueprint"]["host_groups"]

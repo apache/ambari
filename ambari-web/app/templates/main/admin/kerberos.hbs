@@ -18,7 +18,7 @@
 {{#if dataIsLoaded}}
   {{#if securityEnabled}}
     <div>
-      <p class="text-success">{{t admin.security.enabled}}
+        <span class="text-success">{{t admin.security.enabled}}</span>
         {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
             {{#if App.supports.enableToggleKerberos}}
               <button class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </button>
@@ -30,19 +30,17 @@
                 {{/if}}
               {{/unless}}
               <br/>
-              {{#unless isEditMode}}
-                <a href="#" {{action makeConfigsEditable target="controller"}} class="pull-right">
-                  {{t common.edit}}
-                </a>
-              {{/unless}}
+              <button href="#" {{action makeConfigsEditable target="controller"}}
+                {{bindAttr class="controller.isEditMode:hidden :btn :btn-default :pull-right"}}>
+                {{t common.edit}}
+              </button>
             {{/if}}
         {{/isAuthorized}}
-      </p>
     </div>
     <div id="serviceConfig">
       {{view App.ServicesConfigView}}
     </div>
-    <div {{bindAttr class=":btn-area :pull-right isEditMode::hidden"}}>
+    <div {{bindAttr class=":btn-area :pull-right controller.isEditMode::hidden"}}>
       <button id="cancel-kerberos-reconfigure-identities" {{action makeConfigsUneditable target="controller"}}
               class="btn btn-default">{{t common.cancel}}</button>
       <button id="save-kerberos-reconfigure-identities"

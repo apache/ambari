@@ -139,7 +139,7 @@
   </div>
   <div class="col-md-6">
       {{!metrics}}
-      {{#unless view.isNoHostMetricsService}}
+      {{#if view.showHostMetricsBlock}}
         <div class="panel panel-default">
           <div class="panel-heading">
             <div class="row">
@@ -148,10 +148,26 @@
             </div>
           </div>
           <div class="panel-body">
+            {{#if view.hasHostMetricsService}}
               {{view App.MainHostMetricsView contentBinding="view.content"}}
+            {{/if}}
+            {{#if view.hasNameNode}}
+              <div class="namenode-metrics dashboard-widgets">
+                <h5 class="text-uppercase">
+                  {{#if App.isHaEnabled}}
+                    {{t dashboard.widgets.nameSpace}}{{#if view.nameNodeComponent.haNameSpace}}: {{view.nameNodeComponent.haNameSpace}}{{/if}}
+                  {{/if}}
+                </h5>
+                <div class="thumbnails">
+                  {{#each widget in view.nameNodeWidgets}}
+                    {{view widget}}
+                  {{/each}}
+                </div>
+              </div>
+            {{/if}}
           </div>
         </div>
-      {{/unless}}
+      {{/if}}
 
       {{!logs metrics}}
       {{#if App.supports.logCountVizualization}}

@@ -164,7 +164,7 @@ App.BulkOperationsController = Em.Controller.extend({
           return App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(request, nn_hosts[0]);
         }
         if (nn_hosts.length > 1) {
-          // HA enabled
+          // HA or federation enabled
           return App.router.get('mainServiceItemController').checkNnLastCheckpointTime(request);
         }
       }

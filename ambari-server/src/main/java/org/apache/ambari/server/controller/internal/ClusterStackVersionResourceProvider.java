@@ -625,6 +625,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
         ClusterVersionSummary clusterSummary = desiredVersionDefinition.getClusterSummary(cluster);
         serviceNames.addAll(clusterSummary.getAvailableServiceNames());
+      } else {
+        serviceNames.addAll(ami.getStack(stackId).getServiceNames());
       }
 
       // Populate with commands for host

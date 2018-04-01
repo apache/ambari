@@ -314,6 +314,8 @@ angular.module('ambariAdminConsole')
     'users.showAdmin': 'Show only admin users',
     'users.groupMembership': 'Group Membership',
     'users.userNameTip': 'Maximum length is 80 characters. \\, &, |, <, >, ` are not allowed.',
+    'users.adminTip': 'An Ambari Admin can create new clusters and other Ambari Admin Users.',
+    'users.deactivateTip': 'Active Users can log in to Ambari. Inactive Users cannot.',
 
     'users.changeStatusConfirmation.title': 'Change Status',
     'users.changeStatusConfirmation.message': 'Are you sure you want to change status for user "{{userName}}" to {{status}}?',

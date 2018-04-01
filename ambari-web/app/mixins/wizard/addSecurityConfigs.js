@@ -118,7 +118,10 @@ App.AddSecurityConfigs = Em.Mixin.create({
       var defaultObject = {
         isConfigIdentity: true,
         isOverridable: false,
-        isVisible: true,
+        // the user should not be changing the principal name and keytab file values for identity items
+        // that reference some other identity item,
+        // if an identity entry has a "reference" attribute or the name attribute starts with a "/"
+        isVisible: !Boolean(identity.reference || identity.name.startsWith('/')),
         isSecureConfig: true,
         serviceName: serviceName,
         name: identity.name,

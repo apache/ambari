@@ -22,12 +22,6 @@
       <li><a href="#/userManagement?tab=users">{{'common.users' | translate}}</a></li>
       <li class="active">{{user.user_name}}</li>
     </ol>
-    <div class="pull-right">
-      <div ng-switch="isCurrentUser || user.user_type != 'LOCAL'">
-        <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'common.cannotDelete' | translate:{term: constants.user} }}">{{'common.delete' | translate:{term: constants.user} }}</button>
-        <button class="btn deleteuser-btn btn-danger" ng-switch-when="false" ng-click="deleteUser()">{{'common.delete' | translate:{term: constants.user} }}</button>
-      </div>
-    </div>
   </div>
   <hr>
   <form class="form-horizontal" role="form" >

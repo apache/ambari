@@ -210,8 +210,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
     if(isNameNodeHAEnabled()){
         Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
-        if (nnHosts.size() != 2) {
-            throw new InvalidTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
+        if (nnHosts.size() < 2) {
+            throw new InvalidTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
                 nnHosts.size() + " Hosts: " + nnHosts);
         }
         Map<String, String> hadoopEnvConfig = configuration.getFullProperties().get("hadoop-env");

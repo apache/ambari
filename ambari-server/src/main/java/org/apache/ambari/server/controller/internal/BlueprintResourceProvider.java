@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,6 +45,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -50,6 +53,7 @@ import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
@@ -156,6 +160,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   private static BlueprintDAO blueprintDAO;
 
   /**
+   * Topology request dao
+   */
+  private static TopologyRequestDAO topologyRequestDAO;
+
+  /**
    * Used to serialize to/from json.
    */
   private static Gson jsonSerializer;
@@ -175,13 +184,14 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * Static initialization.
    *
    * @param factory   blueprint factory
-   * @param dao       blueprint data access object
+   * @param bpDao       blueprint data access object
    * @param gson      json serializer
    */
-  public static void init(BlueprintFactory factory, BlueprintDAO dao, SecurityConfigurationFactory
-    securityFactory, Gson gson, AmbariMetaInfo metaInfo) {
+  public static void init(BlueprintFactory factory, BlueprintDAO bpDao, TopologyRequestDAO trDao,
+                          SecurityConfigurationFactory securityFactory, Gson gson, AmbariMetaInfo metaInfo) {
     blueprintFactory = factory;
-    blueprintDAO = dao;
+    blueprintDAO = bpDao;
+    topologyRequestDAO = trDao;
     securityConfigurationFactory = securityFactory;
     jsonSerializer = gson;
     ambariMetaInfo = metaInfo;
@@ -274,18 +284,20 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     Set<Resource> setResources = getResources(
         new RequestImpl(null, null, null, null), predicate);
 
+    List<TopologyRequestEntity> provisionRequests = topologyRequestDAO.findAllProvisionRequests();
+    // Blueprints for which a provision request was submitted. This blueprints (should be zero or one) are read only.
+    Set<String> provisionedBlueprints =
+      provisionRequests.stream().map(TopologyRequestEntity::getBlueprintName).collect(toSet());
+
     for (final Resource resource : setResources) {
       final String blueprintName =
         (String) resource.getPropertyValue(BLUEPRINT_NAME_PROPERTY_ID);
-
+      Preconditions.checkArgument(!provisionedBlueprints.contains(blueprintName),
+        "Blueprint %s cannot be deleted as cluster provisioning was initiated on it.", blueprintName);
       LOG.info("Deleting Blueprint, name = " + blueprintName);
-
-      modifyResources(new Command<Void>() {
-        @Override
-        public Void invoke() throws AmbariException {
-          blueprintDAO.removeByName(blueprintName);
-          return null;
-        }
+      modifyResources(() -> {
+        blueprintDAO.removeByName(blueprintName);
+        return null;
       });
     }
 

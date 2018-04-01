@@ -56,7 +56,12 @@ if [ ! -z "$LOGSEARCH_SOLR_CLIENT_SSL_INCLUDE" ]; then
 fi
 
 if [ -z "$LOGFEEDER_PID_FILE" ]; then
-  LOGFEEDER_PID_DIR=$HOME
+  LOGFEEDER_DEFAULT_PID_DIR="/var/run/ambari-logsearch-logfeeder"
+  if [ -d "$LOGFEEDER_DEFAULT_PID_DIR" ]; then
+    LOGFEEDER_PID_DIR=$LOGFEEDER_DEFAULT_PID_DIR
+  else
+    LOGFEEDER_PID_DIR=$HOME
+  fi
   export LOGFEEDER_PID_FILE=$LOGFEEDER_PID_DIR/logfeeder.pid
 fi
 

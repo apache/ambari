@@ -30,6 +30,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -40,6 +41,8 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.ViewPrivilegeResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 
+import org.apache.http.HttpStatus;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -48,12 +51,16 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+
 /**
  *  Service responsible for view privilege resource requests.
  */
-@Api(tags = "Views", description = "Endpoint for view specific operations")
 @Path("/views/{viewName}/versions/{version}/instances/{instanceName}/privileges")
+@Api(tags = "Views", description = "Endpoint for view specific operations")
 public class ViewPrivilegeService extends BaseService {
+
+  public static final String PRIVILEGE_INFO_REQUEST_TYPE = "org.apache.ambari.server.controller.ViewPrivilegeResponse.Wrapper";
+
   /**
    * Handles: GET  /views/{viewName}/versions/{version}/instances/{instanceName}/privileges
    * Get all privileges.
@@ -67,14 +74,22 @@ public class ViewPrivilegeService extends BaseService {
    * @return privilege collection representation
    */
   @GET
-  @Produces("text/plain")
-  @ApiOperation(value = "Get all view instance privileges", nickname = "ViewPrivilegeService#getPrivileges", notes = "Returns all privileges for the resource.", response = ViewPrivilegeResponse.class, responseContainer = "List")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all view instance privileges", response = ViewPrivilegeResponse.Wrapper.class, responseContainer = "List")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter privileges", defaultValue = "PrivilegeInfo/*", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "sortBy", value = "Sort privileges (asc | desc)", defaultValue = "PrivilegeInfo/user_name.asc", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "page_size", value = "The number of resources to be returned for the paged response.", defaultValue = "10", dataType = "integer", paramType = "query"),
-    @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "PrivilegeInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
   })
   public Response getPrivileges(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @ApiParam(value = "view name") @PathParam("viewName") String viewName,
@@ -98,14 +113,19 @@ public class ViewPrivilegeService extends BaseService {
    */
   @GET
   @Path("/{privilegeId}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Get single view instance privilege", nickname = "ViewPrivilegeService#getPrivilege", notes = "Returns privilege details.", response = ViewPrivilegeResponse.class)
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get single view instance privilege", response = ViewPrivilegeResponse.Wrapper.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter privilege details", defaultValue = "PrivilegeInfo", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "PrivilegeInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = ViewPrivilegeResponse.class)}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getPrivilege(@Context HttpHeaders headers, @Context UriInfo ui,
                                @ApiParam(value = "view name") @PathParam("viewName") String viewName,
                                @ApiParam(value = "view version") @PathParam("version") String version,
@@ -129,21 +149,23 @@ public class ViewPrivilegeService extends BaseService {
    * @return information regarding the created privilege
    */
   @POST
-  @Produces("text/plain")
-  @ApiOperation(value = "Create view instance privilege", nickname = "ViewPrivilegeService#createPrivilege", notes = "Create privilege resource for view instance.")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Create view instance privilege")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewPrivilegeRequest", paramType = "body")
+    @ApiImplicitParam(dataType = PRIVILEGE_INFO_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response createPrivilege(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                  @ApiParam(value = "view name") @PathParam("viewName") String viewName,
-                                  @ApiParam(value = "view version") @PathParam("version") String version,
-                                  @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) {
-
-    return handleRequest(headers, body, ui, Request.Type.POST, createPrivilegeResource(viewName, version, instanceName,null));
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
+    @ApiParam(value = "view version") @PathParam("version") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) {
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createPrivilegeResource(viewName, version, instanceName,null));
   }
 
   /**
@@ -193,13 +215,27 @@ public class ViewPrivilegeService extends BaseService {
    *
    * @return information regarding the updated privileges
    */
-  @PUT @ApiIgnore // until documented
-  @Produces("text/plain")
+  @PUT
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Update view instance privilege")
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = PRIVILEGE_INFO_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updatePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @ApiParam(value = "view name") @PathParam("viewName") String viewName,
-                                   @ApiParam(value = "view version") @PathParam("version") String version,
-                                   @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) {
-    return handleRequest(headers, body, ui, Request.Type.PUT, createPrivilegeResource(viewName, version, instanceName,null));
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
+    @ApiParam(value = "view version") @PathParam("version") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) {
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+            createPrivilegeResource(viewName, version, instanceName,null));
   }
 
   /**
@@ -215,13 +251,20 @@ public class ViewPrivilegeService extends BaseService {
    *
    * @return information regarding the deleted privileges
    */
-  @DELETE @ApiIgnore // until documented
-  @Produces("text/plain")
+  @DELETE
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Delete view instance privileges")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response deletePrivileges(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @ApiParam(value = "view name") @PathParam("viewName") String viewName,
-                                   @ApiParam(value = "view version") @PathParam("viewVersion") String version,
-                                   @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) {
-
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
+    @ApiParam(value = "view version") @PathParam("viewVersion") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName) {
     return handleRequest(headers, body, ui, Request.Type.DELETE, createPrivilegeResource(viewName, version, instanceName,null));
   }
 
@@ -240,18 +283,20 @@ public class ViewPrivilegeService extends BaseService {
    */
   @DELETE
   @Path("{privilegeId}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Delete view instance privilege", nickname = "ViewPrivilegeService#deletePrivilege", notes = "Delete view instance privilege resource.")
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation"),
-    @ApiResponse(code = 500, message = "Server Error")}
-  )
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Delete privileges")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response deletePrivilege(@Context HttpHeaders headers, @Context UriInfo ui,
-                                  @ApiParam(value = "view name") @PathParam("viewName") String viewName,
-                                  @ApiParam(value = "view version") @PathParam("version") String version,
-                                  @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName,
-                                  @ApiParam(value = "privilege id") @PathParam("privilegeId") String privilegeId) {
-
+    @ApiParam(value = "view name") @PathParam("viewName") String viewName,
+    @ApiParam(value = "view version") @PathParam("version") String version,
+    @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName,
+    @ApiParam(value = "privilege id") @PathParam("privilegeId") String privilegeId) {
     return handleRequest(headers, null, ui, Request.Type.DELETE, createPrivilegeResource(viewName, version, instanceName, privilegeId));
   }
 

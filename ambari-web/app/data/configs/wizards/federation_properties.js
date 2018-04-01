@@ -77,8 +77,8 @@ module.exports =
         "displayName": "dfs.ha.namenodes.{{nameservice2}}",
         "description": "The prefix for a given nameservice, contains a comma-separated list of namenodes for a given nameservice.",
         "isReconfigurable": false,
-        "recommendedValue": "{{namenode3}},{{namenode4}}",
-        "value": "{{namenode3}},{{namenode4}}",
+        "recommendedValue": "nn3,nn4",
+        "value": "nn3,nn4",
         "category": "HDFS",
         "filename": "hdfs-site",
         "serviceName": 'MISC'

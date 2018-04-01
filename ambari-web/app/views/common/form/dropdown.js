@@ -50,7 +50,7 @@ App.DropdownView = Em.View.extend({
     if (property === 'value') {
       this.set('selection', optionValuePath ? content.findProperty(optionValuePath, value) : value);
     } else if (property === 'selection') {
-      this.set('value', Em.getWithDefault(selection, optionValuePath, selection) || '');
+      this.set('value', selection && Em.getWithDefault(selection, optionValuePath, selection) || '');
     }
     this.set('isUpdating', false);
   }.observes('selection', 'value'),

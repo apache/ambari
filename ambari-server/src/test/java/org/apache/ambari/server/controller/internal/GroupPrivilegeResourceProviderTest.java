@@ -147,7 +147,7 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
     GroupPrivilegeResponse response = provider.getResponse(privilegeEntity, "group1");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -199,8 +199,8 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
     GroupPrivilegeResponse response = provider.getResponse(privilegeEntity, "group1");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.CLUSTER_NAME));
+    Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -258,10 +258,10 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
     GroupPrivilegeResponse response = provider.getResponse(privilegeEntity, "group1");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
-    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
-    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.INSTANCE_NAME));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.VIEW_NAME));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.VERSION));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -318,10 +318,10 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
     GroupPrivilegeResponse response = provider.getResponse(privilegeEntity, "group1");
     Resource resource = provider.toResource(response, provider.getPropertyIds());
 
-    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
-    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
-    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
-    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.INSTANCE_NAME));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.VIEW_NAME));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.VERSION));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(GroupPrivilegeResourceProvider.TYPE));
 
     verifyAll();
   }
@@ -390,10 +390,10 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
     GroupPrivilegeResourceProvider.init(clusterDAO, groupDAO, viewInstanceDAO, users);
 
     final Set<String> propertyIds = new HashSet<>();
-    propertyIds.add(GroupPrivilegeResourceProvider.PRIVILEGE_GROUP_NAME_PROPERTY_ID);
+    propertyIds.add(GroupPrivilegeResourceProvider.GROUP_NAME);
 
     final Predicate predicate = new PredicateBuilder()
-        .property(GroupPrivilegeResourceProvider.PRIVILEGE_GROUP_NAME_PROPERTY_ID)
+        .property(GroupPrivilegeResourceProvider.GROUP_NAME)
         .equals(requestedGroupName)
         .toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
@@ -405,7 +405,7 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
 
     Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {
-      String groupName = (String) resource.getPropertyValue(GroupPrivilegeResourceProvider.PRIVILEGE_GROUP_NAME_PROPERTY_ID);
+      String groupName = (String) resource.getPropertyValue(GroupPrivilegeResourceProvider.GROUP_NAME);
       Assert.assertEquals(requestedGroupName, groupName);
     }
 

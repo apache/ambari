@@ -1013,6 +1013,9 @@ public class UpgradeHelper {
           String configurationType = currentServiceConfig.getType();
 
           Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
+          if (currentClusterConfigForService == null) {
+            throw new AmbariException(String.format("configuration type %s did not have a selected version", configurationType));
+          }
           existingServiceConfigs.add(currentClusterConfigForService);
           foundConfigTypes.add(configurationType);
         }

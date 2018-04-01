@@ -29,6 +29,7 @@ public class StoryDataRegistry {
   private String dockerHost;
   private String ambariFolder;
   private String shellScriptLocation;
+  private String shellScriptFolder;
   private final int solrPort = 8886;
   private final int logsearchPort = 61888;
   private final int zookeeperPort = 9983;
@@ -105,5 +106,13 @@ public class StoryDataRegistry {
 
   public void setWebDriverProvider(WebDriverProvider webDriverProvider) {
     this.webDriverProvider = webDriverProvider;
+  }
+
+  public String getShellScriptFolder() {
+    return shellScriptFolder;
+  }
+
+  public void setShellScriptFolder(String shellScriptFolder) {
+    this.shellScriptFolder = shellScriptFolder;
   }
 }

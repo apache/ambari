@@ -25,6 +25,9 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNod
   nnHostName: "",
   intervalId: null,
 
+  activeNameNodes: Em.computed.alias('model.activeNameNodes'),
+  nameNode: Em.computed.alias('model.activeNameNodes'),
+
   willDestroyElement: function () {
     clearInterval(this.get("intervalId"));
   },
@@ -34,12 +37,12 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNod
     let intervalId;
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(() => {
       if (App.get('isHaEnabled')) {
-        const nn = this.get('model.activeNameNodes').findProperty('haNameSpace', this.get('subGroupId'));
+        const nn = this.get('activeNameNodes').findProperty('haNameSpace', this.get('subGroupId'));
         if (nn) {
           this.set('nnHostName', nn.get('hostName'));
         }
       } else {
-        this.set('nnHostName', this.get('model.nameNode.hostName'));
+        this.set('nnHostName', this.get('nameNode.hostName'));
       }
       if (this.get('nnHostName')) {
         this.getValue();

@@ -47,7 +47,7 @@ verbose = False
 def parse_arguments():
   parser = optparse.OptionParser("usage: %prog [options]", version="Solr Data Manager {0}".format(VERSION))
 
-  parser.add_option("-m", "--mode", dest="mode", type="string", help="delete | save")
+  parser.add_option("-m", "--mode", dest="mode", type="string", help="archive | delete | save")
   parser.add_option("-s", "--solr-url", dest="solr_url", type="string", help="the url of the solr server including the port")
   parser.add_option("-c", "--collection", dest="collection", type="string", help="the name of the solr collection")
   parser.add_option("-f", "--filter-field", dest="filter_field", type="string", help="the name of the field to filter on")
@@ -64,55 +64,55 @@ def parse_arguments():
 
   parser.add_option("-o", "--date-format", dest="date_format", type="string", help="the date format to use for --days",
                     default="%Y-%m-%dT%H:%M:%S.%fZ")
-  
+
   parser.add_option("-q", "--additional-filter", dest="additional_filter", type="string", help="additional solr filter")
   parser.add_option("-j", "--name", dest="name", type="string", help="name included in result files")
-  
+
   parser.add_option("-g", "--ignore-unfinished-uploading", dest="ignore_unfinished_uploading", action="store_true", default=False)
-  
+
   parser.add_option("--json-file", dest="json_file", help="create a json file instead of line delimited json", action="store_true", default=False)
   parser.add_option("-z", "--compression", dest="compression", help="none | tar.gz | tar.bz2 | zip | gz", default="gz")
-  
+
   parser.add_option("-k", "--solr-keytab", dest="solr_keytab", type="string", help="the keytab for a kerberized solr")
   parser.add_option("-n", "--solr-principal", dest="solr_principal", type="string", help="the principal for a kerberized solr")
-  
+
   parser.add_option("-a", "--hdfs-keytab", dest="hdfs_keytab", type="string", help="the keytab for a kerberized hdfs")
   parser.add_option("-l", "--hdfs-principal", dest="hdfs_principal", type="string", help="the principal for a kerberized hdfs")
-  
+
   parser.add_option("-u", "--hdfs-user", dest="hdfs_user", type="string", help="the user for accessing hdfs")
   parser.add_option("-p", "--hdfs-path", dest="hdfs_path", type="string", help="the hdfs path to upload to")
-  
+
   parser.add_option("-t", "--key-file-path", dest="key_file_path", type="string", help="the file that contains S3 <accessKey>,<secretKey>")
   parser.add_option("-b", "--bucket", dest="bucket", type="string", help="the bucket name for S3 upload")
   parser.add_option("-y", "--key-prefix", dest="key_prefix", type="string", help="the key prefix for S3 upload")
-  
+
   parser.add_option("-x", "--local-path", dest="local_path", type="string", help="the local path to save the files to")
-  
+
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False)
-  
+
   (options, args) = parser.parse_args()
-  
+
   for r in ["mode", "solr_url", "collection", "filter_field"]:
     if options.__dict__[r] is None:
       print "argument '{0}' is mandatory".format(r)
       parser.print_help()
       sys.exit()
-  
-  mode_values = ["delete", "save"]
+
+  mode_values = ["archive", "delete", "save"]
   if options.mode not in mode_values:
     print "mode must be one of {0}".format(" | ".join(mode_values))
     parser.print_help()
     sys.exit()
 
   if options.mode == "delete":
-    for r in ["name", "compression", "hdfs_keytab", "hdfs_principal", "hdfs_user", "hdfs_path", "key_file_path", "bucket", "key_prefix", "local_path"]:
+    for r in ["name", "hdfs_keytab", "hdfs_principal", "hdfs_user", "hdfs_path", "key_file_path", "bucket", "key_prefix", "local_path"]:
       if options.__dict__[r] is not None:
         print "argument '{0}' may not be specified in delete mode".format(r)
         parser.print_help()
         sys.exit()
 
   if options.__dict__["end"] is None and options.__dict__["days"] is None or \
-     options.__dict__["end"] is not None and options.__dict__["days"] is not None:
+          options.__dict__["end"] is not None and options.__dict__["days"] is not None:
     print "exactly one of 'end' or 'days' must be specfied"
     parser.print_help()
     sys.exit()
@@ -153,7 +153,7 @@ def parse_arguments():
     parser.print_help()
     sys.exit()
 
-  if options.mode == "save":
+  if options.mode in ["archive", "save"]:
     count = (1 if is_any_hdfs_property else 0) + (1 if is_any_s3_property else 0) + \
             (1 if options.__dict__["local_path"] is not None else 0)
     if count != 1:
@@ -171,7 +171,7 @@ def parse_arguments():
   print("  solr-url: " + options.solr_url)
   print("  collection: " + options.collection)
   print("  filter-field: " + options.filter_field)
-  if options.mode == "save":
+  if options.mode in ["archive", "save"]:
     print("  id-field: " + options.id_field)
   if options.__dict__["end"] is not None:
     print("  end: " + options.end)
@@ -182,14 +182,14 @@ def parse_arguments():
     print("  additional-filter: " + str(options.additional_filter))
   if options.__dict__["name"] is not None:
     print("  name: " + str(options.name))
-  if options.mode == "save":
+  if options.mode in ["archive", "save"]:
     print("  read-block-size: " + str(options.read_block_size))
     print("  write-block-size: " + str(options.write_block_size))
     print("  ignore-unfinished-uploading: " + str(options.ignore_unfinished_uploading))
   if (options.__dict__["solr_keytab"] is not None):
     print("  solr-keytab: " + options.solr_keytab)
     print("  solr-principal: " + options.solr_principal)
-  if options.mode == "save":
+  if options.mode in ["archive", "save"]:
     print("  output: " + ("json" if options.json_file else "line-delimited-json"))
     print("  compression: " + options.compression)
   if (options.__dict__["hdfs_keytab"] is not None):
@@ -243,15 +243,15 @@ def delete(solr_url, collection, filter_field, end, solr_keytab, solr_principal)
     curl_prefix = "curl -k --negotiate -u : "
   else:
     curl_prefix = "curl -k"
-  
+
   delete_range = "{0}:[*+TO+\"{1}\"]".format(filter_field, end)
   delete_query = quote("{0}:[*+TO+\"{1}\"]".format(filter_field, end), safe="/+\"*")
   delete_command = "{0}/{1}/update?stream.body=<delete><query>{2}</query></delete>&commit=true&wt=json" \
     .format(solr_url, collection, delete_query)
-  
+
   query_solr(solr_kinit_command, delete_command, "{0} {1}".format(curl_prefix, delete_command), "Deleting")
 
-def save(solr_url, collection, filter_field, id_field, range_end, read_block_size, write_block_size,
+def save(mode, solr_url, collection, filter_field, id_field, range_end, read_block_size, write_block_size,
          ignore_unfinished_uploading, additional_filter, name, solr_keytab, solr_principal, json_file,
          compression, hdfs_keytab, hdfs_principal, hdfs_user, hdfs_path, key_file_path, bucket, key_prefix, local_path):
   solr_kinit_command = None
@@ -260,24 +260,26 @@ def save(solr_url, collection, filter_field, id_field, range_end, read_block_siz
     curl_prefix = "curl -k --negotiate -u : "
   else:
     curl_prefix = "curl -k"
-  
+
   hdfs_kinit_command = None
   if hdfs_keytab:
     hdfs_kinit_command = "sudo -u {0} kinit -kt {1} {2}".format(hdfs_user, hdfs_keytab, hdfs_principal)
-  
+
   if options.hdfs_path:
     ensure_hdfs_path(hdfs_kinit_command, hdfs_user, hdfs_path)
 
   working_dir = get_working_dir(solr_url, collection)
-  handle_unfinished_uploading(solr_kinit_command, hdfs_kinit_command, curl_prefix, working_dir, ignore_unfinished_uploading)
-  save_data(solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field, id_field, range_end,
-            read_block_size, write_block_size, working_dir, additional_filter, name, json_file, compression,
+  if mode == "archive":
+    handle_unfinished_uploading(solr_kinit_command, hdfs_kinit_command, curl_prefix, working_dir, ignore_unfinished_uploading)
+
+  save_data(mode, solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field, id_field,
+            range_end, read_block_size, write_block_size, working_dir, additional_filter, name, json_file, compression,
             hdfs_user, hdfs_path, key_file_path, bucket, key_prefix, local_path)
 
 def ensure_hdfs_path(hdfs_kinit_command, hdfs_user, hdfs_path):
   if hdfs_kinit_command:
     run_kinit(hdfs_kinit_command, "HDFS")
-  
+
   try:
     hdfs_create_dir_command = "sudo -u {0} hadoop fs -mkdir -p {1}".format(hdfs_user, hdfs_path)
     logger.debug("Ensuring that the HDFS path %s exists:\n%s", hdfs_path, hdfs_create_dir_command)
@@ -287,7 +289,7 @@ def ensure_hdfs_path(hdfs_kinit_command, hdfs_user, hdfs_path):
     logger.warn("Could not execute hdfs ensure dir command:\n%s", hdfs_create_dir_command)
     logger.warn(str(e))
     sys.exit()
-  
+
   if result != 0:
     print
     logger.warn("Could not ensure HDFS dir command:\n%s", hdfs_create_dir_command)
@@ -300,10 +302,10 @@ def get_working_dir(solr_url, collection):
   md5.update(collection)
   hash = md5.hexdigest()
   working_dir = "/tmp/solrDataManager/{0}".format(hash)
-  
+
   if not(os.path.isdir(working_dir)):
     os.makedirs(working_dir)
-  
+
   logger.debug("Working directory is %s", working_dir)
   return working_dir
 
@@ -312,16 +314,16 @@ def handle_unfinished_uploading(solr_kinit_command, hdfs_kinit_command, curl_pre
   if os.path.isfile(command_json_path):
     with open(command_json_path) as command_file:
       command = json.load(command_file)
-    
+
     if "upload" in command.keys() and ignore_unfinished_uploading:
       logger.info("Ignoring unfinished uploading left by previous run")
       os.remove(command_json_path)
       return
-    
+
     if "upload" in command.keys():
       logger.info("Previous run has left unfinished uploading")
       logger.info("You may try to run the program with '-g' or '--ignore-unfinished-uploading' to ignore it if it keeps on failing")
-      
+
       if command["upload"]["type"] == "hdfs":
         upload_file_hdfs(hdfs_kinit_command, command["upload"]["command"], command["upload"]["upload_file_path"],
                          command["upload"]["hdfs_path"], command["upload"]["hdfs_user"])
@@ -333,32 +335,32 @@ def handle_unfinished_uploading(solr_kinit_command, hdfs_kinit_command, curl_pre
       else:
         logger.warn("Unknown upload type: %s", command["upload"]["type"])
         sys.exit()
-    
+
     if "delete" in command.keys():
       delete_data(solr_kinit_command, curl_prefix, command["delete"]["command"], command["delete"]["collection"],
                   command["delete"]["filter_field"], command["delete"]["id_field"], command["delete"]["prev_lot_end_value"],
                   command["delete"]["prev_lot_end_id"])
-    
+
     os.remove(command_json_path)
 
-def save_data(solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field, id_field,
+def save_data(mode, solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field, id_field,
               range_end, read_block_size, write_block_size, working_dir, additional_filter, name, json_file,
               compression, hdfs_user, hdfs_path, key_file_path, bucket, key_prefix, local_path):
   logger.info("Starting to save data")
-  
+
   tmp_file_path = "{0}/tmp.json".format(working_dir)
-  
+
   prev_lot_end_value = None
   prev_lot_end_id = None
-  
+
   if additional_filter:
     q = quote("{0}+AND+{1}:[*+TO+\"{2}\"]".format(additional_filter, filter_field, range_end), safe="/+\"*")
   else:
     q = quote("{0}:[*+TO+\"{1}\"]".format(filter_field, range_end), safe="/+\"*")
-  
+
   sort = quote("{0}+asc,{1}+asc".format(filter_field, id_field), safe="/+\"*")
   solr_query_url_prefix = "{0}/{1}/select?q={2}&sort={3}&rows={4}&wt=json".format(solr_url, collection, q, sort, read_block_size)
-  
+
   done = False
   total_records = 0
   while not done:
@@ -368,11 +370,11 @@ def save_data(solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, col
     records = results[1]
     prev_lot_end_value = results[2]
     prev_lot_end_id = results[3]
-    
+
     if records > 0:
-      upload_block(solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field, id_field,
-                   working_dir, tmp_file_path, name, prev_lot_end_value, prev_lot_end_id, hdfs_user, hdfs_path,
-                   key_file_path, bucket, key_prefix, local_path, compression)
+      upload_block(mode, solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field,
+                   id_field, working_dir, tmp_file_path, name, prev_lot_end_value, prev_lot_end_id, hdfs_user,
+                   hdfs_path, key_file_path, bucket, key_prefix, local_path, compression)
       total_records += records
       logger.info("A total of %d records are saved", total_records)
 
@@ -382,7 +384,7 @@ def create_block(tmp_file_path, solr_kinit_command, curl_prefix, solr_query_url_
     os.remove(tmp_file_path)
   tmp_file = open(tmp_file_path, 'w')
   logger.debug("Created tmp file %s", tmp_file_path)
-  
+
   init_file(tmp_file, json_file)
   records = 0
   done = False
@@ -397,9 +399,9 @@ def create_block(tmp_file_path, solr_kinit_command, curl_prefix, solr_query_url_
 
     url = "{0}&fq={1}".format(solr_query_url_prefix, quote(fq, safe="/+\"*"))
     curl_command = "{0} {1}".format(curl_prefix, url)
-    
+
     rsp = query_solr(solr_kinit_command, url, curl_command, "Obtaining")
-    
+
     if rsp['response']['numFound'] == 0:
       done = True
       break
@@ -434,26 +436,26 @@ def add_line(tmp_file, doc, json_file, records):
       tmp_file.write(",\n")
     else:
       tmp_file.write("\n")
-    
+
   tmp_file.write(json.dumps(doc))
 
 def finish_file(tmp_file, json_file):
   if json_file:
     tmp_file.write("\n}")
 
-def upload_block(solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field, id_field,
-                 working_dir, tmp_file_path, name, prev_lot_end_value, prev_lot_end_id, hdfs_user, hdfs_path,
+def upload_block(mode, solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, collection, filter_field,
+                 id_field, working_dir, tmp_file_path, name, prev_lot_end_value, prev_lot_end_id, hdfs_user, hdfs_path,
                  key_file_path, bucket, key_prefix, local_path, compression):
   if name:
     file_name = "{0}_-_{1}_-_{2}_-_{3}".format(collection, name, prev_lot_end_value, prev_lot_end_id).replace(':', '_')
   else:
     file_name = "{0}_-_{1}_-_{2}".format(collection, prev_lot_end_value, prev_lot_end_id).replace(':', '_')
-  
+
   upload_file_path = compress_file(working_dir, tmp_file_path, file_name, compression)
-  
-  upload_command = create_command_file(True, working_dir, upload_file_path, solr_url, collection, filter_field, id_field,
-                                       prev_lot_end_value, prev_lot_end_id, hdfs_user, hdfs_path, key_file_path, bucket,
-                                       key_prefix, local_path)
+
+  upload_command = create_command_file(mode, True, working_dir, upload_file_path, solr_url, collection, filter_field,
+                                       id_field, prev_lot_end_value, prev_lot_end_id, hdfs_user, hdfs_path,
+                                       key_file_path, bucket, key_prefix, local_path)
   if hdfs_user:
     upload_file_hdfs(hdfs_kinit_command, upload_command, upload_file_path, hdfs_path, hdfs_user)
   elif key_file_path:
@@ -463,12 +465,13 @@ def upload_block(solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_url, 
   else:
     logger.warn("Unknown upload destination")
     sys.exit()
-  
-  delete_command = create_command_file(False, working_dir, upload_file_path, solr_url, collection, filter_field, id_field,
-                                       prev_lot_end_value, prev_lot_end_id, None, None, None, None, None, None)
-  delete_data(solr_kinit_command, curl_prefix, delete_command, collection, filter_field, id_field, prev_lot_end_value, prev_lot_end_id)
-  
-  os.remove("{0}/command.json".format(working_dir))
+
+  delete_command = create_command_file(mode, False, working_dir, upload_file_path, solr_url, collection, filter_field,
+                                       id_field, prev_lot_end_value, prev_lot_end_id, None, None, None, None, None, None)
+  if mode == "archive":
+    delete_data(solr_kinit_command, curl_prefix, delete_command, collection, filter_field, id_field, prev_lot_end_value,
+                prev_lot_end_id)
+    os.remove("{0}/command.json".format(working_dir))
 
 def compress_file(working_dir, tmp_file_path, file_name, compression):
   data_file_name = "{0}.json".format(file_name)
@@ -505,21 +508,22 @@ def compress_file(working_dir, tmp_file_path, file_name, compression):
   else:
     logger.warn("Unknown compression type")
     sys.exit()
-  
+
   logger.info("Created data file %s", data_file_name)
 
-  
+
   return upload_file_path
 
-def create_command_file(upload, working_dir, upload_file_path, solr_url, collection, filter_field, id_field, prev_lot_end_value,
-                        prev_lot_end_id, hdfs_user, hdfs_path, key_file_path, bucket, key_prefix, local_path):
+def create_command_file(mode, upload, working_dir, upload_file_path, solr_url, collection, filter_field, id_field,
+                        prev_lot_end_value, prev_lot_end_id, hdfs_user, hdfs_path, key_file_path, bucket, key_prefix,
+                        local_path):
   commands = {}
-  
+
   if upload:
     logger.debug("Creating command file with upload and delete instructions in case of an interruption")
   else:
     logger.debug("Creating command file with delete instructions in case of an interruption")
-  
+
   if upload:
     if hdfs_path:
       upload_command = "sudo -u {0} hadoop fs -put {1} {2}".format(hdfs_user, upload_file_path, hdfs_path)
@@ -532,7 +536,7 @@ def create_command_file(upload, working_dir, upload_file_path, solr_url, collect
       commands["upload"] = upload_command_data
     elif key_file_path:
       upload_command = "java -cp {0}/libs/* org.apache.ambari.infra.solr.S3Uploader {1} {2} {3} {4}".format( \
-          os.path.dirname(os.path.realpath(__file__)), key_file_path, bucket, key_prefix, upload_file_path)
+        os.path.dirname(os.path.realpath(__file__)), key_file_path, bucket, key_prefix, upload_file_path)
       upload_command_data = {}
       upload_command_data["type"] = "s3"
       upload_command_data["command"] = upload_command
@@ -552,12 +556,18 @@ def create_command_file(upload, working_dir, upload_file_path, solr_url, collect
       logger.warn("Unknown upload destination")
       sys.exit()
 
-  
+    if mode == "save":
+      return upload_command
+
+
   delete_prev = "{0}:[*+TO+\"{1}\"]".format(filter_field, prev_lot_end_value)
   delete_last = "({0}:\"{1}\"+AND+{2}:[*+TO+\"{3}\"])".format(filter_field, prev_lot_end_value, id_field, prev_lot_end_id)
   delete_query = quote("{0}+OR+{1}".format(delete_prev, delete_last), safe="/+\"*")
   delete_command = "{0}/{1}/update?stream.body=<delete><query>{2}</query></delete>&commit=true&wt=json" \
     .format(solr_url, collection, delete_query)
+  if mode == "save":
+    return delete_command
+
   delete_command_data = {}
   delete_command_data["command"] = delete_command
   delete_command_data["collection"] = collection
@@ -566,15 +576,15 @@ def create_command_file(upload, working_dir, upload_file_path, solr_url, collect
   delete_command_data["prev_lot_end_value"] = prev_lot_end_value
   delete_command_data["prev_lot_end_id"] = prev_lot_end_id
   commands["delete"] = delete_command_data
-  
+
   command_file_path = "{0}/command.json".format(working_dir)
   command_file_path_tmp = "{0}.tmp".format(command_file_path)
   cft = open(command_file_path_tmp, 'w')
   cft.write(json.dumps(commands, indent=4))
   os.rename(command_file_path_tmp, command_file_path)
-  
+
   logger.debug("Command file %s was created", command_file_path)
-  
+
   if upload:
     return upload_command
   else:
@@ -583,7 +593,7 @@ def create_command_file(upload, working_dir, upload_file_path, solr_url, collect
 def upload_file_hdfs(hdfs_kinit_command, upload_command, upload_file_path, hdfs_path, hdfs_user):
   if hdfs_kinit_command:
     run_kinit(hdfs_kinit_command, "HDFS")
-  
+
   try:
     hdfs_file_exists_command = "sudo -u {0} hadoop fs -test -e {1}".format(hdfs_user, hdfs_path + os.path.basename(upload_file_path))
     logger.debug("Checking if file already exists on hdfs:\n%s", hdfs_file_exists_command)
@@ -593,7 +603,7 @@ def upload_file_hdfs(hdfs_kinit_command, upload_command, upload_file_path, hdfs_
     logger.warn("Could not execute command to check if file already exists on HDFS:\n%s", hdfs_file_exists_command)
     logger.warn(str(e))
     sys.exit()
-  
+
   if os.path.isfile(upload_file_path) and not hdfs_file_exists:
     try:
       logger.debug("Uploading file to hdfs:\n%s", upload_command)
@@ -603,11 +613,11 @@ def upload_file_hdfs(hdfs_kinit_command, upload_command, upload_file_path, hdfs_
       logger.warn("Could not execute command to upload file to HDFS:\n%s", upload_command)
       logger.warn(str(e))
       sys.exit()
-    
+
     if result != 0:
       logger.warn("Could not upload file to HDFS with command:\n%s", upload_command)
       sys.exit()
-    
+
     logger.info("File %s was uploaded to hdfs %s", os.path.basename(upload_file_path), hdfs_path)
     os.remove(upload_file_path)
 
@@ -636,7 +646,7 @@ def upload_file_local(upload_command, upload_file_path, local_path):
   if not os.path.isdir(local_path):
     os.mkdir(local_path)
     logger.debug("Directory %s was created", local_path)
-  
+
   try:
     logger.debug("Moving file to local directory %s with command\n%s", local_path, upload_command)
     call(upload_command.split())
@@ -692,7 +702,7 @@ def run_kinit(kinit_command, program):
     logger.warn("Could not execute %s kinit command:\n%s", program, kinit_command)
     logger.warn(str(e))
     sys.exit()
-  
+
   if result != 0:
     print
     logger.warn("%s kinit command was not successful:\n%s", program, kinit_command)
@@ -701,24 +711,24 @@ def run_kinit(kinit_command, program):
 if __name__ == '__main__':
   try:
     start_time = time.time()
-    
+
     options = parse_arguments()
     verbose = options.verbose
     set_log_level()
-    
+
     end = get_end(options)
-    
+
     if options.mode == "delete":
       delete(options.solr_url, options.collection, options.filter_field, end, options.solr_keytab, options.solr_principal)
-    elif options.mode == "save":
-      save(options.solr_url, options.collection, options.filter_field, options.id_field, end, options.read_block_size,
-           options.write_block_size, options.ignore_unfinished_uploading, options.additional_filter, options.name,
-           options.solr_keytab, options.solr_principal, options.json_file, options.compression,
-           options.hdfs_keytab, options.hdfs_principal, options.hdfs_user, options.hdfs_path, options.key_file_path,
-           options.bucket, options.key_prefix, options.local_path)
+    elif options.mode in ["archive", "save"]:
+      save(options.mode, options.solr_url, options.collection, options.filter_field, options.id_field, end,
+           options.read_block_size, options.write_block_size, options.ignore_unfinished_uploading,
+           options.additional_filter, options.name, options.solr_keytab, options.solr_principal, options.json_file,
+           options.compression, options.hdfs_keytab, options.hdfs_principal, options.hdfs_user, options.hdfs_path,
+           options.key_file_path, options.bucket, options.key_prefix, options.local_path)
     else:
       logger.warn("Unknown mode: %s", options.mode)
-    
+
     print("--- %s seconds ---" % (time.time() - start_time))
   except KeyboardInterrupt:
     print

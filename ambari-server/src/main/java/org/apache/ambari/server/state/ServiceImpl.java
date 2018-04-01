@@ -36,7 +36,7 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
+import org.apache.ambari.server.controller.internal.AmbariServerSSOConfigurationHandler;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -92,7 +92,7 @@ public class ServiceImpl implements Service {
   private ConfigHelper configHelper;
 
   @Inject
-  private AmbariServerConfigurationHandler ambariServerConfigurationHandler;
+  private AmbariServerSSOConfigurationHandler ambariServerConfigurationHandler;
 
   private final ClusterServiceDAO clusterServiceDAO;
   private final ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -692,7 +692,7 @@ public class ServiceImpl implements Service {
   }
 
   public boolean isSsoIntegrationDesired() {
-    return ambariServerConfigurationHandler.getSsoEnabledSevices().contains(serviceName);
+    return ambariServerConfigurationHandler.getSSOEnabledServices().contains(serviceName);
   }
 
   public boolean isSsoIntegrationEnabled() {
