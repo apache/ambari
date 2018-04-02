@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,13 +35,12 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @InterfaceAudience.Public
 @InterfaceStability.Unstable
-public class TimelineMetric implements Comparable<TimelineMetric> {
+public class TimelineMetric implements Comparable<TimelineMetric>, Serializable {
 
   private String metricName;
   private String appId;
-  private String instanceId;
+  private String instanceId = null;
   private String hostName;
-  private long timestamp;
   private long startTime;
   private String type;
   private String units;
@@ -52,12 +52,19 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
 
   }
 
+  // To reconstruct TimelineMetric from UUID.
+  public TimelineMetric(String metricName, String hostname, String appId, String instanceId) {
+    this.metricName = metricName;
+    this.hostName = hostname;
+    this.appId = appId;
+    this.instanceId = instanceId;
+  }
+
   // copy constructor
   public TimelineMetric(TimelineMetric metric) {
     setMetricName(metric.getMetricName());
     setType(metric.getType());
     setUnits(metric.getUnits());
-    setTimestamp(metric.getTimestamp());
     setAppId(metric.getAppId());
     setInstanceId(metric.getInstanceId());
     setHostName(metric.getHostName());
@@ -101,15 +108,6 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
     this.hostName = hostName;
   }
 
-  @XmlElement(name = "timestamp")
-  public long getTimestamp() {
-    return timestamp;
-  }
-
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
-  }
-
   @XmlElement(name = "starttime")
   public long getStartTime() {
     return startTime;
@@ -148,6 +146,9 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
 
   public void addMetricValues(Map<Long, Double> metricValues) {
     this.metricValues.putAll(metricValues);
+    if (!this.metricValues.isEmpty()) {
+      this.setStartTime(this.metricValues.firstKey());
+    }
   }
 
   @XmlElement(name = "metadata")
@@ -173,7 +174,6 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
       return false;
     if (instanceId != null ? !instanceId.equals(metric.instanceId) : metric.instanceId != null)
       return false;
-    if (timestamp != metric.timestamp) return false;
     if (startTime != metric.startTime) return false;
 
     return true;
@@ -197,15 +197,15 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
     result = 31 * result + (appId != null ? appId.hashCode() : 0);
     result = 31 * result + (instanceId != null ? instanceId.hashCode() : 0);
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
-    result = 31 * result + (int) (timestamp ^ (timestamp >>> 32));
+    result = 31 * result + (int) (startTime ^ (startTime >>> 32));
     return result;
   }
 
   @Override
   public int compareTo(TimelineMetric other) {
-    if (timestamp > other.timestamp) {
+    if (startTime > other.startTime) {
       return -1;
-    } else if (timestamp < other.timestamp) {
+    } else if (startTime < other.startTime) {
       return 1;
     } else {
       return metricName.compareTo(other.metricName);

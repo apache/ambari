@@ -60,6 +60,7 @@ import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSi
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.MAX_METRIC_ROW_CACHE_SIZE;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.METRICS_SEND_INTERVAL;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.SET_INSTANCE_ID_PROPERTY;
+import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY;
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -116,6 +117,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getInt(eq(METRICS_SEND_INTERVAL), anyInt())).andReturn(1000).anyTimes();
     expect(conf.getBoolean(eq(SET_INSTANCE_ID_PROPERTY), eq(false))).andReturn(true).anyTimes();
     expect(conf.getString(eq(INSTANCE_ID_PROPERTY), anyString())).andReturn("instanceId").anyTimes();
+    expect(conf.getString(eq(HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY), anyString())).andReturn("http").anyTimes();
 
     conf.setListDelimiterHandler(new DefaultListDelimiterHandler(eq(',')));
     expectLastCall().anyTimes();
@@ -178,7 +180,7 @@ public class HadoopTimelineMetricsSinkTest {
       createMockBuilder(HadoopTimelineMetricsSink.class)
         .withConstructor().addMockedMethod("appendPrefix")
         .addMockedMethod("findLiveCollectorHostsFromKnownCollector")
-        .addMockedMethod("emitMetrics").createNiceMock();
+        .addMockedMethod("emitMetrics", TimelineMetrics.class).createNiceMock();
 
     SubsetConfiguration conf = PowerMock.createNiceMock(SubsetConfiguration.class);
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
@@ -188,6 +190,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PROTOCOL), eq("http"))).andReturn("http").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PORT), eq("6188"))).andReturn("6188").anyTimes();
+    expect(conf.getString(eq(HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY), anyString())).andReturn("http").anyTimes();
 
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();
     // Return eviction time smaller than time diff for first 3 entries
@@ -308,7 +311,7 @@ public class HadoopTimelineMetricsSinkTest {
       createMockBuilder(HadoopTimelineMetricsSink.class)
         .withConstructor().addMockedMethod("appendPrefix")
         .addMockedMethod("findLiveCollectorHostsFromKnownCollector")
-        .addMockedMethod("emitMetrics").createNiceMock();
+        .addMockedMethod("emitMetrics", TimelineMetrics.class).createNiceMock();
 
     SubsetConfiguration conf = PowerMock.createNiceMock(SubsetConfiguration.class);
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
@@ -326,6 +329,7 @@ public class HadoopTimelineMetricsSinkTest {
 
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();
     expect(conf.getInt(eq(METRICS_SEND_INTERVAL), anyInt())).andReturn(10).anyTimes();
+    expect(conf.getString(eq(HOST_IN_MEMORY_AGGREGATION_PROTOCOL_PROPERTY), anyString())).andReturn("http").anyTimes();
 
     conf.setListDelimiterHandler(new DefaultListDelimiterHandler(eq(',')));
     expectLastCall().anyTimes();

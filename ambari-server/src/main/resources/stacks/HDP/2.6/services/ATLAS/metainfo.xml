@@ -32,6 +32,12 @@
         <config-type>hdfs-site</config-type>
         <config-type>core-site</config-type>
       </configuration-dependencies>
+
+      <sso>
+        <supported>true</supported>
+        <enabledConfiguration>application-properties/atlas.sso.knox.enabled</enabledConfiguration>
+      </sso>
+
     </service>
   </services>
 </metainfo>

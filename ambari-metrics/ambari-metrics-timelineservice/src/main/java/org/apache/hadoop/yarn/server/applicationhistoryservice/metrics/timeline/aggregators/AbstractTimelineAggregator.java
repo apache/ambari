@@ -17,6 +17,23 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedAggregateTimeMillis;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedCheckPointTimeMillis;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -28,22 +45,8 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.EmptyCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for all runnable aggregators. Provides common functions like
@@ -272,7 +275,8 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
         conn.commit();
         LOG.info(rows + " row(s) updated in aggregation.");
 
-        downsample(conn, startTime, endTime);
+        //TODO : Fix downsampling after UUID change.
+        //downsample(conn, startTime, endTime);
       } else {
         rs = stmt.executeQuery();
       }
@@ -280,7 +284,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
       aggregate(rs, startTime, endTime);
 
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       LOG.error("Exception during aggregating metrics.", e);
       success = false;
     } finally {
@@ -329,7 +333,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     if (outputTableName.contains("RECORD")) {
       queryPrefix = PhoenixTransactSQL.DOWNSAMPLE_HOST_METRIC_SQL_UPSERT_PREFIX;
     }
-    queryPrefix = String.format(queryPrefix, getQueryHint(startTime), outputTableName);
+    queryPrefix = String.format(queryPrefix, outputTableName);
 
     for (Iterator<CustomDownSampler> iterator = configuredDownSamplers.iterator(); iterator.hasNext();){
       CustomDownSampler downSampler = iterator.next();
@@ -386,15 +390,6 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
   protected String getCheckpointLocation() {
     return checkpointLocation;
-  }
-
-  public static long getRoundedCheckPointTimeMillis(long referenceTime, long aggregatorPeriod) {
-    return referenceTime - (referenceTime % aggregatorPeriod);
-  }
-
-  public static long getRoundedAggregateTimeMillis(long aggregatorPeriod) {
-    long currentTime = System.currentTimeMillis();
-    return currentTime - (currentTime % aggregatorPeriod);
   }
 
   /**
@@ -455,25 +450,29 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
    * @return
    */
   protected String getDownsampledMetricSkipClause() {
-    if (CollectionUtils.isEmpty(this.downsampleMetricPatterns)) {
-      return StringUtils.EMPTY;
-    }
 
-    StringBuilder sb = new StringBuilder();
+    //TODO Fix downsampling for UUID change.
+    return StringUtils.EMPTY;
 
-    for (int i = 0; i < downsampleMetricPatterns.size(); i++) {
-      sb.append(" METRIC_NAME");
-      sb.append(" NOT");
-      sb.append(" LIKE ");
-      sb.append("'" + downsampleMetricPatterns.get(i) + "'");
-
-      if (i < downsampleMetricPatterns.size() - 1) {
-        sb.append(" AND ");
-      }
-    }
-
-    sb.append(" AND ");
-    return sb.toString();
+//    if (CollectionUtils.isEmpty(this.downsampleMetricPatterns)) {
+//      return StringUtils.EMPTY;
+//    }
+//
+//    StringBuilder sb = new StringBuilder();
+//
+//    for (int i = 0; i < downsampleMetricPatterns.size(); i++) {
+//      sb.append(" METRIC_NAME");
+//      sb.append(" NOT");
+//      sb.append(" LIKE ");
+//      sb.append("'" + downsampleMetricPatterns.get(i) + "'");
+//
+//      if (i < downsampleMetricPatterns.size() - 1) {
+//        sb.append(" AND ");
+//      }
+//    }
+//
+//    sb.append(" AND ");
+//    return sb.toString();
   }
 
   /**

@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -57,6 +58,7 @@ public class DownSamplerTest {
     Assert.assertTrue(downSamplers.get(0) instanceof TopNDownSampler);
   }
 
+  @Ignore
   @Test
   public void testPrepareTopNDownSamplingStatement() throws Exception {
     Configuration configuration = new Configuration();

@@ -18,13 +18,11 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data;
 
 
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.util.RandomMetricsProvider;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.util.TimeStampProvider;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.util.RandomMetricsProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.util.TimeStampProvider;
 
 /**
  */

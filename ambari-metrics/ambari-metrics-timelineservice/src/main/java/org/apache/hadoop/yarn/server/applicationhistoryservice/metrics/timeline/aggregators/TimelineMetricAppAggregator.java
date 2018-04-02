@@ -17,6 +17,16 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_APP_ID;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,19 +34,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricsFilter;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricHostMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_APP_ID;
 
 /**
  * Aggregator responsible for providing app level host aggregates. This task
@@ -48,14 +48,14 @@ public class TimelineMetricAppAggregator {
   private static final Log LOG = LogFactory.getLog(TimelineMetricAppAggregator.class);
   // Lookup to check candidacy of an app
   private final List<String> appIdsToAggregate;
-  private final Map<String, Set<String>> hostedAppsMap;
+  private final Map<String, TimelineMetricHostMetadata> hostMetadata;
   Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics = new HashMap<>();
   TimelineMetricMetadataManager metadataManagerInstance;
 
   public TimelineMetricAppAggregator(TimelineMetricMetadataManager metadataManager,
                                      Configuration metricsConf) {
     appIdsToAggregate = getAppIdsForHostAggregation(metricsConf);
-    hostedAppsMap = metadataManager.getHostedAppsCache();
+    hostMetadata = metadataManager.getHostedAppsCache();
     metadataManagerInstance = metadataManager;
     LOG.info("AppIds configured for aggregation: " + appIdsToAggregate);
   }
@@ -95,20 +95,23 @@ public class TimelineMetricAppAggregator {
     // If metric is a host metric and host has apps on it
     if (appId.equalsIgnoreCase(HOST_APP_ID)) {
       // Candidate metric, update app aggregates
-      if (hostedAppsMap.containsKey(hostname)) {
+      if (hostMetadata.containsKey(hostname)) {
         updateAppAggregatesFromHostMetric(clusterMetric, hostname, metricValue);
       }
     } else {
       // Build the hostedapps map if not a host metric
       // Check app candidacy for host aggregation
       if (appIdsToAggregate.contains(appId)) {
-        Set<String> appIds = hostedAppsMap.get(hostname);
-        if (appIds == null) {
-          appIds = new HashSet<>();
-          hostedAppsMap.put(hostname, appIds);
+        TimelineMetricHostMetadata timelineMetricHostMetadata = hostMetadata.get(hostname);
+        ConcurrentHashMap<String, String> appIds;
+        if (timelineMetricHostMetadata == null) {
+          appIds = new ConcurrentHashMap<>();
+          hostMetadata.put(hostname, new TimelineMetricHostMetadata(appIds));
+        } else {
+          appIds = timelineMetricHostMetadata.getHostedApps();
         }
-        if (!appIds.contains(appId)) {
-          appIds.add(appId);
+        if (!appIds.containsKey(appId)) {
+          appIds.put(appId, appId);
           LOG.info("Adding appId to hosted apps: appId = " +
             clusterMetric.getAppId() + ", hostname = " + hostname);
         }
@@ -127,20 +130,20 @@ public class TimelineMetricAppAggregator {
       return;
     }
 
-    TimelineMetricMetadataKey appKey =  new TimelineMetricMetadataKey(clusterMetric.getMetricName(), HOST_APP_ID);
-    Set<String> apps = hostedAppsMap.get(hostname);
-    for (String appId : apps) {
+    TimelineMetricMetadataKey appKey =  new TimelineMetricMetadataKey(clusterMetric.getMetricName(), HOST_APP_ID, clusterMetric.getInstanceId());
+    ConcurrentHashMap<String, String> apps = hostMetadata.get(hostname).getHostedApps();
+    for (String appId : apps.keySet()) {
       if (appIdsToAggregate.contains(appId)) {
 
         appKey.setAppId(appId);
         TimelineMetricMetadata appMetadata = metadataManagerInstance.getMetadataCacheValue(appKey);
         if (appMetadata == null) {
-          TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(clusterMetric.getMetricName(), HOST_APP_ID);
+          TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(clusterMetric.getMetricName(), HOST_APP_ID, clusterMetric.getInstanceId());
           TimelineMetricMetadata hostMetricMetadata = metadataManagerInstance.getMetadataCacheValue(key);
 
           if (hostMetricMetadata != null) {
             TimelineMetricMetadata timelineMetricMetadata = new TimelineMetricMetadata(clusterMetric.getMetricName(),
-              appId, hostMetricMetadata.getUnits(), hostMetricMetadata.getType(), hostMetricMetadata.getSeriesStartTime(),
+              appId, clusterMetric.getInstanceId(), hostMetricMetadata.getUnits(), hostMetricMetadata.getType(), hostMetricMetadata.getSeriesStartTime(),
               hostMetricMetadata.isSupportsAggregates(), TimelineMetricsFilter.acceptMetric(clusterMetric.getMetricName(), appId));
             metadataManagerInstance.putIfModifiedTimelineMetricMetadata(timelineMetricMetadata);
           }
@@ -151,9 +154,7 @@ public class TimelineMetricAppAggregator {
           new TimelineClusterMetric(clusterMetric.getMetricName(),
             appId,
             clusterMetric.getInstanceId(),
-            clusterMetric.getTimestamp(),
-            clusterMetric.getType()
-          );
+            clusterMetric.getTimestamp());
 
         MetricClusterAggregate clusterAggregate = aggregateClusterMetrics.get(appTimelineClusterMetric);
 
