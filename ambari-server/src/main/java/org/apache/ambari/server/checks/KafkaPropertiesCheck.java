@@ -95,12 +95,12 @@ public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
       if (propertyValue == null) {
         failedProperties.add(propertyName);
       } else if (propertyName.equals(KafkaProperties.INTER_BROKER_PROTOKOL_VERSION)) {
-       String stackKafkaVersion = getKafkaServiceVersion(cluster);
+        String stackKafkaVersion = getKafkaServiceVersion(cluster);
 
-       if (stackKafkaVersion != null && !stackKafkaVersion.equals(propertyValue)) {
-         failedProperties.add(String.format("%s (expected value \"%s\", actual \"%s\")",
-           propertyName, stackKafkaVersion, propertyValue));
-       }
+        if (stackKafkaVersion != null && !stackKafkaVersion.equals(propertyValue)) {
+          failedProperties.add(String.format("%s (expected value \"%s\", actual \"%s\")",
+            propertyName, stackKafkaVersion, propertyValue));
+        }
       }
     }
 
