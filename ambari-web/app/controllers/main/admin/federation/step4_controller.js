@@ -22,7 +22,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['reconfigureHDFS', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['reconfigureServices', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
 
@@ -30,15 +30,27 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     return this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', false).mapProperty('hostName');
   }.property('content.masterComponentHosts.@each.hostName'),
 
-  reconfigureHDFS: function () {
+  reconfigureServices: function () {
+    var configs = [];
     var data = this.get('content.serviceConfigProperties');
     var note = Em.I18n.t('admin.nameNodeFederation.wizard,step4.save.configuration.note');
-    var configData = this.reconfigureSites(['hdfs-site'], data, note);
+    configs.push({
+      Clusters: {
+        desired_config: this.reconfigureSites(['hdfs-site'], data, note)
+      }
+    });
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      configs.push({
+        Clusters: {
+          desired_config: this.reconfigureSites(['ranger-tagsync-site'], data, note)
+        }
+      });
+    }
     return App.ajax.send({
-      name: 'common.service.configurations',
+      name: 'common.service.multiConfigurations',
       sender: this,
       data: {
-        desired_config: configData
+        configs: configs
       },
       error: 'onTaskError',
       success: 'installHDFSClients'

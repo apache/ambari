@@ -1689,7 +1689,7 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard,step4.save.configuration.note':'This configuration is created by Enable NameNode Federation wizard',
   'admin.nameNodeFederation.wizard.step4.notice.inProgress':'Please wait while NameNode Federation Wizard is being deployed.',
   'admin.nameNodeFederation.wizard.step4.notice.completed':'NameNode Federation Wizard has been enabled successfully.',
-  'admin.nameNodeFederation.wizard.step4.task0.title': 'Reconfigure HDFS',
+  'admin.nameNodeFederation.wizard.step4.task0.title': 'Reconfigure Services',
   'admin.nameNodeFederation.wizard.step4.task1.title': 'Install Additional NameNodes',
   'admin.nameNodeFederation.wizard.step4.task2.title': 'Install Additional ZKFCs',
   'admin.nameNodeFederation.wizard.step4.task3.title': 'Format NameNode',

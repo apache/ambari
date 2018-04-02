@@ -22,7 +22,8 @@ module.exports =
     serviceName: 'MISC',
     displayName: 'MISC',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'})
+      App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
+      App.ServiceConfigCategory.create({ name: 'RANGER', displayName: 'Ranger'})
     ],
     sites: ['core-site'],
     configs: [
@@ -224,6 +225,26 @@ module.exports =
         "value": "{{namenode4}}:8021",
         "category": "HDFS",
         "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice1}}.ranger.service",
+        "displayName": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice1}}.ranger.service",
+        "isReconfigurable": false,
+        "recommendedValue": "{{ranger_service_name_ns1}}",
+        "value": "{{ranger_service_name_ns1}}",
+        "category": "RANGER",
+        "filename": "ranger-tagsync-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice2}}.ranger.service",
+        "displayName": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice2}}.ranger.service",
+        "isReconfigurable": false,
+        "recommendedValue": "{{ranger_service_name_ns2}}",
+        "value": "{{ranger_service_name_ns2}}",
+        "category": "RANGER",
+        "filename": "ranger-tagsync-site",
         "serviceName": 'MISC'
       }
     ]
