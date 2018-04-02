@@ -7,9 +7,9 @@
       {
         "name": "namenode_process", 
         "service": "HDFS", 
-        "component": "NAMENODE", 
-        "interval": 6, 
-        "enabled": true, 
+        "enabled": true,
+        "interval": 6,
+        "component": "NAMENODE",
         "label": "NameNode process", 
         "source": {
           "reporting": {
