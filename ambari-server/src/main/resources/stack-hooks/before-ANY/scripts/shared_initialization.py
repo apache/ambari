@@ -25,6 +25,8 @@ from copy import copy
 from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
 from resource_management.core import shell
+from resource_management.libraries.execution_command import execution_command
+from resource_management.libraries.execution_command import module_configs
 
 def setup_users():
   """
@@ -154,11 +156,11 @@ def get_uid(user, return_existing=False):
   """
   import params
   user_str = str(user) + "_uid"
-  service_env = [ serviceEnv for serviceEnv in params.config['configurations'] if user_str in params.config['configurations'][serviceEnv]]
+  service_env = [ serviceEnv for serviceEnv in params.module_configs if user_str in params.module_configs.get_property_value(params.module_name, serviceEnv, "")]
 
-  if service_env and params.config['configurations'][service_env[0]][user_str]:
+  if service_env and params.module_configs.get_property_value(params.module_name, service_env[0], user_str):
     service_env_str = str(service_env[0])
-    uid = params.config['configurations'][service_env_str][user_str]
+    uid = params.module_configs.get_property_value(params.module_name, service_env_str, user_str)
     if len(service_env) > 1:
       Logger.warning("Multiple values found for %s, using %s"  % (user_str, uid))
     return uid
