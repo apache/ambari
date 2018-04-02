@@ -137,6 +137,7 @@ public class KafkaPropertiesCheckTest {
 
     Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.6.5.1");
     Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
@@ -168,7 +169,7 @@ public class KafkaPropertiesCheckTest {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_kafkaPropertiresCheck.perform(check, new PrereqCheckRequest("cluster"));
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    assertEquals("The following kafka properties should be set properly: inter.broker.protocol.version and log.message.format.version", check.getFailReason());
+    assertEquals("The following Kafka properties should be set properly: inter.broker.protocol.version and log.message.format.version", check.getFailReason());
 
 
     m_configMap.put("inter.broker.protocol.version", "0.0.2");

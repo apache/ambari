@@ -29,8 +29,10 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.utils.VersionUtils;
 
 import com.google.inject.Singleton;
+import com.google.common.collect.Lists;
 
 /**
  * Check Kafka configuration properties before upgrade.
@@ -55,11 +57,12 @@ import com.google.inject.Singleton;
 public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
   private static String KAFKA_BROKER_CONFIG = "kafka-broker";
   private static String KAFKA_SERVICE_NAME = "KAFKA";
+  private static String MIN_APPLICABLE_STACK_VERSION = "2.6.5";
 
   private interface KafkaProperties{
-    String INTER_BROKER_PROTOKOL_VERSION = "inter.broker.protocol.version";
+    String INTER_BROKER_PROTOCOL_VERSION = "inter.broker.protocol.version";
     String LOG_MESSAGE_FORMAT_VERSION = "log.message.format.version";
-    List<String> ALL_PROPERTIES = Arrays.asList(INTER_BROKER_PROTOKOL_VERSION, LOG_MESSAGE_FORMAT_VERSION);
+    List<String> ALL_PROPERTIES = Arrays.asList(INTER_BROKER_PROTOCOL_VERSION, LOG_MESSAGE_FORMAT_VERSION);
   }
 
   /**
@@ -68,6 +71,15 @@ public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
   public KafkaPropertiesCheck() {
     super(CheckDescription.KAFKA_PROPERTIES_VALIDATION);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<CheckQualification> getQualifications() {
+    return Lists.<CheckQualification> newArrayList(new KafkaPropertiesMinVersionQualification());
+  }
+
 
   private String getKafkaServiceVersion(Cluster cluster)throws AmbariException{
     ServiceInfo serviceInfo = ambariMetaInfo.get().getStack(cluster.getCurrentStackVersion()).getService(KAFKA_SERVICE_NAME);
@@ -94,7 +106,7 @@ public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
 
       if (propertyValue == null) {
         failedProperties.add(propertyName);
-      } else if (propertyName.equals(KafkaProperties.INTER_BROKER_PROTOKOL_VERSION)) {
+      } else if (propertyName.equals(KafkaProperties.INTER_BROKER_PROTOCOL_VERSION)) {
         String stackKafkaVersion = getKafkaServiceVersion(cluster);
 
         if (stackKafkaVersion != null && !stackKafkaVersion.equals(propertyValue)) {
@@ -108,6 +120,23 @@ public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.setFailedOn(failedProperties);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+    }
+  }
+
+  /**
+   * Stack version, to which check should be applicable
+   */
+  private class KafkaPropertiesMinVersionQualification implements CheckQualification {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isApplicable(PrereqCheckRequest request) {
+      String minApplicableStackVersion = MIN_APPLICABLE_STACK_VERSION;
+      String targetStackVersion =  request.getTargetRepositoryVersion().getVersion();
+
+      return  VersionUtils.compareVersions(targetStackVersion, minApplicableStackVersion) >= 0;
     }
   }
 }
