@@ -37,7 +37,6 @@ from resource_management.libraries.functions.stack_features import get_stack_fea
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 from ambari_commons.constants import AMBARI_SUDO_BINARY, HADOOP_CLIENTS_MODULE_NAME, HADOOP_CLIENT_COMPONENT_TYPE
-import resource_management.libraries.functions.config_helper as config_helper
 from resource_management.libraries.functions.mpack_manager_helper import get_component_conf_path, get_component_home_path
 from resource_management.libraries.execution_command import execution_command
 from resource_management.libraries.execution_command import module_configs
@@ -115,11 +114,11 @@ def is_secure_port(port):
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 
-mpack_name = config_helper.get_mpack_name(config)
-mpack_instance_name = config_helper.get_mpack_instance_name(config)
-module_name = config_helper.get_module_name(config)
-component_type = config_helper.get_component_type(config)
-component_instance_name = config_helper.get_component_instance_name(config)
+mpack_name = execution_command.get_mpack_name()
+mpack_instance_name = execution_command.get_servicegroup_name()
+module_name = execution_command.get_module_name()
+component_type = execution_command.get_component_type()
+component_instance_name = execution_command.get_component_instance_name()
 
 stack_name = mpack_name.lower()
 component_directory = "namenode"

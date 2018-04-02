@@ -61,8 +61,6 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
-from resource_management.libraries.functions.config_helper import get_mpack_name, get_mpack_version, \
-  get_mpack_instance_name, get_module_name, get_component_type, get_component_instance_name
 from resource_management.libraries.execution_command.execution_command import ExecutionCommand
 from resource_management.libraries.execution_command.module_configs import ModuleConfigs
 
@@ -790,12 +788,13 @@ class Script(object):
     # should be used only when mpack-instance-manager is available
     from resource_management.libraries.functions.mpack_manager_helper import create_component_instance
     config = self.get_config()
-    mpack_name = get_mpack_name(config)
-    mpack_version = get_mpack_version(config)
-    mpack_instance_name = get_mpack_instance_name(config)
-    module_name = get_module_name(config)
-    component_type = get_component_type(config)
-    component_instance_name = get_component_instance_name(config)
+    execution_command = self.get_execution_command()
+    mpack_name = execution_command.get_mpack_name()
+    mpack_version = execution_command.get_mpack_version()
+    mpack_instance_name = execution_command.get_servicegroup_name()
+    module_name = execution_command.get_module_name()
+    component_type = execution_command.get_component_type()
+    component_instance_name = execution_command.get_component_instance_name()
 
     create_component_instance(mpack_name=mpack_name, mpack_version=mpack_version, instance_name=mpack_instance_name,
                               module_name=module_name, components_instance_type=component_type,
