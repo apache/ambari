@@ -20,6 +20,7 @@ package org.apache.ambari.logfeeder.input;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.monitor.CheckpointCleanupMonitor;
 import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.manager.InputManager;
@@ -152,6 +153,10 @@ public class InputManagerImpl extends InputManager {
 
     if (isCheckPointFolderValid) {
       LOG.info("Using folder " + checkPointFolderFile + " for storing checkpoints");
+      // check checkpoint cleanup every 2000 min
+      Thread checkpointCleanupThread = new Thread(new CheckpointCleanupMonitor(this, 2000),"checkpoint_cleanup");
+      checkpointCleanupThread.setDaemon(true);
+      checkpointCleanupThread.start();
     } else {
       throw new IllegalStateException("Could not determine the checkpoint folder.");
     }
@@ -304,6 +309,10 @@ public class InputManagerImpl extends InputManager {
 
         String logFilePath = (String) jsonCheckPoint.get("file_path");
         String logFileKey = (String) jsonCheckPoint.get("file_key");
+        Integer maxAgeMin = null;
+        if (jsonCheckPoint.containsKey("max_age_min")) {
+          maxAgeMin = Integer.parseInt(jsonCheckPoint.get("max_age_min").toString());
+        }
         if (logFilePath != null && logFileKey != null) {
           boolean deleteCheckPointFile = false;
           File logFile = new File(logFilePath);
@@ -314,6 +323,9 @@ public class InputManagerImpl extends InputManager {
               LOG.info("CheckPoint clean: File key has changed. old=" + logFileKey + ", new=" + fileBase64 + ", filePath=" +
                 logFilePath + ", checkPointFile=" + checkPointFile.getAbsolutePath());
               deleteCheckPointFile = !wasFileRenamed(logFile.getParentFile(), logFileKey);
+            } else if (maxAgeMin != null && maxAgeMin != 0 && FileUtil.isFileTooOld(logFile, maxAgeMin)) {
+              deleteCheckPointFile = true;
+              LOG.info("Checkpoint clean: File reached max age minutes (" + maxAgeMin + "):" + logFilePath);
             }
           } else {
             LOG.info("CheckPoint clean: Log file doesn't exist. filePath=" + logFilePath + ", checkPointFile=" +

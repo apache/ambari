@@ -215,6 +215,11 @@
       <artifactId>netty-all</artifactId>
       <version>4.0.37.Final</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.7.1</version>
+    </dependency>
     <!-- Exclude jars globally-->
     <dependency>
       <groupId>commons-beanutils</groupId>

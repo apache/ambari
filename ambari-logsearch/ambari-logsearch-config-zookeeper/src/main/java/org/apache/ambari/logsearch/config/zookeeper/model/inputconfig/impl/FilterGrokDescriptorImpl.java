@@ -61,6 +61,26 @@ public class FilterGrokDescriptorImpl extends FilterDescriptorImpl implements Fi
   @SerializedName("message_pattern")
   private String messagePattern;
 
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/skip_on_error",
+    type = "boolean",
+    description = "Skip filter if an error occurred during applying the grok filter.",
+    examples = {"true"}
+  )
+  @Expose
+  @SerializedName("skip_on_error")
+  private boolean skipOnError;
+
+  @ShipperConfigElementDescription(
+    path = "/filter/[]/deep_extract",
+    type = "boolean",
+    description = "",
+    examples = {""}
+  )
+  @Expose
+  @SerializedName("deep_extract")
+  private boolean deepExtract;
+
   @Override
   public String getLog4jFormat() {
     return log4jFormat;
@@ -78,6 +98,24 @@ public class FilterGrokDescriptorImpl extends FilterDescriptorImpl implements Fi
   @Override
   public void setMultilinePattern(String multilinePattern) {
     this.multilinePattern = multilinePattern;
+  }
+
+  @Override
+  public boolean isSkipOnError() {
+    return this.skipOnError;
+  }
+
+  public void setSkipOnError(boolean skipOnError) {
+    this.skipOnError = skipOnError;
+  }
+
+  @Override
+  public boolean isDeepExtract() {
+    return deepExtract;
+  }
+
+  public void setDeepExtract(boolean deepExtract) {
+    this.deepExtract = deepExtract;
   }
 
   @Override

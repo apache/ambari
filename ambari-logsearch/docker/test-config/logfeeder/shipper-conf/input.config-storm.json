@@ -1,0 +1,75 @@
+{
+  "input":[
+    {
+      "type":"storm_worker",
+      "rowtype":"service",
+      "path":"/root/test-logs/storm/worker-logs/*/*/worker.log",
+      "init_default_fields": "true"
+    }
+  ],
+  "filter":[
+    {
+      "filter":"grok",
+      "sort_order": 1,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_worker"
+          ]
+        }
+      },
+      "log4j_format":"",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{JAVACLASS:logger_name}\\s%{GREEDYDATA:thread_name}\\s\\[%{LOGLEVEL:level}\\]\\s%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+    },
+    {
+      "filter":"grok",
+      "sort_order": 2,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_worker"
+          ]
+        }
+      },
+      "source_field": "thread_name",
+      "remove_source_field": "false",
+      "message_pattern":"(Thread\\-[\\-0-9]+\\-*[\\-0-9]*\\-%{DATA:sdi_storm_component_name}\\-executor%{DATA}|%{DATA:thread_name})"
+    },
+    {
+      "filter":"grok",
+      "sort_order": 3,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_worker"
+          ]
+        }
+      },
+      "source_field": "path",
+      "remove_source_field": "false",
+      "message_pattern":"/root/test-logs/storm/worker-logs/%{DATA:sdi_storm_topology_id}/%{DATA:sdi_storm_worker_port}/worker\\.log"
+    },
+    {
+      "filter":"grok",
+      "sort_order": 4,
+      "conditions":{
+        "fields":{
+          "type":[
+            "storm_worker"
+          ]
+        }
+      },
+      "source_field": "sdi_storm_topology_id",
+      "remove_source_field": "false",
+      "message_pattern":"(streamline\\-%{DATA:sdi_streamline_topology_id}\\-%{DATA:sdi_streamline_topology_name}\\-[0-9]+\\-[0-9]+)|(%{DATA:sdi_storm_topology_id})"
+    }
+  ]
+}
