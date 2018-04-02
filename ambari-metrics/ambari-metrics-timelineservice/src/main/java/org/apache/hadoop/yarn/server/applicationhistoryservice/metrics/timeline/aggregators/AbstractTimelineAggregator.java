@@ -406,7 +406,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     try {
       stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
 
-      LOG.debug("Downsampler Query issued : " + condition.getStatement());
+      LOG.info("Start downsampling cycle...");
       if (condition.doUpdate()) {
         int rows = stmt.executeUpdate();
         conn.commit();
@@ -414,7 +414,6 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
       } else {
         rs = stmt.executeQuery();
       }
-      LOG.debug("Downsampler Query returned ...");
       LOG.info("End Downsampling cycle.");
 
     } catch (SQLException e) {
