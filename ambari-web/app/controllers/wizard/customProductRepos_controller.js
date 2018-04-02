@@ -153,7 +153,7 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
       this.set('operatingSystems', operatingSystems);
     },
       
-    this.wizardController.addErrors);
+    this.get('wizardController').addErrors);
   },
 
   /**
@@ -280,9 +280,7 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
   },
 
   createOsRepos: function (mpack, os, data) {
-    var deferred = $.Deferred();
-    
-    App.ajax.send({
+    return App.ajax.send({
       name: 'mpack.create_os_repos',
       sender: this,
       data: {
@@ -290,15 +288,11 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
         os: os,
         data: data
       }
-    }).then(deferred.resolve, deferred.reject);
-
-    return deferred.promise();
+    });
   },
 
   updateOsRepos: function (mpack, os, data) {
-    var deferred = $.Deferred();
-    
-    App.ajax.send({
+    return App.ajax.send({
       name: 'mpack.update_os_repos',
       sender: this,
       data: {
@@ -306,23 +300,17 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
         os: os,
         data: data
       }
-    }).then(deferred.resolve, deferred.reject);
-
-    return deferred.promise();
+    });
   },
 
   deleteOsRepos: function (mpack, os) {
-    var deferred = $.Deferred();
-    
-    App.ajax.send({
+    return App.ajax.send({
       name: 'mpack.delete_os_repos',
       sender: this,
       data: {
         mpack: mpack,
         os: os
       }
-    }).then(deferred.resolve, deferred.reject);
-
-    return deferred.promise();
-  }
+    });
+  }  
 });
