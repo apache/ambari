@@ -76,7 +76,7 @@ public abstract class AbstractCheckDescriptor {
   Provider<RepositoryVersionHelper> repositoryVersionHelper;
 
   @Inject
-  Provider<AmbariMetaInfo> ambariMetaInfo;
+  protected Provider<AmbariMetaInfo> ambariMetaInfo;
 
   @Inject
   Configuration config;
@@ -185,8 +185,7 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Gets a cluster configuration property if it exists, or {@code null}
-   * otherwise.
+   * Gets a cluster configuration property if it exists, or {@code null} otherwise.
    *
    * @param request
    *          the request (not {@code null}).
@@ -202,6 +201,23 @@ public abstract class AbstractCheckDescriptor {
       throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
+
+    return getProperty(cluster, configType, propertyName);
+  }
+
+  /**
+   * Gets a cluster configuration property if it exists, or {@code null} otherwise.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param configType
+   *          the configuration type, such as {@code hdfs-site} (not
+   *          {@code null}).
+   * @param propertyName
+   *          the name of the property (not {@code null}).
+   * @return the property value or {@code null} if not found.
+   */
+  protected String getProperty(Cluster cluster, String configType, String propertyName) {
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     final DesiredConfig desiredConfig = desiredConfigs.get(configType);
 
@@ -214,6 +230,7 @@ public abstract class AbstractCheckDescriptor {
     Map<String, String> properties = config.getProperties();
     return properties.get(propertyName);
   }
+
 
   /**
    * Gets the fail reason

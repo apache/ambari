@@ -88,6 +88,11 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "The following hosts must have version {{version}} installed: {{fails}}.").build());
 
+   public static CheckDescription KAFKA_PROPERTIES_VALIDATION = new CheckDescription("KAFKA_PROPERTIES_VALIDATION",
+    PrereqCheckType.SERVICE,"Kafka properties should be set correctly",
+    new ImmutableMap.Builder<String, String>().put( AbstractCheckDescriptor.DEFAULT,
+      "The following Kafka properties should be set properly: {{fails}}").build());
+
   public static CheckDescription SECONDARY_NAMENODE_MUST_BE_DELETED = new CheckDescription("SECONDARY_NAMENODE_MUST_BE_DELETED",
     PrereqCheckType.HOST,
     "The SNameNode component must be deleted from all hosts",

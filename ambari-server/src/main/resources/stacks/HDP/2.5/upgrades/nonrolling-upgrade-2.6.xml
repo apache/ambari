@@ -21,6 +21,7 @@
   <target-stack>HDP-2.6</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.KafkaPropertiesCheck</check>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
     <check>org.apache.ambari.server.checks.LZOCheck</check>
     <configuration>
