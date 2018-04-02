@@ -337,25 +337,36 @@ public class PhoenixHBaseAccessor {
           double[] aggregates = AggregatorUtils.calculateAggregates(
                   metric.getMetricValues());
 
-          byte[] uuid = metadataManagerInstance.getUuid(metric);
-          if (uuid == null) {
-            LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
-            continue;
-          }
-          metricRecordStmt.setBytes(1, uuid);
-          metricRecordStmt.setLong(2, metric.getStartTime());
-          metricRecordStmt.setDouble(3, aggregates[0]);
-          metricRecordStmt.setDouble(4, aggregates[1]);
-          metricRecordStmt.setDouble(5, aggregates[2]);
-          metricRecordStmt.setLong(6, (long) aggregates[3]);
-          String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-          metricRecordStmt.setString(7, json);
+          if (aggregates[3] != 0.0) {
+            byte[] uuid = metadataManagerInstance.getUuid(metric);
+            if (uuid == null) {
+              LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
+              continue;
+            }
+            metricRecordStmt.setBytes(1, uuid);
+            metricRecordStmt.setLong(2, metric.getStartTime());
+            metricRecordStmt.setDouble(3, aggregates[0]);
+            metricRecordStmt.setDouble(4, aggregates[1]);
+            metricRecordStmt.setDouble(5, aggregates[2]);
+            metricRecordStmt.setLong(6, (long) aggregates[3]);
+            String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
+            metricRecordStmt.setString(7, json);
 
-          try {
-            metricRecordStmt.executeUpdate();
-          } catch (SQLException sql) {
-            LOG.error("Failed on insert records to store.", sql);
+            try {
+              int rows = metricRecordStmt.executeUpdate();
+              if (metric.getMetricName().equals("TimelineMetricStoreWatcher.FakeMetric")) {
+                LOG.info("Inserted " + rows + " rows for TimelineMetricStoreWatcher.FakeMetric.");
+              }
+            } catch (SQLException sql) {
+              LOG.error("Failed on insert records to store.", sql);
+            }
+          } else {
+            LOG.debug("Discarding empty metric record for : [" + metric.getMetricName() + "," +
+              metric.getAppId() + "," +
+              metric.getHostName() + "," +
+              metric.getInstanceId() + "]");
           }
+
         }
       }
 
