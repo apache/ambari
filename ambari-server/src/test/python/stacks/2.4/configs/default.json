@@ -394,7 +394,7 @@
         "infra_solr_znode": "/infra-solr",
         "infra_solr_conf": "/etc/ambari-infra-solr",
         "infra_solr_pid_dir": "/var/run/ambari-infra-solr",
-        "infra_solr_datadir": "/opt/ambari_infra_solr/data",
+        "infra_solr_datadir": "/var/lib/ambari-infra-solr/data",
         "infra_solr_log_dir": "/var/log/ambari-infra-solr",
         "infra_solr_client_log_dir": "/var/log/ambari-infra-solr-client",
         "infra_solr_jmx_port" : "1",
