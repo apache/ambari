@@ -26,6 +26,7 @@ from mock.mock import patch, MagicMock
 
 from only_for_platform import os_distro_value
 from ambari_commons import os_utils
+from urllib2 import HTTPError
 
 import shutil
 project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
@@ -374,6 +375,40 @@ class TestSetupSso(unittest.TestCase):
     self.assertEqual(properties_should_be_updated_in_ambari_db, properties_updated_in_ambari_db)
 
     sys.stdout = sys.__stdout__
+    pass
+
+  @patch("urllib2.urlopen")
+  @patch("ambari_server.setupSso.perform_changes_via_rest_api")
+  @patch("ambari_server.setupSso.get_cluster_name")
+  @patch("ambari_server.setupSso.get_YN_input")
+  @patch("ambari_server.setupSso.update_properties")
+  @patch("ambari_server.setupSso.get_ambari_properties")
+  @patch("ambari_server.setupSso.get_silent")
+  @patch("ambari_server.setupSso.is_server_runing")
+  @patch("ambari_server.setupSso.is_root")
+  def test_setup_sso_should_not_fail_when_sso_config_cannot_be_loaded_due_to_404_error(self, is_root_mock, is_server_runing_mock, get_silent_mock, get_ambari_properties_mock, update_properties_mock, get_YN_input_mock,
+                                                             get_cluster_name_mock, perform_changes_via_rest_api_mock, urlopen_mock):
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    is_root_mock.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    get_silent_mock.return_value = False
+    get_ambari_properties_mock.return_value = Properties()
+    get_cluster_name_mock.return_value = 'cluster1'
+    get_YN_input_mock.__return_value = True
+
+    urlopen_mock.side_effect = HTTPError(MagicMock(status=404), 404, 'not found', None, None)
+
+    options = self._create_empty_options_mock()
+    options.sso_provider_url = 'http://testHost:8080'
+    options.sso_public_cert_file = '/test/file/path'
+    options.sso_jwt_cookie_name = 'test_cookie'
+    options.sso_jwt_audience_list = 'test, audience, list'
+
+    setup_sso(options)
+
+    self.assertTrue(update_properties_mock.called)
     pass
 
 
