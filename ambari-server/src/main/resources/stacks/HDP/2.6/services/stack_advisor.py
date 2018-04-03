@@ -576,7 +576,6 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         if ambari_sso_details:
           putRangerAdminSiteProperty('ranger.sso.providerurl', ambari_sso_details.get_jwt_provider_url())
           putRangerAdminSiteProperty('ranger.sso.publicKey', ambari_sso_details.get_jwt_public_key(False, True))
-          putRangerAdminSiteProperty('ranger.sso.cookiename', ambari_sso_details.get_jwt_cookie_name())
           putRangerAdminSiteProperty('ranger.sso.browser.useragent', 'Mozilla,chrome')
 
       # If SSO should be disabled for this service
