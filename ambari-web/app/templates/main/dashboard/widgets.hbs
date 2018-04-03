@@ -53,8 +53,8 @@
           {{/if}}
         {{/each}}
       </div>
-      {{#if view.widgetGroups.length}}
-        {{#each group in view.widgetGroups}}
+      {{#if view.displayedWidgetGroups.length}}
+        {{#each group in view.displayedWidgetGroups}}
           <div class="dashboard-widget-groups-container">
             <div class="col-md-12">
               <h5 class="widgets-group-title">{{group.title}}</h5>

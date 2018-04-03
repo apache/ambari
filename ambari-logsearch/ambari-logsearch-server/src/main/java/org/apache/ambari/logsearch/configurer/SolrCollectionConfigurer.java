@@ -133,12 +133,12 @@ public class SolrCollectionConfigurer implements Configurer {
   }
 
   private void setupSecurity() {
-    String jaasFile = solrDaoBase.getSolrKerberosConfig().getJaasFile();
     boolean securityEnabled = solrDaoBase.getSolrKerberosConfig().isEnabled();
     if (securityEnabled) {
-      System.setProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG, jaasFile);
-      System.setProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY, Krb5HttpClientBuilder.class.getCanonicalName());
-      LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
+      String javaSecurityConfig = System.getProperty(JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+      String solrHttpBuilderFactory = System.getProperty(SOLR_HTTPCLIENT_BUILDER_FACTORY);
+      LOG.info("setupSecurity() called for kerberos configuration, jaas file: {}, solr http client factory: {}",
+        javaSecurityConfig, solrHttpBuilderFactory);
     }
   }
 

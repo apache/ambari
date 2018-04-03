@@ -241,7 +241,7 @@ App.UpdateController = Em.Controller.extend({
         'host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
         'host_components/metrics/dfs/FSNamesystem/CapacityRemaining,' +
         'host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed,' +
-        'host_components/metrics/rpc/client/RpcQueueTime/avg_time,' +
+        'host_components/metrics/rpc/client/RpcQueueTime_avg_time,' +
         'host_components/metrics/runtime/StartTime,';
 
     url = url.replace("<stackVersions>", stackVersionInfo);

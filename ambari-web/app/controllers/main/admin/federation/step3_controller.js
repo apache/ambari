@@ -58,11 +58,16 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
 
   onLoadConfigsTags: function (data) {
+    var urlParams = '(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')';
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      urlParams += '|(type=ranger-tagsync-site&tag=' + data.Clusters.desired_configs['ranger-tagsync-site'].tag + ')' +
+          '|(type=ranger-hdfs-security&tag=' + data.Clusters.desired_configs['ranger-hdfs-security'].tag + ')'
+    }
     App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-        urlParams: '(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')'
+        urlParams: urlParams
       },
       success: 'onLoadConfigs',
       error: 'onTaskError'
@@ -91,16 +96,26 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     ret.journalnodes = journalNodes.map(function (c) {
       return c.get('hostName') + ':8485'
     }).join(';');
+    ret.clustername = App.get('clusterName');
 
-    var hdfsConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
+    var hdfsSiteConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
+    var hdfsRangerConfigs = configsFromServer.findProperty('type', 'ranger-hdfs-security').properties;
 
-    var dfsHttpA = hdfsConfigs['dfs.namenode.http-address'];
+    if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
+      ret.ranger_service_name_ns1 = ret.clustername + '_hadoop_' + ret.nameservice1;
+      ret.ranger_service_name_ns2 = ret.clustername + '_hadoop_' + ret.nameservice2;
+    } else {
+      ret.ranger_service_name_ns1 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice1;
+      ret.ranger_service_name_ns2 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice2;
+    }
+
+    var dfsHttpA = hdfsSiteConfigs['dfs.namenode.http-address'];
     ret.nnHttpPort = dfsHttpA ? dfsHttpA.split(':')[1] : 50070;
 
-    var dfsHttpsA = hdfsConfigs['dfs.namenode.https-address'];
+    var dfsHttpsA = hdfsSiteConfigs['dfs.namenode.https-address'];
     ret.nnHttpsPort = dfsHttpsA ? dfsHttpsA.split(':')[1] : 50470;
 
-    var dfsRpcA = hdfsConfigs['dfs.namenode.rpc-address'];
+    var dfsRpcA = hdfsSiteConfigs['dfs.namenode.rpc-address'];
     ret.nnRpcPort = dfsRpcA ? dfsRpcA.split(':')[1] : 8020;
 
     return ret;

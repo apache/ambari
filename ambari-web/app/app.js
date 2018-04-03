@@ -243,7 +243,7 @@ module.exports = Em.Application.create({
   }.property('router.clusterController.dataLoadList.services', 'router.clusterController.isServiceContentFullyLoaded'),
 
   hasNameNodeFederation: function () {
-    return App.HDFSService.find().objectAt(0).get('masterComponentGroups.length') > 1;
+    return App.HDFSService.find('HDFS').get('masterComponentGroups.length') > 1;
   }.property('router.clusterController.isHostComponentMetricsLoaded', 'router.clusterController.isHDFSNameSpacesLoaded'),
 
   /**

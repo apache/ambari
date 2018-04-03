@@ -1311,7 +1311,8 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testComponents() throws Exception {
+  public void testComponents() throws Exception,
+      InvalidStateTransitionException {
 
     ComponentsResponse expected = new ComponentsResponse();
     StackId dummyStackId = new StackId(DummyStackId);
@@ -1340,13 +1341,12 @@ public class TestHeartbeatHandler {
 
     expect(service.getServiceComponents()).andReturn(componentMap);
 
-    ActionManager am = actionManagerTestHelper.getMockActionManager();
-
-    replay(service, nnComponent, am);
+    replay(service, nnComponent);
 
     cluster.addService(service);
 
-    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am);
+    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(
+        actionManagerTestHelper.getMockActionManager());
 
     ComponentsResponse actual = handler.handleComponents(DummyCluster);
 

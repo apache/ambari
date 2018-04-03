@@ -1318,7 +1318,7 @@ public class AmbariManagementControllerTest {
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
     assertEquals("false", ec.getCommandParams().get("command_retry_enabled"));
     Map<String, Set<String>> chInfo = ec.getClusterHostInfo();
-    assertTrue(chInfo.containsKey("namenode_hosts"));
+    assertTrue(chInfo.containsKey("namenode_host"));
     assertFalse(ec.getCommandParams().containsKey("custom_folder"));
 
     ec = controller.getExecutionCommand(cluster,
