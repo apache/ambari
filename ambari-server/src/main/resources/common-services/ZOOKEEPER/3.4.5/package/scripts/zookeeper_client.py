@@ -19,15 +19,13 @@ Ambari Agent
 
 """
 
-import sys
 from resource_management import *
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.stack_features import check_stack_feature 
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons.os_family_impl import OsFamilyImpl
 from zookeeper import zookeeper
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 
@@ -56,6 +54,8 @@ class ZookeeperClient(Script):
 class ZookeeperClientLinux(ZookeeperClient):
 
   def install(self, env):
+    import params
+    env.set_params(params)
     self.install_packages(env)
     self.configure(env)
 
