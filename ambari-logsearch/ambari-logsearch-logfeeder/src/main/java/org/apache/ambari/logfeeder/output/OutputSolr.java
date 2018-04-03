@@ -155,7 +155,7 @@ public class OutputSolr extends Output<LogFeederProps, InputMarker> implements C
         + getShortDescription(), workers, splitMode, splitInterval));
 
     implicitRouting = logFeederProps.isSolrImplicitRouting(); // TODO: in the future, load it from output config (can be a use case to use different routing for audit/service logs)
-    if (logFeederProps.isSolrImplicitRouting()) {
+    if (implicitRouting) {
       LOG.info("Config: Use implicit routing globally for adding docs to Solr.");
     } else {
       LOG.info("Config: Use compositeId globally for adding docs to Solr.");
