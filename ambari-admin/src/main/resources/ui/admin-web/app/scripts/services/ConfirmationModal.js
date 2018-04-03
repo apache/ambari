@@ -25,6 +25,7 @@ angular.module('ambariAdminConsole')
 	return {
 		show: function(header, body, confirmText, cancelText, options) {
 			var deferred = $q.defer();
+      options = options || {};
 
 			var modalInstance = $modal.open({
 				templateUrl: 'views/modals/ConfirmationModal.html',
