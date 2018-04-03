@@ -1520,7 +1520,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     });
 
     this.addRequestToAjaxQueue({
-      name: 'common.cluster.settings',
+      name: 'common.cluster.settings.create',
       data: {
         clusterName: this.get('clusterName'),
         data: data
