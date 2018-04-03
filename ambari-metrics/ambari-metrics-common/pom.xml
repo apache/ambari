@@ -74,8 +74,12 @@
                   <shadedPattern>org.apache.ambari.metrics.sink.relocated.google</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.commons</pattern>
-                  <shadedPattern>org.apache.ambari.metrics.relocated.commons</shadedPattern>
+                  <pattern>org.apache.commons.io</pattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.commons.io</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.lang</pattern>
+                  <shadedPattern>org.apache.ambari.metrics.relocated.commons.lang</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.curator</pattern>
@@ -111,11 +115,7 @@
                 </relocation>
                 <relocation>
                   <pattern>org.apache.http</pattern>
-                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.apache.http</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.codehaus.jackson</pattern>
-                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.jackson</shadedPattern>
+                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.apache.http</shadedPattern>
                 </relocation>
               </relocations>
               <filters>
