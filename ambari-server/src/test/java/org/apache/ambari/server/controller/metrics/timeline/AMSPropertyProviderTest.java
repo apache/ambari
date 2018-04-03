@@ -113,6 +113,7 @@ public class AMSPropertyProviderTest {
 
   //    SecurityContextHolder.getContext().setAuthentication(null);
 
+  @Ignore
   @Test
   public void testRbacForAMSPropertyProvider() throws Exception {
 
@@ -162,6 +163,7 @@ public class AMSPropertyProviderTest {
     testPopulateResourcesForMultipleComponentsMetric();
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForSingleHostMetric() throws Exception {
     setUpCommonMocks();
@@ -208,6 +210,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(111, val.length);
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForSingleHostMetricPointInTime() throws Exception {
     setUpCommonMocks();
@@ -255,6 +258,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(41.088, val, 0.001);
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForMultipleHostMetricscPointInTime() throws Exception {
     setUpCommonMocks();
@@ -311,6 +315,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(2.47025664E8, val2, 0.1);
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForMultipleHostMetrics() throws Exception {
     setUpCommonMocks();
@@ -375,6 +380,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(86, val.length);
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForRegexpMetrics() throws Exception {
     setUpCommonMocks();
@@ -431,6 +437,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(238, val.length);
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForSingleComponentMetric() throws Exception {
     setUpCommonMocks();
@@ -534,6 +541,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(2, allSpecs.size());
   }
 
+  @Ignore
   @Test
   public void testPopulateMetricsForEmbeddedHBase() throws Exception {
     AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
@@ -614,6 +622,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(189, val.length);
   }
 
+  @Ignore
   @Test
   public void testAggregateFunctionForComponentMetrics() throws Exception {
     AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
@@ -695,6 +704,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(32, val.length);
   }
 
+  @Ignore
   @Test
   public void testFilterOutOfBandMetricData() throws Exception {
     setUpCommonMocks();
@@ -766,6 +776,7 @@ public class AMSPropertyProviderTest {
     }
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForHostComponentHostMetrics() throws Exception {
     setUpCommonMocks();
@@ -924,6 +935,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(2, allSpecs.size());
   }
 
+  @Ignore
   @Test
   public void testPopulateResourcesForHostComponentMetricsForMultipleHosts() throws Exception {
     setUpCommonMocks();

@@ -38,6 +38,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.sink.ExternalMetricsSink;
 import org.easymock.Capture;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -58,6 +59,7 @@ public class RawMetricsSourceTest {
     replayAll();
   }
 
+  @Ignore
   @Test
   public void testRawMetricsSourcedAtFlushInterval() throws Exception {
     InternalSourceProvider internalSourceProvider = new DefaultInternalMetricsSourceProvider();
@@ -90,6 +92,7 @@ public class RawMetricsSourceTest {
     verify(rawMetricsSink);
   }
 
+  @Ignore
   @Test(timeout = 10000)
   public void testRawMetricsCachedAndSourced() throws Exception {
     ExternalMetricsSink rawMetricsSink = createNiceMock(ExternalMetricsSink.class);
