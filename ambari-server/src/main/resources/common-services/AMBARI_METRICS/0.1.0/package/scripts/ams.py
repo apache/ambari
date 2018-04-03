@@ -172,20 +172,13 @@ def ams(name=None):
         pass
 
       XmlConfig("ams-site.xml",
-                conf_dir=params.ams_monitor_conf_dir,
-                configurations=params.config['configurations']['ams-site'],
-                configuration_attributes=params.config['configurationAttributes']['ams-site'],
-                owner=params.ams_user,
-                group=params.user_group
-                )
-
-      XmlConfig("ams-site.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-site'],
               configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
               )
+
       XmlConfig("ssl-server.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-ssl-server'],
@@ -421,7 +414,7 @@ def ams(name=None, action=None):
       XmlConfig("ssl-server.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-ssl-server'],
-              configuration_attributes=params.config['configuration_attributes']['ams-ssl-server'],
+              configuration_attributes=params.config['configurationAttributes']['ams-ssl-server'],
               owner=params.ams_user,
               group=params.user_group
               )
