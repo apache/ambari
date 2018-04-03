@@ -73,6 +73,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -199,6 +200,7 @@ public class StackDefinedPropertyProviderTest {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
+  @Ignore
   @Test
   public void testStackDefinedPropertyProviderAsClusterAdministrator() throws Exception {
     //Setup user with Role 'ClusterAdministrator'.
@@ -221,6 +223,7 @@ public class StackDefinedPropertyProviderTest {
     testPopulateResourcesWithAggregateFunctionMetrics();
   }
 
+  @Ignore
   @Test
   public void testStackDefinedPropertyProviderAsAdministrator() throws Exception {
     //Setup user with Role 'Administrator'
@@ -243,6 +246,7 @@ public class StackDefinedPropertyProviderTest {
     testPopulateResourcesWithAggregateFunctionMetrics();
   }
 
+  @Ignore
   @Test
   public void testStackDefinedPropertyProviderAsServiceAdministrator() throws Exception {
     //Setup user with 'ServiceAdministrator'

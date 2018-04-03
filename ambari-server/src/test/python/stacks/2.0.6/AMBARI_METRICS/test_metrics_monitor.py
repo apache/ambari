@@ -97,7 +97,7 @@ class TestMetricsMonitor(RMFTestCase):
                                 group = 'hadoop',
                                 conf_dir = '/etc/ambari-metrics-monitor/conf',
                                 configurations = self.getConfig()['configurations']['ams-site'],
-                                configuration_attributes = self.getConfig()['configuration_attributes']['ams-hbase-site']
+                                configuration_attributes = self.getConfig()['configurationAttributes']['ams-site']
                                 )
 
       self.assertResourceCalled('XmlConfig', 'ssl-server.xml',
@@ -105,7 +105,7 @@ class TestMetricsMonitor(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/ambari-metrics-monitor/conf',
                               configurations = self.getConfig()['configurations']['ams-ssl-server'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['ams-ssl-server']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['ams-ssl-server']
                               )
       pass
 
