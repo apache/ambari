@@ -243,14 +243,18 @@
       max-height: 440px;
       position: relative;
       display: flex;
-      overflow-y: visible;
+      overflow-y: scroll;
       #component_assign_table {
         display: inline-block;
         overflow-x: scroll;
         margin-left: 190px;
-        margin-bottom: 30px;
+        margin-bottom: 10px;
+        height: 100%;
         tbody td, th {
           white-space: nowrap;
+        }
+        tfoot td {
+          padding-bottom: 30px;
         }
         .trim_hostname {
           .ellipsis-overflow-nowrap;
@@ -283,7 +287,6 @@
         }
         .static-pagination {
           position: absolute;
-          bottom: 0px;
           right: 0px;
         }
       }
