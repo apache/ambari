@@ -36,7 +36,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 STACK_EXCLUDE = ["utils", "1.3.2"]
 SERVICE_EXCLUDE = ["configs"]
 
-TEST_MASK = '[Tt]est*.py'
+TEST_MASK = '*metric*.py'
 CUSTOM_TEST_MASK = '_[Tt]est*.py'
 
 oldtmpdirpath = tempfile.gettempdir()
