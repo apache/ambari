@@ -881,7 +881,7 @@ class Script(object):
     """
     To be overridden by subclasses if a custom action is required upon dekerberization (e.g. removing zk ACLs)
     """
-    pass
+    return "{}"
 
   def restart(self, env):
     """
