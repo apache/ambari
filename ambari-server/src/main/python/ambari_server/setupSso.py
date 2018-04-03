@@ -27,7 +27,7 @@ import urllib2
 
 from ambari_commons.os_utils import is_root, run_os_command, copy_file, set_file_permissions, remove_file
 from ambari_commons.exceptions import FatalException, NonFatalException
-from ambari_commons.logging_utils import get_silent, print_info_msg
+from ambari_commons.logging_utils import get_silent
 from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base, get_ambari_admin_username_password_pair, get_cluster_name, perform_changes_via_rest_api
 from ambari_server.setupSecurity import REGEX_TRUE_FALSE
@@ -225,20 +225,23 @@ def get_sso_property_from_db(properties, admin_login, admin_password, property_n
         response_status_code = response.getcode()
         if response_status_code != 200:
           request_in_progress = False
-          if response_status_code == 404:
-            ## This means that there is no SSO configuration in the database yet -> we can not fetch the property (but this is NOT an error)
-            sso_property = None
-          else:
-            err = 'Error while fetching SSO configuration. Http status code - ' + str(response_status_code)
-            raise FatalException(1, err)
+          err = 'Error while fetching SSO configuration. Http status code - ' + str(response_status_code)
+          raise FatalException(1, err)
         else:
-            response_body = json.loads(response.read())
-            sso_properties = response_body['Configuration']['properties']
-            sso_property = sso_properties[property_name]
-            if not sso_property:
-              time.sleep(1)
-            else:
-              request_in_progress = False
+          response_body = json.loads(response.read())
+          sso_properties = response_body['Configuration']['properties']
+          sso_property = sso_properties[property_name]
+          if not sso_property:
+            time.sleep(1)
+          else:
+            request_in_progress = False
+    except urllib2.HTTPError as http_error:
+      if http_error.code == 404:
+        # This means that there is no SSO configuration in the database yet -> we can not fetch the property (but this is NOT an error)
+        request_in_progress = False
+        sso_property = None
+      else:
+        raise http_error
     except Exception as e:
       request_in_progress = False
       err = 'Error while fetching SSO configuration. Error details: %s' % e
@@ -281,7 +284,7 @@ def setup_sso(options):
     if not options.sso_enabled:
       sso_enabled_from_db = get_sso_property_from_db(properties, admin_login, admin_password, SSO_MANAGE_SERVICES)
       sso_enabled = sso_enabled_from_db == None or sso_enabled_from_db in ['true']
-      print_info_msg("SSO is currently {0}".format("not configured" if sso_enabled_from_db == None else ("enabled" if sso_enabled else "disabled")), True)
+      sys.stdout.write("\nSSO is currently {0}\n".format("not configured" if sso_enabled_from_db == None else ("enabled" if sso_enabled else "disabled")))
       if sso_enabled:
         enable_sso = not get_YN_input("Do you want to disable SSO authentication [y/n] (n)? ", False)
       else:
