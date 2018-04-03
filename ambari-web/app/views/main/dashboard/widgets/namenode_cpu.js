@@ -26,7 +26,7 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNod
   intervalId: null,
 
   activeNameNodes: Em.computed.alias('model.activeNameNodes'),
-  nameNode: Em.computed.alias('model.activeNameNodes'),
+  nameNode: Em.computed.alias('model.nameNode'),
 
   willDestroyElement: function () {
     clearInterval(this.get("intervalId"));
