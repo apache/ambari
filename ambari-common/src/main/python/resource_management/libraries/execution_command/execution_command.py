@@ -72,7 +72,7 @@ class ExecutionCommand(object):
     At this time it returns hardcoded 'default' name
     :return:
     """
-    return self.__get_value("default")
+    return "default"
 
   def get_servicegroup_name(self):
     return self.__get_value("serviceGroupName")
