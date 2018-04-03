@@ -20,6 +20,7 @@ limitations under the License.
 
 import ConfigParser
 import os
+import re
 
 from ambari_commons import OSCheck
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
