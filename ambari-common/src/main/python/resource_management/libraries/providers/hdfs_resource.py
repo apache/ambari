@@ -324,7 +324,15 @@ class HdfsResourceWebHDFS:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
       for nameservice in nameservices:
-        self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
+        try:
+          self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
+        except namenode_ha_utils.NoActiveNamenodeException as ex:
+          # one of ns can be down (during initial start forexample) no need to worry for federated cluster
+          if len(nameservices) > 1:
+            Logger.exception("Cannot run HdfsResource for nameservice {0}. Due to no active namenode present".format(nameservice))
+          else:
+            raise
+
 
   def action_delayed_for_nameservice(self, nameservice, action_name, main_resource):
     self.util = WebHDFSUtil(main_resource.resource.hdfs_site, nameservice, main_resource.resource.user,
