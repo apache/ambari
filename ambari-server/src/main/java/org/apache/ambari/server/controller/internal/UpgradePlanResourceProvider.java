@@ -26,6 +26,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
@@ -40,7 +41,12 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.MpackDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.UpgradePlanDAO;
+import org.apache.ambari.server.orm.entities.MpackEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
+import org.apache.ambari.server.orm.entities.UpgradePlanConfigEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanDetailEntity;
 import org.apache.ambari.server.orm.entities.UpgradePlanEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
@@ -50,6 +56,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -107,6 +114,12 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
   @Inject
   private static UpgradePlanDAO s_upgradePlanDAO;
 
+  @Inject
+  private static ServiceGroupDAO s_serviceGroupDAO;
+
+  @Inject
+  private static MpackDAO s_mpackDAO;
+
   /**
    * Constructor.
    *
@@ -145,10 +158,12 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
 
     s_upgradePlanDAO.create(entity);
 
+    // cannot be null since toEntity() checks for it
+    String clusterName = propertyMap.get(UPGRADE_PLAN_CLUSTER_NAME).toString();
+
     notifyCreate(Resource.Type.UpgradePlan, request);
 
-    Resource res = new ResourceImpl(Resource.Type.UpgradePlan);
-    res.setProperty(UPGRADE_PLAN_ID, entity.getId());
+    Resource res = toResource(entity, PROPERTY_IDS, clusterName);
 
     return new RequestStatusImpl(null, Collections.singleton(res));
   }
@@ -279,19 +294,37 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
       entity.setSkipServiceChecks(skip);
     }
 
+    Long clusterId = cluster.getClusterId();
     List<UpgradePlanDetailEntity> details = new ArrayList<>();
 
-    serviceGroupJsons.forEach(serviceGroupJson -> {
-      if (null == serviceGroupJson.mpackTargetId || null == serviceGroupJson.serviceGroupId) {
-        return;
-      }
+    serviceGroupJsons.stream()
+      .filter(sgJson -> sgJson.mpackTargetId != null && sgJson.serviceGroupId != null)
+      .forEach(sgJson -> {
 
-      UpgradePlanDetailEntity detail = new UpgradePlanDetailEntity();
-      detail.setMpackTargetId(serviceGroupJson.mpackTargetId);
-      detail.setServiceGroupId(serviceGroupJson.serviceGroupId);
+        ServiceGroupEntity sgEntity = s_serviceGroupDAO.findByClusterAndServiceGroupIds(
+            clusterId, sgJson.serviceGroupId);
+        if (null == sgEntity) {
+          throw new IllegalArgumentException(
+              String.format("Cannot find service group identified by %s", sgJson.serviceGroupId));
+        }
 
-      details.add(detail);
-    });
+        MpackEntity mpackEntity = s_mpackDAO.findById(sgJson.mpackTargetId);
+        if (null == mpackEntity) {
+          throw new IllegalArgumentException(
+              String.format("Cannot find mpack identified by %s", sgJson.mpackTargetId));
+        }
+
+        UpgradePlanDetailEntity detail = new UpgradePlanDetailEntity();
+        detail.setServiceGroupId(sgJson.serviceGroupId);
+        detail.setMpackTargetId(sgJson.mpackTargetId);
+
+        // !!! TODO During create, we have to resolve the config changes and persist them
+        // to allow the user to override them.  Ignore passed-in values, this has to come
+        // from the mpack
+
+        details.add(detail);
+      });
+
 
     entity.setDetails(details);
 
@@ -320,22 +353,64 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
     setResourceProperty(resource, UPGRADE_PLAN_SKIP_PREREQUISITE_CHECKS, upgradePlan.isSkipPrerequisiteChecks(), requestedIds);
     setResourceProperty(resource, UPGRADE_PLAN_SKIP_SERVICE_CHECK_FAILURES, upgradePlan.isSkipServiceCheckFailures(), requestedIds);
     setResourceProperty(resource, UPGRADE_PLAN_SKIP_SERVICE_CHECKS, upgradePlan.isSkipServiceChecks(), requestedIds);
-    setResourceProperty(resource, UPGRADE_PLAN_SERVICE_GROUPS, upgradePlan.getDetails(), requestedIds);
+    setResourceProperty(resource, UPGRADE_PLAN_SERVICE_GROUPS, toResourceObject(upgradePlan.getDetails()), requestedIds);
 
     return resource;
   }
 
+  private List<ServiceGroupJson> toResourceObject(List<UpgradePlanDetailEntity> details) {
+    return details.stream().map(ServiceGroupJson::new).collect(Collectors.toList());
+  }
 
   /**
    * An object representing the service groups in a request.
    */
   private static class ServiceGroupJson {
+
     @SerializedName("service_group_id")
+    @JsonProperty("service_group_id")
     private Long serviceGroupId;
 
     @SerializedName("mpack_target_id")
+    @JsonProperty("mpack_target_id")
     private Long mpackTargetId;
 
+    @SerializedName("configuration_changes")
+    @JsonProperty("configuration_changes")
+    private List<ConfigurationChangeJson> config_changes;
+
+    private ServiceGroupJson(UpgradePlanDetailEntity detail) {
+      serviceGroupId = detail.getServiceGroupId();
+      mpackTargetId = detail.getMpackTargetId();
+
+      config_changes = detail.getConfigChanges().stream()
+          .map(ConfigurationChangeJson::new).collect(Collectors.toList());
+    }
   }
+
+  /**
+   * An object representing a service group's configuration changes
+   */
+  private static class ConfigurationChangeJson {
+    @SerializedName("config_type")
+    @JsonProperty("config_type")
+    private String type;
+
+    @SerializedName("config_key")
+    @JsonProperty("config_key")
+    private String key;
+
+    @SerializedName("config_value")
+    @JsonProperty("config_value")
+    private String value;
+
+    private ConfigurationChangeJson(UpgradePlanConfigEntity change) {
+      type = change.getType();
+      key = change.getKey();
+      value = change.getNewValue();
+    }
+
+  }
+
 
 }
