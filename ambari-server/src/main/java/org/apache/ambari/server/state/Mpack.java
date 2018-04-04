@@ -17,13 +17,13 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 
 import com.google.gson.annotations.SerializedName;
@@ -68,6 +68,8 @@ public class Mpack {
   private String displayName;
 
   private String mpackUri;
+
+  private HashMap<String, Module> moduleHashMap;
 
   /**
    * The {@link RepoUtil#REPOSITORY_FILE_NAME} representation.
@@ -189,13 +191,7 @@ public class Mpack {
    * @return the module or {@code null}.
    */
   public Module getModule(String moduleName) {
-    for (Module module : modules) {
-      if (StringUtils.equals(moduleName, module.getName())) {
-        return module;
-      }
-    }
-
-    return null;
+     return moduleHashMap.get(moduleName);
   }
 
   /**
@@ -208,13 +204,10 @@ public class Mpack {
    * @return the component or {@code null}.
    */
   public ModuleComponent getModuleComponent(String moduleName, String moduleComponentName) {
-    for (Module module : modules) {
-      ModuleComponent moduleComponent = module.getModuleComponent(moduleComponentName);
-      if (null != moduleComponent) {
-        return moduleComponent;
+   Module module = moduleHashMap.get(moduleName);
+      if(module !=null){
+        return module.getModuleComponent(moduleComponentName);
       }
-    }
-
     return null;
   }
 
@@ -304,6 +297,19 @@ public class Mpack {
     }
     if (displayName == null) {
       displayName = mpack.getDisplayName();
+    }
+  }
+
+
+  /**
+   * Load modules in an mpack as (modulename, module)
+   * Each module will have a componentMap (componentName, component)
+   */
+  public void populateModuleMap() {
+    moduleHashMap = new HashMap<>();
+    for(Module module : this.modules){
+      module.populateComponentMap();
+      moduleHashMap.put(module.getName(), module);
     }
   }
 }
