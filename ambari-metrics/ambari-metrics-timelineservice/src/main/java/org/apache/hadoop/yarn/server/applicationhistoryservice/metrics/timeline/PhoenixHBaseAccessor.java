@@ -1774,7 +1774,11 @@ public class PhoenixHBaseAccessor {
       rs = stmt.executeQuery();
 
       while (rs.next()) {
-        TimelineMetricHostMetadata hostMetadata = new TimelineMetricHostMetadata(new HashSet<>(Arrays.asList(StringUtils.split(rs.getString("APP_IDS"), ","))));
+        String appIds = rs.getString("APP_IDS");
+        TimelineMetricHostMetadata hostMetadata = new TimelineMetricHostMetadata(new HashSet<>());
+        if (StringUtils.isNotEmpty(appIds)) {
+          hostMetadata = new TimelineMetricHostMetadata(new HashSet<>(Arrays.asList(StringUtils.split(appIds, ","))));
+        }
         hostMetadata.setUuid(rs.getBytes("UUID"));
         hostedAppMap.put(rs.getString("HOSTNAME"), hostMetadata);
       }
