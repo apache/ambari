@@ -413,12 +413,24 @@ class TestInstanceManager(TestCase):
                         " subgroup_name:default, module_name:hdfs, components:None,"
                         " components_map:{'hdfs_server': ['non-existing-instance']}")
 
+  def test_create_mpack_fail_if_exists(self):
+    create_mpack_with_defaults()
+    try:
+      # should throw exception
+      create_mpack_with_defaults()
+      self.assertTrue(False)
+    except ValueError as e:
+      self.assertTrue("already exist" in e.message)
+
+    # this call shouldn't throw exception
+    create_mpack_with_defaults(fail_if_exists=False)
+
 
 def create_mpack_with_defaults(mpack_name=MPACK_NAME, mpack_version=MPACK_VERSION_1, mpack_instance=INSTANCE_NAME_1,
                                subgroup_name=SUBGROUP_NAME, module_name=SERVER_MODULE_NAME, components='*',
-                               components_map=None):
+                               components_map=None, fail_if_exists=True):
   instance_manager.create_mpack(mpack_name, mpack_version, mpack_instance,
-                                subgroup_name, module_name, components, components_map)
+                                subgroup_name, module_name, components, components_map, fail_if_exists)
 
 
 def build_rpm_structure(mpack_name=MPACK_NAME, mpack_version=MPACK_VERSION_1, mpack_json=MPACK_JSON,
