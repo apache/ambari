@@ -32,5 +32,6 @@ public class MpackResourceDefinitionTest {
       ResourceDefinition def = new MpackResourceDefinition();
       assertEquals("mpack", def.getSingularName());
       assertEquals("mpacks", def.getPluralName());
+
     }
 }
