@@ -750,6 +750,7 @@ CREATE TABLE widget (
   widget_values VARCHAR(4000),
   properties VARCHAR(4000),
   cluster_id BIGINT NOT NULL,
+  tag VARCHAR(255),
   CONSTRAINT PK_widget PRIMARY KEY CLUSTERED (id)
 );
 
