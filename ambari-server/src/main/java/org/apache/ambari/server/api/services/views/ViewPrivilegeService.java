@@ -59,7 +59,7 @@ import io.swagger.annotations.ApiResponses;
 @Api(tags = "Views", description = "Endpoint for view specific operations")
 public class ViewPrivilegeService extends BaseService {
 
-  public static final String PRIVILEGE_INFO_REQUEST_TYPE = "org.apache.ambari.server.controller.ViewPrivilegeResponse.Wrapper";
+  public static final String PRIVILEGE_INFO_REQUEST_TYPE = "org.apache.ambari.server.controller.ViewPrivilegeResponse.ViewPrivilegeResponseWrapper";
 
   /**
    * Handles: GET  /views/{viewName}/versions/{version}/instances/{instanceName}/privileges
@@ -75,7 +75,7 @@ public class ViewPrivilegeService extends BaseService {
    */
   @GET
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Get all view instance privileges", response = ViewPrivilegeResponse.Wrapper.class, responseContainer = "List")
+  @ApiOperation(value = "Get all view instance privileges", response = ViewPrivilegeResponse.ViewPrivilegeResponseWrapper.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "PrivilegeInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
@@ -114,7 +114,7 @@ public class ViewPrivilegeService extends BaseService {
   @GET
   @Path("/{privilegeId}")
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Get single view instance privilege", response = ViewPrivilegeResponse.Wrapper.class)
+  @ApiOperation(value = "Get single view instance privilege", response = ViewPrivilegeResponse.ViewPrivilegeResponseWrapper.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "PrivilegeInfo/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
   })
