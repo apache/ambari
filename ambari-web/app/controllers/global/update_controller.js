@@ -417,7 +417,7 @@ App.UpdateController = Em.Controller.extend({
    * success callback of <code>loadHostsMetric</code>
    * @param {object} data
    */
-    loadHostsMetricSuccessCallback: function (data) {
+  loadHostsMetricSuccessCallback: function (data) {
     App.hostsMapper.setMetrics(data);
     if (App.router.get('currentState.parentState.name') === 'hostDetails' && data) {
       const hostComponentsData = Em.get(data, 'items.0.host_components');
