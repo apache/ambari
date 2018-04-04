@@ -32,11 +32,11 @@ class ExecutionCommand(object):
 
   def __init__(self, command):
     """
-    __execution_command is an internal dict object maps to command.json
+    _execution_command is an internal dict object maps to command.json
     :param command: json string or a python dict object
     """
-    self.__execution_command = command
-    self.__module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"))
+    self._execution_command = command
+    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"))
 
   def __get_value(self, key, default_value=None):
     """
@@ -46,7 +46,7 @@ class ExecutionCommand(object):
     :return:
     """
     sub_keys = key.split('/')
-    value = self.__execution_command
+    value = self._execution_command
     try:
       for sub_key in sub_keys:
         value = value[sub_key]
@@ -59,7 +59,7 @@ class ExecutionCommand(object):
   """
 
   def get_module_configs(self):
-    return self.__module_configs
+    return self._module_configs
 
   def get_module_name(self):
     return self.__get_value("serviceName")
@@ -72,7 +72,7 @@ class ExecutionCommand(object):
     At this time it returns hardcoded 'default' name
     :return:
     """
-    return self.__get_value("default")
+    return "default"
 
   def get_servicegroup_name(self):
     return self.__get_value("serviceGroupName")
