@@ -33,6 +33,7 @@ import operator
 from ambari_commons import subprocess32
 from optparse import OptionParser
 import platform
+import socket
 import re
 import shutil
 import signal
@@ -7560,7 +7561,7 @@ class TestAmbariServer:#(TestCase):
 
     sync_ldap(options)
 
-    url = '{0}://{1}:{2!s}{3}'.format('https', '127.0.0.1', '8443', '/api/v1/ldap_sync_events')
+    url = '{0}://{1}:{2!s}{3}'.format('https', socket.getfqdn(), '8443', '/api/v1/ldap_sync_events')
     request = urlopen_mock.call_args_list[0][0][0]
 
     self.assertEquals(url, str(request.get_full_url()))
