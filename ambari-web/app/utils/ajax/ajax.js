@@ -2096,7 +2096,7 @@ var urls = {
 
   'wizard.step8.create_selected_services': {
     'type': 'POST',
-    'real': '/clusters/{cluster}/servicegroups/{defaultServiceGroupName}/services',
+    'real': '/clusters/{cluster}/servicegroups/{serviceGroup}/services',
     'mock': '/data/stacks/HDP-2.1/recommendations.json',
     'format': function (data) {
       return {
@@ -2107,7 +2107,7 @@ var urls = {
   },
 
   'wizard.step8.create_components': {
-    'real': '/clusters/{cluster}/servicegroups/{defaultServiceGroupName}/services/{serviceName}/components',
+    'real': '/clusters/{cluster}/servicegroups/{serviceGroup}/services/{serviceName}/components',
     'mock': '',
     'format': function (data) {
       return {
