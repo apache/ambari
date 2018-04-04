@@ -75,7 +75,7 @@
   </property>
   <property>
     <name>infra_solr_datadir</name>
-    <value>/opt/ambari_infra_solr/data</value>
+    <value>/var/lib/ambari-infra-solr/data</value>
     <display-name>Infra Solr data dir</display-name>
     <description>Directory for storting Solr index. Make sure you have enough disk space</description>
     <value-attributes>

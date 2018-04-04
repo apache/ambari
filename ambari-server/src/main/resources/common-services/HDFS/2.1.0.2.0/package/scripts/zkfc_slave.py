@@ -59,7 +59,10 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
 
+    utils.set_up_zkfc_security(params)
+
     Execute("hdfs zkfc -formatZK -nonInteractive",
+            returns=[0, 2], # Returns 0 on success ; Returns 2 if zkfc is already formatted
             user=params.hdfs_user,
             logoutput=True
     )

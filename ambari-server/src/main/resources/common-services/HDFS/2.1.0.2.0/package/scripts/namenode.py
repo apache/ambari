@@ -98,13 +98,28 @@ class NameNode(Script):
     import params
     env.set_params(params)
 
-    format_namenode()
+    if params.security_enabled:
+        Execute(params.nn_kinit_cmd,
+                user=params.hdfs_user
+        )
+
+    # this is run on a new namenode, format needs to be forced
+    Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
+            user = params.hdfs_user,
+            path = [params.hadoop_bin_dir],
+            logoutput=True
+    )
 
   def bootstrap_standby(self, env):
     import params
     env.set_params(params)
 
-    Execute("hdfs namenode -bootstrapStandby",
+    if params.security_enabled:
+        Execute(params.nn_kinit_cmd,
+                user=params.hdfs_user
+        )
+
+    Execute("hdfs namenode -bootstrapStandby -nonInteractive",
             user=params.hdfs_user,
             logoutput=True
     )

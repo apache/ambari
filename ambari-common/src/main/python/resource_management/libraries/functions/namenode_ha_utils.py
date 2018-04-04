@@ -44,14 +44,17 @@ NAMENODE_RPC_NON_HA = 'dfs.namenode.rpc-address'
 JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
 INADDR_ANY = '0.0.0.0'
 
-def get_namenode_states(hdfs_site, security_enabled, run_user, times=10, sleep_time=1, backoff_factor=2):
+class NoActiveNamenodeException(Fail):
+  pass
+
+def get_namenode_states(hdfs_site, security_enabled, run_user, times=5, sleep_time=1, backoff_factor=2, name_service=None):
   """
   return format [('nn1', 'hdfs://hostname1:port1'), ('nn2', 'hdfs://hostname2:port2')] , [....], [....]
   """
   @retry(times=times, sleep_time=sleep_time, backoff_factor=backoff_factor, err_class=Fail)
   def doRetries(hdfs_site, security_enabled, run_user):
     doRetries.attempt += 1
-    active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states_noretries(hdfs_site, security_enabled, run_user, doRetries.attempt == times)
+    active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states_noretries(hdfs_site, security_enabled, run_user, doRetries.attempt == times, name_service=name_service)
     Logger.info(
       "NameNode HA states: active_namenodes = {0}, standby_namenodes = {1}, unknown_namenodes = {2}".format(
         active_namenodes, standby_namenodes, unknown_namenodes))
@@ -66,7 +69,7 @@ def get_namenode_states(hdfs_site, security_enabled, run_user, times=10, sleep_t
   return doRetries(hdfs_site, security_enabled, run_user)
 
 
-def get_namenode_states_noretries(hdfs_site, security_enabled, run_user, last_retry=True):
+def  get_namenode_states_noretries(hdfs_site, security_enabled, run_user, last_retry=True, name_service=None):
   """
   returns data for all name nodes of all name services
   """
@@ -74,7 +77,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user, last_re
   standby_namenodes = []
   unknown_namenodes = []
 
-  name_services = get_nameservices(hdfs_site)
+  name_services = get_nameservices(hdfs_site) if not name_service else [name_service]
   for name_service in name_services:
     active, standby, unknown = _get_namenode_states_noretries_single_ns(hdfs_site, name_service, security_enabled, run_user, last_retry)
     active_namenodes += active
@@ -160,7 +163,7 @@ def get_active_namenode(hdfs_site, security_enabled, run_user):
   if active_namenodes:
     return active_namenodes[0]
 
-  raise Fail('No active NameNode was found.')
+  raise NoActiveNamenodeException('No active NameNode was found.')
   
 def get_property_for_active_namenodes(hdfs_site, property_name, security_enabled, run_user):
   """
@@ -174,6 +177,18 @@ def get_property_for_active_namenodes(hdfs_site, property_name, security_enabled
 
   return result
 
+def get_properties_for_all_nameservices(hdfs_site, property_name):
+  name_services = get_nameservices(hdfs_site)
+
+  result = {}
+
+  if name_services:
+    for name_service in name_services:
+      result[name_service] = hdfs_site[property_name+'.'+name_service]
+  else:
+    result[None] = hdfs_site[property_name]
+
+  return result
 
 def get_property_for_active_namenode(hdfs_site, name_service, property_name, security_enabled, run_user):
   """
@@ -187,12 +202,12 @@ def get_property_for_active_namenode(hdfs_site, name_service, property_name, sec
     name_services = get_nameservices(hdfs_site)
 
     if name_service not in name_services:
-     raise Fail('Trying to get property for non-existing ns=\'{1}\'. Valid namespaces are {2}'.format(property_name, name_service, ','.join(name_services)))
+     raise Fail('Trying to get property for non-existing ns=\'{1}\'. Valid nameservices are {2}'.format(property_name, name_service, ','.join(name_services)))
 
-    active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
+    active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user, name_service=name_service)[0]
 
     if not len(active_namenodes):
-      raise Fail("There is no active namenodes.")
+      raise NoActiveNamenodeException("There are no active namenodes.")
 
     active_namenode_id = active_namenodes[0][0]
     value = hdfs_site[format("{property_name}.{name_service}.{active_namenode_id}")]
@@ -208,6 +223,10 @@ def get_property_for_active_namenode(hdfs_site, name_service, property_name, sec
       value = value.replace(INADDR_ANY, rpc_host)
 
   return value
+
+def namenode_federation_enabled(hdfs_site):
+  name_services = get_nameservices(hdfs_site)
+  return (len(name_services) > 1)
 
 def get_all_namenode_addresses(hdfs_site):
   """
@@ -286,7 +305,7 @@ def get_nameservices(hdfs_site):
 
   name_services_string = hdfs_site.get('dfs.nameservices', None)
 
-  if name_services_string and ',' in name_services_string:
+  if name_services_string:
     import re
     for ns in name_services_string.split(","):
       if 'dfs.namenode.shared.edits.dir' in hdfs_site and re.match(r'.*%s$' % ns, hdfs_site['dfs.namenode.shared.edits.dir']): # better would be core_site['fs.defaultFS'] but it's not available

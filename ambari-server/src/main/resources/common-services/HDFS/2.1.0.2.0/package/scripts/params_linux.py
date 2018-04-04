@@ -44,6 +44,7 @@ from resource_management.libraries.functions.hdfs_utils import is_https_enabled_
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
+from resource_management.libraries.functions.namenode_ha_utils import get_properties_for_all_nameservices, namenode_federation_enabled
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -242,8 +243,13 @@ nfs_file_dump_dir = config['configurations']['hdfs-site']['nfs.file.dump.dir']
 
 dfs_domain_socket_path = config['configurations']['hdfs-site']['dfs.domain.socket.path']
 dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)
+hdfs_site = config['configurations']['hdfs-site']
 
-jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']
+
+if namenode_federation_enabled(hdfs_site):
+  jn_edits_dirs = get_properties_for_all_nameservices(hdfs_site, 'dfs.journalnode.edits.dir').values()
+else:
+  jn_edits_dirs = [config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']]
 
 dfs_name_dir = config['configurations']['hdfs-site']['dfs.namenode.name.dir']
 
@@ -290,7 +296,7 @@ dfs_ha_enabled = False
 dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
 if dfs_ha_nameservices is None:
   dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.nameservices', None)
-dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+dfs_ha_namenode_ids_all_ns = get_properties_for_all_nameservices(hdfs_site, 'dfs.ha.namenodes')
 dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.automatic-failover.enabled", False)
 
 # hostname of the active HDFS HA Namenode (only used when HA is enabled)
@@ -308,26 +314,29 @@ namenode_rpc = None
 dfs_ha_namemodes_ids_list = []
 other_namenode_id = None
 
-if dfs_ha_namenode_ids:
-  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
-  if dfs_ha_namenode_ids_array_len > 1:
-    dfs_ha_enabled = True
-if dfs_ha_enabled:
-  for nn_id in dfs_ha_namemodes_ids_list:
-    nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
-    if hostname.lower() in nn_host.lower():
-      namenode_id = nn_id
-      namenode_rpc = nn_host
-    elif public_hostname.lower() in nn_host.lower():
-      namenode_id = nn_id
-      namenode_rpc = nn_host
-  # With HA enabled namenode_address is recomputed
-  namenode_address = format('hdfs://{dfs_ha_nameservices}')
+for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.iteritems():
+  found = False
+  if not is_empty(dfs_ha_namenode_ids):
+    dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+    dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+    if dfs_ha_namenode_ids_array_len > 1:
+      dfs_ha_enabled = True
+  if dfs_ha_enabled:
+    for nn_id in dfs_ha_namemodes_ids_list:
+      nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
+      if hostname.lower() in nn_host.lower() or public_hostname.lower() in nn_host.lower():
+        namenode_id = nn_id
+        namenode_rpc = nn_host
+        found = True
+    # With HA enabled namenode_address is recomputed
+    namenode_address = format('hdfs://{dfs_ha_nameservices}')
 
-  # Calculate the namenode id of the other namenode. This is needed during RU to initiate an HA failover using ZKFC.
-  if namenode_id is not None and len(dfs_ha_namemodes_ids_list) == 2:
-    other_namenode_id = list(set(dfs_ha_namemodes_ids_list) - set([namenode_id]))[0]
+    # Calculate the namenode id of the other namenode. This is needed during RU to initiate an HA failover using ZKFC.
+    if namenode_id is not None and len(dfs_ha_namemodes_ids_list) == 2:
+      other_namenode_id = list(set(dfs_ha_namemodes_ids_list) - set([namenode_id]))[0]
+
+  if found:
+    break
 
 
 if dfs_http_policy is not None and dfs_http_policy.upper() == "HTTPS_ONLY":

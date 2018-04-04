@@ -259,7 +259,8 @@ class ExecuteProvider(Provider):
                         timeout_kill_strategy=self.resource.timeout_kill_strategy,
                         on_new_line=self.resource.on_new_line,
                         stdout=self.resource.stdout,stderr=self.resource.stderr,
-                        tries=self.resource.tries, try_sleep=self.resource.try_sleep)
+                        tries=self.resource.tries, try_sleep=self.resource.try_sleep,
+                        returns=self.resource.returns)
        
 
 class ExecuteScriptProvider(Provider):

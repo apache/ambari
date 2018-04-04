@@ -46,5 +46,6 @@ export LOGSEARCH_TRUSTSTORE_TYPE={{logsearch_truststore_type}}
 {% endif %}
 
 {% if security_enabled -%}
-export LOGSEARCH_JAVA_OPTS="{{zk_security_opts}}"
+LOGSEARCH_KERBEROS_OPTS="-Djava.security.auth.login.config=/usr/lib/ambari-logsearch-portal/conf/logsearch_jaas.conf -Dsolr.httpclient.builder.factory=org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder"
+export LOGSEARCH_JAVA_OPTS="{{zk_security_opts}} $LOGSEARCH_KERBEROS_OPTS"
 {% endif %}

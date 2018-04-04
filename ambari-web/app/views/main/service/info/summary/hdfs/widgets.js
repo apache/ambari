@@ -92,8 +92,8 @@ App.HDFSSummaryWidgetsView = Em.View.extend({
 
   nonDfsUsed: function () {
     const total = this.get('capacityTotal'),
-      remaining = this.get('service.capacityRemaining'),
-      dfsUsed = this.get('service.capacityUsed');
+      remaining = this.get('capacityRemaining'),
+      dfsUsed = this.get('capacityUsed');
     return (Em.isNone(total) || Em.isNone(remaining) || Em.isNone(dfsUsed)) ? null : total - remaining - dfsUsed;
   }.property('capacityTotal', 'capacityRemaining', 'capacityUsed'),
 
@@ -134,9 +134,9 @@ App.HDFSSummaryWidgetsView = Em.View.extend({
   upgradeStatus: function () {
     const upgradeStatus = this.get('upgradeStatusValue'),
       healthStatus = this.get('healthStatus');
-    if (upgradeStatus == 'true') {
+    if (upgradeStatus) {
       return Em.I18n.t('services.service.summary.pendingUpgradeStatus.notPending');
-    } else if (upgradeStatus == 'false' && healthStatus == 'green') {
+    } else if (upgradeStatus === false && healthStatus === 'green') {
       return Em.I18n.t('services.service.summary.pendingUpgradeStatus.notFinalized');
     } else {
       // upgrade status == null
@@ -145,7 +145,7 @@ App.HDFSSummaryWidgetsView = Em.View.extend({
   }.property('upgradeStatusValue', 'healthStatus'),
 
   isUpgradeStatusWarning: function () {
-    return this.get('upgradeStatusValue') == 'false' && this.get('healthStatus') == 'green';
+    return this.get('upgradeStatusValue') === false && this.get('healthStatus') === 'green';
   }.property('upgradeStatusValue', 'healthStatus'),
 
   safeModeStatusValue: Em.computed.getByKey('service.safeModeStatusValues', 'clusterId'),

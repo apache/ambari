@@ -457,7 +457,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             } else {
               if (!groups.length) {
                 groups.push({
-                  components: []
+                  components: [],
+                  componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
+                    nameSpace: component.get('haNameSpace') || 'default'
+                  })
                 });
               }
               const defaultGroupComponents = groups[0].components;

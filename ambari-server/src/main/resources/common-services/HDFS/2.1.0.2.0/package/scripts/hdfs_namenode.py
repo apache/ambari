@@ -120,7 +120,6 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
       format_namenode()
       pass
 
-
     if params.dfs_ha_enabled and \
       params.dfs_ha_namenode_standby is not None and \
       (params.hostname == params.dfs_ha_namenode_standby or params.public_hostname == params.dfs_ha_namenode_standby):
