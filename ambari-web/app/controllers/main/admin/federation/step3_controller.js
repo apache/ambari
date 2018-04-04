@@ -99,15 +99,6 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     ret.clustername = App.get('clusterName');
 
     var hdfsSiteConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
-    var hdfsRangerConfigs = configsFromServer.findProperty('type', 'ranger-hdfs-security').properties;
-
-    if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
-      ret.ranger_service_name_ns1 = ret.clustername + '_hadoop_' + ret.nameservice1;
-      ret.ranger_service_name_ns2 = ret.clustername + '_hadoop_' + ret.nameservice2;
-    } else {
-      ret.ranger_service_name_ns1 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice1;
-      ret.ranger_service_name_ns2 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice2;
-    }
 
     var dfsHttpA = hdfsSiteConfigs['dfs.namenode.http-address'];
     ret.nnHttpPort = dfsHttpA ? dfsHttpA.split(':')[1] : 50070;
@@ -117,6 +108,18 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
     var dfsRpcA = hdfsSiteConfigs['dfs.namenode.rpc-address'];
     ret.nnRpcPort = dfsRpcA ? dfsRpcA.split(':')[1] : 8020;
+
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      var hdfsRangerConfigs = configsFromServer.findProperty('type', 'ranger-hdfs-security').properties;
+
+      if (hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] === '{{repo_name}}') {
+        ret.ranger_service_name_ns1 = ret.clustername + '_hadoop_' + ret.nameservice1;
+        ret.ranger_service_name_ns2 = ret.clustername + '_hadoop_' + ret.nameservice2;
+      } else {
+        ret.ranger_service_name_ns1 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice1;
+        ret.ranger_service_name_ns2 = hdfsRangerConfigs['ranger.plugin.hdfs.service.name'] + '_' + ret.nameservice2;
+      }
+    }
 
     return ret;
   },
