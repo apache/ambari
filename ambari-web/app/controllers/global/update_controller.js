@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-var App = require('app');
+const App = require('app');
+const stringUtils = require('utils/string_utils');
 
 App.UpdateController = Em.Controller.extend({
   name: 'updateController',
@@ -70,6 +71,11 @@ App.UpdateController = Em.Controller.extend({
     'STORM': 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary',
     'HDFS': 'host_components/metrics/dfs/namenode/ClusterId'
   },
+
+  nameNodeMetricsModelProperties: [
+    'jvm_memory_heap_max_values', 'jvm_memory_heap_used_values', 'capacity_used_values', 'capacity_total_values',
+    'capacity_remaining_values', 'capacity_non_dfs_used_values', 'name_node_rpc_values', 'name_node_start_time_values'
+  ],
 
   /**
    * @type {string}
@@ -235,14 +241,7 @@ App.UpdateController = Em.Controller.extend({
       hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
         'metrics/memory/mem_total,metrics/memory/mem_free',
       nameNodeMetrics = 'host_components/metrics/dfs/namenode/ClusterId,' +
-        'host_components/metrics/dfs/FSNamesystem/HAState,' +
-        'host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,' +
-        'host_components/metrics/dfs/FSNamesystem/CapacityUsed,' +
-        'host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
-        'host_components/metrics/dfs/FSNamesystem/CapacityRemaining,' +
-        'host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed,' +
-        'host_components/metrics/rpc/client/RpcQueueTime_avg_time,' +
-        'host_components/metrics/runtime/StartTime,';
+        'host_components/metrics/dfs/FSNamesystem/HAState,';
 
     url = url.replace("<stackVersions>", stackVersionInfo);
     url = url.replace("<metrics>", loadMetricsSeparately ? "" : "metrics/disk,metrics/load/load_one,");
@@ -380,9 +379,27 @@ App.UpdateController = Em.Controller.extend({
    * @returns {$.ajax|null}
    */
   loadHostsMetric: function (queryParams) {
-    var realUrl = '/hosts?fields=metrics/disk/disk_free,metrics/disk/disk_total,metrics/load/load_one&minimal_response=true';
-
-    if (App.Service.find('AMBARI_METRICS').get('isStarted')) {
+    const isAmbariMetricsStarted = App.Service.find('AMBARI_METRICS').get('isStarted'),
+      hostDetailsParam = queryParams.findProperty('isHostDetails'),
+      currentHostName = hostDetailsParam && hostDetailsParam.value[0],
+      isHostWithNameNode = currentHostName && App.HostComponent.find(`NAMENODE_${currentHostName}`).get('isLoaded');
+    if (isAmbariMetricsStarted || isHostWithNameNode) {
+      let realUrl = '/hosts?fields=',
+        realUrlFields = [];
+      if (isAmbariMetricsStarted) {
+        realUrlFields.push('metrics/disk/disk_free', 'metrics/disk/disk_total', 'metrics/load/load_one');
+      }
+      if (isHostWithNameNode) {
+        realUrlFields.push(
+          'host_components/metrics/dfs/namenode/ClusterId', 'host_components/metrics/jvm/HeapMemoryMax',
+          'host_components/metrics/jvm/HeapMemoryUsed', 'host_components/metrics/dfs/FSNamesystem/CapacityUsed',
+          'host_components/metrics/dfs/FSNamesystem/CapacityTotal',
+          'host_components/metrics/dfs/FSNamesystem/CapacityRemaining',
+          'host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed',
+          'host_components/metrics/rpc/client/RpcQueueTime_avg_time', 'host_components/metrics/runtime/StartTime'
+        );
+      }
+      realUrl += (realUrlFields.join(',') + '&minimal_response=true');
       return App.ajax.send({
         name: 'hosts.metrics.lazy_load',
         sender: this,
@@ -400,8 +417,31 @@ App.UpdateController = Em.Controller.extend({
    * success callback of <code>loadHostsMetric</code>
    * @param {object} data
    */
-  loadHostsMetricSuccessCallback: function (data) {
+    loadHostsMetricSuccessCallback: function (data) {
     App.hostsMapper.setMetrics(data);
+    if (App.router.get('currentState.parentState.name') === 'hostDetails' && data) {
+      const hostComponentsData = Em.get(data, 'items.0.host_components');
+      if (hostComponentsData) {
+        const nameNodeData = hostComponentsData.findProperty('HostRoles.component_name', 'NAMENODE');
+        if (nameNodeData) {
+          const hostName = Em.get(data, 'items.0.Hosts.host_name'),
+            nameNodeModelMap = App.serviceMetricsMapper.activeNameNodeConfig,
+            processedModelProperties = this.nameNodeMetricsModelProperties,
+            hdfsModel = App.HDFSService.find('HDFS'),
+            componentModel = App.HostComponent.find(`NAMENODE_${hostName}`);
+          Object.keys(nameNodeModelMap).forEach(key => {
+            if (processedModelProperties.contains(key)) {
+              const modelKey = stringUtils.underScoreToCamelCase(key);
+              hdfsModel.get(modelKey)[hostName] = Em.get(nameNodeData, nameNodeModelMap[key]);
+              hdfsModel.propertyDidChange(modelKey);
+            }
+          });
+          componentModel.setProperties({
+            clusterIdValue: Em.get(nameNodeData, 'metrics.dfs.namenode.ClusterId')
+          });
+        }
+      }
+    }
   },
 
   /**

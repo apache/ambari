@@ -54,16 +54,6 @@ App.Host = DS.Model.extend({
   index: DS.attr('number'),
   stackVersions: DS.hasMany('App.HostStackVersion'),
 
-  // NameNode metrics
-  nameNodeStartTime: DS.attr('number'),
-  jvmMemoryHeapUsed: DS.attr('number'),
-  jvmMemoryHeapMax: DS.attr('number'),
-  capacityUsed: DS.attr('number'),
-  capacityTotal: DS.attr('number'),
-  capacityRemaining: DS.attr('number'),
-  capacityNonDfsUsed: DS.attr('number'),
-  nameNodeRpc: DS.attr('number'),
-
   isFiltered: DS.attr('boolean'),
 
   /**
