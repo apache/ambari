@@ -114,6 +114,7 @@ def refresh_stack_hash(properties):
 # Reads server protocol/port from configuration
 # And returns something like
 # http://127.0.0.1:8080/api/v1/
+# or if using ssl https://hostname.domain:8443/api/v1
 #
 def get_ambari_server_api_base(properties):
   api_host = SERVER_API_HOST  

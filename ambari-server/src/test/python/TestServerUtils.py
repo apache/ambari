@@ -22,6 +22,7 @@ os.environ["ROOT"] = ""
 from mock.mock import patch, MagicMock
 from unittest import TestCase
 import platform
+import socket 
 
 from ambari_commons import os_utils
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
@@ -58,13 +59,16 @@ class TestServerUtils(TestCase):
     self.assertEquals(result, 'http://127.0.0.1:8033/api/v1/')
 
     # Test case of using https protocol (and ssl port)
+    fqdn = socket.getfqdn()
+    self.assertTrue(len(fqdn)>0)
+
     properties = FakeProperties({
       SSL_API: "true",
       SSL_API_PORT : "8443",
       CLIENT_API_PORT_PROPERTY: None
     })
     result = get_ambari_server_api_base(properties)
-    self.assertEquals(result, 'https://127.0.0.1:8443/api/v1/')
+    self.assertEquals(result, 'https://{0}:8443/api/v1/'.format(fqdn))
 
 
 
