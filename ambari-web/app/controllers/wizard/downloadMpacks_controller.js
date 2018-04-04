@@ -44,16 +44,16 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
   },
 
   registerMpacks: function () {
-    var mpacks = this.get('mpacks');
-    var self = this;
+    const mpacks = this.get('mpacks');
+    const self = this;
     mpacks.forEach(function (mpack) {
-      self.downloadMpack(mpack);
+     self.downloadMpack(mpack).then(self.loadMpackInfo.bind(self));
     });
   },
 
   downloadMpack: function (mpack) {
     console.log("downloading mpacks");
-    App.ajax.send({
+    return App.ajax.send({
       name: 'mpack.download_by_url',
       sender: this,
       data: {
@@ -91,6 +91,16 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
       
       this.get('mpacks').findProperty('name', params.name).set('failureMessage', failureMessage);
     }
+  },
+
+  loadMpackInfo(data) {
+    App.ajax.send({
+      name: 'mpack.get_registered_mpack',
+      sender: this,
+      data: {
+        id: data.resources[0].MpackInfo.id
+      }
+    }).then(mpackInfo => this.get('content.registeredMpacks').push(mpackInfo));
   },
 
   retryDownload: function (event) {
