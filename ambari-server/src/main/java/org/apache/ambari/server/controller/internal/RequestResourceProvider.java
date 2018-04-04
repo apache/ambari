@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.CLUSTER_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.COMPONENT_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_NAME;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -539,16 +539,16 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       ResourceProvider resourceProvider = getResourceProvider(Resource.Type.HostComponent);
 
       Set<String> propertyIds = new HashSet<>();
-      propertyIds.add(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-      propertyIds.add(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-      propertyIds.add(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+      propertyIds.add(CLUSTER_NAME);
+      propertyIds.add(SERVICE_NAME);
+      propertyIds.add(COMPONENT_NAME);
 
       Request request = PropertyHelper.getReadRequest(propertyIds);
 
       Predicate finalPredicate = new PredicateBuilder(filterPredicate)
-        .property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-        .property(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID).equals(serviceName).and()
-        .property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals(componentName)
+        .property(CLUSTER_NAME).equals(clusterName).and()
+        .property(SERVICE_NAME).equals(serviceName).and()
+        .property(COMPONENT_NAME).equals(componentName)
         .toPredicate();
 
       try {
@@ -558,10 +558,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           // Allow request to span services / components using just the predicate
           Map<ServiceComponentTuple, List<String>> dupleListMap = new HashMap<>();
           for (Resource resource : resources) {
-            String hostnameStr = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+            String hostnameStr = (String) resource.getPropertyValue(HOST_NAME);
             if (hostnameStr != null) {
-              String computedServiceName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-              String computedComponentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+              String computedServiceName = (String) resource.getPropertyValue(SERVICE_NAME);
+              String computedComponentName = (String) resource.getPropertyValue(COMPONENT_NAME);
               ServiceComponentTuple duple =
                 new ServiceComponentTuple(computedServiceName, computedComponentName);
 
