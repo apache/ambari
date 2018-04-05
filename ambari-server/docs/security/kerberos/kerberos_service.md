@@ -39,7 +39,16 @@ Ambari Kerberos Automation
 
 The type of KDC being used.
 
-_Possible Values:_ `mit-kdc`, `active-directory` 
+_Possible Values:_ 
+- `none`
+  - Ambari is not to integrate with a KDC.  In this case, it is expected that the Kerberos identities 
+will be created and the keytab files are distributed manually
+- `mit-kdc`
+  - Ambari is to integrate with an MIT KDC
+- `active-directory`
+  - Ambari is to integrate with an Active Directory
+- `ipa` 
+  - Ambari is to integrate with a FreeIPA server
 
 ##### manage_identities
 
@@ -78,12 +87,12 @@ _Possible Values:_ `true`, `false`
 
 ##### ldap_url
 
-The URL to the Active Directory LDAP Interface. This value must indicate a secure channel using
+The URL to the Active Directory LDAP Interface. This value **must** indicate a secure channel using
 LDAPS since it is required for creating and updating passwords for Active Directory accounts.
  
 _Example:_  `ldaps://ad.example.com:636`
 
-This property is mandatory and only used if the `kdc_type` is `active-directory`
+If the `kdc_type` is `active-directory`, this property is mandatory.
 
 ##### container_dn
 
@@ -92,7 +101,7 @@ within the configured Active Directory
 
 _Example:_  `OU=hadoop,DC=example,DC=com`
 
-This property is mandatory and only used if the `kdc_type` is `active-directory`
+If the `kdc_type` is `active-directory`, this property is mandatory.
 
 ##### encryption_types
 
@@ -106,6 +115,8 @@ The default realm to use when creating service principals
 
 _Example:_ `EXAMPLE.COM`
 
+This value is expected to be in all uppercase characters.
+
 ##### kdc_hosts
 
 A comma-delimited list of IP addresses or FQDNs for the list of relevant KDC hosts. Optionally a
@@ -117,11 +128,20 @@ _Example:_ `kdc.example.com:88, kdc1.example.com:88`
 
 ##### admin_server_host
 
-The IP address or FQDN for the KDC Kerberos administrative host. Optionally a port number may be included.
+The IP address or FQDN for the Kerberos administrative host. Optionally a port number may be included.
 
 _Example:_ `kadmin.example.com`
 
-_Example:_ `kadmin.example.com:88` 
+_Example:_ `kadmin.example.com:88`
+
+##### master_kdc
+
+The IP address or FQDN of the master KDC host in a master-slave KDC deployment. Optionally a port 
+number may be included.
+
+_Example:_ `kadmin.example.com`
+
+_Example:_ `kadmin.example.com:88`
 
 ##### executable_search_paths
 
@@ -286,34 +306,50 @@ Default value: /etc
 
 Customizable krb5.conf template (Jinja template engine)
 
-```
-Example: [libdefaults]
-renew_lifetime = 7d
-forwardable = true
-default_realm = {{realm}}
-ticket_lifetime = 24h
-dns_lookup_realm = false
-dns_lookup_kdc = false
-#default_tgs_enctypes = {{encryption_types}}
-#default_tkt_enctypes = {{encryption_types}}
+_Default value:_
 
+```
+[libdefaults]
+  renew_lifetime = 7d
+  forwardable = true
+  default_realm = {{realm}}
+  ticket_lifetime = 24h
+  dns_lookup_realm = false
+  dns_lookup_kdc = false
+  default_ccache_name = /tmp/krb5cc_%{uid}
+  #default_tgs_enctypes = {{encryption_types}}
+  #default_tkt_enctypes = {{encryption_types}}
 {% if domains %}
 [domain_realm]
-{% for domain in domains.split(',') %}
-{{domain}} = {{realm}}
-{% endfor %}
+{%- for domain in domains.split(',') %}
+  {{domain|trim()}} = {{realm}}
+{%- endfor %}
 {% endif %}
-
 [logging]
-default = FILE:/var/log/krb5kdc.log
-admin_server = FILE:/var/log/kadmind.log
-kdc = FILE:/var/log/krb5kdc.log
+  default = FILE:/var/log/krb5kdc.log
+  admin_server = FILE:/var/log/kadmind.log
+  kdc = FILE:/var/log/krb5kdc.log
 
 [realms]
-{{realm}} = {
-  admin_server = {{admin_server_host|default(kdc_host, True)}}
-  kdc = {{kdc_host}}
-}
+  {{realm}} = {
+{%- if master_kdc %}
+    master_kdc = {{master_kdc|trim()}}
+{%- endif -%}
+{%- if kdc_hosts > 0 -%}
+{%- set kdc_host_list = kdc_hosts.split(',')  -%}
+{%- if kdc_host_list and kdc_host_list|length > 0 %}
+    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}
+{%- if kdc_host_list -%}
+{%- if master_kdc and (master_kdc not in kdc_host_list) %}
+    kdc = {{master_kdc|trim()}}
+{%- endif -%}
+{% for kdc_host in kdc_host_list %}
+    kdc = {{kdc_host|trim()}}
+{%- endfor -%}
+{% endif %}
+{%- endif %}
+{%- endif %}
+  }
 
 {# Append additional realm declarations below #}
 ```
