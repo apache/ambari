@@ -311,7 +311,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
     // check HDFS NameNode checkpoint before stop service
     if (serviceHealth === 'INSTALLED' && this.hasStartedNameNode()) {
-      this.checkNnLastCheckpointTime(function () {
+      this.checkNnLastCheckpointTime(() => {
         return App.showConfirmationFeedBackPopup((query, runMmOperation) => {
           this.set('isPending', true);
           this.startStopWithMmode(serviceHealth, query, runMmOperation);
