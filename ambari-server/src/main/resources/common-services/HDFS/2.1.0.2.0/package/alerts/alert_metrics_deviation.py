@@ -233,7 +233,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
-    name_service = configurations[NAMESERVICE_KEY]
+    name_service = _get_name_service_by_hostname(hdfs_site, host_name)
 
     # look for dfs.ha.namenodes.foo
     nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
@@ -276,8 +276,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
             state = _get_ha_state_from_json(state_response)
           else:
-            state_response = get_jmx(jmx_uri, connection_timeout)
-            state = _get_ha_state_from_json(state_response)
+            state = _get_state_from_jmx(jmx_uri, connection_timeout)
 
           if state == HDFS_NN_STATE_ACTIVE:
             active_namenodes.append(namenode)
@@ -319,13 +318,14 @@ def execute(configurations={}, parameters={}, host_name=None):
                           metric_truststore_ca_certs)
   metric_collector_https_enabled = str(configurations[AMS_HTTP_POLICY]) == "HTTPS_ONLY"
 
+  _ssl_version = _get_ssl_version()
   try:
     conn = network.get_http_connection(
       collector_host,
       int(collector_port),
       metric_collector_https_enabled,
       ca_certs,
-      ssl_version=AmbariConfig.get_resolved_config().get_force_https_protocol_value()
+      ssl_version=_ssl_version
     )
     conn.request("GET", AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()
@@ -427,6 +427,16 @@ def valid_collector_webapp_address(webapp_address):
   return False
 
 
+def _get_state_from_jmx(jmx_uri, connection_timeout):
+  state_response = get_jmx(jmx_uri, connection_timeout)
+  state = _get_ha_state_from_json(state_response)
+  return state
+
+
+def _get_ssl_version():
+  return AmbariConfig.get_resolved_config().get_force_https_protocol_value()
+
+
 def get_jmx(query, connection_timeout):
   response = None
 
@@ -484,3 +494,27 @@ def _coerce_to_integer(value):
     return int(value)
   except ValueError:
     return int(float(value))
+
+
+def _get_name_service_by_hostname(hdfs_site, host_name):
+  """
+   Finds the name service which the name node belongs to in an HA or federated setup.
+  :param hdfs_site: the hdfs config
+  :param host_name: the host name of the name node, can be None if there is only 1 name service
+  :return: the name service
+  """
+  #there has to be a name service - we are in HA at least
+  name_services = hdfs_site['dfs.internal.nameservices'].split(',')
+  if len(name_services) == 1:
+    return name_services[0]
+
+  if not host_name:
+    raise ValueError('Host name required when using namenode federation')
+
+  for ns in name_services:
+    ha_name_nodes = hdfs_site['dfs.ha.namenodes.{0}'.format(ns)].split(',')
+    for nn in ha_name_nodes:
+      nn_rpc_port = hdfs_site['dfs.namenode.rpc-address.{0}.{1}'.format(ns,nn)]
+      nn_rpc = nn_rpc_port.split(':')[0]
+      if nn_rpc == host_name:
+        return ns
