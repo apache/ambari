@@ -187,13 +187,13 @@ zeppelin_group = module_configs.get_property_value(module_name, 'zeppelin-env', 
 
 user_group = get_cluster_setting_value('user_group')
 
-ganglia_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/ganglia_server_hosts", [])
-namenode_host = execution_command._execution_command.__get_value("clusterHostInfo/namenode_hosts", [])
-hbase_master_hosts = execution_command._execution_command.__get_value("clusterHostInfo/hbase_master_hosts", [])
-oozie_servers = execution_command._execution_command.__get_value("clusterHostInfo/oozie_server", [])
-falcon_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/falcon_server_hosts", [])
-ranger_admin_hosts = execution_command._execution_command.__get_value("clusterHostInfo/ranger_admin_hosts", [])
-zeppelin_master_hosts = execution_command._execution_command.__get_value("clusterHostInfo/zeppelin_master_hosts", [])
+ganglia_server_hosts = execution_command.query_config_attri_directly("clusterHostInfo/ganglia_server_hosts", [])
+namenode_host = execution_command.query_config_attri_directly("clusterHostInfo/namenode_hosts", [])
+hbase_master_hosts = execution_command.query_config_attri_directly("clusterHostInfo/hbase_master_hosts", [])
+oozie_servers = execution_command.query_config_attri_directly("clusterHostInfo/oozie_server", [])
+falcon_server_hosts = execution_command.query_config_attri_directly("clusterHostInfo/falcon_server_hosts", [])
+ranger_admin_hosts = execution_command.query_config_attri_directly("clusterHostInfo/ranger_admin_hosts", [])
+zeppelin_master_hosts = execution_command.query_config_attri_directly("clusterHostInfo/zeppelin_master_hosts", [])
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)

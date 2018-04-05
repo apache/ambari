@@ -65,7 +65,7 @@ major_stack_version = get_major_version(stack_version_formatted)
 
 dfs_type = execution_command.get_dfs_type()
 hadoop_conf_dir = "/etc/hadoop/conf"
-component_list = execution_command._execution_command.__get_value("localComponents", [])
+component_list = execution_command.query_config_attri_directly("localComponents", [])
 
 hdfs_tmp_dir = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_tmp_dir', '/tmp')
 
@@ -106,24 +106,24 @@ user_group = get_cluster_setting_value('user_group')
 #hosts
 hostname = execution_command.get_host_name()
 ambari_server_hostname = execution_command.get_ambari_server_host()
-rm_host = execution_command._execution_command.__get_value("clusterHostInfo/resourcemanager_hosts", [])
-slave_hosts = execution_command._execution_command.__get_value("clusterHostInfo/datanode_hosts", [])
-oozie_servers = execution_command._execution_command.__get_value("clusterHostInfo/oozie_server", [])
-hcat_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/webhcat_server_hosts", [])
-hive_server_host =  execution_command._execution_command.__get_value("clusterHostInfo/hive_server_hosts", [])
-hbase_master_hosts = execution_command._execution_command.__get_value("clusterHostInfo/hbase_master_hosts", [])
-hs_host = execution_command._execution_command.__get_value("clusterHostInfo/historyserver_hosts", [])
-jtnode_host = execution_command._execution_command.__get_value("clusterHostInfo/jtnode_hosts", [])
-namenode_host = execution_command._execution_command.__get_value("clusterHostInfo/namenode_hosts", [])
-zk_hosts = execution_command._execution_command.__get_value("clusterHostInfo/zookeeper_server_hosts", [])
-ganglia_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/ganglia_server_hosts", [])
+rm_host = execution_command.query_config_attri_directly("clusterHostInfo/resourcemanager_hosts", [])
+slave_hosts = execution_command.query_config_attri_directly("clusterHostInfo/datanode_hosts", [])
+oozie_servers = execution_command.query_config_attri_directly("clusterHostInfo/oozie_server", [])
+hcat_server_hosts = execution_command.query_config_attri_directly("clusterHostInfo/webhcat_server_hosts", [])
+hive_server_host =  execution_command.query_config_attri_directly("clusterHostInfo/hive_server_hosts", [])
+hbase_master_hosts = execution_command.query_config_attri_directly("clusterHostInfo/hbase_master_hosts", [])
+hs_host = execution_command.query_config_attri_directly("clusterHostInfo/historyserver_hosts", [])
+jtnode_host = execution_command.query_config_attri_directly("clusterHostInfo/jtnode_hosts", [])
+namenode_host = execution_command.query_config_attri_directly("clusterHostInfo/namenode_hosts", [])
+zk_hosts = execution_command.query_config_attri_directly("clusterHostInfo/zookeeper_server_hosts", [])
+ganglia_server_hosts = execution_command.query_config_attri_directly("clusterHostInfo/ganglia_server_hosts", [])
 cluster_name = execution_command.get_cluster_name()
 set_instanceId = "false"
 ams_collector_hosts = module_configs.get_property_value(module_name, 'cluster-env', 'metrics_collector_external_hosts')
 if ams_collector_hosts:
   set_instanceId = "true"
 else:
-  ams_collector_hosts = ",".join(execution_command._execution_command.__get_value("clusterHostInfo/metrics_collector_hosts", []))
+  ams_collector_hosts = ",".join(execution_command.query_config_attri_directly("clusterHostInfo/metrics_collector_hosts", []))
 
 has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
@@ -174,7 +174,7 @@ zookeeper_quorum = module_configs.get_property_value(module_name, 'zoo.cfg', 'cl
 if has_zk_host:
   if not zookeeper_quorum:
     zookeeper_clientPort = '2181'
-  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(execution_command._execution_command.__get_value("clusterHostInfo/zookeeper_server_hosts"))
+  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(execution_command.query_config_attri_directly("clusterHostInfo/zookeeper_server_hosts"))
   # last port config
   zookeeper_quorum += ':' + zookeeper_clientPort
 
@@ -254,10 +254,10 @@ is_webhdfs_enabled = module_configs.get_property_value(module_name, 'hdfs-site',
 default_fs = module_configs.get_property_value(module_name, 'core-site', 'fs.defaultFS')
 
 #host info
-all_hosts = execution_command._execution_command.__get_value("clusterHostInfo/all_hosts", [])
-all_racks = execution_command._execution_command.__get_value("clusterHostInfo/all_racks", [])
-all_ipv4_ips = execution_command._execution_command.__get_value("clusterHostInfo/all_ipv4_ips", [])
-slave_hosts = execution_command._execution_command.__get_value("clusterHostInfo/datanode_hosts", [])
+all_hosts = execution_command.query_config_attri_directly("clusterHostInfo/all_hosts", [])
+all_racks = execution_command.query_config_attri_directly("clusterHostInfo/all_racks", [])
+all_ipv4_ips = execution_command.query_config_attri_directly("clusterHostInfo/all_ipv4_ips", [])
+slave_hosts = execution_command.query_config_attri_directly("clusterHostInfo/datanode_hosts", [])
 
 #topology files
 net_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"

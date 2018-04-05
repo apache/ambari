@@ -100,7 +100,7 @@ mapred_log_dir_prefix = module_configs.get_property_value(module_name, 'mapred-e
 hdfs_user = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user')
 user_group = get_cluster_setting_value('user_group')
 
-namenode_host = execution_command._execution_command.__get_value("clusterHostInfo/namenode_hosts", [])
+namenode_host = execution_command.query_config_attri_directly("clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':
