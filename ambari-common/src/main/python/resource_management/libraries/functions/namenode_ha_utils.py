@@ -17,7 +17,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.jmx import get_value_from_jmx
 from resource_management.core.base import Fail
@@ -164,7 +163,7 @@ def get_active_namenode(hdfs_site, security_enabled, run_user):
     return active_namenodes[0]
 
   raise NoActiveNamenodeException('No active NameNode was found.')
-  
+
 def get_property_for_active_namenodes(hdfs_site, property_name, security_enabled, run_user):
   """
   Return format: {'ns1': 'value1', 'ns2', 'value2'}
@@ -312,3 +311,24 @@ def get_nameservices(hdfs_site):
         return [ns]
     return [name_services_string.split(",")[0]] # default to return the first nameservice
   return []
+
+
+def get_initial_active_namenodes(hadoop_env):
+  """
+  :return: The set of initially active namenode hosts as specified by one of the
+           'hadoop-env/dfs_ha_initial_namenode_active_set' or
+           'hadoop-env/dfs_ha_initial_namenode_active' properties.
+           An empty set if the properties are unspecified or empty.
+  """
+  setting = ''
+
+  if 'dfs_ha_initial_namenode_active_set' in hadoop_env:
+    setting = hadoop_env['dfs_ha_initial_namenode_active_set']
+
+  if 'dfs_ha_initial_namenode_active' in hadoop_env and not setting:
+    setting = hadoop_env['dfs_ha_initial_namenode_active']
+
+  if setting:
+    return frozenset(setting.split(','))
+
+  return frozenset()
