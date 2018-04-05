@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -527,8 +529,12 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private Resource toResource(ArtifactEntity entity, Set<String> requestedIds) throws AmbariException {
     Resource resource = new ResourceImpl(Resource.Type.Artifact);
     setResourceProperty(resource, ARTIFACT_NAME_PROPERTY, entity.getArtifactName(), requestedIds);
-    Map<String, Object> artifactData = PROVISION_REQUEST_ARTIFACT_NAME.equals(entity.getArtifactName()) ?
-      replaceClusterTemplatePasswords(entity.getArtifactData()) : entity.getArtifactData();
+    Map<String, Object> artifactData =
+      PROVISION_REQUEST_ARTIFACT_NAME.equals(entity.getArtifactName()) ?
+        // replace passwords for cluster template artifacts
+        new ClusterTemplateArtifactPasswordReplacer().replacePasswords(entity.getArtifactData()) :
+        // return data as is for other artifacts
+        entity.getArtifactData();
     setResourceProperty(resource, ARTIFACT_DATA_PROPERTY, artifactData, requestedIds);
 
     for (Map.Entry<String, String> entry : entity.getForeignKeys().entrySet()) {
@@ -537,10 +543,6 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
           typeRegistration.fromPersistId(entry.getValue()), requestedIds);
     }
     return resource;
-  }
-
-  private Map<String, Object> replaceClusterTemplatePasswords(Map<String, Object> artifactData) {
-    return artifactData;
   }
 
   /**

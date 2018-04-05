@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -42,10 +43,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -56,17 +63,24 @@ import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.utils.SecretReference;
 import org.easymock.Capture;
 import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.gson.Gson;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * ArtifactResourceProvider unit tests.
  */
 @SuppressWarnings("unchecked")
+@RunWith(PowerMockRunner.class)
 public class ArtifactResourceProviderTest {
 
   private ArtifactDAO dao = createStrictMock(ArtifactDAO.class);
@@ -148,6 +162,83 @@ public class ArtifactResourceProviderTest {
     assertEquals("childValue", resource.getPropertyValue("artifact_data/child/childKey"));
     assertEquals("child2Value", resource.getPropertyValue("artifact_data/child/child2/child2Key"));
     assertEquals("child4Value", resource.getPropertyValue("artifact_data/child/child2/child3/child4/child4Key"));
+  }
+
+  @Test
+  @PrepareForTest(SecretReference.class)
+  public void testGetResources_clusterTemplatePasswordsAreReplaced() throws Exception {
+    TreeMap<String, String> foreignKeys = new TreeMap<>(ImmutableSortedMap.of("cluster", "500"));
+    TreeMap<String, String> responseForeignKeys = new TreeMap<>(foreignKeys);
+
+    Map<String, Object> artifactData = ImmutableMap.of(
+      "configurations",
+        ImmutableList.of(
+          ImmutableMap.of("ranger-yarn-audit",
+            ImmutableMap.of("properties",
+              ImmutableMap.of(
+                "xasecure.policymgr.clientssl.keystore.password", "You'llNeverGuess",
+                "xasecure.policymgr.clientssl.keystore.credential.file", "jceks:/dev/null")))),
+      "default_password", "TopSecurePassword",
+      "mpack_instances",
+        ImmutableList.of(
+          ImmutableMap.of(
+            "name", "HDPCORE",
+            "version", "1.0.0")));
+
+    // expectations
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("test-cluster")).andReturn(cluster).anyTimes();
+    expect(clusters.getClusterById(500L)).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(500L).anyTimes();
+    expect(cluster.getClusterName()).andReturn("test-cluster").anyTimes();
+
+    expect(request.getPropertyIds()).andReturn(new HashSet<>()).anyTimes();
+
+    expect(dao.findByNameAndForeignKeys(eq(ArtifactResourceProvider.PROVISION_REQUEST_ARTIFACT_NAME),
+      eq(foreignKeys))).andReturn(entity).once();
+    expect(entity.getArtifactName()).andReturn(ArtifactResourceProvider.PROVISION_REQUEST_ARTIFACT_NAME).anyTimes();
+    expect(entity.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
+    expect(entity.getArtifactData()).andReturn(artifactData).anyTimes();
+
+    PowerMock.mockStaticPartial(SecretReference.class, "getAllPasswordProperties");
+    expect(SecretReference.getAllPasswordProperties(anyObject(Collection.class))).andReturn(
+      ImmutableSetMultimap.of("ranger-yarn-audit", "xasecure.policymgr.clientssl.keystore.password")
+    );
+
+    // end of expectation setting
+    replay(dao, em, controller, request, clusters, cluster, entity, entity2);
+    PowerMock.replay(SecretReference.class);
+
+    // test
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals("test-cluster").and().
+      property("Artifacts/artifact_name").equals(ArtifactResourceProvider.PROVISION_REQUEST_ARTIFACT_NAME).end().
+      toPredicate();
+
+    Set<Resource> response = resourceProvider.getResources(request, predicate);
+    assertEquals(1, response.size());
+    Resource resource = response.iterator().next();
+    Map<String, Map<String, Object>> responseProperties = resource.getPropertiesMap();
+
+    Map<String, Object> artifactDataMap = responseProperties.get("artifact_data");
+
+    Map<String, Object> expectedArtifactResultData = ImmutableMap.of(
+      "configurations",
+        ImmutableList.of(
+          ImmutableMap.of("ranger-yarn-audit",
+            ImmutableMap.of("properties",
+              ImmutableMap.of(
+                "xasecure.policymgr.clientssl.keystore.password",
+                  "SECRET:ranger-yarn-audit:xasecure.policymgr.clientssl.keystore.password",
+                "xasecure.policymgr.clientssl.keystore.credential.file", "jceks:/dev/null")))),
+      "default_password", "SECRET:default_password",
+      "mpack_instances",
+      ImmutableList.of(
+        ImmutableMap.of(
+          "name", "HDPCORE",
+          "version", "1.0.0")));
+
+    assertEquals(expectedArtifactResultData, artifactDataMap);
   }
 
   @Test
