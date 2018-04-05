@@ -83,11 +83,13 @@
       "zk_user": "zookeeper"
     }
   },
-  "hostLevelParams": {
+  "clusterLevelParams": {
     "stack_name": "HDPCORE",
     "group_list": "[\"hdfs\",\"users\"]",
-    "host_sys_prepped": "false",
     "jdk_name": "jdk-8u112-linux-x64.tar.gz",
     "stack_version": "1.0.0-b141"
+  },
+  "ambariLevelParams": {
+    "host_sys_prepped": "false"
   }
 }

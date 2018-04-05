@@ -36,7 +36,7 @@ class ExecutionCommand(object):
     :param command: json string or a python dict object
     """
     self._execution_command = command
-    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"))
+    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"), self.__get_value("configAttributes"))
 
   def __get_value(self, key, default_value=None):
     """
@@ -56,7 +56,7 @@ class ExecutionCommand(object):
 
   def get_value(self, query_string, default_value=None):
     """
-    Query config attribute from execution_command directly, i.e "clusterHostInfo/zookeeper_server_hosts"
+    Query config attribute from execution_command directly
     :param query_string: full query key string
     :param default_value: if key does not exist, return default value
     :return: config attribute
@@ -88,6 +88,12 @@ class ExecutionCommand(object):
 
   def get_cluster_name(self):
     return self.__get_value("clusterName")
+
+  def get_repository_file(self):
+    return self.__get_value("repositoryFile")
+
+  def get_local_components(self):
+    return self.__get_value("localComponents", [])
 
   """
   Ambari variables section
@@ -250,3 +256,64 @@ class ExecutionCommand(object):
 
   def is_upgrade_suspended(self):
     return self.__get_value('roleParams/upgrade_suspended', False)
+
+  """
+  Cluster Host Info
+  """
+
+  def get_namenode_hosts(self):
+    return self.__get_value('clusterHostInfo/namenode_hosts', [])
+
+  def get_ganglia_server_hosts(self):
+    return self.__get_value('clusterHostInfo/ganglia_server_hosts', [])
+
+  def get_hbase_master_hosts(self):
+    return self.__get_value('clusterHostInfo/hbase_master_hosts', [])
+
+  def get_oozie_server_hosts(self):
+    return self.__get_value('clusterHostInfo/oozie_server', [])
+
+  def get_falcon_server_hosts(self):
+    return self.__get_value('clusterHostInfo/falcon_server_hosts', [])
+
+  def get_ranger_admin_hosts(self):
+    return self.__get_value('clusterHostInfo/ranger_admin_hosts', [])
+
+  def get_zeppelin_master_hosts(self):
+    return self.__get_value('clusterHostInfo/zeppelin_master_hosts', [])
+
+  def get_resourcemanager_hosts(self):
+    return self.__get_value('clusterHostInfo/resourcemanager_hosts', [])
+
+  def get_datanode_hosts(self):
+    return self.__get_value('clusterHostInfo/datanode_hosts', [])
+
+  def get_webhcat_server_hosts(self):
+    return self.__get_value('clusterHostInfo/webhcat_server_hosts', [])
+
+  def get_hive_server_hosts(self):
+    return self.__get_value('clusterHostInfo/hive_server_hosts', [])
+
+  def get_historyserver_hosts(self):
+    return self.__get_value('clusterHostInfo/historyserver_hosts', [])
+
+  def get_jtnode_hosts(self):
+    return self.__get_value('clusterHostInfo/jtnode_hosts', [])
+
+  def get_zk_server_hosts(self):
+    return self.__get_value('clusterHostInfo/zookeeper_server_hosts', [])
+
+  def get_nimbus_hosts(self):
+    return self.__get_value('clusterHostInfo/nimbus_hosts', [])
+
+  def get_metrics_collector_hosts(self):
+    return self.__get_value('clusterHostInfo/metrics_collector_hosts', [])
+
+  def get_all_hosts(self):
+    return self.__get_value('clusterHostInfo/all_hosts', [])
+
+  def get_all_racks(self):
+    return self.__get_value('clusterHostInfo/all_racks', [])
+
+  def get_all_ipv4_ips(self):
+    return self.__get_value('clusterHostInfo/all_ipv4_ips', [])
