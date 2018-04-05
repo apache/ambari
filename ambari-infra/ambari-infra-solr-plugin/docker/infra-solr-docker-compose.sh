@@ -15,16 +15,16 @@
 # limitations under the License
 
 sdir="`dirname \"$0\"`"
-: ${1:?"argument is missing: (start|stop)"}
+: ${1:?"argument is missing: (start|stop|create_collection)"}
 command="$1"
 
 function start_containers() {
   check_env_files
   kill_containers
   pushd $sdir/../
-  local AMBARI_INFRA_MANAGER_LOCATION=$(pwd)
-  echo $AMBARI_INFRA_MANAGER_LOCATION
-  cd $AMBARI_INFRA_MANAGER_LOCATION/docker
+  local AMBARI_SOLR_MANAGER_LOCATION=$(pwd)
+  echo $AMBARI_SOLR_MANAGER_LOCATION
+  cd $AMBARI_SOLR_MANAGER_LOCATION/docker
   echo "Start containers ..."
   docker-compose up -d
   popd
@@ -73,8 +73,6 @@ ZOOKEEPER_VERSION=3.4.10
 ZOOKEEPER_CONNECTION_STRING=zookeeper:2181
 
 SOLR_VERSION=7.2.1
-
-HADOOP_VERSION=3.0.0
 EOF
 }
 
@@ -85,29 +83,26 @@ function get_docker_ip() {
 
 function setup_profile() {
   cat << EOF > $sdir/Profile
-AWS_ACCESS_KEY_ID=test
-AWS_SECRET_ACCESS_KEY=test
-HADOOP_USER_NAME=root
-
-CORE-SITE.XML_fs.default.name=hdfs://namenode:9000
-CORE-SITE.XML_fs.defaultFS=hdfs://namenode:9000
-HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:9000
-HDFS-SITE.XML_dfs.replication=1
 EOF
 }
 
 function kill_containers() {
   pushd $sdir/../
-  local AMBARI_INFRA_MANAGER_LOCATION=$(pwd)
+  local AMBARI_SOLR_MANAGER_LOCATION=$(pwd)
   echo "Try to remove containers if exists ..."
-  echo $AMBARI_INFRA_MANAGER_LOCATION
-  cd $AMBARI_INFRA_MANAGER_LOCATION/docker
-  docker-compose rm -f -s inframanager
+  echo $AMBARI_SOLR_MANAGER_LOCATION
+  cd $AMBARI_SOLR_MANAGER_LOCATION/docker
   docker-compose rm -f -s solr
   docker-compose rm -f -s zookeeper
-  docker-compose rm -f -s fakes3
-  docker-compose rm -f -s namenode
-  docker-compose rm -f -s datanode
+  popd
+}
+
+function create_collection() {
+  pushd $sdir/../
+  local AMBARI_SOLR_MANAGER_LOCATION=$(pwd)
+  cd $AMBARI_SOLR_MANAGER_LOCATION/docker
+  docker exec docker_solr_1 solr create_collection -force -c hadoop_logs -d /usr/lib/ambari-infra-solr/server/solr/configsets/hadoop_logs/conf -n hadoop_logs_conf
+  docker exec docker_solr_1 solr create_collection -force -c audit_logs -d /usr/lib/ambari-infra-solr/server/solr/configsets/audit_logs/conf -n audit_logs_conf
   popd
 }
 
@@ -115,10 +110,13 @@ case $command in
   "start")
      start_containers
      ;;
+  "create_collection")
+     create_collection
+     ;;
   "stop")
      kill_containers
      ;;
    *)
-   echo "Available commands: (start|stop)"
+   echo "Available commands: (start|stop|create_collection)"
    ;;
 esac
