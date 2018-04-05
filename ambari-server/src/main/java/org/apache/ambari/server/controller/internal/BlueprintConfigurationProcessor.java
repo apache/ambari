@@ -187,8 +187,8 @@ public class BlueprintConfigurationProcessor {
         new SimplePropertyNameExportFilter("domains", "krb5-conf"),
         new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", "hadoop-env"),
         new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", "hadoop-env"),
-        new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active_set", "hadoop-env"),
-        new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby_set", "hadoop-env"),
+        new SimplePropertyNameExportFilter(HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, "hadoop-env"),
+        new SimplePropertyNameExportFilter(HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, "hadoop-env"),
         new StackPropertyTypeFilter(),
         new KerberosAuthToLocalRulesFilter(authToLocalPerClusterMap)};
     }
@@ -440,16 +440,21 @@ public class BlueprintConfigurationProcessor {
           // process each nameservice to determine the active/standby nodes
           LOG.info("Processing multiple HDFS NameService instances, which indicates a NameNode Federation deployment");
           if (parsedNameServices.length > 1) {
-            Set<String> activeNameNodeHostnames = new HashSet<String>();
-            Set<String> standbyNameNodeHostnames = new HashSet<String>();
+            Set<String> activeNameNodeHostnames = new HashSet<>();
+            Set<String> standbyNameNodeHostnames = new HashSet<>();
 
             for (String nameService : parsedNameServices) {
-              List<String> hostNames = new LinkedList<String>();
+              List<String> hostNames = new ArrayList<>();
               String[] nameNodes = parseNameNodes(nameService, hdfsSiteConfig);
               for (String nameNode : nameNodes) {
                 // use the HA rpc-address property to obtain the NameNode hostnames
                 String propertyName = "dfs.namenode.rpc-address." + nameService + "." + nameNode;
                 String propertyValue = hdfsSiteConfig.get(propertyName);
+                if (propertyValue == null) {
+                  throw new ConfigurationTopologyException("NameNode HA property = " + propertyName + " is not found in the cluster config.  This indicates an error in configuration for HA/Federated clusters.  " +
+                    "Please recheck the HDFS configuration and try this deployment again");
+                }
+
                 String hostName = propertyValue.split(":")[0];
                 hostNames.add(hostName);
               }
