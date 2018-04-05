@@ -32,6 +32,7 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
     selectedMpacks.forEach(mpack => {
       this.get('mpacks').pushObject(Em.Object.create({
         name: mpack.name,
+        version: mpack.version,
         displayName: mpack.displayName,
         url: mpack.downloadUrl,
         inProgress: true,
@@ -118,13 +119,6 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
     }
   },
 
-  getRegisteredMpacks: function () {
-    return App.ajax.send({
-      name: 'mpack.get_registered_mpacks',
-      sender: this
-    });
-  },
-
   isSubmitDisabled: function () {
     const mpacks = this.get('mpacks');
     return App.get('router.btnClickInProgress')
@@ -137,21 +131,13 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
       return;
     }
 
-    if (!this.get('isSubmitDisabled')) {
-      //get info about stacks from version definitions and save to Stack model
-      this.getRegisteredMpacks().then(mpacks => {
-        const stackVersionsRegistered = mpacks.items.map(mpack => this.get('wizardController').createMpackStackVersion
-          (
-            mpack.version[0].Versions.stack_name,
-            mpack.version[0].Versions.stack_version
-          )
-        );
-
-        $.when(...stackVersionsRegistered).always(() => { //this uses always() because the api call made by createMpackStackVersion will return a 500 error
-                                                          //if the stack version has already been registered, but we want to proceed anyway
-          App.router.send('next');
-        });
-      });
+    //TODO: mpacks - For now, hard coding this to use the name and version of the first stack/mpack that successfully registered. 
+    //We need to get rid of the concept of "selected stack".
+    const selectedStack = this.get('mpacks').findProperty('succeeded');
+    if (selectedStack) {
+      this.set('content.selectedStack', { name: selectedStack.get('name'), version: selectedStack.get('version') });
     }
+
+    App.router.send('next');
   }
 });

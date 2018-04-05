@@ -626,33 +626,36 @@ App.UpdateController = Em.Controller.extend({
   },
 
   //TODO - update service auto-start to use this
-  updateClusterEnv: function (callback) {
-    this.loadClusterConfig(callback).done(function (data) {
-      var tag = [
-        {
-          siteName: 'cluster-env',
-          tagName: data.Clusters.desired_configs['cluster-env'].tag,
-          newTagName: null
-        }
-      ];
-      App.router.get('configurationController').getConfigsByTags(tag).done(function (config) {
-        App.router.get('clusterController').set('clusterEnv', config[0]);
-      });
+  updateClusterEnv: function () {
+    this.loadClusterSettings().then(function (settings) {
+      App.router.get('clusterController').set('clusterEnv', { properties: settings });
     });
   },
 
-  loadClusterConfig: function (callback) {
-    return App.ajax.send({
-      name: 'config.tags.site',
-      sender: this,
-      data: {
-        site: 'cluster-env'
-      },
-      callback: callback
-    });
+  loadClusterSettings: function () {
+    const dfd = $.Deferred();
+
+    App.ajax.send({
+      name: 'common.cluster.settings',
+      sender: this
+    }).then(data => {
+      const settings = {};
+      
+      if (data && data.items) {
+        data.items.forEach(item => {
+          const key = item.ClusterSettingInfo.cluster_setting_name;
+          const value = item.ClusterSettingInfo.cluster_setting_value;
+          settings[key] = value;
+        });
+      }
+      
+      dfd.resolve(settings);
+    }, dfd.reject);
+    
+    return dfd.promise();
   },
 
-  updateWizardWatcher: function(callback) {
+  updateWizardWatcher: function (callback) {
     App.router.get('wizardWatcherController').getUser().complete(callback);
   },
 

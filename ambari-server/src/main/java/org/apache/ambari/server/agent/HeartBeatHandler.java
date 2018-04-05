@@ -246,7 +246,7 @@ public class HeartBeatHandler {
         response.setRecoveryConfig(rc);
 
         if (response.getRecoveryConfig() != null) {
-          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig());
+          LOG.debug("Recovery configuration set to {}", response.getRecoveryConfig());
         }
       }
     }

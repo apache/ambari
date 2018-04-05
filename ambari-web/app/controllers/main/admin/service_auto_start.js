@@ -112,33 +112,37 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   },
 
   load: function() {
-    this.loadClusterConfig().done((data) => {
-      const tag = [
-        {
-          siteName: 'cluster-env',
-          tagName: data.Clusters.desired_configs['cluster-env'].tag,
-          newTagName: null
-        }
-      ];
-      App.router.get('configurationController').getConfigsByTags(tag).done((data) => {
-        this.set('clusterConfigs', data[0].properties);
-        this.set('isGeneralRecoveryEnabled', data[0].properties.recovery_enabled === 'true');
-        this.set('isGeneralRecoveryEnabledCached', this.get('isGeneralRecoveryEnabled'));
-        this.loadComponentsConfigs().then(() => {
-          this.set('isLoaded', true);
-        });
+    this.loadClusterSettings().done(function (settings) {
+      this.set('clusterConfigs', settings);
+      this.set('isGeneralRecoveryEnabled', settings.recovery_enabled === 'true');
+      this.set('isGeneralRecoveryEnabledCached', this.get('isGeneralRecoveryEnabled'));
+      this.loadComponentsConfigs().then(() => {
+        this.set('isLoaded', true);
       });
     });
   },
 
-  loadClusterConfig: function () {
-    return App.ajax.send({
-      name: 'config.tags.site',
-      sender: this,
-      data: {
-        site: 'cluster-env'
+  loadClusterSettings: function () {
+    const dfd = $.Deferred();
+
+    App.ajax.send({
+      name: 'common.cluster.settings',
+      sender: this
+    }).then(data => {
+      const settings = {};
+      
+      if (data && data.items) {
+        data.items.forEach(item => {
+          const key = item.ClusterSettingInfo.cluster_setting_name;
+          const value = item.ClusterSettingInfo.cluster_setting_value;
+          settings[key] = value;
+        });
       }
-    });
+      
+      dfd.resolve(settings);
+    }, dfd.reject);
+    
+    return dfd.promise();
   },
 
   loadComponentsConfigs: function () {

@@ -1084,6 +1084,17 @@ CREATE TABLE upgrade_plan_detail (
   CONSTRAINT FK_upgrade_det_upgrade_plan FOREIGN KEY (upgrade_plan_id) REFERENCES upgrade_plan (id)
 );
 
+CREATE TABLE upgrade_plan_config (
+  id BIGINT NOT NULL,
+  upgrade_plan_detail_id BIGINT NOT NULL,
+  config_type VARCHAR(255) NOT NULL,
+  key VARCHAR(255) NOT NULL,
+  new_value TEXT,
+  remove SMALLINT NOT NULL DEFAULT 0,
+  CONSTRAINT PK_upgrade_plan_config PRIMARY KEY (id),
+  CONSTRAINT FK_up_conf_up_detail FOREIGN KEY (upgrade_plan_detail_id) REFERENCES upgrade_plan_detail (id)
+);
+
 CREATE TABLE ambari_operation_history(
   id BIGINT NOT NULL,
   from_version VARCHAR(255) NOT NULL,
@@ -1323,6 +1334,7 @@ BEGIN TRANSACTION
     ('upgrade_group_id_seq', 0),
     ('upgrade_item_id_seq', 0),
     ('upgrade_plan_id_seq', 0),
+    ('upgrade_plan_config_id_seq', 0),
     ('upgrade_plan_detail_id_seq', 0),
     ('widget_id_seq', 0),
     ('widget_layout_id_seq', 0),

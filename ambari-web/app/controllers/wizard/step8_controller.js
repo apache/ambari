@@ -1051,10 +1051,8 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
         "ServiceInfo": {
           "service_name": service.get('serviceName'),
           "service_type": service.get('serviceName'),
-          //TODO: mpacks - needs to be revisited when we are no longer hard coding service groups to be named 
-          //               for mpacks and when the concept of a "selected stack" is no longer a thing
-          "service_group_name": service.get('stackName'),
-          "desired_stack": `${service.get('stackName')}-${service.get('stackVersion')}`,
+          //TODO: mpacks - needs to be revisited when we are no longer hard coding service groups to be named for mpacks
+          "service_group_name": service.get('stackName')
         }
       })
     );
@@ -1522,7 +1520,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     });
 
     this.addRequestToAjaxQueue({
-      name: 'common.cluster.settings',
+      name: 'common.cluster.settings.create',
       data: {
         clusterName: this.get('clusterName'),
         data: data
