@@ -54,6 +54,15 @@ class ExecutionCommand(object):
     except:
       return default_value
 
+  def get_value(self, query_string, default_value=None):
+    """
+    Query config attribute from execution_command directly, i.e "clusterHostInfo/zookeeper_server_hosts"
+    :param query_string: full query key string
+    :param default_value: if key does not exist, return default value
+    :return: config attribute
+    """
+    return self.__get_value(query_string, default_value)
+
   """
   Global variables section
   """
@@ -230,6 +239,9 @@ class ExecutionCommand(object):
 
   def need_refresh_topology(self):
     return self.__get_value('commandParams/refresh_topology', False)
+
+  def check_only_update_files(self):
+    return self.__get_value('commandParams/update_files_only', False)
 
 
   """
