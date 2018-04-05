@@ -3162,6 +3162,10 @@ var urls = {
     }
   },
 
+  'mpack.get_registered_mpack': {
+    real: '/mpacks/{id}',
+  },
+
   'mpack.get_registered_mpacks': {
     real: '/mpacks?fields=*',
   },

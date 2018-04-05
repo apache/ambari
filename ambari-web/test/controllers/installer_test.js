@@ -521,7 +521,8 @@ describe('App.InstallerController', function () {
       var checker = {
         loadConfirmedHosts: function() {
           loadConfirmedHosts = true;
-        }
+        },
+        loadRegisteredMpacks: sinon.stub()
       };
 
       beforeEach(function () {
@@ -531,6 +532,17 @@ describe('App.InstallerController', function () {
       it('confirmed hosts are loaded', function () {
         expect(loadConfirmedHosts).to.be.true;
       });
+    });
+
+    describe('Should load registered mpacks', function () {
+      it('maps registered mpacks', function () {
+        sinon.stub(installerController, 'getDBProperty').returns([{}, {}, {}]);
+        sinon.stub(App.stackMapper, 'map');
+        installerController.loadRegisteredMpacks();
+        expect(App.stackMapper.map.calledThrice).to.be.true;
+        installerController.getDBProperty.restore();
+        App.stackMapper.map.restore();
+      });  
     });
 
     describe('Should load loadServices (2)', function() {

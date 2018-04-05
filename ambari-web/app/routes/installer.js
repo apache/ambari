@@ -412,6 +412,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
       App.set('router.nextBtnClickInProgress', true);
       const controller = router.get('installerController');
+      controller.save('registeredMpacks');
       controller.save('selectedStack');
       const downloadConfig = controller.get('content.downloadConfig');
       if (downloadConfig && downloadConfig.useCustomRepo) {

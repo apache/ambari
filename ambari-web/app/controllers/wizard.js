@@ -1411,6 +1411,14 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
   },
 
+  loadRegisteredMpacks: function () {
+    this.set('content.registeredMpacks', this.getDBProperty('registeredMpacks') || []);
+    const registeredMpacks = this.get('content.registeredMpacks');
+    registeredMpacks.forEach(rmp => {
+      App.stackMapper.map(rmp);
+    });
+  },
+
   /**
    * Determine if <code>Assign Slaves and Clients</code> step ("step7") should be skipped
    * @method setSkipSlavesStep
