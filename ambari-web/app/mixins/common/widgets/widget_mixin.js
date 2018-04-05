@@ -167,7 +167,7 @@ App.WidgetMixin = Ember.Mixin.create({
   getRequestData: function (metrics) {
     var requestsData = {};
     if (metrics) {
-      metrics.forEach(function (metric, index) {
+      metrics.forEach(function (metric) {
         var key;
         if (metric.host_component_criteria) {
           key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
@@ -190,6 +190,7 @@ App.WidgetMixin = Ember.Mixin.create({
             id: requestMetric["metric_path"] + "_" + this.get('metricType'),
             context: this}];
           delete requestMetric["metric_path"];
+          requestMetric.tag = this.get('content.tag');
           requestsData[key] = requestMetric;
         }
       }, this);
@@ -255,16 +256,21 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   getHostComponentMetrics: function (request) {
     var metricPaths = this.prepareMetricPaths(request.metric_paths);
+    var data = {
+      componentName: request.component_name,
+      metricPaths: this.prepareMetricPaths(request.metric_paths),
+      hostComponentCriteria: this.computeHostComponentCriteria(request)
+    };
+
+    if (request.tag) {
+      data.selectedHostsParam = '&HostRoles/host_name.in(' + App.HDFSService.find().objectAt(0).get('masterComponentGroups').findProperty('name', request.tag).hosts.join(',') + ')';
+    }
 
     if (metricPaths.length) {
       var xhr = App.ajax.send({
           name: 'widgets.hostComponent.metrics.get',
           sender: this,
-          data: {
-            componentName: request.component_name,
-            metricPaths: this.prepareMetricPaths(request.metric_paths),
-            hostComponentCriteria: this.computeHostComponentCriteria(request)
-          }
+          data: data
         }),
         graph = this.get('graphView') && this.get('childViews') && this.get('childViews').findProperty('runningRequests');
       if (graph) {
@@ -785,7 +791,8 @@ App.WidgetLoadAggregator = Em.Object.create({
     requests.forEach(function (request) {
       //poll metrics for graph widgets separately
       var graphSuffix = request.context.get('content.widgetType') === "GRAPH" ? "_graph" : '';
-      var id = request.startCallName + "_" + request.data.component_name + graphSuffix;
+      var tagSuffix = request.context.get('content.tag') ? '_' + request.context.get('content.tag') : '';
+      var id = request.startCallName + "_" + request.data.component_name + graphSuffix + tagSuffix;
 
       if (Em.isNone(bulks[id])) {
         bulks[id] = {
