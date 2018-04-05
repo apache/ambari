@@ -170,7 +170,7 @@ host_in_memory_aggregation = module_configs.get_property_value(module_name, 'ams
 host_in_memory_aggregation_port = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation.port', 61888)
 
 # Cluster Zookeeper quorum
-zookeeper_quorum = module_configs.get_property_value(module_name, 'zoo.cfg', 'clientPort')
+zookeeper_quorum = None
 if has_zk_host:
   if not zookeeper_quorum:
     zookeeper_clientPort = '2181'
