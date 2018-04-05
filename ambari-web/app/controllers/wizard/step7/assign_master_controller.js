@@ -146,9 +146,9 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     } else {
       this.set('mastersToCreate', [hostComponent.componentName]);
       this.showAssignComponentPopup();
-    }  
+    }
   },
-  
+
   /**
    * Used to set showAddControl/showRemoveControl flag
    * @param componentName
@@ -384,7 +384,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     var recommendationsHostGroups = this.get('content.recommendationsHostGroups');
     var mastersToCreate = this.get('mastersToCreate');
     mastersToCreate.forEach(function(componentName) {
-      var hostName = this.getSelectedHostName(componentName);
+      var hostName = this.getSelectedHostNames(componentName)[0];
       if (hostName && recommendationsHostGroups) {
         var hostGroups = recommendationsHostGroups.blueprint_cluster_binding.host_groups;
         var isHostPresent = false;
@@ -409,25 +409,25 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   },
 
   /**
-   * Get the fqdn hostname as selected by the user for the component.
+   * Get the fqdn hostnames as selected by the user for the component.
    * @param componentName
-   * @return {String}
+   * @return {String[]}
    */
-  getSelectedHostName: function(componentName) {
+  getSelectedHostNames: function(componentName) {
     var selectedServicesMasters = this.get('selectedServicesMasters');
-    return selectedServicesMasters.findProperty('component_name', componentName).selectedHost;
+    return selectedServicesMasters.filterProperty('component_name', componentName).mapProperty('selectedHost');
   },
 
   /**
    * set App.componentToBeAdded to use it on subsequent validation call while saving configuration
    * @param componentName {String}
-   * @param hostName {String}
+   * @param hostNames {String[]}
    * @method {setGlobalComponentToBeAdded}
    */
-  setGlobalComponentToBeAdded: function(componentName, hostName) {
+  setGlobalComponentToBeAdded: function(componentName, hostNames) {
     var componentToBeAdded = Em.Object.create({
        componentName: componentName,
-       hostNames: [hostName]
+       hostNames: hostNames
     });
     App.set('componentToBeAdded', componentToBeAdded);
   },
@@ -467,7 +467,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       var context = self.get('configWidgetContext');
       context.toggleProperty('controller.forceUpdateBoundaries');
       var configActionComponent = self.get('configActionComponent');
-      var componentHostName = self.getSelectedHostName(configActionComponent.componentName);
+      var componentHostNames = self.getSelectedHostNames(configActionComponent.componentName);
       var config = self.get('configWidgetContext.config');
 
       // TODO remove after stack advisor is able to handle this case
@@ -484,11 +484,11 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
         var miscConfigs = context.get('controller.stepConfigs').findProperty('serviceName', 'MISC').get('configs');
         serviceConfigs = serviceConfigs.concat(miscConfigs);
       } else {
-        self.setGlobalComponentToBeAdded(configActionComponent.componentName, componentHostName);
+        self.setGlobalComponentToBeAdded(configActionComponent.componentName, componentHostNames);
         self.clearComponentsToBeDeleted(configActionComponent.componentName);
       }
 
-      configActionComponent.hostName = componentHostName;
+      configActionComponent.hostNames = componentHostNames;
       config.set('configActionComponent', configActionComponent);
       /* TODO uncomment after stack advisor is able to handle this case
        var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
