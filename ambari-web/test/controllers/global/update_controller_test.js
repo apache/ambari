@@ -519,11 +519,11 @@ describe('App.UpdateController', function () {
     });
   });
 
-  describe('#loadClusterConfig()', function() {
+  describe('#loadClusterSettings()', function() {
 
     it('App.ajax.send should be called', function() {
-      c.loadClusterConfig();
-      var args = testHelpers.findAjaxRequest('name', 'config.tags.site');
+      c.loadClusterSettings();
+      var args = testHelpers.findAjaxRequest('name', 'common.cluster.settings');
       expect(args).to.exists;
     });
   });

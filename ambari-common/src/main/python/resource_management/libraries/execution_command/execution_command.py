@@ -32,11 +32,11 @@ class ExecutionCommand(object):
 
   def __init__(self, command):
     """
-    __execution_command is an internal dict object maps to command.json
+    _execution_command is an internal dict object maps to command.json
     :param command: json string or a python dict object
     """
-    self.__execution_command = command
-    self.__module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"))
+    self._execution_command = command
+    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"))
 
   def __get_value(self, key, default_value=None):
     """
@@ -46,7 +46,7 @@ class ExecutionCommand(object):
     :return:
     """
     sub_keys = key.split('/')
-    value = self.__execution_command
+    value = self._execution_command
     try:
       for sub_key in sub_keys:
         value = value[sub_key]
@@ -59,13 +59,13 @@ class ExecutionCommand(object):
   """
 
   def get_module_configs(self):
-    return self.__module_configs
+    return self._module_configs
 
   def get_module_name(self):
     return self.__get_value("serviceName")
 
   def get_component_type(self):
-    return self.__get_value("role")
+    return self.__get_value("role", "")
 
   def get_component_instance_name(self):
     """
@@ -142,12 +142,44 @@ class ExecutionCommand(object):
   def get_mpack_version(self):
     return self.__get_value("clusterLevelParams/stack_version")
 
+  def get_user_groups(self):
+    return self.__get_value("clusterLevelParams/user_groups")
+
+  def get_group_list(self):
+    return self.__get_value("clusterLevelParams/group_list")
+
+  def get_user_list(self):
+    return self.__get_value("clusterLevelParams/user_list")
+
   """
   Agent related variable section
   """
 
   def get_host_name(self):
     return self.__get_value("agentLevelParams/hostname")
+
+  def check_agent_config_execute_in_parallel(self):
+    return int(self.__get_value("agentConfigParams/agent/parallel_execution", 0))
+
+  def get_agent_cache_dir(self):
+    return self.__get_value('agentLevelParams/agentCacheDir')
+
+  """
+  Host related variables section
+  """
+
+  def get_repo_info(self):
+    return self.__get_value('hostLevelParams/repoInfo')
+
+  def get_service_repo_info(self):
+    return self.__get_value('hostLevelParams/service_repo_info')
+
+  """
+  Component related variables section
+  """
+
+  def check_unlimited_key_jce_required(self):
+    return self.__get_value('componentLevelParams/unlimited_key_jce_required', False)
 
   """
   Command related variables section
@@ -166,6 +198,9 @@ class ExecutionCommand(object):
   def check_upgrade_direction(self):
     return self.__get_value('commandParams/upgrade_direction')
 
+  def get_upgrade_type(self):
+    return self.__get_value('commandParams/upgrade_type', '')
+
   def is_rolling_restart_in_upgrade(self):
     return self.__get_value('commandParams/rolling_restart', False)
 
@@ -174,6 +209,28 @@ class ExecutionCommand(object):
 
   def get_deploy_phase(self):
     return self.__get_value('commandParams/phase', '')
+
+  def get_dfs_type(self):
+    return self.__get_value('commandParams/dfs_type', '')
+
+  def get_module_package_folder(self):
+    return self.__get_value('commandParams/service_package_folder')
+
+  def get_ambari_java_home(self):
+    return self.__get_value('commandParams/ambari_java_home')
+
+  def get_ambari_java_name(self):
+    return self.__get_value('commandParams/ambari_java_name')
+
+  def get_ambari_jce_name(self):
+    return self.__get_value('commandParams/ambari_jce_name')
+
+  def get_ambari_jdk_name(self):
+    return self.__get_value('commandParams/ambari_jdk_name')
+
+  def need_refresh_topology(self):
+    return self.__get_value('commandParams/refresh_topology', False)
+
 
   """
   Role related variables section
