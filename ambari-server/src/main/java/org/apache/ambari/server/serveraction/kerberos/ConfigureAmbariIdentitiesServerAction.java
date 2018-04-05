@@ -126,10 +126,8 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
       String hostName = resolvedPrincipal.getHostName();
       for (Map.Entry<String, String> serviceMappingEntry : resolvedPrincipal.getServiceMapping().entries()){
         String serviceName = serviceMappingEntry.getKey();
-        // distribute ambari keytabs only if host id is null, otherwise they will
-        // be distributed by usual process using ambari-agent.
         // TODO check if changes needed for multiple principals in one keytab
-        if (resolvedPrincipal.getHostId() == null && hostName != null && serviceName.equals(RootService.AMBARI.name())) {
+        if (hostName != null && serviceName.equals(RootService.AMBARI.name())) {
           ResolvedKerberosKeytab keytab = resolvedPrincipal.getResolvedKerberosKeytab();
           String destKeytabFilePath = resolvedPrincipal.getResolvedKerberosKeytab().getFile();
           hostName = StageUtils.getHostName();
