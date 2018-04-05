@@ -63,43 +63,61 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   showHostMetricsBlock: Em.computed.or('hasHostMetricsService', 'hasNameNode'),
 
   nameNodeWidgets: function () {
-    const hasNameNode = this.get('hasNameNode'),
-      model = this.get('content');
+    const hasNameNode = this.get('hasNameNode');
     let widgets = [];
     if (hasNameNode) {
+      const model = App.HDFSService.find('HDFS'),
+        hostName = this.get('content.hostName'),
+        widgetsDefinitions = require('data/dashboard_widgets').toMapByProperty('viewName');
       widgets.pushObjects([
         App.NameNodeHeapPieChartView.extend({
           model,
+          hostName,
           widgetHtmlId: 'nn-heap',
           title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
           showActions: false,
-          modelValueMax: Em.computed.alias('model.jvmMemoryHeapMax'),
-          modelValueUsed: Em.computed.alias('model.jvmMemoryHeapUsed')
+          widget: {
+            threshold: widgetsDefinitions.NameNodeHeapPieChartView.threshold,
+          }
         }),
         App.NameNodeCapacityPieChartView.extend({
           model,
+          hostName,
           widgetHtmlId: 'nn-capacity',
           title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
           showActions: false,
-          modelValueMax: Em.computed.alias('model.capacityTotal'),
-          modelValueUsed: Em.computed.alias('model.capacityRemaining'),
-          modelValueCapacityUsed: Em.computed.alias('model.capacityUsed'),
-          modelValueNonDfsUsed: Em.computed.alias('model.capacityNonDfsUsed')
+          widget: {
+            threshold: widgetsDefinitions.NameNodeCapacityPieChartView.threshold
+          }
         }),
         App.NameNodeCpuPieChartView.extend({
           widgetHtmlId: 'nn-cpu',
           title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
           showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeCpuPieChartView.threshold
+          },
           subGroupId: this.get('nameNodeComponent.haNameSpace'),
           activeNameNodes: [this.get('nameNodeComponent')],
           nameNode: this.get('nameNodeComponent')
         }),
         App.NameNodeRpcView.extend({
           model,
+          hostName,
           widgetHtmlId: 'nn-rpc',
           title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
           showActions: false,
-          modelValue: Em.computed.alias('model.nameNodeRpc')
+          widget: {
+            threshold: widgetsDefinitions.NameNodeRpcView.threshold
+          }
+        }),
+        App.NameNodeUptimeView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-uptime',
+          title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
+          showActions: false,
+          subGroupId: this.get('nameNodeComponent.haNameSpace')
         })
       ]);
     }

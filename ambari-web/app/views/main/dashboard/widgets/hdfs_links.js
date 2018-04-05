@@ -50,7 +50,7 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend(App.NameNodeWidgetMixin, 
   }.property(),
 
   masterGroupsArray: function () {
-    const activeMasterGroup = this.get('model.masterComponentGroups').find(group => group.name === this.get('subGroupId'));
+    const activeMasterGroup = this.get('model.masterComponentGroups').findProperty('name', this.get('subGroupId'));
     return [activeMasterGroup];
   }.property('model.masterComponentGroups', 'subGroupId')
 });

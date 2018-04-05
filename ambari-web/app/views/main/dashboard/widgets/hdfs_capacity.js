@@ -21,13 +21,13 @@ var numberUtils = require('utils/number_utils');
 
 App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNodeWidgetMixin, {
 
-  modelValueMax: Em.computed.getByKey('model.capacityTotalValues', 'clusterId'),
+  modelValueMax: Em.computed.getByKey('model.capacityTotalValues', 'hostName'),
   /**
    * HDFS model has 'remaining' value, but not 'used'
    */
-  modelValueUsed: Em.computed.getByKey('model.capacityRemainingValues', 'clusterId'),
-  modelValueCapacityUsed: Em.computed.getByKey('model.capacityUsedValues', 'clusterId'),
-  modelValueNonDfsUsed: Em.computed.getByKey('model.capacityNonDfsUsedValues', 'clusterId'),
+  modelValueUsed: Em.computed.getByKey('model.capacityRemainingValues', 'hostName'),
+  modelValueCapacityUsed: Em.computed.getByKey('model.capacityUsedValues', 'hostName'),
+  modelValueNonDfsUsed: Em.computed.getByKey('model.capacityNonDfsUsedValues', 'hostName'),
   widgetHtmlId: Em.computed.format('widget-nn-capacity-{0}', 'subGroupId'),
   hiddenInfoClass: "hidden-info-six-line",
 

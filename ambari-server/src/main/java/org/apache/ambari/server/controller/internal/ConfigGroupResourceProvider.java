@@ -814,10 +814,8 @@ public class ConfigGroupResourceProvider extends
       try {
         Set<Map<String, Object>> configSet = (Set<Map<String, Object>>) configObj;
         for (Map<String, Object> configMap : configSet) {
-          String type = (String) configMap.get(ConfigurationResourceProvider
-            .CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-          String tag = (String) configMap.get(ConfigurationResourceProvider
-            .CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+          String type = (String) configMap.get(ConfigurationResourceProvider.TYPE);
+          String tag = (String) configMap.get(ConfigurationResourceProvider.TAG);
 
           Map<String, String> configProperties = new HashMap<>();
           Map<String, Map<String, String>> configAttributes = new HashMap<>();

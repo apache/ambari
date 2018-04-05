@@ -39,7 +39,8 @@
           "debian"
         ],
         "versions": [
-          7
+          7,
+          9
         ]
       },
       "ubuntu": {

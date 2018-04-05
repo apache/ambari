@@ -41,22 +41,20 @@ function diskPartPercent(i18nKey, totalKey, usedKey) {
   });
 }
 
-App.HDFSSummaryWidgetsView = Em.View.extend({
+App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, {
 
   templateName: require('templates/main/service/info/summary/hdfs/widgets'),
 
   nameSpace: 'default',
 
-  service: function () {
+  model: function () {
     return App.HDFSService.find().objectAt(0);
   }.property('controller.content.serviceName'),
 
-  componentGroup: Em.computed.findByKey('service.masterComponentGroups', 'name', 'nameSpace'),
-
-  clusterId: Em.computed.alias('componentGroup.clusterId'),
+  subGroupId: Em.computed.alias('nameSpace'),
 
   nodeUptime: function () {
-    const uptime = this.get(`service.nameNodeStartTimeValues.${this.get('clusterId')}`);
+    const uptime = this.get('model.nameNodeStartTimeValues')[this.get('hostName')];
     if (uptime && uptime > 0) {
       let diff = App.dateTime() - uptime;
       if (diff < 0) {
@@ -66,11 +64,11 @@ App.HDFSSummaryWidgetsView = Em.View.extend({
       return this.t('dashboard.services.uptime').format(formatted);
     }
     return this.t('services.service.summary.notRunning');
-  }.property('service.nameNodeStartTimeValues'),
+  }.property('model.nameNodeStartTimeValues'),
 
-  jvmMemoryHeapUsed: Em.computed.getByKey('service.jvmMemoryHeapUsedValues', 'clusterId'),
+  jvmMemoryHeapUsed: Em.computed.getByKey('model.jvmMemoryHeapUsedValues', 'hostName'),
 
-  jvmMemoryHeapMax: Em.computed.getByKey('service.jvmMemoryHeapMaxValues', 'clusterId'),
+  jvmMemoryHeapMax: Em.computed.getByKey('model.jvmMemoryHeapMaxValues', 'hostName'),
 
   nodeHeapPercent: App.MainDashboardServiceView.formattedHeapPercent(
     'dashboard.services.hdfs.nodes.heapUsedPercent', 'jvmMemoryHeapUsed', 'jvmMemoryHeapMax'
@@ -80,11 +78,11 @@ App.HDFSSummaryWidgetsView = Em.View.extend({
     'dashboard.services.hdfs.nodes.heapUsed', 'jvmMemoryHeapUsed', 'jvmMemoryHeapMax'
   ),
 
-  capacityTotal: Em.computed.getByKey('service.capacityTotalValues', 'clusterId'),
+  capacityTotal: Em.computed.getByKey('model.capacityTotalValues', 'hostName'),
 
-  capacityUsed: Em.computed.getByKey('service.capacityUsedValues', 'clusterId'),
+  capacityUsed: Em.computed.getByKey('model.capacityUsedValues', 'hostName'),
 
-  capacityRemaining: Em.computed.getByKey('service.capacityRemainingValues', 'clusterId'),
+  capacityRemaining: Em.computed.getByKey('model.capacityRemainingValues', 'hostName'),
 
   dfsUsedDiskPercent: diskPartPercent('dashboard.services.hdfs.capacityUsedPercent', 'capacityTotal', 'capacityUsed'),
 
@@ -107,29 +105,29 @@ App.HDFSSummaryWidgetsView = Em.View.extend({
 
   remainingDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'capacityTotal', 'capacityRemaining'),
 
-  dfsTotalBlocksValue: Em.computed.getByKey('service.dfsTotalBlocksValues', 'clusterId'),
+  dfsTotalBlocksValue: Em.computed.getByKey('model.dfsTotalBlocksValues', 'hostName'),
 
   dfsTotalBlocks: Em.computed.formatUnavailable('dfsTotalBlocksValue'),
 
-  dfsCorruptBlocksValue: Em.computed.getByKey('service.dfsTotalBlocksValues', 'clusterId'),
+  dfsCorruptBlocksValue: Em.computed.getByKey('model.dfsTotalBlocksValues', 'hostName'),
 
   dfsCorruptBlocks: Em.computed.formatUnavailable('dfsCorruptBlocksValue'),
 
-  dfsMissingBlocksValue: Em.computed.getByKey('service.dfsMissingBlocksValues', 'clusterId'),
+  dfsMissingBlocksValue: Em.computed.getByKey('model.dfsMissingBlocksValues', 'hostName'),
 
   dfsMissingBlocks: Em.computed.formatUnavailable('dfsMissingBlocksValue'),
 
-  dfsUnderReplicatedBlocksValue: Em.computed.getByKey('service.dfsUnderReplicatedBlocksValues', 'clusterId'),
+  dfsUnderReplicatedBlocksValue: Em.computed.getByKey('model.dfsUnderReplicatedBlocksValues', 'hostName'),
 
   dfsUnderReplicatedBlocks: Em.computed.formatUnavailable('dfsUnderReplicatedBlocksValue'),
 
-  dfsTotalFilesValue: Em.computed.getByKey('service.dfsTotalFilesValues', 'clusterId'),
+  dfsTotalFilesValue: Em.computed.getByKey('model.dfsTotalFilesValues', 'hostName'),
 
-  dfsTotalFiles: Em.computed.formatUnavailable('service.dfsTotalFilesValue'),
+  dfsTotalFiles: Em.computed.formatUnavailable('model.dfsTotalFilesValue'),
 
-  healthStatus: Em.computed.getByKey('service.healthStatusValues', 'clusterId'),
+  healthStatus: Em.computed.getByKey('model.healthStatusValues', 'hostName'),
 
-  upgradeStatusValue: Em.computed.getByKey('service.upgradeStatusValues', 'clusterId'),
+  upgradeStatusValue: Em.computed.getByKey('model.upgradeStatusValues', 'hostName'),
 
   upgradeStatus: function () {
     const upgradeStatus = this.get('upgradeStatusValue'),
@@ -148,7 +146,7 @@ App.HDFSSummaryWidgetsView = Em.View.extend({
     return this.get('upgradeStatusValue') === false && this.get('healthStatus') === 'green';
   }.property('upgradeStatusValue', 'healthStatus'),
 
-  safeModeStatusValue: Em.computed.getByKey('service.safeModeStatusValues', 'clusterId'),
+  safeModeStatusValue: Em.computed.getByKey('model.safeModeStatusValues', 'hostName'),
 
   safeModeStatus: function () {
     const safeMode = this.get('safeModeStatusValue');

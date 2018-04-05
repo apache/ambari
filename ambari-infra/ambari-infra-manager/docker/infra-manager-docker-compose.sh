@@ -119,6 +119,6 @@ case $command in
      kill_containers
      ;;
    *)
-   echo "Available commands: (start|stop|build-and-run|build|build-docker-and-run|build-mvn-and-run|build-docker-only|build-mvn-only)"
+   echo "Available commands: (start|stop)"
    ;;
 esac
