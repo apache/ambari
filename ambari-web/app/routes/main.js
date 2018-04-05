@@ -215,7 +215,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       label: Em.I18n.t('menu.item.hosts'),
       route: 'hosts',
       beforeTransition() {
-        App.router.set('mainHostController.showFilterConditionsFirstLoad', false);
+        App.router.set('mainHostController.showFilterConditionsFirstLoad', true);
+        App.router.set('mainHostController.saveSelection', true);
       }
     },
 
@@ -352,6 +353,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     addHost: function (router) {
       router.transitionTo('hostAdd');
+    },
+
+    exit: function (router) {
+      router.set('mainHostController.saveSelection', false);
     }
 
   }),

@@ -185,6 +185,9 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       var didClearStartIndex = this.clearStartIndex();
       this.set('controller.filterChangeHappened', didClearedFilters || didClearStartIndex);
     }
+    if (!this.get('controller.saveSelection')) {
+      this.refresh();
+    }
     this._super();
     this.set('startIndex', this.get('controller.startIndex'));
     this.set('displayLength', this.get('controller.paginationProps').findProperty('name', 'displayLength').value);
