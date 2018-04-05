@@ -40,6 +40,14 @@ class TestExecutionCommand(TestCase):
     module_name = self.__execution_command.get_module_name()
     self.assertEquals(module_name, "ZOOKEEPER")
 
+  def test_get_oozie_server_hosts(self):
+    oozie_server = self.__execution_command.get_component_hosts('oozie_server')
+    self.assertEqual(oozie_server, 'host2')
+
+  def test_get_ganglia_server_hosts(self):
+    ganglia_server_hosts = self.__execution_command.get_component_hosts('ganglia_server')
+    self.assertEqual(ganglia_server_hosts, 'host1')
+
   def test_get_module_configs(self):
     module_configs = self.__execution_command.get_module_configs()
     self.assertNotEquals(module_configs, None)

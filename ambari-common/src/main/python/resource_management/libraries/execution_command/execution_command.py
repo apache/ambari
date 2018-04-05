@@ -261,53 +261,11 @@ class ExecutionCommand(object):
   Cluster Host Info
   """
 
-  def get_namenode_hosts(self):
-    return self.__get_value('clusterHostInfo/namenode_hosts', [])
-
-  def get_ganglia_server_hosts(self):
-    return self.__get_value('clusterHostInfo/ganglia_server_hosts', [])
-
-  def get_hbase_master_hosts(self):
-    return self.__get_value('clusterHostInfo/hbase_master_hosts', [])
-
-  def get_oozie_server_hosts(self):
-    return self.__get_value('clusterHostInfo/oozie_server', [])
-
-  def get_falcon_server_hosts(self):
-    return self.__get_value('clusterHostInfo/falcon_server_hosts', [])
-
-  def get_ranger_admin_hosts(self):
-    return self.__get_value('clusterHostInfo/ranger_admin_hosts', [])
-
-  def get_zeppelin_master_hosts(self):
-    return self.__get_value('clusterHostInfo/zeppelin_master_hosts', [])
-
-  def get_resourcemanager_hosts(self):
-    return self.__get_value('clusterHostInfo/resourcemanager_hosts', [])
-
-  def get_datanode_hosts(self):
-    return self.__get_value('clusterHostInfo/datanode_hosts', [])
-
-  def get_webhcat_server_hosts(self):
-    return self.__get_value('clusterHostInfo/webhcat_server_hosts', [])
-
-  def get_hive_server_hosts(self):
-    return self.__get_value('clusterHostInfo/hive_server_hosts', [])
-
-  def get_historyserver_hosts(self):
-    return self.__get_value('clusterHostInfo/historyserver_hosts', [])
-
-  def get_jtnode_hosts(self):
-    return self.__get_value('clusterHostInfo/jtnode_hosts', [])
-
-  def get_zk_server_hosts(self):
-    return self.__get_value('clusterHostInfo/zookeeper_server_hosts', [])
-
-  def get_nimbus_hosts(self):
-    return self.__get_value('clusterHostInfo/nimbus_hosts', [])
-
-  def get_metrics_collector_hosts(self):
-    return self.__get_value('clusterHostInfo/metrics_collector_hosts', [])
+  def get_component_hosts(self, component_name):
+    key = "clusterHostInfo/" + component_name + "_hosts"
+    if component_name == "oozie_server":
+      key = "clusterHostInfo/" + component_name
+    return self.__get_value(key, [])
 
   def get_all_hosts(self):
     return self.__get_value('clusterHostInfo/all_hosts', [])

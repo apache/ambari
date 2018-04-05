@@ -91,5 +91,9 @@
   },
   "ambariLevelParams": {
     "host_sys_prepped": "false"
+  },
+  "clusterHostInfo": {
+    "ganglia_server_hosts": "host1",
+    "oozie_server": "host2"
   }
 }

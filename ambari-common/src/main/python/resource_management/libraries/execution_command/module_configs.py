@@ -26,8 +26,8 @@ class ModuleConfigs(object):
   This class maps to "/configurations" and "/configurationAttributes in command.json which includes configuration information of a service
   """
 
-  def __init__(self, config, configAttributes):
-    self.__module_configs = config
+  def __init__(self, configs, configAttributes):
+    self.__module_configs = configs
     self.__module_config_attributes = configAttributes
 
   def get_all_attributes(self, module_name, config_type):
