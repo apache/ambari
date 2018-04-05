@@ -187,13 +187,13 @@ zeppelin_group = module_configs.get_property_value(module_name, 'zeppelin-env', 
 
 user_group = get_cluster_setting_value('user_group')
 
-ganglia_server_hosts = execution_command.get_value("clusterHostInfo/ganglia_server_hosts", [])
-namenode_host = execution_command.get_value("clusterHostInfo/namenode_hosts", [])
-hbase_master_hosts = execution_command.get_value("clusterHostInfo/hbase_master_hosts", [])
-oozie_servers = execution_command.get_value("clusterHostInfo/oozie_server", [])
-falcon_server_hosts = execution_command.get_value("clusterHostInfo/falcon_server_hosts", [])
-ranger_admin_hosts = execution_command.get_value("clusterHostInfo/ranger_admin_hosts", [])
-zeppelin_master_hosts = execution_command.get_value("clusterHostInfo/zeppelin_master_hosts", [])
+ganglia_server_hosts = execution_command.get_ganglia_server_hosts()
+namenode_host = execution_command.get_namenode_hosts()
+hbase_master_hosts = execution_command.get_hbase_master_hosts()
+oozie_servers = execution_command.get_oozie_server_hosts()
+falcon_server_hosts = execution_command.get_falcon_server_hosts()
+ranger_admin_hosts = execution_command.get_ranger_admin_hosts()
+zeppelin_master_hosts = execution_command.get_zeppelin_master_hosts()
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -201,7 +201,7 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
-has_tez = module_configs.get_property_value(module_name, 'tez-site', '') is not None
+has_tez = module_configs.get_all_properties(module_name, 'tez-site') is not None
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0

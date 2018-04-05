@@ -1062,6 +1062,17 @@ CREATE TABLE upgrade_plan_detail (
   CONSTRAINT FK_upgrade_det_upgrade_plan FOREIGN KEY (upgrade_plan_id) REFERENCES upgrade_plan (id)
 );
 
+CREATE TABLE upgrade_plan_config (
+  id NUMERIC(19) NOT NULL,
+  upgrade_plan_detail_id NUMERIC(19) NOT NULL,
+  config_type VARCHAR(255) NOT NULL,
+  key VARCHAR(255) NOT NULL,
+  new_value TEXT,
+  remove SMALLINT DEFAULT 0 NOT NULL,
+  CONSTRAINT PK_upgrade_plan_config PRIMARY KEY (id),
+  CONSTRAINT FK_up_conf_up_detail FOREIGN KEY (upgrade_plan_detail_id) REFERENCES upgrade_plan_detail (id)
+);
+
 
 CREATE TABLE ambari_operation_history(
   id NUMERIC(19) NOT NULL,
@@ -1296,6 +1307,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_plan_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_plan_config_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_plan_detail_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('mpack_id_seq', 0);
