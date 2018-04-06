@@ -490,76 +490,14 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
       configActionComponent.hostNames = componentHostNames;
       config.set('configActionComponent', configActionComponent);
-      /* TODO uncomment after stack advisor is able to handle this case
+
        var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
        context.get('controller').loadConfigRecommendations([{
         type: App.config.getConfigTagFromFileName(config.get('fileName')),
         name: config.get('name'),
         old_value: config.get(oldValueKey)
       }]);
-      */
-      self.resolveDependencies(dependencies, serviceConfigs, context);
     });
-  },
-
-  /**
-   * TODO remove after stack advisor is able to handle this case
-   * workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive
-   * @param {object} dependencies
-   * @param {array} serviceConfigs
-   * @param {Em.Object} context
-   */
-  resolveDependencies: function(dependencies, serviceConfigs, context) {
-    if (dependencies) {
-      var foreignKeys = this.getDependenciesForeignKeys(dependencies, serviceConfigs);
-
-      if (dependencies.properties && dependencies.initializer) {
-        var initializer = App.get(dependencies.initializer.name);
-        var setup = Em.getProperties(foreignKeys, dependencies.initializer.setupKeys);
-        initializer.setup(setup);
-        var blueprintObject = {};
-        dependencies.properties.forEach(function (property) {
-          var propertyObject = Em.getProperties(property, ['name', 'fileName']);
-          if (property.nameTemplate) {
-            var name = property.nameTemplate;
-            Em.keys(foreignKeys).forEach(function (key) {
-              name = name.replace('{{' + key + '}}', foreignKeys[key]);
-            });
-            propertyObject.name = name;
-          }
-          if (!blueprintObject[property.fileName]) {
-            blueprintObject[property.fileName] = {
-              properties: {}
-            };
-          }
-          var result = initializer.initialValue(propertyObject, {
-            masterComponentHosts: this.getMasterComponents(dependencies, context)
-          });
-
-          var propertiesMap = blueprintObject[propertyObject.fileName].properties;
-          propertiesMap[propertyObject.name] = result.value;
-
-          if (property.isHostsList) {
-            var service = App.config.get('serviceByConfigTypeMap')[propertyObject.fileName];
-            if (service) {
-              var serviceName = service.get('serviceName');
-              var configs = serviceName === context.get('controller.selectedService.serviceName') ? serviceConfigs :
-                context.get('controller.stepConfigs').findProperty('serviceName', serviceName).get('configs');
-              var originalFileName = App.config.getOriginalFileName(propertyObject.fileName);
-              var currentProperty = configs.find(function (configProperty) {
-                return configProperty.get('filename') === originalFileName && configProperty.get('name') === propertyObject.name;
-              });
-              if (currentProperty) {
-                propertiesMap[propertyObject.name] = currentProperty.get('value');
-                App.config.updateHostsListValue(propertiesMap, propertyObject.fileName, propertyObject.name, propertyObject.value, property.isHostsArray);
-              }
-            }
-          }
-          this.saveRecommendations(context, blueprintObject);
-          initializer.cleanup();
-        }, this);
-      }
-    }
   },
 
   /**
