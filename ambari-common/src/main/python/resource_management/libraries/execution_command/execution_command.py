@@ -36,7 +36,7 @@ class ExecutionCommand(object):
     :param command: json string or a python dict object
     """
     self._execution_command = command
-    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"))
+    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"), self.__get_value("configurationAttributes"))
 
   def __get_value(self, key, default_value=None):
     """
@@ -53,6 +53,15 @@ class ExecutionCommand(object):
       return value
     except:
       return default_value
+
+  def get_value(self, query_string, default_value=None):
+    """
+    Query config attribute from execution_command directly
+    :param query_string: full query key string
+    :param default_value: if key does not exist, return default value
+    :return: config attribute
+    """
+    return self.__get_value(query_string, default_value)
 
   """
   Global variables section
@@ -79,6 +88,12 @@ class ExecutionCommand(object):
 
   def get_cluster_name(self):
     return self.__get_value("clusterName")
+
+  def get_repository_file(self):
+    return self.__get_value("repositoryFile")
+
+  def get_local_components(self):
+    return self.__get_value("localComponents", [])
 
   """
   Ambari variables section
@@ -231,6 +246,9 @@ class ExecutionCommand(object):
   def need_refresh_topology(self):
     return self.__get_value('commandParams/refresh_topology', False)
 
+  def check_only_update_files(self):
+    return self.__get_value('commandParams/update_files_only', False)
+
 
   """
   Role related variables section
@@ -238,3 +256,22 @@ class ExecutionCommand(object):
 
   def is_upgrade_suspended(self):
     return self.__get_value('roleParams/upgrade_suspended', False)
+
+  """
+  Cluster Host Info
+  """
+
+  def get_component_hosts(self, component_name):
+    key = "clusterHostInfo/" + component_name + "_hosts"
+    if component_name == "oozie_server":
+      key = "clusterHostInfo/" + component_name
+    return self.__get_value(key, [])
+
+  def get_all_hosts(self):
+    return self.__get_value('clusterHostInfo/all_hosts', [])
+
+  def get_all_racks(self):
+    return self.__get_value('clusterHostInfo/all_racks', [])
+
+  def get_all_ipv4_ips(self):
+    return self.__get_value('clusterHostInfo/all_ipv4_ips', [])

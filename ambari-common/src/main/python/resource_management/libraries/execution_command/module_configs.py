@@ -23,18 +23,40 @@ __all__ = ["ModuleConfigs"]
 
 class ModuleConfigs(object):
   """
-  This class maps to "/configurations" block in command.json which includes configuration information of a service
+  This class maps to "/configurations" and "/configurationAttributes in command.json which includes configuration information of a service
   """
 
-  def __init__(self, config):
-    self.__module_configs = config
+  def __init__(self, configs, configAttributes):
+    self.__module_configs = configs
+    self.__module_config_attributes = configAttributes
 
-  def get_properties(self, module_name, config_type, property_names):
-    return map(lambda property_name: self.get_property_value(module_name, config_type, property_name), property_names)
+  def get_all_attributes(self, module_name, config_type):
+    try:
+      return self.__module_config_attributes[config_type]
+    except:
+      return {}
+
+  def get_all_properties(self, module_name, config_type):
+    try:
+      return self.__module_configs[config_type]
+    except:
+      return {}
+
+  def get_properties(self, module_name, config_type, property_names, default=None):
+    properties = {}
+    try:
+      for property_name in property_names:
+        properties[property_name] = self.get_property_value(module_name, config_type, property_name, default)
+    except:
+      return {}
+    return properties
 
   def get_property_value(self, module_name, config_type, property_name, default=None):
     try:
-      return self.__module_configs[config_type][property_name]
+      if property_name:
+        return self.__module_configs[config_type][property_name]
+      else:
+        return self.__module_configs[config_type]
     except:
       return default
 
