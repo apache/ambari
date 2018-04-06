@@ -1,8 +1,8 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
-import org.apache.hadoop.hbase.client.HBaseAdmin;
-
 import java.io.IOException;
+
+import org.apache.hadoop.hbase.client.Admin;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,5 +27,5 @@ public interface PhoenixConnectionProvider extends ConnectionProvider {
    * @return
    * @throws IOException
    */
-  HBaseAdmin getHBaseAdmin() throws IOException;
+  Admin getHBaseAdmin() throws IOException;
 }

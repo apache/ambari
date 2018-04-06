@@ -90,7 +90,7 @@ def preexec_fn():
 @log_function_call
 def checked_call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
   """
   Execute the shell command and throw an exception on failure.
   @throws Fail
@@ -99,12 +99,12 @@ def checked_call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,
   return _call_wrapper(command, logoutput=logoutput, throw_on_failure=True, stdout=stdout, stderr=stderr,
                               cwd=cwd, env=env, preexec_fn=preexec_fn, user=user, wait_for_finish=wait_for_finish, 
                               on_timeout=on_timeout, timeout=timeout, path=path, sudo=sudo, on_new_line=on_new_line,
-                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy)
+                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy, returns=returns)
   
 @log_function_call
 def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
   """
   Execute the shell command despite failures.
   @return: return_code, output
@@ -112,7 +112,7 @@ def call(command, quiet=False, logoutput=None, stdout=subprocess32.PIPE,stderr=s
   return _call_wrapper(command, logoutput=logoutput, throw_on_failure=False, stdout=stdout, stderr=stderr,
                               cwd=cwd, env=env, preexec_fn=preexec_fn, user=user, wait_for_finish=wait_for_finish, 
                               on_timeout=on_timeout, timeout=timeout, path=path, sudo=sudo, on_new_line=on_new_line,
-                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy)
+                              tries=tries, try_sleep=try_sleep, timeout_kill_strategy=timeout_kill_strategy, returns=returns)
 
 @log_function_call
 def non_blocking_call(command, quiet=False, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
@@ -166,7 +166,7 @@ def _call_wrapper(command, **kwargs):
 
 def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PIPE,stderr=subprocess32.STDOUT,
          cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None, 
-         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT):
+         path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0, timeout_kill_strategy=TerminateStrategy.TERMINATE_PARENT, returns=[0]):
   """
   Execute shell command
   
@@ -186,11 +186,15 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
   
   # Append current PATH to env['PATH']
   env = _add_current_path_to_env(env)
+
   # Append path to env['PATH']
   if path:
     path = os.pathsep.join(path) if isinstance(path, (list, tuple)) else path
     env['PATH'] = os.pathsep.join([env['PATH'], path])
-  
+
+  if sudo and user:
+    raise ValueError("Only one from sudo or user argument could be set to True")
+
   # prepare command cmd
   if sudo:
     command = as_sudo(command, env=env)
@@ -210,10 +214,10 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
   subprocess32_command = ["/bin/bash","--login","--noprofile","-c", command]
   
   files_to_close = []
-  if isinstance(stdout, (basestring)):
+  if isinstance(stdout, basestring):
     stdout = open(stdout, 'wb')
     files_to_close.append(stdout)
-  if isinstance(stderr, (basestring)):
+  if isinstance(stderr, basestring):
     stderr = open(stderr, 'wb')
     files_to_close.append(stderr)
   
@@ -224,14 +228,14 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
     
     if timeout:
       timeout_event = threading.Event()
-      t = threading.Timer( timeout, _on_timeout, [proc, timeout_event, timeout_kill_strategy] )
-      t.start()
+      timer = threading.Timer(timeout, _on_timeout, [proc, timeout_event, timeout_kill_strategy])
+      timer.start()
       
     if not wait_for_finish:
       return proc
       
-    # in case logoutput==False, never log.    
-    logoutput = logoutput==True and Logger.logger.isEnabledFor(logging.INFO) or logoutput==None and Logger.logger.isEnabledFor(logging.DEBUG)
+    # in case logoutput == False, never log.
+    logoutput = logoutput is True and Logger.logger.isEnabledFor(logging.INFO) or logoutput is None and Logger.logger.isEnabledFor(logging.DEBUG)
     read_set = []
     
     if stdout == subprocess32.PIPE:
@@ -247,7 +251,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
                   
     while read_set:
 
-      is_proccess_running = (proc.poll() == None)
+      is_proccess_running = proc.poll() is None
       ready, _, _ = select.select(read_set, [], [], 1)
 
       if not is_proccess_running and not ready:
@@ -269,13 +273,14 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
           if on_new_line:
             try:
               on_new_line(line, out_fd == proc.stderr)
-            except Exception, err:
+            except Exception:
               err_msg = "Caused by on_new_line function failed with exception for input argument '{0}':\n{1}".format(line, traceback.format_exc())
               raise Fail(err_msg)
             
           if logoutput:
-            _print(line)    
-  
+            sys.stdout.write(line)
+            sys.stdout.flush()
+
     # Wait for process to terminate
     if not timeout or not timeout_event.is_set():
       proc.wait()
@@ -290,7 +295,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
   
   if timeout: 
     if not timeout_event.is_set():
-      t.cancel()
+      timer.cancel()
     # timeout occurred
     else:
       err_msg = "Execution of '{0}' was killed due timeout after {1} seconds".format(command, timeout)
@@ -298,7 +303,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
    
   code = proc.returncode
   
-  if throw_on_failure and code:
+  if throw_on_failure and not code in returns:
     err_msg = Logger.filter_text("Execution of '{0}' returned {1}. {2}".format(command_alias, code, all_output))
     raise ExecutionFailed(err_msg, code, out, err)
   
@@ -307,6 +312,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess32.PI
     return code, out, err
   
   return code, out
+
 
 def as_sudo(command, env=None, auto_escape=True):
   """
@@ -329,12 +335,14 @@ def as_sudo(command, env=None, auto_escape=True):
   env = _get_environment_str(_add_current_path_to_env(env)) if env else ENV_PLACEHOLDER
   return "{0} {1} -H -E {2}".format(_get_sudo_binary(), env, command)
 
+
 def as_user(command, user, env=None, auto_escape=True):
   if isinstance(command, (list, tuple)):
     command = string_cmd_from_args_list(command, auto_escape=auto_escape)
 
   export_env = "export {0} ; ".format(_get_environment_str(_add_current_path_to_env(env))) if env else EXPORT_PLACEHOLDER
   return "{0} su {1} -l -s /bin/bash -c {2}".format(_get_sudo_binary(), user, quote_bash_args(export_env + command))
+
 
 def quote_bash_args(command):
   if not command:
@@ -373,10 +381,6 @@ def string_cmd_from_args_list(command, auto_escape=True):
     return ' '.join(escape_func(x) for x in command)
   else:
     return ' '.join(command)
-
-def _print(line):
-  sys.stdout.write(line)
-  sys.stdout.flush()
 
 def _on_timeout(proc, timeout_event, terminate_strategy):
   timeout_event.set()

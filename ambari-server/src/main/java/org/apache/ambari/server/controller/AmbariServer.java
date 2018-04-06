@@ -91,6 +91,7 @@ import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -121,8 +122,8 @@ import org.apache.ambari.server.view.AmbariViewsMDCLoggingFilter;
 import org.apache.ambari.server.view.ViewDirectoryWatcher;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewThrottleFilter;
-import org.apache.commons.httpclient.HttpVersion;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpVersion;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Handler;
@@ -386,6 +387,7 @@ public class AmbariServer {
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
+      rootServlet.setInitParameter("precompressed", "gzip=.gz");
       rootServlet.setInitOrder(1);
 
       /* Configure default servlet for agent server */
@@ -691,6 +693,7 @@ public class AmbariServer {
       apiConnector = new ServerConnector(server, acceptors, -1,
         new SslConnectionFactory(contextFactoryApi, HttpVersion.HTTP_1_1.toString()),
         new HttpConnectionFactory(https_config));
+      apiConnector.setPort(configs.getClientSSLApiPort());
     } else  {
       apiConnector = new ServerConnector(server, acceptors, -1, new HttpConnectionFactory(http_config));
       apiConnector.setPort(configs.getClientApiPort());
@@ -914,8 +917,8 @@ public class AmbariServer {
     StackDefinedPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
     BlueprintResourceProvider.init(injector.getInstance(BlueprintFactory.class),
-        injector.getInstance(BlueprintDAO.class), injector.getInstance(SecurityConfigurationFactory.class),
-        injector.getInstance(Gson.class), ambariMetaInfo);
+        injector.getInstance(BlueprintDAO.class), injector.getInstance(TopologyRequestDAO.class),
+        injector.getInstance(SecurityConfigurationFactory.class), injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(TopologyManager.class),
         injector.getInstance(TopologyRequestFactoryImpl.class), injector.getInstance(SecurityConfigurationFactory
@@ -1076,7 +1079,9 @@ public class AmbariServer {
 
       setupProxyAuth();
 
-      injector.getInstance(GuiceJpaInitializer.class);
+      // Start and Initialize JPA
+      GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
+      jpaInitializer.setInitialized(); // This must be called to alert Ambari that JPA is initialized.
 
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
 

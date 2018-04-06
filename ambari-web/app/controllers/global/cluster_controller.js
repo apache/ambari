@@ -48,6 +48,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   isHostComponentMetricsLoaded: false,
 
+  isHDFSNameSpacesLoaded: false,
+
   /**
    * This counter used as event trigger to notify that quick links should be changed.
    */
@@ -252,6 +254,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
           // make second call, because first is light since it doesn't request host-component metrics
           updater.updateServiceMetric(function() {
             self.set('isHostComponentMetricsLoaded', true);
+            updater.updateHDFSNameSpaces();
           });
           // components config loading doesn't affect overall progress
           self.loadComponentWithStaleConfigs(function () {

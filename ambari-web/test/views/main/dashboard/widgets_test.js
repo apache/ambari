@@ -32,7 +32,11 @@ describe('App.MainDashboardWidgetsView', function () {
       getUserPref: Em.K,
       postUserPref: Em.K,
       setDBProperty: Em.K,
-      persistKey: 'key'
+      persistKey: 'key',
+      widgetGroupsDeferred: {
+        done: Em.clb,
+        resolve: Em.K
+      }
     });
   });
 
@@ -135,7 +139,8 @@ describe('App.MainDashboardWidgetsView', function () {
       var expectedUserSettings = {
         visible: [1, 2],
         hidden: [3, 4],
-        threshold: {}
+        threshold: {},
+        groups: {}
       };
 
       beforeEach(function () {
@@ -248,7 +253,8 @@ describe('App.MainDashboardWidgetsView', function () {
         "threshold": {
           "2": [],
           "3": [1,2]
-        }
+        },
+        "groups": {}
       }));
       expect(view.resolveConfigDependencies).to.be.calledOnce;
     });
@@ -259,13 +265,25 @@ describe('App.MainDashboardWidgetsView', function () {
     describe('should set visibleWidgets and hiddenWidgets', function() {
 
       beforeEach(function () {
-        view.set('userPreferences', {
-          visible: [1],
-          hidden: [2],
-          threshold: {
-            1: [],
-            2: [1,2]
-          }
+        view.setProperties({
+          userPreferences: {
+            visible: [1],
+            hidden: [2],
+            threshold: {
+              1: [],
+              2: [1,2]
+            }
+          },
+          widgetGroups: [
+            Em.Object.create({
+              allWidgets: [],
+              subGroups: [
+                {
+                  name: 'n'
+                }
+              ]
+            })
+          ]
         });
         view.renderWidgets();
       });
@@ -290,7 +308,7 @@ describe('App.MainDashboardWidgetsView', function () {
         });
 
         it('viewClass', function () {
-          expect(widget.get('viewClass')).to.be.eql(App.NameNodeHeapPieChartView);
+          expect(widget.get('viewClass').constructor).to.be.eql(App.NameNodeHeapPieChartView.extend().constructor);
         });
 
         it('sourceName', function () {
@@ -335,7 +353,8 @@ describe('App.MainDashboardWidgetsView', function () {
     beforeEach(function() {
       sinon.stub(view, 'generateDefaultUserPreferences').returns({
         visible: [1, 2],
-        hidden: [3, 4]
+        hidden: [3, 4],
+        groups: {}
       });
       sinon.stub(view, 'saveWidgetsSettings');
     });
@@ -355,7 +374,8 @@ describe('App.MainDashboardWidgetsView', function () {
       expect(view.saveWidgetsSettings.getCall(0).args[0]).to.be.eql({
         visible: [3, 2],
         hidden: [1, 4],
-        threshold: {}
+        threshold: {},
+        groups: {}
       });
     });
   });

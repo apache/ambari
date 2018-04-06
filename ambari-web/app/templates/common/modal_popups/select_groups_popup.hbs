@@ -17,13 +17,13 @@
 }}
 
 <form class="form-horizontal">
-  <div class="form-group">
-    <label class="col-sm-2 control-label"><strong>{{view.serviceName}}&nbsp;</strong>&nbsp;</label>
-    <div class="col-sm-8">
+  <div class="form-group form-text">
+    <div class="col-sm-3 align-right"><strong>{{view.serviceName}}&nbsp;</strong>&nbsp;</div>
+    <div class="col-sm-7">
       {{#if view.hasGroups}}
         {{view Ember.Select classNames="form-control" contentBinding="view.groups" valueBinding="view.selectedGroup" disabledBinding="view.disabled"}}
       {{else}}
-        <p>{{t popup.dependent.configs.select.config.group.no.groups}}</p>
+        <span>{{t popup.dependent.configs.select.config.group.no.groups}}</span>
       {{/if}}
     </div>
   </div>

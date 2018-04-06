@@ -174,17 +174,17 @@ describe('App.MainAdminServiceAutoStartController', function() {
   });
 
   describe('#saveClusterConfigs()', function() {
-    var clusterConfigs = {};
-
     it('App.ajax.send should be called', function() {
-      controller.saveClusterConfigs(clusterConfigs);
+      controller.saveClusterConfigs({recovery_enabled: 'false'}, true);
       var args = testHelpers.findAjaxRequest('name', 'admin.save_configs');
       expect(args[0]).to.be.eql({
         name: 'admin.save_configs',
         sender: controller,
         data: {
           siteName: 'cluster-env',
-          properties: clusterConfigs
+          properties: {
+            recovery_enabled: "true"
+          }
         }
       });
     });

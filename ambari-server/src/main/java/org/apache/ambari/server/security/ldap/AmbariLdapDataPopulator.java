@@ -105,14 +105,24 @@ public class AmbariLdapDataPopulator {
   /**
    * Construct an AmbariLdapDataPopulator.
    *
-   * @param configuration the Ambari configuration
-   * @param users         utility that provides access to Users
+   * @param configurationProvider the Ambari configuration
+   * @param users                 utility that provides access to Users
    */
   @Inject
   public AmbariLdapDataPopulator(Provider<AmbariLdapConfiguration> configurationProvider, Users users) {
     this.configurationProvider = configurationProvider;
     this.users = users;
-    this.ldapServerProperties = getConfiguration().getLdapServerProperties();
+    this.ldapServerProperties = null;
+  }
+
+  /**
+   * Load the initial LDAP configuration if the JPA infrastructure is initialized.
+   */
+  synchronized private LdapServerProperties getLdapProperties() {
+    if (ldapServerProperties == null) {
+      ldapServerProperties = getConfiguration().getLdapServerProperties();
+    }
+    return ldapServerProperties;
   }
 
   /**
@@ -126,7 +136,7 @@ public class AmbariLdapDataPopulator {
     }
     try {
       final LdapTemplate ldapTemplate = loadLdapTemplate();
-      ldapTemplate.search(ldapServerProperties.getBaseDN(), "uid=dummy_search", new AttributesMapper() {
+      ldapTemplate.search(getLdapProperties().getBaseDN(), "uid=dummy_search", new AttributesMapper() {
 
         @Override
         public Object mapFromAttributes(Attributes arg0) throws NamingException {
@@ -447,6 +457,7 @@ public class AmbariLdapDataPopulator {
    * @return the set of LDAP groups for the given name
    */
   protected Set<LdapGroupDto> getLdapGroups(String groupName) {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     Filter groupObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getGroupObjectClass());
     Filter groupNameFilter = new LikeFilter(ldapServerProperties.getGroupNamingAttr(), groupName);
@@ -460,6 +471,7 @@ public class AmbariLdapDataPopulator {
    * @return the set of LDAP users for the given name
    */
   protected Set<LdapUserDto> getLdapUsers(String username) {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     Filter userObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass());
     Filter userNameFilter = new LikeFilter(ldapServerProperties.getUsernameAttribute(), username);
     return getFilteredLdapUsers(ldapServerProperties.getBaseDN(), userObjectFilter, userNameFilter);
@@ -472,6 +484,7 @@ public class AmbariLdapDataPopulator {
    * @return the user for the given member attribute; null if not found
    */
   protected LdapUserDto getLdapUserByMemberAttr(String memberAttributeValue) {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     Set<LdapUserDto> filteredLdapUsers;
 
     memberAttributeValue = getUniqueIdByMemberPattern(memberAttributeValue,
@@ -504,6 +517,7 @@ public class AmbariLdapDataPopulator {
    * @return the group for the given member attribute; null if not found
    */
   protected LdapGroupDto getLdapGroupByMemberAttr(String memberAttributeValue) {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     Set<LdapGroupDto> filteredLdapGroups;
 
     memberAttributeValue = getUniqueIdByMemberPattern(memberAttributeValue,
@@ -602,6 +616,7 @@ public class AmbariLdapDataPopulator {
    * Determines that the member attribute can be used as a 'dn'
    */
   protected boolean isMemberAttributeBaseDn(String memberAttributeValue) {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     Pattern pattern = Pattern.compile(String.format(IS_MEMBER_DN_REGEXP,
         ldapServerProperties.getUsernameAttribute(), ldapServerProperties.getGroupNamingAttr()));
     return pattern.matcher(memberAttributeValue).find();
@@ -613,6 +628,7 @@ public class AmbariLdapDataPopulator {
    * @return set of info about LDAP groups
    */
   protected Set<LdapGroupDto> getExternalLdapGroupInfo() {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     EqualsFilter groupObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getGroupObjectClass());
     return getFilteredLdapGroups(ldapServerProperties.getBaseDN(), groupObjectFilter);
@@ -620,6 +636,7 @@ public class AmbariLdapDataPopulator {
 
   // get a filter based on the given member attribute
   private Filter getMemberFilter(String memberAttributeValue) {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     String dnAttribute = ldapServerProperties.getDnAttribute();
 
     return new OrFilter().or(new EqualsFilter(dnAttribute, memberAttributeValue)).
@@ -637,6 +654,7 @@ public class AmbariLdapDataPopulator {
   private Set<LdapGroupDto> getFilteredLdapGroups(String baseDn, Filter filter) {
     final Set<LdapGroupDto> groups = new HashSet<>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     LOG.trace("LDAP Group Query - Base DN: '{}' ; Filter: '{}'", baseDn, filter.encode());
     ldapTemplate.search(baseDn, filter.encode(),
         new LdapGroupContextMapper(groups, ldapServerProperties));
@@ -649,6 +667,7 @@ public class AmbariLdapDataPopulator {
    * @return set of info about LDAP users
    */
   protected Set<LdapUserDto> getExternalLdapUserInfo() {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     EqualsFilter userObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getUserObjectClass());
     return getFilteredLdapUsers(ldapServerProperties.getBaseDN(), userObjectFilter);
@@ -665,6 +684,7 @@ public class AmbariLdapDataPopulator {
   private Set<LdapUserDto> getFilteredLdapUsers(String baseDn, Filter filter) {
     final Set<LdapUserDto> users = new HashSet<>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     PagedResultsDirContextProcessor processor = createPagingProcessor();
     SearchControls searchControls = new SearchControls();
     searchControls.setReturningObjFlag(true);
@@ -740,6 +760,7 @@ public class AmbariLdapDataPopulator {
    * @return LdapTemplate instance
    */
   protected LdapTemplate loadLdapTemplate() {
+    LdapServerProperties ldapServerProperties = getLdapProperties();
     final LdapServerProperties properties = getConfiguration().getLdapServerProperties();
     if (ldapTemplate == null || !properties.equals(ldapServerProperties)) {
       LOG.info("Reloading properties");

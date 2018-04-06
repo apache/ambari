@@ -80,8 +80,9 @@ class ClusterTopologyCache(ClusterCache):
 
       current_host_id = self.current_host_ids_to_cluster[cluster_id]
       for component_dict in self[cluster_id].components:
-        if current_host_id in component_dict.hostIds:
-          self.cluster_local_components[cluster_id].append(component_dict.componentName)
+        if 'hostIds' in component_dict and current_host_id in component_dict.hostIds:
+          if current_host_id in component_dict.hostIds:
+            self.cluster_local_components[cluster_id].append(component_dict.componentName)
 
 
     self.hosts_to_id = ImmutableDictionary(hosts_to_id)
@@ -188,8 +189,11 @@ class ClusterTopologyCache(ClusterCache):
         for component_updates_dict in cluster_updates_dict['components']:
           component_mutable_dict = ClusterTopologyCache._find_component_in_dict(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
           if component_mutable_dict is not None:
-            component_updates_dict['hostIds'] += component_mutable_dict['hostIds']
-            component_updates_dict['hostIds'] = list(set(component_updates_dict['hostIds']))
+            if 'hostIds' in component_updates_dict:
+              if not 'hostIds' in component_mutable_dict:
+                component_mutable_dict['hostIds'] = []
+              component_updates_dict['hostIds'] += component_mutable_dict['hostIds']
+              component_updates_dict['hostIds'] = list(set(component_updates_dict['hostIds']))
             component_mutable_dict.update(component_updates_dict)
           else:
             components_mutable_list.append(component_updates_dict)

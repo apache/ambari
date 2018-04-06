@@ -92,7 +92,9 @@ public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
       LOG.warn(String.format("Did not receive role parameter %s, will save configs using anonymous username %s", ServerAction.ACTION_USER_NAME, userName));
     }
 
-    return updateDesiredRepositoryVersion(cluster, upgradeContext, userName);
+    CommandReport commandReport = updateDesiredRepositoryVersion(cluster, upgradeContext, userName);
+    m_upgradeHelper.publishDesiredRepositoriesUpdates(upgradeContext);
+    return commandReport;
   }
 
   /**

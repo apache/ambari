@@ -21,6 +21,7 @@ package org.apache.ambari.server.topology;
 
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+import static org.apache.ambari.server.state.ServiceInfo.HADOOP_COMPATIBLE_FS;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -209,8 +210,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
     if(isNameNodeHAEnabled()){
         Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
-        if (nnHosts.size() != 2) {
-            throw new InvalidTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
+        if (nnHosts.size() < 2) {
+            throw new InvalidTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
                 nnHosts.size() + " Hosts: " + nnHosts);
         }
         Map<String, String> hadoopEnvConfig = configuration.getFullProperties().get("hadoop-env");
@@ -311,6 +312,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public String getDefaultPassword() {
     return defaultPassword;
+  }
+
+  @Override
+  public boolean isComponentHadoopCompatible(String component) {
+    return blueprint.getServiceInfos().stream()
+      .filter(service -> service.getComponentByName(component) != null)
+      .findFirst()
+      .map(service -> HADOOP_COMPATIBLE_FS.equals(service.getServiceType()))
+      .orElse(false);
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {

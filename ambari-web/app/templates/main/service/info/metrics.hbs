@@ -96,6 +96,29 @@
           {{/each}}
         </table>
       </div>
+      {{#if controller.isHDFSFederatedSummary}}
+        {{#if controller.selectedNSWidgetLayout}}
+          <div style="margin-left: 21px; margin-top: 25px; position: relative">
+            <button type="button" style="min-width: 200px; text-align: left;" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+              {{controller.selectedNSWidgetLayout.displayName}} &nbsp; <span class="caret pull-right" style="position: relative; top: 6px;"></span>
+            </button>
+            <ul class="dropdown-menu">
+              {{#each option in controller.activeNSWidgetLayouts}}
+                <li><a href="#" {{action switchNameServiceLayout option target="controller"}}>{{option.displayName}}</a></li>
+              {{/each}}
+            </ul>
+          </div>
+          <div class="panel-body service-widgets-box">
+            <div id="ns_widget_layout" class="thumbnails">
+              {{#each widget in controller.selectedNSWidgetLayout.widgets}}
+                <div class="widget span2p4" {{bindAttr id="widget.id"}}>
+                  {{view widget.viewClass contentBinding="widget" idBinding="widget.id"}}
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{/if}}
+      {{/if}}
     </div>
   </div>
 {{/if}}

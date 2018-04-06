@@ -46,6 +46,7 @@
       <fileset file="src/main/resources/solrCloudCli.sh"/>
       <fileset file="src/main/resources/solrIndexHelper.sh"/>
       <fileset file="src/main/python/solrDataManager.py"/>
+      <fileset file="src/main/python/migrationHelper.py"/>
     </copy>
     <copy todir="target/package" includeEmptyDirs="no">
       <fileset file="src/main/resources/log4j.properties"/>

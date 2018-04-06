@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.state.ServiceInfo;
 
 /**
  * Blueprint representation.
@@ -77,6 +78,11 @@ public interface Blueprint {
    * @return collection of all represented service names
    */
   Collection<String> getServices();
+
+  /**
+  * @return collection of all service infos
+   */
+  Collection<ServiceInfo> getServiceInfos();
 
   /**
    * Get the components that are included in the blueprint for the specified service.

@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+import time
 import threading
 import collections
 from functools import wraps
@@ -154,8 +155,7 @@ class Utils(object):
 
   @staticmethod
   def restartAgent(stop_event, graceful_stop_timeout=30):
-    from ambari_agent import main
-    main.EXIT_CODE_ON_STOP = AGENT_AUTO_RESTART_EXIT_CODE
+    ExitHelper().exitcode = AGENT_AUTO_RESTART_EXIT_CODE
     stop_event.set()
 
     t = threading.Timer( graceful_stop_timeout, ExitHelper().exit, [AGENT_AUTO_RESTART_EXIT_CODE])
@@ -215,3 +215,13 @@ def lazy_property(undecorated):
       return v
 
   return decorated
+
+def execute_with_retries(tries, try_sleep, retry_exception_class, func, *args, **kwargs):
+  for i in range(tries):
+    try:
+      func(*args, **kwargs)
+      break
+    except retry_exception_class:
+      if i==tries-1:
+        raise
+      time.sleep(try_sleep)

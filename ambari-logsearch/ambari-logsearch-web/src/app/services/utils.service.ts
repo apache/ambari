@@ -74,7 +74,7 @@ export class UtilsService {
       }
     }
     return true;
-  };
+  }
 
   isEnterPressed(event: KeyboardEvent): boolean {
     return event.keyCode === 13;

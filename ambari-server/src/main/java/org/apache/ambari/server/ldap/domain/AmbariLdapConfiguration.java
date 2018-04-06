@@ -20,12 +20,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.configuration.LdapUsernameCollisionHandlingBehavior;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.utils.PasswordUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,19 +41,22 @@ public class AmbariLdapConfiguration {
 
   private final Map<String, String> configurationMap;
 
-  private String configValue(AmbariLdapConfigurationKeys ambariLdapConfigurationKeys) {
+  private String configValue(AmbariServerConfigurationKey ambariServerConfigurationKey) {
     final String value;
-    if (configurationMap.containsKey(ambariLdapConfigurationKeys.key())) {
-      value = configurationMap.get(ambariLdapConfigurationKeys.key());
+    if (configurationMap.containsKey(ambariServerConfigurationKey.key())) {
+      value = configurationMap.get(ambariServerConfigurationKey.key());
     } else {
-      LOGGER.debug("Ldap configuration property [{}] hasn't been set; using default value", ambariLdapConfigurationKeys.key());
-      value = ambariLdapConfigurationKeys.getDefaultValue();
+      LOGGER.debug("Ldap configuration property [{}] hasn't been set; using default value", ambariServerConfigurationKey.key());
+      value = ambariServerConfigurationKey.getDefaultValue();
     }
     return value;
   }
 
-  public void setValueFor(AmbariLdapConfigurationKeys ambariLdapConfigurationKeys, String value) {
-    configurationMap.put(ambariLdapConfigurationKeys.key(), value);
+  public void setValueFor(AmbariServerConfigurationKey ambariServerConfigurationKey, String value) {
+    if(ambariServerConfigurationKey.getConfigurationCategory() != AmbariServerConfigurationCategory.LDAP_CONFIGURATION) {
+      throw new IllegalArgumentException(ambariServerConfigurationKey.name() + " is not an LDAP configuration");
+    }
+    configurationMap.put(ambariServerConfigurationKey.key(), value);
   }
   
   public AmbariLdapConfiguration() {
@@ -63,15 +68,15 @@ public class AmbariLdapConfiguration {
   }
 
   public boolean ldapEnabled() {
-    return Boolean.valueOf(configValue(AmbariLdapConfigurationKeys.LDAP_ENABLED));
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.LDAP_ENABLED));
   }
 
   public String serverHost() {
-    return configValue(AmbariLdapConfigurationKeys.SERVER_HOST);
+    return configValue(AmbariServerConfigurationKey.SERVER_HOST);
   }
 
   public int serverPort() {
-    return Integer.valueOf(configValue(AmbariLdapConfigurationKeys.SERVER_PORT));
+    return Integer.valueOf(configValue(AmbariServerConfigurationKey.SERVER_PORT));
   }
 
   public String serverUrl() {
@@ -79,11 +84,11 @@ public class AmbariLdapConfiguration {
   }
 
   public String secondaryServerHost() {
-    return configValue(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST);
+    return configValue(AmbariServerConfigurationKey.SECONDARY_SERVER_HOST);
   }
 
   public int secondaryServerPort() {
-    final String secondaryServerPort = configValue(AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT);
+    final String secondaryServerPort = configValue(AmbariServerConfigurationKey.SECONDARY_SERVER_PORT);
     return secondaryServerPort == null ? 0 : Integer.valueOf(secondaryServerPort);
   }
 
@@ -92,111 +97,111 @@ public class AmbariLdapConfiguration {
   }
 
   public boolean useSSL() {
-    return Boolean.valueOf(configValue(AmbariLdapConfigurationKeys.USE_SSL));
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.USE_SSL));
   }
 
   public String trustStore() {
-    return configValue(AmbariLdapConfigurationKeys.TRUST_STORE);
+    return configValue(AmbariServerConfigurationKey.TRUST_STORE);
   }
 
   public String trustStoreType() {
-    return configValue(AmbariLdapConfigurationKeys.TRUST_STORE_TYPE);
+    return configValue(AmbariServerConfigurationKey.TRUST_STORE_TYPE);
   }
 
   public String trustStorePath() {
-    return configValue(AmbariLdapConfigurationKeys.TRUST_STORE_PATH);
+    return configValue(AmbariServerConfigurationKey.TRUST_STORE_PATH);
   }
 
   public String trustStorePassword() {
-    return configValue(AmbariLdapConfigurationKeys.TRUST_STORE_PASSWORD);
+    return configValue(AmbariServerConfigurationKey.TRUST_STORE_PASSWORD);
   }
 
   public boolean anonymousBind() {
-    return Boolean.valueOf(configValue(AmbariLdapConfigurationKeys.ANONYMOUS_BIND));
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.ANONYMOUS_BIND));
   }
 
   public String bindDn() {
-    return configValue(AmbariLdapConfigurationKeys.BIND_DN);
+    return configValue(AmbariServerConfigurationKey.BIND_DN);
   }
 
   public String bindPassword() {
-    return configValue(AmbariLdapConfigurationKeys.BIND_PASSWORD);
+    return configValue(AmbariServerConfigurationKey.BIND_PASSWORD);
   }
 
   public String attributeDetection() {
-    return configValue(AmbariLdapConfigurationKeys.ATTR_DETECTION);
+    return configValue(AmbariServerConfigurationKey.ATTR_DETECTION);
   }
 
   public String dnAttribute() {
-    return configValue(AmbariLdapConfigurationKeys.DN_ATTRIBUTE);
+    return configValue(AmbariServerConfigurationKey.DN_ATTRIBUTE);
   }
 
   public String userObjectClass() {
-    return configValue(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS);
+    return configValue(AmbariServerConfigurationKey.USER_OBJECT_CLASS);
   }
 
   public String userNameAttribute() {
-    return configValue(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE);
+    return configValue(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE);
   }
 
   public String userSearchBase() {
-    return configValue(AmbariLdapConfigurationKeys.USER_SEARCH_BASE);
+    return configValue(AmbariServerConfigurationKey.USER_SEARCH_BASE);
   }
 
   public String groupObjectClass() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS);
+    return configValue(AmbariServerConfigurationKey.GROUP_OBJECT_CLASS);
   }
 
   public String groupNameAttribute() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE);
+    return configValue(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE);
   }
 
   public String groupMemberAttribute() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE);
+    return configValue(AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE);
   }
 
   public String groupSearchBase() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE);
+    return configValue(AmbariServerConfigurationKey.GROUP_SEARCH_BASE);
   }
 
   public String groupMappingRules() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES);
+    return configValue(AmbariServerConfigurationKey.GROUP_MAPPING_RULES);
   }
 
   public String userSearchFilter() {
-    return configValue(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER);
+    return configValue(AmbariServerConfigurationKey.USER_SEARCH_FILTER);
   }
 
   public String userMemberReplacePattern() {
-    return configValue(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN);
+    return configValue(AmbariServerConfigurationKey.USER_MEMBER_REPLACE_PATTERN);
   }
 
   public String userMemberFilter() {
-    return configValue(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER);
+    return configValue(AmbariServerConfigurationKey.USER_MEMBER_FILTER);
   }
 
   public String groupSearchFilter() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER);
+    return configValue(AmbariServerConfigurationKey.GROUP_SEARCH_FILTER);
   }
 
   public String groupMemberReplacePattern() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN);
+    return configValue(AmbariServerConfigurationKey.GROUP_MEMBER_REPLACE_PATTERN);
   }
 
   public String groupMemberFilter() {
-    return configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER);
+    return configValue(AmbariServerConfigurationKey.GROUP_MEMBER_FILTER);
   }
 
   public boolean forceLowerCaseUserNames() {
-    return Boolean.valueOf(configValue(AmbariLdapConfigurationKeys.FORCE_LOWERCASE_USERNAMES));
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.FORCE_LOWERCASE_USERNAMES));
   }
 
   public boolean paginationEnabled() {
-    return Boolean.valueOf(configValue(AmbariLdapConfigurationKeys.PAGINATION_ENABLED));
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.PAGINATION_ENABLED));
   }
 
   public String referralHandling() {
-    return configValue(AmbariLdapConfigurationKeys.REFERRAL_HANDLING);
+    return configValue(AmbariServerConfigurationKey.REFERRAL_HANDLING);
   }
 
   public Map<String, String> toMap() {
@@ -229,7 +234,7 @@ public class AmbariLdapConfiguration {
   }
 
   public boolean isLdapAlternateUserSearchEnabled() {
-    return Boolean.valueOf(configValue(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED));
+    return Boolean.valueOf(configValue(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_ENABLED));
   }
 
   public LdapServerProperties getLdapServerProperties() {
@@ -239,42 +244,42 @@ public class AmbariLdapConfiguration {
     if (StringUtils.isNotBlank(secondaryServerHost())) {
       ldapServerProperties.setSecondaryUrl(secondaryServerUrl());
     }
-    ldapServerProperties.setUseSsl(parseBoolean(configValue(AmbariLdapConfigurationKeys.USE_SSL)));
-    ldapServerProperties.setAnonymousBind(parseBoolean(configValue(AmbariLdapConfigurationKeys.ANONYMOUS_BIND)));
-    ldapServerProperties.setManagerDn(configValue(AmbariLdapConfigurationKeys.BIND_DN));
-    ldapServerProperties.setManagerPassword(PasswordUtils.getInstance().readPassword(configValue(AmbariLdapConfigurationKeys.BIND_PASSWORD), AmbariLdapConfigurationKeys.BIND_PASSWORD.getDefaultValue()));
-    ldapServerProperties.setBaseDN(configValue(AmbariLdapConfigurationKeys.USER_SEARCH_BASE));
-    ldapServerProperties.setUsernameAttribute(configValue(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE));
-    ldapServerProperties.setForceUsernameToLowercase(parseBoolean(configValue(AmbariLdapConfigurationKeys.FORCE_LOWERCASE_USERNAMES)));
-    ldapServerProperties.setUserBase(configValue(AmbariLdapConfigurationKeys.USER_BASE));
-    ldapServerProperties.setUserObjectClass(configValue(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS));
-    ldapServerProperties.setDnAttribute(configValue(AmbariLdapConfigurationKeys.DN_ATTRIBUTE));
-    ldapServerProperties.setGroupBase(configValue(AmbariLdapConfigurationKeys.GROUP_BASE));
-    ldapServerProperties.setGroupObjectClass(configValue(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS));
-    ldapServerProperties.setGroupMembershipAttr(configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE));
-    ldapServerProperties.setGroupNamingAttr(configValue(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE));
-    ldapServerProperties.setAdminGroupMappingRules(configValue(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES));
+    ldapServerProperties.setUseSsl(parseBoolean(configValue(AmbariServerConfigurationKey.USE_SSL)));
+    ldapServerProperties.setAnonymousBind(parseBoolean(configValue(AmbariServerConfigurationKey.ANONYMOUS_BIND)));
+    ldapServerProperties.setManagerDn(configValue(AmbariServerConfigurationKey.BIND_DN));
+    ldapServerProperties.setManagerPassword(PasswordUtils.getInstance().readPassword(configValue(AmbariServerConfigurationKey.BIND_PASSWORD), AmbariServerConfigurationKey.BIND_PASSWORD.getDefaultValue()));
+    ldapServerProperties.setBaseDN(configValue(AmbariServerConfigurationKey.USER_SEARCH_BASE));
+    ldapServerProperties.setUsernameAttribute(configValue(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE));
+    ldapServerProperties.setForceUsernameToLowercase(parseBoolean(configValue(AmbariServerConfigurationKey.FORCE_LOWERCASE_USERNAMES)));
+    ldapServerProperties.setUserBase(configValue(AmbariServerConfigurationKey.USER_BASE));
+    ldapServerProperties.setUserObjectClass(configValue(AmbariServerConfigurationKey.USER_OBJECT_CLASS));
+    ldapServerProperties.setDnAttribute(configValue(AmbariServerConfigurationKey.DN_ATTRIBUTE));
+    ldapServerProperties.setGroupBase(configValue(AmbariServerConfigurationKey.GROUP_BASE));
+    ldapServerProperties.setGroupObjectClass(configValue(AmbariServerConfigurationKey.GROUP_OBJECT_CLASS));
+    ldapServerProperties.setGroupMembershipAttr(configValue(AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE));
+    ldapServerProperties.setGroupNamingAttr(configValue(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE));
+    ldapServerProperties.setAdminGroupMappingRules(configValue(AmbariServerConfigurationKey.GROUP_MAPPING_RULES));
     ldapServerProperties.setAdminGroupMappingMemberAttr("");
-    ldapServerProperties.setUserSearchFilter(configValue(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER));
-    ldapServerProperties.setAlternateUserSearchFilter(configValue(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER));
-    ldapServerProperties.setGroupSearchFilter(configValue(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER));
-    ldapServerProperties.setReferralMethod(configValue(AmbariLdapConfigurationKeys.REFERRAL_HANDLING));
-    ldapServerProperties.setSyncUserMemberReplacePattern(configValue(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN));
-    ldapServerProperties.setSyncGroupMemberReplacePattern(configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN));
-    ldapServerProperties.setSyncUserMemberFilter(configValue(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER));
-    ldapServerProperties.setSyncGroupMemberFilter(configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER));
-    ldapServerProperties.setPaginationEnabled(parseBoolean(configValue(AmbariLdapConfigurationKeys.PAGINATION_ENABLED)));
+    ldapServerProperties.setUserSearchFilter(configValue(AmbariServerConfigurationKey.USER_SEARCH_FILTER));
+    ldapServerProperties.setAlternateUserSearchFilter(configValue(AmbariServerConfigurationKey.ALTERNATE_USER_SEARCH_FILTER));
+    ldapServerProperties.setGroupSearchFilter(configValue(AmbariServerConfigurationKey.GROUP_SEARCH_FILTER));
+    ldapServerProperties.setReferralMethod(configValue(AmbariServerConfigurationKey.REFERRAL_HANDLING));
+    ldapServerProperties.setSyncUserMemberReplacePattern(configValue(AmbariServerConfigurationKey.USER_MEMBER_REPLACE_PATTERN));
+    ldapServerProperties.setSyncGroupMemberReplacePattern(configValue(AmbariServerConfigurationKey.GROUP_MEMBER_REPLACE_PATTERN));
+    ldapServerProperties.setSyncUserMemberFilter(configValue(AmbariServerConfigurationKey.USER_MEMBER_FILTER));
+    ldapServerProperties.setSyncGroupMemberFilter(configValue(AmbariServerConfigurationKey.GROUP_MEMBER_FILTER));
+    ldapServerProperties.setPaginationEnabled(parseBoolean(configValue(AmbariServerConfigurationKey.PAGINATION_ENABLED)));
 
-    if (hasAnyValueWithKey(AmbariLdapConfigurationKeys.GROUP_BASE, AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE,
-        AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES, AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER)) {
+    if (hasAnyValueWithKey(AmbariServerConfigurationKey.GROUP_BASE, AmbariServerConfigurationKey.GROUP_OBJECT_CLASS, AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE,
+        AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE, AmbariServerConfigurationKey.GROUP_MAPPING_RULES, AmbariServerConfigurationKey.GROUP_SEARCH_FILTER)) {
       ldapServerProperties.setGroupMappingEnabled(true);
     }
 
     return ldapServerProperties;
   }
 
-  private boolean hasAnyValueWithKey(AmbariLdapConfigurationKeys... ambariLdapConfigurationKeys) {
-    for (AmbariLdapConfigurationKeys key : ambariLdapConfigurationKeys) {
+  private boolean hasAnyValueWithKey(AmbariServerConfigurationKey... ambariServerConfigurationKey) {
+    for (AmbariServerConfigurationKey key : ambariServerConfigurationKey) {
       if (configurationMap.containsKey(key.key())) {
         return true;
       }
@@ -283,7 +288,7 @@ public class AmbariLdapConfiguration {
   }
 
   public LdapUsernameCollisionHandlingBehavior syncCollisionHandlingBehavior() {
-    if ("skip".equalsIgnoreCase(configValue(AmbariLdapConfigurationKeys.COLLISION_BEHAVIOR))) {
+    if ("skip".equalsIgnoreCase(configValue(AmbariServerConfigurationKey.COLLISION_BEHAVIOR))) {
       return LdapUsernameCollisionHandlingBehavior.SKIP;
     }
     return LdapUsernameCollisionHandlingBehavior.CONVERT;

@@ -113,8 +113,6 @@ describe('App.ConfigsLoader', function() {
   describe("#loadPreSelectedConfigVersion()", function () {
 
     beforeEach(function() {
-      sinon.stub(App.serviceConfigVersionsMapper, 'makeId').returns('v1');
-      this.mock = sinon.stub(App.ServiceConfigVersion, 'find');
       sinon.stub(mixin, 'loadConfigGroups', function() {
         return {done: function(callback) {
           callback();
@@ -128,8 +126,7 @@ describe('App.ConfigsLoader', function() {
           isDefault: true
         })
       ]);
-      this.mock.returns([]);
-      this.mock.withArgs('v1').returns(Em.Object.create({
+      mixin.set('preSelectedConfigVersion', Em.Object.create({
         serviceName: 'S1',
         groupName: 'G1',
         version: 'v1'
@@ -137,8 +134,6 @@ describe('App.ConfigsLoader', function() {
     });
 
     afterEach(function() {
-      App.serviceConfigVersionsMapper.makeId.restore();
-      this.mock.restore();
       mixin.loadConfigGroups.restore();
       mixin.loadSelectedVersion.restore();
       App.ServiceConfigGroup.find.restore();
@@ -151,61 +146,11 @@ describe('App.ConfigsLoader', function() {
     });
 
     it("selectedVersion should be set", function() {
-      mixin.set('preSelectedConfigVersion', Em.Object.create({version: 'v1'}));
       mixin.loadPreSelectedConfigVersion();
       expect(mixin.get('selectedVersion')).to.be.equal('v1');
     });
 
-    it("selectedConfigGroup should be undefined", function() {
-      this.mock.withArgs('v1').returns(Em.Object.create({
-        serviceName: 'S1',
-        groupName: 'G2',
-        version: 'v1'
-      }));
-      mixin.loadPreSelectedConfigVersion();
-      expect(mixin.get('selectedConfigGroup')).to.be.undefined;
-    });
-
-    it("selectedConfigGroup should be set", function() {
-      this.mock.withArgs('v1').returns(Em.Object.create({
-        serviceName: 'S1',
-        groupName: 'G1',
-        version: 'v1'
-      }));
-      mixin.loadPreSelectedConfigVersion();
-      expect(mixin.get('selectedConfigGroup')).to.be.eql(Em.Object.create({
-        serviceName: 'S1',
-        name: 'G1',
-        isDefault: true
-      }));
-    });
-
-    it("default selectedConfigGroup should be set", function() {
-      this.mock.withArgs('v1').returns(Em.Object.create({
-        serviceName: 'S1',
-        groupName: 'Default',
-        version: 'v1'
-      }));
-      mixin.loadPreSelectedConfigVersion();
-      expect(mixin.get('selectedConfigGroup')).to.be.eql(Em.Object.create({
-        serviceName: 'S1',
-        name: 'G1',
-        isDefault: true
-      }));
-    });
-
     it("preselected selectedConfigGroup should be set", function() {
-      this.mock.returns([Em.Object.create({
-        id: 'v1',
-        serviceName: 'S1',
-        groupName: 'G1',
-        version: 'v1'
-      })]);
-      mixin.set('preSelectedConfigVersion', Em.Object.create({
-        serviceName: 'S1',
-        groupName: 'G1',
-        version: 'v1'
-      }));
       mixin.loadPreSelectedConfigVersion();
       expect(mixin.get('selectedConfigGroup')).to.be.eql(Em.Object.create({
         serviceName: 'S1',
@@ -414,7 +359,7 @@ describe('App.ConfigsLoader', function() {
         sender: mixin,
         data: {
           serviceName: 'S1',
-          serviceConfigVersions: ['v1', 'v2'],
+          serviceConfigVersions: ['v2'],
           additionalParams: ''
         },
         success: 'loadSelectedVersionsSuccess'

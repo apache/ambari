@@ -63,6 +63,10 @@ prev_infra_solr_pidfile = status_params.prev_infra_solr_pidfile
 user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
+limits_conf_dir = "/etc/security/limits.d"
+infra_solr_user_nofile_limit = default("/configurations/infra-solr-env/infra_solr_user_nofile_limit", "128000")
+infra_solr_user_nproc_limit = default("/configurations/infra-solr-env/infra_solr_user_nproc_limit", "65536")
+
 # shared configs
 java_home = config['ambariLevelParams']['java_home']
 ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
@@ -155,6 +159,14 @@ if security_enabled:
   ranger_audit_names_from_principals = [ get_name_from_principal(x) for x in ranger_audit_principals ]
   default_ranger_audit_users = ','.join(ranger_audit_names_from_principals)
 
+  infra_solr_logsearch_service_users = []
+  logsearch_kerberos_service_user = get_name_from_principal(default('/configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
+  infra_solr_logsearch_service_users.append(logsearch_kerberos_service_user)
+  logsearch_kerberos_service_users_str = str(default('/configurations/logsearch-env/logsearch_kerberos_service_users', ''))
+  if logsearch_kerberos_service_users_str and logsearch_kerberos_service_users_str.strip():
+    logsearch_kerberos_service_users = logsearch_kerberos_service_users_str.split(',')
+    infra_solr_logsearch_service_users.extend(logsearch_kerberos_service_users)
+
 infra_solr_ranger_audit_service_users = format(config['configurations']['infra-solr-security-json']['infra_solr_ranger_audit_service_users']).split(',')
 infra_solr_security_json_content = config['configurations']['infra-solr-security-json']['content']
 
@@ -177,7 +189,6 @@ logsearch_audit_logs_collection = default('configurations/logsearch-properties/l
 
 ranger_admin_kerberos_service_user = get_name_from_principal(default('configurations/ranger-admin-site/ranger.admin.kerberos.principal', 'rangeradmin'))
 atlas_kerberos_service_user = get_name_from_principal(default('configurations/application-properties/atlas.authentication.principal', 'atlas'))
-logsearch_kerberos_service_user = get_name_from_principal(default('configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
 logfeeder_kerberos_service_user = get_name_from_principal(default('configurations/logfeeder-env/logfeeder_kerberos_principal', 'logfeeder'))
 infra_solr_kerberos_service_user = get_name_from_principal(default('configurations/infra-solr-env/infra_solr_kerberos_principal', 'infra-solr'))
 
@@ -188,3 +199,14 @@ infra_solr_role_logsearch = default('configurations/infra-solr-security-json/inf
 infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/infra_solr_role_logfeeder', 'logfeeder_user')
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+metrics_enabled = ams_collector_hosts != ''
+if metrics_enabled:
+  metrics_http_policy = config['configurations']['ams-site']['timeline.metrics.service.http.policy']
+  ams_collector_protocol = 'http'
+  if metrics_http_policy == 'HTTPS_ONLY':
+    ams_collector_protocol = 'https'
+  ams_collector_port = str(get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
+else:
+  ams_collector_port = ''
+  ams_collector_protocol = ''

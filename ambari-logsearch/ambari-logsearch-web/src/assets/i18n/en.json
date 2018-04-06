@@ -8,6 +8,12 @@
   "common.value": "Value",
   "common.settings": "Settings",
 
+  "common.form.errors.required": "This field is required",
+
+  "dropdown.selection": "Selected ({{total}})",
+  "dropdown.selection.clear": "(Clear)",
+  "dropdown.selection.all": "All {{listName}} ({{total}})",
+
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
   "modal.apply": "Apply",
@@ -25,6 +31,7 @@
   "topMenu.refresh": "Refresh",
   "topMenu.history": "History",
   "topMenu.filter": "Filter",
+  "topMenu.shipperConfiguration": "Configuration Editor",
 
   "filter.all": "All",
 
@@ -88,6 +95,9 @@
   "pagination.title": "Rows per page:",
   "pagination.numbers": "{{startIndex}}-{{endIndex}} of {{totalCount}}",
 
+  "logs.title": "Logs",
+  "logs.serviceLogs.title": "Service Logs",
+  "logs.auditLogs.title": "Audit Logs",
   "logs.columns": "Columns",
   "logs.status": "Status",
   "logs.details": "Details",
@@ -195,5 +205,43 @@
   "logIndexFilter.override": "Override Hosts",
   "logIndexFilter.addHosts": "Add Hosts",
   "logIndexFilter.hostname": "Hostname",
-  "logIndexFilter.expiryDate": "Expiry Date"
+  "logIndexFilter.expiryDate": "Expiry Date",
+
+  "login.title": "Login",
+
+  "shipperConfiguration.title": "All Configuration",
+  "shipperConfiguration.add": "Add",
+  "shipperConfiguration.edit": "Edit",
+  "shipperConfiguration.addConfigurationBtn": "Add Configuration",
+  "shipperConfiguration.breadcrumbs.title": "Log Feeder",
+  "shipperConfiguration.breadcrumbs.add": "Add Configuration",
+  "shipperConfiguration.breadcrumbs.update": "Edit Configuration",
+
+  "shipperConfiguration.form.titleAdd": "Add Configuration",
+  "shipperConfiguration.form.titleEdit": "Edit Configuration",
+  "shipperConfiguration.form.serviceLabel": "Service Name",
+  "shipperConfiguration.form.configurationJSONLabel": "Configuration JSON",
+  "shipperConfiguration.form.saveBtn.label": "Save",
+  "shipperConfiguration.form.cancelBtn.label": "Cancel",
+  "shipperConfiguration.form.testBtn.label": "Test",
+  "shipperConfiguration.form.errors.configuration.invalidJSON": "Invalid JSON!",
+  "shipperConfiguration.form.errors.serviceName.exists": "This service name already exists.",
+  "shipperConfiguration.form.leavingDirty.title": "You have unsaved changes",
+  "shipperConfiguration.form.leavingDirty.message": "Are you sure that you cancel the changes?",
+
+  "shipperConfiguration.validator.title": "Validator",
+  "shipperConfiguration.validator.componentNameLabel": "Component Name",
+  "shipperConfiguration.validator.sampleDataLabel": "Sample Data",
+  "shipperConfiguration.validator.filters": "Filters",
+
+  "shipperConfiguration.action.add.title": "New Configuration",
+  "shipperConfiguration.action.add.success.message": "New configuration has been added successfully.",
+  "shipperConfiguration.action.add.error.message": "Error at adding new configuration:<br>Cluster: ${cluster}<br>Service: ${service}",
+  "shipperConfiguration.action.update.title": "Update Configuration",
+  "shipperConfiguration.action.update.success.message": "The configuration has been updated successfully.",
+  "shipperConfiguration.action.update.error.message": "Error at updating the configuration:<br>Cluster: ${cluster}<br>Service: ${service}",
+  "shipperConfiguration.action.validate.title": "Validate Configuration",
+  "shipperConfiguration.action.validate.success.message": "The configuration is valid.",
+  "shipperConfiguration.action.validate.error.message": "The configuration is not valid."
+
 }

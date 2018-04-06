@@ -430,14 +430,14 @@ describe('App.MainChartsHeatmapHostView', function () {
     var viewObject;
 
     beforeEach(function () {
-      sinon.stub(date, 'timingFormat').returns('time');
+      sinon.stub(view, 'convertValue').returns('converted');
       viewObject = Em.Object.create({
         details: {}
       });
     });
 
     afterEach(function () {
-      date.timingFormat.restore();
+      view.convertValue.restore();
     });
 
     it("selected metric is null", function () {
@@ -470,14 +470,15 @@ describe('App.MainChartsHeatmapHostView', function () {
     it("metric name is 'Garbage Collection Time'", function () {
       view.set('controller.selectedMetric', Em.Object.create({
         name: 'Garbage Collection Time',
+        units: 'ms',
         hostToValueMap: {
-          host1: 'val'
+          host1: '111'
         }
       }));
       view.setMetric(viewObject, {hostName: 'host1'});
       expect(viewObject.get('details')).to.eql({
         metricName: 'Garbage Collection Time',
-        metricValue: 'time'
+        metricValue: 'converted'
       });
     });
 
@@ -506,8 +507,37 @@ describe('App.MainChartsHeatmapHostView', function () {
       view.setMetric(viewObject, {hostName: 'host1'});
       expect(viewObject.get('details')).to.eql({
         metricName: 'm1',
-        metricValue: '10mb'
+        metricValue: 'converted'
       });
+    });
+  });
+
+  describe('#convertValue', function() {
+    beforeEach(function() {
+      sinon.stub(date, 'timingFormat').returns('time');
+    });
+    afterEach(function() {
+      date.timingFormat.restore();
+    });
+
+    it('should return null', function() {
+      expect(view.convertValue(null, null)).to.be.null;
+    });
+
+    it('should return 40', function() {
+      expect(view.convertValue('40', '')).to.be.equal('40');
+    });
+
+    it('should return 40%', function() {
+      expect(view.convertValue('40', '%')).to.be.equal('40%');
+    });
+
+    it('should return 1MB', function() {
+      expect(view.convertValue('1048576', 'MB')).to.be.equal('1.00MB');
+    });
+
+    it('should return time', function() {
+      expect(view.convertValue('1', 'ms')).to.be.equal('time');
     });
   });
 });

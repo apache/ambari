@@ -24,12 +24,13 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ConfigItem<PROP_TYPE extends LogFeederProperties> implements Cloneable {
+public abstract class ConfigItem<PROP_TYPE extends LogFeederProperties> implements Cloneable, Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigItem.class);
 

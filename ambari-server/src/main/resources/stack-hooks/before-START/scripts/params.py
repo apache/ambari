@@ -169,6 +169,12 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 
 host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
 host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+is_aggregation_https_enabled = False
+if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = None
@@ -325,7 +331,7 @@ else:
   namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', default_fs)
 
 # if HDFS is not installed in the cluster, then don't try to access namenode_rpc
-if "core-site" in config['configurations'] and namenode_rpc:
+if has_namenode and namenode_rpc and "core-site" in config['configurations']:
   port_str = namenode_rpc.split(':')[-1].strip()
   try:
     nn_rpc_client_port = int(port_str)

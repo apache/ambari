@@ -121,6 +121,19 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
    * @return {Boolean}
    */
   enableNameNodeFederation: function () {
+    //Prerequisite Checks
+    var message = [];
+    if (!App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').everyProperty('workStatus', 'STARTED')) {
+      message.push(Em.I18n.t('admin.nameNodeFederation.wizard.required.zookeepers'));
+    }
+
+    if (!App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').everyProperty('workStatus', 'STARTED')) {
+      message.push(Em.I18n.t('admin.nameNodeFederation.wizard.required.journalnodes'));
+    }
+    if (message.length > 0) {
+      this.showErrorPopup(message);
+      return false;
+    }
     App.router.transitionTo('main.services.enableNameNodeFederation');
     return true;
   },

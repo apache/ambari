@@ -17,17 +17,21 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
+import java.util.Collection;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -43,6 +47,11 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   @Inject
   private Provider<AmbariManagementController> m_ambariManagementController;
+
+  @Inject
+  public HostLevelParamsHolder(AmbariEventPublisher ambariEventPublisher) {
+    ambariEventPublisher.register(this);
+  }
 
   @Override
   public HostLevelParamsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
@@ -70,5 +79,21 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   @Override
   protected HostLevelParamsUpdateEvent getEmptyData() {
     return HostLevelParamsUpdateEvent.emptyUpdate();
+  }
+
+  @Subscribe
+  public void onClusterComponentsRepoUpdate(ClusterComponentsRepoChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
+    Long clusterId = clusterComponentsRepoChangedEvent.getClusterId();
+
+    Cluster cluster = clusters.getCluster(clusterId);
+    Collection<Host> hosts = clusters.getCluster(clusterId).getHosts();
+    for (Host host : hosts) {
+      HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(Long.toString(clusterId),
+          new HostLevelParamsCluster(
+            m_ambariManagementController.get().retrieveHostRepositories(cluster, host),
+            recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), host.getHostName())));
+      hostLevelParamsUpdateEvent.setHostId(host.getHostId());
+      updateData(hostLevelParamsUpdateEvent);
+    }
   }
 }

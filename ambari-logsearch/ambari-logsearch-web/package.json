@@ -13,6 +13,7 @@
     "pree2e": "webdriver-manager update --standalone false --gecko false --quiet"
   },
   "dependencies": {
+    "@angular/animations": "^4.0.0",
     "@angular/common": "^4.0.0",
     "@angular/compiler": "^4.0.0",
     "@angular/core": "^4.0.0",
@@ -23,12 +24,13 @@
     "@angular/router": "^4.0.0",
     "@ngrx/core": "^1.2.0",
     "@ngrx/store": "^2.2.3",
+    "@ngrx/store-devtools": "3.2.4",
     "@ngx-translate/core": "^6.0.1",
     "@ngx-translate/http-loader": "^0.0.3",
     "angular-moment-timezone": "^0.2.1",
     "angular-pipes": "^6.5.3",
     "angular2-moment": "^1.4.0",
-    "angular2-take-until-destroy": "^2.0.1",
+    "angular2-notifications": "0.4.46",
     "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",
     "d3": "^4.10.0",

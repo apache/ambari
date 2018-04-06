@@ -62,7 +62,7 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/component_status")
-  public void handleComponentReportStatus(@Header String simpSessionId, ComponentStatusReports message)
+  public ReportsResponse handleComponentReportStatus(@Header String simpSessionId, ComponentStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
     List<ComponentStatus> statuses = new ArrayList<>();
     for (Map.Entry<String, List<ComponentStatusReport>> clusterReport : message.getComponentStatusReports().entrySet()) {
@@ -78,10 +78,11 @@ public class AgentReportsController {
 
     agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
         statuses, null, null));
+    return new ReportsResponse();
   }
 
   @MessageMapping("/commands_status")
-  public void handleCommandReportStatus(@Header String simpSessionId, CommandStatusReports message)
+  public ReportsResponse handleCommandReportStatus(@Header String simpSessionId, CommandStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
     List<CommandReport> statuses = new ArrayList<>();
     for (Map.Entry<String, List<CommandReport>> clusterReport : message.getClustersComponentReports().entrySet()) {
@@ -90,20 +91,23 @@ public class AgentReportsController {
 
     agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
         null, statuses, null));
+    return new ReportsResponse();
   }
 
   @MessageMapping("/host_status")
-  public void handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
+  public ReportsResponse handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
     agentReportsProcessor.addAgentReport(new AgentReport(agentSessionManager.getHost(simpSessionId).getHostName(),
         null, null, message));
+    return new ReportsResponse();
   }
 
   @MessageMapping("/alerts_status")
-  public void handleAlertsStatus(@Header String simpSessionId, Alert[] message) throws AmbariException {
+  public ReportsResponse handleAlertsStatus(@Header String simpSessionId, Alert[] message) throws AmbariException {
     String hostName = agentSessionManager.getHost(simpSessionId).getHostName();
     List<Alert> alerts = Arrays.asList(message);
     LOG.info("Handling {} alerts status for host {}", alerts.size(), hostName);
     hh.getHeartbeatProcessor().processAlerts(hostName, alerts);
+    return new ReportsResponse();
   }
 
 }

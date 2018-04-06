@@ -173,7 +173,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
 
     RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(serviceName, componentName, categoryName);
     if (handler != null) {
-      handler.removeConfiguration(categoryName);
+      handler.removeComponentConfiguration(categoryName);
     } else {
       throw new SystemException(String.format("Configurations may not be updated for the %s component of the root service %s", componentName, serviceName));
     }
@@ -243,8 +243,8 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
         RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(requestDetails.serviceName, requestDetails.componentName, requestDetails.categoryName);
         if (handler != null) {
           try {
-            handler.updateCategory(requestDetails.categoryName, requestDetails.properties, removePropertiesIfNotSpecified);
-          } catch (AmbariException e) {
+            handler.updateComponentCategory(requestDetails.categoryName, requestDetails.properties, removePropertiesIfNotSpecified);
+          } catch (AmbariException | IllegalArgumentException e) {
             throw new SystemException(e.getMessage(), e.getCause());
           }
         } else {
@@ -398,9 +398,11 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(serviceName, componentName, categoryName);
 
     if (handler != null) {
-      Map<String, RootServiceComponentConfiguration> configurations = handler.getConfigurations(categoryName);
+      Map<String, RootServiceComponentConfiguration> configurations = handler.getComponentConfigurations(categoryName);
 
-      if (configurations != null) {
+      if (configurations == null) {
+        throw new NoSuchResourceException(categoryName);
+      } else {
         for (Map.Entry<String, RootServiceComponentConfiguration> entry : configurations.entrySet()) {
           resources.add(toResource(serviceName, componentName, entry.getKey(), entry.getValue().getProperties(), entry.getValue().getPropertyTypes(), requestedIds));
         }

@@ -93,7 +93,7 @@ var urls = {
   },
 
   'common.service.hdfs.getNnCheckPointTime': {
-    'real': '/clusters/{clusterName}/services/HDFS/components/NAMENODE?fields=host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/LastCheckpointTime',
+    'real': '/clusters/{clusterName}/services/HDFS/components/NAMENODE?fields=host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/LastCheckpointTime,host_components/metrics/dfs/namenode/ClusterId',
     'mock': ''
   },
 
@@ -566,7 +566,7 @@ var urls = {
   'background_operations.get_most_recent': {
     'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=' +
     'Requests/end_time,Requests/id,Requests/progress_percent,Requests/request_context,' +
-    'Requests/request_status,Requests/start_time,Requests/cluster_name&minimal_response=true',
+    'Requests/request_status,Requests/start_time,Requests/cluster_name,Requests/user_name&minimal_response=true',
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
   },
@@ -985,7 +985,7 @@ var urls = {
     'mock': ''
   },
   'host.host_component.decommission_status_datanode': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/dfs/namenode',
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in({hostNames})&fields=metrics/dfs/namenode',
     'mock': '/data/hosts/HDP2/decommission_state.json'
   },
   'host.region_servers.in_inservice': {
@@ -2674,7 +2674,7 @@ var urls = {
     'mock': ''
   },
   'hosts.for_quick_links': {
-    'real': '/clusters/{clusterName}/hosts?Hosts/host_name.in({masterHosts})&fields=Hosts/public_host_name{urlParams}&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?Hosts/host_name.in({hosts})&fields=Hosts/public_host_name{urlParams}&minimal_response=true',
     'mock': '/data/hosts/quick_links.json'
   },
   'hosts.confirmed.install': {
@@ -3076,7 +3076,7 @@ var urls = {
   },
 
   'widgets.hostComponent.metrics.get': {
-    real: '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding',
+    real: '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding{selectedHostsParam}',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   },
 
@@ -3115,6 +3115,65 @@ var urls = {
   'service.components.load': {
     real: '/clusters/{clusterName}/services?fields=components&minimal_response=true',
     mock: '/data/services/components.json'
+  },
+
+  'nameNode.federation.formatNameNode': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "FORMAT", "context" : "Format NameNode"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "NAMENODE",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+
+  'nameNode.federation.formatZKFC': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "FORMAT", "context" : "Format ZKFC"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "ZKFC",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+  'nameNode.federation.bootstrapNameNode': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "BOOTSTRAP_STANDBY", "context" : "Bootstrap NameNode"
+          },
+          "Requests/resource_filters": [{
+            "service_name" : "HDFS",
+            "component_name" : "NAMENODE",
+            "hosts": data.host
+          }]
+        })
+      }
+    }
   }
 };
 /**

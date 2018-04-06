@@ -23,29 +23,37 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.LdapFacade;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * AmbariServerLDAPConfigurationHandler handles Ambari server LDAP-specific configuration properties.
  */
-@StaticallyInject
-class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHandler {
+@Singleton
+public class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerLDAPConfigurationHandler.class);
 
+  private final LdapFacade ldapFacade;
+
   @Inject
-  private static LdapFacade ldapFacade;
-  
+  AmbariServerLDAPConfigurationHandler(LdapFacade ldapFacade, AmbariConfigurationDAO ambariConfigurationDAO,
+                                       AmbariEventPublisher publisher, Configuration ambariConfiguration) {
+    super(ambariConfigurationDAO, publisher, ambariConfiguration);
+    this.ldapFacade = ldapFacade;
+  }
+
   @Override
   public OperationResult performOperation(String categoryName, Map<String, String> properties,
                                           boolean mergeExistingProperties, String operation, Map<String, Object> operationParameters) throws SystemException {
@@ -54,9 +62,14 @@ class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHand
       throw new SystemException(String.format("Unexpected category name for Ambari server LDAP properties: %s", categoryName));
     }
 
-    OperationType operationType = OperationType.translate(operation);
-    if (operation == null) {
-      throw new SystemException("Unexpected operation for Ambari server LDAP properties");
+    OperationType operationType;
+    try {
+      operationType = OperationType.translate(operation);
+      if (operationType == null) {
+        throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName));
+      }
+    } catch (IllegalArgumentException e) {
+      throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName), e);
     }
 
     Map<String, String> ldapConfigurationProperties = new HashMap<>();
@@ -64,17 +77,9 @@ class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHand
     // If we need to merge with the properties of an existing ldap-configuration property set, attempt
     // to retrieve if. If one does not exist, that is ok.
     if (mergeExistingProperties) {
-      try {
-        Map<String, RootServiceComponentConfiguration> _configurations = getConfigurations(categoryName);
-        if (_configurations != null) {
-          RootServiceComponentConfiguration _ldapProperties = _configurations.get(categoryName);
-
-          if (_ldapProperties != null) {
-            ldapConfigurationProperties.putAll(_ldapProperties.getProperties());
-          }
-        }
-      } catch (NoSuchResourceException e) {
-        // Ignore this. There is no existing ldap-configuration category and that is ok.
+      Map<String, String> _ldapProperties = getConfigurationProperties(categoryName);
+      if (_ldapProperties != null) {
+        ldapConfigurationProperties.putAll(_ldapProperties);
       }
     }
 
@@ -163,7 +168,7 @@ class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHand
         }
       }
 
-      throw new IllegalArgumentException(String.format("Invalid Ambari server configuration category name: %s", operation));
+      throw new IllegalArgumentException(String.format("Invalid operation for %s: %s", AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), operation));
     }
 
     public static String translate(OperationType operation) {

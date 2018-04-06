@@ -137,7 +137,7 @@ App.WizardStep3View = App.TableView.extend({
    */
   watchSelectionOnce: function () {
     Em.run.once(this, 'watchSelection');
-  }.observes('content.@each.isChecked', 'pageContent'),
+  }.observes('content.@each.isChecked', 'content.@each.bootStatus', 'pageContent'),
 
   /**
    * Watch selection and calculate such flags as:
@@ -152,14 +152,15 @@ App.WizardStep3View = App.TableView.extend({
     this.set('selectionInProgress', true);
     this.set('pageChecked', !!this.get('pageContent.length') && this.get('pageContent').everyProperty('isChecked', true));
     this.set('selectionInProgress', false);
-    var noHostsSelected = true;
-    var selectedHostsCount = 0;
+    var noNotRunningHostsSelected = true;
+    var selectedNotRunningHostsCount = 0;
     this.get('content').forEach(function(host){
-      selectedHostsCount += host.get('isChecked') ? 1 : 0;
-      noHostsSelected = (noHostsSelected) ? !host.get('isChecked') : noHostsSelected;
+      var isSelectedAndNotRunning = host.get('isChecked') && (host.get('bootStatus') !== 'RUNNING');
+      selectedNotRunningHostsCount += isSelectedAndNotRunning ? 1 : 0;
+      noNotRunningHostsSelected = (noNotRunningHostsSelected) ? !isSelectedAndNotRunning : noNotRunningHostsSelected;
     });
-    this.set('noHostsSelected', noHostsSelected);
-    this.set('selectedHostsCount', selectedHostsCount);
+    this.set('noNotRunningHostsSelected', noNotRunningHostsSelected);
+    this.set('selectedNotRunningHostsCount', selectedNotRunningHostsCount);
   },
 
   /**

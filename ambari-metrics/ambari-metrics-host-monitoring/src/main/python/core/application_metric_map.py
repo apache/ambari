@@ -41,6 +41,7 @@ class ApplicationMetricMap:
     self.ip_address = ip_address
     self.lock = RLock()
     self.app_metric_map = {}
+    self.cached_metric_map = {}
   pass
 
   def put_metric(self, application_id, metric_id_to_value_map, timestamp):
@@ -98,7 +99,7 @@ class ApplicationMetricMap:
             "appid" : "HOST",
             "instanceid" : result_instanceid,
             "starttime" : self.get_start_time(appId, metricId),
-            "metrics" : metricData
+            "metrics" : self.align_values_by_minute_mark(appId, metricId, metricData) if clear_once_flattened else metricData
           }
           timeline_metrics[ "metrics" ].append( timeline_metric )
         pass
@@ -114,6 +115,10 @@ class ApplicationMetricMap:
 
   def get_start_time(self, app_id, metric_id):
     with self.lock:
+      if self.cached_metric_map.has_key(app_id):
+        if self.cached_metric_map.get(app_id).has_key(metric_id):
+          metrics = self.cached_metric_map.get(app_id).get(metric_id)
+          return min(metrics.iterkeys())
       if self.app_metric_map.has_key(app_id):
         if self.app_metric_map.get(app_id).has_key(metric_id):
           metrics = self.app_metric_map.get(app_id).get(metric_id)
@@ -137,3 +142,48 @@ class ApplicationMetricMap:
     with self.lock:
       self.app_metric_map.clear()
   pass
+
+  # Align metrics by the minutes so that only complete minutes are send.
+  # Not completed minutes data points will be cached and posted when the minute will be completed.
+  # Cached metrics are merged with currently posting metrics
+  # e.g:
+  # first iteration if metrics from 00m15s to 01m15s are processed,
+  #               then metrics from 00m15s to 00m59s will be posted
+  #                        and from 01m00s to 01m15s will be cached
+  # second iteration   metrics from 01m25s to 02m55s are processed,
+  #     cached metrics from previous call will be merged with current,
+  #                    metrics from 01m00s to 02m55s will be posted, cache will be empty
+  def align_values_by_minute_mark(self, appId, metricId, metricData):
+    with self.lock:
+      # append with cached values
+      if self.cached_metric_map.get(appId) and self.cached_metric_map.get(appId).get(metricId):
+        metricData.update(self.cached_metric_map[appId][metricId])
+        self.cached_metric_map[appId].pop(metricId)
+
+      # check if needs to be cached
+      # in case there can't be any more datapoints in last minute just post the metrics,
+      # otherwise need to cut off and cache the last uncompleted minute
+      max_time = max(metricData.iterkeys())
+      if max_time % 60000 <= 60000 - 10000:
+        max_minute = max_time / 60000
+        metric_data_copy = metricData.copy()
+        for time,value in metric_data_copy.iteritems():
+          if time / 60000 == max_minute:
+            cached_metric_map = self.cached_metric_map.get(appId)
+            if not cached_metric_map:
+              cached_metric_map = { metricId : { time : value } }
+              self.cached_metric_map[ appId ] = cached_metric_map
+            else:
+              cached_metric_id_map = cached_metric_map.get(metricId)
+              if not cached_metric_id_map:
+                cached_metric_id_map = { time : value }
+                cached_metric_map[ metricId ] = cached_metric_id_map
+              else:
+                cached_metric_map[ metricId ].update( { time : value } )
+              pass
+            pass
+            metricData.pop(time)
+          pass
+        pass
+
+      return metricData

@@ -18,6 +18,18 @@
 
 var App = require('app');
 
+/**
+ * Example:
+ *
+ * stompClient.connect();
+ * stompClient.subscribe('topic1', handlerFunc1);
+ * stompClient.addHandler('topic1', 'handler2-name', handlerFunc2);
+ * stompClient.removeHandler('topic1', 'handler2-name');
+ * stompClient.unsubscribe('topic1');
+ * stompClient.disconnect();
+ *
+ */
+
 module.exports = Em.Object.extend({
   /**
    * @type {Stomp}
@@ -27,12 +39,29 @@ module.exports = Em.Object.extend({
   /**
    * @type {string}
    */
-  webSocketUrl: 'ws://{hostname}:8080/api/stomp/v1/websocket',
+  webSocketUrl: '{protocol}://{hostname}:{port}/api/stomp/v1/websocket',
 
   /**
    * @type {string}
    */
-  sockJsUrl: 'http://{hostname}:8080/api/stomp/v1',
+  sockJsUrl: '{protocol}://{hostname}:{port}/api/stomp/v1',
+
+  /**
+   * @const
+   */
+  PORT: '8080',
+
+  /**
+   * @const
+   */
+  SECURE_PORT: '8443',
+
+  /**
+   * sockJs should use only alternative options as transport in case when websocket supported but connection fails
+   * @const
+   * @type {Array}
+   */
+  sockJsTransports: ['eventsource', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling'],
 
   /**
    * @type {boolean}
@@ -76,7 +105,7 @@ module.exports = Em.Object.extend({
       this.onConnectionSuccess();
       dfd.resolve();
     }, () => {
-      this.onConnectionError();
+      this.onConnectionError(useSockJS);
       dfd.reject();
     });
     client.debug = Em.K;
@@ -87,36 +116,50 @@ module.exports = Em.Object.extend({
   /**
    *
    * @param {boolean} useSockJS
-   * @returns {*}
+   * @returns {SockJS|WebSocket}
    */
   getSocket: function(useSockJS) {
-    const hostname = window.location.hostname;
     if (!WebSocket || useSockJS) {
       this.set('isWebSocketSupported', false);
-      return new SockJS(this.get('sockJsUrl').replace('{hostname}', hostname));
+      const sockJsUrl = this.getSocketUrl(this.get('sockJsUrl'), false);
+      return new SockJS(sockJsUrl, null, {transports: this.get('sockJsTransports')});
     } else {
-      return new WebSocket(this.get('webSocketUrl').replace('{hostname}', hostname));
+      return new WebSocket(this.getSocketUrl(this.get('webSocketUrl'), true));
     }
+  },
+
+  /**
+   *
+   * @param {string} template
+   * @param {boolean} isWebsocket
+   * @returns {string}
+   */
+  getSocketUrl: function(template, isWebsocket) {
+    const hostname = window.location.hostname;
+    const isSecure = window.location.protocol === 'https:';
+    const protocol = isWebsocket ? (isSecure ? 'wss' : 'ws') : (isSecure ? 'https' : 'http');
+    const port = isSecure ? this.get('SECURE_PORT') : this.get('PORT');
+    return template.replace('{hostname}', hostname).replace('{protocol}', protocol).replace('{port}', port);
   },
 
   onConnectionSuccess: function() {
     this.set('isConnected', true);
   },
 
-  onConnectionError: function() {
+  onConnectionError: function(useSockJS) {
     if (this.get('isConnected')) {
-      this.reconnect();
-    } else {
+      this.reconnect(useSockJS);
+    } else if (!useSockJS) {//if SockJs connection failed too the stop trying to connect
       //if webSocket failed on initial connect then switch to SockJS
       this.connect(true);
     }
   },
 
-  reconnect: function() {
+  reconnect: function(useSockJS) {
     const subscriptions = this.get('subscriptions');
     setTimeout(() => {
       console.debug('Reconnecting to WebSocket...');
-      this.connect().done(() => {
+      this.connect(useSockJS).done(() => {
         for (var i in subscriptions) {
           subscriptions[i].unsubscribe();
           this.subscribe(subscriptions[i].destination, subscriptions[i].handlers['default']);
@@ -159,15 +202,20 @@ module.exports = Em.Object.extend({
     if (!this.get('client.connected')) {
       return null;
     }
-    const subscription = this.get('client').subscribe(destination, (message) => {
-      for (var i in handlers) {
-        handlers[i](JSON.parse(message.body));
-      }
-    });
-    subscription.destination = destination;
-    subscription.handlers = handlers;
-    this.get('subscriptions')[destination] = subscription;
-    return subscription;
+    if (this.get('subscriptions')[destination]) {
+      console.error(`Subscription with default handler for ${destination} already exists`);
+      return this.get('subscriptions')[destination];
+    } else {
+      const subscription = this.get('client').subscribe(destination, (message) => {
+        for (const i in handlers) {
+          handlers[i](JSON.parse(message.body));
+        }
+      });
+      subscription.destination = destination;
+      subscription.handlers = handlers;
+      this.get('subscriptions')[destination] = subscription;
+      return subscription;
+    }
   },
 
   /**

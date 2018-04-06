@@ -38,6 +38,12 @@ App.DashboardWidgetView = Em.View.extend({
   widget: null,
 
   /**
+   * Indicates whether dropdown with Edit/Delete/Save actions should be displayed
+   * @type {boolean}
+   */
+  showActions: true,
+
+  /**
    * @type {Em.View}
    */
   widgetsView: Em.computed.alias('parentView'),

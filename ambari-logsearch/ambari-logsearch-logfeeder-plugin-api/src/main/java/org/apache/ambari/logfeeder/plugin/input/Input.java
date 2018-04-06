@@ -56,6 +56,7 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
   private Thread thread;
   private LRUCache cache;
   private String cacheKeyField;
+  private boolean initDefaultFields;
   protected MetricData readBytesMetric = new MetricData(getReadBytesMetricName(), false);
 
   public void loadConfigs(InputDescriptor inputDescriptor, PROP_TYPE logFeederProperties,
@@ -75,8 +76,6 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
   }
 
   public abstract boolean monitor();
-
-  public abstract List<? extends Input> getChildInputs();
 
   public abstract INPUT_MARKER getInputMarker();
 
@@ -336,5 +335,17 @@ public abstract class Input<PROP_TYPE extends LogFeederProperties, INPUT_MARKER 
   @Override
   public String toString() {
     return getShortDescription();
+  }
+
+  public void setFirstFilter(Filter<PROP_TYPE> firstFilter) {
+    this.firstFilter = firstFilter;
+  }
+
+  public boolean isInitDefaultFields() {
+    return initDefaultFields;
+  }
+
+  public void setInitDefaultFields(boolean initDefaultFields) {
+    this.initDefaultFields = initDefaultFields;
   }
 }

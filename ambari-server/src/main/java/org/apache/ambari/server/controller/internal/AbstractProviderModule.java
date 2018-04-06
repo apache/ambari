@@ -486,8 +486,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     return hosts;
   }
 
-  @Override
-  public Host getHost(String clusterName, String hostName) {
+  private Host getHost(String clusterName, String hostName) {
     Host host = null;
     try {
       Cluster cluster = managementController.getClusters().getCluster(clusterName);
@@ -518,12 +517,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   // ----- JMXHostProvider ---------------------------------------------------
 
   @Override
-  public String getPort(String clusterName, String componentName, String hostName) throws SystemException {
-    return getPort(clusterName, componentName, hostName, false);
-  }
-
-  @Override
-  public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
+  public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) {
     ConcurrentMap<String, ConcurrentMap<String, String>> clusterJmxPorts;
     // Still need double check to ensure single init
     if (!jmxPortMap.containsKey(clusterName)) {
@@ -954,15 +948,15 @@ public abstract class AbstractProviderModule implements ProviderModule,
     // Get desired configs based on the tag
     ResourceProvider configResourceProvider = getResourceProvider(Resource.Type.Configuration);
     Predicate configPredicate = new PredicateBuilder().property
-        (ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-        .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID).equals(configType).and()
-        .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals(versionTag).toPredicate();
+        (ConfigurationResourceProvider.CLUSTER_NAME).equals(clusterName).and()
+        .property(ConfigurationResourceProvider.TYPE).equals(configType).and()
+        .property(ConfigurationResourceProvider.TAG).equals(versionTag).toPredicate();
     Set<Resource> configResources;
     try {
       configResources = configResourceProvider.getResources
-          (PropertyHelper.getReadRequest(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
-              ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
-              ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID), configPredicate);
+          (PropertyHelper.getReadRequest(ConfigurationResourceProvider.CLUSTER_NAME,
+              ConfigurationResourceProvider.TYPE,
+              ConfigurationResourceProvider.TAG), configPredicate);
     } catch (NoSuchResourceException e) {
       LOG.info("Resource for the desired config not found. " + e);
       return Collections.emptyMap();

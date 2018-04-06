@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -29,6 +31,15 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class RootServiceComponentConfigurationHandlerFactory {
+
+  @Inject
+  private AmbariServerConfigurationHandler defaultConfigurationHandler;
+
+  @Inject
+  private AmbariServerLDAPConfigurationHandler ldapConfigurationHandler;
+
+  @Inject
+  private AmbariServerSSOConfigurationHandler ssoConfigurationHandler;
 
   /**
    * Returns the internal configuration handler used to support various configuration storage facilities.
@@ -42,9 +53,11 @@ public class RootServiceComponentConfigurationHandlerFactory {
     if (RootService.AMBARI.name().equals(serviceName)) {
       if (RootComponent.AMBARI_SERVER.name().equals(componentName)) {
         if (AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName().equals(categoryName)) {
-          return new AmbariServerLDAPConfigurationHandler();
+          return ldapConfigurationHandler;
+        } else if (AmbariServerConfigurationCategory.SSO_CONFIGURATION.getCategoryName().equals(categoryName)) {
+          return ssoConfigurationHandler;
         } else {
-          return new AmbariServerConfigurationHandler();
+          return defaultConfigurationHandler;
         }
       }
     }

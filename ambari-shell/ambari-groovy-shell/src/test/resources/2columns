@@ -1,5 +1,0 @@
-  SERVICE     COMPONENT
-  ----------  ----------------
-  ZOOKEEPER   ZOOKEEPER_SERVER
-  MAPREDUCE2  HISTORYSERVER
-  HDFS        DATANODE

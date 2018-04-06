@@ -31,12 +31,6 @@
   <description>Service Advisor</description>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-assembly-plugin</artifactId>
-      <version>2.6</version>
-    </dependency>
-
     <!-- Log Factory logging
     The main class is expected to write to stdout and stderr appropriately.
     -->
@@ -133,6 +127,23 @@
           <disabled>true</disabled>
           <description>Maven Recipe: RPM Package.</description>
           <mappings/>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <submodules>false</submodules>
         </configuration>
       </plugin>
       <plugin>

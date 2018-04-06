@@ -136,7 +136,7 @@ CURR_AMBARI_VERSION = "2.0.0"
 @patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir", new = MagicMock(return_value = "/var/lib/pgsql/data"))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_running_status", new = MagicMock(return_value = "running"))
-class TestAmbariServer:#(TestCase):
+class TestAmbariServer(TestCase):
   def setUp(self):
     out = StringIO.StringIO()
     sys.stdout = out
@@ -3171,7 +3171,7 @@ class TestAmbariServer:#(TestCase):
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
-  @patch("subprocess.Popen")
+  @patch.object(subprocess32, "Popen")
   def test_check_ambari_java_version_is_valid(self, popenMock):
     # case 1:  jdk7 is picked for stacks
     properties = Properties()
@@ -7332,6 +7332,8 @@ class TestAmbariServer:#(TestCase):
     sys.stdout = out
 
     options = self._create_empty_options_mock()
+    options.ambari_admin_username = 'admin'
+    options.ambari_admin_password = 'admin'
     is_server_runing_method.return_value = (True, 0)
 
     search_file_message.return_value = "filepath"
@@ -7362,8 +7364,6 @@ class TestAmbariServer:#(TestCase):
         return 'skip'
       if 'URL Port' in args[0]:
         return '1'
-      if 'Ambari Admin' in args[0]:
-        return 'admin'
       if args[1] == "true" or args[1] == "false":
         return args[1]
       else:
@@ -7419,8 +7419,6 @@ class TestAmbariServer:#(TestCase):
           return "valid"
       if 'URL Port' in args[0]:
         return '1'
-      if 'Ambari Admin' in args[0]:
-        return 'admin'
       if args[1] == "true" or args[1] == "false":
         return args[1]
       else:
@@ -7502,8 +7500,6 @@ class TestAmbariServer:#(TestCase):
         return 'skip'
       if 'URL Port' in args[0]:
         return '1'
-      if 'Ambari Admin' in args[0]:
-        return 'admin'
       if 'Primary URL' in args[0]:
         return kwargs['answer']
       if args[1] == "true" or args[1] == "false":
@@ -7518,6 +7514,8 @@ class TestAmbariServer:#(TestCase):
     urlopen_method.return_value = response
 
     options =  self._create_empty_options_mock()
+    options.ambari_admin_username = 'admin'
+    options.ambari_admin_password = 'admin'
     options.ldap_url = "a:1"
 
     setup_ldap(options)
@@ -7582,6 +7580,62 @@ class TestAmbariServer:#(TestCase):
     options = self._create_empty_options_mock()
     options.ambari_admin_username = 'admin'
     options.ambari_admin_password = 'admin'
+
+    setup_ldap(options)
+
+    self.assertTrue(urlopen_method.called)
+
+    sys.stdout = sys.__stdout__
+    pass
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("urllib2.urlopen")
+  @patch("ambari_server.setupSecurity.get_YN_input")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  def test_setup_ldap_enforcement_cli_option(self, is_server_runing_method, get_ambari_properties_method,
+                                            get_validated_string_input_method, get_YN_input_method, urlopen_method):
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    is_server_runing_method.return_value = (True, 0)
+
+    def yn_input_side_effect(*args, **kwargs):
+      if 'do you wish to use LDAP instead' in args[0]:
+        raise Exception("ShouldNotBeInvoked") # should not be asked
+      else:
+        return False if 'TrustStore' in args[0] else True
+
+    get_YN_input_method.side_effect = yn_input_side_effect
+    get_ambari_properties_method.return_value = Properties()
+
+    def valid_input_side_effect(*args, **kwargs):
+      if 'lower-case' in args[0] or 'paginated' in args[0]:
+        return 'false'
+      if 'Bind anonymously' in args[0]:
+        return 'true'
+      if 'username collisions' in args[0]:
+        return 'skip'
+      if 'URL Port' in args[0]:
+        return '1'
+      if 'Primary URL' in args[0]:
+        return kwargs['answer']
+      if args[1] == "true" or args[1] == "false":
+        return args[1]
+      else:
+        return "test"
+
+    get_validated_string_input_method.side_effect = valid_input_side_effect
+
+    response = MagicMock()
+    response.getcode.return_value = 200
+    urlopen_method.return_value = response
+
+    options = self._create_empty_options_mock()
+    options.ambari_admin_username = 'admin'
+    options.ambari_admin_password = 'admin'
+    options.ldap_force_setup = True
 
     setup_ldap(options)
 
@@ -8638,11 +8692,11 @@ class TestAmbariServer:#(TestCase):
 
     properties = Properties()
     timeout = get_web_server_startup_timeout(properties)
-    self.assertEquals(50, timeout)
+    self.assertEquals(90, timeout)
 
     properties.process_pair(WEB_SERVER_STARTUP_TIMEOUT, "")
     timeout = get_web_server_startup_timeout(properties)
-    self.assertEquals(50, timeout)
+    self.assertEquals(90, timeout)
 
     properties.process_pair(WEB_SERVER_STARTUP_TIMEOUT, "120")
     timeout = get_web_server_startup_timeout(properties)
@@ -8674,6 +8728,7 @@ class TestAmbariServer:#(TestCase):
     options.ldap_save_settings = None
     options.ldap_referral = None
     options.ldap_bind_anonym = None
+    options.ldap_force_setup = None
     options.ambari_admin_username = None
     options.ambari_admin_password = None
     options.ldap_sync_admin_name = None

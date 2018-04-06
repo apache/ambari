@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 var stompClientClass = require('utils/stomp_client');
 
 describe('App.StompClient', function () {
@@ -74,6 +73,15 @@ describe('App.StompClient', function () {
     });
   });
 
+  describe('#getSocketUrl', function() {
+    it('should return socket url for websocket', function() {
+      expect(stomp.getSocketUrl('{protocol}://{hostname}:{port}', true)).to.equal('ws://:8080');
+    });
+    it('should return socket url for sockjs', function() {
+      expect(stomp.getSocketUrl('{protocol}://{hostname}:{port}', false)).to.equal('http://:8080');
+    });
+  });
+
   describe('#onConnectionSuccess', function() {
     it('isConnected should be true', function() {
       stomp.onConnectionSuccess();
@@ -101,6 +109,12 @@ describe('App.StompClient', function () {
       stomp.set('isConnected', false);
       stomp.onConnectionError();
       expect(stomp.connect.calledOnce).to.be.true;
+    });
+
+    it('connect should not be called when isConnected false and useSockJS true', function() {
+      stomp.set('isConnected', false);
+      stomp.onConnectionError(true);
+      expect(stomp.connect.called).to.be.false;
     });
   });
 
@@ -167,6 +181,13 @@ describe('App.StompClient', function () {
       stomp.set('client', client);
       expect(stomp.subscribe('foo')).to.be.null;
       expect(stomp.get('subscriptions')).to.be.empty;
+    });
+    it('should not subscribe when subscription already exist', function() {
+      stomp.set('client', {connected: true});
+      stomp.set('subscriptions', {
+        'foo': {}
+      });
+      expect(stomp.subscribe('foo')).to.be.eql({});
     });
     it('should subscribe when client connected', function() {
       var client = {

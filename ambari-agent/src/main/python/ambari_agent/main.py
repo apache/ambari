@@ -103,6 +103,8 @@ from ambari_commons.shell import shellRunner
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
+#from resource_management.core.resources.system import File
+#from resource_management.core.environment import Environment
 
 from ambari_agent import HeartbeatThread
 from ambari_agent.InitializerModule import InitializerModule
@@ -139,8 +141,6 @@ SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s 
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
 _file_logging_handlers ={}
-
-EXIT_CODE_ON_STOP = 0
 
 def setup_logging(logger, filename, logging_level):
   logger.propagate = False
@@ -416,6 +416,8 @@ def main(initializer_module, heartbeat_stop_callback=None):
   setup_logging(apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
+  #with Environment() as env:
+  #  File("/abc")
 
   # init data, once loggers are setup to see exceptions/errors of initialization.
   initializer_module.init()
@@ -514,7 +516,7 @@ def main(initializer_module, heartbeat_stop_callback=None):
       # Clean up if not Windows OS
       #
       if connected or stopped:
-        ExitHelper().exit(EXIT_CODE_ON_STOP)
+        ExitHelper().exit()
         logger.info("finished")
         break
     pass # for server_hostname in server_hostnames

@@ -17,12 +17,12 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 
 public class ConditionBuilder {
 
@@ -42,6 +42,7 @@ public class ConditionBuilder {
   private Integer topN;
   private boolean isBottomN;
   private Function topNFunction;
+  private List<byte[]> uuids;
 
   public ConditionBuilder(List<String> metricNames) {
     this.metricNames = metricNames;
@@ -122,14 +123,19 @@ public class ConditionBuilder {
     return this;
   }
 
+  public ConditionBuilder uuid(List<byte[]> uuids) {
+    this.uuids = uuids;
+    return this;
+  }
+
   public Condition build() {
     if (topN == null) {
       return new DefaultCondition(
-        metricNames,
+        uuids, metricNames,
         hostnames, appId, instanceId, startTime, endTime,
         precision, limit, grouped);
     } else {
-      return new TopNCondition(metricNames, hostnames, appId, instanceId,
+      return new TopNCondition(uuids, metricNames, hostnames, appId, instanceId,
         startTime, endTime, precision, limit, grouped, topN, topNFunction, isBottomN);
     }
   }

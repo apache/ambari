@@ -131,40 +131,6 @@
                       </div>
                       {{! Add OS END}}
                     </div>
-                    <div class="span9 repo-name-url">
-                      {{#each repository in operatingSystem.repositories}}
-                        {{#if repository.showRepo}}
-                        <div {{bindAttr class=":clearfix :repo-name-url-inner repository.repoName"}}>
-                          <div class="span3">
-                            <label class="repo-name-label control-label">{{repository.repoId}}</label>
-                          </div>
-                          <div class="validation-td span1">
-                            {{#if repository.validation}}
-                              {{view view.popoverView repositoryBinding="repository"}}
-                            {{/if}}
-                          </div>
-                          <div {{bindAttr class=":span8 :repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
-                            {{view view.repositoryTextField repositoryBinding="repository"}}
-                            {{#if controller.selectedStack.usePublicRepo}}
-                              {{#if repository.undo}}
-                                <i class="icon-undo" data-toggle="tooltip"
-                                  {{action "doRestoreDefaultValue" repository target="controller"}}
-                                  {{translateAttr title="common.undo"}}>
-                                </i>
-                              {{/if}}
-                            {{else}}
-                              {{#if repository.notEmpty}}
-                                <i class="icon-undo" data-toggle="tooltip"
-                                  {{action "doRestoreToEmpty" repository target="controller"}}
-                                  {{translateAttr title="common.undo"}}>
-                                </i>
-                              {{/if}}
-                            {{/if}}
-                          </div>
-                        </div>
-                        {{/if}}
-                      {{/each}}
-                    </div>
                   </div>
                 </div>
                 <table class="table table-hover">
@@ -186,30 +152,32 @@
                             class="table table-condensed no-borders inner-table" {{QAAttr "{operatingSystem.osType}"}}>
                             <tbody>
                             {{#each repository in operatingSystem.repositories}}
-                              <tr {{QAAttr "{repository.repoName}"}}>
-                                <td class="col-sm-3">{{repository.repoId}}</td>
-                                <td class="col-sm-1">
-                                  {{view view.popoverView repositoryBinding="repository" data-qaBinding="repository.validation"}}
-                                </td>
-                                <td class="col-sm-8">
-                                  <div {{bindAttr class=":repo-url repository.invalidFormatError:has-error repository.invalidError:has-error"}}>
-                                    {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control" data-qa="repo-url-input"}}
-                                    {{#if controller.selectedStack.usePublicRepo}}
-                                      <i {{bindAttr class="repository.undo::invisible :icon-undo"}}
-                                        {{action "doRestoreDefaultValue" repository target="controller"}}
-                                        {{translateAttr title="common.undo"}}
-                                        {{QAAttr "undo-icon"}}>
-                                      </i>
-                                    {{else}}
-                                      <i {{bindAttr class="repository.notEmpty::invisible :icon-undo"}}
-                                        {{action "doRestoreToEmpty" repository target="controller"}}
-                                        {{translateAttr title="common.undo"}}
-                                        {{QAAttr "undo-icon"}}>
-                                      </i>
-                                    {{/if}}
-                                  </div>
-                                </td>
-                              </tr>
+                              {{#if repository.showRepo}}
+                                <tr {{QAAttr "{repository.repoName}"}}>
+                                  <td class="col-sm-3">{{repository.repoId}}</td>
+                                  <td class="col-sm-1">
+                                    {{view view.popoverView repositoryBinding="repository" data-qaBinding="repository.validation"}}
+                                  </td>
+                                  <td class="col-sm-8">
+                                    <div {{bindAttr class=":repo-url repository.invalidFormatError:has-error repository.invalidError:has-error"}}>
+                                      {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control" data-qa="repo-url-input"}}
+                                      {{#if controller.selectedStack.usePublicRepo}}
+                                        <i {{bindAttr class="repository.undo::invisible :icon-undo"}}
+                                          {{action "doRestoreDefaultValue" repository target="controller"}}
+                                          {{translateAttr title="common.undo"}}
+                                          {{QAAttr "undo-icon"}}>
+                                        </i>
+                                      {{else}}
+                                        <i {{bindAttr class="repository.notEmpty::invisible :icon-undo"}}
+                                          {{action "doRestoreToEmpty" repository target="controller"}}
+                                          {{translateAttr title="common.undo"}}
+                                          {{QAAttr "undo-icon"}}>
+                                        </i>
+                                      {{/if}}
+                                    </div>
+                                  </td>
+                                </tr>
+                              {{/if}}
                             {{/each}}
                             </tbody>
                           </table>
@@ -250,7 +218,7 @@
                   {{#view view.redhatCheckBoxView
                   classNames="use-redhat-checkbox"
                   }}
-                    <label {{bindAttr for="view.checkboxId" class=":redhat-label :display-inline-block controller.selectedStack.usePublicRepo:disabled" data-original-title="view.redhatDisabledTooltip"}}>
+                    <label {{bindAttr for="view.checkboxId" class=":redhat-label :display-inline-block controller.selectedStack.usePublicRepo:disabled" data-original-title="view.parentView.redhatDisabledTooltip"}}>
                       {{t installer.step1.advancedRepo.useRedhatSatellite.message}}
                     </label>
                     <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
@@ -283,6 +251,7 @@
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}
   </button>
+  {{template "templates/wizard/installer_cancel_button"}}
   <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}} {{QAAttr "wizard-next"}}>
     {{#if App.router.nextBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

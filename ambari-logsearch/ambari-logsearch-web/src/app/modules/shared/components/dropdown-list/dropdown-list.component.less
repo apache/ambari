@@ -1,0 +1,85 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../../../shared/mixins';
+
+:host {
+  max-height: @dropdown-max-height;
+  overflow-y: auto;
+
+  > li {
+    .dropdown-item-default;
+    transition: opacity 300ms ease-in, height 100ms 400ms ease-in;
+    &.filtered {
+      overflow: hidden;
+      opacity: 0;
+      height: 0;
+    }
+    .list-item-label {
+      .dropdown-item-child-default;
+
+      label {
+        margin-bottom: 0;
+        cursor: pointer;
+      }
+
+      input[type=checkbox]:checked + label:after {
+        top: @checkbox-top;
+      }
+
+      .label-container {
+        width: 100%;
+      }
+    }
+    &.filter {
+      padding: 0 .25em;
+      position: relative;
+      &:hover {
+        background-color: transparent;
+      }
+      .fa {
+        margin: 0 .6em 0 0;
+        opacity: .8;
+        position: absolute;
+        right: 0;
+        top: .5em
+      }
+      .fa-search {
+        cursor: auto;
+      }
+      .clear-filter {
+        right: 1.3em;
+      }
+      input {
+        height: 2em;
+        width: 100%;
+      }
+      .clear-filter {
+        cursor: pointer;
+        float: right;
+      }
+    }
+    &.selections {
+      font-size: .75em;
+      padding: .1em 20px;
+      a {
+        display: inline;
+      }
+    }
+  }
+}

@@ -49,7 +49,8 @@ module.exports = App.WizardRoute.extend({
               onClose: function () {
                 var controller = router.get('addServiceController');
                 var currentStep = controller.get('currentStep');
-                if(currentStep == '7') {
+                const DEPLOY_STEP = '6';
+                if (currentStep === DEPLOY_STEP) {
                   // Show a warning popup
                   this.showWarningPopup();
                 } else {

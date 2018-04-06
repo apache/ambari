@@ -168,7 +168,7 @@ App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 
   onValueUpdate: function () {
     if (!this.get('isVisible')) return;
-    if (this.get('selected')) {
+    if (this.get('selected') || this.get('serviceConfig.changedViaUndoValue')) {
       var self = this, config = this.get('serviceConfig'),
         controller = this.get('controller');
       delay(function(){
@@ -200,12 +200,8 @@ App.WidgetValueObserver = Em.Mixin.create(App.ValueObserver, {
  */
 App.ServiceConfigCalculateId = Ember.Mixin.create({
   'data-qa': Ember.computed(function () {
-    var config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
-    var label = Em.get(config, 'name') ? Em.get(config, 'name').toLowerCase().replace(/\./g, '-') : '',
-        fileName = Em.get(config, 'filename') ? Em.get(config, 'filename').toLowerCase().replace(/\./g, '-') : '',
-        group = Em.get(config, 'group.name') || 'default',
-        isOrigin = Em.getWithDefault(config, 'compareConfigs.length', 0) > 0 ? '-origin' : '';
-    return 'service-config-' + label + '-' + fileName + '-' + group + isOrigin;
+    const config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
+    return Em.get(config, 'name') || '';
   })
 });
 
@@ -306,6 +302,8 @@ App.ServiceConfigPasswordField = Ember.View.extend(App.ServiceConfigPopoverSuppo
   placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
 
   templateName: require('templates/common/configs/widgets/service_config_password_field'),
+
+  classNames: ['password-field-wrapper'],
 
   readOnly: Em.computed.not('serviceConfig.isEditable'),
 
@@ -1175,7 +1173,7 @@ App.CheckDBConnectionView = Ember.View.extend({
       } else {
         name = 'AD';
       }
-      App.popover(this.$(), {
+      App.popover(this.$('.connection-result'), {
         title: Em.I18n.t('services.service.config.database.btn.idle'),
         content: Em.I18n.t('installer.controls.checkConnection.popover').format(name),
         placement: 'right',

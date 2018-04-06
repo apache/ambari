@@ -64,11 +64,11 @@ class QueuedWebSocketClient(WebSocketClient):
     self.messages.put(StopIteration)
 
 class WsTransport(Transport):
-  def __init__(self, url):
+  def __init__(self, url, ssl_options=None):
     Transport.__init__(self, (0, 0), False, False, 0.0, 0.0, 0.0, 0.0, 0, False, None, None, None, None, False,
     DEFAULT_SSL_VERSION, None, None, None)
     self.current_host_and_port = (0, 0) # mocking
-    self.ws = QueuedWebSocketClient(url, protocols=['http-only', 'chat'])
+    self.ws = QueuedWebSocketClient(url, protocols=['http-only', 'chat'], ssl_options=ssl_options)
     self.ws.daemon = False
 
   def wait_for_connection(self, timeout=DEFAULT_CONNECTION_TIMEOUT):
@@ -124,8 +124,8 @@ class WsTransport(Transport):
       logger.exception("Exception during Transport.stop(self)")
 
 class WsConnection(BaseConnection, Protocol12):
-  def __init__(self, url):
-    self.transport = WsTransport(url)
+  def __init__(self, url, ssl_options=None):
+    self.transport = WsTransport(url, ssl_options=ssl_options)
     self.transport.set_listener('ws-listener', self)
     self.transactions = {}
     Protocol12.__init__(self, self.transport, (0, 0))

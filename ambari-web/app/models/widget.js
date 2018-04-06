@@ -42,6 +42,7 @@ App.Widget = DS.Model.extend({
   expression: DS.attr('array'),
   metrics: DS.attr('array'),
   values: DS.attr('array'),
+  tag: DS.attr('string'),
   isVisible: DS.attr('boolean', {defaultValue: true}),
   /**
    * @type {number}

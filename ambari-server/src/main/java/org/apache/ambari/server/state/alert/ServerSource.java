@@ -19,6 +19,8 @@ package org.apache.ambari.server.state.alert;
 
 import java.util.Objects;
 
+import org.apache.ambari.server.state.UriInfo;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
@@ -34,7 +36,7 @@ public class ServerSource extends ParameterizedSource {
   private String m_class;
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private UriInfo uri = null;
 
   @SerializedName("jmx")
   private MetricSource.JmxInfo jmxInfo = null;
@@ -52,7 +54,7 @@ public class ServerSource extends ParameterizedSource {
     return jmxInfo;
   }
 
-  public AlertUri getUri() {
+  public UriInfo getUri() {
     return uri;
   }
 

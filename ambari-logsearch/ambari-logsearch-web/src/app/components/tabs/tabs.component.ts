@@ -18,6 +18,13 @@
 import {Component, Input, Output, EventEmitter} from '@angular/core';
 import {Tab} from '@app/classes/models/tab';
 
+export enum TabsSwitchMode {
+  Click = 'CLICK',
+  RouteSegment = 'ROUTE_SEGMENT',
+  RouteFragment= 'ROUTE_FRAGMENT',
+  RouteParam = 'ROUTE_PARAM'
+};
+
 @Component({
   selector: 'tabs',
   templateUrl: './tabs.component.html',
@@ -28,13 +35,33 @@ export class TabsComponent {
   @Input()
   items: Tab[] = [];
 
+  @Input()
+  switchMode: TabsSwitchMode = TabsSwitchMode.Click;
+
+  @Input()
+  basePathForRoutingMode: string[];
+
+  @Input()
+  paramNameForRouteParamMode: string;
+
+  @Input()
+  queryParams: {[key: string]: any};
+
+  @Input()
+  queryParamsHandling: string = 'merge';
+
   @Output()
   tabSwitched: EventEmitter<Tab> = new EventEmitter();
 
   @Output()
   tabClosed: EventEmitter<Tab[]> = new EventEmitter();
 
-  switchTab(tab: Tab): void {
+  constructor() {}
+
+  switchTab(tab: Tab, event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+    }
     this.items.forEach((item: Tab) => item.isActive = item.id === tab.id);
     this.tabSwitched.emit(tab);
   }
@@ -44,6 +71,27 @@ export class TabsComponent {
       tabsCount = tabs.length,
       newActiveTab = tabs[tabsCount - 1] === tab ? tabs[tabsCount - 2] : tabs[tabsCount - 1];
     this.tabClosed.emit([tab, newActiveTab]);
+  }
+
+  getRouterLinkForTab(tab: Tab): (string | {[key: string]: any})[] | string {
+    let link: (string | {[key: string]: any})[] | string;
+    switch (this.switchMode) {
+      case TabsSwitchMode.RouteSegment:
+        link = [...this.basePathForRoutingMode, tab.id];
+        break;
+      case TabsSwitchMode.RouteParam:
+        link = [...this.basePathForRoutingMode, {
+          [this.paramNameForRouteParamMode]: tab.id
+        }];
+        break;
+      case TabsSwitchMode.RouteFragment:
+        link = [...this.basePathForRoutingMode];
+        break;
+      default:
+        link = '#';
+        break;
+    }
+    return link;
   }
 
 }

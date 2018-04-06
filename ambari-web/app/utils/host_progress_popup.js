@@ -61,6 +61,7 @@ var dataUtils = require('utils/data_manipulation');
  * @property {string} displayName
  * @property {string} progress
  * @property {string} status
+ * @property {string} userName
  * @property {boolean} isRunning
  * @property {string} name
  * @property {boolean} isVisible
@@ -493,6 +494,7 @@ App.HostPopup = Em.Object.create({
       displayName: service.displayName,
       progress: service.progress,
       status: App.format.taskStatus(status[0]),
+      userName: service.userName,
       isRunning: service.isRunning,
       name: service.name,
       isVisible: true,
@@ -522,6 +524,7 @@ App.HostPopup = Em.Object.create({
     return service.setProperties({
       progress: newData.progress,
       status: App.format.taskStatus(status[0]),
+      userName: newData.userName,
       isRunning: newData.isRunning,
       startTime: date.startTime(newData.startTime),
       duration: date.durationSummary(newData.startTime, newData.endTime),

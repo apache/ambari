@@ -410,6 +410,8 @@ App.WizardStep2Controller = Em.Controller.extend({
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
+      primary: Em.I18n.t('common.continue'),
+      primaryClass: 'btn-warning',
       onPrimary: function () {
         this.hide();
         self.proceedNext(true);

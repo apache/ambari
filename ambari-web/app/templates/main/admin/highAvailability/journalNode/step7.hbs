@@ -15,10 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="mjn-step7">
-    <h2>{{t admin.manageJournalNode.wizard.step7.bodyHeader}}</h2>
-    {{{view.step7BodyText}}}
-    <div class="btn-area">
-        <a class="btn btn-success pull-right" {{action done target="controller"}}>{{t common.next}} &rarr;</a>
-    </div>
+<div id="manage-journal-node-step7" class="wizard-content col-md-9">
+    <h4 class="step-title">{{t admin.manageJournalNode.wizard.step7.bodyHeader}}</h4>
+    <p class="step-description">
+      {{{view.step7BodyText}}}
+    </p>
+</div>
+<div class="wizard-footer col-md-12">
+  <div class="btn-area">
+    <a class="btn btn-success pull-right" {{action done target="controller"}}>{{t common.next}} &rarr;</a>
+  </div>
 </div>

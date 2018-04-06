@@ -56,4 +56,15 @@ App.ClientComponent = DS.Model.extend({
   }.property('installedCount')
 });
 
+App.ClientComponent.getModelByComponentName = function(componentName) {
+  if (App.HostComponent.isMaster(componentName)) {
+    return App.MasterComponent.find(componentName)
+  } else if (App.HostComponent.isSlave(componentName)) {
+    return App.SlaveComponent.find(componentName)
+  } else if (App.HostComponent.isClient(componentName)) {
+    return App.ClientComponent.find(componentName)
+  }
+  return null;
+};
+
 App.ClientComponent.FIXTURES = [];

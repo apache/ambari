@@ -240,6 +240,7 @@
                             <tasks>
                                 <apply executable="${executable.gzip}">
                                     <arg value="-f"/>
+                                    <arg value="-c"/>
                                     <fileset dir="${basedir}/public/img/">
                                         <patternset>
                                             <include name="**/*.png"/>
@@ -334,7 +335,7 @@
                 <envClassifier>linux</envClassifier>
                 <dirsep>/</dirsep>
                 <executable.brunch>brunch</executable.brunch>
-                <executable.gzip>gzip</executable.gzip>
+                <executable.gzip>${basedir}/gzip-content.sh</executable.gzip>
                 <args.brunch></args.brunch>
                 <node.executable>node</node.executable>
                 <executable.mkdir>mkdir</executable.mkdir>

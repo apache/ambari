@@ -39,6 +39,11 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {AuditLogsEntriesComponent} from './audit-logs-entries.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('AuditLogsEntriesComponent', () => {
   let component: AuditLogsEntriesComponent;
@@ -51,6 +56,7 @@ describe('AuditLogsEntriesComponent', () => {
         TabsComponent
       ],
       imports: [
+        RouterTestingModule,
         ...TranslationModules,
         StoreModule.provideStore({
           auditLogs,
@@ -84,7 +90,11 @@ describe('AuditLogsEntriesComponent', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

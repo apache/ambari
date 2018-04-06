@@ -18,7 +18,6 @@
 package org.apache.ambari.server.actionmanager;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.util.Map;
@@ -45,7 +44,6 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
@@ -274,15 +272,6 @@ public class ExecutionCommandWrapper {
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
           commandParams.put(HOOKS_FOLDER,configuration.getProperty(Configuration.HOOKS_FOLDER));
-        }
-
-        if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
-          if (!StringUtils.isEmpty(serviceName)) {
-            ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-              stackId.getStackVersion(), serviceName);
-
-            commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-          }
         }
       }
 

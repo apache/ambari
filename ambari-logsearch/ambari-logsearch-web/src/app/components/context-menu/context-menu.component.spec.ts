@@ -40,9 +40,14 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {AuthService} from '@app/services/auth.service';
 import {UtilsService} from '@app/services/utils.service';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 import {ContextMenuComponent} from './context-menu.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('ContextMenuComponent', () => {
   let component: ContextMenuComponent;
@@ -53,7 +58,7 @@ describe('ContextMenuComponent', () => {
       return {
         subscribe: () => {
         }
-      }
+      };
     }
   };
 
@@ -64,6 +69,7 @@ describe('ContextMenuComponent', () => {
         DropdownListComponent
       ],
       imports: [
+        RouterTestingModule,
         ...TranslationModules,
         StoreModule.provideStore({
           hosts,
@@ -100,7 +106,11 @@ describe('ContextMenuComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         AuthService,
-        UtilsService
+        UtilsService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

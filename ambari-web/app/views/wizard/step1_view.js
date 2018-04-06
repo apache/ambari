@@ -23,29 +23,33 @@ App.WizardStep1View = Em.View.extend({
 
   templateName: require('templates/wizard/step1'),
 
-  didInsertElement: function () {
-    $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
-    $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
-    $('.add-os-button,.redhat-label').tooltip();
-    this.$().on('mouseover', '.version-contents-body .table-hover > tbody > tr', function () {
-      App.tooltip($(this).find('.action .icon'), {placement: 'bottom'});
-      App.tooltip($(this).find('.icon-undo'), {placement: 'bottom'});
-    });
-    if (this.get('controller.selectedStack.showAvailable')) {
-      // first time load
-      if (this.get('controller.selectedStack.useRedhatSatellite')) {
-        // restore `use local repo` on page refresh
-        this.get('controller').useLocalRepo();
-      }
-    } else {
-      var selected = this.get('controller.content.stacks') && this.get('controller.content.stacks').findProperty('showAvailable');
-      if (!selected) {
-        // network disconnection
-        Em.trySet(this, 'controller.selectedStack.useLocalRepo', true);
-        Em.trySet(this, 'controller.selectedStack.usePublicRepo', false);
-      }
+  initView: function () {
+    if (this.get('controller.isLoadingComplete') && this.get('state') === 'inDOM') {
+      Em.run.next(() => {
+        $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
+        $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
+        $('.add-os-button,.redhat-label').tooltip();
+        this.$().on('mouseover', '.version-contents-body .table-hover > tbody > tr', function () {
+          App.tooltip($(this).find('.action .icon'), {placement: 'bottom'});
+          App.tooltip($(this).find('.icon-undo'), {placement: 'bottom'});
+        });
+        if (this.get('controller.selectedStack.showAvailable')) {
+          // first time load
+          if (this.get('controller.selectedStack.useRedhatSatellite')) {
+            // restore `use local repo` on page refresh
+            this.get('controller').useLocalRepo();
+          }
+        } else {
+          var selected = this.get('controller.content.stacks') && this.get('controller.content.stacks').findProperty('showAvailable');
+          if (!selected) {
+            // network disconnection
+            Em.trySet(this, 'controller.selectedStack.useLocalRepo', true);
+            Em.trySet(this, 'controller.selectedStack.usePublicRepo', false);
+          }
+        }
+      });
     }
-  },
+  }.observes('controller.isLoadingComplete'),
 
   willDestroyElement: function () {
     $("[rel=skip-validation-tooltip]").tooltip('destroy');
@@ -80,14 +84,14 @@ App.WizardStep1View = Em.View.extend({
    *
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isAnyOsEmpty', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete'),
+  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress', '!controller.isLoadingComplete'),
 
   /**
    * Show warning message flag
    *
    * @type {bool}
    */
-  warningExist: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isAnyOsEmpty'),
+  warningExist: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled'),
 
   skipVerifyBaseUrl: Em.computed.or('controller.selectedStack.skipValidationChecked', 'controller.selectedStack.useRedhatSatellite'),
 
@@ -207,19 +211,16 @@ App.WizardStep1View = Em.View.extend({
   },
 
   /**
-   * If any OS is empty
+   * If all OSes are empty
    * @type {bool}
    */
-  isAnyOsEmpty: function () {
+  isNoOsFilled: function () {
     var operatingSystems = this.get('controller.selectedStack.operatingSystems');
-    if (Em.isNone(operatingSystems)) {
+    if (this.get('controller.selectedStack.useRedhatSatellite') || Em.isNone(operatingSystems)) {
       return false;
     }
     var selectedOS = operatingSystems.filterProperty('isSelected', true);
-    if (this.get('controller.selectedStack.useRedhatSatellite')) {
-      selectedOS = selectedOS.filter(this.isRedhat);
-    }
-    return selectedOS.someProperty('isNotFilled', true);
+    return selectedOS.everyProperty('isNotFilled', true);
   }.property('controller.selectedStack.operatingSystems.@each.isSelected', 'controller.selectedStack.operatingSystems.@each.isNotFilled', 'controller.selectedStack.useRedhatSatellite'),
 
   popoverView: Em.View.extend({

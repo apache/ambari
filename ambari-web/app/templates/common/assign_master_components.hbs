@@ -167,6 +167,7 @@
           {{/if}}
         </button>
       {{/if}}
+      {{template "templates/wizard/installer_cancel_button"}}
       <button {{QAAttr "wizard-next"}} type="button" class="btn btn-success pull-right" {{bindAttr disabled="nextButtonDisabled"}} {{action submit target="controller"}}>
         {{#if App.router.nextBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

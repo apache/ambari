@@ -287,6 +287,7 @@ Em.I18n.translations = {
   'common.compare': 'Compare',
   'common.latest': 'Latest',
   'common.custom': 'Custom',
+  'common.continue': 'Continue',
   'common.continueAnyway': 'Continue Anyway',
   'common.property.undefined': "Undefined",
   'common.summary': "Summary",
@@ -432,6 +433,7 @@ Em.I18n.translations = {
   'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes. Should be less than 255 symbols.',
   'hostPopup.RackId': 'Rack',
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
+  'hostPopup.default.userName': 'none',
 
   'question.sure':'Are you sure?',
   'question.sure.restart':'Are you sure you want to restart {0}?',
@@ -1203,6 +1205,7 @@ Em.I18n.translations = {
   'alerts.definition.details.notification': 'Notification',
   'alerts.definition.details.noAlerts': 'No alert instances to display',
   'alerts.definition.details.configs.thresholdsErrorMsg': 'Critical threshold should be larger than warning threshold',
+  'alerts.definition.details.infoSection': 'Alert Info',
 
   'alerts.notifications.error.email': 'Must be a valid email address',
   'alerts.notifications.error.integer': 'Must be an integer',
@@ -1666,15 +1669,38 @@ Em.I18n.translations = {
   'If you choose to quit, you must follow manual instructions to complete or revert enabling Ranger Admin HA as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
   'admin.nameNodeFederation.button.enable':'Add New HDFS Namespace',
+  'admin.nameNodeFederation.wizard.required.zookeepers': 'All ZooKeeper Servers should be up',
+  'admin.nameNodeFederation.wizard.required.journalnodes': 'All JournalNodes should be up',
   'admin.nameNodeFederation.wizard.header': 'Add New HDFS Namespace',
+  'admin.nameNodeFederation.closePopup': 'Add New HDFS Namespace Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert Add New HDFS Namespace as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
   'admin.nameNodeFederation.wizard.step1.header': 'Get Started',
   'admin.nameNodeFederation.wizard.step1.body':'This wizard will walk you through the process of setting up a new Highly Available NameNode pair that will be used to create a new HDFS namespace, allowing you to use Ambari to manage multiple HDFS namespaces and take advantage of HDFS Federation.',
   'admin.nameNodeFederation.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
   'admin.nameNodeFederation.wizard.step1.nameserviceid':'New Nameservice ID',
+  'admin.nameNodeFederation.wizard.step1.nameserviceid.existing':'Existing Nameservice ID',
   'admin.nameNodeFederation.wizard.step1.nameserviceid.error':'Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
   'admin.nameNodeFederation.wizard.step2.header': 'Select Hosts',
   'admin.nameNodeFederation.wizard.step3.header': 'Review',
+  'admin.nameNodeFederation.wizard.step3.confirm.config.body': '<div class="alert alert-info">' +
+    '<p><b>Review Configuration Changes.</b></p>' +
+    'The following lists the configuration changes that will be made by the Wizard to enable NameNode Federation. This information is for <b> review only </b> and is not editable except for the  <b>dfs.journalnode.edits.dir</b> properties' +
+    '</div>',
   'admin.nameNodeFederation.wizard.step4.header': 'Configure Components',
+  'admin.nameNodeFederation.wizard,step4.save.configuration.note':'This configuration is created by Enable NameNode Federation wizard',
+  'admin.nameNodeFederation.wizard.step4.notice.inProgress':'Please wait while NameNode Federation Wizard is being deployed.',
+  'admin.nameNodeFederation.wizard.step4.notice.completed':'NameNode Federation Wizard has been enabled successfully.',
+  'admin.nameNodeFederation.wizard.step4.task0.title': 'Reconfigure Services',
+  'admin.nameNodeFederation.wizard.step4.task1.title': 'Install Additional NameNodes',
+  'admin.nameNodeFederation.wizard.step4.task2.title': 'Install Additional ZKFCs',
+  'admin.nameNodeFederation.wizard.step4.task3.title': 'Format NameNode',
+  'admin.nameNodeFederation.wizard.step4.task4.title': 'Format ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task5.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task6.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task7.title': 'Bootstrap NameNode',
+  'admin.nameNodeFederation.wizard.step4.task8.title': 'Create widgets',
+  'admin.nameNodeFederation.wizard.step4.task9.title': 'Start ZKFC',
+  'admin.nameNodeFederation.wizard.step4.task10.title': 'Start NameNode',
+  'admin.nameNodeFederation.wizard.step4.task11.title': 'Restart Required Services',
 
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
@@ -2017,7 +2043,7 @@ Em.I18n.translations = {
   'services.service.summary.historyServer': 'History Server Web UI',
   'services.service.summary.hiveserver2.jdbc.url.text': ' JDBC URL',
   'services.service.summary.hiveserver2.endpoint.tooltip.text':'JDBC connection string for {0}',
-  'services.service.summary.hiveserver2.endpoint.value':'jdbc:hive2://{0}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace={1}',
+  'services.service.summary.hiveserver2.endpoint.value':'jdbc:hive2://{0}/;serviceDiscoveryMode={1};zooKeeperNamespace={2}',
   'services.service.actions.downloadClientConfigs':'Download Client Configs',
   'services.service.actions.downloadClientConfigs.fail.noConfigFile':'No configuration files defined for the component',
   'services.service.actions.downloadClientConfigs.fail.popup.header':'{0} Configs',
@@ -2335,15 +2361,17 @@ Em.I18n.translations = {
   'services.service.restartCertain.warningMsg.turnOnMM': 'This will trigger alerts as components are restarted. To suppress alerts, turn on Maintenance Mode for {0} prior to running restart all',
   'services.service.componentsInNameSpace': 'components in {0} namespace',
   'services.service.stop.HDFS.warningMsg.checkPointNA': 'Could not determine the age of the last HDFS checkpoint. Please ensure that you have a recent checkpoint. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login': '<br><ol><li>Login to the NameNode host <b>{0}</b>.</li>',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.multipleHosts.login': '<ol><li>Login to the NameNode hosts {0}.</li>',
   'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions':
-    '<br><ol>' +
-    '<li>Login to the NameNode host <b>{0}</b>.</li>' +
     '<li>Put the NameNode in Safe Mode (read-only mode):' +
-    '<div class="code-snippet">sudo su {1} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
     '<li>Once in Safe Mode, create a Checkpoint:' +
-    '<div class="code-snippet">sudo su {1} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
     '</ol>',
-  'services.service.stop.HDFS.warningMsg.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours. Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours. ',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure': 'Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.nameSpaces.checkPointTooOld': 'The last HDFS checkpoint is older than {0} hours for the following namespaces:',
   'services.service.config_groups_popup.header':'Manage {0} Configuration Groups',
   'services.service.config_groups_popup.notice':'You can apply different sets of {{serviceName}} configurations to groups of hosts by managing {{serviceName}} Configuration Groups and their host membership.  Hosts belonging to a {{serviceName}} Configuration Group have the same set of configurations for {{serviceName}}. Each host belongs to one {{serviceName}} Configuration Group.',
   'services.service.config_groups_popup.rename':'Rename',
@@ -2982,6 +3010,7 @@ Em.I18n.translations = {
   'dashboard.widgets.HawqSegmentUp': 'HAWQ Segments Live',
   'dashboard.widgets.PxfUp': 'PXF Agents Live',
   'dashboard.widgets.PXFAgents': 'PXF Agents',
+  'dashboard.widgets.nameSpace': 'Namespace',
 
   'dashboard': {
     'widgets': {

@@ -84,6 +84,7 @@ public class RequestUpdateEventPublisher {
         || event.getRequestContext() == null) {
       RequestEntity requestEntity = requestDAO.findByPK(event.getRequestId());
       event.setStartTime(requestEntity.getStartTime());
+      event.setUserName(requestEntity.getUserName());
       event.setEndTime(requestEntity.getEndTime());
       if (requestEntity.getClusterId() != -1) {
         event.setClusterName(clusterDAO.findById(requestEntity.getClusterId()).getClusterName());

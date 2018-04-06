@@ -243,7 +243,7 @@ class WebSocketManager(threading.Thread):
         """
         Manage a new websocket.
 
-        First calls its :meth:`opened() <ambari_ws4py.websocket.WebSocket.opened>`
+        First calls its :meth:`opened() <ws4py.websocket.WebSocket.opened>`
         method and register its socket against the poller
         for reading events.
         """
@@ -261,7 +261,7 @@ class WebSocketManager(threading.Thread):
         """
         Remove the given ``websocket`` from the manager.
 
-        This does not call its :meth:`closed() <ambari_ws4py.websocket.WebSocket.closed>`
+        This does not call its :meth:`closed() <ws4py.websocket.WebSocket.closed>`
         method as it's out-of-band by your application
         or from within the manager's run loop.
         """
@@ -292,8 +292,8 @@ class WebSocketManager(threading.Thread):
         call related websockets' `once` method to
         read and process the incoming data.
 
-        If the :meth:`once() <ambari_ws4py.websocket.WebSocket.once>`
-        method returns a `False` value, its :meth:`terminate() <ambari_ws4py.websocket.WebSocket.terminate>`
+        If the :meth:`once() <ws4py.websocket.WebSocket.once>`
+        method returns a `False` value, its :meth:`terminate() <ws4py.websocket.WebSocket.terminate>`
         method is also applied to properly close
         the websocket and its socket is unregistered from the poller.
 
@@ -335,7 +335,7 @@ class WebSocketManager(threading.Thread):
 
     def close_all(self, code=1001, message='Server is shutting down'):
         """
-        Execute the :meth:`close() <ambari_ws4py.websocket.WebSocket.close>`
+        Execute the :meth:`close() <ws4py.websocket.WebSocket.close>`
         method of each registered websockets to initiate the closing handshake.
         It doesn't wait for the handshake to complete properly.
         """

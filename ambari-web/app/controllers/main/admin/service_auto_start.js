@@ -154,7 +154,8 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     this.set('componentsConfigsGrouped', this.parseComponentConfigs(data.items));
   },
 
-  saveClusterConfigs: function (clusterConfigs) {
+  saveClusterConfigs: function (clusterConfigs, recoveryEnabled) {
+    clusterConfigs.recovery_enabled = String(recoveryEnabled);
     return App.ajax.send({
       name: 'admin.save_configs',
       sender: this,
@@ -233,7 +234,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
         let clusterConfigsCall, enabledComponentsCall, disabledComponentsCall;
 
         if (self.get('isGeneralModified')) {
-          clusterConfigsCall = self.saveClusterConfigs(self.get('clusterConfigs'));
+          clusterConfigsCall = self.saveClusterConfigs(self.get('clusterConfigs'), self.get('isGeneralRecoveryEnabled'));
         }
 
         const enabledComponents = self.filterComponentsByChange(self.get('componentsConfigsGrouped'), true);

@@ -23,6 +23,12 @@
     minimist "^1.2.0"
     rxjs "^5.4.2"
 
+"@angular/animations@^4.0.0":
+  version "4.4.6"
+  resolved "https://registry.yarnpkg.com/@angular/animations/-/animations-4.4.6.tgz#fa661899a8a4e38cb7c583c7a5c97ce65d592a35"
+  dependencies:
+    tslib "^1.7.1"
+
 "@angular/cli@^1.4.3":
   version "1.4.3"
   resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.4.3.tgz#8389d4eeadfe34abb1d16e53836416a8f8430fb3"
@@ -151,6 +157,10 @@
 "@ngrx/core@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@ngrx/core/-/core-1.2.0.tgz#882b46abafa2e0e6d887cb71a1b2c2fa3e6d0dc6"
+
+"@ngrx/store-devtools@3.2.4":
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/@ngrx/store-devtools/-/store-devtools-3.2.4.tgz#2ce4d13bf34848a9e51ec87e3b125ed67b51e550"
 
 "@ngrx/store@^2.2.3":
   version "2.2.3"
@@ -528,9 +538,9 @@ angular2-moment@^1.4.0:
   dependencies:
     moment "^2.16.0"
 
-angular2-take-until-destroy@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/angular2-take-until-destroy/-/angular2-take-until-destroy-2.0.1.tgz#6b502a55f7859f0fca1a7d1357c472162ffad969"
+angular2-notifications@0.4.46:
+  version "0.4.46"
+  resolved "https://registry.yarnpkg.com/angular2-notifications/-/angular2-notifications-0.4.46.tgz#d868cfad43c4da3c1490a57a96d637a5eb96ce69"
 
 ansi-align@^2.0.0:
   version "2.0.0"

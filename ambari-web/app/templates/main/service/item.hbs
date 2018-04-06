@@ -37,7 +37,8 @@
           {{#each option in view.maintenance}}
             {{#unless option.isHidden}}
               <li {{bindAttr class="option.disabled option.hasSubmenu:dropdown-submenu option.hasSubmenu:submenu-left"}}>
-                <a {{action "doAction" option target="controller" href=true}} {{bindAttr data-title="option.tooltip"}} rel="HealthTooltip">
+                <a {{action "doAction" option target="controller" href=true}}
+                  {{bindAttr data-title="option.tooltip" rel="view.tooltipAttribute"}}>
                   <i {{bindAttr class="option.cssClass"}}></i>
                   {{option.label}}
                 </a>
@@ -46,7 +47,10 @@
                     <ul class="dropdown-menu">
                       {{#each item in option.submenuOptions}}
                         <li>
-                          <a {{action "doAction" item target="controller" href=true}}>{{item.context.label}}</a>
+                          <a class="ellipsis-overflow" {{action "doAction" item target="controller" href=true}}
+                            {{bindAttr data-title="item.tooltip" rel="view.tooltipAttribute"}}>
+                            {{item.context.label}}
+                          </a>
                         </li>
                       {{/each}}
                     </ul>

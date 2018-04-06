@@ -184,4 +184,8 @@ public abstract class Filter<PROP_TYPE extends LogFeederProperties> extends Conf
     // no metrics yet
     return null;
   }
+
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
+  }
 }

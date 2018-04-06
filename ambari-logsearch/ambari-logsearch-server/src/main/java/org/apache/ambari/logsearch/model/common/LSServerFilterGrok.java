@@ -41,6 +41,12 @@ public class LSServerFilterGrok extends LSServerFilter {
   @JsonProperty("message_pattern")
   private String messagePattern;
 
+  @JsonProperty
+  private boolean skipOnError;
+
+  @JsonProperty
+  private boolean deepExtract;
+
   public LSServerFilterGrok() {}
 
   public LSServerFilterGrok(FilterDescriptor filterDescriptor) {
@@ -50,6 +56,8 @@ public class LSServerFilterGrok extends LSServerFilter {
       this.log4jFormat = filterGrokDescriptor.getLog4jFormat();
       this.multilinePattern = filterGrokDescriptor.getMultilinePattern();
       this.messagePattern = filterGrokDescriptor.getMessagePattern();
+      this.skipOnError = filterGrokDescriptor.isSkipOnError();
+      this.deepExtract = filterGrokDescriptor.isDeepExtract();
     }
   }
 
@@ -75,5 +83,21 @@ public class LSServerFilterGrok extends LSServerFilter {
 
   public void setMessagePattern(String messagePattern) {
     this.messagePattern = messagePattern;
+  }
+
+  public boolean isSkipOnError() {
+    return skipOnError;
+  }
+
+  public void setSkipOnError(boolean skipOnError) {
+    this.skipOnError = skipOnError;
+  }
+
+  public boolean isDeepExtract() {
+    return deepExtract;
+  }
+
+  public void setDeepExtract(boolean deepExtract) {
+    this.deepExtract = deepExtract;
   }
 }

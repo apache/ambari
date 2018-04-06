@@ -110,6 +110,8 @@ App.MainServiceItemView = Em.View.extend({
 
   isMaintenanceSet: false,
 
+  tooltipAttribute: 'service-actions-tooltip',
+
   observeMaintenance: function() {
     if (!this.get('isMaintenanceSet') && this.get('controller.isServicesInfoLoaded') && this.get('controller.isServiceConfigsLoaded')) {
       this.observeMaintenanceOnce();
@@ -329,6 +331,7 @@ App.MainServiceItemView = Em.View.extend({
       this.set('maintenance', options);
     }
     this.set('isMaintenanceSet', true);
+    App.tooltip($(`[rel="${this.get('tooltipAttribute')}"]`));
   },
 
   clearIsMaintenanceSet: function () {

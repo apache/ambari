@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
 
@@ -38,6 +39,10 @@ public abstract class AgentDataHolder<T extends Hashable> {
   protected void regenerateDataIdentifiers(T data) {
     data.setHash(null);
     data.setHash(getHash(data));
+  }
+
+  protected boolean isIdentifierValid(T data) {
+    return StringUtils.isNotEmpty(data.getHash());
   }
 
   protected String getHash(T data) {

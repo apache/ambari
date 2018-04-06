@@ -28,14 +28,7 @@ import {Component, Input} from '@angular/core';
 })
 export class LogLevelComponent {
 
-  /**
-   * This is the log entry object
-   * @type {object}
-   */
-  @Input()
-  logEntry: any;
-
-  private classMap: object = {
+  static classMap: object = {
     warn: 'fa-exclamation-triangle',
     fatal: 'fa-exclamation-circle',
     error: 'fa-exclamation-circle',
@@ -45,8 +38,15 @@ export class LogLevelComponent {
     unknown: 'fa-question-circle'
   };
 
+  /**
+   * This is the log entry object
+   * @type {object}
+   */
+  @Input()
+  logEntry: any;
+
   get cssClass() {
-    return this.classMap[((this.logEntry && this.logEntry.level) || 'unknown').toLowerCase()];
+    return LogLevelComponent.classMap[((this.logEntry && this.logEntry.level) || 'unknown').toLowerCase()];
   }
 
 }

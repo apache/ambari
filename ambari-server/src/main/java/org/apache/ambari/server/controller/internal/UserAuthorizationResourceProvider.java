@@ -161,8 +161,8 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
       Set<Resource> internalResources = userPrivilegeProvider.getResources(internalRequest, internalPredicate);
       if (internalResources != null) {
         for (Resource internalResource : internalResources) {
-          String permissionName = (String) internalResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID);
-          String resourceType = (String) internalResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID);
+          String permissionName = (String) internalResource.getPropertyValue(UserPrivilegeResourceProvider.PERMISSION_NAME);
+          String resourceType = (String) internalResource.getPropertyValue(UserPrivilegeResourceProvider.TYPE);
           Collection<RoleAuthorizationEntity> authorizationEntities;
           ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(resourceType);
 
@@ -204,7 +204,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
    * @return a predicate
    */
   private Predicate createUserPrivilegePredicate(String username) {
-    return new EqualsPredicate<>(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID, username);
+    return new EqualsPredicate<>(UserPrivilegeResourceProvider.USER_NAME, username);
   }
 
   /**
@@ -214,13 +214,13 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
    */
   private Request createUserPrivilegeRequest() {
     Set<String> propertyIds = new HashSet<>();
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID);
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID);
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID);
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID);
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID);
+    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_ID);
+    propertyIds.add(UserPrivilegeResourceProvider.PERMISSION_NAME);
+    propertyIds.add(UserPrivilegeResourceProvider.TYPE);
+    propertyIds.add(UserPrivilegeResourceProvider.CLUSTER_NAME);
+    propertyIds.add(UserPrivilegeResourceProvider.VIEW_NAME);
+    propertyIds.add(UserPrivilegeResourceProvider.VIEW_VERSION);
+    propertyIds.add(UserPrivilegeResourceProvider.INSTANCE_NAME);
 
     return new RequestImpl(propertyIds, null, null, null);
   }
@@ -252,7 +252,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
 
     for (RoleAuthorizationEntity entity : authorizationEntities) {
       Resource resource = new ResourceImpl(Type.UserAuthorization);
-      String clusterName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
+      String clusterName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.CLUSTER_NAME);
       UserAuthorizationResponse userAuthorizationResponse = getResponse(entity.getAuthorizationId(),
         entity.getAuthorizationName(), clusterName, resourceType, username);
       setResourceProperty(resource, AUTHORIZATION_ID_PROPERTY_ID, userAuthorizationResponse.getAuthorizationId(), requestedIds);
@@ -260,7 +260,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
       setResourceProperty(resource, AUTHORIZATION_NAME_PROPERTY_ID, entity.getAuthorizationName(), requestedIds);
       setResourceProperty(resource, AUTHORIZATION_RESOURCE_TYPE_PROPERTY_ID, resourceType, requestedIds);
       setResourceProperty(resource, AUTHORIZATION_CLUSTER_NAME_PROPERTY_ID,
-          privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID),
+          privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.CLUSTER_NAME),
           requestedIds);
 
       resources.add(resource);
@@ -296,9 +296,9 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
                                 Set<String> requestedIds) {
     for (RoleAuthorizationEntity entity : authorizationEntities) {
       Resource resource = new ResourceImpl(Type.UserAuthorization);
-      String viewName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID);
-      String viewVersion = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
-      String viewInstanceName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID);
+      String viewName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.VIEW_NAME);
+      String viewVersion = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.VIEW_VERSION);
+      String viewInstanceName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.INSTANCE_NAME);
       UserAuthorizationResponse userAuthorizationResponse = getResponse(entity.getAuthorizationId(),
         entity.getAuthorizationName(), resourceType, username, viewName, viewVersion, viewInstanceName);
       setResourceProperty(resource, AUTHORIZATION_ID_PROPERTY_ID, userAuthorizationResponse.getAuthorizationId(), requestedIds);

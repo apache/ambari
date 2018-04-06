@@ -27,8 +27,9 @@ from resource_management.libraries.functions.get_user_call_output import get_use
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.script.script import Script
 
-from setup_infra_solr import setup_infra_solr
-
+from collection import backup_collection, restore_collection
+from migrate import migrate_index
+from setup_infra_solr import setup_infra_solr, setup_solr_znode_env
 
 class InfraSolr(Script):
   def install(self, env):
@@ -47,6 +48,7 @@ class InfraSolr(Script):
     env.set_params(params)
     self.configure(env)
 
+    setup_solr_znode_env()
     start_cmd = format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} -Dsolr.kerberos.name.rules=\'{infra_solr_kerberos_name_rules}\' >> {infra_solr_log} 2>&1') \
             if params.security_enabled else format('{solr_bindir}/solr start -cloud -noprompt -s {infra_solr_datadir} >> {infra_solr_log} 2>&1')
     Execute(
@@ -121,6 +123,15 @@ class InfraSolr(Script):
       jaas_file=params.infra_solr_jaas_file,
       user=params.infra_solr_user)
     zkmigrator.set_acls(params.infra_solr_znode, 'world:anyone:crdwa')
+
+  def backup(self, env):
+    backup_collection(env)
+
+  def restore(self, env):
+    restore_collection(env)
+
+  def migrate(self, env):
+    migrate_index(env)
 
 if __name__ == "__main__":
   InfraSolr().execute()

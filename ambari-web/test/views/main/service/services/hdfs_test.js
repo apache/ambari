@@ -35,26 +35,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
 
   App.TestAliases.testAsComputedAlias(getView(), 'journalNodesTotal', 'service.journalNodes.length', 'number');
 
-  describe("#Chart", function() {
-    var chartView;
-
-    beforeEach(function() {
-      chartView = view.get('Chart').create();
-    });
-
-    describe("#data", function () {
-
-      it("should return data", function () {
-        chartView.set('service', Em.Object.create({
-          capacityTotal: 100,
-          capacityRemaining: 1
-        }));
-        chartView.propertyDidChange('data');
-        expect(chartView.get('data')).to.be.eql([99, 1]);
-      });
-    });
-  });
-
   describe("#metricsNotAvailableObserver()", function() {
 
     beforeEach(function() {
@@ -106,89 +86,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
     });
   });
 
-  describe("#nodeUptime", function() {
-
-    beforeEach(function() {
-      sinon.stub(App, 'dateTime').returns(10);
-      sinon.stub(date, 'timingFormat').returns('11');
-    });
-    afterEach(function() {
-      App.dateTime.restore();
-      date.timingFormat.restore();
-    });
-
-    it("nameNodeStartTime is 0", function() {
-      view.set('service.nameNodeStartTime', 0);
-      view.propertyDidChange('nodeUptime');
-      expect(view.get('nodeUptime')).to.be.equal(view.t('services.service.summary.notRunning'));
-    });
-
-    it("nameNodeStartTime is -1", function() {
-      view.set('service.nameNodeStartTime', -1);
-      view.propertyDidChange('nodeUptime');
-      expect(view.get('nodeUptime')).to.be.equal(view.t('services.service.summary.notRunning'));
-    });
-
-    it("nameNodeStartTime is 1", function() {
-      view.set('service.nameNodeStartTime', 1);
-      view.propertyDidChange('nodeUptime');
-      expect(view.get('nodeUptime')).to.be.equal(view.t('dashboard.services.uptime').format('11'));
-      expect(date.timingFormat.calledWith(9)).to.be.true;
-    });
-
-    it("nameNodeStartTime is 11", function() {
-      view.set('service.nameNodeStartTime', 11);
-      view.propertyDidChange('nodeUptime');
-      expect(view.get('nodeUptime')).to.be.equal(view.t('dashboard.services.uptime').format('11'));
-      expect(date.timingFormat.calledWith(0)).to.be.true;
-    });
-  });
-
-  describe("#nonDfsUsed", function() {
-    var testCases = [
-      {
-        input: {
-          capacityTotal: null,
-          capacityRemaining: 1,
-          capacityUsed: 90
-        },
-        expected: null
-      },
-      {
-        input: {
-          capacityTotal: 100,
-          capacityRemaining: null,
-          capacityUsed: 90
-        },
-        expected: null
-      },
-      {
-        input: {
-          capacityTotal: 100,
-          capacityRemaining: 1,
-          capacityUsed: null
-        },
-        expected: null
-      },
-      {
-        input: {
-          capacityTotal: 100,
-          capacityRemaining: 1,
-          capacityUsed: 90
-        },
-        expected: 9
-      }
-    ];
-
-    testCases.forEach(function(test) {
-      it("total=" + test.input.capacityTotal + " remaining" + test.input.capacityRemaining + " used" + test.input.capacityUsed, function() {
-        view.get('service').setProperties(test.input);
-        view.propertyDidChange('nonDfsUsed');
-        expect(view.get('nonDfsUsed')).to.be.equal(test.expected);
-      });
-    });
-  });
-
   describe("#isNfsInStack", function() {
 
     beforeEach(function() {
@@ -210,73 +107,5 @@ describe('App.MainDashboardServiceHdfsView', function () {
       expect(view.get('isNfsInStack')).to.be.true;
     });
   });
-
-  describe("#safeModeStatus", function() {
-
-    it("safeModeStatus is null", function() {
-      view.set('service.safeModeStatus', null);
-      view.propertyDidChange('safeModeStatus');
-      expect(view.get('safeModeStatus')).to.be.equal(Em.I18n.t("services.service.summary.notAvailable"));
-    });
-
-    it("safeModeStatus is empty", function() {
-      view.set('service.safeModeStatus', "");
-      view.propertyDidChange('safeModeStatus');
-      expect(view.get('safeModeStatus')).to.be.equal(Em.I18n.t("services.service.summary.safeModeStatus.notInSafeMode"));
-    });
-
-    it("safeModeStatus is on", function() {
-      view.set('service.safeModeStatus', 'on');
-      view.propertyDidChange('safeModeStatus');
-      expect(view.get('safeModeStatus')).to.be.equal(Em.I18n.t("services.service.summary.safeModeStatus.inSafeMode"));
-    });
-  });
-
-  describe("#upgradeStatus", function() {
-
-    it("upgradeStatus is 'true'", function() {
-      view.set('service.upgradeStatus', 'true');
-      view.propertyDidChange('upgradeStatus');
-      expect(view.get('upgradeStatus')).to.be.equal(Em.I18n.t('services.service.summary.pendingUpgradeStatus.notPending'));
-    });
-
-    it("upgradeStatus is 'false', healthStatus is 'green'", function() {
-      view.set('service.upgradeStatus', 'false');
-      view.set('service.healthStatus', 'green');
-      view.propertyDidChange('upgradeStatus');
-      expect(view.get('upgradeStatus')).to.be.equal(Em.I18n.t('services.service.summary.pendingUpgradeStatus.notFinalized'));
-    });
-
-    it("upgradeStatus is null", function() {
-      view.set('service.upgradeStatus', null);
-      view.propertyDidChange('upgradeStatus');
-      expect(view.get('upgradeStatus')).to.be.equal(Em.I18n.t('services.service.summary.notAvailable'));
-    });
-  });
-
-  describe("#isUpgradeStatusWarning", function() {
-
-    it("upgradeStatus is 'false', healthStatus is 'green'", function() {
-      view.set('service.upgradeStatus', 'false');
-      view.set('service.healthStatus', 'green');
-      view.propertyDidChange('isUpgradeStatusWarning');
-      expect(view.get('isUpgradeStatusWarning')).to.be.true;
-    });
-
-    it("upgradeStatus is 'true', healthStatus is 'green'", function() {
-      view.set('service.upgradeStatus', 'true');
-      view.set('service.healthStatus', 'green');
-      view.propertyDidChange('isUpgradeStatusWarning');
-      expect(view.get('isUpgradeStatusWarning')).to.be.false;
-    });
-
-    it("upgradeStatus is 'false', healthStatus is 'red'", function() {
-      view.set('service.upgradeStatus', 'false');
-      view.set('service.healthStatus', 'red');
-      view.propertyDidChange('isUpgradeStatusWarning');
-      expect(view.get('isUpgradeStatusWarning')).to.be.false;
-    });
-  });
-
 
 });

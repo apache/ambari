@@ -17,29 +17,28 @@
  */
 
 import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {HttpClientService} from '@app/services/http-client.service';
+import {Observable} from 'rxjs/Observable';
+import {Options} from 'angular2-notifications/src/options.type';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.less']
 })
-
 export class AppComponent {
 
-  constructor(private httpClient: HttpClientService, private translate: TranslateService, private appState: AppStateService) {
-    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
-    appState.setParameter('isInitialLoading', true);
-    httpClient.get('status').subscribe(() => appState.setParameters({
-      isAuthorized: true,
-      isInitialLoading: false
-    }), () => appState.setParameter('isInitialLoading', false));
-    translate.setDefaultLang('en');
-    translate.use('en');
-  }
+  isAuthorized$: Observable<boolean> = this.appState.getParameter('isAuthorized');
 
-  isAuthorized: boolean = false;
+  private notificationServiceOptions: Options = {
+    timeOut: 5000,
+    showProgressBar: true,
+    pauseOnHover: true,
+    preventLastDuplicates: 'visible'
+  };
+
+  constructor(
+    private appState: AppStateService
+  ) {}
 
 }
