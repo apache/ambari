@@ -36,7 +36,7 @@ class ExecutionCommand(object):
     :param command: json string or a python dict object
     """
     self._execution_command = command
-    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"), self.__get_value("configAttributes"))
+    self._module_configs = module_configs.ModuleConfigs(self.__get_value("configurations"), self.__get_value("configurationAttributes"))
 
   def __get_value(self, key, default_value=None):
     """
