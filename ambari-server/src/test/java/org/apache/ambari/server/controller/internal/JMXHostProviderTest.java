@@ -37,13 +37,8 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -448,10 +443,7 @@ public class JMXHostProviderTest {
 
 
   @Test
-  public void testJMXPortMapInitAtServiceLevelVersion1() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
+  public void testJMXPortMapInitAtServiceLevelVersion1() throws Exception {
 
     createHDFSServiceConfigs(true);
 
@@ -459,19 +451,16 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Service);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost"));
-    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost"));
+    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost", false));
+    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost", false));
     // Default port addresses
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost", false));
+    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost", false));
+    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost", false));
   }
 
   @Test
-  public void testJMXPortMapInitAtServiceLevelVersion2() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
+  public void testJMXPortMapInitAtServiceLevelVersion2() throws Exception {
 
     createHDFSServiceConfigs(false);
 
@@ -479,20 +468,16 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Service);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("70071", providerModule.getPort("c1", "NAMENODE", "localhost"));
-    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost"));
+    Assert.assertEquals("70071", providerModule.getPort("c1", "NAMENODE", "localhost", false));
+    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost", false));
     // Default port addresses
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost", false));
+    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost", false));
+    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost", false));
   }
 
   @Test
-  public void testJMXPortMapNameNodeHa() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
-
+  public void testJMXPortMapNameNodeHa() throws Exception {
     createConfigsNameNodeHa();
 
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
@@ -500,28 +485,24 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Configuration);
 
 
-    Assert.assertEquals("50071", providerModule.getPort("nnha", "NAMENODE", "h1"));
-    Assert.assertEquals("50072", providerModule.getPort("nnha", "NAMENODE", "h2"));
+    Assert.assertEquals("50071", providerModule.getPort("nnha", "NAMENODE", "h1", false));
+    Assert.assertEquals("50072", providerModule.getPort("nnha", "NAMENODE", "h2", false));
   }
 
   @Test
-  public void testJMXPortMapInitAtClusterLevel() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
-
+  public void testJMXPortMapInitAtClusterLevel() throws Exception {
     createConfigs();
 
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost"));
-    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost"));
+    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost", false));
+    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE", "localhost", false));
     // Default port addresses
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost", false));
+    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER", "localhost", false));
+    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER", "localhost", false));
   }
 
   @Test
@@ -552,10 +533,7 @@ public class JMXHostProviderTest {
   }
 
   @Test
-  public void testJMXHttpsPort() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
+  public void testJMXHttpsPort() throws Exception {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -567,10 +545,7 @@ public class JMXHostProviderTest {
   }
 
   @Test
-  public void testJMXHistoryServerHttpsPort() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
+  public void testJMXHistoryServerHttpsPort() throws Exception {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -581,10 +556,7 @@ public class JMXHostProviderTest {
   }
 
   @Test
-  public void testJMXJournalNodeHttpsPort() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
+  public void testJMXJournalNodeHttpsPort() throws Exception {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -594,10 +566,7 @@ public class JMXHostProviderTest {
   }
 
   @Test
-  public void testJMXDataNodeHttpsPort() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
+  public void testJMXDataNodeHttpsPort() throws Exception {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -607,10 +576,7 @@ public class JMXHostProviderTest {
   }
 
   @Test
-  public void testJMXHbaseMasterHttps() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
+  public void testJMXHbaseMasterHttps() throws Exception {
     createConfigs();
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
@@ -620,18 +586,14 @@ public class JMXHostProviderTest {
   }
 
   @Test
-  public void testJMXPortMapUpdate() throws
-      NoSuchParentResourceException,
-      ResourceAlreadyExistsException, UnsupportedPropertyException,
-      SystemException, AmbariException, NoSuchResourceException, NoSuchFieldException, IllegalAccessException {
-
+  public void testJMXPortMapUpdate() throws Exception {
     createConfigs();
 
     JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
     providerModule.registerResourceProvider(Resource.Type.Cluster);
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     // Non default port addresses
-    Assert.assertEquals("8088", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost"));
+    Assert.assertEquals("8088", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost", false));
 
     Map<String, String> yarnConfigs = new HashMap<>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "localhost:50030");
@@ -642,15 +604,15 @@ public class JMXHostProviderTest {
     ClusterRequest crReq = new ClusterRequest(1L, "c1", null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
-    Assert.assertEquals("50030", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost"));
-    Assert.assertEquals("11111", providerModule.getPort("c1", "NODEMANAGER", "localhost"));
+    Assert.assertEquals("50030", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost", false));
+    Assert.assertEquals("11111", providerModule.getPort("c1", "NODEMANAGER", "localhost", false));
 
     //Unrelated ports
-    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost"));
-    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost"));
+    Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE", "localhost", false));
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER", "localhost", false));
 
     //test another host and component without property
-    Assert.assertNull(providerModule.getPort("c1", "HBASE_REGIONSERVER", "remotehost1"));
+    Assert.assertNull(providerModule.getPort("c1", "HBASE_REGIONSERVER", "remotehost1", false));
   }
 
   private static class JMXHostProviderModule extends AbstractProviderModule {

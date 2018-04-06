@@ -26,9 +26,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
+import org.apache.ambari.server.state.UriInfo;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
@@ -43,7 +45,7 @@ import com.google.gson.annotations.SerializedName;
 public class MetricSource extends Source {
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private UriInfo uri = null;
 
   @SerializedName("jmx")
   private JmxInfo jmxInfo = null;
@@ -71,7 +73,7 @@ public class MetricSource extends Source {
    * @return the uri info, which may include port information
    */
   @JsonProperty("uri")
-  public AlertUri getUri() {
+  public UriInfo getUri() {
     return uri;
   }
 
@@ -104,16 +106,17 @@ public class MetricSource extends Source {
    * Represents the {@code jmx} element in a Metric alert.
    */
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
   public static class JmxInfo {
     @SerializedName("property_list")
     private List<String> propertyList;
 
+    @SerializedName("value")
     private String value = "{0}";
 
     @SerializedName("url_suffix")
     private String urlSuffix = "/jmx";
 
-    @JsonProperty("property_list")
     public List<String> getPropertyList() {
       return propertyList;
     }

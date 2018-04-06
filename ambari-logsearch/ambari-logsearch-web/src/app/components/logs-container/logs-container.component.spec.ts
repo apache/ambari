@@ -40,6 +40,11 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {TabsComponent} from '@app/components/tabs/tabs.component';
 
 import {LogsContainerComponent} from './logs-container.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('LogsContainerComponent', () => {
   let component: LogsContainerComponent;
@@ -52,6 +57,7 @@ describe('LogsContainerComponent', () => {
         TabsComponent
       ],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           appState,
@@ -85,7 +91,11 @@ describe('LogsContainerComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         UtilsService,
-        LogsContainerService
+        LogsContainerService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

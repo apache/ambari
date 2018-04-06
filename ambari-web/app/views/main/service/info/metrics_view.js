@@ -80,12 +80,15 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
    */
   persistKey: Em.computed.format('time-range-service-{0}', 'service.serviceName'),
 
+  isLoading: false,
+
   didInsertElement: function () {
     var svcName = this.get('controller.content.serviceName');
     this.set('service', this.getServiceModel(svcName));
     var isMetricsSupported = svcName !== 'STORM' || App.get('isStormMetricsSupported');
 
-    this.get('controller').getActiveWidgetLayout();
+    this.loadActiveWidgetLayout();
+
     if (App.get('supports.customizedWidgetLayout')) {
       this.get('controller').loadWidgetLayouts();
     }
@@ -97,6 +100,14 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
     this.makeSortable();
     this.addWidgetTooltip();
   },
+
+  loadActiveWidgetLayout: function () {
+    var isHDFS = this.get('controller.content.serviceName') === 'HDFS';
+    if (!this.get('isLoading') && (!isHDFS || (isHDFS && App.router.get('clusterController.isHostComponentMetricsLoaded')))) {
+      this.set('isLoading', true);
+      this.get('controller').getActiveWidgetLayout();
+    }
+  }.observes('App.router.clusterController.isHostComponentMetricsLoaded'),
 
   addWidgetTooltip: function() {
     Em.run.later(this, function () {
@@ -116,6 +127,7 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
     $("[rel='add-widget-tooltip']").tooltip('destroy');
     $('.img-thumbnail').off();
     $('#widget_layout').sortable('destroy');
+    $('#ns_widget_layout').sortable('destroy');
     $('.widget.span2p4').detach().remove();
     this.get('serviceMetricGraphs').clear();
     this.set('service', null);
@@ -285,6 +297,27 @@ App.MainServiceInfoMetricsView = Em.View.extend(App.Persist, App.TimeRangeMixin,
         }
       }).disableSelection();
       $('html').off('DOMNodeInserted', '#widget_layout');
+    });
+    $('html').on('DOMNodeInserted', '#ns_widget_layout', function () {
+      $(this).sortable({
+        items: "> div",
+        cursor: "move",
+        tolerance: "pointer",
+        scroll: false,
+        update: function () {
+          var widgets = misc.sortByOrder($("#ns_widget_layout .widget").map(function () {
+            return this.id;
+          }), self.get('controller.widgets'));
+          self.get('controller').saveWidgetLayout(widgets);
+        },
+        activate: function () {
+          self.set('isMoving', true);
+        },
+        deactivate: function () {
+          self.set('isMoving', false);
+        }
+      }).disableSelection();
+      $('html').off('DOMNodeInserted', '#ns_widget_layout');
     });
   }
 });

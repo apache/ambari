@@ -47,7 +47,7 @@ from ambari_commons import OSConst
 
 
 import namenode_upgrade
-from hdfs_namenode import namenode, wait_for_safemode_off, refreshProxyUsers
+from hdfs_namenode import namenode, wait_for_safemode_off, refreshProxyUsers, format_namenode
 from hdfs import hdfs, reconfig
 import hdfs_rebalance
 from utils import initiate_safe_zkfc_failover, get_hdfs_binary, get_dfsadmin_base_command
@@ -93,6 +93,36 @@ class NameNode(Script):
     env.set_params(params)
     Logger.info("RELOAD HDFS PROXY USERS")
     refreshProxyUsers()
+
+  def format(self, env):
+    import params
+    env.set_params(params)
+
+    if params.security_enabled:
+        Execute(params.nn_kinit_cmd,
+                user=params.hdfs_user
+        )
+
+    # this is run on a new namenode, format needs to be forced
+    Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
+            user = params.hdfs_user,
+            path = [params.hadoop_bin_dir],
+            logoutput=True
+    )
+
+  def bootstrap_standby(self, env):
+    import params
+    env.set_params(params)
+
+    if params.security_enabled:
+        Execute(params.nn_kinit_cmd,
+                user=params.hdfs_user
+        )
+
+    Execute("hdfs namenode -bootstrapStandby -nonInteractive",
+            user=params.hdfs_user,
+            logoutput=True
+    )
 
   def start(self, env, upgrade_type=None):
     import params
@@ -175,8 +205,10 @@ class NameNodeDefault(NameNode):
     hdfs_binary = self.get_hdfs_binary()
     namenode_upgrade.prepare_upgrade_check_for_previous_dir()
     namenode_upgrade.prepare_upgrade_enter_safe_mode(hdfs_binary)
-    namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
-    namenode_upgrade.prepare_upgrade_backup_namenode_dir()
+    if not params.skip_namenode_save_namespace_express:
+      namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
+    if not params.skip_namenode_namedir_backup_express:
+      namenode_upgrade.prepare_upgrade_backup_namenode_dir()
     namenode_upgrade.prepare_upgrade_finalize_previous_upgrades(hdfs_binary)
 
     # Call -rollingUpgrade prepare
@@ -297,12 +329,6 @@ class NameNodeDefault(NameNode):
              "operation earlier. The process may take a long time to finish (hours, even days). If the problem persists "
              "please consult with the HDFS administrators if they have triggred or killed the operation.")
 
-    if params.security_enabled:
-      # Delete the kerberos credentials cache (ccache) file
-      File(ccache_file_path,
-           action = "delete",
-      )
-      
   def get_log_folder(self):
     import params
     return params.hdfs_log_dir

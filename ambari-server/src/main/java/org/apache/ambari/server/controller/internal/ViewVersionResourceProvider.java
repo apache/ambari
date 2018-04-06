@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.ParameterConfig;
@@ -50,47 +51,68 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   /**
    * View property id constants.
    */
-  public static final String VIEW_NAME_PROPERTY_ID          = "ViewVersionInfo/view_name";
-  public static final String VIEW_VERSION_PROPERTY_ID       = "ViewVersionInfo/version";
-  public static final String VIEW_BUILD_PROPERTY_ID         = "ViewVersionInfo/build_number";
-  public static final String LABEL_PROPERTY_ID              = "ViewVersionInfo/label";
-  public static final String DESCRIPTION_PROPERTY_ID        = "ViewVersionInfo/description";
-  public static final String MIN_AMBARI_VERSION_PROPERTY_ID = "ViewVersionInfo/min_ambari_version";
-  public static final String MAX_AMBARI_VERSION_PROPERTY_ID = "ViewVersionInfo/max_ambari_version";
-  public static final String PARAMETERS_PROPERTY_ID         = "ViewVersionInfo/parameters";
-  public static final String ARCHIVE_PROPERTY_ID            = "ViewVersionInfo/archive";
-  public static final String MASKER_CLASS_PROPERTY_ID       = "ViewVersionInfo/masker_class";
-  public static final String VIEW_STATUS_PROPERTY_ID        = "ViewVersionInfo/status";
-  public static final String VIEW_STATUS_DETAIL_PROPERTY_ID = "ViewVersionInfo/status_detail";
-  public static final String CLUSTER_CONFIG_PROPERTY_ID     = "ViewVersionInfo/cluster_configurable";
-  public static final String SYSTEM_PROPERTY_ID             = "ViewVersionInfo/system";
+  public static final String VIEW_VERSION_INFO = "ViewVersionInfo";
+
+  public static final String VIEW_NAME_PROPERTY_ID  = "view_name";
+  public static final String VERSION_PROPERTY_ID = "version";
+  public static final String BUILD_NUMBER_PROPERTY_ID = "build_number";
+  public static final String LABEL_PROPERTY_ID = "label";
+  public static final String DESCRIPTION_PROPERTY_ID = "description";
+  public static final String MIN_AMBARI_VERSION_PROPERTY_ID = "min_ambari_version";
+  public static final String MAX_AMBARI_VERSION_PROPERTY_ID = "max_ambari_version";
+  public static final String PARAMETERS_PROPERTY_ID = "parameters";
+  public static final String ARCHIVE_PROPERTY_ID = "archive";
+  public static final String MASKER_CLASS_PROPERTY_ID = "masker_class";
+  public static final String STATUS_PROPERTY_ID = "status";
+  public static final String STATUS_DETAIL_PROPERTY_ID = "status_detail";
+  public static final String CLUSTER_CONFIGURABLE_PROPERTY_ID = "cluster_configurable";
+  public static final String SYSTEM_PROPERTY_ID = "system";
+
+  public static final String VIEW_NAME = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VIEW_NAME_PROPERTY_ID;
+  public static final String VERSION = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VERSION_PROPERTY_ID;
+  public static final String BUILD_NUMBER = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + BUILD_NUMBER_PROPERTY_ID;
+  public static final String LABEL = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + LABEL_PROPERTY_ID;
+  public static final String DESCRIPTION = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + DESCRIPTION_PROPERTY_ID;
+  public static final String MIN_AMBARI_VERSION = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + MIN_AMBARI_VERSION_PROPERTY_ID;
+  public static final String MAX_AMBARI_VERSION = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + MAX_AMBARI_VERSION_PROPERTY_ID;
+  public static final String PARAMETERS = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PARAMETERS_PROPERTY_ID;
+  public static final String ARCHIVE = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + ARCHIVE_PROPERTY_ID;
+  public static final String MASKER_CLASS = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + MASKER_CLASS_PROPERTY_ID;
+  public static final String STATUS = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + STATUS_PROPERTY_ID;
+  public static final String STATUS_DETAIL = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + STATUS_DETAIL_PROPERTY_ID;
+  public static final String CLUSTER_CONFIGURABLE = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_CONFIGURABLE_PROPERTY_ID;
+  public static final String SYSTEM = VIEW_VERSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + SYSTEM_PROPERTY_ID;
+
 
   /**
    * The key property ids for a view resource.
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.View, VIEW_NAME_PROPERTY_ID)
-      .put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID)
+      .put(Resource.Type.View, VIEW_NAME
+  )
+      .put(Resource.Type.ViewVersion, VERSION
+  )
       .build();
 
   /**
    * The property ids for a view resource.
    */
   private static Set<String> propertyIds = Sets.newHashSet(
-      VIEW_NAME_PROPERTY_ID,
-      VIEW_VERSION_PROPERTY_ID,
-      VIEW_BUILD_PROPERTY_ID,
-      LABEL_PROPERTY_ID,
-      DESCRIPTION_PROPERTY_ID,
-      MIN_AMBARI_VERSION_PROPERTY_ID,
-      MAX_AMBARI_VERSION_PROPERTY_ID,
-      PARAMETERS_PROPERTY_ID,
-      ARCHIVE_PROPERTY_ID,
-      MASKER_CLASS_PROPERTY_ID,
-      VIEW_STATUS_PROPERTY_ID,
-      VIEW_STATUS_DETAIL_PROPERTY_ID,
-      CLUSTER_CONFIG_PROPERTY_ID,
-      SYSTEM_PROPERTY_ID);
+          VIEW_NAME,
+          VERSION,
+          BUILD_NUMBER,
+          LABEL,
+          DESCRIPTION,
+          MIN_AMBARI_VERSION,
+          MAX_AMBARI_VERSION,
+          PARAMETERS,
+          ARCHIVE,
+          MASKER_CLASS,
+          STATUS,
+          STATUS_DETAIL,
+          CLUSTER_CONFIGURABLE,
+          SYSTEM
+  );
 
 
   // ----- Constructors ------------------------------------------------------
@@ -127,8 +149,8 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
 
     for (Map<String, Object> propertyMap : propertyMaps) {
 
-      String viewName    = (String) propertyMap.get(VIEW_NAME_PROPERTY_ID);
-      String viewVersion = (String) propertyMap.get(VIEW_VERSION_PROPERTY_ID);
+      String viewName    = (String) propertyMap.get(VIEW_NAME);
+      String viewVersion = (String) propertyMap.get(VERSION);
 
       for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
         if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
@@ -136,23 +158,23 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
             Resource resource = new ResourceImpl(Resource.Type.ViewVersion);
             ViewVersionResponse viewVersionResponse = getResponse(viewDefinition);
             ViewVersionResponse.ViewVersionInfo viewVersionInfo = viewVersionResponse.getViewVersionInfo();
-            setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewVersionInfo.getViewName(), requestedIds);
-            setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewVersionInfo.getVersion(), requestedIds);
-            setResourceProperty(resource, VIEW_BUILD_PROPERTY_ID, viewVersionInfo.getBuildNumber(), requestedIds);
-            setResourceProperty(resource, LABEL_PROPERTY_ID, viewVersionInfo.getLabel(), requestedIds);
-            setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewVersionInfo.getDescription(), requestedIds);
-            setResourceProperty(resource, MIN_AMBARI_VERSION_PROPERTY_ID,
+            setResourceProperty(resource, VIEW_NAME, viewVersionInfo.getViewName(), requestedIds);
+            setResourceProperty(resource, VERSION, viewVersionInfo.getVersion(), requestedIds);
+            setResourceProperty(resource, BUILD_NUMBER, viewVersionInfo.getBuildNumber(), requestedIds);
+            setResourceProperty(resource, LABEL, viewVersionInfo.getLabel(), requestedIds);
+            setResourceProperty(resource, DESCRIPTION, viewVersionInfo.getDescription(), requestedIds);
+            setResourceProperty(resource, MIN_AMBARI_VERSION,
               viewVersionInfo.getMinAmbariVersion(), requestedIds);
-            setResourceProperty(resource, MAX_AMBARI_VERSION_PROPERTY_ID,
+            setResourceProperty(resource, MAX_AMBARI_VERSION,
               viewVersionInfo.getMaxAmbariVersion(), requestedIds);
-            setResourceProperty(resource, PARAMETERS_PROPERTY_ID,
+            setResourceProperty(resource, PARAMETERS,
               viewVersionInfo.getParameters(), requestedIds);
-            setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewVersionInfo.getArchive(), requestedIds);
-            setResourceProperty(resource, MASKER_CLASS_PROPERTY_ID, viewVersionInfo.getMaskerClass(), requestedIds);
-            setResourceProperty(resource, VIEW_STATUS_PROPERTY_ID, viewVersionInfo.getStatus().toString(), requestedIds);
-            setResourceProperty(resource, VIEW_STATUS_DETAIL_PROPERTY_ID, viewVersionInfo.getStatusDetail(), requestedIds);
-            setResourceProperty(resource, CLUSTER_CONFIG_PROPERTY_ID, viewVersionInfo.isClusterConfigurable(), requestedIds);
-            setResourceProperty(resource, SYSTEM_PROPERTY_ID, viewVersionInfo.isSystem(), requestedIds);
+            setResourceProperty(resource, ARCHIVE, viewVersionInfo.getArchive(), requestedIds);
+            setResourceProperty(resource, MASKER_CLASS, viewVersionInfo.getMaskerClass(), requestedIds);
+            setResourceProperty(resource, STATUS, viewVersionInfo.getStatus().toString(), requestedIds);
+            setResourceProperty(resource, STATUS_DETAIL, viewVersionInfo.getStatusDetail(), requestedIds);
+            setResourceProperty(resource, CLUSTER_CONFIGURABLE, viewVersionInfo.isClusterConfigurable(), requestedIds);
+            setResourceProperty(resource, SYSTEM, viewVersionInfo.isSystem(), requestedIds);
 
             resources.add(resource);
           }

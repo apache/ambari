@@ -50,7 +50,7 @@ from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_ba
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.setupMpacks import replay_mpack_logs
-from ambari_commons.logging_utils import get_debug_mode,   set_debug_mode_from_options
+from ambari_commons.logging_utils import get_debug_mode, set_debug_mode_from_options, get_silent
 
 logger = logging.getLogger(__name__)
 
@@ -123,8 +123,11 @@ def change_objects_owner(args):
 
 def run_schema_upgrade(args):
   db_title = get_db_type(get_ambari_properties()).title
+  silent = get_silent()
+  default_answer = 'y' if silent else 'n'
+  default_value = silent
   confirm = get_YN_input("Ambari Server configured for %s. Confirm "
-                        "you have made a backup of the Ambari Server database [y/n] (y)? " % db_title, True)
+                         "you have made a backup of the Ambari Server database [y/n] (%s)? " % (db_title, default_answer), default_value)
 
   if not confirm:
     print_error_msg("Database backup is not confirmed")
@@ -441,7 +444,7 @@ def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_n
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
       managed_services.append(os.path.basename(service))
   # add deprecated managed services
-  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT"])
+  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT","AMBARI_INFRA"])
 
   stack_backup_dirs = glob.glob(os.path.join(resources_dir, old_dir_name))
   if stack_backup_dirs:

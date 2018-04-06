@@ -40,6 +40,7 @@ public class WidgetResponse {
   private String widgetValues;
   private String properties;
   private String clusterName;
+  private String tag;
 
   @JsonProperty("id")
   public Long getId() {
@@ -144,6 +145,14 @@ public class WidgetResponse {
     this.clusterName = clusterName;
   }
 
+  public String getTag() {
+    return tag;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
+  }
+
   @Override
   public String toString() {
     return widgetName;
@@ -175,6 +184,7 @@ public class WidgetResponse {
     response.setProperties(entity.getProperties());
     String clusterName = (entity.getClusterEntity() != null) ? entity.getClusterEntity().getClusterName() : null;
     response.setClusterName(clusterName);
+    response.setTag(entity.getTag());
 
     return response;
   }

@@ -28,6 +28,10 @@ export default NewTable.extend(UILoggerMixin, {
   COLUMN_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
   TABLE_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
   HDFS_PATH_REGEX: "^[/]{1}.+",  // unix path allows everything but here we have to mention full path so starts with /
+  DEFAULT_CSV_DELIMITER: ',',
+  DEFAULT_CSV_QUOTE: '"',
+  DEFAULT_CSV_ESCAPE: '\\',
+
   i18n : Ember.inject.service("i18n"),
   jobService: Ember.inject.service(constants.services.jobs),
   notifyService: Ember.inject.service(constants.services.alertMessages),
@@ -130,18 +134,30 @@ export default NewTable.extend(UILoggerMixin, {
       reject(error);
     });
   },
+  getCSVParams : function(csvParams){
+    var csvd = String.fromCharCode(csvParams.get('csvDelimiter.id'));
+    if(!csvd && csvd != 0) csvd = this.get('DEFAULT_CSV_DELIMITER');
+
+    var csvq = String.fromCharCode(csvParams.get('csvQuote.id'));
+    if(!csvq && csvq != 0) csvq = this.get('DEFAULT_CSV_QUOTE');
+
+    var csve = String.fromCharCode(csvParams.get('csvEscape.id'));
+    if(!csve && csve != 0) csve = this.get('DEFAULT_CSV_ESCAPE');
+
+    return Ember.Object.create({"csvDelimiter": csvd, "csvQuote" : csvq, "csvEscape": csve});
+  },
 
   uploadForPreview: function (sourceObject) {
     console.log("uploaderForPreview called.");
     let files = sourceObject.get("fileInfo.files");
-    let csvParams = sourceObject.get("fileFormatInfo.csvParams");
-
+    let fileFormatCsvParams = sourceObject.get("fileFormatInfo.csvParams");
+    let csvParams = this.getCSVParams(fileFormatCsvParams);
     return this.getUploader().uploadFiles('preview', files, {
       "inputFileType": sourceObject.get("fileFormatInfo.inputFileType").id,
-      "isFirstRowHeader": csvParams.get("isFirstRowHeader"),
-      "csvDelimiter": csvParams.get("csvDelimiter").name,
-      "csvEscape": csvParams.get("csvEscape").name,
-      "csvQuote": csvParams.get("csvQuote").name
+      "isFirstRowHeader": fileFormatCsvParams.get("isFirstRowHeader"),
+      "csvDelimiter": csvParams.get("csvDelimiter"),
+      "csvEscape": csvParams.get("csvEscape"),
+      "csvQuote": csvParams.get("csvQuote")
     });
   },
 
@@ -150,15 +166,16 @@ export default NewTable.extend(UILoggerMixin, {
     // this.validateHDFSPath(hdfsPath);
     var self = sourceObject;
     var hdfsPath = sourceObject.get("fileInfo.hdfsPath");
-    var csvParams = sourceObject.get("fileFormatInfo.csvParams");
+    var fileFormatCsvParams = sourceObject.get("fileFormatInfo.csvParams");
+    let csvParams = this.getCSVParams(fileFormatCsvParams);
 
     return this.getUploader().previewFromHDFS({
       "inputFileType": sourceObject.get("fileFormatInfo.inputFileType").id,
       "hdfsPath": hdfsPath,
-      "isFirstRowHeader": csvParams.get("isFirstRowHeader"),
-      "csvDelimiter": csvParams.get("csvDelimiter").name,
-      "csvEscape": csvParams.get("csvEscape").name,
-      "csvQuote": csvParams.get("csvQuote").name
+      "isFirstRowHeader": fileFormatCsvParams.get("isFirstRowHeader"),
+      "csvDelimiter": csvParams.get("csvDelimiter"),
+      "csvEscape": csvParams.get("csvEscape"),
+      "csvQuote": csvParams.get("csvQuote")
     });
   },
 
@@ -681,8 +698,10 @@ export default NewTable.extend(UILoggerMixin, {
   },
   uploadTableFromHdfs : function(tableData){
     console.log("uploadTableFromHdfs called.");
-    this.pushUploadProgressInfos(this.formatMessage('uploadingFromHdfs'));
-    var csvParams = tableData.get("fileFormatInfo.csvParams");
+    this.pushUploadProgressInfos(this.formatMessage('hive.messages.uploadingFromHdfs'));
+    var fileFormatCsvParams = tableData.get("fileFormatInfo.csvParams");
+    var csvParams = this.getCSVParams(fileFormatCsvParams);
+
     let columns = tableData.get("tableMeta").columns.map(function (column) {
       return {"name": column.get("name"), "type": column.get("type.label")};
     });
@@ -695,14 +714,16 @@ export default NewTable.extend(UILoggerMixin, {
       "hdfsPath": tableData.get("fileInfo.hdfsPath"),
       "header": header,
       "containsEndlines": tableData.get("fileFormatInfo.containsEndlines"),
-      "isFirstRowHeader": csvParams.get("isFirstRowHeader"),
-      "csvDelimiter": csvParams.get("csvDelimiter").name,
-      "csvEscape": csvParams.get("csvEscape").name,
-      "csvQuote": csvParams.get("csvQuote").name
+      "isFirstRowHeader": fileFormatCsvParams.get("isFirstRowHeader"),
+      "csvDelimiter": csvParams.get("csvDelimiter"),
+      "csvEscape": csvParams.get("csvEscape"),
+      "csvQuote": csvParams.get("csvQuote")
     });
   },
   uploadTable: function (tableData) {
-    var csvParams = tableData.get("fileFormatInfo.csvParams");
+    var fileFormatCsvParams = tableData.get("fileFormatInfo.csvParams");
+    var csvParams = this.getCSVParams(fileFormatCsvParams);
+
     let columns = tableData.get("tableMeta").columns.map(function(column){
       return {"name": column.get("name"), "type": column.get("type.label")};
     });
@@ -713,10 +734,10 @@ export default NewTable.extend(UILoggerMixin, {
       "inputFileType" : tableData.get("fileFormatInfo.inputFileType").id,
       "header": header,
       "containsEndlines": tableData.get("fileFormatInfo.containsEndlines"),
-      "isFirstRowHeader": csvParams.get("isFirstRowHeader"),
-      "csvDelimiter": csvParams.get("csvDelimiter").name,
-      "csvEscape": csvParams.get("csvEscape").name,
-      "csvQuote": csvParams.get("csvQuote").name
+      "isFirstRowHeader": fileFormatCsvParams.get("isFirstRowHeader"),
+      "csvDelimiter": csvParams.get("csvDelimiter"),
+      "csvEscape": csvParams.get("csvEscape"),
+      "csvQuote": csvParams.get("csvQuote")
     });
   },
 

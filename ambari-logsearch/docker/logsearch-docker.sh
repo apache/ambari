@@ -100,9 +100,9 @@ function setup_env() {
     pushd $sdir/../../
     local AMBARI_LOCATION=$(pwd)
     popd
-    local docker_ip=$(get_docker_ip)
+    local display_ip=$(get_docker_ip)
     cat << EOF > $sdir/.env
-DOCKERIP=$docker_ip
+DISPLAY_MAC=$display_ip:0
 MAVEN_REPOSITORY_LOCATION=$HOME/.m2
 AMBARI_LOCATION=$AMBARI_LOCATION
 
@@ -119,6 +119,11 @@ EOF
 function kill_logsearch_container() {
   echo "Try to remove logsearch container if exists..."
   docker rm -f logsearch
+}
+
+function setup_x11() {
+  local display_ip=$(get_docker_ip)
+  xhost + $display_ip
 }
 
 case $command in
@@ -151,7 +156,10 @@ case $command in
   "stop")
      kill_logsearch_container
      ;;
+  "setup-x11")
+     setup_x11
+     ;;
    *)
-   echo "Available commands: (start|stop|build-and-run|build|build-docker-and-run|build-mvn-and-run|build-docker-only|build-mvn-only)"
+   echo "Available commands: (start|stop|build-and-run|build|build-docker-and-run|build-mvn-and-run|build-docker-only|build-mvn-only|setup-x11)"
    ;;
 esac

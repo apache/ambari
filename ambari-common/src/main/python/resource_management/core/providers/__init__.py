@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-__all__ = ["Provider", "find_provider", "get_provider"]
+__all__ = ["Provider", "find_provider"]
 
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.providers import PROVIDERS as LIBRARY_PROVIDERS
@@ -42,18 +42,6 @@ class Provider(object):
 
 
 PROVIDERS = dict(
-  amazon=dict(
-    Package="resource_management.core.providers.package.yumrpm.YumProvider",
-  ),
-  redhat=dict(
-    Package="resource_management.core.providers.package.yumrpm.YumProvider",
-  ),
-  suse=dict(
-    Package="resource_management.core.providers.package.zypper.ZypperProvider",
-  ),
-  ubuntu=dict(
-    Package="resource_management.core.providers.package.apt.AptProvider",
-  ),
   winsrv=dict(
     Service="resource_management.core.providers.windows.service.ServiceProvider",
     ServiceConfig="resource_management.core.providers.windows.service.ServiceConfigProvider",
@@ -73,6 +61,7 @@ PROVIDERS = dict(
     Group="resource_management.core.providers.accounts.GroupProvider",
     Service="resource_management.core.providers.service.ServiceProvider",
     ServiceConfig="resource_management.core.providers.service.ServiceConfigProvider",
+    Package="resource_management.core.providers.packaging.PackageProvider",
   ),
 )
 
@@ -82,7 +71,7 @@ def find_provider(env, resource, class_path=None):
     providers = [PROVIDERS, LIBRARY_PROVIDERS]
 
     for provider in providers:
-
+      os_family_provider = None
       if env.system.os_family in provider:
         os_family_provider = provider[env.system.os_family]
       else:
@@ -91,7 +80,7 @@ def find_provider(env, resource, class_path=None):
           if OSCheck.is_in_family(env.system.os_family, family):
             os_family_provider = provider[family]
 
-      if resource in os_family_provider:
+      if os_family_provider and resource in os_family_provider:
         class_path = os_family_provider[resource]
         break
       if resource in provider["default"]:
@@ -104,42 +93,3 @@ def find_provider(env, resource, class_path=None):
     raise Fail("Unable to find provider for %s as %s" % (resource, class_path))
   mod = __import__(mod_path, {}, {}, [class_name])
   return getattr(mod, class_name)
-
-
-def get_provider(resource_type):
-  """
-  Looking for {resource_type} provider implementation for current os and returning ready to use instance
-
-  :param resource_type existing provider type, case sensitive
-  :type resource_type str
-
-  :raise Fail
-  :return Provider instance
-  """
-  os_family = OSCheck.get_os_family()
-  providers = [PROVIDERS, LIBRARY_PROVIDERS]
-  os_family_provider = None
-  class_path = None
-
-  for provider in providers:
-    if os_family in provider:
-      os_family_provider = provider[os_family]
-    else:
-      # take care of os extensions
-      for family in provider:
-        if OSCheck.is_in_family(os_family, family):
-          os_family_provider = provider[family]
-
-    if os_family_provider and resource_type in os_family_provider:
-      class_path = os_family_provider[resource_type]
-      break
-    if resource_type in provider["default"]:
-      class_path = provider["default"][resource_type]
-      break
-
-  try:
-    mod_path, class_name = class_path.rsplit('.', 1)
-  except ValueError:
-    raise Fail("Unable to find provider for %s as %s" % (resource_type, class_path))
-  mod = __import__(mod_path, {}, {}, [class_name])
-  return getattr(mod, class_name)(None)

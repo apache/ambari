@@ -14,12 +14,26 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
 <ul class="nav nav-tabs">
   <li *ngFor="let tab of items" [ngClass]="{'active': tab.isActive}">
-    <a href="#" (click)="switchTab(tab)">
-      {{tab.label | translate}}
-      <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
-    </a>
+    <ng-container [ngSwitch]="switchMode">
+      <a *ngSwitchCase="'CLICK'" [href]="getRouterLinkForTab(tab)" (click)="switchTab(tab, $event)">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+      <a *ngSwitchCase="'ROUTE_SEGMENT'" [routerLink]="getRouterLinkForTab(tab)"
+        [queryParams]="tab.queryParams || queryParams" [queryParamsHandling]="queryParamsHandling">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+      <a *ngSwitchCase="'ROUTE_FRAGMENT'" [routerLink]="getRouterLinkForTab(tab)" [fragment]="tab.id">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+      <a *ngSwitchCase="'ROUTE_PARAM'" [routerLink]="getRouterLinkForTab(tab)">
+        {{tab.label | translate}}
+        <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+      </a>
+    </ng-container>
   </li>
 </ul>

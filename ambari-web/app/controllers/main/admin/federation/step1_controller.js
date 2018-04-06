@@ -22,6 +22,11 @@ var validator = require('utils/validator');
 App.NameNodeFederationWizardStep1Controller = Em.Controller.extend({
   name: "nameNodeFederationWizardStep1Controller",
 
+  existingNameServices: function () {
+    var isMetricsLoaded = App.router.get('clusterController.isHostComponentMetricsLoaded');
+    return isMetricsLoaded ? App.HDFSService.find().objectAt(0).get('masterComponentGroups').mapProperty('name').join(', ') : '';
+  }.property('App.router.clusterController.isHostComponentMetricsLoaded'),
+
   isNameServiceIdValid: function () {
     return validator.isValidNameServiceId(this.get('content.nameServiceId'));
   }.property('content.nameServiceId'),

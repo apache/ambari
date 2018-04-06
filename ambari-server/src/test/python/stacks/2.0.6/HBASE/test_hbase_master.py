@@ -67,14 +67,21 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.script.get_provider")
+  @patch("ambari_commons.repo_manager.ManagerFactory.get")
   def test_install_hbase_master_with_version(self, get_provider):
-    from resource_management.core.providers.package.yumrpm import YumProvider
-    provider = YumProvider(None)
-    with patch.object(provider, "_lookup_packages") as lookup_packages:
-      lookup_packages.return_value = [["hbase_2_3_0_1_1234", "1.0", "testrepo"]]
+    from ambari_commons.os_check import OSConst
+    from ambari_commons.repo_manager import ManagerFactory
 
-      get_provider.return_value = provider
+    pkg_manager = ManagerFactory.get_new_instance(OSConst.REDHAT_FAMILY)
+
+    with patch.object(pkg_manager, "all_packages") as all_packages,\
+         patch.object(pkg_manager, "available_packages") as available_packages, \
+         patch.object(pkg_manager, "installed_packages") as installed_packages:
+      all_packages.return_value = [["hbase_2_3_0_1_1234", "1.0", "testrepo"]]
+      available_packages.return_value = [["hbase_2_3_0_1_1234", "1.0", "testrepo"]]
+      installed_packages.return_value = [["hbase_2_3_0_1_1234", "1.0", "testrepo"]]
+
+      get_provider.return_value = pkg_manager
 
       config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/hbase_with_phx.json"
       with open(config_file, "r") as f:

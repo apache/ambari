@@ -23,17 +23,22 @@ import {HttpModule, Http, XHRBackend, BrowserXhr, ResponseOptions, XSRFStrategy}
 import {InMemoryBackendService} from 'angular-in-memory-web-api';
 import {TypeaheadModule, TooltipModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
 import {NgStringPipesModule} from 'angular-pipes';
+import { SimpleNotificationsModule } from 'angular2-notifications';
 
 import {environment} from '@envs/environment';
 
+import {SharedModule} from '@modules/shared/shared.module';
+import {AppLoadModule} from '@modules/app-load/app-load.module';
+import {ShipperModule} from '@modules/shipper/shipper.module';
+
 import {ServiceInjector} from '@app/classes/service-injector';
 
-import {mockApiDataService} from '@app/services/mock-api-data.service'
+import {mockApiDataService} from '@app/services/mock-api-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -65,20 +70,16 @@ import {TopMenuComponent} from '@app/components/top-menu/top-menu.component';
 import {MenuButtonComponent} from '@app/components/menu-button/menu-button.component';
 import {MainContainerComponent} from '@app/components/main-container/main-container.component';
 import {FiltersPanelComponent} from '@app/components/filters-panel/filters-panel.component';
-import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dropdown.component';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
 import {CollapsiblePanelComponent} from '@app/components/collapsible-panel/collapsible-panel.component';
 import {LogMessageComponent} from '@app/components/log-message/log-message.component';
 import {LogLevelComponent} from '@app/components/log-level/log-level.component';
-import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
 import {PaginationControlsComponent} from '@app/components/pagination-controls/pagination-controls.component';
 import {TimeHistogramComponent} from '@app/components/time-histogram/time-histogram.component';
 import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
-import {ActionMenuComponent} from "@app/components/action-menu/action-menu.component";
-import {ModalComponent} from '@app/components/modal/modal.component';
+import {ActionMenuComponent} from '@app/components/action-menu/action-menu.component';
 import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
 import {SearchBoxComponent} from '@app/components/search-box/search-box.component';
@@ -101,14 +102,22 @@ import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-inde
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
-import {ComponentLabelPipe} from "@app/pipes/component-label";
+import {ComponentLabelPipe} from '@app/pipes/component-label';
+import {AppRoutingModule} from '@app/app-routing.module';
+import {AuthGuardService} from '@app/services/auth-guard.service';
+import {BreadcrumbsComponent} from '@app/components/breadrumbs/breadcrumbs.component';
+import {ClusterFilterComponent } from '@app/components/cluster-filter/cluster-filter.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {TranslateService as AppTranslateService} from '@app/services/translate.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {TabGuard} from '@app/services/tab.guard';
+import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
-export function HttpLoaderFactory(http: Http): TranslateHttpLoader {
-  // adding 'static' parameter to step over mock data request
-  return new TranslateHttpLoader(http, 'resources/assets/i18n/', '.json?static=true');
-}
-
-export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions): XHRBackend | InMemoryBackendService {
+export function getXHRBackend(
+  injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions
+): XHRBackend | InMemoryBackendService {
   if (environment.production) {
     return new XHRBackend(browser, options, xsrf);
   } else {
@@ -131,20 +140,16 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     MenuButtonComponent,
     MainContainerComponent,
     FiltersPanelComponent,
-    DropdownListComponent,
-    FilterDropdownComponent,
     FilterButtonComponent,
     AccordionPanelComponent,
     CollapsiblePanelComponent,
     LogLevelComponent,
     LogMessageComponent,
-    DropdownButtonComponent,
     PaginationComponent,
     PaginationControlsComponent,
     TimeHistogramComponent,
     LogsContainerComponent,
     ActionMenuComponent,
-    ModalComponent,
     TimeZonePickerComponent,
     NodeBarComponent,
     SearchBoxComponent,
@@ -166,10 +171,13 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     LogIndexFilterComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe,
-    ComponentLabelPipe
+    ComponentLabelPipe,
+    BreadcrumbsComponent,
+    ClusterFilterComponent
   ],
   imports: [
     BrowserModule,
+    AppLoadModule,
     FormsModule,
     ReactiveFormsModule,
     HttpModule,
@@ -178,18 +186,29 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
+        useFactory: AppTranslateService.httpLoaderFactory,
         deps: [Http]
       }
     }),
-    StoreModule.provideStore(reducer),
+    SimpleNotificationsModule,
     MomentModule,
     MomentTimezoneModule,
-    NgStringPipesModule
+    NgStringPipesModule,
+
+    SharedModule,
+    ShipperModule,
+
+    StoreModule.provideStore(reducer),
+    StoreDevtoolsModule.instrumentOnlyWithExtension({
+      maxAge: 5
+    }),
+
+    AppRoutingModule
   ],
   providers: [
     HttpClientService,
     UtilsService,
+    RoutingUtilsService,
     LogsContainerService,
     ComponentGeneratorService,
     UserSettingsService,
@@ -208,13 +227,19 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ServiceLogsFieldsService,
     AuditLogsFieldsService,
     TabsService,
+    TabGuard,
+    LogsBreadcrumbsResolverService,
     {
       provide: XHRBackend,
       useFactory: getXHRBackend,
       deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
     },
     AuthService,
-    HistoryManagerService
+    AuthGuardService,
+    HistoryManagerService,
+    ClusterSelectionService,
+    LogsFilteringUtilsService,
+    LogsStateService
   ],
   bootstrap: [AppComponent],
   entryComponents: [

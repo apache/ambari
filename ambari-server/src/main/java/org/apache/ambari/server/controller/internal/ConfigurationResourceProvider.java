@@ -47,21 +47,30 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 /**
  * Resource provider for configuration resources.
  */
-public class ConfigurationResourceProvider extends
-    AbstractControllerResourceProvider {
+public class ConfigurationResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Pattern PROPERTIES_ATTRIBUTES_PATTERN = Pattern.compile("^"
       + PROPERTIES_ATTRIBUTES_REGEX);
 
+  public static final String CONFIG = "Config";
+
+  public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
+  public static final String STACK_ID_PROPERTY_ID = "stack_id";
+  public static final String TYPE_PROPERTY_ID = "type";
+  public static final String TAG_PROPERTY_ID = "tag";
+  public static final String VERSION_PROPERTY_ID = "version";
+  public static final String PROPERTIES_PROPERTY_ID = "properties";
+  public static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
+
   // ----- Property ID constants ---------------------------------------------
-  protected static final String CONFIGURATION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "cluster_name");
-  protected static final String CONFIGURATION_STACK_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "stack_id");
+  public static final String CLUSTER_NAME = CONFIG + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME_PROPERTY_ID;
+  public static final String STACK_ID = CONFIG + PropertyHelper.EXTERNAL_PATH_SEP + STACK_ID_PROPERTY_ID;
 
   // !!! values are part of query strings and body post, so they
   // don't have defined categories (like Config)
-  public static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "type");
-  public static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID = PropertyHelper.getPropertyId(null, "tag");
-  public static final String CONFIGURATION_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "version");
+  public static final String TYPE = PropertyHelper.getPropertyId(null, TYPE_PROPERTY_ID);
+  public static final String TAG = PropertyHelper.getPropertyId(null, TAG_PROPERTY_ID);
+  public static final String VERSION = PropertyHelper.getPropertyId(null, VERSION_PROPERTY_ID);
 
   /**
    * The property ids for a configuration resource.
@@ -75,15 +84,15 @@ public class ConfigurationResourceProvider extends
 
   static {
     // properties
-    PROPERTY_IDS.add(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(CONFIGURATION_STACK_ID_PROPERTY_ID);
-    PROPERTY_IDS.add(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-    PROPERTY_IDS.add(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
-    PROPERTY_IDS.add(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID);
+    PROPERTY_IDS.add(CLUSTER_NAME);
+    PROPERTY_IDS.add(STACK_ID);
+    PROPERTY_IDS.add(TYPE);
+    PROPERTY_IDS.add(TAG);
+    PROPERTY_IDS.add(VERSION);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Configuration,CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Cluster,CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Configuration, TYPE);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, CLUSTER_NAME);
   }
 
   /**
@@ -91,8 +100,8 @@ public class ConfigurationResourceProvider extends
    */
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
-      CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
-      CONFIGURATION_CONFIG_TYPE_PROPERTY_ID}));
+      CLUSTER_NAME,
+      TYPE}));
 
 
   // ----- Constructors ------------------------------------------------------
@@ -123,9 +132,9 @@ public class ConfigurationResourceProvider extends
              NoSuchParentResourceException {
 
     for (Map<String, Object> map : request.getProperties()) {
-      String cluster = (String) map.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
-      String type = (String) map.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-      String tag  = (String) map.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+      String cluster = (String) map.get(CLUSTER_NAME);
+      String type = (String) map.get(TYPE);
+      String tag  = (String) map.get(TAG);
 
       Map<String, String> configMap = new HashMap<>();
       Map<String, Map<String, String>> configAttributesMap = null;
@@ -188,11 +197,11 @@ public class ConfigurationResourceProvider extends
       String stackId = response.getStackId().getStackId();
 
       Resource resource = new ResourceImpl(Resource.Type.Configuration);
-      resource.setProperty(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
-      resource.setProperty(CONFIGURATION_STACK_ID_PROPERTY_ID, stackId);
-      resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, response.getType());
-      resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, response.getVersionTag());
-      resource.setProperty(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID, response.getVersion());
+      resource.setProperty(CLUSTER_NAME, response.getClusterName());
+      resource.setProperty(STACK_ID, stackId);
+      resource.setProperty(TYPE, response.getType());
+      resource.setProperty(TAG, response.getVersionTag());
+      resource.setProperty(VERSION, response.getVersion());
 
       if (null != response.getConfigs() && response.getConfigs().size() > 0) {
         Map<String, String> configs = response.getConfigs();
@@ -279,11 +288,11 @@ public class ConfigurationResourceProvider extends
    * @return a configuration request
    */
   private ConfigurationRequest getRequest(Request request, Map<String, Object> properties) {
-    String type = (String) properties.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-    String tag  = (String) properties.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+    String type = (String) properties.get(TYPE);
+    String tag  = (String) properties.get(TAG);
 
     ConfigurationRequest configRequest = new ConfigurationRequest(
-        (String) properties.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID),
+        (String) properties.get(CLUSTER_NAME),
         type, tag, new HashMap<>(), new HashMap<>());
 
     Set<String> requestedIds = request.getPropertyIds();

@@ -27,10 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -43,29 +41,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 
 /**
  * AmbariServerConfigurationHandler handles Ambari server specific configuration properties.
  */
-@StaticallyInject
-class AmbariServerConfigurationHandler extends RootServiceComponentConfigurationHandler {
+@Singleton
+public class AmbariServerConfigurationHandler extends RootServiceComponentConfigurationHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariServerConfigurationHandler.class);
 
-  @Inject
-  private static AmbariConfigurationDAO ambariConfigurationDAO;
-
-  @Inject
-  private static AmbariEventPublisher publisher;
-
-  @Inject
-  private static Configuration ambariConfiguration;
+  private final AmbariConfigurationDAO ambariConfigurationDAO;
+  private final AmbariEventPublisher publisher;
+  private final Configuration ambariConfiguration;
 
   private CredentialProvider credentialProvider;
 
+  @Inject
+  AmbariServerConfigurationHandler(AmbariConfigurationDAO ambariConfigurationDAO, AmbariEventPublisher publisher, Configuration ambariConfiguration) {
+    this.ambariConfigurationDAO = ambariConfigurationDAO;
+    this.publisher = publisher;
+    this.ambariConfiguration = ambariConfiguration;
+  }
+
   @Override
-  public Map<String, RootServiceComponentConfiguration> getConfigurations(String categoryName)
-      throws NoSuchResourceException {
+  public Map<String, RootServiceComponentConfiguration> getComponentConfigurations(String categoryName) {
     Map<String, RootServiceComponentConfiguration> configurations = null;
 
     List<AmbariConfigurationEntity> entities = (categoryName == null)
@@ -93,30 +93,26 @@ class AmbariServerConfigurationHandler extends RootServiceComponentConfiguration
   }
 
   @Override
-  public void removeConfiguration(String categoryName) throws NoSuchResourceException {
+  public void removeComponentConfiguration(String categoryName) {
     if (null == categoryName) {
       LOGGER.debug("No resource id provided in the request");
     } else {
       LOGGER.debug("Deleting Ambari configuration with id: {}", categoryName);
-      try {
-        if (ambariConfigurationDAO.removeByCategory(categoryName) > 0) {
-          publisher.publish(new AmbariConfigurationChangedEvent(categoryName));
-        }
-      } catch (IllegalStateException e) {
-        throw new NoSuchResourceException(e.getMessage());
+      if (ambariConfigurationDAO.removeByCategory(categoryName) > 0) {
+        publisher.publish(new AmbariConfigurationChangedEvent(categoryName));
       }
     }
   }
 
   @Override
-  public void updateCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException {
+  public void updateComponentCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException {
     boolean toBePublished = false;
     final Iterator<Map.Entry<String, String>> propertiesIterator = properties.entrySet().iterator();
     while (propertiesIterator.hasNext()) {
       Map.Entry<String, String> property = propertiesIterator.next();
       if (AmbariServerConfigurationUtils.isPassword(categoryName, property.getKey())) {
-        final String passwordFileOrCredentailStoreAlias = fetchPasswordFileNameOrCredentialStoreAlias(categoryName, property.getKey());
-        if (StringUtils.isNotBlank(passwordFileOrCredentailStoreAlias)) { //if blank -> this is the first time setup; we simply need to store the alias/file name
+        final String passwordFileOrCredentialStoreAlias = fetchPasswordFileNameOrCredentialStoreAlias(categoryName, property.getKey());
+        if (StringUtils.isNotBlank(passwordFileOrCredentialStoreAlias)) { //if blank -> this is the first time setup; we simply need to store the alias/file name
           if (updatePasswordIfNeeded(categoryName, property.getKey(), property.getValue())) {
             toBePublished = true;
           }
@@ -133,6 +129,48 @@ class AmbariServerConfigurationHandler extends RootServiceComponentConfiguration
       // notify subscribers about the configuration changes
       publisher.publish(new AmbariConfigurationChangedEvent(categoryName));
     }
+  }
+
+  @Override
+  public OperationResult performOperation(String categoryName, Map<String, String> properties,
+                                          boolean mergeExistingProperties, String operation,
+                                          Map<String, Object> operationParameters) throws SystemException {
+    throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName));
+  }
+
+  public Map<String, Map<String, String>> getConfigurations() {
+    Map<String, Map<String, String>> configurations = new HashMap<>();
+    List<AmbariConfigurationEntity> entities = ambariConfigurationDAO.findAll();
+
+    if (entities != null) {
+      for (AmbariConfigurationEntity entity : entities) {
+        String category = entity.getCategoryName();
+        Map<String, String> configuration = configurations.computeIfAbsent(category, k -> new HashMap<>());
+        configuration.put(entity.getPropertyName(), entity.getPropertyValue());
+      }
+    }
+
+    return configurations;
+  }
+
+  /**
+   * Get the properties associated with a configuration category
+   *
+   * @param categoryName the name of the requested category
+   * @return a map of property names to values; or null if the data does not exist
+   */
+  public Map<String, String> getConfigurationProperties(String categoryName) {
+    Map<String, String> properties = null;
+
+    List<AmbariConfigurationEntity> entities = ambariConfigurationDAO.findByCategory(categoryName);
+    if (entities != null) {
+      properties = new HashMap<>();
+      for (AmbariConfigurationEntity entity : entities) {
+        properties.put(entity.getPropertyName(), entity.getPropertyValue());
+      }
+    }
+
+    return properties;
   }
 
   private boolean updatePasswordIfNeeded(String categoryName, String propertyName, String newPassword) throws AmbariException {
@@ -180,12 +218,5 @@ class AmbariServerConfigurationHandler extends RootServiceComponentConfiguration
     } catch (IOException e) {
       throw new AmbariException("Error while updating password file [" + passwordFileName + "]", e);
     }
-  }
-
-  @Override
-  public OperationResult performOperation(String categoryName, Map<String, String> properties,
-                                          boolean mergeExistingProperties, String operation,
-                                          Map<String, Object> operationParameters) throws SystemException {
-    throw new SystemException(String.format("The requested operation is not supported for this category: %s", categoryName));
   }
 }

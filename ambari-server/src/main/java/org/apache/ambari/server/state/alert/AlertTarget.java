@@ -25,7 +25,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * The {@link AlertTarget} class represents a dispatch mechanism and audience
- * that will receive information about alerts int he system.
+ * that will receive information about alerts in the system.
  */
 public class AlertTarget {
 

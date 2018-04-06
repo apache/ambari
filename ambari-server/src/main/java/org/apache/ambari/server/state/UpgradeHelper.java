@@ -53,7 +53,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -213,6 +215,9 @@ public class UpgradeHelper {
    */
   @Inject
   ServiceConfigDAO m_serviceConfigDAO;
+
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
 
   /**
    * Get right Upgrade Pack, depends on stack, direction and upgrade type
@@ -839,6 +844,11 @@ public class UpgradeHelper {
     processConfigurationsIfRequired(upgradeContext);
   }
 
+  public void publishDesiredRepositoriesUpdates(UpgradeContext upgradeContext) throws AmbariException {
+    Cluster cluster = upgradeContext.getCluster();
+    ambariEventPublisher.publish(new ClusterComponentsRepoChangedEvent(cluster.getClusterId()));
+  }
+
   /**
    * Transitions all affected components to {@link UpgradeState#IN_PROGRESS}.
    * Transition is performed only for components that advertise their version.
@@ -1003,6 +1013,9 @@ public class UpgradeHelper {
           String configurationType = currentServiceConfig.getType();
 
           Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
+          if (currentClusterConfigForService == null) {
+            throw new AmbariException(String.format("configuration type %s did not have a selected version", configurationType));
+          }
           existingServiceConfigs.add(currentClusterConfigForService);
           foundConfigTypes.add(configurationType);
         }

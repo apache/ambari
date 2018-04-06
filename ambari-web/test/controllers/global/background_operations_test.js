@@ -788,6 +788,7 @@ describe('App.BackgroundOperationsController', function () {
         progressPercent: 0,
         requestStatus: 'PENDING',
         startTime: 1,
+        userName: 'admin',
         endTime: -1,
         requestId: 1,
         requestContext: '',
@@ -802,6 +803,7 @@ describe('App.BackgroundOperationsController', function () {
         status: 'PENDING',
         isRunning: true,
         startTime: 1,
+        userName: 'admin',
         endTime: -1,
         previousTaskStatusMap: {},
         hostsMap: {}
@@ -819,6 +821,7 @@ describe('App.BackgroundOperationsController', function () {
         status: 'PENDING',
         isRunning: true,
         startTime: 1,
+        userName: '',
         endTime: -1,
         previousTaskStatusMap: {},
         hostsMap: {}
@@ -827,6 +830,7 @@ describe('App.BackgroundOperationsController', function () {
         progressPercent: 100,
         requestStatus: 'COMPLETED',
         startTime: 1,
+        userName: 'admin',
         endTime: 1,
         requestId: 1,
         requestContext: '',
@@ -841,6 +845,7 @@ describe('App.BackgroundOperationsController', function () {
         status: 'COMPLETED',
         isRunning: false,
         startTime: 1,
+        userName: 'admin',
         endTime: 1,
         previousTaskStatusMap: {},
         hostsMap: {}

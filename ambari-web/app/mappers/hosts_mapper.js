@@ -67,7 +67,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     stale_configs: 'HostRoles.stale_configs',
     host_name: 'host_name',
     public_host_name: 'public_host_name',
-    admin_state: 'HostRoles.desired_admin_state'
+    admin_state: 'HostRoles.desired_admin_state',
+    cluster_id_value: 'metrics.dfs.namenode.ClusterId'
   },
   stackVersionConfig: {
     id: 'HostStackVersions.id',
@@ -217,7 +218,11 @@ App.hostsMapper = App.QuickDataMapper.create({
 
       for (var k = 0; k < advancedHostComponents.length; k++) {
         var key = advancedHostComponents[k];
-        if (componentsIdMap[key]) componentsIdMap[key].display_name_advanced = App.HostComponent.find(key).get('displayNameAdvanced');
+        if (componentsIdMap[key]) {
+          var existingRecord = App.HostComponent.find(key);
+          componentsIdMap[key].display_name_advanced = existingRecord.get('displayNameAdvanced');
+          componentsIdMap[key].ha_name_space = existingRecord.get('haNameSpace');
+        }
       }
 
       //"itemTotal" present only for Hosts page request

@@ -30,7 +30,7 @@ class ConfigurationBuilder:
 
   def get_configuration(self, cluster_id, service_name, component_name, configurations_timestamp=None):
     if cluster_id:
-      if configurations_timestamp and configurations_timestamp != self.configurations_cache.timestamp:
+      if configurations_timestamp and self.configurations_cache.timestamp < configurations_timestamp:
         raise Exception("Command requires configs with timestamp={0} but configs on agent have timestamp={1}".format(configurations_timestamp, self.configurations_cache.timestamp))
 
       metadata_cache = self.metadata_cache[cluster_id]

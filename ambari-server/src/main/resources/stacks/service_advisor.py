@@ -53,6 +53,23 @@ class ServiceAdvisor(DefaultStackAdvisor):
   Abstract class implemented by all service advisors.
   """
 
+  def colocateServiceWithServicesInfo(self, hostsComponentsMap, serviceComponents, services):
+    """
+    Populate hostsComponentsMap with key = hostname and value = [{"name": "COMP_NAME_1"}, {"name": "COMP_NAME_2"}, ...]
+    of services that must be co-hosted and on which host they should be present.
+    :param hostsComponentsMap: Map from hostname to list of [{"name": "COMP_NAME_1"}, {"name": "COMP_NAME_2"}, ...]
+    present on on that host.
+    :param serviceComponents: Mapping of components
+    :param services: The full list of servies
+
+    If any components of the service should be colocated with other services,
+    and the decision should be based on information that is only available in the services list,
+    such as what are the master components, etc,
+    this is where you should set up that layout.
+
+    Each service should only implement either this method or the colocateService method
+    """
+    pass
 
   def colocateService(self, hostsComponentsMap, serviceComponents):
     """
@@ -62,18 +79,9 @@ class ServiceAdvisor(DefaultStackAdvisor):
     present on on that host.
     :param serviceComponents: Mapping of components
 
-    If any components of the service should be colocated with other services,
-    this is where you should set up that layout.  Example:
+    If any components of the service should be colocated with other services, this is where you should set up that layout.
 
-      # colocate HAWQSEGMENT with DATANODE, if no hosts have been allocated for HAWQSEGMENT
-      hawqSegment = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
-      if not self.isComponentHostsPopulated(hawqSegment):
-        for hostName in hostsComponentsMap.keys():
-          hostComponents = hostsComponentsMap[hostName]
-          if {"name": "DATANODE"} in hostComponents and {"name": "HAWQSEGMENT"} not in hostComponents:
-            hostsComponentsMap[hostName].append( { "name": "HAWQSEGMENT" } )
-          if {"name": "DATANODE"} not in hostComponents and {"name": "HAWQSEGMENT"} in hostComponents:
-            hostComponents.remove({"name": "HAWQSEGMENT"})
+    Each service should only implement either this method or the colocateServiceWithServicesInfo method
     """
     pass
 
@@ -82,6 +90,12 @@ class ServiceAdvisor(DefaultStackAdvisor):
     Any configuration recommendations for the service should be defined in this function.
     This should be similar to any of the recommendXXXXConfigurations functions in the stack_advisor.py
     such as recommendYARNConfigurations().
+    """
+    pass
+
+  def getServiceConfigurationRecommendationsForSSO(self, configurations, clusterSummary, services, hosts):
+    """
+    Any SSO-related configuration recommendations for the service should be defined in this function.
     """
     pass
 

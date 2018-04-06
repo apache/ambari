@@ -168,6 +168,9 @@ class LinuxDBMSConfig(DBMSConfig):
       if not retcode == 0:
         err = 'Error while configuring connection properties. Exiting'
         raise FatalException(retcode, err)
+    else:
+      err = 'Error while configuring connection properties. Exiting'
+      raise FatalException(-1, err)
 
   def _reset_remote_database(self):
     client_usage_cmd_drop = self._get_remote_script_line(self.drop_tables_script_file)

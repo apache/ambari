@@ -54,7 +54,75 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   /**
    * Host metrics panel not displayed when Metrics service (ex:Ganglia) is not in stack definition.
    */
-  isNoHostMetricsService: Em.computed.equal('App.services.hostMetrics.length', 0),
+  hasHostMetricsService: Em.computed.gt('App.services.hostMetrics.length', 0),
+
+  nameNodeComponent: Em.computed.findBy('content.hostComponents', 'componentName', 'NAMENODE'),
+
+  hasNameNode: Em.computed.bool('nameNodeComponent'),
+
+  showHostMetricsBlock: Em.computed.or('hasHostMetricsService', 'hasNameNode'),
+
+  nameNodeWidgets: function () {
+    const hasNameNode = this.get('hasNameNode');
+    let widgets = [];
+    if (hasNameNode) {
+      const model = App.HDFSService.find('HDFS'),
+        hostName = this.get('content.hostName'),
+        widgetsDefinitions = require('data/dashboard_widgets').toMapByProperty('viewName');
+      widgets.pushObjects([
+        App.NameNodeHeapPieChartView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-heap',
+          title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeHeapPieChartView.threshold,
+          }
+        }),
+        App.NameNodeCapacityPieChartView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-capacity',
+          title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeCapacityPieChartView.threshold
+          }
+        }),
+        App.NameNodeCpuPieChartView.extend({
+          widgetHtmlId: 'nn-cpu',
+          title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeCpuPieChartView.threshold
+          },
+          subGroupId: this.get('nameNodeComponent.haNameSpace'),
+          activeNameNodes: [this.get('nameNodeComponent')],
+          nameNode: this.get('nameNodeComponent')
+        }),
+        App.NameNodeRpcView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-rpc',
+          title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
+          showActions: false,
+          widget: {
+            threshold: widgetsDefinitions.NameNodeRpcView.threshold
+          }
+        }),
+        App.NameNodeUptimeView.extend({
+          model,
+          hostName,
+          widgetHtmlId: 'nn-uptime',
+          title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
+          showActions: false,
+          subGroupId: this.get('nameNodeComponent.haNameSpace')
+        })
+      ]);
+    }
+    return widgets;
+  }.property('hasNameNode'),
 
   /**
    * Message for "restart" block
@@ -71,20 +139,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('content.componentsWithStaleConfigsCount'), word);
   }.property('content.componentsWithStaleConfigsCount'),
 
-  /**
-   * Reset <code>sortedComponents</code>
-   * Used when some component was deleted from host
-   */
-  redrawComponents: function() {
-    if (App.router.get('mainHostDetailsController.redrawComponents')) {
-      this.set('sortedComponents', []);
-      this.sortedComponentsFormatter();
-      App.router.set('mainHostDetailsController.redrawComponents', false);
-    }
-  }.observes('App.router.mainHostDetailsController.redrawComponents'),
-
   willInsertElement: function() {
-    this.set('sortedComponents', []);
     this.sortedComponentsFormatter();
     this.addObserver('content.hostComponents.length', this, 'sortedComponentsFormatter');
   },
@@ -126,32 +181,18 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     const updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
     const hostComponentViewMap = this.get('hostComponentViewMap');
     const masters = [], slaves = [], clients = [];
-    // Remove deleted components
-    this.get('sortedComponents').forEach((sortedComponent, index) => {
-      if (!this.get('content.hostComponents').findProperty('id', sortedComponent.get('id'))) {
-        this.get('sortedComponents').removeAt(index, 1);
-      }
-    });
 
     this.get('content.hostComponents').forEach(function (component) {
-      const obj = this.get('sortedComponents').findProperty('id', component.get('id'));
-      if (obj) {
-        // Update existing component
-        updatebleProperties.forEach(function (property) {
-          obj.set(property, component.get(property));
-        });
-      } else {
-        component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
-        if (component.get('isMaster')) {
-          masters.push(component);
-        } else if (component.get('isSlave')) {
-          slaves.push(component);
-        } else if (component.get('isClient')) {
-          component.set('isLast', true);
-          component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
-          clients.pushObject(component);
+      component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
+      if (component.get('isMaster')) {
+        masters.push(component);
+      } else if (component.get('isSlave')) {
+        slaves.push(component);
+      } else if (component.get('isClient')) {
+        component.set('isLast', true);
+        component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
+        clients.pushObject(component);
         }
-      }
     }, this);
     this.set('sortedComponents', masters.concat(slaves, clients));
   },

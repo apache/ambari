@@ -16,22 +16,21 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Response} from '@angular/http';
 import 'rxjs/add/operator/finally';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
   selector: 'login-form',
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.less']
 })
-export class LoginFormComponent {
+export class LoginFormComponent implements OnInit, OnDestroy {
 
-  constructor(private authService: AuthService, private appState: AppStateService) {
-    appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value);
-  }
+  private subscriptions: Subscription[] = [];
 
   username: string;
 
@@ -41,6 +40,18 @@ export class LoginFormComponent {
 
   isLoginInProgress: boolean;
 
+  constructor(private authService: AuthService, private appState: AppStateService) {}
+
+  ngOnInit() {
+    this.subscriptions.push(
+      this.appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value)
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
    * When it gets error response it shows.
@@ -48,7 +59,8 @@ export class LoginFormComponent {
    */
   private onLoginError = (resp: Response): void => {
     this.isLoginAlertDisplayed = true;
-  };
+  }
+
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
    * When it gets success response it hides.
@@ -56,10 +68,10 @@ export class LoginFormComponent {
    */
   private onLoginSuccess = (resp: Response): void => {
     this.isLoginAlertDisplayed = false;
-  };
+  }
 
   login() {
-    this.authService.login(this.username,this.password).subscribe(this.onLoginSuccess, this.onLoginError);
+    this.authService.login(this.username, this.password).subscribe(this.onLoginSuccess, this.onLoginError);
   }
 
 }

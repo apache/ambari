@@ -54,15 +54,25 @@ public abstract class SolrConnectionPropsConfig implements SolrPropsConfig {
   )
   private List<ACL> zkAcls;
 
-  @Value("${logsearch.solr.config_set.folder:/etc/ambari-logsearch-portal/conf/solr_configsets}")
+  @Value("${logsearch.solr.config_set.folder:/usr/lib/ambari-logsearch-portal/conf/solr_configsets}")
   @LogSearchPropertyDescription(
     name = "logsearch.solr.config_set.folder",
     description = "Location of Solr collection configs.",
-    examples = {"/etc/ambari-logsearch-portal/conf/solr_configsets"},
-    defaultValue = "/etc/ambari-logsearch-portal/conf/solr_configsets",
+    examples = {"/usr/lib/ambari-logsearch-portal/conf/solr_configsets"},
+    defaultValue = "/usr/lib/ambari-logsearch-portal/conf/solr_configsets",
     sources = {LOGSEARCH_PROPERTIES_FILE}
   )
   private String configSetFolder;
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.solr.implicit.routing",
+    description = "Use implicit routing for Solr Collections.",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  @Value("${logsearch.solr.implicit.routing:false}")
+  private boolean solrImplicitRouting;
 
   @Override
   public String getSolrUrl() {
@@ -102,5 +112,15 @@ public abstract class SolrConnectionPropsConfig implements SolrPropsConfig {
   @Override
   public void setConfigSetFolder(String configSetFolder) {
     this.configSetFolder = configSetFolder;
+  }
+
+  @Override
+  public boolean isSolrImplicitRouting() {
+    return solrImplicitRouting;
+  }
+
+  @Override
+  public void setSolrImplicitRouting(boolean solrImplicitRouting) {
+    this.solrImplicitRouting = solrImplicitRouting;
   }
 }

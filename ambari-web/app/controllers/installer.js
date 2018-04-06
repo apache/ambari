@@ -29,6 +29,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   totalSteps: 11,
 
+  isInstallerWizard: true,
+
   content: Em.Object.create({
     cluster: null,
     installOptions: null,
@@ -126,6 +128,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       delete dbHosts[host];
     });
     this.setDBProperty('hosts', dbHosts);
+  },
+
+  cancelInstall: function() {
+    return App.showConfirmationPopup(() => {
+      App.router.get('applicationController').goToAdminView();
+    });
   },
 
   /**

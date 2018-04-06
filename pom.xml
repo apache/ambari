@@ -26,7 +26,7 @@
   <url>http://ambari.apache.org/</url>
   <scm>
     <url>https://github.com/apache/ambari</url>
-    <connection>https://gitbox.apache.org/repos/asf/ambari.git</connection>
+    <connection>scm:git:https://gitbox.apache.org/repos/asf/ambari.git</connection>
   </scm>
   <licenses>
     <license>
@@ -152,6 +152,7 @@
         <plugin>
           <groupId>org.vafer</groupId>
           <artifactId>jdeb</artifactId>
+          <version>1.0.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -385,7 +386,19 @@
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
-
+            <!-- Metrics module -->
+            <!-- grafana -->
+            <exclude>ambari-metrics/ambari-metrics-grafana/conf/unix/ams-grafana.ini</exclude>
+            <!-- psutil : external lib, Apache 2.0 license included as a source file -->
+            <exclude>ambari-metrics/target/**</exclude>
+            <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>
+            <exclude>ambari-metrics/target/rpm/ambari-metrics/SPECS/ambari-metrics.spec</exclude>
+            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/4.2.0/phoenix-core-tests-4.2.0.pom</exclude>
+            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/maven-metadata-local.xml</exclude>
+            <exclude>ambari-metrics/ambari-metrics-alertservice/*.iml</exclude>
+            <exclude>ambari-metrics/*/target/**</exclude>
+            <!-- ignore .settings and .project  -->
+            <exclude>ambari-metrics/**/.*/**</exclude>
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
@@ -455,8 +468,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
       </modules>
@@ -479,8 +490,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
       </modules>
     </profile>
     <profile>
@@ -493,8 +502,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
@@ -516,8 +523,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
         <module>ambari-serviceadvisor</module>
@@ -552,8 +557,6 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
       </modules>
     </profile>
     <profile>

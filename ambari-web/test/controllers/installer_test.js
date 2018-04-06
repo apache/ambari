@@ -67,6 +67,24 @@ describe('App.InstallerController', function () {
     });
   });
 
+  describe('#cancelInstall', function() {
+    var mock = {
+      goToAdminView: sinon.spy()
+    };
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+
+    it('goToAdminView should be called', function() {
+      var popup = installerController.cancelInstall();
+      popup.onPrimary();
+      expect(mock.goToAdminView.calledOnce).to.be.true;
+    });
+  });
+
   describe('#checkRepoURL', function() {
     var stacks = Em.A([
       Em.Object.create({

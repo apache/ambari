@@ -89,6 +89,10 @@ public class BlueprintConfigurationProcessor {
   private final static String HAWQ_SITE_HAWQ_STANDBY_ADDRESS_HOST = "hawq_standby_address_host";
   private final static String HAWQSTANDBY = "HAWQSTANDBY";
 
+  private final static String HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME = "dfs_ha_initial_namenode_active_set";
+  private final static String HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME = "dfs_ha_initial_namenode_standby_set";
+
+
   /**
    * Single host topology updaters
    */
@@ -171,20 +175,22 @@ public class BlueprintConfigurationProcessor {
   private PropertyFilter[] getExportPropertyFilters (Map<Long, Set<String>> authToLocalPerClusterMap)
     {
       return new PropertyFilter[] {
-      new PasswordPropertyFilter(),
-      new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
-      new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
-      new SimplePropertyNameExportFilter("kdc_hosts", "kerberos-env"),
-      new SimplePropertyNameExportFilter("master_kdc", "kerberos-env"),
-      new SimplePropertyNameExportFilter("realm", "kerberos-env"),
-      new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
-      new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
-      new SimplePropertyNameExportFilter("container_dn", "kerberos-env"),
-      new SimplePropertyNameExportFilter("domains", "krb5-conf"),
-      new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", "hadoop-env"),
-      new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", "hadoop-env"),
-      new StackPropertyTypeFilter(),
-      new KerberosAuthToLocalRulesFilter(authToLocalPerClusterMap)};
+        new PasswordPropertyFilter(),
+        new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
+        new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
+        new SimplePropertyNameExportFilter("kdc_hosts", "kerberos-env"),
+        new SimplePropertyNameExportFilter("master_kdc", "kerberos-env"),
+        new SimplePropertyNameExportFilter("realm", "kerberos-env"),
+        new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
+        new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
+        new SimplePropertyNameExportFilter("container_dn", "kerberos-env"),
+        new SimplePropertyNameExportFilter("domains", "krb5-conf"),
+        new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", "hadoop-env"),
+        new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", "hadoop-env"),
+        new SimplePropertyNameExportFilter(HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, "hadoop-env"),
+        new SimplePropertyNameExportFilter(HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, "hadoop-env"),
+        new StackPropertyTypeFilter(),
+        new KerberosAuthToLocalRulesFilter(authToLocalPerClusterMap)};
     }
 
   /**
@@ -406,21 +412,75 @@ public class BlueprintConfigurationProcessor {
         clusterConfig.setProperty("hdfs-site", "dfs.internal.nameservices", nameservices);
       }
 
-      // if the active/stanbdy namenodes are not specified, assign them automatically
-      if (! isNameNodeHAInitialActiveNodeSet(clusterProps) && ! isNameNodeHAInitialStandbyNodeSet(clusterProps)) {
-        Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
-        if (nnHosts.size() != 2) {
-          throw new ConfigurationTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
-              nnHosts.size() + " Hosts: " + nnHosts);
+      // parse out the nameservices value
+      String[] parsedNameServices = parseNameServices(hdfsSiteConfig);
+
+      // if a single nameservice is configured (default HDFS HA deployment)
+      if (parsedNameServices.length == 1) {
+        LOG.info("Processing a single HDFS NameService, which indicates a default HDFS NameNode HA deployment");
+        // if the active/stanbdy namenodes are not specified, assign them automatically
+        if (! isNameNodeHAInitialActiveNodeSet(clusterProps) && ! isNameNodeHAInitialStandbyNodeSet(clusterProps)) {
+          Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
+          if (nnHosts.size() < 2) {
+            throw new ConfigurationTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
+                nnHosts.size() + " Hosts: " + nnHosts);
+          }
+
+          // set the properties that configure which namenode is active,
+          // and which is a standby node in this HA deployment
+          Iterator<String> nnHostIterator = nnHosts.iterator();
+          clusterConfig.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", nnHostIterator.next());
+          clusterConfig.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", nnHostIterator.next());
+
+          configTypesUpdated.add("hadoop-env");
         }
+      } else {
+        if (!isPropertySet(clusterProps, "hadoop-env", HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME) && !isPropertySet(clusterProps, "hadoop-env", HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME)) {
+          // multiple nameservices indicates an HDFS NameNode Federation install
+          // process each nameservice to determine the active/standby nodes
+          LOG.info("Processing multiple HDFS NameService instances, which indicates a NameNode Federation deployment");
+          if (parsedNameServices.length > 1) {
+            Set<String> activeNameNodeHostnames = new HashSet<>();
+            Set<String> standbyNameNodeHostnames = new HashSet<>();
 
-        // set the properties that configure which namenode is active,
-        // and which is a standby node in this HA deployment
-        Iterator<String> nnHostIterator = nnHosts.iterator();
-        clusterConfig.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", nnHostIterator.next());
-        clusterConfig.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", nnHostIterator.next());
+            for (String nameService : parsedNameServices) {
+              List<String> hostNames = new ArrayList<>();
+              String[] nameNodes = parseNameNodes(nameService, hdfsSiteConfig);
+              for (String nameNode : nameNodes) {
+                // use the HA rpc-address property to obtain the NameNode hostnames
+                String propertyName = "dfs.namenode.rpc-address." + nameService + "." + nameNode;
+                String propertyValue = hdfsSiteConfig.get(propertyName);
+                if (propertyValue == null) {
+                  throw new ConfigurationTopologyException("NameNode HA property = " + propertyName + " is not found in the cluster config.  This indicates an error in configuration for HA/Federated clusters.  " +
+                    "Please recheck the HDFS configuration and try this deployment again");
+                }
 
-        configTypesUpdated.add("hadoop-env");
+                String hostName = propertyValue.split(":")[0];
+                hostNames.add(hostName);
+              }
+
+              if (hostNames.size() < 2) {
+                throw new ConfigurationTopologyException("NAMENODE HA for nameservice = " + nameService + " requires at least 2 hosts running NAMENODE but there are: " +
+                  hostNames.size() + " Hosts: " + hostNames);
+              } else {
+                // by default, select the active and standby namenodes for this nameservice
+                // using the first two hostnames found
+                // since HA is assumed, there should only be two NameNodes deployed per NameService
+                activeNameNodeHostnames.add(hostNames.get(0));
+                standbyNameNodeHostnames.add(hostNames.get(1));
+              }
+            }
+
+            // set the properties what configure the NameNode Active/Standby status for each nameservice
+            if (!activeNameNodeHostnames.isEmpty() && !standbyNameNodeHostnames.isEmpty()) {
+              clusterConfig.setProperty("hadoop-env", HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, String.join(",", activeNameNodeHostnames));
+              clusterConfig.setProperty("hadoop-env", HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, String.join(",", standbyNameNodeHostnames));
+              configTypesUpdated.add("hadoop-env");
+            } else {
+              LOG.warn("Error in processing the set of active/standby namenodes in this federated cluster, please check hdfs-site configuration");
+            }
+          }
+        }
       }
     }
 
@@ -1002,6 +1062,19 @@ public class BlueprintConfigurationProcessor {
     return configProperties.containsKey("hadoop-env") && configProperties.get("hadoop-env").containsKey("dfs_ha_initial_namenode_standby");
   }
 
+  /**
+   * General convenience method to determine if a given property has been set in the cluster configuration
+   *
+   * @param configProperties the configuration for this cluster
+   * @param configType the config type to check
+   * @param propertyName the property name to check
+   * @return true if the named property has been set
+   *         false if the named property has not been set
+   */
+  static boolean isPropertySet(Map<String, Map<String, String>> configProperties, String configType, String propertyName) {
+    return configProperties.containsKey(configType) && configProperties.get(configType).containsKey(propertyName);
+  }
+
 
   /**
    * Parses out the list of nameservices associated with this HDFS configuration.
@@ -1435,18 +1508,17 @@ public class BlueprintConfigurationProcessor {
     /**
      * Update the property with the new host name which runs the associated component.
      *
-     * @param propertyName  name of property
-     * @param origValue     original value of property
-     * @param properties    all properties
-     * @param topology      cluster topology
-     *
+     * @param propertyName name of property
+     * @param origValue    original value of property
+     * @param properties   all properties
+     * @param topology     cluster topology
      * @return updated property value with old host name replaced by new host name
      */
     @Override
     public String updateForClusterCreate(String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
-                                         ClusterTopology topology)  {
+                                         ClusterTopology topology) {
 
       String replacedValue = super.updateForClusterCreate(propertyName, origValue, properties, topology);
       if (!Objects.equals(origValue, replacedValue)) {
@@ -1456,7 +1528,7 @@ public class BlueprintConfigurationProcessor {
         if (matchingGroupCount == 1) {
           //todo: warn if > 1 hosts
           return replacePropertyValue(origValue,
-              topology.getHostAssignmentsForComponent(component).iterator().next(), properties);
+            topology.getHostAssignmentsForComponent(component).iterator().next(), properties);
         } else {
           //todo: extract all hard coded HA logic
           Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
@@ -1468,7 +1540,7 @@ public class BlueprintConfigurationProcessor {
           if (matchingGroupCount == 0 && cardinality.isValidCount(0)) {
             return origValue;
           } else {
-            if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroupCount == 2)) {
+            if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroupCount >= 2)) {
               // if this is the defaultFS property, it should reflect the nameservice name,
               // rather than a hostname (used in non-HA scenarios)
               if (properties.containsKey("core-site") && properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
@@ -1507,7 +1579,7 @@ public class BlueprintConfigurationProcessor {
               }
             }
 
-            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroupCount > 1))     {
+            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroupCount > 1)) {
               if (!origValue.contains("localhost")) {
                 // if this Oozie property is a FQDN, then simply return it
                 return origValue;
@@ -1537,14 +1609,18 @@ public class BlueprintConfigurationProcessor {
 
             if ((isComponentAppTimelineServer() || isComponentHistoryServer()) &&
               (matchingGroupCount > 1 && origValue != null && !origValue.contains("localhost"))) {
-                // in case of multiple component instances of AppTimelineServer or History Server leave custom value
-                // if set
-                return origValue;
+              // in case of multiple component instances of AppTimelineServer or History Server leave custom value
+              // if set
+              return origValue;
+            }
+
+            if (topology.isComponentHadoopCompatible(component)) {
+              return origValue;
             }
 
             throw new IllegalArgumentException(
-                String.format("Unable to update configuration property '%s' with topology information. " +
-                    "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
+              String.format("Unable to update configuration property '%s' with topology information. " +
+                "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
           }
         }
       }
@@ -1692,6 +1768,7 @@ public class BlueprintConfigurationProcessor {
     public String getComponentName() {
       return component;
     }
+
   }
 
   /**

@@ -456,19 +456,19 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     var hostComponent = {
       componentName:configAction.get('componentName'),
       isClient: '',
-      hostName: '',
+      hostNames: [],
       action: ''
     };
 
-    var hostComponentObj = App.HostComponent.find().findProperty('componentName', hostComponent.componentName);
+    var hostComponentRecords = App.HostComponent.find().filterProperty('componentName', hostComponent.componentName);
     var stackComponentObj = App.StackServiceComponent.find(configAction.get('componentName'));
 
     if (stackComponentObj) {
       hostComponent.isClient = stackComponentObj.get('isClient');
     }
 
-    if (hostComponentObj) {
-      hostComponent.hostName = hostComponentObj.get('hostName');
+    if (hostComponentRecords.length) {
+      hostComponent.hostNames = hostComponentRecords.mapProperty('hostName');
     }
 
     var isConditionTrue = App.configTheme.calculateConfigCondition(configAction.get("if"), serviceConfigs);
@@ -482,7 +482,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
           this.set('controller.saveInProgress', true);
           assignMasterOnStep7Controller.execute(this, 'ADD', hostComponent);
         } else {
-          if(hostComponent.componentName == "HIVE_SERVER_INTERACTIVE") {
+          if(hostComponent.componentName === "HIVE_SERVER_INTERACTIVE") {
             assignMasterOnStep7Controller.execute(this, 'ADD', hostComponent);
           }
           assignMasterOnStep7Controller.clearComponentsToBeDeleted(hostComponent.componentName);

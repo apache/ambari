@@ -54,7 +54,6 @@ App.NameNodeFederationWizardController = App.WizardController.extend({
         callback: function () {
           var self = this,
             dfd = $.Deferred();
-          this.loadSelectedHosts();
           this.loadServicesFromServer();
           this.loadMasterComponentHosts().done(function () {
             self.loadConfirmedHosts();
@@ -64,14 +63,22 @@ App.NameNodeFederationWizardController = App.WizardController.extend({
         }
       }
     ],
+    '3': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadNameServiceId();
+        }
+      }
+    ],
     '4': [
       {
         type: 'sync',
         callback: function () {
+          this.loadServiceConfigProperties();
           this.loadTasksStatuses();
           this.loadTasksRequestIds();
           this.loadRequestIds();
-          this.loadConfigs();
         }
       }
     ]
@@ -105,38 +112,26 @@ App.NameNodeFederationWizardController = App.WizardController.extend({
     this.set('content.nameServiceId', nameServiceId);
   },
 
-  /**
-   * Save hosts for users selected hosts to local db and <code>controller.content</code>
-   * @param selectedHosts
-   */
-  saveSelectedHosts: function (selectedHosts) {
-    this.set('content.selectedHosts', selectedHosts);
-    this.setDBProperty('selectedHosts', selectedHosts);
+  saveServiceConfigProperties: function (stepController) {
+    var serviceConfigProperties = [];
+    var data = stepController.get('serverConfigData');
+
+    var _content = stepController.get('stepConfigs')[0];
+    _content.get('configs').forEach(function (_configProperties) {
+      var siteObj = data.items.findProperty('type', _configProperties.get('filename'));
+      if (siteObj) {
+        siteObj.properties[_configProperties.get('name')] = _configProperties.get('value');
+      }
+    }, this);
+    this.setDBProperty('serviceConfigProperties', data);
+    this.set('content.serviceConfigProperties', data);
   },
 
   /**
-   * Load hosts for user selected components from local db to <code>controller.content</code>
+   * Load serviceConfigProperties to model
    */
-  loadSelectedHosts: function() {
-    var selectedHosts = this.getDBProperty('selectedHosts');
-    this.set('content.selectedHosts', selectedHosts);
-  },
-
-  /**
-   * Save configs to load and apply them on Configure Components step
-   * @param configs
-   */
-  saveConfigs: function (configs) {
-    this.set('content.configs', configs);
-    this.setDBProperty('configs', configs);
-  },
-
-  /**
-   * Load configs to apply them on Configure Components step
-   */
-  loadConfigs: function() {
-    var configs = this.getDBProperty('configs');
-    this.set('content.configs', configs);
+  loadServiceConfigProperties: function () {
+    this.set('content.serviceConfigProperties', this.getDBProperty('serviceConfigProperties'));
   },
 
   /**

@@ -59,7 +59,7 @@ services:
       COMPONENT: logsearch
       COMPONENT_LOG: logsearch
       ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
-      DISPLAY: $DOCKERIP:0
+      DISPLAY: $DISPLAY_MAC
     volumes:
       - $AMBARI_LOCATION:/root/ambari
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs

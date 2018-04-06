@@ -42,5 +42,6 @@ export LOGFEEDER_TRUSTSTORE_TYPE={{logfeeder_truststore_type}}
 {% endif %}
 
 {% if security_enabled -%}
-export LOGFEEDER_JAVA_OPTS="{{zk_security_opts}}"
+LOGFEEDER_KERBEROS_OPTS="-Djava.security.auth.login.config=/usr/lib/ambari-logsearch-logfeeder/conf/logfeeder_jaas.conf -Dsolr.httpclient.builder.factory=org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder"
+export LOGFEEDER_JAVA_OPTS="{{zk_security_opts}} $LOGFEEDER_KERBEROS_OPTS"
 {% endif %}

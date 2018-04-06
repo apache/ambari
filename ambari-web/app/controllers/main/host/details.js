@@ -115,6 +115,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     'ATLAS_SERVER': {
       deletePropertyName: 'deleteAtlasServer',
       hostPropertyName: 'atlasServer',
+      configTagsCallbackName: 'loadAtlasConfigs',
       configsCallbackName: 'onLoadAtlasConfigs'
     },
     'RANGER_KMS_SERVER': {
@@ -396,7 +397,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         self.getHdfsUser().done(function() {
           var msg = Em.Object.create({
             confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(App.nnCheckpointAgeAlertThreshold) +
-              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('hdfsUser')),
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.makeSure') +
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions.singleHost.login').format(isNNCheckpointTooOld) +
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(self.get('hdfsUser')),
             confirmButton: Em.I18n.t('common.next')
           });
           return App.showConfirmationFeedBackPopup(callback, msg);
@@ -839,8 +842,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
             if (componentsMapItem.hostPropertyName) {
               self.set(componentsMapItem.hostPropertyName, hostName);
             }
+            if (componentsMapItem.addPropertyName) {
+              self.set(componentsMapItem.addPropertyName, true);
+            }
             if (configs) {
               self.clearConfigsChanges(true);
+              self.set('isReconfigureRequired', true);
               self.set('isConfigsLoadingInProgress', true);
               self[componentsMapItem.configsCallbackName](configs, null, params);
             } else {
@@ -952,6 +959,25 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       sender: this,
       data: {
         urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')'
+      },
+      success: params.callback
+    });
+    this.trackRequest(request);
+  },
+
+  /**
+   * Success callback for Atlas load configs request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method loadAtlasConfigs
+   */
+  loadAtlasConfigs: function (data, opt, params) {
+    var request = App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+        urlParams: '(type=application-properties&tag=' + data.Clusters.desired_configs['application-properties'].tag + ')'
       },
       success: params.callback
     });

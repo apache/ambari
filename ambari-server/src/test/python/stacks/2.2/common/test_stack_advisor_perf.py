@@ -31,6 +31,11 @@ class TestStackAdvisorPerformance(TestCase):
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
 
   def instantiate_stack_advisor(self):
+    stacksPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks')
+    ambariConfigurationPath = os.path.abspath(os.path.join(stacksPath, 'ambari_configuration.py'))
+    with open(ambariConfigurationPath, 'rb') as fp:
+      imp.load_module('ambari_configuration', fp, ambariConfigurationPath, ('.py', 'rb', imp.PY_SOURCE))
+
     self.load_stack_advisor('main/resources/stacks/stack_advisor.py', 'stack_advisor')
 
     stack_advisors = (

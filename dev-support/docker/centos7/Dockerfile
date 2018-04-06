@@ -25,6 +25,7 @@ RUN yum -q -y install \
     git \
     java-1.8.0-openjdk-devel \
     make \
+    openssl \
     python \
     python-devel \
     python-setuptools \

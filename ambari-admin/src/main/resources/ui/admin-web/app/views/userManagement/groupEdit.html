@@ -22,19 +22,6 @@
       <li><a href="#/userManagement?tab=groups">{{'common.groups' | translate}}</a></li>
       <li class="active">{{group.group_name}}</li>
     </ol>
-    <div class="pull-right">
-      <div ng-switch="group.group_type != 'LOCAL'">
-        <button
-          ng-switch-when="true"
-          class="btn disabled deletegroup-btn"
-          tooltip="{{'common.cannotDelete' | translate:{term: constants.group} }}">
-          {{'common.delete' | translate:{term: constants.group} }}
-        </button>
-        <button ng-switch-when="false" class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)">
-          {{'common.delete' | translate:{term: constants.group} }}
-        </button>
-      </div>
-    </div>
   </div>
 
   <form class="form-horizontal" role="form" novalidate name="form" >

@@ -346,7 +346,7 @@ angular.module('ambariAdminConsole')
                 $t('versions.register.error.body'),
                 null,
                 null,
-                true
+                {hideCancelButton: true}
               )
             });
           }
@@ -419,7 +419,7 @@ angular.module('ambariAdminConsole')
       },
       $t('common.controls.ok'),
       $t('common.controls.cancel'),
-      true
+      {hideCancelButton: true}
     )
   };
 

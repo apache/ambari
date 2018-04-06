@@ -75,7 +75,7 @@
   </property>
   <property>
     <name>infra_solr_datadir</name>
-    <value>/opt/ambari_infra_solr/data</value>
+    <value>/var/lib/ambari-infra-solr/data</value>
     <display-name>Infra Solr data dir</display-name>
     <description>Directory for storting Solr index. Make sure you have enough disk space</description>
     <value-attributes>
@@ -263,6 +263,19 @@
       <overridable>false</overridable>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>infra_solr_user_nofile_limit</name>
+    <value>128000</value>
+    <description>Max open files limit setting for infra-solr user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for infra-solr user.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <!-- infra-solr-env.sh -->

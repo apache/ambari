@@ -20,6 +20,7 @@ package org.apache.ambari.logfeeder.plugin.input.cache;
 
 import com.google.common.collect.EvictingQueue;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ import java.util.Map;
  * It won't put already existing entries into the cache map if de-duplication interval not higher then a specific value
  * or if the new value is the most recently used one (in case of lastDedupEnabled is true)
  */
-public class LRUCache {
+public class LRUCache implements Serializable {
   private final LinkedHashMap<String, Long> keyValueMap;
   private final String fileName;
   private final long dedupInterval;

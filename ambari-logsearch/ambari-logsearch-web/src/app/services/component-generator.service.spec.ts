@@ -39,11 +39,17 @@ import {UtilsService} from '@app/services/utils.service';
 import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 
 import {ComponentGeneratorService} from './component-generator.service';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('ComponentGeneratorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           hosts,
           auditLogs,
@@ -78,7 +84,12 @@ describe('ComponentGeneratorService', () => {
         ClustersService,
         ComponentsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ComponentGeneratorService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ]
     });
   });

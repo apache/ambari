@@ -27,14 +27,15 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
    * @returns {$.ajax}
    */
   getDNDecommissionStatus: function () {
-    // always get datanode decommission status from active namenode (if NN HA enabled)
-    var hdfs = App.HDFSService.find().objectAt(0);
-    var activeNNHostName = (!hdfs.get('snameNode') && hdfs.get('activeNameNode')) ? hdfs.get('activeNameNode.hostName') : hdfs.get('nameNode.hostName');
+    // always get datanode decommission status from active namenodes (if NN HA or federation enabled)
+    const hdfs = App.HDFSService.find().objectAt(0),
+      activeNNHostNames = (!hdfs.get('snameNode') && hdfs.get('activeNameNodes.length')) ?
+        hdfs.get('activeNameNodes').mapProperty('hostName').join(',') : hdfs.get('nameNode.hostName');
     return App.ajax.send({
       name: 'host.host_component.decommission_status_datanode',
       sender: this,
       data: {
-        hostName: activeNNHostName,
+        hostNames: activeNNHostNames,
         componentName: this.get('componentForCheckDecommission')
       },
       success: 'getDNDecommissionStatusSuccessCallback',
@@ -48,12 +49,10 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
    * @returns {Object|null}
    */
   getDNDecommissionStatusSuccessCallback: function (response) {
-    var statusObject = Em.get(response, 'metrics.dfs.namenode');
-    if (!Em.isNone(statusObject)) {
-      this.computeStatus(statusObject);
-      return statusObject;
+    if (response && response.items) {
+      const statusObjects = response.items.mapProperty('metrics.dfs.namenode');
+      this.computeStatus(statusObjects);
     }
-    return null;
   },
 
   /**
@@ -78,31 +77,42 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
 
   /**
    * compute and set decommission state by namenode metrics
-   * @param curObj
+   * @param metricObjects
    */
-  computeStatus: function (curObj) {
-    var hostName = this.get('content.hostName');
-
-    if (curObj) {
-      var liveNodesJson = App.parseJSON(curObj.LiveNodes);
-      // HDP-2 stack
-      for (var hostPort in liveNodesJson) {
-        if(hostPort.indexOf(hostName) == 0) {
-          switch (liveNodesJson[hostPort].adminState) {
-            case "In Service":
-              this.setStatusAs('INSERVICE');
-              break;
-            case "Decommission In Progress":
-              this.setStatusAs('DECOMMISSIONING');
-              break;
-            case "Decommissioned":
-              this.setStatusAs('DECOMMISSIONED');
-              break;
+  computeStatus: function (metricObjects) {
+    const hostName = this.get('content.hostName');
+    let inServiceCount = 0,
+      decommissioningCount = 0,
+      decommissionedCount = 0;
+    metricObjects.forEach(curObj => {
+      if (curObj) {
+        const liveNodesJson = App.parseJSON(curObj.LiveNodes);
+        for (let hostPort in liveNodesJson) {
+          if (hostPort.indexOf(hostName) === 0) {
+            switch (liveNodesJson[hostPort].adminState) {
+              case 'In Service':
+                inServiceCount++;
+                break;
+              case 'Decommission In Progress':
+                decommissioningCount++;
+                break;
+              case 'Decommissioned':
+                decommissionedCount++;
+                break;
+            }
+            return;
           }
-          return;
         }
       }
-      // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
+    });
+    if (decommissioningCount) {
+      this.setStatusAs('DECOMMISSIONING');
+    } else if (inServiceCount && !decommissionedCount) {
+      this.setStatusAs('INSERVICE');
+    } else if (!inServiceCount && decommissionedCount) {
+      this.setStatusAs('DECOMMISSIONED');
+    } else {
+      // if namenodes are down, get desired_admin_state to decide if the user had issued a decommission
       this.getDesiredAdminState();
     }
   }

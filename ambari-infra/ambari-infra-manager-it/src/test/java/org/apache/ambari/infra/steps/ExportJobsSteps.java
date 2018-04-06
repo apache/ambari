@@ -18,23 +18,14 @@
  */
 package org.apache.ambari.infra.steps;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import org.apache.ambari.infra.InfraClient;
-import org.apache.ambari.infra.JobExecutionInfo;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.jbehave.core.annotations.Given;
-import org.jbehave.core.annotations.Then;
-import org.jbehave.core.annotations.When;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.Objects.requireNonNull;
+import static org.apache.ambari.infra.OffsetDateTimeConverter.SOLR_DATETIME_FORMATTER;
+import static org.apache.ambari.infra.TestUtil.doWithin;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -46,13 +37,23 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Objects.requireNonNull;
-import static org.apache.ambari.infra.OffsetDateTimeConverter.SOLR_DATETIME_FORMATTER;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
-import static org.junit.Assert.assertThat;
+import org.apache.ambari.infra.InfraClient;
+import org.apache.ambari.infra.JobExecutionInfo;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.jbehave.core.annotations.Given;
+import org.jbehave.core.annotations.Then;
+import org.jbehave.core.annotations.When;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 
 public class ExportJobsSteps extends AbstractInfraSteps {
   private static final Logger LOG = LoggerFactory.getLogger(ExportJobsSteps.class);
@@ -60,21 +61,21 @@ public class ExportJobsSteps extends AbstractInfraSteps {
   private Map<String, JobExecutionInfo> launchedJobs = new HashMap<>();
 
   @Given("$count documents in solr")
-  public void addDocuments(int count) throws Exception {
+  public void addDocuments(int count) {
     OffsetDateTime intervalEnd = OffsetDateTime.now();
     for (int i = 0; i < count; ++i) {
       addDocument(intervalEnd.minusMinutes(i % (count / 10)));
     }
-    getSolrClient().commit();
+    getSolr().commit();
   }
 
   @Given("$count documents in solr with logtime from $startLogtime to $endLogtime")
-  public void addDocuments(long count, OffsetDateTime startLogtime, OffsetDateTime endLogtime) throws Exception {
+  public void addDocuments(long count, OffsetDateTime startLogtime, OffsetDateTime endLogtime) {
     Duration duration = Duration.between(startLogtime, endLogtime);
     long increment = duration.toNanos() / count;
     for (int i = 0; i < count; ++i)
       addDocument(startLogtime.plusNanos(increment * i));
-    getSolrClient().commit();
+    getSolr().commit();
   }
 
   @Given("a file on s3 with key $key")
@@ -173,11 +174,11 @@ public class ExportJobsSteps extends AbstractInfraSteps {
   }
 
   @Then("solr contains $count documents between $startLogtime and $endLogtime")
-  public void documentCount(int count, OffsetDateTime startLogTime, OffsetDateTime endLogTime) throws Exception {
+  public void documentCount(int count, OffsetDateTime startLogTime, OffsetDateTime endLogTime) {
     SolrQuery query = new SolrQuery();
     query.setRows(count * 2);
     query.setQuery(String.format("logtime:[\"%s\" TO \"%s\"]", SOLR_DATETIME_FORMATTER.format(startLogTime), SOLR_DATETIME_FORMATTER.format(endLogTime)));
-    assertThat(getSolrClient().query(query).getResults().size(), is(count));
+    assertThat(getSolr().query(query).getResults().size(), is(count));
   }
 
   @Then("solr does not contain documents between $startLogtime and $endLogtime after $waitSec seconds")
@@ -189,13 +190,7 @@ public class ExportJobsSteps extends AbstractInfraSteps {
   }
 
   private boolean isSolrEmpty(SolrQuery query) {
-    try {
-      return getSolrClient().query(query).getResults().isEmpty();
-    } catch (SolrServerException e) {
-      throw new RuntimeException(e);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    return getSolr().query(query).getResults().isEmpty();
   }
 
   @Then("Check $count files exists on hdfs with filenames containing the text $text in the folder $path after $waitSec seconds")

@@ -124,6 +124,34 @@ module.exports = {
       "category": "Ambari Principals",
       "filename": "storm-env.xml",
       "index": 15
+    },
+    {
+      "name": "druid.hadoop.security.kerberos.principal",
+      "displayName": "Druid user principal",
+      "category": "Ambari Principals",
+      "filename": "druid-common.xml",
+      "index": 16
+    },
+    {
+      "name": "druid.hadoop.security.kerberos.keytab",
+      "displayName": "Druid user keytab",
+      "category": "Ambari Principals",
+      "filename": "druid-common.xml",
+      "index": 17
+    },
+    {
+      "name": "KERBEROS_PRINCIPAL",
+      "displayName": "Superset user principal",
+      "category": "Ambari Principals",
+      "filename": "superset.xml",
+      "index": 18
+    },
+    {
+      "name": "KERBEROS_KEYTAB",
+      "displayName": "Superset user keytab",
+      "category": "Ambari Principals",
+      "filename": "superset.xml",
+      "index": 19
     }
   ]
 };

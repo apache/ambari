@@ -32,6 +32,7 @@ from math import ceil, floor
 from urlparse import urlparse
 
 # Local imports
+from ambari_configuration import AmbariConfiguration
 from resource_management.libraries.functions.data_structure_utils import get_from_dict
 from resource_management.core.exceptions import Fail
 
@@ -278,6 +279,64 @@ class StackAdvisor(object):
           "c6402.ambari.apache.org", 
           "c6403.ambari.apache.org" 
          ] 
+        }
+    """
+    pass
+
+  def recommendConfigurationsForSSO(self, services, hosts):
+    """
+    Returns recommendation of SSO-related service configurations based on host-specific layout of components.
+
+    This function takes as input all details about services being installed, and hosts
+    they are being installed into, to recommend host-specific configurations.
+
+    @type services: dictionary
+    @param services: Dictionary containing all information about services and component layout selected by the user.
+    @type hosts: dictionary
+    @param hosts: Dictionary containing all information about hosts in this cluster
+    @rtype: dictionary
+    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format.
+        Example: {
+         "services": [
+          "HIVE",
+          "TEZ",
+          "YARN"
+         ],
+         "recommendations": {
+          "blueprint": {
+           "host_groups": [],
+           "configurations": {
+            "yarn-site": {
+             "properties": {
+              "yarn.scheduler.minimum-allocation-mb": "682",
+              "yarn.scheduler.maximum-allocation-mb": "2048",
+              "yarn.nodemanager.resource.memory-mb": "2048"
+             }
+            },
+            "tez-site": {
+             "properties": {
+              "tez.am.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC",
+              "tez.am.resource.memory.mb": "682"
+             }
+            },
+            "hive-site": {
+             "properties": {
+              "hive.tez.container.size": "682",
+              "hive.tez.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC",
+              "hive.auto.convert.join.noconditionaltask.size": "238026752"
+             }
+            }
+           }
+          },
+          "blueprint_cluster_binding": {
+           "host_groups": []
+          }
+         },
+         "hosts": [
+          "c6401.ambari.apache.org",
+          "c6402.ambari.apache.org",
+          "c6403.ambari.apache.org"
+         ]
         }
     """
     pass
@@ -809,6 +868,7 @@ class DefaultStackAdvisor(StackAdvisor):
       if serviceAdvisor is not None:
         serviceComponents = [component for component in service["components"]]
         serviceAdvisor.colocateService(hostsComponentsMap, serviceComponents)
+        serviceAdvisor.colocateServiceWithServicesInfo(hostsComponentsMap, serviceComponents, services)
 
     #prepare 'host-group's from 'hostsComponentsMap'
     host_groups = recommendations["blueprint"]["host_groups"]
@@ -1566,10 +1626,66 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return recommendations
 
+  def recommendConfigurationsForSSO(self, services, hosts):
+    self.services = services
+
+    stackName = services["Versions"]["stack_name"]
+    stackVersion = services["Versions"]["stack_version"]
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    components = [component["StackServiceComponents"]["component_name"]
+                  for service in services["services"]
+                  for component in service["components"]]
+
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+
+    recommendations = {
+      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
+      "hosts": hostsList,
+      "services": servicesList,
+      "recommendations": {
+        "blueprint": {
+          "configurations": {},
+          "host_groups": []
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": []
+        }
+      }
+    }
+
+    # If recommendation for config groups
+    if "config-groups" in services:
+      self.recommendConfigGroupsConfigurations(recommendations, services, components, hosts,
+                                 servicesList)
+    else:
+      configurations = recommendations["recommendations"]["blueprint"]["configurations"]
+
+      # there can be dependencies between service recommendations which require special ordering
+      # for now, make sure custom services (that have service advisors) run after standard ones
+      serviceAdvisors = []
+      recommenderDict = self.getServiceConfigurationRecommenderForSSODict()
+      for service in services["services"]:
+        serviceName = service["StackServices"]["service_name"]
+        calculation = recommenderDict.get(serviceName, None)
+        if calculation is not None:
+          calculation(configurations, clusterSummary, services, hosts)
+        else:
+          serviceAdvisor = self.getServiceAdvisor(serviceName)
+          if serviceAdvisor is not None:
+            serviceAdvisors.append(serviceAdvisor)
+      for serviceAdvisor in serviceAdvisors:
+        serviceAdvisor.getServiceConfigurationRecommendationsForSSO(configurations, clusterSummary, services, hosts)
+
+    return recommendations
+
   def getServiceConfigurationRecommender(self, service):
     return self.getServiceConfigurationRecommenderDict().get(service, None)
 
   def getServiceConfigurationRecommenderDict(self):
+    return {}
+
+  def getServiceConfigurationRecommenderForSSODict(self):
     return {}
 
   # Recommendation helper methods
@@ -1592,6 +1708,16 @@ class DefaultStackAdvisor(StackAdvisor):
       if not (name in siteProperties):
         return False
     return True
+
+  def get_ambari_configuration(self, services):
+    """
+    Gets the AmbariConfiguration object that can be used to request details about
+    the Ambari configuration. For example LDAP and SSO configurations
+
+    :param services: the services structure containing the "ambari-server-configurations" block
+    :return: an AmbariConfiguration
+    """
+    return AmbariConfiguration(services)
 
   def is_secured_cluster(self, services):
     """

@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.events.AgentActionEvent;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
@@ -147,6 +148,20 @@ public class HeartBeatHandler {
 
     LOG.debug("Received heartbeat from host, hostname={}, currentResponseId={}, receivedResponseId={}", hostname, currentResponseId, heartbeat.getResponseId());
 
+    response = new HeartBeatResponse();
+    Host hostObject;
+    try {
+      hostObject = clusterFsm.getHost(hostname);
+    } catch (HostNotFoundException e) {
+      LOG.error("Host: {} not found. Agent is still heartbeating.", hostname);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Host associated with the agent heratbeat might have been " +
+            "deleted", e);
+      }
+      // For now return empty response with only response id.
+      return response;
+    }
+
     if (heartbeat.getResponseId() == currentResponseId - 1) {
       HeartBeatResponse heartBeatResponse = hostResponses.get(hostname);
 
@@ -164,26 +179,13 @@ public class HeartBeatHandler {
 
       return createRestartCommand(currentResponseId);
     }
-
-    response = new HeartBeatResponse();
     response.setResponseId(++currentResponseId);
-
-    Host hostObject;
-    try {
-      hostObject = clusterFsm.getHost(hostname);
-    } catch (HostNotFoundException e) {
-      LOG.error("Host: {} not found. Agent is still heartbeating.", hostname);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Host associated with the agent heratbeat might have been " +
-          "deleted", e);
-      }
-      // For now return empty response with only response id.
-      return response;
-    }
 
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
       // After loosing heartbeat agent should reregister
       LOG.warn("Host {} is in HEARTBEAT_LOST state - sending register command", hostname);
+      stateUpdateEventPublisher.publish(new AgentActionEvent(AgentActionEvent.AgentAction.RESTART_AGENT,
+          hostObject.getHostId()));
       return createRegisterCommand();
     }
 
@@ -343,7 +345,7 @@ public class HeartBeatHandler {
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         null != register.getPublicHostname() ? register.getPublicHostname() : hostname,
         new AgentVersion(register.getAgentVersion()), now, register.getHardwareProfile(),
-        register.getAgentEnv()));
+        register.getAgentEnv(), register.getAgentStartTime()));
 
     RegistrationResponse response = new RegistrationResponse();
 

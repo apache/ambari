@@ -24,6 +24,7 @@ import tempfile
 import time
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch, call
+from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.script.script import Script
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
@@ -835,7 +836,7 @@ class TestNamenode(RMFTestCase):
     active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
     standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
     unknown_namenodes = []
-    
+
     get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
 
     call_mocks = MagicMock(return_value=(0,""))
@@ -1269,10 +1270,6 @@ class TestNamenode(RMFTestCase):
                               wait_for_finish=False
                               )
 
-    self.assertResourceCalled('File', ccache_path,
-                              action = ['delete'],
-                              )
-
     self.assertNoMoreResources()
 
   @patch("os.path.isfile")
@@ -1381,7 +1378,7 @@ class TestNamenode(RMFTestCase):
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
+                       call_mocks = [(0, None),(0, None, ''), (0, None)],
                        mocks_dict=mocks_dict)
 
     self.assertTrue(setup_ranger_plugin_mock.called)
@@ -1776,6 +1773,24 @@ class TestNamenode(RMFTestCase):
       #                       logoutput=True
       #                       )
 
+  def test_initial_active_namenode_unspecified(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({}), frozenset())
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': '' }), frozenset())
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active_set': '' }), frozenset())
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': '', 'dfs_ha_initial_namenode_active_set': '' }), frozenset())
+
+  def test_initial_active_namenode_single(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'c6401.ambari.apache.org' }), frozenset(['c6401.ambari.apache.org']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'c6401,c7401' }), frozenset(['c6401', 'c7401']))
+
+  def test_initial_active_namenode_set(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active_set': 'c6401.ambari.apache.org' }), frozenset(['c6401.ambari.apache.org']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active_set': 'c6401,c7401' }), frozenset(['c6401', 'c7401']))
+
+  def test_initial_active_namenode_both(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': '', 'dfs_ha_initial_namenode_active_set': 'mult1,mult2' }), frozenset(['mult1', 'mult2']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'single', 'dfs_ha_initial_namenode_active_set': 'mult1,mult2' }), frozenset(['mult1', 'mult2']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'single', 'dfs_ha_initial_namenode_active_set': '' }), frozenset(['single']))
 
 
 class Popen_Mock:

@@ -81,6 +81,10 @@ App.QuickLinksView = Em.View.extend({
 
   masterGroups: [],
 
+  tooltipAttribute: 'quick-links-title-tooltip',
+
+  shouldSetGroupedLinks: false,
+
   /**
    * @type {object}
    */
@@ -238,9 +242,16 @@ App.QuickLinksView = Em.View.extend({
    * @method getQuickLinksHosts
    */
   getQuickLinksHosts: function () {
-    var masterHosts = App.HostComponent.find().filterProperty('isMaster').mapProperty('hostName').uniq();
+    const links = App.QuickLinksConfig.find().mapProperty('links'),
+      components = links.reduce((componentsArray, currentLinksArray) => {
+        const componentNames = currentLinksArray.mapProperty('component_name').uniq();
+        return [...componentsArray, ...componentNames];
+      }, []),
+      hosts = App.HostComponent.find().filter(component => {
+        return components.contains(component.get('componentName'));
+      }).mapProperty('hostName').uniq();
 
-    if (masterHosts.length === 0) {
+    if (hosts.length === 0) {
       return $.Deferred().reject().promise();
     }
 
@@ -249,7 +260,7 @@ App.QuickLinksView = Em.View.extend({
       sender: this,
       data: {
         clusterName: App.get('clusterName'),
-        masterHosts: masterHosts.join(','),
+        hosts: hosts.join(','),
         urlParams: this.get('content.serviceName') === 'HBASE' ? ',host_components/metrics/hbase/master/IsActiveMaster' : ''
       },
       success: 'setQuickLinksSuccessCallback'
@@ -269,9 +280,10 @@ App.QuickLinksView = Em.View.extend({
     var hasHosts = false;
     var componentNames = hosts.mapProperty('componentName');
     componentNames.forEach(function(_componentName){
-      var masterComponent = App.MasterComponent.find().findProperty('componentName', _componentName);
-      if (masterComponent) {
-        hasHosts = hasHosts || !!masterComponent.get('totalCount');
+      var component = App.MasterComponent.find().findProperty('componentName', _componentName) ||
+        App.SlaveComponent.find().findProperty('componentName', _componentName);
+      if (component) {
+        hasHosts = hasHosts || !!component.get('totalCount');
       }
     });
     // no need to set quicklinks if
@@ -289,7 +301,7 @@ App.QuickLinksView = Em.View.extend({
       this.setEmptyLinks();
     } else if (hosts.length === 1 || isMultipleComponentsInLinks || this.hasOverriddenHost()) {
       this.setSingleHostLinks(hosts, response);
-    } else if (this.get('masterGroups.length') > 1) {
+    } else if (this.get('masterGroups.length') > 1 || this.get('shouldSetGroupedLinks')) {
       this.setMultipleGroupLinks(hosts);
     } else {
       this.setMultipleHostLinks(hosts);
@@ -405,9 +417,24 @@ App.QuickLinksView = Em.View.extend({
         newItem.url = template.fmt(protocol, host, linkPort);
       }
       newItem.label = link.label;
+      newItem.url = this.resolvePlaceholders(newItem.url);
       return newItem;
     }
     return null;
+  },
+
+  /**
+   * Replace placeholders like ${config-type/property-name} in the given URL
+   */
+  resolvePlaceholders: function(url) {
+    return url.replace(/\$\{(\S+)\/(\S+)\}/g, function(match, configType, propertyName) {
+      var config = this.get('configProperties').findProperty('type', configType);
+      if (config) {
+        return config.properties[propertyName] ? config.properties[propertyName] : match;
+      } else {
+        return match;
+      }
+    }.bind(this));
   },
 
   /**
@@ -618,20 +645,18 @@ App.QuickLinksView = Em.View.extend({
    * @method hostForQuickLink
    */
   processHdfsHosts: function (hosts) {
-    return hosts.map(function (host) {
-      if (host.hostName === Em.get(this, 'content.activeNameNode.hostName')) {
+    return hosts.map(host => {
+      const {hostName} = host,
+        isActiveNameNode = Em.get(this, 'content.activeNameNodes').someProperty('hostName', hostName),
+        isStandbyNameNode = Em.get(this, 'content.standbyNameNodes').someProperty('hostName', hostName);
+      if (isActiveNameNode) {
         host.status = Em.I18n.t('quick.links.label.active');
       }
-      else
-        if (host.hostName === Em.get(this, 'content.standbyNameNode.hostName')) {
-          host.status = Em.I18n.t('quick.links.label.standby');
-        }
-        else
-          if (host.hostName === Em.get(this, 'content.standbyNameNode2.hostName')) {
-            host.status = Em.I18n.t('quick.links.label.standby');
-          }
+      if (isStandbyNameNode) {
+        host.status = Em.I18n.t('quick.links.label.standby');
+      }
       return host;
-    }, this);
+    });
   },
 
   /**
@@ -738,10 +763,11 @@ App.QuickLinksView = Em.View.extend({
    */
   findHosts: function (componentName, response) {
     var hosts = [];
-    var masterComponent = App.MasterComponent.find().findProperty('componentName', componentName);
-    if (masterComponent) {
-      var masterHostComponents = masterComponent.get('hostNames') || [];
-      masterHostComponents.forEach(function (_hostName) {
+    var component = App.MasterComponent.find().findProperty('componentName', componentName) ||
+      App.SlaveComponent.find().findProperty('componentName', componentName);
+    if (component) {
+      var hostComponents = component.get('hostNames') || [];
+      hostComponents.forEach(function (_hostName) {
         var host = this.getPublicHostName(response.items, _hostName);
         if (host) {
           hosts.push({
@@ -889,5 +915,13 @@ App.QuickLinksView = Em.View.extend({
     } else {
       return propertyValue;
     }
-  }
+  },
+
+  setTooltip: function () {
+    Em.run.next(() => {
+      if (this.get('showQuickLinks') && this.get('isLoaded') && this.get('quickLinksArray.length')) {
+        App.tooltip($(`[rel="${this.get('tooltipAttribute')}"]`));
+      }
+    });
+  }.observes('showQuickLinks', 'isLoaded', 'quickLinksArray.length')
 });

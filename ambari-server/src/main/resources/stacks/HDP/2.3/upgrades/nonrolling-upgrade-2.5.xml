@@ -290,6 +290,10 @@
         <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set User-Agent">
+        <task xsi:type="configure" id="hdfs_user_agent" />
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig">
@@ -1031,7 +1035,7 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -1050,7 +1054,7 @@
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
-          <task xsi:type="restart-task"/>
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
@@ -1388,7 +1392,7 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -1404,7 +1408,7 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -1416,7 +1420,7 @@
             <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
           </task>
         </post-upgrade>
-        
+
         <post-downgrade copy-upgrade="true" />
       </component>
     </service>

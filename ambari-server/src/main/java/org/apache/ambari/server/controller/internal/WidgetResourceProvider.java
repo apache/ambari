@@ -74,6 +74,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   public static final String WIDGET_METRICS_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "metrics");
   public static final String WIDGET_VALUES_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "values");
   public static final String WIDGET_PROPERTIES_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "properties");
+  public static final String WIDGET_TAG_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "tag");
   public enum SCOPE {
     CLUSTER,
     USER
@@ -100,6 +101,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
       add(WIDGET_METRICS_PROPERTY_ID);
       add(WIDGET_VALUES_PROPERTY_ID);
       add(WIDGET_PROPERTIES_PROPERTY_ID);
+      add(WIDGET_TAG_PROPERTY_ID);
     }
   };
 
@@ -189,6 +191,10 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
                   null : gson.toJson(widgetPropertiesMap);
           entity.setProperties(widgetProperties);
 
+          if (properties.containsKey(WIDGET_TAG_PROPERTY_ID)){
+            entity.setTag(properties.get(WIDGET_TAG_PROPERTY_ID).toString());
+          }
+
           widgetDAO.create(entity);
           notifyCreate(Type.Widget, request);
           return entity;
@@ -246,6 +252,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
       resource.setProperty(WIDGET_SCOPE_PROPERTY_ID, entity.getScope());
       setResourceProperty(resource, WIDGET_VALUES_PROPERTY_ID, entity.getWidgetValues(), requestedIds);
       setResourceProperty(resource, WIDGET_PROPERTIES_PROPERTY_ID, entity.getProperties(), requestedIds);
+      setResourceProperty(resource, WIDGET_TAG_PROPERTY_ID, entity.getTag(), requestedIds);
 
       String clusterName = null;
       try {
@@ -322,6 +329,10 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
 
           if (!widgetPropertiesMap.isEmpty()) {
             entity.setProperties(gson.toJson(widgetPropertiesMap));
+          }
+
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_TAG_PROPERTY_ID)))) {
+            entity.setTag(propertyMap.get(WIDGET_TAG_PROPERTY_ID).toString());
           }
 
           widgetDAO.merge(entity);

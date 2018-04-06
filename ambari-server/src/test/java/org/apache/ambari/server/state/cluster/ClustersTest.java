@@ -540,10 +540,11 @@ public class ClustersTest {
     addHostToCluster(hostName, clusterName);
     Host host = clusters.getHost(hostName);
     Assert.assertNotNull(host);
+    long currentTime = System.currentTimeMillis();
 
     HostRegistrationRequestEvent registrationEvent = new HostRegistrationRequestEvent(
         host.getHostName(),
-        new AgentVersion(""), System.currentTimeMillis(), new HostInfo(), new AgentEnv());
+        new AgentVersion(""), currentTime, new HostInfo(), new AgentEnv(), currentTime);
 
     host.handleEvent(registrationEvent);
 

@@ -18,7 +18,6 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
-var numberUtils = require('utils/number_utils');
 var blueprintUtils = require('utils/blueprint');
 var testHelpers = require('test/helpers');
 require('models/stack_service_component');
@@ -523,10 +522,10 @@ describe('App.AssignMasterOnStep7Controller', function () {
 
   describe('#saveRecommendationsHostGroups', function() {
     beforeEach(function() {
-      sinon.stub(view, 'getSelectedHostName').returns('host1');
+      sinon.stub(view, 'getSelectedHostNames').returns(['host1']);
     });
     afterEach(function() {
-      view.getSelectedHostName.restore();
+      view.getSelectedHostNames.restore();
     });
 
     it('should add component to recommendations', function() {
@@ -575,7 +574,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
   describe('#setGlobalComponentToBeAdded', function() {
 
     it('should set componentToBeAdded', function() {
-      view.setGlobalComponentToBeAdded('C1', 'host1');
+      view.setGlobalComponentToBeAdded('C1', ['host1']);
       expect(App.get('componentToBeAdded')).to.be.eql(Em.Object.create({
         componentName: 'C1',
         hostNames: ['host1']
@@ -667,7 +666,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(App, 'get').returns({
         getKDCSessionState: Em.clb
       });
-      sinon.stub(view, 'getSelectedHostName').returns('host1');
+      sinon.stub(view, 'getSelectedHostNames').returns(['host1']);
       view.setProperties({
         configWidgetContext: configWidgetContext,
         configActionComponent: { componentName: 'C1'},
@@ -683,7 +682,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       view.setGlobalComponentToBeAdded.restore();
       view.saveRecommendationsHostGroups.restore();
       view.saveMasterComponentHosts.restore();
-      view.getSelectedHostName.restore();
+      view.getSelectedHostNames.restore();
     });
 
     it('saveMasterComponentHosts should be called when controllerName defined', function() {
@@ -711,7 +710,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
         }
       });
       view.submit();
-      expect(view.setGlobalComponentToBeAdded.calledWith('C1', 'host1')).to.be.true;
+      expect(view.setGlobalComponentToBeAdded.calledWith('C1', ['host1'])).to.be.true;
     });
     it('clearComponentsToBeDeleted should be called when controllerName undefined', function() {
       view.reopen({
@@ -734,7 +733,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       view.submit();
       expect(view.get('configWidgetContext.config.configActionComponent')).to.be.eql({
         componentName: 'C1',
-        hostName: 'host1'
+        hostNames: ['host1']
       });
     });
   });
@@ -861,7 +860,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
     });
   });
 
-  describe('#getSelectedHostName', function() {
+  describe('#getSelectedHostNames', function() {
 
     it('should return host of component', function() {
       view.set('selectedServicesMasters', [
@@ -870,7 +869,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
           selectedHost: 'host1'
         }
       ]);
-      expect(view.getSelectedHostName('C1')).to.be.equal('host1');
+      expect(view.getSelectedHostNames('C1')).to.be.eql(['host1']);
     });
   });
 

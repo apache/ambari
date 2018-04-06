@@ -35,7 +35,7 @@ module.exports = App.WizardRoute.extend({
         classNames: ['wizard-modal-wrapper'],
         modalDialogClasses: ['modal-xlg'],
         header: Em.I18n.t('admin.nameNodeFederation.wizard.header'),
-        bodyClass: App.RMHighAvailabilityWizardView.extend({
+        bodyClass: App.NameNodeFederationWizardView.extend({
           controller: nameNodeFederationWizardController
         }),
         primary: Em.I18n.t('form.cancel'),
@@ -48,7 +48,7 @@ module.exports = App.WizardRoute.extend({
           if (parseInt(currStep) === 4) {
             App.showConfirmationPopup(function () {
               nameNodeFederationWizardController.resetOnClose(nameNodeFederationWizardController, 'main.services.index');
-            }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
+            }, Em.I18n.t('admin.nameNodeFederation.closePopup'));
           } else {
             nameNodeFederationWizardController.resetOnClose(nameNodeFederationWizardController, 'main.services.index');
           }
@@ -113,13 +113,6 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var wizardController = router.get('nameNodeFederationWizardController');
       var stepController = router.get('nameNodeFederationWizardStep2Controller');
-      var currentNN = stepController.get('servicesMasters').filterProperty('component_name', 'NAMENODE').filterProperty('isInstalled', true);
-      var additionalNN = stepController.get('servicesMasters').filterProperty('component_name', 'NAMENODE').filterProperty('isInstalled', false);
-      var rmHost = {
-        currentNN: currentNN.mapProperty('selectedHost'),
-        additionalNN: additionalNN.mapProperty('selectedHost')
-      };
-      wizardController.saveSelectedHosts(rmHost);
       wizardController.saveMasterComponentHosts(stepController);
       router.transitionTo('step3');
     },
@@ -142,6 +135,9 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('nameNodeFederationWizardController');
+      var stepController = router.get('nameNodeFederationWizardStep3Controller');
+      controller.saveServiceConfigProperties(stepController);
       router.transitionTo('step4');
     },
     back: Em.Router.transitionTo('step2')

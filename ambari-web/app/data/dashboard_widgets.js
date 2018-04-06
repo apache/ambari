@@ -22,21 +22,24 @@ module.exports = [
     viewName: 'NameNodeHeapPieChartView',
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
-    threshold: [80, 90]
+    threshold: [80, 90],
+    groupName: 'nn'
   },
   {
     id: 2,
     viewName: 'NameNodeCapacityPieChartView',
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
-    threshold: [85, 95]
+    threshold: [85, 95],
+    groupName: 'nn'
   },
   {
     id: 3,
     viewName: 'NameNodeCpuPieChartView',
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
-    threshold: [90, 95]
+    threshold: [90, 95],
+    groupName: 'nn'
   },
   {
     id: 4,
@@ -50,7 +53,8 @@ module.exports = [
     viewName: 'NameNodeRpcView',
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
-    threshold: [1000, 3000]
+    threshold: [1000, 3000],
+    groupName: 'nn'
   },
   {
     id: 6,
@@ -85,21 +89,25 @@ module.exports = [
     viewName: 'NameNodeUptimeView',
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
-    threshold: []
+    threshold: [],
+    groupName: 'nn'
   },
   {
     id: 11,
     viewName: 'HDFSLinksView',
     sourceName: 'HDFS',
     title: Em.I18n.t('dashboard.widgets.HDFSLinks'),
-    threshold: []
+    threshold: [],
+    groupName: 'nn',
+    isHiddenByDefault: true
   },
   {
     id: 12,
     viewName: 'HBaseLinksView',
     sourceName: 'HBASE',
     title: Em.I18n.t('dashboard.widgets.HBaseLinks'),
-    threshold: []
+    threshold: [],
+    isHiddenByDefault: true
   },
   {
     id: 13,
@@ -120,8 +128,7 @@ module.exports = [
     viewName: 'HBaseRegionsInTransitionView',
     sourceName: 'HBASE',
     title: Em.I18n.t('dashboard.widgets.HBaseRegionsInTransition'),
-    threshold: [3, 10],
-    isHiddenByDefault: true
+    threshold: [3, 10]
   },
   {
     id: 16,
@@ -142,7 +149,8 @@ module.exports = [
     viewName: 'ResourceManagerUptimeView',
     sourceName: 'YARN',
     title: Em.I18n.t('dashboard.widgets.ResourceManagerUptime'),
-    threshold: []
+    threshold: [],
+    isHiddenByDefault: true
   },
   {
     id: 19,
@@ -177,7 +185,8 @@ module.exports = [
     viewName: 'YARNLinksView',
     sourceName: 'YARN',
     title: Em.I18n.t('dashboard.widgets.YARNLinks'),
-    threshold: []
+    threshold: [],
+    isHiddenByDefault: true
   },
   {
     id: 24,

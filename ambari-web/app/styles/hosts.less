@@ -188,12 +188,10 @@
       white-space: nowrap;
     }
     td.name .trim_hostname{
+      .ellipsis-overflow-nowrap;
       display: block;
       float: left;
       width: 86%!important;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
     td.health label {
       padding-top: 3px;
@@ -389,6 +387,15 @@
       .chart-x-axis {
         left: 30%;
         width: 40%;
+      }
+    }
+  }
+
+  .namenode-metrics {
+    .span2p4 {
+      width: 46%;
+      .img-thumbnail {
+        width: 100%;
       }
     }
   }

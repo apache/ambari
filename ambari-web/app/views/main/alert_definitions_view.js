@@ -17,8 +17,7 @@
  */
 
 var App = require('app');
-var filters = require('views/common/filter_view'),
-  sort = require('views/common/sort_view');
+var sort = require('views/common/sort_view');
 
 App.MainAlertDefinitionsView = App.TableView.extend({
 
@@ -91,7 +90,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   totalCount: Em.computed.alias('content.length'),
 
-  colPropAssoc: ['', 'label', 'summary', 'serviceName', 'type', 'lastTriggered', 'enabled', 'groups'],
+  colPropAssoc: ['', 'label', 'summary', 'serviceDisplayName', 'type', 'lastTriggered', 'enabled', 'groups'],
 
   sortView: sort.wrapperView,
 

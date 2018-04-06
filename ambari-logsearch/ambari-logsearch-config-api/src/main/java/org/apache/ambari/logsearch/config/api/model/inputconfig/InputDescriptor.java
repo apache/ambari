@@ -51,4 +51,6 @@ public interface InputDescriptor {
   Boolean isEnabled();
 
   String getGroup();
+
+  Boolean isInitDefaultFields();
 }
