@@ -36,7 +36,7 @@ sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = execution_command.get_mpack_version()
 agent_stack_retry_on_unavailability = execution_command.check_agent_stack_want_retry_on_unavailability()
-agent_stack_retry_count = execution_command.get_agent_stack_retry_count_on_unavailability()
+agent_stack_retry_count = execution_command.get_agent_stack_retry_count()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #users and groups

@@ -44,7 +44,9 @@ host_sys_prepped = execution_command.is_host_system_prepared()
 
 sudo = AMBARI_SUDO_BINARY
 
-stack_version_formatted = execution_command.get_mpack_version() 
+stack_version_unformatted = execution_command.get_mpack_version()
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+
 major_stack_version = get_major_version(stack_version_formatted)
 
 # service name
@@ -84,8 +86,8 @@ hadoop_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', '
 namenode_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_heapsize')
 namenode_opt_newsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_newsize')
 namenode_opt_maxnewsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxnewsize')
-namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'))
-namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'))
+namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'), '128m')
+namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'), '256m')
 
 jtnode_opt_newsize = "200m"
 jtnode_opt_maxnewsize = "200m"
