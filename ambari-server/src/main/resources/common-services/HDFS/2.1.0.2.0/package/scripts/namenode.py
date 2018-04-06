@@ -51,6 +51,7 @@ from hdfs_namenode import namenode, wait_for_safemode_off, refreshProxyUsers, fo
 from hdfs import hdfs, reconfig
 import hdfs_rebalance
 from utils import initiate_safe_zkfc_failover, get_hdfs_binary, get_dfsadmin_base_command
+from resource_management.libraries.functions.namenode_ha_utils import get_hdfs_cluster_id_from_jmx
 
 # The hash algorithm to use to generate digests/hashes
 HASH_ALGORITHM = hashlib.sha224
@@ -103,8 +104,10 @@ class NameNode(Script):
                 user=params.hdfs_user
         )
 
+    hdfs_cluster_id = get_hdfs_cluster_id_from_jmx(params.hdfs_site, params.security_enabled, params.hdfs_user)
+
     # this is run on a new namenode, format needs to be forced
-    Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
+    Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive -clusterId {hdfs_cluster_id}"),
             user = params.hdfs_user,
             path = [params.hadoop_bin_dir],
             logoutput=True

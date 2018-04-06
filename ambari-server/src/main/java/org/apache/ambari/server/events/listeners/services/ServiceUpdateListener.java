@@ -31,7 +31,7 @@ import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -47,7 +47,7 @@ import com.google.inject.Singleton;
 public class ServiceUpdateListener {
   private Map<Long, Map<String, State>> states = new HashMap<>();
 
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -56,11 +56,11 @@ public class ServiceUpdateListener {
   private Provider<Clusters> m_clusters;
 
   @Inject
-  public ServiceUpdateListener(StateUpdateEventPublisher stateUpdateEventPublisher, AmbariEventPublisher ambariEventPublisher) {
-    stateUpdateEventPublisher.register(this);
+  public ServiceUpdateListener(STOMPUpdatePublisher STOMPUpdatePublisher, AmbariEventPublisher ambariEventPublisher) {
+    STOMPUpdatePublisher.register(this);
     ambariEventPublisher.register(this);
 
-    this.stateUpdateEventPublisher = stateUpdateEventPublisher;
+    this.STOMPUpdatePublisher = STOMPUpdatePublisher;
   }
 
   @Subscribe
@@ -83,7 +83,7 @@ public class ServiceUpdateListener {
           continue;
         }
         states.computeIfAbsent(clusterId, c -> new HashMap<>()).put(serviceName, serviceState);
-        stateUpdateEventPublisher.publish(new ServiceUpdateEvent(clusterName, null, serviceName, serviceState));
+        STOMPUpdatePublisher.publish(new ServiceUpdateEvent(clusterName, null, serviceName, serviceState));
       }
     }
   }
@@ -99,6 +99,6 @@ public class ServiceUpdateListener {
 
     MaintenanceState maintenanceState = event.getMaintenanceState();
 
-    stateUpdateEventPublisher.publish(new ServiceUpdateEvent(clusterName, maintenanceState, serviceName, null));
+    STOMPUpdatePublisher.publish(new ServiceUpdateEvent(clusterName, maintenanceState, serviceName, null));
   }
 }

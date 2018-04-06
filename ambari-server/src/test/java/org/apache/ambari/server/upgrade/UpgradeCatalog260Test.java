@@ -75,7 +75,7 @@ import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
 import org.apache.ambari.server.hooks.HookContextFactory;
@@ -1046,7 +1046,7 @@ public class UpgradeCatalog260Test {
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
         bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
-        bind(StateUpdateEventPublisher.class).toInstance(createNiceMock(StateUpdateEventPublisher.class));
+        bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
       }
     });

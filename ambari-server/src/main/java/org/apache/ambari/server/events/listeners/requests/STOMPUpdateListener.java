@@ -20,31 +20,31 @@ package org.apache.ambari.server.events.listeners.requests;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
-import org.apache.ambari.server.events.AmbariUpdateEvent;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.STOMPEvent;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
 
-public class StateUpdateListener {
+public class STOMPUpdateListener {
   private final AgentSessionManager agentSessionManager;
 
   @Autowired
   private DefaultMessageEmitter defaultMessageEmitter;
 
-  public StateUpdateListener(Injector injector) {
-    StateUpdateEventPublisher stateUpdateEventPublisher =
-      injector.getInstance(StateUpdateEventPublisher.class);
+  public STOMPUpdateListener(Injector injector) {
+    STOMPUpdatePublisher STOMPUpdatePublisher =
+      injector.getInstance(STOMPUpdatePublisher.class);
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
-    stateUpdateEventPublisher.register(this);
+    STOMPUpdatePublisher.register(this);
   }
 
   @Subscribe
   @AllowConcurrentEvents
-  public void onUpdateEvent(AmbariUpdateEvent event) throws AmbariException {
+  public void onUpdateEvent(STOMPEvent event) throws AmbariException {
     defaultMessageEmitter.emitMessage(event);
   }
 }

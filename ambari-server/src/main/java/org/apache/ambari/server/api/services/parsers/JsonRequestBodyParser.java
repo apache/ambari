@@ -32,6 +32,8 @@ import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.SerializableString;
+import org.codehaus.jackson.io.CharacterEscapes;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,12 @@ public class JsonRequestBodyParser implements RequestBodyParser {
    */
   private final static Logger LOG = LoggerFactory.getLogger(JsonRequestBodyParser.class);
 
+  private final static ObjectMapper mapper = new ObjectMapper();
+
+  static {
+    mapper.getJsonFactory().setCharacterEscapes(new AmbariEscapes());
+  }
+
   @Override
   public Set<RequestBody> parse(String body) throws BodyParseException {
 
@@ -53,7 +61,6 @@ public class JsonRequestBodyParser implements RequestBodyParser {
     rootBody.setBody(body);
 
     if (body != null && body.length() != 0) {
-      ObjectMapper mapper = new ObjectMapper();
       try {
         JsonNode root = mapper.readTree(ensureArrayFormat(body));
 
@@ -110,8 +117,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
   }
 
   private void processNode(JsonNode node, String path, NamedPropertySet propertySet,
-                           Map<String, String> requestInfoProps) {
-
+                           Map<String, String> requestInfoProps) throws IOException {
     Iterator<String> iterator = node.getFieldNames();
     while (iterator.hasNext()) {
       String   name  = iterator.next();
@@ -160,8 +166,9 @@ public class JsonRequestBodyParser implements RequestBodyParser {
               path.substring(REQUEST_INFO_PATH.length() + SLASH.length()), name),
               value);
         } else {
+          String escapedName = AmbariEscapes.escapeValue(mapper, name);
           propertySet.getProperties().put(PropertyHelper.getPropertyId(
-              path.equals(BODY_TITLE) ? "" : path, name), value);
+              path.equals(BODY_TITLE) ? "" : path, escapedName), value);
         }
       }
     }
@@ -169,5 +176,37 @@ public class JsonRequestBodyParser implements RequestBodyParser {
 
   private String ensureArrayFormat(String s) {
     return s.startsWith("[") ? s : '[' + s + ']';
+  }
+
+  static class AmbariEscapes extends CharacterEscapes {
+
+    private final int[] escapeCodesForAscii;
+
+    public AmbariEscapes() {
+      this.escapeCodesForAscii = standardAsciiEscapesForJSON();
+      escapeCodesForAscii['/'] = CharacterEscapes.ESCAPE_STANDARD;
+    }
+
+    @Override
+    public int[] getEscapeCodesForAscii() {
+      return escapeCodesForAscii;
+    }
+
+    @Override
+    public SerializableString getEscapeSequence(int ch) {
+      return null;
+    }
+
+    /**
+     * Converts string to escaped and removes first and last symbols (double brackets)
+     * @param mapper mapper
+     * @param value string to be escaped
+     * @return escaped string
+     * @throws IOException
+     */
+    private static String escapeValue(ObjectMapper mapper, String value) throws IOException {
+      String escapedString = mapper.writeValueAsString(value);
+      return escapedString.substring(1, escapedString.length() - 1);
+    }
   }
 }

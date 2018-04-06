@@ -22,14 +22,14 @@ import java.beans.Transient;
 /**
  * Update data from server side, will be sent as STOMP message to recipients from all hosts.
  */
-public abstract class AmbariUpdateEvent {
+public abstract class STOMPEvent {
 
   /**
    * Update type.
    */
   protected final Type type;
 
-  public AmbariUpdateEvent(Type type) {
+  public STOMPEvent(Type type) {
     this.type = type;
   }
 

@@ -19,9 +19,9 @@ package org.apache.ambari.server.events.publishers;
 
 import java.util.concurrent.Executors;
 
-import org.apache.ambari.server.events.AmbariUpdateEvent;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
+import org.apache.ambari.server.events.STOMPEvent;
 import org.apache.ambari.server.events.ServiceUpdateEvent;
 
 import com.google.common.eventbus.AsyncEventBus;
@@ -30,7 +30,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class StateUpdateEventPublisher {
+public class STOMPUpdatePublisher {
 
   private final EventBus m_eventBus;
 
@@ -43,17 +43,17 @@ public class StateUpdateEventPublisher {
   @Inject
   private ServiceUpdateEventPublisher serviceUpdateEventPublisher;
 
-  public StateUpdateEventPublisher() {
+  public STOMPUpdatePublisher() {
     m_eventBus = new AsyncEventBus("ambari-update-bus",
       Executors.newSingleThreadExecutor());
   }
 
-  public void publish(AmbariUpdateEvent event) {
-    if (event.getType().equals(AmbariUpdateEvent.Type.REQUEST)) {
+  public void publish(STOMPEvent event) {
+    if (event.getType().equals(STOMPEvent.Type.REQUEST)) {
       requestUpdateEventPublisher.publish((RequestUpdateEvent) event, m_eventBus);
-    } else if (event.getType().equals(AmbariUpdateEvent.Type.HOSTCOMPONENT)) {
+    } else if (event.getType().equals(STOMPEvent.Type.HOSTCOMPONENT)) {
       hostComponentUpdateEventPublisher.publish((HostComponentsUpdateEvent) event, m_eventBus);
-    } else if (event.getType().equals(AmbariUpdateEvent.Type.SERVICE)) {
+    } else if (event.getType().equals(STOMPEvent.Type.SERVICE)) {
       serviceUpdateEventPublisher.publish((ServiceUpdateEvent) event, m_eventBus);
     } else {
       m_eventBus.post(event);
