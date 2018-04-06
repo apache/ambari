@@ -32,6 +32,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import org.apache.ambari.annotations.SwaggerOverwriteNestedAPI;
 import org.apache.ambari.annotations.SwaggerPreferredParent;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
@@ -145,6 +146,22 @@ public class AmbariSwaggerReaderTest {
   }
 
   /**
+   * Test nested API which uses {@link org.apache.ambari.annotations.SwaggerOverwriteNestedAPI} annotation.
+   * In this case we expect default values to be overwritten by the usage of the annotation.
+   */
+  @Test
+  public void swaggerNestedApisWithOverwrite() {
+    AmbariSwaggerReader asr = new AmbariSwaggerReader(null, createMock(Log.class));
+    Set<Class<?>> classes = new LinkedHashSet<>(Arrays.asList(NestedWithOverwrite.class, TopLevel4API.class));
+    Swagger swagger = asr.read(classes);
+    assertEquals(
+            ImmutableSet.of("/toplevel3/{foo}/bar/list", "/toplevel4/top"),
+            swagger.getPaths().keySet());
+    assertPathParamsExist(swagger, "/toplevel3/{foo}/bar/list", "foo");
+  }
+
+
+  /**
    * If an API is both top level (the class has a @Path annotation) and nested (class is a return type of an
    * API operation) then it should be treated as top level.
    */
@@ -235,6 +252,20 @@ abstract class YetAnotherTopLevelAPI {
 
 }
 
+@Path("/toplevel4")
+@Api(value = "Top Level 4", description = "Yet another top level API")
+abstract class TopLevel4API {
+
+  @GET
+  @Path("/top")
+  @ApiOperation(value = "list")
+  public abstract Response getList();
+
+  @Path("{param}/nested")
+  public abstract NestedWithOverwrite getNested(@ApiParam @PathParam(value = "param") String param);
+
+}
+
 @Api(value = "Nested", description = "A nested API")
 abstract class NestedAPI {
 
@@ -281,6 +312,18 @@ abstract class NestedWithSamePreferredParentAPI {
 @Api(value = "BadNested", description = "A nested API")
 @SwaggerPreferredParent(preferredParent = YetAnotherTopLevelAPI.class)
 abstract class NestedWithBadPreferredParentAPI {
+
+  @GET
+  @Path("/list")
+  @ApiOperation(value = "list")
+  public abstract Response getList();
+
+}
+
+@Api(value = "NestedWithOverWrite", description = "A nested API")
+@SwaggerOverwriteNestedAPI(parentApi = YetAnotherTopLevelAPI.class, parentApiPath = "/toplevel3", parentMethodPath =
+        "{foo}/bar", pathParameters = {"foo"})
+abstract class NestedWithOverwrite {
 
   @GET
   @Path("/list")
