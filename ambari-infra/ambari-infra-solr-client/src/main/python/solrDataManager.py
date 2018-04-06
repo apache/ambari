@@ -372,6 +372,8 @@ def save_data(mode, solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_ur
   solr_query_url_prefix = "{0}/{1}/select?q={2}&sort={3}&rows={4}&wt=json".format(solr_url, collection, q, sort, read_block_size)
 
   exclude_field_list = exclude_fields.split(',') if exclude_fields else None
+  if solr_output_collection and not exclude_field_list:
+    exclude_field_list = ['_version_']
 
   done = False
   total_records = 0
