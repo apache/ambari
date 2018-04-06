@@ -98,6 +98,11 @@ public interface Configurable {
     return configuration;
   }
 
+  /**
+   * Converts {@link Configuration} objects to a collection easily serializable to Json
+   * @param configuration the configuration to convert
+   * @return the resulting collection
+   */
   static Collection<Map<String, Map<String, ?>>> convertConfigToMap(Configuration configuration) {
     Collection<Map<String, Map<String, ?>>> configurations = new ArrayList<>();
     Set<String> allConfigTypes = Sets.union(configuration.getProperties().keySet(), configuration.getAttributes().keySet());

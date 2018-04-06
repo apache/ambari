@@ -43,16 +43,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.ImmutableSortedMap;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -63,18 +57,21 @@ import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.SecretReference;
 import org.easymock.Capture;
 import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gson.Gson;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.gson.Gson;
 
 /**
  * ArtifactResourceProvider unit tests.
@@ -164,9 +161,14 @@ public class ArtifactResourceProviderTest {
     assertEquals("child4Value", resource.getPropertyValue("artifact_data/child/child2/child3/child4/child4Key"));
   }
 
+  /**
+   * Test to prove that passwords are replaced with references in case the retrieved artifact is of type
+   * {@link ArtifactResourceProvider#PROVISION_REQUEST_ARTIFACT_NAME}
+   */
   @Test
   @PrepareForTest(SecretReference.class)
   public void testGetResources_clusterTemplatePasswordsAreReplaced() throws Exception {
+    // given
     TreeMap<String, String> foreignKeys = new TreeMap<>(ImmutableSortedMap.of("cluster", "500"));
     TreeMap<String, String> responseForeignKeys = new TreeMap<>(foreignKeys);
 
@@ -209,17 +211,18 @@ public class ArtifactResourceProviderTest {
     replay(dao, em, controller, request, clusters, cluster, entity, entity2);
     PowerMock.replay(SecretReference.class);
 
-    // test
     PredicateBuilder pb = new PredicateBuilder();
     Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals("test-cluster").and().
       property("Artifacts/artifact_name").equals(ArtifactResourceProvider.PROVISION_REQUEST_ARTIFACT_NAME).end().
       toPredicate();
 
+    // when
     Set<Resource> response = resourceProvider.getResources(request, predicate);
+
+    // then
     assertEquals(1, response.size());
     Resource resource = response.iterator().next();
     Map<String, Map<String, Object>> responseProperties = resource.getPropertiesMap();
-
     Map<String, Object> artifactDataMap = responseProperties.get("artifact_data");
 
     Map<String, Object> expectedArtifactResultData = ImmutableMap.of(

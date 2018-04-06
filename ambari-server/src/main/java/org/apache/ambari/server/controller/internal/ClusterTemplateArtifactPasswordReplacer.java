@@ -28,11 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.google.common.collect.Multimap;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Configurable;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.utils.SecretReference;
+
+import com.google.common.collect.Multimap;
 
 /**
  * Helper class for replacing password properties in cluster template artifacts. {@see #replacePasswords}

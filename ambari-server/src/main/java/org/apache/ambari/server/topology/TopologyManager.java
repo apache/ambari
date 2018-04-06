@@ -63,7 +63,6 @@ import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.entities.SettingEntity;
@@ -162,9 +161,6 @@ public class TopologyManager {
 
   @Inject
   private ComponentResolver resolver;
-
-  @Inject
-  ArtifactDAO artifactDAO;
 
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
@@ -424,6 +420,12 @@ public class TopologyManager {
     submitArtifact(clusterName, "kerberos_descriptor", descriptor);
   }
 
+  /**
+   * Submits an artifact to {@link ArtifactResourceProvider} for persistence
+   * @param clusterName the cluster name
+   * @param artifactName the artifact name (kerberos_descriptor or provision_cluster_request)
+   * @param artifactJson the artifact as json string
+   */
   private void submitArtifact(String clusterName, String artifactName, String artifactJson) {
     ResourceProvider artifactProvider =
       AmbariContext.getClusterController().ensureResourceProvider(Resource.Type.Artifact);

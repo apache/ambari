@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.SetMultimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.StaticallyInject;
@@ -38,18 +36,17 @@ import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
-import org.apache.ambari.server.topology.ServiceInstance;
-import org.apache.commons.lang3.StringUtils;
 
 
 @StaticallyInject
@@ -235,6 +232,14 @@ public class SecretReference {
     }
   }
 
+  /**
+   * Replaces all password type properties in the given {@link Configuration} object. Creates a new Configuration
+   * object instead of mutating the input configuration.
+   * @param configuration the input configuration
+   * @param passwordProperties password type properties in a multimap.
+   *                           It has {@code config-type -> [password-prop-1, password-prop-2, ...]} structure.
+   * @return a new configuration with password properties replaced
+   */
   public static Configuration replacePasswordsInConfigurations(Configuration configuration,
                                                                      Multimap<String, String> passwordProperties) {
     // replace passwords in config properties
@@ -258,6 +263,14 @@ public class SecretReference {
     return new Configuration(replacedProperties, replacedAttributes);
     }
 
+  /**
+   * Replaces all password type properties in the given property map. Creates a new map instead of mutating
+   * the input configuration.
+   * @param propertyMap the input property map
+   * @param passwordProperties password type properties in a multimap.
+   *                           It has {@code config-type -> [password-prop-1, password-prop-2, ...]} structure.
+   * @return a new property map with password properties replaced
+   */
   public static Map<String, String> replacePasswordsInPropertyMap(Map<String, String> propertyMap,
                                                                   String configType,
                                                                   Multimap<String, String> passwordProperties) {

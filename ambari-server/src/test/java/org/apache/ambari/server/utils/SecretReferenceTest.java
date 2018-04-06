@@ -25,7 +25,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
@@ -131,15 +131,10 @@ public class SecretReferenceTest {
   }
 
   @Test
-  public void replacePasswordsInConfiguration() {
+  public void testReplacePasswordsInConfiguration() {
+    // given
     Map<String, String> propertyMap =
       PROPERTY_NAMES.stream().collect(toMap(Function.identity(), propertyName -> "someValue"));
-
-    Map<String, String> replacedPropertyMap =
-      PROPERTY_NAMES.stream().collect(toMap(
-        Function.identity(),
-        propertyName -> PASSWORD_PROPERTIES.contains(propertyName) ? secret(propertyName) : "someValue")
-      );
 
     Map<String, Map<String, String>> properties =
       ImmutableMap.of(RANGER_HDFS_POLICYMGR_SSL, propertyMap);
@@ -149,8 +144,18 @@ public class SecretReferenceTest {
 
     Configuration config = new Configuration(properties, attributes);
 
+    // when
     Configuration replacedConfig =
       SecretReference.replacePasswordsInConfigurations(config, EXPECTED_PASSWORD_PROPERTY_MAP);
+
+    // then
+    Map<String, String> replacedPropertyMap =
+      PROPERTY_NAMES.stream().collect(toMap(
+        Function.identity(),
+        propertyName -> PASSWORD_PROPERTIES.contains(propertyName) ?
+          secret(propertyName) :
+          "someValue")
+      );
 
     assertEquals(replacedPropertyMap, replacedConfig.getProperties().entrySet().iterator().next().getValue());
     assertEquals(replacedPropertyMap,

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -555,15 +554,6 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private boolean isInstanceRequest(Set<Map<String, Object>> requestProps) {
     return requestProps.size() == 1 &&
         requestProps.iterator().next().get(ARTIFACT_NAME_PROPERTY) != null;
-  }
-
-  /**
-   * Return the {@link TypeRegistration} for the requested type or {@code null} if the type is not registered
-   * @param resourceType the resource type
-   * @return the type registration or {@code null} if the type is not registered
-   */
-  public static TypeRegistration getTypeRegistration(Resource.Type resourceType) {
-    return typeRegistrations.get(resourceType);
   }
 
   //todo: when static registration is changed to external registration, this interface
