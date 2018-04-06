@@ -115,6 +115,8 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
     var dfsRpcA = hdfsSiteConfigs['dfs.namenode.rpc-address'];
     ret.nnRpcPort = dfsRpcA ? dfsRpcA.split(':')[1] : 8020;
 
+    ret.journalnode_edits_dir = hdfsSiteConfigs['dfs.journalnode.edits.dir'];
+
     if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       var hdfsRangerConfigs = configsFromServer.findProperty('type', 'ranger-hdfs-security').properties;
 
