@@ -19,7 +19,6 @@ Ambari Agent
 
 """
 
-import sys
 from resource_management import *
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
@@ -31,6 +30,8 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 class YarnClient(Script):
   def install(self, env):
+    import params
+    env.set_params(params)
     self.install_packages(env)
     self.configure(env)
 
