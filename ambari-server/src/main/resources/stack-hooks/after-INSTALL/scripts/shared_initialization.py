@@ -83,8 +83,8 @@ def setup_config():
     # create core-site only if the hadoop config diretory exists
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
-              configurations=params.module_configs.get_property_value(params.module_name, 'core-site', ''),
-              configuration_attributes=params.execution_command._execution_command.__get_value("configurationAttributes/core-site"),
+              configurations=params.module_configs.get_all_properties(params.module_name, 'core-site'),
+              configuration_attributes=params.execution_command.get_all_attributes(params.module_name, 'core-site'),
               owner=params.hdfs_user,
               group=params.user_group,
               only_if=format("ls {hadoop_conf_dir}"))

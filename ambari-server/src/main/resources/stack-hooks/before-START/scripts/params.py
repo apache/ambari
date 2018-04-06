@@ -65,7 +65,7 @@ major_stack_version = get_major_version(stack_version_formatted)
 
 dfs_type = execution_command.get_dfs_type()
 hadoop_conf_dir = "/etc/hadoop/conf"
-component_list = execution_command._execution_command.__get_value("localComponents", [])
+component_list = execution_command.get_local_components()
 
 hdfs_tmp_dir = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_tmp_dir', '/tmp')
 
@@ -96,7 +96,7 @@ java_home = execution_command.get_java_home()
 java_exec = "{0}/bin/java".format(java_home) if java_home is not None else "/bin/java"
 
 #users and groups
-has_hadoop_env = 'hadoop-env' in module_configs
+has_hadoop_env = bool(module_configs.get_all_properties(module_name, "hadoop-env"))
 mapred_user = module_configs.get_property_value(module_name, 'mapred-env', 'mapred_user')
 hdfs_user = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user')
 yarn_user = module_configs.get_property_value(module_name, 'yarn-env', 'yarn_user')
@@ -106,24 +106,24 @@ user_group = get_cluster_setting_value('user_group')
 #hosts
 hostname = execution_command.get_host_name()
 ambari_server_hostname = execution_command.get_ambari_server_host()
-rm_host = execution_command._execution_command.__get_value("clusterHostInfo/resourcemanager_hosts", [])
-slave_hosts = execution_command._execution_command.__get_value("clusterHostInfo/datanode_hosts", [])
-oozie_servers = execution_command._execution_command.__get_value("clusterHostInfo/oozie_server", [])
-hcat_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/webhcat_server_hosts", [])
-hive_server_host =  execution_command._execution_command.__get_value("clusterHostInfo/hive_server_hosts", [])
-hbase_master_hosts = execution_command._execution_command.__get_value("clusterHostInfo/hbase_master_hosts", [])
-hs_host = execution_command._execution_command.__get_value("clusterHostInfo/historyserver_hosts", [])
-jtnode_host = execution_command._execution_command.__get_value("clusterHostInfo/jtnode_hosts", [])
-namenode_host = execution_command._execution_command.__get_value("clusterHostInfo/namenode_hosts", [])
-zk_hosts = execution_command._execution_command.__get_value("clusterHostInfo/zookeeper_server_hosts", [])
-ganglia_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/ganglia_server_hosts", [])
+rm_host = execution_command.get_component_hosts('resourcemanager')
+slave_hosts = execution_command.get_component_hosts('datanode')
+oozie_servers = execution_command.get_component_hosts('oozie_server')
+hcat_server_hosts = execution_command.get_component_hosts('webhcat_server')
+hive_server_host =  execution_command.get_component_hosts('hive_server')
+hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
+hs_host = execution_command.get_component_hosts('historyserver')
+jtnode_host = execution_command.get_component_hosts('jtnode')
+namenode_host = execution_command.get_component_hosts('namenode')
+zk_hosts = execution_command.get_component_hosts('zookeeper_server')
+ganglia_server_hosts = execution_command.get_component_hosts('ganglia_server')
 cluster_name = execution_command.get_cluster_name()
 set_instanceId = "false"
 ams_collector_hosts = module_configs.get_property_value(module_name, 'cluster-env', 'metrics_collector_external_hosts')
 if ams_collector_hosts:
   set_instanceId = "true"
 else:
-  ams_collector_hosts = ",".join(execution_command._execution_command.__get_value("clusterHostInfo/metrics_collector_hosts", []))
+  ams_collector_hosts = ",".join(execution_command.get_component_hosts('metrics_collector'))
 
 has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
@@ -170,11 +170,11 @@ host_in_memory_aggregation = module_configs.get_property_value(module_name, 'ams
 host_in_memory_aggregation_port = module_configs.get_property_value(module_name, 'ams-site', 'timeline.metrics.host.inmemory.aggregation.port', 61888)
 
 # Cluster Zookeeper quorum
-zookeeper_quorum = module_configs.get_property_value(module_name, 'zoo.cfg', 'clientPort')
+zookeeper_quorum = None
 if has_zk_host:
   if not zookeeper_quorum:
     zookeeper_clientPort = '2181'
-  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(execution_command._execution_command.__get_value("clusterHostInfo/zookeeper_server_hosts"))
+  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(execution_command.get_component_hosts('zookeeper_server'))
   # last port config
   zookeeper_quorum += ':' + zookeeper_clientPort
 
@@ -254,10 +254,10 @@ is_webhdfs_enabled = module_configs.get_property_value(module_name, 'hdfs-site',
 default_fs = module_configs.get_property_value(module_name, 'core-site', 'fs.defaultFS')
 
 #host info
-all_hosts = execution_command._execution_command.__get_value("clusterHostInfo/all_hosts", [])
-all_racks = execution_command._execution_command.__get_value("clusterHostInfo/all_racks", [])
-all_ipv4_ips = execution_command._execution_command.__get_value("clusterHostInfo/all_ipv4_ips", [])
-slave_hosts = execution_command._execution_command.__get_value("clusterHostInfo/datanode_hosts", [])
+all_hosts = execution_command.get_all_hosts()
+all_racks = execution_command.get_all_racks()
+all_ipv4_ips = execution_command.get_all_ipv4_ips()
+slave_hosts = execution_command.get_component_hosts('datanode')
 
 #topology files
 net_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
@@ -266,15 +266,15 @@ net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)
 
 #Added logic to create /tmp and /user directory for HCFS stack.  
-has_core_site = 'core-site' in module_configs
+has_core_site = bool(module_configs.get_all_properties(module_name, "core-site"))
 hdfs_user_keytab = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_user_keytab')
 kinit_path_local = get_kinit_path()
 stack_version_unformatted = execution_command.get_mpack_version()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = module_configs.get_property_value(module_name, 'hadoop-env', 'hdfs_principal_name')
-hdfs_site = module_configs.get_property_value(module_name, 'hdfs-site', '')
-smoke_user =  get_cluster_setting_value('smokeuser')
+hdfs_site = module_configs.get_all_properties(module_name, 'hdfs-site')
+smoke_user = get_cluster_setting_value('smokeuser')
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
 
@@ -316,7 +316,7 @@ else:
   namenode_rpc = module_configs.get_property_value(module_name, 'hdfs-site', 'dfs.namenode.rpc-address', default_fs)
 
 # if HDFS is not installed in the cluster, then don't try to access namenode_rpc
-if has_namenode and namenode_rpc and 'core-site' in module_configs:
+if has_namenode and namenode_rpc and module_configs.get_all_properties(module_name, 'core-site'):
   port_str = namenode_rpc.split(':')[-1].strip()
   try:
     nn_rpc_client_port = int(port_str)
