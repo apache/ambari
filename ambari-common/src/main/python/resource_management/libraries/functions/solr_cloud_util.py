@@ -103,7 +103,7 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, java_opts)
 
   if max_shards == 1: # if max shards is not specified use this strategy
-    max_shards = replication_factor * shards
+    max_shards = int(replication_factor) * int(shards)
 
   create_collection_cmd = format('{solr_cli_prefix} --create-collection --collection {collection} --config-set {config_set} '\
                                  '--shards {shards} --replication {replication_factor} --max-shards {max_shards} --retry {retry} '\
