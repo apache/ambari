@@ -24,6 +24,7 @@ import ambari_simplejson as json
 import sys
 from ambari_commons import shell
 import threading
+from collections import defaultdict
 
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
@@ -32,8 +33,6 @@ from resource_management.core.utils import PasswordString
 from ambari_commons import subprocess32
 from ambari_agent.Utils import Utils
 from ambari_commons.constants import AGENT_TMP_DIR
-import hostname
-import Constants
 
 
 logger = logging.getLogger()
@@ -108,6 +107,9 @@ class CustomServiceOrchestrator():
     self.commands_in_progress_lock = threading.RLock()
     self.commands_in_progress = {}
 
+    # save count (not boolean) for parallel execution cases
+    self.commands_for_component_in_progress = defaultdict(lambda:defaultdict(lambda:0))
+
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
       logger.debug('Maps taskId=%s to pid=%s', task_id, processId)
@@ -147,6 +149,9 @@ class CustomServiceOrchestrator():
 
     conf_dir = os.path.join(self.credential_conf_dir, service_name.lower())
     return conf_dir
+
+  def commandsRunningForComponent(self, clusterId, componentName):
+    return self.commands_for_component_in_progress[clusterId][componentName] > 0
 
   def getConfigTypeCredentials(self, commandJson):
     """
@@ -308,11 +313,14 @@ class CustomServiceOrchestrator():
     forced_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
     """
+    incremented_commands_for_component = False
+
     try:
       command = self.generate_command(command_header)
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
+      cluster_id = str(command['clusterId'])
 
       server_url_prefix = command['ambariLevelParams']['jdk_location']
 
@@ -393,6 +401,10 @@ class CustomServiceOrchestrator():
       backup_log_files = not command_name in self.DONT_BACKUP_LOGS_FOR_COMMANDS
       log_out_files = self.config.get("logging","log_out_files", default="0") != "0"
 
+      if cluster_id != '-1' and cluster_id != 'null':
+        self.commands_for_component_in_progress[cluster_id][command['role']] += 1
+        incremented_commands_for_component = True
+
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir,
@@ -437,6 +449,10 @@ class CustomServiceOrchestrator():
         'structuredOut' : '{}',
         'exitcode': 1,
       }
+    finally:
+      if incremented_commands_for_component:
+        self.commands_for_component_in_progress[cluster_id][command['role']] -= 1
+
     return ret
 
   def command_canceled_reason(self, task_id):
