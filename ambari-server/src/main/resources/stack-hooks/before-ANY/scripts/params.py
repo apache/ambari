@@ -55,7 +55,7 @@ dfs_type = execution_command.get_dfs_type()
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = execution_command.get_jdk_name()
-java_home = execution_command.get_jdk_home()
+java_home = execution_command.get_java_home()
 java_version = execution_command.get_java_version()
 jdk_location = execution_command.get_jdk_location()
 
