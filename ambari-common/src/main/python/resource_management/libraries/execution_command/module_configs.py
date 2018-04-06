@@ -31,12 +31,16 @@ class ModuleConfigs(object):
     self.__module_config_attributes = configAttributes
 
   def get_all_attributes(self, module_name, config_type):
+    if config_type not in self.__module_config_attributes:
+      return {}
     try:
       return self.__module_config_attributes[config_type]
     except:
       return {}
 
   def get_all_properties(self, module_name, config_type):
+    if config_type not in self.__module_configs:
+      return {}
     try:
       return self.__module_configs[config_type]
     except:
@@ -52,11 +56,10 @@ class ModuleConfigs(object):
     return properties
 
   def get_property_value(self, module_name, config_type, property_name, default=None):
+    if config_type not in self.__module_configs or property_name not in self.__module_configs[config_type]:
+      return default
     try:
-      if property_name:
-        return self.__module_configs[config_type][property_name]
-      else:
-        return self.__module_configs[config_type]
+      return self.__module_configs[config_type][property_name]
     except:
       return default
 

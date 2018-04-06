@@ -38,6 +38,7 @@ from resource_management.libraries.execution_command import module_configs
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.cluster_settings import get_cluster_setting_value
 
+config = Script.get_config()
 execution_command = Script.get_execution_command()
 module_configs = Script.get_module_configs()
 module_name = execution_command.get_module_name()
@@ -210,8 +211,8 @@ hadoop_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', '
 namenode_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_heapsize')
 namenode_opt_newsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_newsize')
 namenode_opt_maxnewsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxnewsize')
-namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'))
-namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'))
+namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'), '128m')
+namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'), '256m')
 
 jtnode_opt_newsize = "200m"
 jtnode_opt_maxnewsize = "200m"

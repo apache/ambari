@@ -49,6 +49,8 @@ class ExecutionCommand(object):
     value = self._execution_command
     try:
       for sub_key in sub_keys:
+        if not sub_key in value:
+          return default_value
         value = value[sub_key]
       return value
     except:
@@ -126,8 +128,8 @@ class ExecutionCommand(object):
   def get_mysql_jdbc_url(self):
     return self.__get_value('ambariLevelParams/mysql_jdbc_url')
 
-  def get_agent_stack_retry_count_on_unavailability(self):
-    return self.__get_value('ambariLevelParams/agent_stack_retry_count', 5)
+  def get_agent_stack_retry_count(self):
+    return int(self.__get_value('ambariLevelParams/agent_stack_retry_count', 5))
 
   def check_agent_stack_want_retry_on_unavailability(self):
     return self.__get_value('ambariLevelParams/agent_stack_retry_on_unavailability')
