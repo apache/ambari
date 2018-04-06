@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 import javax.xml.XMLConstants;
@@ -90,8 +91,6 @@ public class StackManager {
    */
   private StackContext stackContext;
 
-  private File stackRoot;
-
   /**
    * Logger
    */
@@ -100,7 +99,7 @@ public class StackManager {
   /**
    * Map of stack id to stack info
    */
-  protected Map<String, StackInfo> stackMap = new HashMap<>();
+  protected TreeMap<String, StackInfo> stackMap = new TreeMap<>();
   protected Map<String, ServiceModule> commonServiceModules;
   protected Map<String, StackModule> stackModules;
   protected Map<String, ExtensionModule> extensionModules;
@@ -156,7 +155,7 @@ public class StackManager {
       validateExtensionDirectory(extensionRoot);
     }
 
-    stackMap = new HashMap<>();
+    stackMap = new TreeMap<>();
     stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
     extensionMap = new HashMap<>();
     this.helper = helper;
@@ -536,8 +535,9 @@ public class StackManager {
   private void validateExtensionDirectory(File extensionRoot) throws AmbariException {
     LOG.info("Validating extension directory {} ...", extensionRoot);
 
-    if (extensionRoot == null)
-	return;
+    if (extensionRoot == null) {
+      return;
+    }
 
     String extensionRootAbsPath = extensionRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
@@ -569,8 +569,8 @@ public class StackManager {
           continue;
         }
         for (File serviceFolder : commonService.listFiles(StackDirectory.FILENAME_FILTER)) {
-          String serviceName = serviceFolder.getParentFile().getName();
-          String serviceVersion = serviceFolder.getName();
+          serviceFolder.getParentFile().getName();
+          serviceFolder.getName();
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
           if (metaInfoXml != null) {
@@ -648,8 +648,9 @@ public class StackManager {
    */
   private Map<String, ExtensionModule> parseExtensionDirectory(File extensionRoot) throws AmbariException {
     Map<String, ExtensionModule> extensionModules = new HashMap<>();
-    if (extensionRoot == null || !extensionRoot.exists())
+    if (extensionRoot == null || !extensionRoot.exists()) {
       return extensionModules;
+    }
 
     File[] extensionFiles = extensionRoot.listFiles(StackDirectory.FILENAME_FILTER);
     for (File extensionNameFolder : extensionFiles) {
