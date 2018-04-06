@@ -948,6 +948,10 @@ public class BlueprintConfigurationProcessor {
     Map<String, String> hdfsSiteConfig = clusterTopology.getConfiguration().getFullProperties().get("hdfs-site");
     // generate the property names based on the current HA config for the NameNode deployments
     for (String nameService : parseNameServices(hdfsSiteConfig)) {
+      final String journalEditsDirPropertyName = "dfs.namenode.shared.edits.dir." + nameService;
+      // register an updater for the nameservice-specific shared edits dir
+      hdfsSiteUpdatersForAvailability.put(journalEditsDirPropertyName, new MultipleHostTopologyUpdater("JOURNALNODE", ';', false, false, true));
+
       for (String nameNode : parseNameNodes(nameService, hdfsSiteConfig)) {
         final String httpsPropertyName = "dfs.namenode.https-address." + nameService + "." + nameNode;
         hdfsSiteUpdatersForAvailability.put(httpsPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
@@ -955,6 +959,8 @@ public class BlueprintConfigurationProcessor {
         hdfsSiteUpdatersForAvailability.put(httpPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
         final String rpcPropertyName = "dfs.namenode.rpc-address." + nameService + "." + nameNode;
         hdfsSiteUpdatersForAvailability.put(rpcPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
+        final String serviceRpcPropertyName = "dfs.namenode.servicerpc-address" + nameService + "." + nameNode;
+        hdfsSiteUpdatersForAvailability.put(serviceRpcPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
       }
     }
     return highAvailabilityUpdaters;
