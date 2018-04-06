@@ -33,6 +33,7 @@ from ambari_commons.aggregate_functions import sample_standard_deviation, mean
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
+from resource_management.libraries.functions.namenode_ha_utils import get_name_service_by_hostname
 from ambari_commons.ambari_metrics_helper import select_metric_collector_for_sink
 from ambari_agent.AmbariConfig import AmbariConfig
 
@@ -233,7 +234,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
-    name_service = _get_name_service_by_hostname(hdfs_site, host_name)
+    name_service = get_name_service_by_hostname(hdfs_site, host_name)
 
     # look for dfs.ha.namenodes.foo
     nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
@@ -495,26 +496,3 @@ def _coerce_to_integer(value):
   except ValueError:
     return int(float(value))
 
-
-def _get_name_service_by_hostname(hdfs_site, host_name):
-  """
-   Finds the name service which the name node belongs to in an HA or federated setup.
-  :param hdfs_site: the hdfs config
-  :param host_name: the host name of the name node, can be None if there is only 1 name service
-  :return: the name service
-  """
-  #there has to be a name service - we are in HA at least
-  name_services = hdfs_site['dfs.internal.nameservices'].split(',')
-  if len(name_services) == 1:
-    return name_services[0]
-
-  if not host_name:
-    raise ValueError('Host name required when using namenode federation')
-
-  for ns in name_services:
-    ha_name_nodes = hdfs_site['dfs.ha.namenodes.{0}'.format(ns)].split(',')
-    for nn in ha_name_nodes:
-      nn_rpc_port = hdfs_site['dfs.namenode.rpc-address.{0}.{1}'.format(ns,nn)]
-      nn_rpc = nn_rpc_port.split(':')[0]
-      if nn_rpc == host_name:
-        return ns

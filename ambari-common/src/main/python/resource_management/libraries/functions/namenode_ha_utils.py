@@ -27,7 +27,8 @@ from resource_management.libraries.functions.hdfs_utils import is_https_enabled_
 
 
 __all__ = ["get_namenode_states", "get_active_namenode",
-           "get_property_for_active_namenodes", "get_property_for_active_namenode", "get_nameservices"]
+           "get_property_for_active_namenodes", "get_property_for_active_namenode", "get_nameservices",
+           "get_name_service_by_hostname"]
 
 HDFS_NN_STATE_ACTIVE = 'active'
 HDFS_NN_STATE_STANDBY = 'standby'
@@ -332,3 +333,30 @@ def get_initial_active_namenodes(hadoop_env):
     return frozenset(setting.split(','))
 
   return frozenset()
+
+
+def get_name_service_by_hostname(hdfs_site, host_name):
+  """
+   Finds the name service which the name node belongs to in an HA or federated setup.
+  :param hdfs_site: the hdfs config
+  :param host_name: the host name of the name node, can be None if there is only 1 name service
+  :return: the name service
+  """
+  #there has to be a name service - we are in HA at least
+  name_services_string = hdfs_site['dfs.internal.nameservices']
+  if not name_services_string:
+    raise Fail('Not a HA setup')
+  name_services = name_services_string.split(',')
+  if len(name_services) == 1:
+    return name_services[0]
+
+  if not host_name:
+    raise ValueError('Host name required when using namenode federation')
+
+  for ns in name_services:
+    ha_name_nodes = hdfs_site['dfs.ha.namenodes.{0}'.format(ns)].split(',')
+    for nn in ha_name_nodes:
+      nn_rpc_port = hdfs_site['dfs.namenode.rpc-address.{0}.{1}'.format(ns,nn)]
+      nn_rpc = nn_rpc_port.split(':')[0]
+      if nn_rpc == host_name:
+        return ns
