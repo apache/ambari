@@ -559,19 +559,19 @@ public class StageUtilsTest extends EasyMockSupport {
     assertEquals(StageUtils.getHostName(), serverHost.iterator().next());
 
     // check host role replacing by the projected topology
-    assertTrue(getDecompressedSet(info.get("hbase_rs_hosts")).contains(9));
+    assertTrue(getDecompressedSet(info.get("hbase_regionserver_hosts")).contains(9));
 
     // Validate substitutions...
     info = StageUtils.substituteHostIndexes(info);
 
-    checkServiceHostNames(info, "DATANODE", "slave_hosts", projectedTopology);
-    checkServiceHostNames(info, "NAMENODE", "namenode_host", projectedTopology);
-    checkServiceHostNames(info, "SECONDARY_NAMENODE", "snamenode_host", projectedTopology);
-    checkServiceHostNames(info, "HBASE_MASTER", "hbase_master_hosts", projectedTopology);
-    checkServiceHostNames(info, "HBASE_REGIONSERVER", "hbase_rs_hosts", projectedTopology);
-    checkServiceHostNames(info, "JOBTRACKER", "jtnode_host", projectedTopology);
-    checkServiceHostNames(info, "TASKTRACKER", "mapred_tt_hosts", projectedTopology);
-    checkServiceHostNames(info, "NONAME_SERVER", "noname_server_hosts", projectedTopology);
+    checkServiceHostNames(info, "DATANODE", projectedTopology);
+    checkServiceHostNames(info, "NAMENODE", projectedTopology);
+    checkServiceHostNames(info, "SECONDARY_NAMENODE", projectedTopology);
+    checkServiceHostNames(info, "HBASE_MASTER", projectedTopology);
+    checkServiceHostNames(info, "HBASE_REGIONSERVER", projectedTopology);
+    checkServiceHostNames(info, "JOBTRACKER", projectedTopology);
+    checkServiceHostNames(info, "TASKTRACKER", projectedTopology);
+    checkServiceHostNames(info, "NONAME_SERVER", projectedTopology);
   }
 
   private void insertTopology(Map<String, Collection<String>> projectedTopology, String componentName, Set<String> hostNames) {
@@ -700,7 +700,7 @@ public class StageUtilsTest extends EasyMockSupport {
     }
 
     // Determine the actual hosts for a given component...
-    Set<String> hosts = info.get(mappedComponentName);
+    Set<String> hosts = info.get(StageUtils.getClusterHostInfoKey(componentName));
     if (hosts != null) {
       actualHostsList.addAll(getDecompressedSet(hosts));
     }
@@ -708,7 +708,7 @@ public class StageUtilsTest extends EasyMockSupport {
     assertEquals(expectedHostsList, actualHostsList);
   }
 
-  private void checkServiceHostNames(Map<String, Set<String>> info, String componentName, String mappedComponentName,
+  private void checkServiceHostNames(Map<String, Set<String>> info, String componentName,
                                      Map<String, Collection<String>> serviceTopology) {
     Set<String> expectedHostsList = new HashSet<>();
     Set<String> actualHostsList = new HashSet<>();
@@ -721,7 +721,7 @@ public class StageUtilsTest extends EasyMockSupport {
     }
 
     // Determine the actual hosts for a given component...
-    Set<String> hosts = info.get(mappedComponentName);
+    Set<String> hosts = info.get(StageUtils.getClusterHostInfoKey(componentName));
     if (hosts != null) {
       actualHostsList.addAll(hosts);
     }
