@@ -184,7 +184,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
    * @returns {{WidgetInfo: {cluster_name: *, widget_name: *, widget_type: *, description: *, scope: string, metrics: *, values: *, properties: *}}}
    */
   collectWidgetData: function () {
-    return {
+    var widgetData = {
       WidgetInfo: {
         widget_name: this.get('widgetName'),
         widget_type: this.get('content.widgetType'),
@@ -193,6 +193,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
         author: this.get('widgetAuthor'),
         metrics: this.get('widgetMetrics').map(function (metric) {
           delete metric.data;
+          delete metric.tag;
           return metric;
         }),
         values: this.get('widgetValues').map(function (value) {
@@ -202,6 +203,12 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
         properties: this.get('widgetProperties')
       }
     };
+
+    this.get('widgetMetrics').forEach(function (metric) {
+      if (metric.tag) widgetData.tag = metric.tag;
+    });
+
+    return widgetData;
   },
 
   cancel: function () {
