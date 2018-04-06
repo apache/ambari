@@ -1387,6 +1387,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       String serviceName = getServiceName();
       String componentName = getServiceComponentName();
       String hostName = getHostName();
+      State lastComponentState = getState();
       boolean recoveryEnabled = isRecoveryEnabled();
       boolean masterComponent = serviceComponent.isMasterComponent();
 
@@ -1400,7 +1401,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           hostName,
           getHost().getHostId(),
           Long.toString(clusterId),
-          version);
+          version,
+          lastComponentState);
     }
   }
 
