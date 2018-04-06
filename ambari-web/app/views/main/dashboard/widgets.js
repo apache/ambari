@@ -28,6 +28,26 @@ const WidgetObject = Em.Object.extend({
   isVisible: true
 });
 
+const plusButtonFilterView = Ember.View.extend({
+  tagName: 'ul',
+  classNames: ['dropdown-menu'],
+  templateName: require('templates/main/dashboard/plus_button_filter'),
+  valueBinding: '',
+  widgetCheckbox: App.CheckboxView.extend({
+    didInsertElement: function () {
+      $('.checkbox').click(function (event) {
+        event.stopPropagation();
+      });
+    }
+  }),
+  applyFilter: function () {
+    const parent = this.get('parentView'),
+      hiddenWidgets = this.get('hiddenWidgets');
+    hiddenWidgets.filterProperty('checked').setEach('isVisible', true);
+    parent.saveWidgetsSettings();
+  }
+});
+
 App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App.TimeRangeMixin, {
   name: 'mainDashboardWidgetsView',
   templateName: require('templates/main/dashboard/widgets'),
@@ -156,6 +176,9 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
         this.set('isDataLoaded', true);
         App.loadTimer.finish('Dashboard Metrics Page');
         Em.run.next(this, 'makeSortable');
+        if (this.get('displayedWidgetGroups.length')) {
+          Em.run.next(this, 'makeGroupedWidgetsSortable');
+        }
       });
     });
   },
@@ -186,11 +209,11 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     }
     else {
       newSettings.threshold = userPreferences.threshold;
+      newSettings.groups = userPreferences.groups;
       this.get('allWidgets').forEach(widget => {
         let key = widget.get('isVisible') ? 'visible' : 'hidden';
         newSettings[key].push(widget.get('id'));
       });
-      //TODO handle grouped widgets
     }
     this.set('userPreferences', newSettings);
     this.setDBProperty(this.get('persistKey'), newSettings);
@@ -241,29 +264,33 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
 
     this.resolveConfigDependencies(widgetsDefinition);
     widgetsDefinition.forEach(widget => {
-      const {sourceName, id} = widget,
+      const {sourceName, id, groupName} = widget,
         widgetGroups = this.get('displayedWidgetGroups');
       if (App.Service.find(sourceName).get('isLoaded') || sourceName === 'HOST_METRICS') {
         const state = widget.isHiddenByDefault ? 'hidden' : 'visible',
           {threshold} = widget,
-          widgetGroup = widgetGroups.findProperty('serviceName', sourceName);
+          widgetGroup = widgetGroups.find(group => {
+            return group.get('serviceName') === sourceName && group.get('name') === groupName;
+          });
         if (widgetGroup) {
           const widgetGroupName = widgetGroup.get('name'),
             allSubGroups = widgetGroup.get('subGroups'),
             subGroupForAllItems = allSubGroups.findProperty('name', '*'),
             subGroups = allSubGroups.rejectProperty('name', '*'),
             existingEntry = preferences.groups[widgetGroupName],
-            currentEntry = existingEntry || this.getWidgetSubGroupsObject(subGroups);
-          if (subGroupForAllItems && !currentEntry['*']) {
-            currentEntry['*'] =this.getWidgetSubGroupsObject(subGroups);
-          }
+            currentEntry = existingEntry || this.getWidgetSubGroupsObject(allSubGroups);
           subGroups.forEach(subGroup => {
             const {name} = subGroup;
             currentEntry[name][state].push(id);
             currentEntry[name].threshold[id] = threshold;
             if (subGroupForAllItems) {
-              currentEntry['*'][name][state].push(id);
-              currentEntry['*'][name].threshold[id] = threshold;
+              currentEntry['*'][state].push({
+                id,
+                subGroup: name
+              });
+              currentEntry['*'].threshold[name] = Object.assign({}, currentEntry['*'].threshold[name], {
+                [id]: threshold
+              });
             }
           });
           if (!existingEntry) {
@@ -281,11 +308,24 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
   /**
    * Don't show widget on the Dashboard
    *
-   * @param {number} id
+   * @param {number|string} id
+   * @param {string} [groupId]
+   * @param {string} [subGroupId]
+   * @param {boolean} [isAllItemsSubGroup]
    */
-  hideWidget(id) {
-    // TODO handle grouped widgets
-    this.get('allWidgets').findProperty('id', id).set('isVisible', false);
+  hideWidget(id, groupId, subGroupId, isAllItemsSubGroup) {
+    const idToNumber = Number(id);
+    if (isNaN(idToNumber)) {
+      const subGroupToFilter = isAllItemsSubGroup ? '*' : subGroupId,
+        groupWidgets = this.get('displayedWidgetGroups').findProperty('name', groupId).get('allWidgets'),
+        subGroupWidgets = groupWidgets && groupWidgets.findProperty('subGroupName', subGroupToFilter).get('widgets'),
+        targetWidget = subGroupWidgets && subGroupWidgets.findProperty('id', id);
+      if (targetWidget) {
+        targetWidget.set('isVisible', false);
+      }
+    } else {
+      this.get('allWidgets').findProperty('id', id).set('isVisible', false);
+    }
     this.saveWidgetsSettings();
   },
 
@@ -325,17 +365,22 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     const widget = this.get('widgetsDefinitionMap')[id];
     subGroupId = subGroupId || 'default';
     return WidgetObject.create({
-      id: `${id}-${groupId}-${subGroupId}`,
+      id: `${id}-${groupId}-${subGroupId}${isAllSubGroupsDisplay ? '-*' : ''}`,
       threshold: isAllSubGroupsDisplay ?
-        this.get('userPreferences.groups')[groupId]['*'][subGroupId].threshold[id] :
+        this.get('userPreferences.groups')[groupId]['*'].threshold[subGroupId][id] :
         this.get('userPreferences.groups')[groupId][subGroupId].threshold[id],
       viewClass: App[widget.viewName].extend({
-        subGroupId
+        subGroupId,
+        isAllItemsSubGroup: isAllSubGroupsDisplay
       }),
       sourceName: widget.sourceName,
       title: `${widget.title} - ${subGroupId}`,
       isVisible
     });
+  },
+
+  findWidgetInAllItemsSubGroup: function (id, subGroup) {
+    return widget => widget.id === id && widget.subGroup === subGroup;
   },
 
   /**
@@ -362,9 +407,11 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
               existingSubGroup = allWidgets.findProperty('subGroupName', subGroupName),
               currentSubGroup = existingSubGroup || Em.Object.create({
                   subGroupName,
+                  title: subGroupName,
                   parentGroup: widgetGroup,
                   isActive: Em.computed.equal('parentGroup.activeSubGroup.name', subGroupName),
-                  widgets: []
+                  widgets: [],
+                  hiddenWidgets: Em.computed.filterBy('widgets', 'isVisible', false)
                 }),
               visibleIndex = subGroupPreferences.visible.indexOf(id),
               hiddenIndex = subGroupPreferences.hidden.indexOf(id),
@@ -384,31 +431,34 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
               existingSubGroup = allWidgets.findProperty('subGroupName', '*'),
               currentSubGroup = existingSubGroup || Em.Object.create({
                   subGroupName: '*',
+                  title: Em.I18n.t('common.all'),
                   parentGroup: widgetGroup,
                   isActive: Em.computed.equal('parentGroup.activeSubGroup.name', '*'),
-                  widgets: []
+                  widgets: [],
+                  hiddenWidgets: Em.computed.filterBy('widgets', 'isVisible', false)
                 });
             if (!existingSubGroup) {
               allWidgets.pushObject(currentSubGroup);
             }
-            Object.keys(subGroupPreferences).forEach(key => {
-              const existingWidgetsLength = currentSubGroup.get('widgets.length'),
-                preferences = subGroupPreferences[key],
-                visibleIndex = preferences.visible.indexOf(id),
-                hiddenIndex = preferences.hidden.indexOf(id),
-                visibleCount = preferences.visible.length;
-              let widgets = [];
-              if (visibleIndex > -1) {
-                currentSubGroup.get('widgets')[visibleIndex + existingWidgetsLength] = this._createGroupWidgetObj(id, true, groupName, key, true);
-              }
-              if (hiddenIndex > -1) {
-                currentSubGroup.get('widgets')[hiddenIndex + visibleCount + existingWidgetsLength] = this._createGroupWidgetObj(id, false, groupName, key, true);
-              }
+            const visibleItems = subGroupPreferences.visible.filterProperty('id', id),
+              hiddenItems = subGroupPreferences.hidden.filterProperty('id', id),
+              visibleCount = subGroupPreferences.visible.length;
+            let widgets = [];
+            visibleItems.forEach(widget => {
+              const subgroupName = widget.subGroup,
+                findFunction = this.findWidgetInAllItemsSubGroup(id, subgroupName),
+                index = subGroupPreferences.visible.findIndex(findFunction);
+              currentSubGroup.get('widgets')[index] = this._createGroupWidgetObj(id, true, groupName, subgroupName, true);
+            });
+            hiddenItems.forEach(widget => {
+              const subgroupName = widget.subGroup,
+                findFunction = this.findWidgetInAllItemsSubGroup(id, subgroupName),
+                index = subGroupPreferences.hidden.findIndex(findFunction);
+              currentSubGroup.get('widgets')[index + visibleCount] = this._createGroupWidgetObj(id, false, groupName, subgroupName, true);
             });
           }
           allWidgets.forEach(subGroup => {
             const widgets = subGroup.get('widgets');
-            subGroup.set('widgets', widgets.filter(widget => !Em.isNone(widget)));
           });
         }
       } else {
@@ -439,7 +489,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
         visible: userPreferences.visible.slice(0),
         hidden: userPreferences.hidden.slice(0),
         threshold: userPreferences.threshold,
-        groups: userPreferences.groups || {}
+        groups: $.extend(true, {}, userPreferences.groups)
       },
       isChanged = false;
 
@@ -462,7 +512,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
                   [subGroupName]: {
                     visible: [],
                     hidden: [],
-                    threshold: {}
+                    threshold: defaultPreferences.groups[groupName][subGroupName].threshold
                   }
                 }
               });
@@ -475,27 +525,28 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
           });
         });
         if (subGroupForAllItems) {
-          Object.keys(subGroupForAllItems).forEach(subGroupName => {
-            subGroupForAllItems[subGroupName][state].forEach(id => {
-              if (!newValue.groups[groupName]['*'] || !newValue.groups[groupName]['*'][subGroupName]) {
-                $.extend(true, newValue.groups, {
-                  [groupName]: {
-                    '*': {
-                      [subGroupName]: {
-                        visible: [],
-                        hidden: [],
-                        threshold: {}
-                      }
-                    }
+          subGroupForAllItems[state].forEach(item => {
+            const {id, subGroup} = item;
+            if (!newValue.groups[groupName]['*']) {
+              $.extend(true, newValue.groups, {
+                [groupName]: {
+                  '*': {
+                    visible: [],
+                    hidden: [],
+                    threshold: defaultPreferences.groups[groupName]['*'].threshold
                   }
-                });
-              }
-              const subGroupPreferences = newValue.groups[groupName]['*'][subGroupName];
-              if (!subGroupPreferences.visible.contains(id) && !subGroupPreferences.hidden.contains(id)) {
-                isChanged = true;
-                subGroupPreferences[state].push(id);
-              }
-            });
+                }
+              });
+            }
+            const preferences = newValue.groups[groupName]['*'],
+              checkFunction = this.findWidgetInAllItemsSubGroup(id, subGroup);
+            if (!preferences.visible.some(checkFunction) && !preferences.hidden.some(checkFunction)) {
+              isChanged = true;
+              preferences[state].push({
+                id,
+                subGroup
+              });
+            }
           });
         }
       });
@@ -531,13 +582,14 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
       tolerance: "pointer",
       scroll: false,
       update: function () {
-        var widgetsArray = $('div[viewid]');
+        var widgetsArray = $('#sortable div[viewid]');
 
         var userPreferences = self.get('userPreferences') || self.getDBProperty(self.get('persistKey'));
         var newValue = {
           visible: [],
           hidden: userPreferences.hidden,
-          threshold: userPreferences.threshold
+          threshold: userPreferences.threshold,
+          groups: userPreferences.groups
         };
         newValue.visible = userPreferences.visible.map((item, index) => {
           var viewID = widgetsArray.get(index).getAttribute('viewid');
@@ -554,31 +606,79 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
     }).disableSelection();
   },
 
+  makeGroupedWidgetsSortable: function () {
+    this.get('displayedWidgetGroups').forEach(widgetGroup => {
+      const selector = `#${widgetGroup.get('name')}`;
+      $(selector).sortable({
+        items: '> div',
+        cursor: 'move',
+        tolerance: 'pointer',
+        scroll: false,
+        update: () => {
+          let isSubGroupForAllItems = false;
+          const widgetsArray = $(`${selector} div[viewid]`),
+            userPreferences = this.get('userPreferences') || this.getDBProperty(self.get('persistKey')),
+            currentWidgetsData = widgetsArray.toArray().map(widget => {
+              const viewId = widget.getAttribute('viewid'),
+                splittedViewId = viewId.split('-');
+              if (splittedViewId.length > 4) {
+                isSubGroupForAllItems = true;
+              }
+              return {
+                id: Number(splittedViewId[1]),
+                groupName: splittedViewId[2],
+                subGroupName: splittedViewId.slice(3, isSubGroupForAllItems ?
+                splittedViewId.length - 1 : splittedViewId.length).join('-')
+              };
+            }),
+            {groupName} = currentWidgetsData[0],
+            subGroupName = isSubGroupForAllItems ? '*' : currentWidgetsData[0].subGroupName,
+            groupPreferences = userPreferences.groups[groupName][subGroupName],
+            newSubGroupValue = {
+              visible: groupPreferences.visible.map((item, index) => {
+                const widget = currentWidgetsData[index];
+                if (isSubGroupForAllItems) {
+                  return {
+                    id: widget.id,
+                    subGroup: widget.subGroupName
+                  };
+                } else {
+                  return widget.id;
+                }
+              })
+            },
+            newValue = {
+              visible: userPreferences.visible,
+              hidden: userPreferences.hidden,
+              threshold: userPreferences.threshold,
+              groups: $.extend(true, userPreferences.groups, {
+                [groupName]: {
+                  [subGroupName]: newSubGroupValue
+                }
+              })
+            };
+          this.saveWidgetsSettings(newValue);
+        },
+        activate: () => {
+          this.set('isMoving', true);
+        },
+        deactivate: () => {
+          this.set('isMoving', false);
+        }
+      }).disableSelection();
+    });
+  },
+
   /**
    * Submenu view for New Dashboard style
    * @type {Ember.View}
    * @class
    */
-  plusButtonFilterView: Ember.View.extend({
-    tagName: 'ul',
-    classNames: ['dropdown-menu'],
-    templateName: require('templates/main/dashboard/plus_button_filter'),
-    hiddenWidgetsBinding: 'parentView.hiddenWidgets',
-    valueBinding: '',
-    widgetCheckbox: App.CheckboxView.extend({
-      didInsertElement: function () {
-        $('.checkbox').click(function (event) {
-          event.stopPropagation();
-        });
-      }
-    }),
-    applyFilter: function () {
-      var parent = this.get('parentView'),
-        hiddenWidgets = this.get('hiddenWidgets');
-      hiddenWidgets.filterProperty('checked').setEach('isVisible', true);
-      parent.saveWidgetsSettings();
-    }
+  plusButtonFilterView: plusButtonFilterView.extend({
+    hiddenWidgetsBinding: 'parentView.hiddenWidgets'
   }),
+
+  groupWidgetsFilterView: plusButtonFilterView.extend(),
 
   showAlertsPopup: Em.K,
 

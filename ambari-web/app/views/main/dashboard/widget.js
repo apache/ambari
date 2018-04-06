@@ -152,7 +152,7 @@ App.DashboardWidgetView = Em.View.extend({
    * delete widget
    */
   deleteWidget: function () {
-    this.get('parentView').hideWidget(this.get('id'));
+    this.get('parentView').hideWidget(this.get('id'), this.get('groupId'), this.get('subGroupId'), this.get('isAllItemsSubGroup'));
   },
 
   /**
@@ -161,11 +161,22 @@ App.DashboardWidgetView = Em.View.extend({
    * @param {number[]} preparedThresholds
    */
   saveWidgetThresholds(preparedThresholds) {
+    const widgetId = this.get('id');
+    const widgetIdToNumber = Number(widgetId);
     const widgetsView = this.get('widgetsView');
     const userPreferences = widgetsView.get('userPreferences');
-    const widgetId = Number(this.get('id'));
-    userPreferences.threshold[widgetId] = preparedThresholds;
-    this.set('widget.threshold', userPreferences.threshold[widgetId]);
+    const isGroupWidget = isNaN(widgetIdToNumber);
+    if (isGroupWidget) {
+      const parsedWidgetId = parseInt(widgetId);
+      if (this.get('isAllItemsSubGroup')) {
+        userPreferences.groups[this.get('groupId')]['*'].threshold[this.get('subGroupId')][parsedWidgetId] = preparedThresholds;
+      } else {
+        userPreferences.groups[this.get('groupId')][this.get('subGroupId')].threshold[parsedWidgetId] = preparedThresholds;
+      }
+    } else {
+      userPreferences.threshold[widgetIdToNumber] = preparedThresholds;
+      this.set('widget.threshold', userPreferences.threshold[widgetIdToNumber]);
+    }
     widgetsView.saveWidgetsSettings(userPreferences);
   },
 

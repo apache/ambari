@@ -141,7 +141,8 @@ describe('App.DashboardWidgetView', function () {
       view.set('parentView.userPreferences', {
         visible: [1],
         hidden: [],
-        threshold: []
+        threshold: [],
+        groups: {}
       });
       view.deleteWidget();
     });
