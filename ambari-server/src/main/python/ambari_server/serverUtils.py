@@ -20,6 +20,7 @@ limitations under the License.
 
 import os
 import time
+import socket
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import get_verbose
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -113,8 +114,10 @@ def refresh_stack_hash(properties):
 # Reads server protocol/port from configuration
 # And returns something like
 # http://127.0.0.1:8080/api/v1/
+# or if using ssl http://hostname.domain:8443/api/v1
 #
 def get_ambari_server_api_base(properties):
+  api_host = SERVER_API_HOST
   api_protocol = SERVER_API_PROTOCOL
   api_port = CLIENT_API_PORT
   api_port_prop = properties.get_property(CLIENT_API_PORT_PROPERTY)
@@ -127,9 +130,10 @@ def get_ambari_server_api_base(properties):
     api_ssl = api_ssl_prop.lower() == "true"
 
   if api_ssl:
+    api_host = socket.getfqdn()
     api_protocol = SERVER_API_SSL_PROTOCOL
     api_port = DEFAULT_SSL_API_PORT
     api_port_prop = properties.get_property(SSL_API_PORT)
     if api_port_prop is not None:
       api_port = api_port_prop
-  return '{0}://{1}:{2!s}/api/v1/'.format(api_protocol, SERVER_API_HOST, api_port)
+  return '{0}://{1}:{2!s}/api/v1/'.format(api_protocol, api_host, api_port)
