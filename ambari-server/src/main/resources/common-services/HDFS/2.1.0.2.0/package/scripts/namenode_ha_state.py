@@ -41,77 +41,81 @@ class NamenodeHAState:
     """
     import params
 
-    self.name_service = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
-    if self.name_service is None:
-      self.name_service = default('/configurations/hdfs-site/dfs.nameservices', None)
+    self.name_services = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+    if self.name_services is None:
+      self.name_services = default('/configurations/hdfs-site/dfs.nameservices', None)
 
-    if not self.name_service:
+    if not self.name_services:
       raise ValueError("Could not retrieve property dfs.nameservices or dfs.internal.nameservices")
 
-    nn_unique_ids_key = "dfs.ha.namenodes." + str(self.name_service)
-    # List of the nn unique ids
-    self.nn_unique_ids = default("/configurations/hdfs-site/" + nn_unique_ids_key, None)
-    if not self.nn_unique_ids:
-      raise ValueError("Could not retrieve property " + nn_unique_ids_key)
+    self.name_services = self.name_services.split(",")
+    self.name_services = [x.strip() for x in self.name_services]
 
-    self.nn_unique_ids = self.nn_unique_ids.split(",")
-    self.nn_unique_ids = [x.strip() for x in self.nn_unique_ids]
+    for name_service in self.name_services:
+      nn_unique_ids_key = "dfs.ha.namenodes." + str(name_service)
+      # List of the nn unique ids
+      self.nn_unique_ids = default("/configurations/hdfs-site/" + nn_unique_ids_key, None)
+      if not self.nn_unique_ids:
+        raise ValueError("Could not retrieve property " + nn_unique_ids_key)
 
-    policy = default("/configurations/hdfs-site/dfs.http.policy", "HTTP_ONLY")
-    self.encrypted = policy.upper() == "HTTPS_ONLY"
+      self.nn_unique_ids = self.nn_unique_ids.split(",")
+      self.nn_unique_ids = [x.strip() for x in self.nn_unique_ids]
 
-    jmx_uri_fragment = ("https" if self.encrypted else "http") + "://{0}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
-    namenode_http_fragment = "dfs.namenode.http-address.{0}.{1}"
-    namenode_https_fragment = "dfs.namenode.https-address.{0}.{1}"
+      policy = default("/configurations/hdfs-site/dfs.http.policy", "HTTP_ONLY")
+      self.encrypted = policy.upper() == "HTTPS_ONLY"
 
-    # Dictionary where the key is the Namenode State (e.g., ACTIVE), and the value is a set of hostnames
-    self.namenode_state_to_hostnames = {}
+      jmx_uri_fragment = ("https" if self.encrypted else "http") + "://{0}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
+      namenode_http_fragment = "dfs.namenode.http-address.{0}.{1}"
+      namenode_https_fragment = "dfs.namenode.https-address.{0}.{1}"
 
-    # Dictionary from nn unique id name to a tuple of (http address, https address)
-    self.nn_unique_id_to_addresses = {}
-    for nn_unique_id in self.nn_unique_ids:
-      http_key = namenode_http_fragment.format(self.name_service, nn_unique_id)
-      https_key = namenode_https_fragment.format(self.name_service, nn_unique_id)
+      # Dictionary where the key is the Namenode State (e.g., ACTIVE), and the value is a set of hostnames
+      self.namenode_state_to_hostnames = {}
 
-      http_value = default("/configurations/hdfs-site/" + http_key, None)
-      https_value = default("/configurations/hdfs-site/" + https_key, None)
-      actual_value = https_value if self.encrypted else http_value
-      hostname = actual_value.split(":")[0].strip() if actual_value and ":" in actual_value else None
+      # Dictionary from nn unique id name to a tuple of (http address, https address)
+      self.nn_unique_id_to_addresses = {}
+      for nn_unique_id in self.nn_unique_ids:
+        http_key = namenode_http_fragment.format(name_service, nn_unique_id)
+        https_key = namenode_https_fragment.format(name_service, nn_unique_id)
 
-      self.nn_unique_id_to_addresses[nn_unique_id] = (http_value, https_value)
-      try:
-        if not hostname:
-          raise Exception("Could not retrieve hostname from address " + actual_value)
+        http_value = default("/configurations/hdfs-site/" + http_key, None)
+        https_value = default("/configurations/hdfs-site/" + https_key, None)
+        actual_value = https_value if self.encrypted else http_value
+        hostname = actual_value.split(":")[0].strip() if actual_value and ":" in actual_value else None
 
-        jmx_uri = jmx_uri_fragment.format(actual_value)
-        state = get_value_from_jmx(jmx_uri, "tag.HAState", params.security_enabled, params.hdfs_user, params.is_https_enabled)
+        self.nn_unique_id_to_addresses[nn_unique_id] = (http_value, https_value)
+        try:
+          if not hostname:
+            raise Exception("Could not retrieve hostname from address " + actual_value)
 
-        # If JMX parsing failed
-        if not state:
-          run_user = default("/configurations/hadoop-env/hdfs_user", "hdfs")
-          check_service_cmd = "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {0}".format(nn_unique_id)
-          code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
-          if code == 0 and out:
-            if NAMENODE_STATE.STANDBY in out:
-              state = NAMENODE_STATE.STANDBY
-            elif NAMENODE_STATE.ACTIVE in out:
-              state = NAMENODE_STATE.ACTIVE
+          jmx_uri = jmx_uri_fragment.format(actual_value)
+          state = get_value_from_jmx(jmx_uri, "tag.HAState", params.security_enabled, params.hdfs_user, params.is_https_enabled)
 
-        if not state:
-          raise Exception("Could not retrieve Namenode state from URL " + jmx_uri)
+          # If JMX parsing failed
+          if not state:
+            run_user = default("/configurations/hadoop-env/hdfs_user", "hdfs")
+            check_service_cmd = "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {0}".format(nn_unique_id)
+            code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
+            if code == 0 and out:
+              if NAMENODE_STATE.STANDBY in out:
+                state = NAMENODE_STATE.STANDBY
+              elif NAMENODE_STATE.ACTIVE in out:
+                state = NAMENODE_STATE.ACTIVE
 
-        state = state.lower()
+          if not state:
+            raise Exception("Could not retrieve Namenode state from URL " + jmx_uri)
 
-        if state not in [NAMENODE_STATE.ACTIVE, NAMENODE_STATE.STANDBY]:
-          state = NAMENODE_STATE.UNKNOWN
+          state = state.lower()
 
-        if state in self.namenode_state_to_hostnames:
-          self.namenode_state_to_hostnames[state].add(hostname)
-        else:
-          hostnames = set([hostname, ])
-          self.namenode_state_to_hostnames[state] = hostnames
-      except:
-        Logger.error("Could not get namenode state for " + nn_unique_id)
+          if state not in [NAMENODE_STATE.ACTIVE, NAMENODE_STATE.STANDBY]:
+            state = NAMENODE_STATE.UNKNOWN
+
+          if state in self.namenode_state_to_hostnames:
+            self.namenode_state_to_hostnames[state].add(hostname)
+          else:
+            hostnames = set([hostname, ])
+            self.namenode_state_to_hostnames[state] = hostnames
+        except:
+          Logger.error("Could not get namenode state for " + nn_unique_id)
 
   def __str__(self):
     return "Namenode HA State: {\n" + \
