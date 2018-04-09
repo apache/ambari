@@ -51,9 +51,7 @@ import com.google.common.collect.Lists;
  * value is not empty (version can vary from current stack version)
  */
 @Singleton
-@UpgradeCheck(
-    group = UpgradeCheckGroup.REPOSITORY_VERSION,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT)
 public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
   private static String KAFKA_BROKER_CONFIG = "kafka-broker";
   private static String KAFKA_SERVICE_NAME = "KAFKA";
