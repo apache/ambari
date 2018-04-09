@@ -53,7 +53,7 @@ export class AppLoadService {
   loadClusters(): Observable<Response> {
     this.clustersStorage.clear();
     this.appStateService.setParameter('clustersDataState', DataAvailabilityValues.LOADING);
-    const response$: Observable<Response> = this.httpClient.get('clusters').first();
+    const response$: Observable<Response> = this.httpClient.get('clusters').filter((response: Response) => response.ok).first();
     response$.subscribe(
       (response: Response) => {
         const clusterNames = response.json();
@@ -77,7 +77,7 @@ export class AppLoadService {
   loadHosts(): Observable<Response> {
     this.hostStoreService.clear();
     this.appStateService.setParameter('hostsDataState', DataAvailabilityValues.LOADING);
-    const response$ = this.httpClient.get('hosts');
+    const response$ = this.httpClient.get('hosts').filter((response: Response) => response.ok);
     response$.subscribe((response: Response): void => {
       const jsonResponse = response.json(),
         hosts = jsonResponse && jsonResponse.vNodeList;
@@ -99,12 +99,14 @@ export class AppLoadService {
   loadComponents(): Observable<[{[key: string]: any}, {[key: string]: any}]> {
     this.appStateService.setParameter('componentsDataState', DataAvailabilityValues.LOADING);
     const responseComponentsData$: Observable<Response> = this.httpClient.get('components').first()
+      .filter((response: Response) => response.ok)
       .map((response: Response) => response.json());
     const responseComponentsName$: Observable<Response> = this.httpClient.get('serviceComponentsName').first()
+      .filter((response: Response) => response.ok)
       .map((response: Response) => response.json());
     const responses$ = Observable.combineLatest(responseComponentsName$, responseComponentsData$);
     responses$.subscribe(([componentsNames, componentsData]: [{[key: string]: any}, {[key: string]: any}]) => {
-      const components = componentsData && componentsData.vNodeList.map((item): NodeItem => {
+      const components = componentsData && componentsData.vNodeList && componentsData.vNodeList.map((item): NodeItem => {
         const component = componentsNames.metadata.find(componentItem => componentItem.name === item.name);
         return Object.assign(item, {
           label: component && (component.label || item.name),
@@ -131,10 +133,12 @@ export class AppLoadService {
 
   loadFieldsForLogs(): Observable<[LogField[], AuditFieldsDefinitionSet]> {
     const serviceLogsFieldsResponse$: Observable<LogField[]> = this.httpClient.get('serviceLogsFields')
+      .filter((response: Response) => response.ok)
       .map((response: Response) => {
         return response.json();
       });
     const auditLogsFieldsResponse$: Observable<AuditFieldsDefinitionSet> = this.httpClient.get('auditLogsFields')
+      .filter((response: Response) => response.ok)
       .map((response: Response) => {
         return response.json();
       });
@@ -166,18 +170,15 @@ export class AppLoadService {
   }
 
   syncAuthorizedStateWithBackend(): Promise<any> {
-    const statusRequest: Promise<Response> = this.httpClient.get('status').toPromise();
-    statusRequest.then(
-      () => this.appStateService.setParameters({
-        isAuthorized: true,
+    const setAuthorization = (isAuthorized: boolean) => {
+      this.appStateService.setParameters({
+        isAuthorized,
         isInitialLoading: false
-      }),
-      () => this.appStateService.setParameters({
-        isAuthorized: false,
-        isInitialLoading: false
-      })
-    );
-    return statusRequest;
+      });
+    };
+    const statusRequestPromise: Promise<Response> = this.httpClient.get('status').toPromise();
+    statusRequestPromise.then((response: Response) => setAuthorization(response.ok));
+    return statusRequestPromise;
   }
 
   setTranslationService() {

@@ -21,7 +21,7 @@ import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {Injector} from '@angular/core';
 import {InMemoryBackendService} from 'angular-in-memory-web-api';
-import {mockApiDataService} from '@app/services/mock-api-data.service';
+import {MockApiDataService} from '@app/services/mock-api-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {RouterTestingModule} from '@angular/router/testing';
 import {clusters, ClustersService} from '@app/services/storage/clusters.service';
@@ -83,7 +83,7 @@ export const getCommonTestingBedConfiguration = (
 export function getTestXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions) {
   return new InMemoryBackendService(
     injector,
-    new mockApiDataService(),
+    new MockApiDataService(),
     {
       passThruUnknownUrl: true,
       rootPath: ''
