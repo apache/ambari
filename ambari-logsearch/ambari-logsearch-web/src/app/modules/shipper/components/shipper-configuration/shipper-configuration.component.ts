@@ -27,7 +27,9 @@ import {ShipperCluster} from '../../models/shipper-cluster.type';
 import {ShipperClusterService} from '../../models/shipper-cluster-service.type';
 import {ShipperConfigurationService} from '../../services/shipper-configuration.service';
 import {ShipperClusterServiceListService} from '../../services/shipper-cluster-service-list.service';
-import {ShipperServiceConfigurationFormComponent} from '@modules/shipper/components/shipper-service-configuration-form/shipper-service-configuration-form.component';
+import {
+  ShipperServiceConfigurationFormComponent
+} from '@modules/shipper/components/shipper-service-configuration-form/shipper-service-configuration-form.component';
 import {TranslateService} from '@ngx-translate/core';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ShipperClusterServiceValidationModel} from '@modules/shipper/models/shipper-cluster-service-validation.model';

@@ -32,6 +32,7 @@ from resource_management.libraries.functions.decorator import retry
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import namenode_ha_utils
 
 from livy2_service import livy2_service
 from setup_livy2 import setup_livy
@@ -109,10 +110,12 @@ class LivyServer(Script):
       Logger.info("Verifying if DFS directory '" + dir_path + "' exists.")
 
       dir_exists = None
+      nameservices = namenode_ha_utils.get_nameservices(params.hdfs_site)
+      nameservice = None if not nameservices else nameservices[-1]
 
       if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
         # check with webhdfs is much faster than executing hdfs dfs -test
-        util = WebHDFSUtil(params.hdfs_site, params.hdfs_user, params.security_enabled)
+        util = WebHDFSUtil(params.hdfs_site, nameservice, params.hdfs_user, params.security_enabled)
         list_status = util.run_command(dir_path, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
         dir_exists = ('FileStatus' in list_status)
       else:

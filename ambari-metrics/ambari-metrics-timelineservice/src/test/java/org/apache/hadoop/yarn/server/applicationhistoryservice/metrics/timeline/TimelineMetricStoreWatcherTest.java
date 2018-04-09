@@ -66,7 +66,7 @@ public class TimelineMetricStoreWatcherTest {
     replay(metricStore);
 
     TimelineMetricStoreWatcher timelineMetricStoreWatcher =
-      new TimelineMetricStoreWatcher(metricStore, new TimelineMetricConfiguration());
+      new TimelineMetricStoreWatcher(metricStore, TimelineMetricConfiguration.getInstance());
     timelineMetricStoreWatcher.run();
     timelineMetricStoreWatcher.run();
     timelineMetricStoreWatcher.run();
@@ -97,7 +97,7 @@ public class TimelineMetricStoreWatcherTest {
     replayAll();
 
     TimelineMetricStoreWatcher timelineMetricStoreWatcher =
-      new TimelineMetricStoreWatcher(metricStore, new TimelineMetricConfiguration());
+      new TimelineMetricStoreWatcher(metricStore, TimelineMetricConfiguration.getInstance());
     timelineMetricStoreWatcher.run();
     timelineMetricStoreWatcher.run();
     timelineMetricStoreWatcher.run();

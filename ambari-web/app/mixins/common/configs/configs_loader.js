@@ -178,7 +178,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        serviceConfigVersions: versions,
+        serviceConfigVersions: [selectedVersion],
         additionalParams: this.get('dependentServiceNames.length') ? '|service_name.in(' + this.get('dependentServiceNames') + ')&is_current=true' : ''
       },
       success: 'loadSelectedVersionsSuccess'

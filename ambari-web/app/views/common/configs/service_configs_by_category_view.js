@@ -21,7 +21,7 @@ var App = require('app');
 var validator = require('utils/validator');
 require('utils/configs/modification_handlers/modification_handler');
 
-App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverridable, {
+App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverridable, App.WizardMiscPropertyChecker, {
 
   templateName: require('templates/common/configs/service_config_category'),
 
@@ -246,75 +246,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
     else {
       return;
     }
-    this.affectedProperties = [];
+
     var stepConfigs = this.get("controller.stepConfigs");
     var serviceId = this.get('controller.selectedService.serviceName');
-    var serviceConfigModificationHandler = null;
-    try{
-      serviceConfigModificationHandler = require('utils/configs/modification_handlers/'+serviceId.toLowerCase());
-    }catch (e) {
-      console.log("Unable to load modification handler for ", serviceId);
-    }
-    if (serviceConfigModificationHandler != null) {
-      var securityEnabled = App.router.get('mainAdminKerberosController.securityEnabled');
-      this.affectedProperties = serviceConfigModificationHandler.getDependentConfigChanges(changedProperty, this.get("controller.selectedServiceNames"), stepConfigs, securityEnabled);
-    }
-    changedProperty.set("editDone", false); // Turn off flag
+    return this.showConfirmationDialogIfShouldChangeProps(changedProperty, stepConfigs, serviceId);
 
-    if (this.affectedProperties.length > 0 && !this.get("controller.miscModalVisible")) {
-      this.newAffectedProperties = this.affectedProperties;
-      var self = this;
-      return App.ModalPopup.show({
-        classNames: ['modal-690px-width'],
-        modalDialogClasses: ['modal-lg'],
-        showCloseButton: false,
-        primary: Em.I18n.t('common.apply'),
-        secondary: serviceId == 'MISC' ? Em.I18n.t('common.ignore') : null,
-        third: Em.I18n.t('common.cancel'),
-        secondaryClass: 'btn-warning',
-        header: "Warning: you must also change these Service properties",
-        onPrimary: function () {
-          self.get("newAffectedProperties").forEach(function(item) {
-            if (item.isNewProperty) {
-              self.createProperty({
-                name: item.propertyName,
-                displayName: item.propertyDisplayName,
-                value: item.newValue,
-                categoryName: item.categoryName,
-                serviceName: item.serviceName,
-                filename: item.filename
-              });
-            } else {
-              self.get("controller.stepConfigs").findProperty("serviceName", item.serviceName).get("configs").find(function(config) {
-                return item.propertyName == config.get('name') && (item.filename == null || item.filename == config.get('filename'));
-              }).set("value", item.newValue);
-            }
-          });
-          self.get("controller").set("miscModalVisible", false);
-          this.hide();
-        },
-        onSecondary: function () {
-          self.get("controller").set("miscModalVisible", false);
-          this.hide();
-        },
-        onThird: function () {
-          var affected = self.get("newAffectedProperties").objectAt(0),
-            changedProperty = self.get("controller.stepConfigs").findProperty("serviceName", affected.sourceServiceName)
-              .get("configs").findProperty("name", affected.changedPropertyName);
-          changedProperty.set('value', changedProperty.get('savedValue') || changedProperty.get('initialValue'));
-          self.get("controller").set("miscModalVisible", false);
-          this.hide();
-        },
-        bodyClass: Em.View.extend({
-          templateName: require('templates/common/configs/propertyDependence'),
-          controller: this,
-          propertyChange: self.get("newAffectedProperties"),
-          didInsertElement: function () {
-            self.get("controller").set("miscModalVisible", true);
-          }
-        })
-      });
-    }
   }.observes('categoryConfigs.@each.editDone'),
 
   /**

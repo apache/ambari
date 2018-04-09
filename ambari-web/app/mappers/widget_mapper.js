@@ -33,7 +33,8 @@ App.widgetMapper = App.QuickDataMapper.create({
     metrics: 'metrics',
     values: 'values',
     description: 'description',
-    scope: 'scope'
+    scope: 'scope',
+    tag: 'tag'
   },
   map: function (json) {
     if (!this.get('model')) return;

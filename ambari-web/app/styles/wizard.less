@@ -243,14 +243,18 @@
       max-height: 440px;
       position: relative;
       display: flex;
-      overflow-y: visible;
+      overflow-y: scroll;
       #component_assign_table {
         display: inline-block;
         overflow-x: scroll;
         margin-left: 190px;
-        margin-bottom: 30px;
+        margin-bottom: 10px;
+        height: 100%;
         tbody td, th {
           white-space: nowrap;
+        }
+        tfoot td {
+          padding-bottom: 30px;
         }
         .trim_hostname {
           .ellipsis-overflow-nowrap;
@@ -283,7 +287,6 @@
         }
         .static-pagination {
           position: absolute;
-          bottom: 0px;
           right: 0px;
         }
       }
@@ -299,19 +302,6 @@
   #confirm-configuration{
     .pre-scrollable{
       margin-top: 10px;
-    }
-  }
-  #kerberos-wizard-step6, #kerberos-wizard-step8{
-    #common-progress-page{
-      .item{
-        i{
-          position:relative;
-          top: 5px;
-          &.glyphicon-ok{
-            top: 3px;
-          }
-        }
-      }
     }
   }
   #deploy {
@@ -407,12 +397,12 @@
   }
   #common-progress-page {
     .item {
-      line-height: 40px;
+      line-height: @default-button-height;
       width:100%;
-      float:left;
 
       i {
-        font-size: 20px;
+        font-size: 16px;
+        vertical-align: sub;
       }
       .active-link{
         a{
@@ -425,7 +415,7 @@
         a{
           pointer-events: none;
           text-decoration: none;
-          color: #0088cc;
+          color: inherit;
           cursor: auto;
         }
       }
@@ -737,10 +727,19 @@
       width: 90%;
     }
     #skip-validation, #use-redhat {
+      .glyphicon-question-sign {
+        color: @blue;
+      }
+      .redhat-label {
+        vertical-align: super;
+        padding-left: 0;
+        margin-left: -5px;
+      }
+      .use-redhat-checkbox i {
+        vertical-align: super;
+      }
       label {
         color: #666;
-        font-weight: normal;
-        margin-top: -2px;
         &.disabled {
           opacity: 0.7;
         }

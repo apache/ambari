@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.SystemException;
 
 /**
@@ -31,21 +30,19 @@ import org.apache.ambari.server.controller.spi.SystemException;
  */
 abstract class RootServiceComponentConfigurationHandler {
   /**
-   * Retrieve the request configurations.
+   * Retrieve the requested component configurations.
    *
    * @param categoryName the category name (or <code>null</code> for all)
    * @return a map of category names to properties (name/value pairs).
-   * @throws NoSuchResourceException if the requested data is not found
    */
-  public abstract Map<String, RootServiceComponentConfiguration> getConfigurations(String categoryName) throws NoSuchResourceException;
+  public abstract Map<String, RootServiceComponentConfiguration> getComponentConfigurations(String categoryName);
 
   /**
    * Delete the requested configuration.
    *
    * @param categoryName the category name
-   * @throws NoSuchResourceException if the requested category does not exist
    */
-  public abstract void removeConfiguration(String categoryName) throws NoSuchResourceException;
+  public abstract void removeComponentConfiguration(String categoryName);
 
   /**
    * Set or update a configuration category with the specified properties.
@@ -62,7 +59,7 @@ abstract class RootServiceComponentConfigurationHandler {
    *                                       <code>false</code> to update the set of existing properties with the specified set of properties, adding missing properties but not removing any properties
    * @throws AmbariException in case an error occurred while updating category's properties
    */
-  public abstract void updateCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException;
+  public abstract void updateComponentCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException;
 
   /**
    * Preform some operation on the set of data for a category.

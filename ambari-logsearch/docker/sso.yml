@@ -59,7 +59,7 @@ services:
       COMPONENT: logsearch
       COMPONENT_LOG: logsearch
       ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
-      DISPLAY: $DOCKERIP:0
+      DISPLAY: $DISPLAY_MAC
       KNOX: "true"
     volumes:
       - $AMBARI_LOCATION:/root/ambari

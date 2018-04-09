@@ -17,16 +17,16 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
-import {mockApiDataService} from './mock-api-data.service';
+import {MockApiDataService} from './mock-api-data.service';
 
-describe('mockApiDataService', () => {
+describe('MockApiDataService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [mockApiDataService]
+      providers: [MockApiDataService]
     });
   });
 
-  it('should create service', inject([mockApiDataService], (service: mockApiDataService) => {
+  it('should create service', inject([MockApiDataService], (service: MockApiDataService) => {
     expect(service).toBeTruthy();
   }));
 
@@ -64,15 +64,15 @@ describe('mockApiDataService', () => {
 
     cases.forEach(test => {
       describe(test.title, () => {
-        it('base', inject([mockApiDataService], (service: mockApiDataService) => {
+        it('base', inject([MockApiDataService], (service: MockApiDataService) => {
           expect(service.parseUrl(test.url).base).toEqual(test.base);
         }));
 
-        it('collectionName', inject([mockApiDataService], (service: mockApiDataService) => {
+        it('collectionName', inject([MockApiDataService], (service: MockApiDataService) => {
           expect(service.parseUrl(test.url).collectionName).toEqual(test.collectionName);
         }));
 
-        it('query', inject([mockApiDataService], (service: mockApiDataService) => {
+        it('query', inject([MockApiDataService], (service: MockApiDataService) => {
           expect(service.parseUrl(test.url).query.toString()).toEqual(test.query);
         }));
       });

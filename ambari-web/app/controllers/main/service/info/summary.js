@@ -252,23 +252,27 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
       }
 
       var hiveSiteDynamicDiscovery = configs[0].properties['hive.server2.support.dynamic.service.discovery'];
-      var hiveSiteZkNameSpace =  configs[0].properties['hive.server2.zookeeper.namespace'];
-      var hiveSiteZkQuorom =  configs[0].properties['hive.zookeeper.quorum'];
-
+      var hiveSiteZkQuorom = configs[0].properties['hive.zookeeper.quorum'];
+      var hiveSiteServiceDiscorveryMode = 'zooKeeper';
+      var hiveSiteZkNameSpace = configs[0].properties['hive.server2.zookeeper.namespace'];
 
       configs.forEach(function(_config) {
         var masterComponent = App.MasterComponent.find().findProperty('componentName', siteToComponentMap[_config.type]);
         if (_config.type === 'hive-interactive-site') {
-          hiveSiteDynamicDiscovery =  _config.properties['hive.server2.support.dynamic.service.discovery'] || hiveSiteDynamicDiscovery;
-          hiveSiteZkQuorom =  _config.properties['hive.zookeeper.quorum'] || hiveSiteZkQuorom;
-          hiveSiteZkNameSpace =  _config.properties['hive.server2.zookeeper.namespace'] || hiveSiteZkNameSpace;
+          hiveSiteDynamicDiscovery = _config.properties['hive.server2.support.dynamic.service.discovery'] || hiveSiteDynamicDiscovery;
+          hiveSiteZkQuorom = _config.properties['hive.zookeeper.quorum'] || hiveSiteZkQuorom;
+          hiveSiteZkNameSpace = _config.properties['hive.server2.zookeeper.namespace'] || hiveSiteZkNameSpace;
+          if (_config.properties['hive.server2.active.passive.ha.enable'] === 'true') {
+            hiveSiteServiceDiscorveryMode = 'zooKeeperHA';
+            hiveSiteZkNameSpace = _config.properties['hive.server2.active.passive.ha.registry.namespace'];
+          }
         }
         if (masterComponent && !!masterComponent.get('totalCount')) {
           var hiveEndPoint = {
             isVisible: hiveSiteDynamicDiscovery,
             componentName: masterComponent.get('componentName'),
             label: masterComponent.get('displayName') + Em.I18n.t('services.service.summary.hiveserver2.jdbc.url.text'),
-            value: Em.I18n.t('services.service.summary.hiveserver2.endpoint.value').format(hiveSiteZkQuorom, hiveSiteZkNameSpace),
+            value: Em.I18n.t('services.service.summary.hiveserver2.endpoint.value').format(hiveSiteZkQuorom, hiveSiteServiceDiscorveryMode, hiveSiteZkNameSpace),
             tooltipText: Em.I18n.t('services.service.summary.hiveserver2.endpoint.tooltip.text').format(masterComponent.get('displayName'))
           };
           self.get('hiveServerEndPoints').pushObject(Em.Object.create(hiveEndPoint));

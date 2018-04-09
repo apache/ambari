@@ -33,7 +33,7 @@ App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin
 
   isRed: Em.computed.gtProperties('data', 'thresholdMax'),
 
-  modelValue: Em.computed.getByKey('model.nameNodeRpcValues', 'clusterId'),
+  modelValue: Em.computed.getByKey('model.nameNodeRpcValues', 'hostName'),
 
   data: function () {
     const rpc = this.get('modelValue');

@@ -134,6 +134,18 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>logsearch.solr.implicit.routing</name>
+    <value>false</value>
+    <description>
+      Use implicit routing for Solr Collections.
+    </description>
+    <display-name>Log Search Solr implicit routing</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>logsearch.solr.audit.logs.use.ranger</name>
     <value>false</value>
     <display-name>Ranger Audit Logs Enabled</display-name>

@@ -80,7 +80,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
-[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1
+[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1_2
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
@@ -129,7 +129,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = "PROTOCOL_TLSv1"
+  force_https_protocol = "PROTOCOL_TLSv1_2"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -597,7 +597,7 @@ class Script(object):
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1 by default
+    :return: protocol name, PROTOCOL_TLSv1_2 by default
     """
     return Script.force_https_protocol
 

@@ -638,7 +638,6 @@
                 </configuration>
               </execution>
 
-
             </executions>
           </plugin>
         </plugins>
@@ -1075,6 +1074,7 @@
         <assemblydescriptor.monitor>src/main/assembly/monitor.xml</assemblydescriptor.monitor>
         <assemblydescriptor.sink>src/main/assembly/sink.xml</assemblydescriptor.sink>
         <assemblydescriptor.grafana>src/main/assembly/grafana.xml</assemblydescriptor.grafana>
+
         <packagingFormat>jar</packagingFormat>
       </properties>
       <build>

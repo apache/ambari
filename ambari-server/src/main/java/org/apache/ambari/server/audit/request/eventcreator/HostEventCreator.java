@@ -138,7 +138,7 @@ public class HostEventCreator implements RequestAuditEventCreator {
       Set<Map<String, String>> set = (Set<Map<String, String>>) propertySet.getProperties().get("host_components");
       if (set != null && !set.isEmpty()) {
         for(Map<String, String> element : set) {
-          components.add(element.get(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+          components.add(element.get(HostComponentResourceProvider.COMPONENT_NAME));
         }
       }
     }

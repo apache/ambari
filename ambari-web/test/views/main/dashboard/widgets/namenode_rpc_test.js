@@ -81,19 +81,20 @@ describe('App.NameNodeRpcView', function() {
   ];
 
   tests.forEach(function(test) {
-    describe('nameNodeRpc - ' + test.model.nameNodeRpc, function() {
-      var jobTrackerRpcView = App.NameNodeRpcView.create({
-        clusterId: 'c',
+    var hostName = 'c';
+    describe('nameNodeRpc - ' + test.model.nameNodeRpcValues[hostName], function() {
+      var nameNodeRpcView = App.NameNodeRpcView.create({
+        hostName: hostName,
         model: test.model
       });
       it('content', function() {
-        expect(jobTrackerRpcView.get('content')).to.equal(test.e.content);
+        expect(nameNodeRpcView.get('content')).to.equal(test.e.content);
       });
       it('data', function() {
-        expect(jobTrackerRpcView.get('data')).to.equal(test.e.data);
+        expect(nameNodeRpcView.get('data')).to.equal(test.e.data);
       });
       it('isNA', function() {
-        expect(jobTrackerRpcView.get('isNA')).to.equal(test.e.isNA);
+        expect(nameNodeRpcView.get('isNA')).to.equal(test.e.isNA);
       });
     });
   });

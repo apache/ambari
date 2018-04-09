@@ -41,7 +41,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
@@ -89,7 +89,7 @@ public class AlertDispatchDAO {
   private Provider<Clusters> m_clusters;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   /**
    * Used for ensuring that the concurrent nature of the event handler methods
@@ -428,7 +428,7 @@ public class AlertDispatchDAO {
     }
     AlertGroupsUpdateEvent alertGroupsUpdateEvent = new AlertGroupsUpdateEvent(alertGroupUpdates,
         UpdateEventType.CREATE);
-    stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
+    STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
   }
 
   /**
@@ -465,7 +465,7 @@ public class AlertDispatchDAO {
       AlertGroupsUpdateEvent alertGroupsUpdateEvent = new AlertGroupsUpdateEvent(
           Collections.singletonList(new AlertGroupUpdate(group)),
           UpdateEventType.CREATE);
-      stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
+      STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
     }
   }
 
@@ -565,7 +565,7 @@ public class AlertDispatchDAO {
     if (fireEvent) {
       AlertGroupsUpdateEvent alertGroupsUpdateEvent = AlertGroupsUpdateEvent.deleteAlertGroupsUpdateEvent(
           Collections.singletonList(alertGroup.getGroupId()));
-      stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
+      STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
     }
   }
 
@@ -584,7 +584,7 @@ public class AlertDispatchDAO {
     }
     AlertGroupsUpdateEvent alertGroupsUpdateEvent = AlertGroupsUpdateEvent.deleteAlertGroupsUpdateEvent(
         groups.stream().map(AlertGroupEntity::getGroupId).collect(Collectors.toList()));
-    stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
+    STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
   }
 
   /**
@@ -648,7 +648,7 @@ public class AlertDispatchDAO {
         AlertGroupsUpdateEvent alertGroupsUpdateEvent = new AlertGroupsUpdateEvent(Collections.singletonList(
             new AlertGroupUpdate(group)),
             UpdateEventType.UPDATE);
-        stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
+        STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
       }
     }
   }
@@ -690,7 +690,7 @@ public class AlertDispatchDAO {
       alertGroupUpdate.getTargets().remove(alertTarget.getTargetId());
       alertGroupUpdates.add(alertGroupUpdate);
     }
-    stateUpdateEventPublisher.publish(new AlertGroupsUpdateEvent(alertGroupUpdates, UpdateEventType.UPDATE));
+    STOMPUpdatePublisher.publish(new AlertGroupsUpdateEvent(alertGroupUpdates, UpdateEventType.UPDATE));
     entityManagerProvider.get().remove(alertTarget);
   }
 

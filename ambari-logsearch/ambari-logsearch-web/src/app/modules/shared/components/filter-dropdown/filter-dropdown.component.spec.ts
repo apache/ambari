@@ -40,6 +40,10 @@ import {AuthService} from '@app/services/auth.service';
 
 import {FilterDropdownComponent} from './filter-dropdown.component';
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('FilterDropdownComponent', () => {
   let component: FilterDropdownComponent;
@@ -67,12 +71,13 @@ describe('FilterDropdownComponent', () => {
         return {
           subscribe: () => {
           }
-        }
+        };
       }
     };
     TestBed.configureTestingModule({
       declarations: [FilterDropdownComponent],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           appState,
@@ -112,7 +117,10 @@ describe('FilterDropdownComponent', () => {
         UtilsService,
         LogsContainerService,
         AuthService,
-        ClusterSelectionService
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

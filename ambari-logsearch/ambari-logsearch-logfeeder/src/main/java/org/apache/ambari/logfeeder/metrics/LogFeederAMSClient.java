@@ -100,6 +100,11 @@ public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
   }
 
   @Override
+  protected String getHostInMemoryAggregationProtocol() {
+    return "http";
+  }
+
+  @Override
   protected boolean emitMetrics(TimelineMetrics metrics) {
     return super.emitMetrics(metrics);
   }

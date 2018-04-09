@@ -20,17 +20,15 @@
   <div class="col-md-3 form-group control-label"></div>
   <div class="col-md-9 form-group">
     <div class="row">
-      <div class="col-md-5">
-        <span {{bindAttr class=":pull-left :btn :btn-primary view.isBtnDisabled:disabled"}} {{action connectToDatabase target="view"}}>{{view.btnCaption}}</span>
+      <div class="col-md-4 btn-wrapper">
+        <button {{bindAttr class=":pull-left :btn :btn-primary view.isBtnDisabled:disabled"}} {{action connectToDatabase target="view"}}>{{view.btnCaption}}</button>
       </div>
-      <div class="connection-result col-md-5">
+      <div class="connection-result col-md-6">
         <a {{bindAttr class="view.isConnectionSuccess:mute:action :btn :btn-link"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
-      </div>
-      {{#if view.isConnecting}}
-        {{view App.SpinnerView classNames="mll pull-left"}}
-      {{/if}}
-      <div class="col-md-2">
         <i {{bindAttr class="view.isConnectionSuccess:glyphicon-ok-sign:glyphicon-warning-sign :glyphicon view.isRequestResolved::hide"}}></i>
+        {{#if view.isConnecting}}
+          {{view App.SpinnerView classNames="mll display-inline-block"}}
+        {{/if}}
       </div>
     </div>
   </div>

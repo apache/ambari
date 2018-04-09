@@ -22,13 +22,14 @@ module.exports =
     serviceName: 'MISC',
     displayName: 'MISC',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'})
+      App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
+      App.ServiceConfigCategory.create({ name: 'RANGER', displayName: 'Ranger'})
     ],
     sites: ['core-site'],
     configs: [
       {
-        "name": "dfs.journalnode.edits.dir.{{nameservice1}}",
-        "displayName": "dfs.journalnode.edits.dir.{{nameservice1}}",
+        "name": "dfs.journalnode.edits.dir.{{nameservice2}}",
+        "displayName": "dfs.journalnode.edits.dir.{{nameservice2}}",
         "description": "The Directory where the JournalNode will store its local state.",
         "isReconfigurable": true,
         "recommendedValue": "",
@@ -39,12 +40,12 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "name": "dfs.journalnode.edits.dir.{{nameservice2}}",
-        "displayName": "dfs.journalnode.edits.dir.{{nameservice2}}",
+        "name": "dfs.journalnode.edits.dir.{{nameservice1}}",
+        "displayName": "dfs.journalnode.edits.dir.{{nameservice1}}",
         "description": "The Directory where the JournalNode will store its local state.",
-        "isReconfigurable": true,
-        "recommendedValue": "",
-        "value": "",
+        "isReconfigurable": false,
+        "recommendedValue": "{{journalnode_edits_dir}}",
+        "value": "{{journalnode_edits_dir}}",
         "displayType": "directory",
         "category": "HDFS",
         "filename": "hdfs-site",
@@ -77,8 +78,8 @@ module.exports =
         "displayName": "dfs.ha.namenodes.{{nameservice2}}",
         "description": "The prefix for a given nameservice, contains a comma-separated list of namenodes for a given nameservice.",
         "isReconfigurable": false,
-        "recommendedValue": "{{namenode3}},{{namenode4}}",
-        "value": "{{namenode3}},{{namenode4}}",
+        "recommendedValue": "nn3,nn4",
+        "value": "nn3,nn4",
         "category": "HDFS",
         "filename": "hdfs-site",
         "serviceName": 'MISC'
@@ -224,6 +225,26 @@ module.exports =
         "value": "{{namenode4}}:8021",
         "category": "HDFS",
         "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice1}}.ranger.service",
+        "displayName": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice1}}.ranger.service",
+        "isReconfigurable": false,
+        "recommendedValue": "{{ranger_service_name_ns1}}",
+        "value": "{{ranger_service_name_ns1}}",
+        "category": "RANGER",
+        "filename": "ranger-tagsync-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice2}}.ranger.service",
+        "displayName": "ranger.tagsync.atlas.hdfs.instance.{{clustername}}.nameservice.{{nameservice2}}.ranger.service",
+        "isReconfigurable": false,
+        "recommendedValue": "{{ranger_service_name_ns2}}",
+        "value": "{{ranger_service_name_ns2}}",
+        "category": "RANGER",
+        "filename": "ranger-tagsync-site",
         "serviceName": 'MISC'
       }
     ]

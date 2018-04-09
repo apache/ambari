@@ -33,120 +33,6 @@ import {TabsService} from '@app/services/storage/tabs.service';
 @Injectable()
 export class HistoryManagerService {
 
-  constructor(
-    private translate: TranslateService, private logsContainer: LogsContainerService, private utils: UtilsService,
-    private appState: AppStateService, private tabs: TabsService
-  ) {
-    // set labels for history list items
-    const filters = logsContainer.filters,
-      controlNames = Object.keys(filters).filter((name: string): boolean => {
-        const key = filters[name].label;
-        return key && this.ignoredParameters.indexOf(name) === -1;
-      }),
-      filterLabelKeys = controlNames.map((name: string): string => filters[name].label),
-      timeRangeLabels = filters.timeRange.options.reduce((
-          currentArray: string[], group: TimeUnitListItem[]
-        ): string[] => {
-          return [...currentArray, ...group.map((option: TimeUnitListItem): string => option.label)];
-        }, [logsContainer.customTimeRangeKey]);
-
-    translate.get([
-      'filter.include', 'filter.exclude', ...filterLabelKeys, ...timeRangeLabels
-    ]).subscribe((translates: object): void => {
-      this.controlNameLabels = controlNames.reduce((
-        currentObject: HomogeneousObject<string>, name: string
-      ): HomogeneousObject<string> => {
-        return Object.assign({}, currentObject, {
-          [name]: translates[filters[name].label]
-        })
-      }, {
-        include: translates['filter.include'],
-        exclude: translates['filter.exclude']
-      });
-      this.timeRangeLabels = timeRangeLabels.reduce((
-        currentObject: HomogeneousObject<string>, key: string
-      ): HomogeneousObject<string> => {
-        return Object.assign({}, currentObject, {
-          [key]: translates[key]
-        });
-      }, {});
-    });
-
-    // set default history state for each tab
-    tabs.mapCollection((tab: Tab): Tab => {
-      let currentAppState = tab.appState || {};
-      const appState = Object.assign({}, currentAppState, {
-        history: {
-          items: [],
-          currentId: -1
-        }
-      });
-      return Object.assign({}, tab, {
-        appState
-      });
-    });
-
-    // set current history items after switching tabs
-    appState.getParameter('history').subscribe((history: History): void => {
-      const filtersForm = logsContainer.filtersForm;
-      let defaultState;
-      if (history.items.length === 0) {
-        defaultState = filtersForm.value
-      }
-      this.activeHistory = history.items.slice();
-      this.currentHistoryItemId = history.currentId;
-
-      // handle filtering values changes
-      filtersForm.valueChanges
-        .distinctUntilChanged(this.isHistoryUnchanged)
-        .takeUntil(this.logsContainer.filtersFormChange)
-        .subscribe((value): void => {
-          if (this.hasNoPendingUndoOrRedo) {
-            const currentHistory = this.activeHistory,
-              previousValue = this.activeHistory.length ? this.activeHistory[0].value.currentValue : defaultState,
-              isUndoOrRedo = value.isUndoOrRedo;
-            const previousChangeId = this.currentHistoryItemId;
-            if (isUndoOrRedo) {
-              this.hasNoPendingUndoOrRedo = false;
-              filtersForm.patchValue({
-                isUndoOrRedo: false
-              });
-              this.hasNoPendingUndoOrRedo = true;
-            } else {
-              this.currentHistoryItemId = currentHistory.length;
-            }
-            this.activeHistory = [
-              {
-                value: {
-                  currentValue: Object.assign({}, value),
-                  previousValue: Object.assign({}, previousValue),
-                  changeId: this.currentHistoryItemId,
-                  previousChangeId,
-                  isUndoOrRedo
-                },
-                label: this.getHistoryItemLabel(previousValue, value)
-              },
-              ...currentHistory
-            ].slice(0, this.maxHistoryItemsCount);
-
-            // update history for active tab
-            this.tabs.mapCollection((tab: Tab): Tab => {
-              const currentAppState = tab.appState || {},
-                appState = Object.assign({}, currentAppState, tab.isActive ? {
-                  history: {
-                    items: this.activeHistory.slice(),
-                    currentId: this.currentHistoryItemId
-                  }
-                } : null);
-              return Object.assign({}, tab, {
-                appState
-              });
-            });
-          }
-      });
-    });
-  }
-
   /**
    * List of filter parameters which shouldn't affect changes history (related to pagination and sorting)
    * @type {string[]}
@@ -190,12 +76,109 @@ export class HistoryManagerService {
    */
   activeHistory: ListItem[] = [];
 
+  constructor(
+    private translate: TranslateService, private logsContainerService: LogsContainerService, private utils: UtilsService,
+    private appState: AppStateService, private tabs: TabsService
+  ) {
+    // set labels for history list items
+    const filters = logsContainerService.filters;
+    const controlNames = Object.keys(filters).filter((name: string): boolean => {
+        const key = filters[name].label;
+        return key && this.ignoredParameters.indexOf(name) === -1;
+      });
+    const filterLabelKeys = controlNames.map((name: string): string => filters[name].label);
+    const timeRangeLabels = filters.timeRange.options.reduce((
+          currentArray: string[], group: TimeUnitListItem[]
+        ): string[] => {
+          return [...currentArray, ...group.map((option: TimeUnitListItem): string => option.label)];
+        }, [logsContainerService.customTimeRangeKey]);
+
+    translate.get([
+      'filter.include', 'filter.exclude', ...filterLabelKeys, ...timeRangeLabels
+    ]).subscribe((translates: object): void => {
+      this.controlNameLabels = controlNames.reduce((
+        currentObject: HomogeneousObject<string>, name: string
+      ): HomogeneousObject<string> => {
+        return Object.assign({}, currentObject, {
+          [name]: translates[filters[name].label]
+        });
+      }, {
+        include: translates['filter.include'],
+        exclude: translates['filter.exclude']
+      });
+      this.timeRangeLabels = timeRangeLabels.reduce((
+        currentObject: HomogeneousObject<string>, key: string
+      ): HomogeneousObject<string> => {
+        return Object.assign({}, currentObject, {
+          [key]: translates[key]
+        });
+      }, {});
+    });
+
+    // set default history state for each tab
+    tabs.mapCollection((tab: Tab): Tab => {
+      const currentTabAppState = tab.appState || {};
+      const nextTabAppState = Object.assign({}, currentTabAppState, {history: this.initialHistory});
+      return Object.assign({}, tab, {
+        appState: nextTabAppState
+      });
+    });
+
+    this.logsContainerService.filtersForm.valueChanges
+      .filter(() => !this.logsContainerService.filtersFormSyncInProgress.getValue())
+      .distinctUntilChanged(this.isHistoryUnchanged)
+      .subscribe(this.onFormValueChanges);
+  }
+
   /**
    * List of filtering form control names for active tab
    * @returns {Array}
    */
   private get filterParameters(): string[] {
-    return this.logsContainer.logsTypeMap[this.logsContainer.activeLogsType].listFilters;
+    return this.logsContainerService.logsTypeMap[this.logsContainerService.activeLogsType].listFilters;
+  }
+
+  get initialHistory(): History {
+    return Object.assign({}, {
+      items: [],
+      currentId: -1
+    });
+  }
+
+  onFormValueChanges = (value): void => {
+    if (this.hasNoPendingUndoOrRedo) {
+      const defaultState = this.logsContainerService.getFiltersData(this.logsContainerService.activeLogsType);
+      const currentHistory = this.activeHistory;
+      const previousValue = this.activeHistory.length ? this.activeHistory[0].value.currentValue : defaultState;
+      const isUndoOrRedo = value.isUndoOrRedo;
+      const previousChangeId = this.currentHistoryItemId;
+      if (isUndoOrRedo) {
+        this.hasNoPendingUndoOrRedo = false;
+        this.logsContainerService.filtersForm.patchValue({
+          isUndoOrRedo: false
+        });
+        this.hasNoPendingUndoOrRedo = true;
+      } else {
+        this.currentHistoryItemId = currentHistory.length;
+      }
+      this.activeHistory = [
+        {
+          value: {
+            currentValue: Object.assign({}, value),
+            previousValue: Object.assign({}, previousValue),
+            changeId: this.currentHistoryItemId,
+            previousChangeId,
+            isUndoOrRedo
+          },
+          label: this.getHistoryItemLabel(previousValue, value)
+        },
+        ...currentHistory
+      ].slice(0, this.maxHistoryItemsCount);
+      this.appState.setParameter('history', {
+        items: this.activeHistory.slice(),
+        currentId: this.currentHistoryItemId
+      });
+    }
   }
 
   /**
@@ -204,10 +187,10 @@ export class HistoryManagerService {
    */
   get undoItems(): ListItem[] {
     const allItems = this.activeHistory;
-    let startIndex = allItems.findIndex((item: ListItem): boolean => {
+    const startIndex = allItems.findIndex((item: ListItem): boolean => {
         return item.value.changeId === this.currentHistoryItemId && !item.value.isUndoOrRedo;
-      }),
-      endIndex = allItems.slice(startIndex + 1).findIndex((item: ListItem): boolean => item.value.isUndoOrRedo);
+      });
+    let endIndex = allItems.slice(startIndex + 1).findIndex((item: ListItem): boolean => item.value.isUndoOrRedo);
     if (startIndex > -1) {
       if (endIndex === -1) {
         endIndex = allItems.length;
@@ -252,7 +235,7 @@ export class HistoryManagerService {
       delete objectB[controlName];
     });
     return this.utils.isEqual(objectA, objectB);
-  };
+  }
 
   /**
    * Get label for certain form control change
@@ -267,12 +250,12 @@ export class HistoryManagerService {
       case 'query':
         const includes = selection.filter((item: SearchBoxParameter): boolean => {
             return !item.isExclude;
-          }).map((item: SearchBoxParameter): string => `${item.name}: ${item.value}`).join(', '),
-          excludes = selection.filter((item: SearchBoxParameter): boolean => {
+          }).map((item: SearchBoxParameter): string => `${item.name}: ${item.value}`).join(', ');
+        const excludes = selection.filter((item: SearchBoxParameter): boolean => {
             return item.isExclude;
-          }).map((item: SearchBoxParameter): string => `${item.name}: ${item.value}`).join(', '),
-          includesString = includes.length ? `${this.controlNameLabels.include}: ${includes}` : '',
-          excludesString = excludes.length ? `${this.controlNameLabels.exclude}: ${excludes}`: '';
+          }).map((item: SearchBoxParameter): string => `${item.name}: ${item.value}`).join(', ');
+        const includesString = includes.length ? `${this.controlNameLabels.include}: ${includes}` : '';
+        const excludesString = excludes.length ? `${this.controlNameLabels.exclude}: ${excludes}` : '';
         return `${includesString} ${excludesString}`;
       default:
         const values = selection.map((option: ListItem) => option.value).join(', ');
@@ -304,7 +287,7 @@ export class HistoryManagerService {
    * @param {object} value
    */
   private handleUndoOrRedo(value: object): void {
-    const filtersForm = this.logsContainer.filtersForm;
+    const filtersForm = this.logsContainerService.filtersForm;
     this.hasNoPendingUndoOrRedo = false;
     this.filterParameters.forEach((controlName: string): void => {
       if (this.ignoredParameters.indexOf(controlName) === -1) {

@@ -796,7 +796,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     return controller.addStages(requestStages, cluster, requestProperties,
       null, changedServices, changedComps, changedScHosts,
-        ignoredScHosts, runSmokeTest, reconfigureClients);
+        ignoredScHosts, runSmokeTest, reconfigureClients, false);
   }
 
   private void updateServiceComponents(RequestStageContainer requestStages,

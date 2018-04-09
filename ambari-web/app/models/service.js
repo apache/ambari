@@ -21,7 +21,7 @@ var App = require('app');
 require('utils/config');
 
 App.Service = DS.Model.extend({
-  serviceName: DS.attr('string'),
+  serviceName: DS.attr('string', {defaultValue: ''}),
   displayName: Em.computed.formatRole('serviceName', true),
   passiveState: DS.attr('string', {defaultValue: "OFF"}),
   workStatus: DS.attr('string'),

@@ -359,7 +359,7 @@ describe('App.ConfigsLoader', function() {
         sender: mixin,
         data: {
           serviceName: 'S1',
-          serviceConfigVersions: ['v1', 'v2'],
+          serviceConfigVersions: ['v2'],
           additionalParams: ''
         },
         success: 'loadSelectedVersionsSuccess'

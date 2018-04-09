@@ -10,6 +10,10 @@
 
   "common.form.errors.required": "This field is required",
 
+  "dropdown.selection": "Selected ({{total}})",
+  "dropdown.selection.clear": "(Clear)",
+  "dropdown.selection.all": "All {{listName}} ({{total}})",
+
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
   "modal.apply": "Apply",
@@ -92,6 +96,8 @@
   "pagination.numbers": "{{startIndex}}-{{endIndex}} of {{totalCount}}",
 
   "logs.title": "Logs",
+  "logs.serviceLogs.title": "Service Logs",
+  "logs.auditLogs.title": "Audit Logs",
   "logs.columns": "Columns",
   "logs.status": "Status",
   "logs.details": "Details",

@@ -17,7 +17,7 @@
  */
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs/Subscription';
-import {ActivatedRouteSnapshot, Router, RoutesRecognized} from '@angular/router';
+import {ActivatedRouteSnapshot, NavigationEnd, Router, RoutesRecognized} from '@angular/router';
 
 export interface BreadCrumb {
   text: string;
@@ -42,7 +42,7 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(
-      this.router.events.filter((event) => event instanceof RoutesRecognized).subscribe(this.onRoutesRecognized)
+      this.router.events.filter((event) => event instanceof NavigationEnd).subscribe(this.onNavigationEnd)
     );
   }
 
@@ -57,7 +57,7 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
     while (level) {
       if (level.url.length) {
         path.push(
-          (level.parent ? '' : '/') // start with trailng slash if this is the root
+          (level.parent ? '' : '/') // start with trailing slash if this is the root
           + level.url.reduce((url, segment) => url += ('/' + segment.path), '') // build up the url by its segments
         );
         if (level.data.breadcrumbs) {
@@ -76,8 +76,8 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
     return breadcrumbs;
   }
 
-  onRoutesRecognized = (routes: RoutesRecognized): void => {
-    this.crumbs = this.getCrumbsFromRouterStateSnapshot(routes.state.root);
+  onNavigationEnd = (): void => {
+    this.crumbs = this.getCrumbsFromRouterStateSnapshot(this.router.routerState.snapshot.root);
   }
 
 }

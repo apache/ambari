@@ -46,6 +46,25 @@ ul, ol {
 .glyphicon-4x{font-size: 4em;}
 .glyphicon-5x{font-size: 5em;}
 
+/************************************************************************
+* Health status(service/host/host component health)icons class names
+***********************************************************************/
+.glyphicon-warning-sign, .icon-warning-sign {
+  color: @health-status-red;
+}
+.glyphicon-ok-sign, .icon-ok-sign {
+  color: @health-status-green;
+}
+.glyphicon-question-sign, .icon-question-sign {
+  color: @health-status-yellow;
+}
+.glyphicon-minus-sign, .icon-minus-sign {
+  color: @health-status-orange;
+}
+.icon-medkit {
+  color: @maintenance-black;
+}
+
 body.modal-open {
   //fix bootstrap padding when modal opened
   padding-right: 0 !important;
@@ -79,6 +98,9 @@ footer {
   color: #666;
   margin-top: -1 * @footer-height - 1;
   height: @footer-height - 60px;
+  .footer-links {
+    font-size: @smaller-font-size;
+  }
 }
 
 .editable-list-container {
@@ -388,6 +410,11 @@ table.diff {
   }
 }
 
+.row.no-vertical-padding {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .ru-badge {
   text-align: center;
   a:hover {
@@ -640,7 +667,7 @@ a:focus {
 }
 
 /*****start styles for install tasks logs*****/
-.task-list-main-wrap, .task-detail-info {
+.task-list-main-wrap, .task-detail-info, .host-progress-popup {
   .pending, .queued {
     color: #999;
   }
@@ -853,7 +880,7 @@ a:focus {
   }
 
   .col-md-3 {
-    min-height: 100px;
+    min-height: 80px;
     margin-left: 2px;
     min-width: 180px;
   }
@@ -1284,9 +1311,15 @@ table.graphs {
 }
 
 /*Start Admin*/
- .btn-padding {
-   margin-left: 20px
- }
+.btn-padding {
+  margin-left: 20px
+}
+
+.btn-primary[disabled] {
+  .icon-spinner {
+    color: white;
+  }
+}
 
 #admin-auto-start {
   background-color: #fff;
@@ -1320,11 +1353,20 @@ table.graphs {
     .all-checkbox {
       display: inline-block;
       top: 2px;
+      label {
+        font-size: inherit;
+      }
     }
   }
   .general-auto-start {
     display: inline-block;
     margin-left: 15px;
+  }
+  .form-horizontal .radio,
+  .form-horizontal .checkbox,
+  .form-horizontal .radio-inline,
+  .form-horizontal .checkbox-inline {
+    padding-top: 0;
   }
 }
 
@@ -2393,61 +2435,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   }
   input[type="file"] {
     margin-bottom: 10px;
-  }
-}
-
-#combo_search_box {
-  .VS-search {
-    .VS-search-box {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: 0 0 1px #fff inset;
-      min-height: 34px;
-    }
-    .VS-icon-search, .VS-icon-cancel {
-        top: 10px;
-    }
-    .VS-placeholder {
-      color: #ccc;
-      top: 9px;
-    }
-    .search_input input {
-      height: 32px;
-      margin-top: 0px;
-    }
-    .search_facet {
-      border-radius: 4px;
-      margin: 5px -3px 3px 0;
-      height: 22px;
-      .category {
-        margin-left: 3px;
-        padding: 4px 0 0;
-      }
-      input {
-        font: inherit;
-        font-family: 'Roboto', sans-serif;
-        height: 20px;
-      }
-      .search_facet_remove {
-        left: 3px;
-        top: 4px;
-      }
-      &.not_selected {
-        border: 1px solid #d2d2d2;
-        background-image: -moz-linear-gradient(top, #fdfdfd, #e3e3e3); /* FF3.6 */
-        background-image: -webkit-gradient(linear, left top, left bottom, from(#fdfdfd), to(#e3e3e3)); /* Saf4+, Chrome */
-        background-image: linear-gradient(top, #fdfdfd, #e3e3e3);
-      }
-      &.is_selected {
-        margin-left: 0;
-      }
-    }
-  }
-}
-
-.VS-interface.ui-autocomplete.ui-menu{
-  li.ui-menu-item, li.ui-autocomplete-category {
-    font-family: 'Roboto', sans-serif;
   }
 }
 

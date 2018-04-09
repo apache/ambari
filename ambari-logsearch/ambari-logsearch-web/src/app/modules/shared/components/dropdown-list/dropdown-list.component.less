@@ -24,7 +24,12 @@
 
   > li {
     .dropdown-item-default;
-
+    transition: opacity 300ms ease-in, height 100ms 400ms ease-in;
+    &.filtered {
+      overflow: hidden;
+      opacity: 0;
+      height: 0;
+    }
     .list-item-label {
       .dropdown-item-child-default;
 
@@ -39,6 +44,41 @@
 
       .label-container {
         width: 100%;
+      }
+    }
+    &.filter {
+      padding: 0 .25em;
+      position: relative;
+      &:hover {
+        background-color: transparent;
+      }
+      .fa {
+        margin: 0 .6em 0 0;
+        opacity: .8;
+        position: absolute;
+        right: 0;
+        top: .5em
+      }
+      .fa-search {
+        cursor: auto;
+      }
+      .clear-filter {
+        right: 1.3em;
+      }
+      input {
+        height: 2em;
+        width: 100%;
+      }
+      .clear-filter {
+        cursor: pointer;
+        float: right;
+      }
+    }
+    &.selections {
+      font-size: .75em;
+      padding: .1em 20px;
+      a {
+        display: inline;
       }
     }
   }

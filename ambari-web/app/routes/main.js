@@ -282,7 +282,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           });
         },
         exitRoute: function (router, context, callback) {
-          router.get('mainController').startPolling();
           callback();
         }
       }),
@@ -819,7 +818,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             //if service is not existed then route to default service
             if (item.get('isLoaded')) {
               if (router.get('mainServiceItemController.isConfigurable')) {
-                router.get('mainController').stopPolling();
                 router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
               }
               else {
@@ -834,17 +832,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         },
         exitRoute: function (router, nextRoute, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
-          var exitCallback = function() {
-            if (!/\/main\/services\/\w+\/configs$/.test(nextRoute)) {
-              router.get('mainController').startPolling();
-            }
-            callback();
-          };
           // If another user is running some wizard, current user can't save configs
           if (controller.hasUnsavedChanges() && !router.get('wizardWatcherController.isWizardRunning')) {
-            controller.showSavePopup(exitCallback);
+            controller.showSavePopup(callback);
           } else {
-            exitCallback();
+            callback();
           }
         }
       }),

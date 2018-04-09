@@ -7333,6 +7333,8 @@ class TestAmbariServer(TestCase):
     sys.stdout = out
 
     options = self._create_empty_options_mock()
+    options.ambari_admin_username = 'admin'
+    options.ambari_admin_password = 'admin'
     is_server_runing_method.return_value = (True, 0)
 
     search_file_message.return_value = "filepath"
@@ -7363,8 +7365,6 @@ class TestAmbariServer(TestCase):
         return 'skip'
       if 'URL Port' in args[0]:
         return '1'
-      if 'Ambari Admin' in args[0]:
-        return 'admin'
       if args[1] == "true" or args[1] == "false":
         return args[1]
       else:
@@ -7420,8 +7420,6 @@ class TestAmbariServer(TestCase):
           return "valid"
       if 'URL Port' in args[0]:
         return '1'
-      if 'Ambari Admin' in args[0]:
-        return 'admin'
       if args[1] == "true" or args[1] == "false":
         return args[1]
       else:
@@ -7503,8 +7501,6 @@ class TestAmbariServer(TestCase):
         return 'skip'
       if 'URL Port' in args[0]:
         return '1'
-      if 'Ambari Admin' in args[0]:
-        return 'admin'
       if 'Primary URL' in args[0]:
         return kwargs['answer']
       if args[1] == "true" or args[1] == "false":
@@ -7519,6 +7515,8 @@ class TestAmbariServer(TestCase):
     urlopen_method.return_value = response
 
     options =  self._create_empty_options_mock()
+    options.ambari_admin_username = 'admin'
+    options.ambari_admin_password = 'admin'
     options.ldap_url = "a:1"
 
     setup_ldap(options)
@@ -7622,8 +7620,6 @@ class TestAmbariServer(TestCase):
         return 'skip'
       if 'URL Port' in args[0]:
         return '1'
-      if 'Ambari Admin' in args[0]:
-        return 'admin'
       if 'Primary URL' in args[0]:
         return kwargs['answer']
       if args[1] == "true" or args[1] == "false":
@@ -7638,6 +7634,8 @@ class TestAmbariServer(TestCase):
     urlopen_method.return_value = response
 
     options = self._create_empty_options_mock()
+    options.ambari_admin_username = 'admin'
+    options.ambari_admin_password = 'admin'
     options.ldap_force_setup = True
 
     setup_ldap(options)

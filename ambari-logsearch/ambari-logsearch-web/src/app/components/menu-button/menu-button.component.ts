@@ -59,6 +59,9 @@ export class MenuButtonComponent {
   @Input()
   caretClass: string = 'fa-caret-down';
 
+  @Input()
+  useDropDownLocalFilter: boolean = false;
+
   /**
    * The minimum time to handle a mousedown as a longclick. Default is 500 ms (0.5sec)
    * @default 500
@@ -170,7 +173,7 @@ export class MenuButtonComponent {
    * The goal is to have one and only one place where we open the dropdown. So that later if we need to change the way
    * how we do, it will be easier.
    */
-  private openDropdown():void {
+  private openDropdown(): void {
     this.dropdownIsOpen = true;
   }
 
@@ -178,7 +181,7 @@ export class MenuButtonComponent {
    * The goal is to have one and only one place where we close the dropdown. So that later if we need to change the way
    * how we do, it will be easier.
    */
-  private closeDropdown():void {
+  private closeDropdown(): void {
     this.dropdownIsOpen = false;
   }
 
@@ -205,7 +208,9 @@ export class MenuButtonComponent {
    */
   onDropdownItemChange(options: ListItem) {
     this.updateSelection(options);
-    !this.isMultipleChoice && this.closeDropdown();
+    if (!this.isMultipleChoice) {
+      this.closeDropdown();
+    }
   }
 
   updateSelection(options: ListItem) {

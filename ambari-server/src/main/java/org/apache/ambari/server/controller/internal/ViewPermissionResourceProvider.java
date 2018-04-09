@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -51,34 +52,38 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
    */
   protected static PermissionDAO permissionDAO;
 
-  /**
-   * Permission property id constants.
-   */
-  public static final String VIEW_NAME_PROPERTY_ID       = "PermissionInfo/view_name";
-  public static final String VIEW_VERSION_PROPERTY_ID    = "PermissionInfo/version";
-  public static final String PERMISSION_ID_PROPERTY_ID   = "PermissionInfo/permission_id";
-  public static final String PERMISSION_NAME_PROPERTY_ID = "PermissionInfo/permission_name";
-  public static final String RESOURCE_NAME_PROPERTY_ID   = "PermissionInfo/resource_name";
+  public static final String PERMISSION_INFO = "PermissionInfo";
 
+  public static final String VIEW_NAME_PROPERTY_ID = "view_name";
+  public static final String VERSION_PROPERTY_ID = "version";
+  public static final String PERMISSION_ID_PROPERTY_ID = "permission_id";
+  public static final String PERMISSION_NAME_PROPERTY_ID = "permission_name";
+  public static final String RESOURCE_NAME_PROPERTY_ID = "resource_name";
+
+  public static final String VIEW_NAME = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VIEW_NAME_PROPERTY_ID;
+  public static final String VERSION = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + VERSION_PROPERTY_ID;
+  public static final String PERMISSION_ID = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PERMISSION_ID_PROPERTY_ID;
+  public static final String PERMISSION_NAME = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + PERMISSION_NAME_PROPERTY_ID;
+  public static final String RESOURCE_NAME = PERMISSION_INFO + PropertyHelper.EXTERNAL_PATH_SEP + RESOURCE_NAME_PROPERTY_ID;
 
   /**
    * The key property ids for a permission resource.
    */
   private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.View, VIEW_NAME_PROPERTY_ID)
-      .put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID)
-      .put(Resource.Type.ViewPermission, PERMISSION_ID_PROPERTY_ID)
+      .put(Resource.Type.View, VIEW_NAME)
+      .put(Resource.Type.ViewVersion, VERSION)
+      .put(Resource.Type.ViewPermission, PERMISSION_ID)
       .build();
 
   /**
    * The property ids for a permission resource.
    */
   private static Set<String> propertyIds = Sets.newHashSet(
-      VIEW_NAME_PROPERTY_ID,
-      VIEW_VERSION_PROPERTY_ID,
-      PERMISSION_ID_PROPERTY_ID,
-      PERMISSION_NAME_PROPERTY_ID,
-      RESOURCE_NAME_PROPERTY_ID);
+      VIEW_NAME,
+      VERSION,
+      PERMISSION_ID,
+      PERMISSION_NAME,
+      RESOURCE_NAME);
 
 
   // ----- Constructors ------------------------------------------------------
@@ -121,8 +126,8 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
 
     PermissionEntity viewUsePermission = permissionDAO.findViewUsePermission();
     for (Map<String, Object> propertyMap: getPropertyMaps(predicate)) {
-      Object viewName = propertyMap.get(VIEW_NAME_PROPERTY_ID);
-      Object viewVersion = propertyMap.get(VIEW_VERSION_PROPERTY_ID);
+      Object viewName = propertyMap.get(VIEW_NAME);
+      Object viewVersion = propertyMap.get(VERSION);
       if (viewName != null && viewVersion != null) {
         ViewEntity viewEntity = viewRegistry.getDefinition(viewName.toString(), viewVersion.toString());
 
@@ -201,12 +206,12 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
 
     Resource resource = new ResourceImpl(Resource.Type.ViewPermission);
     ViewPermissionResponse.ViewPermissionInfo viewPermissionInfo  = viewPermissionResponse.getViewPermissionInfo();
-    setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewPermissionInfo.getViewName(), requestedIds);
-    setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewPermissionInfo.getVersion(), requestedIds);
+    setResourceProperty(resource, VIEW_NAME, viewPermissionInfo.getViewName(), requestedIds);
+    setResourceProperty(resource, VERSION, viewPermissionInfo.getVersion(), requestedIds);
 
-    setResourceProperty(resource, PERMISSION_ID_PROPERTY_ID, viewPermissionInfo.getPermissionId(), requestedIds);
-    setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID, viewPermissionInfo.getPermissionName(), requestedIds);
-    setResourceProperty(resource, RESOURCE_NAME_PROPERTY_ID, viewPermissionInfo.getResourceName(), requestedIds);
+    setResourceProperty(resource, PERMISSION_ID, viewPermissionInfo.getPermissionId(), requestedIds);
+    setResourceProperty(resource, PERMISSION_NAME, viewPermissionInfo.getPermissionName(), requestedIds);
+    setResourceProperty(resource, RESOURCE_NAME, viewPermissionInfo.getResourceName(), requestedIds);
 
     return resource;
   }

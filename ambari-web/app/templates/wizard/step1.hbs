@@ -218,7 +218,7 @@
                   {{#view view.redhatCheckBoxView
                   classNames="use-redhat-checkbox"
                   }}
-                    <label {{bindAttr for="view.checkboxId" class=":redhat-label :display-inline-block controller.selectedStack.usePublicRepo:disabled" data-original-title="view.redhatDisabledTooltip"}}>
+                    <label {{bindAttr for="view.checkboxId" class=":redhat-label :display-inline-block controller.selectedStack.usePublicRepo:disabled" data-original-title="view.parentView.redhatDisabledTooltip"}}>
                       {{t installer.step1.advancedRepo.useRedhatSatellite.message}}
                     </label>
                     <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
@@ -251,6 +251,7 @@
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}
   </button>
+  {{template "templates/wizard/installer_cancel_button"}}
   <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}} {{QAAttr "wizard-next"}}>
     {{#if App.router.nextBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

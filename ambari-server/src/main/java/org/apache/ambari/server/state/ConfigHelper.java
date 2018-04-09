@@ -44,7 +44,7 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.events.HostComponentUpdate;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
@@ -58,6 +58,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +140,7 @@ public class ConfigHelper {
   private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -1525,7 +1526,7 @@ public class ConfigHelper {
           if (wasStaleConfigsStatusUpdated(clusterId, serviceComponentHost.getHost().getHostId(),
               serviceName, serviceComponentHostName, staleConfigs)) {
             serviceComponentHost.setRestartRequiredWithoutEventPublishing(staleConfigs);
-            stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
+            STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
                 HostComponentUpdate.createHostComponentStaleConfigsStatusUpdate(clusterId,
                     serviceName, serviceComponentHost.getHostName(),
                     serviceComponentHostName, staleConfigs))));
@@ -1952,7 +1953,9 @@ public class ConfigHelper {
       LOG.info("For configs update on host {} will be used following effective desired tags {}", hostId, configTags.toString());
 
       getAndMergeHostConfigs(configurations, configTags, cl);
+      configurations = unescapeConfigNames(configurations);
       getAndMergeHostConfigAttributes(configurationAttributes, configTags, cl);
+      configurationAttributes = unescapeConfigAttributeNames(configurationAttributes);
 
       SortedMap<String, SortedMap<String, String>> configurationsTreeMap = sortConfigutations(configurations);
       SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributesTreeMap =
@@ -1964,6 +1967,30 @@ public class ConfigHelper {
     AgentConfigsUpdateEvent agentConfigsUpdateEvent = new AgentConfigsUpdateEvent(clustersConfigs);
     agentConfigsUpdateEvent.setHostId(hostId);
     return agentConfigsUpdateEvent;
+  }
+
+  private Map<String, Map<String, String>> unescapeConfigNames(Map<String, Map<String, String>> configurations) {
+    Map<String, Map<String, String>> unescapedConfigs = new HashMap<>();
+    for (Entry<String, Map<String, String>> configTypeEntry : configurations.entrySet()) {
+      Map<String, String> unescapedTypeConfigs = new HashMap<>();
+      for (Entry<String, String> config : configTypeEntry.getValue().entrySet()) {
+        unescapedTypeConfigs.put(StringEscapeUtils.unescapeJava(config.getKey()), config.getValue());
+      }
+      unescapedConfigs.put(configTypeEntry.getKey(), unescapedTypeConfigs);
+    }
+
+    return unescapedConfigs;
+  }
+
+  private Map<String, Map<String, Map<String, String>>> unescapeConfigAttributeNames(
+      Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+    Map<String, Map<String, Map<String, String>>> unescapedConfigAttributes = new HashMap<>();
+
+    for (Entry<String, Map<String, Map<String, String>>> configAttrTypeEntry : configurationAttributes.entrySet()) {
+      unescapedConfigAttributes.put(configAttrTypeEntry.getKey(), unescapeConfigNames(configAttrTypeEntry.getValue()));
+    }
+
+    return unescapedConfigAttributes;
   }
 
   public SortedMap<String, SortedMap<String, String>> sortConfigutations(Map<String, Map<String, String>> configurations) {

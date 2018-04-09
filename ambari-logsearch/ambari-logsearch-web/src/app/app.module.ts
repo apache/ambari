@@ -38,7 +38,7 @@ import {ShipperModule} from '@modules/shipper/shipper.module';
 
 import {ServiceInjector} from '@app/classes/service-injector';
 
-import {mockApiDataService} from '@app/services/mock-api-data.service';
+import {MockApiDataService} from '@app/services/mock-api-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -110,6 +110,10 @@ import {ClusterFilterComponent } from '@app/components/cluster-filter/cluster-fi
 import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
 import {TranslateService as AppTranslateService} from '@app/services/translate.service';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {TabGuard} from '@app/services/tab.guard';
+import {LogsBreadcrumbsResolverService} from '@app/services/logs-breadcrumbs-resolver.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
 export function getXHRBackend(
   injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions
@@ -119,7 +123,7 @@ export function getXHRBackend(
   } else {
     return new InMemoryBackendService(
       injector,
-      new mockApiDataService(),
+      new MockApiDataService(),
       {
         passThruUnknownUrl: true,
         rootPath: ''
@@ -223,6 +227,8 @@ export function getXHRBackend(
     ServiceLogsFieldsService,
     AuditLogsFieldsService,
     TabsService,
+    TabGuard,
+    LogsBreadcrumbsResolverService,
     {
       provide: XHRBackend,
       useFactory: getXHRBackend,
@@ -231,7 +237,9 @@ export function getXHRBackend(
     AuthService,
     AuthGuardService,
     HistoryManagerService,
-    ClusterSelectionService
+    ClusterSelectionService,
+    LogsFilteringUtilsService,
+    LogsStateService
   ],
   bootstrap: [AppComponent],
   entryComponents: [
