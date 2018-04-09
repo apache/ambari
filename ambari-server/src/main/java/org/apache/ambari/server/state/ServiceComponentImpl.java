@@ -42,8 +42,6 @@ import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
@@ -90,12 +88,6 @@ public class ServiceComponentImpl implements ServiceComponent {
    * The ID of the persisted {@link ServiceComponentDesiredStateEntity}.
    */
   private final long desiredStateEntityId;
-
-  @Inject
-  private RepositoryVersionDAO repoVersionDAO;
-
-  @Inject
-  private HostComponentStateDAO hostComponentDAO;
 
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
@@ -448,8 +440,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), sg.getServiceGroupId(), sg.getServiceGroupName(), service.getServiceId(),
         serviceName, service.getServiceType(), getId(), getName(), getType(), sg.getStackId(), getDesiredState().toString(),
-        getServiceComponentStateCount(), isRecoveryEnabled(), displayName, moduleComponent.getVersion(),
-        getRepositoryState());
+        getServiceComponentStateCount(), isRecoveryEnabled(), displayName, moduleComponent.getVersion());
 
     return r;
   }
@@ -601,24 +592,6 @@ public class ServiceComponentImpl implements ServiceComponent {
       readWriteLock.writeLock().unlock();
     }
   }
-
-  @Override
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionState getRepositoryState() {
-    ServiceComponentDesiredStateEntity component = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
-
-    if (null != component) {
-      return component.getRepositoryState();
-    } else {
-      LOG.warn("Cannot retrieve repository state on component that may have been deleted: service {}, component {}",
-          service != null ? service.getName() : null, componentName);
-
-      return null;
-    }
-  }
-
 
   private int getSCHCountByState(State state) {
     int count = 0;

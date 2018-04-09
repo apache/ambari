@@ -25,7 +25,6 @@ import org.apache.ambari.server.orm.dao.MpackHostStateDAO;
 import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.MpackInstallState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +53,8 @@ public class StateRecoveryManager {
 
   /**
    * Resets any management pack installation states from
-   * {@link RepositoryVersionState#INSTALLING} to
-   * {@link RepositoryVersionState#INSTALL_FAILED}.
+   * {@link MpackInstallState#INSTALLING} to
+   * {@link MpackInstallState#INSTALL_FAILED}.
    */
   void updateManagementPackInstallationState() {
     List<MpackHostStateEntity> mpackHostStates = mpackHostStateDAO.findAll();
@@ -67,8 +66,9 @@ public class StateRecoveryManager {
 
         String msg = String.format(
             "The installation state of management pack %s on host %s was set from %s to %s",
-            mpack.getName(), mpackHostState.getHostName(), RepositoryVersionState.INSTALLING,
-            RepositoryVersionState.INSTALL_FAILED);
+            mpack.getName(), mpackHostState.getHostName(), MpackInstallState.INSTALLING,
+            MpackInstallState.INSTALL_FAILED);
+
         LOG.warn(msg);
 
         mpackHostStateDAO.merge(mpackHostState);
