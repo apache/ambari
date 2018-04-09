@@ -38,23 +38,6 @@ import {UtilsService} from '@app/services/utils.service';
 })
 export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccessor {
 
-  constructor(private utils: UtilsService) {
-  }
-
-  ngOnInit(): void {
-    this.parameterInput = this.parameterInputRef.nativeElement;
-    this.valueInput = this.valueInputRef.nativeElement;
-    this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
-    this.parameterAddSubject.subscribe(this.onParameterAdd);
-    this.updateValueSubject.subscribe(this.updateValue);
-  }
-
-  ngOnDestroy(): void {
-    this.parameterNameChangeSubject.unsubscribe();
-    this.parameterAddSubject.unsubscribe();
-    this.updateValueSubject.unsubscribe();
-  }
-
   private currentId: number = 0;
 
   private isExclude: boolean = false;
@@ -136,6 +119,22 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
    * @type {SearchBoxParameterProcessed[]}
    */
   parameters: SearchBoxParameterProcessed[] = [];
+
+  constructor(private utils: UtilsService) {}
+
+  ngOnInit(): void {
+    this.parameterInput = this.parameterInputRef.nativeElement;
+    this.valueInput = this.valueInputRef.nativeElement;
+    this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
+    this.parameterAddSubject.subscribe(this.onParameterAdd);
+    this.updateValueSubject.subscribe(this.updateValue);
+  }
+
+  ngOnDestroy(): void {
+    this.parameterNameChangeSubject.unsubscribe();
+    this.parameterAddSubject.unsubscribe();
+    this.updateValueSubject.unsubscribe();
+  }
 
   /**
    * Available options for value of currently active search query parameter
@@ -246,7 +245,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
       this.updateValueSubject.next();
     }
     this.switchToParameterInput();
-  };
+  }
 
   onParameterKeyUp(event: KeyboardEvent): void {
     if (this.utils.isEnterPressed(event)) {
@@ -280,7 +279,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     if (this.onChange) {
       this.onChange(this.parameters.slice());
     }
-  };
+  }
 
   /**
    * Update flag that indicates presence of autocomplete matches in preset options for search query parameter name
