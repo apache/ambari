@@ -57,7 +57,7 @@ var urls = {
   },
 
   'common.services.update' : {
-    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?{urlParams}',
+    'real': '/clusters/{clusterName}/servicegroups/{serviceGroupName}/services?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
       return {

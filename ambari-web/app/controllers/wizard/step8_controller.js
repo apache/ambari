@@ -1072,7 +1072,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     this.get('selectedServices').forEach(function (_service) {
       var serviceName = _service.get('serviceName');
       //TODO - mpacks: when we are supporting user defined service groups, this must be changed
-      const serviceGroup = _service.get('stack_name');
+      const serviceGroup = _service.get('stackName');
       var componentsData = serviceComponents.filterProperty('serviceName', serviceName).map(function (_component) {
         return { "ServiceComponentInfo": { "component_name": _component.get('componentName') } };
       });
@@ -1094,7 +1094,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           this.addRequestToCreateComponent(
             [{"ServiceComponentInfo": {"component_name": component.componentName}}],
             App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('serviceName'),
-            App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('stack_name') //TODO - mpacks: when we are supporting user defined service groups, this must be changed
+            App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('stackName') //TODO - mpacks: when we are supporting user defined service groups, this must be changed
           );
         }
       }, this);
@@ -1103,7 +1103,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
           this.addRequestToCreateComponent(
             [{"ServiceComponentInfo": {"component_name": component.component_name}}],
             App.StackServiceComponent.find().findProperty('componentName', component.component_name).get('serviceName'),
-            App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('stack_name') //TODO - mpacks: when we are supporting user defined service groups, this must be changed
+            App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('stackName') //TODO - mpacks: when we are supporting user defined service groups, this must be changed
           );
         }
       }, this);

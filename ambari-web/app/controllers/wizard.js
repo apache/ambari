@@ -526,13 +526,21 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     };
     this.saveClusterStatus(clusterStatus);
 
-    App.ajax.send({
-      name: isRetry ? 'common.host_components.update' : 'common.services.update',
-      sender: this,
-      data: data,
-      success: 'installServicesSuccessCallback',
-      error: 'installServicesErrorCallback'
-    }).then(callback, callback);
+    const serviceGroups = this.get('content.serviceGroups');
+    
+    const installPromises = serviceGroups.map(sg => {
+      data.serviceGroup = sg;
+
+      return App.ajax.send({
+        name: isRetry ? 'common.host_components.update' : 'common.services.update',
+        sender: this,
+        data: data,
+        success: 'installServicesSuccessCallback',
+        error: 'installServicesErrorCallback'
+      })
+    })
+
+    $.when(...installPromises).then(callback, callback);
   },
 
   installServicesSuccessCallback: function (jsonData) {
@@ -1414,6 +1422,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadRegisteredMpacks: function () {
     this.set('content.registeredMpacks', this.getDBProperty('registeredMpacks') || []);
     const registeredMpacks = this.get('content.registeredMpacks');
+    
+    //TODO: mpacks - currently we create a service group for each mpack; this will be changed in the future
+    const serviceGroups = registeredMpacks.map(rmp => rmp.MpackInfo.mpack_name);
+    this.set('content.serviceGroups', serviceGroups);
+
     registeredMpacks.forEach(rmp => {
       App.stackMapper.map(rmp);
     });

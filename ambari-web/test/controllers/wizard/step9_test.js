@@ -595,7 +595,12 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#launchStartServices', function () {
-    beforeEach(function() {
+    beforeEach(function () {
+      sinon.stub($, 'when').returns({
+        then: function () {
+          return true;
+        }
+      });
       sinon.stub(App, 'get', function(k) {
         if (k === 'components.slaves') {
           return ["TASKTRACKER", "DATANODE", 
@@ -612,6 +617,7 @@ describe('App.InstallerStep9Controller', function () {
     });
     afterEach(function() {
       App.get.restore();
+      $.when.restore();
     });
     var tests = [
       {
@@ -662,7 +668,8 @@ describe('App.InstallerStep9Controller', function () {
       it(test.message, function () {
         var content = Em.Object.create({
           controllerName: test.controllerName,
-          services: test.services
+          services: test.services,
+          serviceGroups: []
         });
         var wizardController = Em.Object.create({
           getDBProperty: function() {
