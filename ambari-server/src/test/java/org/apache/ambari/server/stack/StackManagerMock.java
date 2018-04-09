@@ -21,7 +21,7 @@ package org.apache.ambari.server.stack;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.NavigableMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -111,10 +111,10 @@ public class StackManagerMock extends StackManager {
     private Map<String, ServiceModule> cachedCommonServiceModules;
     private Map<String, StackModule> cachedStackModules;
     private Map<String, ExtensionModule> cachedExtensionModules;
-    private TreeMap<String, StackInfo> cachedStackMap;
+    private NavigableMap<String, StackInfo> cachedStackMap;
 
     public CachedModules(Map<String, ServiceModule> cachedCommonServiceModules, Map<String, StackModule> cachedStackModules,
-                         Map<String, ExtensionModule> cachedExtensionModules, TreeMap<String, StackInfo> cachedStackMap) {
+                         Map<String, ExtensionModule> cachedExtensionModules, NavigableMap<String, StackInfo> cachedStackMap) {
       this.cachedCommonServiceModules = cachedCommonServiceModules;
       this.cachedStackModules = cachedStackModules;
       this.cachedExtensionModules = cachedExtensionModules;
@@ -133,7 +133,7 @@ public class StackManagerMock extends StackManager {
       return cachedExtensionModules;
     }
 
-    public TreeMap<String, StackInfo> getCachedStackMap() {
+    public NavigableMap<String, StackInfo> getCachedStackMap() {
       return cachedStackMap;
     }
   }

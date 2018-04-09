@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -99,7 +100,7 @@ public class StackManager {
   /**
    * Map of stack id to stack info
    */
-  protected TreeMap<String, StackInfo> stackMap = new TreeMap<>();
+  protected NavigableMap<String, StackInfo> stackMap = new TreeMap<>();
   protected Map<String, ServiceModule> commonServiceModules;
   protected Map<String, StackModule> stackModules;
   protected Map<String, ExtensionModule> extensionModules;
@@ -569,8 +570,6 @@ public class StackManager {
           continue;
         }
         for (File serviceFolder : commonService.listFiles(StackDirectory.FILENAME_FILTER)) {
-          serviceFolder.getParentFile().getName();
-          serviceFolder.getName();
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
           if (metaInfoXml != null) {
