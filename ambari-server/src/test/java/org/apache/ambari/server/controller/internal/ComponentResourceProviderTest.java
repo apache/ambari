@@ -74,7 +74,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -124,8 +123,6 @@ public class ComponentResourceProviderTest {
   }
 
   private void testCreateResources(Authentication authentication) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -214,8 +211,6 @@ public class ComponentResourceProviderTest {
   }
 
   private void testGetResources(Authentication authentication) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -259,13 +254,13 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", 1L, "Component100", "Component100", stackId, "", serviceComponentStateCountMap,
-              true /* recovery enabled */, "Component100 Client", null, null));
+              true /* recovery enabled */, "Component100 Client", null));
     expect(serviceComponent2.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", 2L, "Component101", "Component101", stackId, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component101 Client", null, null));
+              false /* recovery not enabled */, "Component101 Client", null));
     expect(serviceComponent3.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", 3L, "Component102", "Component102", stackId, "", serviceComponentStateCountMap,
-              true /* recovery enabled */, "Component102 Client", "1.1", RepositoryVersionState.CURRENT));
+              true /* recovery enabled */, "Component102 Client", "1.1"));
 
     expect(ambariMetaInfo.getComponent("FOO", "1.0", null, "Component100")).andReturn(
         componentInfo1);
@@ -301,7 +296,6 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_DESIRED_VERSION);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE);
 
     Predicate predicate = new PredicateBuilder()
       .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
@@ -339,12 +333,9 @@ public class ComponentResourceProviderTest {
 
       if (resource.getPropertyValue(
           ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component102")) {
-        Assert.assertNotNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE));
         Assert.assertNotNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
-        Assert.assertEquals(RepositoryVersionState.CURRENT, resource.getPropertyValue(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE));
         Assert.assertEquals("1.1", resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
       } else {
-        Assert.assertNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE));
         Assert.assertNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
       }
     }
@@ -370,8 +361,6 @@ public class ComponentResourceProviderTest {
   }
 
   private void testUpdateResources(Authentication authentication) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -439,13 +428,13 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component101", stackId, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component101 Client", null, null));
+              false /* recovery not enabled */, "Component101 Client", null));
     expect(serviceComponent2.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 2L, "Component102", "Component102",stackId, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component102 Client", null, null));
+              false /* recovery not enabled */, "Component102 Client", null));
     expect(serviceComponent3.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 3L, "Component103", "Component103", stackId, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component103 Client", null, null));
+              false /* recovery not enabled */, "Component103 Client", null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent3.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -527,8 +516,6 @@ public class ComponentResourceProviderTest {
   }
 
   private void testSuccessDeleteResources(Authentication authentication, State hostComponentState) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
 
@@ -631,8 +618,6 @@ public class ComponentResourceProviderTest {
   }
 
   private void testDeleteResourcesWithEmptyClusterComponentNames(Authentication authentication) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
 
@@ -714,8 +699,6 @@ public class ComponentResourceProviderTest {
    * @throws Exception
    */
   private void testUpdateAutoStart(Authentication authentication) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
     MaintenanceStateHelper maintenanceStateHelper = createMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
@@ -772,7 +755,7 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
         new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component101", stackId, "", serviceComponentStateCountMap,
-            false /* recovery not enabled */, "Component101 Client", null, null));
+            false /* recovery not enabled */, "Component101 Client", null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
 
     expect(serviceComponentHost.getState()).andReturn(State.INSTALLED).anyTimes();
@@ -956,7 +939,6 @@ public class ComponentResourceProviderTest {
 
   public static ComponentResourceProvider getComponentResourceProvider(AmbariManagementController managementController)
           throws AmbariException {
-    Resource.Type type = Resource.Type.Component;
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
             anyObject(Service.class))).andReturn(true).anyTimes();
