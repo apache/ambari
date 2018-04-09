@@ -17,10 +17,15 @@
 
 <!-- TODO use listClass="history-dropdown" for custom styling -->
 <menu-button label="{{'topMenu.undo' | translate}}" [subItems]="undoItems" iconClass="fa fa-arrow-left"
-             listClass="history-dropdown" (buttonClick)="undoLatest()" (selectItem)="undo($event)"></menu-button>
+             [class.disabled]="!undoItems.length" [isDisabled]="!undoItems.length"
+             listClass="history-dropdown" (buttonClick)="undoLatest()" (selectItem)="undo($event)">
+</menu-button>
 <menu-button label="{{'topMenu.redo' | translate}}" [subItems]="redoItems" iconClass="fa fa-arrow-right"
-             listClass="history-dropdown" (buttonClick)="redoLatest()" (selectItem)="redo($event)"></menu-button>
+             [class.disabled]="!redoItems.length" [isDisabled]="!redoItems.length"
+             listClass="history-dropdown" (buttonClick)="redoLatest()" (selectItem)="redo($event)">
+</menu-button>
 <menu-button label="{{'topMenu.history' | translate}}" [subItems]="historyItems" iconClass="fa fa-history"
+             [class.disabled]="!historyItems.length" [isDisabled]="!historyItems.length"
              listClass="history-dropdown" [isRightAlign]="true"
              additionalLabelComponentSetter="getHistoryItemIcons"></menu-button>
 <menu-button label="{{'topMenu.filter' | translate}}" iconClass="fa fa-filter"

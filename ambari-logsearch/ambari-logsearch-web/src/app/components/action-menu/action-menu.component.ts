@@ -63,11 +63,15 @@ export class ActionMenuComponent {
   }
 
   undoLatest(): void {
-    this.historyManager.undo(this.undoItems[0]);
+    if (this.undoItems.length) {
+      this.historyManager.undo(this.undoItems[0]);
+    }
   }
 
   redoLatest(): void {
-    this.historyManager.redo(this.redoItems[0]);
+    if (this.redoItems.length) {
+      this.historyManager.redo(this.redoItems[0]);
+    }
   }
 
   undo(item: ListItem): void {

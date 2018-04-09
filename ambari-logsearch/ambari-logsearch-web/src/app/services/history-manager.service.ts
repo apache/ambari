@@ -299,15 +299,19 @@ export class HistoryManagerService {
   }
 
   undo(item: ListItem): void {
-    this.hasNoPendingUndoOrRedo = false;
-    this.currentHistoryItemId = item.value.previousChangeId;
-    this.handleUndoOrRedo(item.value.previousValue);
+    if (item) {
+      this.hasNoPendingUndoOrRedo = false;
+      this.currentHistoryItemId = item.value.previousChangeId;
+      this.handleUndoOrRedo(item.value.previousValue);
+    }
   }
 
   redo(item: ListItem): void {
-    this.hasNoPendingUndoOrRedo = false;
-    this.currentHistoryItemId = item.value.changeId;
-    this.handleUndoOrRedo(item.value.currentValue);
+    if (item) {
+      this.hasNoPendingUndoOrRedo = false;
+      this.currentHistoryItemId = item.value.changeId;
+      this.handleUndoOrRedo(item.value.currentValue);
+    }
   }
 
 }
