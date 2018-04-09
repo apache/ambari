@@ -262,6 +262,24 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   }
 
   /**
+   * Toggle the parameter isExclude property value
+   * @param event {MouseEvent} - event that triggered this action
+   * @param id {number} - id of parameter
+   */
+  toggleParameter(event: MouseEvent, id: number): void {
+    this.parameters = this.parameters.map((parameter: SearchBoxParameterProcessed): SearchBoxParameterProcessed => {
+      if (parameter.id === id) {
+        parameter.isExclude = !parameter.isExclude;
+      }
+      return parameter;
+    });
+    if (this.updateValueImmediately) {
+      this.updateValueSubject.next();
+    }
+    event.stopPropagation();
+  }
+
+  /**
    * Removing parameter from search query
    * @param event {MouseEvent} - event that triggered this action
    * @param id {number} - id of parameter
