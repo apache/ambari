@@ -76,7 +76,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MpackInstallState;
 import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;

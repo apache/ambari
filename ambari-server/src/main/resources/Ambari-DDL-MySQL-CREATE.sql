@@ -310,7 +310,6 @@ CREATE TABLE servicecomponentdesiredstate (
   service_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
-  repo_state VARCHAR(255) NOT NULL DEFAULT 'NOT_REQUIRED',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_id, service_group_id, cluster_id),
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
