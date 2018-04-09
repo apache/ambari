@@ -36,7 +36,7 @@ sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = execution_command.get_mpack_version()
 agent_stack_retry_on_unavailability = execution_command.check_agent_stack_want_retry_on_unavailability()
-agent_stack_retry_count = execution_command.get_agent_stack_retry_count_on_unavailability()
+agent_stack_retry_count = execution_command.get_agent_stack_retry_count()
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #users and groups
@@ -58,21 +58,21 @@ repo_ubuntu =  get_cluster_setting_value('repo_ubuntu_template')
 #hosts
 hostname = execution_command.get_host_name()
 ambari_server_hostname = execution_command.get_ambari_server_host()
-rm_host = execution_command._execution_command.__get_value("clusterHostInfo/resourcemanager_hosts", [])
-slave_hosts = execution_command._execution_command.__get_value("clusterHostInfo/datanode_hosts", [])
-oozie_servers = execution_command._execution_command.__get_value("clusterHostInfo/oozie_server", [])
-hcat_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/webhcat_server_hosts", [])
-hive_server_host =  execution_command._execution_command.__get_value("clusterHostInfo/hive_server_hosts", [])
-hbase_master_hosts = execution_command._execution_command.__get_value("clusterHostInfo/hbase_master_hosts", [])
-hs_host = execution_command._execution_command.__get_value("clusterHostInfo/historyserver_hosts", [])
-jtnode_host = execution_command._execution_command.__get_value("clusterHostInfo/jtnode_hosts", [])
-namenode_host = execution_command._execution_command.__get_value("clusterHostInfo/namenode_hosts", [])
-zk_hosts = execution_command._execution_command.__get_value("clusterHostInfo/zookeeper_server_hosts", [])
-ganglia_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/ganglia_server_hosts", [])
-storm_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/nimbus_hosts", [])
-falcon_host = execution_command._execution_command.__get_value("clusterHostInfo/falcon_server_hosts", [])
+rm_host = execution_command.get_component_hosts('resourcemanager')
+slave_hosts = execution_command.get_component_hosts('datanode')
+oozie_servers = execution_command.get_component_hosts('oozie_server')
+hcat_server_hosts = execution_command.get_component_hosts('webhcat_server')
+hive_server_host =  execution_command.get_component_hosts('hive_server')
+hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
+hs_host = execution_command.get_component_hosts('historyserver')
+jtnode_host = execution_command.get_component_hosts('jtnode')
+namenode_host = execution_command.get_component_hosts('namenode')
+zk_hosts = execution_command.get_component_hosts('zookeeper_server')
+ganglia_server_hosts = execution_command.get_component_hosts('ganglia_server')
+storm_server_hosts = execution_command.get_component_hosts('nimbus')
+falcon_host = execution_command.get_component_hosts('falcon_server')
 
-has_sqoop_client = 'sqoop-env' in module_configs
+has_sqoop_client = bool(module_configs.get_all_properties(module_name, 'sqoop-env'))
 has_namenode = not len(namenode_host) == 0
 has_hs = not len(hs_host) == 0
 has_resourcemanager = not len(rm_host) == 0
@@ -85,7 +85,7 @@ has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_storm_server = not len(storm_server_hosts) == 0
 has_falcon_server = not len(falcon_host) == 0
-has_tez = module_configs.get_property_value(module_name, 'tez-site', '') is not None
+has_tez = bool(module_configs.get_all_properties(module_name, 'tez-site'))
 
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
@@ -118,4 +118,4 @@ if has_hbase_masters:
 repo_info = execution_command.get_repo_info()
 service_repo_info = execution_command.get_service_repo_info()
 
-repo_file = execution_command._execution_command.__get_value("repositoryFile")
+repo_file = execution_command.get_repository_file()

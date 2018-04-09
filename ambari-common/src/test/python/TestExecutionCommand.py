@@ -40,6 +40,14 @@ class TestExecutionCommand(TestCase):
     module_name = self.__execution_command.get_module_name()
     self.assertEquals(module_name, "ZOOKEEPER")
 
+  def test_get_oozie_server_hosts(self):
+    oozie_server = self.__execution_command.get_component_hosts('oozie_server')
+    self.assertEqual(oozie_server, 'host2')
+
+  def test_get_ganglia_server_hosts(self):
+    ganglia_server_hosts = self.__execution_command.get_component_hosts('ganglia_server')
+    self.assertEqual(ganglia_server_hosts, 'host1')
+
   def test_get_module_configs(self):
     module_configs = self.__execution_command.get_module_configs()
     self.assertNotEquals(module_configs, None)
@@ -49,12 +57,22 @@ class TestExecutionCommand(TestCase):
     self.assertEquals(zookeeper_client_port_fake, None)
     zookeeper_client_port_default_value = module_configs.get_property_value("zookeeper", "zoo.cfg", "clientPort1", 1111)
     self.assertEquals(int(zookeeper_client_port_default_value), 1111)
-    zookeeper_empty_value = module_configs.get_property_value("zookeeper", "zoo_fake", "", {})
+    zookeeper_empty_value = module_configs.get_all_properties("zookeeper", "zoo_fake")
     self.assertEquals(zookeeper_empty_value, {})
     zookeeper_log_max_backup_size = module_configs.get_property_value('zookeeper', 'zookeeper-log4j',
                                                                       'zookeeper_log_max_backup_size', 10)
     self.assertEquals(zookeeper_log_max_backup_size, 10)
+    properties = module_configs.get_properties("zookeeper", "zoo.cfg", ['clientPort', 'dataDir', 'fake'])
+    self.assertEqual(int(properties.get('clientPort')), 2181)
+    self.assertEqual(properties.get('fake'), None)
 
   def test_get_stack_name(self):
-    stack_name = self.__execution_command.get_stack_name()
+    stack_name = self.__execution_command.get_mpack_name()
     self.assertEquals(stack_name, "HDPCORE")
+
+  def test_access_to_module_configs(self):
+    module_configs = self.__execution_command.get_module_configs()
+    is_zoo_cfg_there = module_configs.get_property_value("zookeeper", "zoo.cfg", "") is not None
+    self.assertTrue(is_zoo_cfg_there)
+    zoo_cfg = module_configs.get_property_value("zookeeper", "zoo.cfg", "")
+    self.assertTrue(isinstance(zoo_cfg, dict))

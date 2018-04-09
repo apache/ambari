@@ -835,6 +835,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         type: 'sync',
         callback: function () {
           this.loadConfirmedHosts();
+          this.loadRegisteredMpacks();
         }
       }
     ],

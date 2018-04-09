@@ -40,7 +40,7 @@ SERVER_CATEGORY = "SERVER"
 
 
 def create_mpack(mpack_name, mpack_version, mpack_instance, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
-                 components=None, components_map=None):
+                 components=None, components_map=None, fail_if_exists=True):
   """
   Use case 1: Creates an instance of mpack with a new subgroup, new module and one or more component(s)
 
@@ -57,7 +57,7 @@ def create_mpack(mpack_name, mpack_version, mpack_instance, subgroup_name=DEFAUL
   validate_mpack_for_creation_or_changing(mpack_name, mpack_version, module_name, components, components_map)
 
   MpackInstance.create_mpack_instance(mpack_name, mpack_version, mpack_instance, subgroup_name, module_name,
-                                      components, components_map)
+                                      components, components_map, fail_if_exists)
 
 
 def set_mpack_instance(mpack, mpack_version, mpack_instance, subgroup_name=DEFAULT_SUBGROUP_NAME, module_name=None,
@@ -409,10 +409,9 @@ class MpackInstance(Instance):
 
   @staticmethod
   def create_mpack_instance(mpack_name, mpack_version, mpack_instance, subgroup_name, module_name,
-                            components,
-                            components_map):
+                            components, components_map, fail_if_component_instance_exists):
     ModuleInstance.create_module_instance(mpack_name, mpack_version, mpack_instance, subgroup_name,
-                                          module_name, components, components_map)
+                                          module_name, components, components_map, fail_if_component_instance_exists)
 
     default_mpack_instance_symlink = os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME, mpack_name,
                                                   DEFAULT_MPACK_INSTANCE_NAME)
@@ -511,8 +510,7 @@ class ModuleInstance(Instance):
 
   @staticmethod
   def create_module_instance(mpack_name, mpack_version, mpack_instance, subgroup_name, module_name,
-                             components,
-                             components_map):
+                             components, components_map, fail_if_component_instance_exists):
     meta_mpack = MetaMpack.parse_mpack(
       path=os.path.join(ROOT_FOLDER_PATH, MPACKS_FOLDER_NAME, mpack_name, mpack_version))
 
@@ -523,13 +521,13 @@ class ModuleInstance(Instance):
       for component_type in components:
         ComponentInstance.create_component_instance(mpack_name, mpack_version, mpack_instance, subgroup_name,
                                                     module_name, component_type, DEFAULT_COMPONENT_INSTANCE_NAME,
-                                                    is_client_module)
+                                                    is_client_module, fail_if_component_instance_exists)
     else:
       for component_type in components_map:
         for component_instance_name in components_map[component_type]:
           ComponentInstance.create_component_instance(mpack_name, mpack_version, mpack_instance, subgroup_name,
                                                       module_name, component_type, component_instance_name,
-                                                      is_client_module)
+                                                      is_client_module, fail_if_component_instance_exists)
 
   def set_new_version(self, mpack_name, mpack_version):
     for component_type in self.components_map:
@@ -609,7 +607,7 @@ class ComponentInstance(Instance):
 
   @staticmethod
   def create_component_instance(mpack_name, mpack_version, mpack_instance, subgroup_name, module_name,
-                                component_type, component_instance_name, is_client_module):
+                                component_type, component_instance_name, is_client_module, fail_if_component_instance_exists):
     if is_client_module:
       component_path = os.path.join(ROOT_FOLDER_PATH, INSTANCES_FOLDER_NAME, mpack_name, mpack_instance, subgroup_name,
                                     component_type)
@@ -619,8 +617,11 @@ class ComponentInstance(Instance):
     mpack_path = os.path.join(ROOT_FOLDER_PATH, MPACKS_FOLDER_NAME, mpack_name, mpack_version, component_type)
 
     if os.path.exists(component_path):
-      raise ValueError(
-        "The instance {0} already exist. To change the version use set-mpack-instance command".format(component_path))
+      if fail_if_component_instance_exists:
+        raise ValueError(
+          "The instance {0} already exist. To change the version use set-mpack-instance command".format(component_path))
+      else:
+        return
 
     if not os.path.lexists(mpack_path):
       raise ValueError("Path doesn't exist: " + mpack_path)

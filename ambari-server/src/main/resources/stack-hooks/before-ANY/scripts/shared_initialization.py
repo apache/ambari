@@ -156,7 +156,7 @@ def get_uid(user, return_existing=False):
   """
   import params
   user_str = str(user) + "_uid"
-  service_env = [ serviceEnv for serviceEnv in params.module_configs if user_str in params.module_configs.get_property_value(params.module_name, serviceEnv, "")]
+  service_env = [ serviceEnv for serviceEnv in params.module_configs if params.module_configs.get_property_value(params.module_name, serviceEnv, user_str)]
 
   if service_env and params.module_configs.get_property_value(params.module_name, service_env[0], user_str):
     service_env_str = str(service_env[0])

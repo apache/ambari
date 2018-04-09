@@ -55,7 +55,7 @@ dfs_type = execution_command.get_dfs_type()
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = execution_command.get_jdk_name()
-java_home = execution_command.get_jdk_home()
+java_home = execution_command.get_java_home()
 java_version = execution_command.get_java_version()
 jdk_location = execution_command.get_jdk_location()
 
@@ -159,8 +159,8 @@ hadoop_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', '
 namenode_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_heapsize')
 namenode_opt_newsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_newsize')
 namenode_opt_maxnewsize = module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxnewsize')
-namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'))
-namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'))
+namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'), '128m')
+namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'), '256m')
 
 jtnode_opt_newsize = "200m"
 jtnode_opt_maxnewsize = "200m"
@@ -187,13 +187,13 @@ zeppelin_group = module_configs.get_property_value(module_name, 'zeppelin-env', 
 
 user_group = get_cluster_setting_value('user_group')
 
-ganglia_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/ganglia_server_hosts", [])
-namenode_host = execution_command._execution_command.__get_value("clusterHostInfo/namenode_hosts", [])
-hbase_master_hosts = execution_command._execution_command.__get_value("clusterHostInfo/hbase_master_hosts", [])
-oozie_servers = execution_command._execution_command.__get_value("clusterHostInfo/oozie_server", [])
-falcon_server_hosts = execution_command._execution_command.__get_value("clusterHostInfo/falcon_server_hosts", [])
-ranger_admin_hosts = execution_command._execution_command.__get_value("clusterHostInfo/ranger_admin_hosts", [])
-zeppelin_master_hosts = execution_command._execution_command.__get_value("clusterHostInfo/zeppelin_master_hosts", [])
+ganglia_server_hosts = execution_command.get_component_hosts('ganglia_server')
+namenode_host = execution_command.get_component_hosts('namenode')
+hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
+oozie_servers = execution_command.get_component_hosts('oozie_server')
+falcon_server_hosts = execution_command.get_component_hosts('falcon_server')
+ranger_admin_hosts = execution_command.get_component_hosts('ranger_admin')
+zeppelin_master_hosts = execution_command.get_component_hosts('zeppelin_master')
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -201,7 +201,7 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
-has_tez = module_configs.get_property_value(module_name, 'tez-site', '') is not None
+has_tez = bool(module_configs.get_all_properties(module_name, 'tez-site'))
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
