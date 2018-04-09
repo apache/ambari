@@ -32,7 +32,6 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -545,11 +544,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       StackId stackId = sc.getStackId();
 
       try {
-        cluster.getServiceGroup(sc.getServiceGroupId());
-      } catch (ServiceGroupNotFoundException e) {
-      }
-
-      try {
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
             stackId.getStackVersion(), s.getServiceType(), request.getComponentName());
         category = componentInfo.getCategory();
@@ -941,7 +935,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                                       final AmbariMetaInfo ambariMetaInfo) throws AmbariException {
     if (StringUtils.isEmpty(request.getServiceName())) {
 
-      request.getComponentName();
       String componentType = request.getComponentType();
 
       String serviceName = getManagementController().findServiceName(cluster, componentType);
