@@ -70,14 +70,15 @@ public class ClusterTemplateArtifactPasswordReplacer {
    */
   protected Map<String, Object> replacePasswordsInConfigurations(Map<String, Object> artifactData,
                                                                  Multimap<String, String> passwordProperties) {
-    return (Map<String, Object>)applyToAllConfigurations(artifactData,
-      config -> {
-        Configuration configuration = Configurable.parseConfigs(config);
-        Configuration replacedConfiguration =
-          SecretReference.replacePasswordsInConfigurations(configuration, passwordProperties);
-        return Configurable.convertConfigToMap(replacedConfiguration);
-      }
-    );
+    return (Map<String, Object>)
+      applyToAllConfigurations(artifactData,
+        config -> {
+          Configuration configuration = Configurable.parseConfigs(config);
+          Configuration replacedConfiguration =
+            SecretReference.replacePasswordsInConfigurations(configuration, passwordProperties);
+          return Configurable.convertConfigToMap(replacedConfiguration);
+        }
+      );
   }
 
   /**
@@ -93,32 +94,53 @@ public class ClusterTemplateArtifactPasswordReplacer {
    */
   protected Object applyToAllConfigurations(Object data,
                                             Function<List<Map<String, Object>>, Object> transform) {
-    // recursively call for lists
     if (data instanceof List<?>) {
-      return ((List<Object>)data).stream().
-        map(item -> applyToAllConfigurations(item, transform)).collect(toList());
+      return processList((List<Object>)data, transform);
     }
     else if (data instanceof Map<?, ?>) {
-      return ((Map<String, Object>) data).entrySet().stream().map(
-        entry -> {
-          // apply transformation for configurations
-          if ("configurations".equals(entry.getKey()) && entry.getValue() instanceof List<?>) {
-            return new AbstractMap.SimpleEntry<>(
-              entry.getKey(),
-              transform.apply((List<Map<String, Object>>)entry.getValue()));
-          }
-          // recursively call for non-configuration elements
-          else {
-            return new AbstractMap.SimpleEntry<>(
-              entry.getKey(),
-              applyToAllConfigurations(entry.getValue(), transform));
-          }
-        }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+      return processMap((Map<String, Object>)data, transform);
     }
-    // do nothing with simple values
     else {
       return data;
     }
+  }
+
+  /**
+   * Recursively call {@link #applyToAllConfigurations(Object, Function)} on all items in the list
+   * @param listItem the list to process
+   * @param transform the transformation to be passed to {@code applyToAllConfigurations}
+   * @return the transformed list
+   */
+  protected List<Object> processList(List<Object> listItem, Function<List<Map<String, Object>>, Object> transform) {
+    return listItem.stream().
+      map(item -> applyToAllConfigurations(item, transform)).
+      collect(toList());
+  }
+
+  /**
+   * Process map items in a cluster template artifact structure. For all configuration type map entries,
+   * {@code transform} will be called on the value. For other entries {@link #applyToAllConfigurations(Object, Function)}
+   * will be called recursively
+   * @param mapItem the map to process
+   * @param transform the transformation to apply on configuration type entries
+   * @return the transformed map
+   */
+  protected Map<String, Object> processMap(Map<String, Object> mapItem, Function<List<Map<String, Object>>, Object> transform) {
+    return mapItem.entrySet().stream().map(
+      entry -> {
+        // apply transformation for configuration entries
+        if ("configurations".equals(entry.getKey()) && entry.getValue() instanceof List<?>) {
+          return new AbstractMap.SimpleEntry<>(
+            entry.getKey(),
+            transform.apply((List<Map<String, Object>>)entry.getValue()));
+        }
+        // recursively call applyToAllConfigurations() for non-configuration entries
+        else {
+          return new AbstractMap.SimpleEntry<>(
+            entry.getKey(),
+            applyToAllConfigurations(entry.getValue(), transform));
+        }
+      }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /**

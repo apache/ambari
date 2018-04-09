@@ -196,7 +196,7 @@ public class SecretReference {
     return getAllPasswordPropertiesInternal(metaInfo.getStacks());
   }
 
-  private static SetMultimap<String, String> getAllPasswordPropertiesInternal(Collection<StackInfo> stacks) {
+  static SetMultimap<String, String> getAllPasswordPropertiesInternal(Collection<StackInfo> stacks) {
     SetMultimap<String, String> passwordPropertyMap = HashMultimap.create();
     stacks.stream().
       flatMap(stack -> stack.getServices().stream()).
@@ -274,13 +274,15 @@ public class SecretReference {
   public static Map<String, String> replacePasswordsInPropertyMap(Map<String, String> propertyMap,
                                                                   String configType,
                                                                   Multimap<String, String> passwordProperties) {
-    return propertyMap.entrySet().stream().map(entry -> {
-      String propertyType = entry.getKey();
-      String newValue = passwordProperties.get(configType).contains(propertyType) ?
-        SECRET_PREFIX + ":" + configType + ":" + propertyType :
-        entry.getValue();
-      return new SimpleEntry<>(propertyType, newValue);
-    }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return propertyMap.entrySet().stream().map(
+      entry -> {
+        String propertyType = entry.getKey();
+        String newValue = passwordProperties.get(configType).contains(propertyType) ?
+          SECRET_PREFIX + ":" + configType + ":" + propertyType :
+          entry.getValue();
+        return new SimpleEntry<>(propertyType, newValue);
+      }
+    ).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
 }

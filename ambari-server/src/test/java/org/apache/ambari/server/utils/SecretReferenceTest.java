@@ -20,11 +20,6 @@ package org.apache.ambari.server.utils;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -32,21 +27,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Configuration;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -54,8 +40,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(AmbariServer.class)
 public class SecretReferenceTest {
 
   public static final String RANGER_HDFS_POLICYMGR_SSL = "ranger-hdfs-policymgr-ssl.xml";
@@ -78,34 +62,17 @@ public class SecretReferenceTest {
     putAll(RANGER_HDFS_POLICYMGR_SSL, PASSWORD_PROPERTIES).
     build();
 
-  private AmbariManagementController controller;
-  private AmbariMetaInfo metaInfo;
-
+  private StackInfo hdpCore;
 
   @Before
   public void setup() throws Exception {
-    controller = createNiceMock(AmbariManagementController.class);
-    metaInfo = createNiceMock(AmbariMetaInfo.class);
 
-    StackInfo hdpCore = new StackInfo();
+    hdpCore = new StackInfo();
     ServiceInfo hdfs = new ServiceInfo();
     hdfs.setProperties(createProperties());
     hdpCore.setServices(ImmutableList.of(hdfs));
-    expect(metaInfo.getStack(anyObject(StackId.class))).andReturn(hdpCore);
-    expect(metaInfo.getStacks()).andReturn(ImmutableList.of(hdpCore));
-    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo);
-    PowerMock.mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(controller);
-
-    replay(controller, metaInfo);
-    PowerMock.replay(AmbariServer.class);
   }
 
-  @After
-  public void tearDown() {
-    reset(controller, metaInfo);
-    PowerMock.reset(AmbariServer.class);
-  }
 
   private List<PropertyInfo> createProperties() {
     return PROPERTY_NAMES.stream().map(propertyName -> {
@@ -120,15 +87,11 @@ public class SecretReferenceTest {
   }
 
   @Test
-  public void testGetAllPasswordProperties() {
-    assertEquals(EXPECTED_PASSWORD_PROPERTY_MAP, SecretReference.getAllPasswordProperties());
+  public void testGetAllPasswordPropertiesInternal() {
+    assertEquals(EXPECTED_PASSWORD_PROPERTY_MAP,
+      SecretReference.getAllPasswordPropertiesInternal(ImmutableList.of(hdpCore)));
   }
 
-  @Test
-  public void testGetAllPasswordPropertiesWithStackId() {
-    assertEquals(EXPECTED_PASSWORD_PROPERTY_MAP,
-      SecretReference.getAllPasswordProperties(ImmutableList.of(new StackId("HDPCORE", "1.0.0"))));
-  }
 
   @Test
   public void testReplacePasswordsInConfiguration() {
