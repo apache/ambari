@@ -307,7 +307,7 @@ public class UpgradeCatalog270Test {
     Method updateLogSearchConfigs = UpgradeCatalog270.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateKerberosConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateKerberosConfigurations");
     Method updateHostComponentLastStateTable = UpgradeCatalog270.class.getDeclaredMethod("updateHostComponentLastStateTable");
-    Method upgradeLdapConfiguration = UpgradeCatalog270.class.getDeclaredMethod("upgradeLdapConfiguration");
+    Method upgradeLdapConfiguration = UpgradeCatalog270.class.getDeclaredMethod("moveAmbariPropertiesToAmbariConfiguration");
     Method createRoleAuthorizations = UpgradeCatalog270.class.getDeclaredMethod("createRoleAuthorizations");
     Method addUserAuthenticationSequence = UpgradeCatalog270.class.getDeclaredMethod("addUserAuthenticationSequence");
     Method renameAmbariInfra = UpgradeCatalog270.class.getDeclaredMethod("renameAmbariInfra");
@@ -348,7 +348,7 @@ public class UpgradeCatalog270Test {
     upgradeCatalog270.updateKerberosConfigurations();
     expectLastCall().once();
 
-    upgradeCatalog270.upgradeLdapConfiguration();
+    upgradeCatalog270.moveAmbariPropertiesToAmbariConfiguration();
     expectLastCall().once();
 
     upgradeCatalog270.addUserAuthenticationSequence();
@@ -507,7 +507,7 @@ public class UpgradeCatalog270Test {
         Arrays.asList(
             new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, String.class, 100, null, false),
             new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, String.class, 100, null, false),
-            new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 255, null, true))
+            new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 2048, null, true))
     );
 
     List<DBAccessor.DBColumnInfo> columns = ambariConfigurationTableColumns.getValue();
@@ -528,7 +528,7 @@ public class UpgradeCatalog270Test {
         Assert.assertFalse(column.isNullable());
       } else if (AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN.equals(columnName)) {
         Assert.assertEquals(String.class, column.getType());
-        Assert.assertEquals(Integer.valueOf(255), column.getLength());
+        Assert.assertEquals(Integer.valueOf(2048), column.getLength());
         Assert.assertEquals(null, column.getDefaultValue());
         Assert.assertTrue(column.isNullable());
       } else {
@@ -1175,7 +1175,7 @@ public class UpgradeCatalog270Test {
     final Injector injector = Guice.createInjector(module);
     injector.getInstance(Configuration.class).setProperty("ambari.ldap.isConfigured", "true");
     final UpgradeCatalog270 upgradeCatalog270 = new UpgradeCatalog270(injector);
-    upgradeCatalog270.upgradeLdapConfiguration();
+    upgradeCatalog270.moveAmbariPropertiesToAmbariConfiguration();
     verify(entityManager, ambariConfigurationDao);
   }
 
@@ -1190,7 +1190,7 @@ public class UpgradeCatalog270Test {
 
     final Injector injector = Guice.createInjector(module);
     final UpgradeCatalog270 upgradeCatalog270 = new UpgradeCatalog270(injector);
-    upgradeCatalog270.upgradeLdapConfiguration();
+    upgradeCatalog270.moveAmbariPropertiesToAmbariConfiguration();
 
     expectedException.expect(AssertionError.class);
     expectedException.expectMessage("Expectation failure on verify");

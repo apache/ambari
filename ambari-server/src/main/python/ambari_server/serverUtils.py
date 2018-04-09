@@ -17,29 +17,32 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import base64
 import os
-import sys
-import time
 import socket
 import urllib2
-from ambari_commons.exceptions import FatalException, NonFatalException
-from ambari_commons.logging_utils import get_verbose
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons.os_check import OSConst
-from ambari_commons.os_utils import run_os_command
-from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
-from ambari_server.serverConfiguration import configDefaults, PID_NAME, get_resources_location, get_stack_location, \
-  CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
-from ambari_server.userInput import get_validated_string_input
 from contextlib import closing
 
+import time
+from ambari_commons.exceptions import FatalException, NonFatalException
+from ambari_commons.logging_utils import get_verbose, print_info_msg, get_debug_mode
+from ambari_commons.os_check import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons.os_utils import run_os_command
+
+# simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import ambari_simplejson as json
+from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+from ambari_server.serverConfiguration import configDefaults, PID_NAME, get_resources_location, \
+  get_stack_location, CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, \
+  SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
+from ambari_server.userInput import get_validated_string_input
 
 # Ambari server API properties
 SERVER_API_HOST = '127.0.0.1'
 SERVER_API_PROTOCOL = 'http'
 SERVER_API_SSL_PROTOCOL = 'https'
+
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def is_server_runing():
@@ -81,12 +84,13 @@ def wait_for_server_to_stop(wait_timeout):
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def is_server_runing():
-  from ambari_commons.os_windows import SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, SERVICE_STATUS_STOPPING, \
+  from ambari_commons.os_windows import SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, \
+    SERVICE_STATUS_STOPPING, \
     SERVICE_STATUS_STOPPED, SERVICE_STATUS_NOT_INSTALLED
   from ambari_windows_service import AmbariServerService
 
   statusStr = AmbariServerService.QueryStatus()
-  if statusStr in(SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, SERVICE_STATUS_STOPPING):
+  if statusStr in (SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, SERVICE_STATUS_STOPPING):
     return True, ""
   elif statusStr == SERVICE_STATUS_STOPPED:
     return False, SERVICE_STATUS_STOPPED
@@ -122,7 +126,7 @@ def refresh_stack_hash(properties):
 # or if using ssl https://hostname.domain:8443/api/v1
 #
 def get_ambari_server_api_base(properties):
-  api_host = SERVER_API_HOST  
+  api_host = SERVER_API_HOST
   api_protocol = SERVER_API_PROTOCOL
   api_port = CLIENT_API_PORT
   api_port_prop = properties.get_property(CLIENT_API_PORT_PROPERTY)
@@ -165,50 +169,54 @@ def get_cluster_name(properties, admin_login, admin_password):
   Fetches the name of the first cluster (in case there are more)
   from the response of host:port/api/v1/clusters call
   """
-  url = get_ambari_server_api_base(properties) + 'clusters'
+  print_info_msg('Fetching cluster name')
+
+  cluster_name = None
+  response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password,
+                                                   "clusters")
+
+  if json_data and 'items' in json_data:
+    items = json_data['items']
+    if len(items) > 0:
+      cluster_name = items[0]['Clusters']['cluster_name']
+      print_info_msg('Found cluster name: %s' % cluster_name)
+
+  return cluster_name
+
+
+def get_json_via_rest_api(properties, admin_login, admin_password, entry_point):
+  """
+  Fetches the data from a given REST API entry point
+
+  :param properties: the properties from the ambari.properties file
+  :param admin_login: an administrator's username used to log in to Ambari
+  :param admin_password: an administrator's password used to log in to Ambari
+  :param entry_point: the relative entry point to query (the base URL will be generated using the ambari.properties data)
+  :return: HTTP status, JSON data
+  """
+  url = get_ambari_server_api_base(properties) + entry_point
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
   request.get_method = lambda: 'GET'
 
-  request_in_progress = True
-  cluster_name = None
-  sys.stdout.write('\nFetching cluster name')
-  numOfTries = 0
-  while request_in_progress:
-    numOfTries += 1
-    if (numOfTries == 60):
-      raise FatalException(1, "Could not fetch cluster name within a minute; giving up!")
-    sys.stdout.write('.')
-    sys.stdout.flush()
+  print_info_msg("Fetching information from Ambari's REST API")
 
-    try:
-      with closing(urllib2.urlopen(request)) as response:
-        response_status_code = response.getcode()
-        if response_status_code != 200:
-          request_in_progress = False
-          err = 'Error while fetching cluster name. Http status code - ' + str(response_status_code)
-          raise FatalException(1, err)
-        else:
-            response_body = json.loads(response.read())
-            items = response_body['items']
-            if len(items) > 0:
-               cluster_name = items[0]['Clusters']['cluster_name']
-               sys.stdout.write('\nFound cluster name: {0}'.format(cluster_name))
-            if not cluster_name:
-              time.sleep(1)
-            else:
-              request_in_progress = False
-    except Exception as e:
-      request_in_progress = False
-      err = 'Error while fetching cluster name. Error details: %s' % e
-      raise FatalException(1, err)
-
-    return cluster_name
+  with closing(urllib2.urlopen(request)) as response:
+    response_status_code = response.getcode()
+    json_data = None
+    print_info_msg(
+      "Received HTTP %s while fetching information from Ambari's REST API" % response_status_code)
+    if response_status_code == 200:
+      json_data = json.loads(response.read())
+      if (get_debug_mode()):
+        print_info_msg("Received JSON:\n" + json_data)
+    return response_status_code, json_data
 
 
-def perform_changes_via_rest_api(properties, admin_login, admin_password, url_postfix, get_method, request_data = None):
+def perform_changes_via_rest_api(properties, admin_login, admin_password, url_postfix, get_method,
+                                 request_data=None):
   url = get_ambari_server_api_base(properties) + url_postfix
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
@@ -221,6 +229,6 @@ def perform_changes_via_rest_api(properties, admin_login, admin_password, url_po
   with closing(urllib2.urlopen(request)) as response:
     response_status_code = response.getcode()
     if response_status_code not in (200, 201):
-      err = 'Error while performing changes via Ambari REST API. Http status code - ' + str(response_status_code)
+      err = 'Error while performing changes via Ambari REST API. Http status code - ' + str(
+        response_status_code)
       raise FatalException(1, err)
-
