@@ -404,7 +404,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         TreeMap<String, String> agentLevelParams = new TreeMap<>();
         agentLevelParams.put("hostname", hostName);
         agentLevelParams.put("public_hostname", publicHostName);
-        agentLevelParams.put("agentCacheDir", "/var/lib/ambari-agent/cache");
 
         commandParams.put(PACKAGE_LIST, packageList);
         commandParams.put("xml_configs_list", xmlConfigs);
