@@ -283,6 +283,7 @@ App.config = Em.Object.create({
    * @returns {*|Object}
    */
   getDefaultConfig: function(name, fileName, coreObject) {
+    name = JSON.parse('"' + name + '"');
     var cfg = App.configsCollection.getConfigByName(name, fileName) ||
       App.config.createDefaultConfig(name, fileName, false);
     if (Em.typeOf(coreObject) === 'object') {
