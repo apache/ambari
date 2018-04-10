@@ -25,5 +25,63 @@
     /deep/ .stop-icon {
       color: @exclude-color;
     }
+    &.history-menu {
+      /deep/ ul {
+        li:not(.selection-all) {
+          margin: 0;
+          overflow: hidden;
+          position: relative;
+          &:before {
+            border-left: 1px solid @unknown-color;
+            bottom: 0;
+            content: "";
+            display: block;
+            left: 12px;
+            position: absolute;
+            top: 0;
+          }
+          &:after {
+            background: #fff;
+            border: 1px solid @unknown-color;
+            border-radius: 100%;
+            content: "";
+            height: 12px;
+            left: 7px;
+            position: absolute;
+            top: 6px;
+            transition: background-color 300ms;
+            width: 12px;
+          }
+
+          .list-item-label.label-container {
+            padding: 3px 25px;
+            display: flex;
+            .item-label-text {
+              flex-grow: 1;
+              padding-right: 1em;
+            }
+            /deep/ history-item-controls {
+              float: none;
+              justify-self: right;
+            }
+          }
+        }
+        li:not(.selection-all):first-child {
+          &:before {
+            top: 50%;
+          }
+        }
+        li:not(.selection-all):last-child {
+          &:before {
+            bottom: 50%;
+          }
+        }
+        li:not(.selection-all):hover {
+          &:after {
+            background: @unknown-color;
+          }
+        }
+      }
+    }
   }
 }

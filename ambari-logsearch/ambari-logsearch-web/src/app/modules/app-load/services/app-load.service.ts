@@ -176,9 +176,11 @@ export class AppLoadService {
         isInitialLoading: false
       });
     };
-    const statusRequestPromise: Promise<Response> = this.httpClient.get('status').toPromise();
-    statusRequestPromise.then((response: Response) => setAuthorization(response.ok));
-    return statusRequestPromise;
+    return this.httpClient.get('status').toPromise()
+      .then(
+        (response: Response) => setAuthorization(response.ok),
+        (response: Response) => setAuthorization(false)
+      );
   }
 
   setTranslationService() {

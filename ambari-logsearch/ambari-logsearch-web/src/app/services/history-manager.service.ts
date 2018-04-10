@@ -191,14 +191,14 @@ export class HistoryManagerService {
         return item.value.changeId === this.currentHistoryItemId && !item.value.isUndoOrRedo;
       });
     let endIndex = allItems.slice(startIndex + 1).findIndex((item: ListItem): boolean => item.value.isUndoOrRedo);
+    let items = [];
     if (startIndex > -1) {
       if (endIndex === -1) {
         endIndex = allItems.length;
-        return allItems.slice(startIndex, startIndex + endIndex + 1);
       }
-    } else {
-      return [];
+      items = allItems.slice(startIndex, startIndex + endIndex + 1);
     }
+    return items;
   }
 
   /**
@@ -289,11 +289,15 @@ export class HistoryManagerService {
   private handleUndoOrRedo(value: object): void {
     const filtersForm = this.logsContainerService.filtersForm;
     this.hasNoPendingUndoOrRedo = false;
-    this.filterParameters.forEach((controlName: string): void => {
-      if (this.ignoredParameters.indexOf(controlName) === -1) {
-        filtersForm.controls[controlName].setValue(value[controlName]);
-      }
-    });
+    this.logsContainerService.filtersFormSyncInProgress.next(true);
+    this.filterParameters.filter(controlName => this.ignoredParameters.indexOf(controlName) === -1)
+      .forEach((controlName: string): void => {
+        filtersForm.controls[controlName].setValue(value[controlName], {
+          emitEvent: false,
+          onlySelf: true
+        });
+      });
+    this.logsContainerService.filtersFormSyncInProgress.next(false);
     this.hasNoPendingUndoOrRedo = true;
     filtersForm.controls.isUndoOrRedo.setValue(true);
   }

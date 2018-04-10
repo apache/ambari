@@ -117,7 +117,7 @@ export class LogsContainerService {
       defaultSelection: [],
       fieldName: 'cluster'
     },
-    timeRange: {
+    timeRange: { // @ToDo remove duplication, this options are in the LogFilteringUtilsService too
       label: 'logs.duration',
       options: [
         [

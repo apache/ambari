@@ -25,9 +25,8 @@
              listClass="history-dropdown" (buttonClick)="redoLatest()" (selectItem)="redo($event)">
 </menu-button>
 <menu-button label="{{'topMenu.history' | translate}}" [subItems]="historyItems" iconClass="fa fa-history"
-             [class.disabled]="!historyItems.length" [isDisabled]="!historyItems.length"
-             listClass="history-dropdown" [isRightAlign]="true"
-             additionalLabelComponentSetter="getHistoryItemIcons"></menu-button>
+             class="history-menu" [class.disabled]="!historyItems.length" [isDisabled]="!historyItems.length"
+             listClass="history-dropdown" [isRightAlign]="true"></menu-button>
 <menu-button label="{{'topMenu.filter' | translate}}" iconClass="fa fa-filter"
              (buttonClick)="openLogIndexFilter()"></menu-button>
 <menu-button *ngIf="!captureSeconds" label="{{'filter.capture' | translate}}" iconClass="fa fa-caret-right"
