@@ -233,7 +233,7 @@ App.themesMapper = App.QuickDataMapper.create({
             showLabel: false,
             isOverridable: false,
             recommendedValue: true,
-            name: configName,
+            name: JSON.parse('"' + configName + '"'),
             isUserProperty: false,
             filename: fileName,
             fileName: fileName,
