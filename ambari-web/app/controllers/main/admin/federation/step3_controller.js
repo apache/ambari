@@ -85,9 +85,10 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
   onLoad: function () {
     if (this.get('isConfigsLoaded') && App.router.get('clusterController.isHDFSNameSpacesLoaded')) {
-      this.tweakServiceConfigs(this.get('federationConfig.configs'));
+      var federationConfig = this.get('federationConfig');
+      federationConfig.configs = this.tweakServiceConfigs(federationConfig.configs);
       this.removeConfigs(this.get('configsToRemove'), this.get('serverConfigData'));
-      this.renderServiceConfigs(this.get('federationConfig'));
+      this.renderServiceConfigs(federationConfig);
       this.set('isLoaded', true);
     }
   }.observes('isConfigsLoaded', 'App.router.clusterController.isHDFSNameSpacesLoaded'),
@@ -137,16 +138,31 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
   tweakServiceConfigs: function (configs) {
     var dependencies = this.prepareDependencies();
+    var result = [];
+    var configsToRemove = [];
+    var hdfsSiteConfigs = this.get('serverConfigData').items.findProperty('type', 'hdfs-site').properties;
+
+    if (!hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn1'] && !hdfsSiteConfigs['dfs.namenode.servicerpc-address.' + dependencies.nameservice1 + '.nn2']) {
+      configsToRemove = configsToRemove.concat([
+        'dfs.namenode.servicerpc-address.{{nameservice1}}.nn1',
+        'dfs.namenode.servicerpc-address.{{nameservice1}}.nn2',
+        'dfs.namenode.servicerpc-address.{{nameservice2}}.nn3',
+        'dfs.namenode.servicerpc-address.{{nameservice2}}.nn4'
+      ]);
+    }
 
     configs.forEach(function (config) {
-      config.isOverridable = false;
-      config.name = this.replaceDependencies(config.name, dependencies);
-      config.displayName = this.replaceDependencies(config.displayName, dependencies);
-      config.value = this.replaceDependencies(config.value, dependencies);
-      config.recommendedValue = this.replaceDependencies(config.recommendedValue, dependencies);
+      if (!configsToRemove.contains(config.name)) {
+        config.isOverridable = false;
+        config.name = this.replaceDependencies(config.name, dependencies);
+        config.displayName = this.replaceDependencies(config.displayName, dependencies);
+        config.value = this.replaceDependencies(config.value, dependencies);
+        config.recommendedValue = this.replaceDependencies(config.recommendedValue, dependencies);
+        result.push(config);
+      }
     }, this);
 
-    return configs;
+    return result;
   },
 
   replaceDependencies: function (value, dependencies) {
