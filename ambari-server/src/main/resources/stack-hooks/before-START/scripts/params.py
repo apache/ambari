@@ -114,7 +114,6 @@ hcat_server_hosts = execution_command.get_component_hosts('webhcat_server')
 hive_server_host =  execution_command.get_component_hosts('hive_server')
 hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
 hs_host = execution_command.get_component_hosts('historyserver')
-jtnode_host = execution_command.get_component_hosts('jtnode')
 namenode_host = execution_command.get_component_hosts('namenode')
 zk_hosts = execution_command.get_component_hosts('zookeeper_server')
 ganglia_server_hosts = execution_command.get_component_hosts('ganglia_server')
@@ -138,7 +137,6 @@ has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_metric_collector = not len(ams_collector_hosts) == 0
 
 is_namenode_master = hostname in namenode_host
-is_jtnode_master = hostname in jtnode_host
 is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
 is_hbase_master = hostname in hbase_master_hosts
@@ -214,9 +212,6 @@ namenode_opt_maxnewsize = module_configs.get_property_value(module_name, 'hadoop
 namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'), '128m')
 namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'), '256m')
 
-jtnode_opt_newsize = "200m"
-jtnode_opt_maxnewsize = "200m"
-jtnode_heapsize =  "1024m"
 ttnode_heapsize = "1024m"
 
 dtnode_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', 'dtnode_heapsize')
@@ -241,7 +236,7 @@ yarn_rm_summary_log_number_of_backup_files = module_configs.get_property_value(m
 
 #log4j.properties
 log4j_props = module_configs.get_property_value(module_name, 'hdfs-log4j', 'content')
-if log4j_props:
+if log4j_props and module_configs.get_property_value(module_name, 'yarn-log4j', 'content'):
   log4j_props += module_configs.get_property_value(module_name, 'yarn-log4j', 'content')
 
 refresh_topology = execution_command.need_refresh_topology()

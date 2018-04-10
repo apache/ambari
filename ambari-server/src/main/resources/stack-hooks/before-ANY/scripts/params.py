@@ -65,6 +65,7 @@ sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = execution_command.get_ambari_server_host()
 
+stack_version_unformatted = execution_command.get_mpack_version()
 stack_version_formatted = execution_command.get_mpack_version()
 
 upgrade_type = Script.get_upgrade_type(execution_command.get_upgrade_type())
@@ -162,9 +163,6 @@ namenode_opt_maxnewsize = module_configs.get_property_value(module_name, 'hadoop
 namenode_opt_permsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_permsize', '128m'), '128m')
 namenode_opt_maxpermsize = format_jvm_option_value(module_configs.get_property_value(module_name, 'hadoop-env', 'namenode_opt_maxpermsize', '256m'), '256m')
 
-jtnode_opt_newsize = "200m"
-jtnode_opt_maxnewsize = "200m"
-jtnode_heapsize =  "1024m"
 ttnode_heapsize = "1024m"
 
 dtnode_heapsize = module_configs.get_property_value(module_name, 'hadoop-env', 'dtnode_heapsize')
