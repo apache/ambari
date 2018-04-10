@@ -902,9 +902,11 @@ App.ServiceConfigHostPopoverSupport = Ember.Mixin.create({
 App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
   classNames: ['master-host', 'col-md-6'],
-  valueBinding: 'serviceConfig.value',
+  value: function () {
+    return this.get('serviceConfig.value');
+  }.property('serviceConfig.value'),
 
-  template: Ember.Handlebars.compile('{{value}}')
+  template: Ember.Handlebars.compile('{{view.value}}')
 
 });
 
