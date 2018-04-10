@@ -159,7 +159,7 @@ export class MenuButtonComponent {
     const el = <HTMLElement>event.target;
     if (!this.dropdown.nativeElement.contains(el)) {
       this.closeDropdown();
-      this.removeDocumentClickListener()
+      this.removeDocumentClickListener();
     }
   }
 
