@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller;
 
 import java.util.Map;
 
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 
 public class ServiceComponentResponse {
@@ -43,13 +42,12 @@ public class ServiceComponentResponse {
   private Map<String, Integer> serviceComponentStateCount;
   private boolean recoveryEnabled;
   private String desiredVersion;
-  private RepositoryVersionState repoState;
 
   public ServiceComponentResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
                                   Long serviceId, String serviceName, String serviceType, Long componentId, String componentName,
                                   String componentType, StackId desiredStackId, String desiredState,
                                   Map<String, Integer> serviceComponentStateCount, boolean recoveryEnabled,
-                                  String displayName, String desiredVersion, RepositoryVersionState repoState) {
+                                  String displayName, String desiredVersion) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceGroupId = serviceGroupId;
@@ -66,7 +64,6 @@ public class ServiceComponentResponse {
     this.serviceComponentStateCount = serviceComponentStateCount;
     this.recoveryEnabled = recoveryEnabled;
     this.desiredVersion = desiredVersion;
-    this.repoState = repoState;
   }
 
   /**
@@ -271,14 +268,6 @@ public class ServiceComponentResponse {
   public String getDesiredVersion() {
     return desiredVersion;
   }
-
-  /**
-   * @return the state of the repository against the desired version
-   */
-  public RepositoryVersionState getRepositoryState() {
-    return repoState;
-  }
-
 
   @Override
   public boolean equals(Object o) {

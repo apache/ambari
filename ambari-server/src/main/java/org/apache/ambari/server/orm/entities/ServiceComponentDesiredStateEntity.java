@@ -37,9 +37,6 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
 
 @Entity
@@ -98,12 +95,6 @@ public class ServiceComponentDesiredStateEntity {
 
   @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
   private Integer recoveryEnabled = 0;
-
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  @Column(name = "repo_state", nullable = false, insertable = true, updatable = true)
-  @Enumerated(EnumType.STRING)
-  private RepositoryVersionState repoState = RepositoryVersionState.NOT_REQUIRED;
 
   @ManyToOne
   @JoinColumns(
@@ -247,23 +238,4 @@ public class ServiceComponentDesiredStateEntity {
   public void setHostComponentDesiredStateEntities(Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities) {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
   }
-
-  /**
-   * @param state the repository state for {@link #getDesiredVersion()}
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public void setRepositoryState(RepositoryVersionState state) {
-    repoState = state;
-  }
-
-  /**
-   * @return the state of the repository for {@link #getDesiredVersion()}
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  public RepositoryVersionState getRepositoryState() {
-    return repoState;
-  }
-
 }
