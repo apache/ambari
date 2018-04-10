@@ -224,11 +224,10 @@ public class HeartbeatTestHelper {
     Stage s = stageFactory.createNew(requestId, "/a/b", DummyCluster, 1L, "heartbeat handler test",
         "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
-    String filename = null;
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            DummyHostname1, System.currentTimeMillis()), DummyCluster, CORE_SERVICE_GROUP, HBASE, false, false);
+            DummyHostname1, System.currentTimeMillis()), DummyCluster, 1L, CORE_SERVICE_GROUP, HBASE, false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);

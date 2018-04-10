@@ -54,15 +54,19 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
-import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.NotificationState;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.alert.TargetType;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
+import org.apache.ambari.server.topology.StackFactory;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -408,7 +412,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     List<Vector> expectedTrapVectors = new LinkedList<>();
     Vector firstVector = new Vector();
     firstVector.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(360000L)));
-    firstVector.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID)));    
+    firstVector.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID)));
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID), new Integer32(new BigDecimal(1L).intValueExact())));
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID), new OctetString("alert-definition-1")));
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_HASH_OID), new OctetString("1")));
@@ -794,15 +798,18 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
       binder.bind(AlertDispatchDAO.class).toInstance(m_dao);
       binder.bind(DispatchFactory.class).toInstance(m_dispatchFactory);
-      binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
       binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
       binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(m_metaInfo);
       binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
-
+      binder.bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+      binder.bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+      binder.bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
       binder.bind(AlertNoticeDispatchService.class).toInstance(new AlertNoticeDispatchService());
+      binder.bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+      binder.bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
 
       EasyMock.expect(m_metaInfo.getServerVersion()).andReturn("2.0.0").anyTimes();
       EasyMock.replay(m_metaInfo);

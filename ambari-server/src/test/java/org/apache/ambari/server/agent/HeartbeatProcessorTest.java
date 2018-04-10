@@ -858,8 +858,8 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
-    StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack120 = new StackId("HDP-1.2.0");
+    new StackId("HDP-1.3.0");
+    new StackId("HDP-1.2.0");
 
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
@@ -870,11 +870,11 @@ public class HeartbeatProcessorTest {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-        DummyCluster, "core", "HDFS", false, false);
+        DummyCluster, 1L, "core", "HDFS", false, false);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-        DummyCluster, "core", "HDFS", false, false);
+        DummyCluster, 1L, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
@@ -968,8 +968,8 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
-    StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack120 = new StackId("HDP-1.2.0");
+    new StackId("HDP-1.3.0");
+    new StackId("HDP-1.2.0");
 
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
@@ -1041,7 +1041,7 @@ public class HeartbeatProcessorTest {
 
     replay(am);
 
-    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    heartbeatTestHelper.getDummyCluster();
     Clusters fsm = clusters;
     Host hostObject = clusters.getHost(DummyHostname1);
     hostObject.setIPv4("ipv4");

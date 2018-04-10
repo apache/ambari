@@ -136,10 +136,6 @@ public class TestActionScheduler {
   private static final String CLUSTER_HOST_INFO = "{all_hosts=[c6403.ambari.apache.org," +
   		" c6401.ambari.apache.org, c6402.ambari.apache.org], slave_hosts=[c6403.ambari.apache.org," +
   		" c6401.ambari.apache.org, c6402.ambari.apache.org]}";
-  private static final String CLUSTER_HOST_INFO_UPDATED = "{all_hosts=[c6401.ambari.apache.org,"
-      + " c6402.ambari.apache.org], slave_hosts=[c6401.ambari.apache.org,"
-      + " c6402.ambari.apache.org]}";
-
   private final Injector injector;
 
   private final String hostname = "ahost.ambari.apache.org";
@@ -454,7 +450,7 @@ public class TestActionScheduler {
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand(hostname, Role.SECONDARY_NAMENODE, RoleCommand.INSTALL,
             new ServiceComponentHostInstallEvent("SECONDARY_NAMENODE", hostname, System.currentTimeMillis(), "HDP-1.2.0"),
-            "cluster1", "core", "HDFS", false, false);
+            "cluster1", 1L, "core", "HDFS", false, false);
     s.setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
     List<Stage> stages = Collections.singletonList(s);
 
@@ -527,7 +523,7 @@ public class TestActionScheduler {
     ServiceComponent scomp = mock(ServiceComponent.class);
     ServiceComponentHost sch = mock(ServiceComponentHost.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
-    AgentCommandsPublisher agentCommandsPublisher = mock(AgentCommandsPublisher.class);
+    mock(AgentCommandsPublisher.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
     when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
@@ -1570,7 +1566,7 @@ public class TestActionScheduler {
     ServiceComponent scomp = mock(ServiceComponent.class);
     ServiceComponentHost sch = mock(ServiceComponentHost.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
-    AmbariEventPublisher ambariEventPublisher = mock(AmbariEventPublisher.class);
+    mock(AmbariEventPublisher.class);
     RequestFactory requestFactory = mock(RequestFactory.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
     when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
@@ -1928,7 +1924,7 @@ public class TestActionScheduler {
                                            RoleCommand command, String host, String cluster) {
     stage.addHostRoleExecutionCommand(host, role, command,
         new ServiceComponentHostInstallEvent(role.toString(), host, now, "HDP-0.2"),
-        cluster, serviceGroup, service.toString(), false, false);
+        cluster, 1L, serviceGroup, service.toString(), false, false);
     stage.getExecutionCommandWrapper(host,
         role.toString()).getExecutionCommand();
   }
@@ -1957,19 +1953,19 @@ public class TestActionScheduler {
     stage.setStageId(1);
     stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
-        "cluster1", "core", Service.Type.HDFS.toString(), false, false);
+        "cluster1", 1L, "core", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host1",
         Role.DATANODE.toString()).getExecutionCommand();
 
     stage.addHostRoleExecutionCommand("host2", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host2", now, "HDP-0.2"),
-        "cluster1", "core", Service.Type.HDFS.toString(), false, false);
+        "cluster1", 1L, "core", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host2",
         Role.DATANODE.toString()).getExecutionCommand();
 
     stage.addHostRoleExecutionCommand("host3", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host3", now, "HDP-0.2"),
-        "cluster1", "core", Service.Type.HDFS.toString(), false, false);
+        "cluster1", 1L, "core", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host3",
         Role.DATANODE.toString()).getExecutionCommand();
 
@@ -2113,7 +2109,7 @@ public class TestActionScheduler {
                         RoleCommand roleCommand, String serviceGroupName, String serviceName, int taskId) {
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
         new ServiceComponentHostUpgradeEvent(role.toString(), hostname, System.currentTimeMillis(), "HDP-0.2"),
-        clusterName, serviceGroupName, serviceName, false, false);
+        clusterName, 1L, serviceGroupName, serviceName, false, false);
     stage.getExecutionCommandWrapper(hostname,
         role.toString()).getExecutionCommand();
     stage.getOrderedHostRoleCommands().get(0).setTaskId(taskId);
@@ -2148,7 +2144,7 @@ public class TestActionScheduler {
 
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
       new ServiceComponentHostInstallEvent(role.toString(), hostname,
-        System.currentTimeMillis(), "HDP-0.2"), clusterName, serviceGroup, service.toString(), false, false);
+        System.currentTimeMillis(), "HDP-0.2"), clusterName, 1L, serviceGroup, service.toString(), false, false);
     ExecutionCommand command = stage.getExecutionCommandWrapper
       (hostname, role.toString()).getExecutionCommand();
     command.setTaskId(taskId);
@@ -2995,7 +2991,6 @@ public class TestActionScheduler {
 
     // create 1 stage with 2 commands and then another stage with 1 command
     Stage stage = null;
-    Stage stage2 = null;
     final List<Stage> stages = new ArrayList<>();
     final List<Stage> firstStageInProgress = new ArrayList<>();
     stages.add(stage = getStageWithSingleTask(hostname1, "cluster1", Role.NAMENODE,
@@ -3004,7 +2999,7 @@ public class TestActionScheduler {
     addInstallTaskToStage(stage, hostname1, "cluster1", Role.HBASE_MASTER, RoleCommand.INSTALL,
         "core", Service.Type.HBASE, 1);
 
-    stages.add(stage2 = getStageWithSingleTask(hostname1, "cluster1", Role.DATANODE,
+    stages.add(getStageWithSingleTask(hostname1, "cluster1", Role.DATANODE,
         RoleCommand.STOP, "core", Service.Type.HDFS, 1, 1, 1));
 
     // !!! this is the test; make the stages skippable so that when their

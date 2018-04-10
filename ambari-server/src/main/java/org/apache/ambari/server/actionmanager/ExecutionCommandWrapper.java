@@ -52,7 +52,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.state.UpgradeContextFactory;
@@ -216,7 +215,9 @@ public class ExecutionCommandWrapper {
       Mpack mpack = ambariMetaInfo.getMpack(mpackId);
       MpackEntity mpackEntity = mpackDAO.findById(mpackId);
 
-      executionCommand.setMpackId(mpackId);
+      if (null == executionCommand.getMpackId()) {
+        executionCommand.setMpackId(mpackId);
+      }
 
       // setting repositoryFile
       final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
@@ -284,7 +285,7 @@ public class ExecutionCommandWrapper {
 
       if (null != stackEntity) {
         StackId stackId = new StackId(stackEntity);
-        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+        ambariMetaInfo.getStack(stackId.getStackName(),
           stackId.getStackVersion());
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
