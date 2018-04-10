@@ -315,6 +315,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           router.get('wizardStep6Controller').set('isClientsSet', false);
         }
         controller.setStepSaved('selectMpacks');
+        controller.save('downloadConfig');
         const downloadConfig = controller.get('content.downloadConfig');
         if (downloadConfig && downloadConfig.useCustomRepo) {
           router.transitionTo('customMpackRepos');
@@ -467,6 +468,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         const controller = router.get('installerController');
         controller.clearErrors();
         controller.save('selectedMpacks');
+        controller.save('registeredMpacks');
         controller.setStepSaved('customProductRepos');
         router.transitionTo('verifyProducts');
         console.timeEnd('customProductRepos next');

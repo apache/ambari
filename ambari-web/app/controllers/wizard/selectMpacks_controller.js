@@ -592,7 +592,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
           version: mpackVersion.version
         };
         
-        const oldSelectedMpacks = this.get('content.selectedMpacks');
+        let oldSelectedMpacks = this.get('content.selectedMpacks');
         let oldSelectedMpack;
         if (oldSelectedMpacks) {
           oldSelectedMpack = oldSelectedMpacks.find(mpack => mpack.name === mpackVersion.mpack.name && mpack.version === mpackVersion.version);
