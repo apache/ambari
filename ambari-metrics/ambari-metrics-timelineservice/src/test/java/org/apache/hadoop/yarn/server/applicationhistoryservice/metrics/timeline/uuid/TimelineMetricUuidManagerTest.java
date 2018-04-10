@@ -18,17 +18,8 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.uuid;
 
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
-import org.easymock.EasyMock;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -69,11 +60,6 @@ public class TimelineMetricUuidManagerTest {
         Assert.assertTrue(uuid.length == 16);
         String uuidStr = new String(uuid);
         Assert.assertFalse(uuids.containsKey(uuidStr) && !uuids.containsValue(timelineClusterMetric));
-        if (uuids.containsKey(uuidStr) ) {
-          if (!uuids.containsValue(timelineClusterMetric)) {
-            System.out.println("COLLISION : " + timelineClusterMetric.toString() + " = " + uuids.get(uuidStr));
-          }
-        }
         uuids.put(uuidStr, timelineClusterMetric);
       }
     }
@@ -88,11 +74,7 @@ public class TimelineMetricUuidManagerTest {
       TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric("TestMetric", app, null, -1l);
       byte[] uuid = strategy.computeUuid(timelineClusterMetric, 16);
       String uuidStr = new String(uuid);
-      if (uuids.containsKey(uuidStr) ) {
-        if (!uuids.containsValue(timelineClusterMetric)) {
-          System.out.println("COLLISION : " + timelineClusterMetric.toString() + " = " + uuids.get(uuidStr));
-        }
-      }
+      Assert.assertFalse(uuids.containsKey(uuidStr) && !uuids.containsValue(timelineClusterMetric));
       uuids.put(uuidStr, timelineClusterMetric);
     }
   }
@@ -145,6 +127,7 @@ public class TimelineMetricUuidManagerTest {
 
     Map<String, Set<String>> metricSet = new HashMap<String, Set<String>>();
     FileInputStream fstream = null;
+    Set<String> hbaseMetrics = new HashSet<>();
     BufferedReader br = null;
     String strLine;
     for (String appId : apps) {
@@ -176,9 +159,14 @@ public class TimelineMetricUuidManagerTest {
         }
       }
       metricsForApp.add("live_hosts");
-      metricSet.put(appId.contains("hbase") ? "hbase" : appId, metricsForApp);
+      if (appId.equals("master_hbase") || appId.equals("slave_hbase")) {
+        hbaseMetrics.addAll(metricsForApp);
+      } else {
+        metricSet.put(appId, metricsForApp);
+      }
       System.out.println("Found " + metricsForApp.size() + " metrics for appId = " + appId);
     }
+    metricSet.put("hbase", hbaseMetrics);
     return metricSet;
   }
 }

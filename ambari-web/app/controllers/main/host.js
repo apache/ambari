@@ -59,6 +59,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   showFilterConditionsFirstLoad: false,
 
+  saveSelection: false,
+
   content: App.Host.find(),
 
   allHostStackVersions: App.HostStackVersion.find(),

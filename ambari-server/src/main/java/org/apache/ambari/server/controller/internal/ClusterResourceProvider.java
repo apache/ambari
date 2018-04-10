@@ -327,19 +327,19 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
           for (Collection<ServiceConfigVersionResponse> scvCollection : serviceConfigVersions.values()) {
             for (ServiceConfigVersionResponse serviceConfigVersionResponse : scvCollection) {
               Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
-              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_NAME_PROPERTY_ID,
                 serviceConfigVersionResponse.getServiceName());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
                 serviceConfigVersionResponse.getVersion());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
                 serviceConfigVersionResponse.getNote());
-              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID,
+              resource.setProperty(ServiceConfigVersionResourceProvider.GROUP_ID_PROPERTY_ID,
                   serviceConfigVersionResponse.getGroupId());
-              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID,
+              resource.setProperty(ServiceConfigVersionResourceProvider.GROUP_NAME_PROPERTY_ID,
                   serviceConfigVersionResponse.getGroupName());
               if (serviceConfigVersionResponse.getConfigurations() != null) {
                 resource.setProperty(
-                  ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
+                  ServiceConfigVersionResourceProvider.CONFIGURATIONS_PROPERTY_ID,
                   serviceConfigVersionResponse.getConfigurations());
               }
               associatedResources.add(resource);

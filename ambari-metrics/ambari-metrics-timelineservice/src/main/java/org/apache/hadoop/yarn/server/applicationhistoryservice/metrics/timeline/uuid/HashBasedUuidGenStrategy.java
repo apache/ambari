@@ -37,18 +37,25 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
    */
   @Override
   public byte[] computeUuid(TimelineClusterMetric timelineClusterMetric, int maxLength) {
+
     int metricNameUuidLength = 12;
+    String instanceId = timelineClusterMetric.getInstanceId();
+
+    if ((StringUtils.isEmpty(instanceId))) {
+      metricNameUuidLength = 14;
+    }
+
     String metricName = timelineClusterMetric.getMetricName();
 
     //Compute the individual splits.
     String[] splits = getIndidivualSplits(metricName);
 
     /*
-    Compute the ascii sum of every split in the metric name. (asciiSum += (int) splits[s].charAt(i))
-    For the last split, use weighted sum instead of ascii sum. (asciiSum += ((i+1) * (int) splits[s].charAt(i)))
+    Compute the weighted ascii sum of every split in the metric name. (asciiSum += (int) splits[s].charAt(i))
     These weighted sums are 'appended' to get the unique ID for metric name.
      */
     StringBuilder splitSums = new StringBuilder();
+    long totalAsciiSum = 0l;
     if (splits.length > 0) {
       for (String split : splits) {
         int asciiSum = 0;
@@ -56,29 +63,30 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
           asciiSum += ((i + 1) * (int) split.charAt(i)); //weighted sum for split.
         }
         splitSums.append(asciiSum); //Append the sum to the array of sums.
+        totalAsciiSum += asciiSum; //Parity Sum
       }
     }
+
+    String splitSumString = totalAsciiSum + splitSums.reverse().toString(); //Reverse and attach parity sum.
+    int splitLength = splitSumString.length();
 
     //Compute a unique metric seed for the stemmed metric name
     String stemmedMetric = stem(metricName);
     long metricSeed = 100123456789L;
     metricSeed += computeWeightedNumericalAsciiSum(stemmedMetric);
-
     //Reverse the computed seed to get a metric UUID portion which is used optionally.
-    byte[] metricUuidPortion = StringUtils.reverse(String.valueOf(metricSeed)).getBytes();
-    String splitSumString = splitSums.toString();
-    int splitLength = splitSumString.length();
+    byte[] metricSeedBytes = StringUtils.reverse(String.valueOf(metricSeed)).getBytes();
 
-    //If splitSums length > required metric UUID length, use only the required length suffix substring of the splitSums as metric UUID.
-    if (splitLength > metricNameUuidLength) {
-      int pad = (int)(0.25 * splitLength);
-      metricUuidPortion = ArrayUtils.addAll(ArrayUtils.subarray(splitSumString.getBytes(), splitLength - metricNameUuidLength + pad, splitLength)
-        , ArrayUtils.subarray(metricUuidPortion, 0, pad));
-    } else {
-      //If splitSums is not enough for required metric UUID length, pad with the metric uuid portion.
-      int pad = metricNameUuidLength - splitLength;
-      metricUuidPortion = ArrayUtils.addAll(splitSumString.getBytes(), ArrayUtils.subarray(metricUuidPortion, 0, pad));
+    int seedLength = (int)(0.25 * metricNameUuidLength);
+    int sumLength = metricNameUuidLength - seedLength;
+    if (splitLength < sumLength) {
+      sumLength = splitLength;
+      seedLength = metricNameUuidLength - sumLength;
     }
+
+    byte[] metricUuidPortion = ArrayUtils.addAll(
+      ArrayUtils.subarray(splitSumString.getBytes(), 0, sumLength)
+      , ArrayUtils.subarray(metricSeedBytes, 0, seedLength));
 
     /*
       For appId and instanceId the logic is similar. Use a seed integer to start with and compute ascii sum.
@@ -87,25 +95,25 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
     String appId = timelineClusterMetric.getAppId();
     int appidSeed = 11;
     for (int i = 0; i < appId.length(); i++) {
-      appidSeed += ((i+1) * appId.charAt(i));
+      appidSeed += appId.charAt(i);
     }
     String appIdSeedStr = String.valueOf(appidSeed);
     byte[] appUuidPortion = ArrayUtils.subarray(appIdSeedStr.getBytes(), appIdSeedStr.length() - 2, appIdSeedStr.length());
 
-    String instanceId = timelineClusterMetric.getInstanceId();
-    ByteBuffer buffer = ByteBuffer.allocate(4);
-    byte[] instanceUuidPortion = new byte[2];
     if (StringUtils.isNotEmpty(instanceId)) {
+      byte[] instanceUuidPortion = new byte[2];
+      ByteBuffer buffer = ByteBuffer.allocate(4);
       int instanceIdSeed = 1489;
       for (int i = 0; i < appId.length(); i++) {
-        instanceIdSeed += ((i+1)* appId.charAt(i));
+        instanceIdSeed += ((i+1) * appId.charAt(i));
       }
       buffer.putInt(instanceIdSeed);
       ArrayUtils.subarray(buffer.array(), 2, 4);
+      // Concatenate all UUIDs together (metric uuid + appId uuid + instanceId uuid)
+      return ArrayUtils.addAll(ArrayUtils.addAll(metricUuidPortion, appUuidPortion), instanceUuidPortion);
     }
 
-    // Concatenate all UUIDs together (metric uuid + appId uuid + instanceId uuid)
-    return ArrayUtils.addAll(ArrayUtils.addAll(metricUuidPortion, appUuidPortion), instanceUuidPortion);
+    return ArrayUtils.addAll(metricUuidPortion, appUuidPortion);
   }
 
   /**
@@ -151,7 +159,7 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
    */
   private String stem(String metricName) {
     String metric = metricName.toLowerCase();
-    String regex = "[\\.\\_\\%\\-\\=]";
+    String regex = "[\\.\\_\\%\\-\\=\\/\\@\\(\\)\\[\\]\\:]";
     String trimmedMetric = StringUtils.removePattern(metric, regex);
     return trimmedMetric;
   }
@@ -181,20 +189,27 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
     }
   }
 
-  private long computeWeightedNumericalAsciiSum(String value) {
+  public long computeWeightedNumericalAsciiSum(String value) {
     int len = value.length();
     long numericValue = 0;
-    int sum = 0;
-    for (int i = 0; i < len; i++) {
+    long sum = 0;
+    int numericCtr = 0;
+    for (int i = 0; i < len;) {
       int ascii = value.charAt(i);
-      if (48 <= ascii && ascii <= 57) {
-        numericValue += numericValue * 10 + (ascii - 48);
+      if (48 <= ascii && ascii <= 57 && numericCtr < 4) {
+        numericValue = numericValue * 10 + (ascii - 48);
+        numericCtr++;
+        i++;
       } else {
         if (numericValue > 0) {
           sum += numericValue;
           numericValue = 0;
         }
-        sum += value.charAt(i);
+        if (numericCtr < 4) {
+          sum += value.charAt(i);
+          i++;
+        }
+        numericCtr = 0;
       }
     }
 

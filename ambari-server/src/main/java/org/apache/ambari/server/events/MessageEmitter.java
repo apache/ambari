@@ -46,7 +46,7 @@ public abstract class MessageEmitter {
    * @param event message should to be emitted.
    * @throws AmbariException
    */
-  abstract void emitMessage(AmbariUpdateEvent event) throws AmbariException;
+  abstract void emitMessage(STOMPEvent event) throws AmbariException;
 
   /**
    * Creates STOMP message header.
@@ -65,7 +65,7 @@ public abstract class MessageEmitter {
    * @param event message should to be emitted.
    * @param destination
    */
-  protected void emitMessageToAll(AmbariUpdateEvent event, String destination) {
+  protected void emitMessageToAll(STOMPEvent event, String destination) {
     LOG.debug("Received status update event {}", event);
     simpMessagingTemplate.convertAndSend(destination, event);
   }
@@ -76,7 +76,7 @@ public abstract class MessageEmitter {
    * @param destination
    * @throws HostNotRegisteredException in case host is not registered.
    */
-  protected void emitMessageToHost(AmbariHostUpdateEvent event, String destination) throws HostNotRegisteredException {
+  protected void emitMessageToHost(STOMPHostEvent event, String destination) throws HostNotRegisteredException {
     Long hostId = event.getHostId();
     String sessionId = agentSessionManager.getSessionId(hostId);
     LOG.debug("Received status update event {} for host {} registered with session ID {}", event, hostId, sessionId);

@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Contains update info about metadata for all clusters. This update will be sent to all subscribed recipients.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
+public class MetadataUpdateEvent extends STOMPEvent implements Hashable {
 
   /**
    * Id used to send parameters common to all clusters.

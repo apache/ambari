@@ -372,6 +372,8 @@ def save_data(mode, solr_kinit_command, hdfs_kinit_command, curl_prefix, solr_ur
   solr_query_url_prefix = "{0}/{1}/select?q={2}&sort={3}&rows={4}&wt=json".format(solr_url, collection, q, sort, read_block_size)
 
   exclude_field_list = exclude_fields.split(',') if exclude_fields else None
+  if solr_output_collection and not exclude_field_list:
+    exclude_field_list = ['_version_']
 
   done = False
   total_records = 0
@@ -688,14 +690,14 @@ def upload_file_local(upload_command, upload_file_path, local_path):
 
 def upload_file_to_solr(solr_kinit_command, curl_prefix, upload_command, upload_file_path, collection):
   if os.path.isfile(upload_file_path):
-    query_solr(solr_kinit_command, upload_command, "{0}-H Content-type:application/json {1}".format(curl_prefix, upload_command), "Saving")
+    query_solr(solr_kinit_command, upload_command, "{0} -H Content-type:application/json {1}".format(curl_prefix, upload_command), "Saving")
     logger.info("Save data to collection: %s", collection)
 
 def delete_data(solr_kinit_command, curl_prefix, delete_command, collection, filter_field, id_field, prev_lot_end_value,
                 prev_lot_end_id):
   delete_cmd = delete_command.split(" --data-binary")[0]
   delete_query_data = delete_command.split("--data-binary ")[1].replace("+", " ")
-  query_solr(solr_kinit_command, delete_cmd, "{0}-H Content-Type:text/xml {1}".format(curl_prefix, delete_cmd), "Deleting", delete_query_data)
+  query_solr(solr_kinit_command, delete_cmd, "{0} -H Content-Type:text/xml {1}".format(curl_prefix, delete_cmd), "Deleting", delete_query_data)
   logger.info("Deleted data from collection %s where %s,%s < %s,%s", collection, filter_field, id_field, prev_lot_end_value,
               prev_lot_end_id)
 

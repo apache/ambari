@@ -94,7 +94,7 @@ describe('App.MainDashboardWidgetsView', function () {
 
   describe('#saveWidgetsSettings()', function() {
 
-    var userPreferences = {visible: [], hidden: [], threshold: {}};
+    var userPreferences = {visible: [], hidden: [], threshold: {}, groups: {}};
 
     beforeEach(function () {
       sinon.stub(view, 'setDBProperty', Em.K);

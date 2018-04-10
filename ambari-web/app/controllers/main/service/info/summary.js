@@ -262,7 +262,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
           hiveSiteDynamicDiscovery = _config.properties['hive.server2.support.dynamic.service.discovery'] || hiveSiteDynamicDiscovery;
           hiveSiteZkQuorom = _config.properties['hive.zookeeper.quorum'] || hiveSiteZkQuorom;
           hiveSiteZkNameSpace = _config.properties['hive.server2.zookeeper.namespace'] || hiveSiteZkNameSpace;
-          if (_config.properties['hive.server2.active.passive.ha.enable'] === 'true') {
+          if (App.HostComponent.find().filterProperty('componentName','HIVE_SERVER_INTERACTIVE').length == 2) {
             hiveSiteServiceDiscorveryMode = 'zooKeeperHA';
             hiveSiteZkNameSpace = _config.properties['hive.server2.active.passive.ha.registry.namespace'];
           }

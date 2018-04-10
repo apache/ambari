@@ -41,6 +41,7 @@ public class TimelineMetric implements Comparable<TimelineMetric>, Serializable 
   private String appId;
   private String instanceId = null;
   private String hostName;
+  private long timestamp;
   private long startTime;
   private String type;
   private String units;
@@ -106,6 +107,15 @@ public class TimelineMetric implements Comparable<TimelineMetric>, Serializable 
 
   public void setHostName(String hostName) {
     this.hostName = hostName;
+  }
+
+  @XmlElement(name = "timestamp")
+  public long getTimestamp() {
+        return timestamp;
+      }
+
+  public void setTimestamp(long timestamp) {
+    this.timestamp = timestamp;
   }
 
   @XmlElement(name = "starttime")

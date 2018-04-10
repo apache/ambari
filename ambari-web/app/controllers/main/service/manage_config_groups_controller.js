@@ -152,7 +152,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       addDots = false;
     if(propertiesList.length > trimLength) {
       // Adjust trim length based on occurrence of <br/> around trim length
-      index = propertiesList.substring(trimLength-10, trimLength+10).indexOf("\n");
+      index = propertiesList.substring(trimLength-10, trimLength+10).indexOf("<br/>");
       if(index > -1) {
         trimLength = trimLength - 10 + index;
       } else {
@@ -162,10 +162,10 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       if(addDots) {
         trimmedText += " ...";
       }
-      noOfRemainingProperties = (propertiesList.substring(trimLength).match(new RegExp("\n", "g")) || []).length - 1;
+      noOfRemainingProperties = (propertiesList.substring(trimLength).match(new RegExp("<br/>", "g")) || []).length - 1;
       if(noOfRemainingProperties > 0) {
         propertyText = (noOfRemainingProperties > 1) ? "properties" : "property";
-        trimmedText += "\n and " + noOfRemainingProperties + " more " + propertyText;
+        trimmedText += "<br/> and " + noOfRemainingProperties + " more " + propertyText;
       }
     } else {
       trimmedText = propertiesList;
@@ -581,7 +581,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @method showProperties
    */
   showProperties: function () {
-    var properties = this.get('selectedConfigGroup.propertiesList');
+    var properties = this.get('selectedConfigGroup.propertiesList').htmlSafe();
     if (properties) {
       App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properties);
     }

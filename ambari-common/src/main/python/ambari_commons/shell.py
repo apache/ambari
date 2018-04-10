@@ -25,6 +25,7 @@ import signal
 from ambari_commons import subprocess32 as subprocess
 import threading
 from contextlib import contextmanager
+import copy
 
 import time
 
@@ -282,9 +283,13 @@ def launch_subprocess(command, term_geometry=(42, 255), env=None):
     _logger.debug("Warning, command  \"{0}\" doesn't support sudo appending".format(command))
 
   is_shell = not isinstance(command, (list, tuple))
+  environ = copy.deepcopy(os.environ)
+
+  if env:
+    environ.update(env)
 
   return PopenEx(command, stdout=PIPE_PTY, stderr=subprocess.PIPE,
-                 shell=is_shell, preexec_fn=_geometry_helper, close_fds=True, env=env)
+                 shell=is_shell, preexec_fn=_geometry_helper, close_fds=True, env=environ)
 
 
 def chunks_reader(cmd, kill_timer):

@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Is used to messaging to UI.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TopologyUpdateEvent extends AmbariUpdateEvent implements Hashable {
+public class TopologyUpdateEvent extends STOMPEvent implements Hashable {
 
   /**
    * Map of clusters topologies by cluster ids.

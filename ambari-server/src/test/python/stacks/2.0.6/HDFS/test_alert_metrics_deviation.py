@@ -39,6 +39,14 @@ RESULT_STATE_CRITICAL = "CRITICAL"
 RESULT_STATE_UNKNOWN = "UNKNOWN"
 RESULT_STATE_SKIPPED = "SKIPPED"
 
+def dummy_get_state_from_jmx(jmx_uri, connection_timeout):
+  if 'c6401' in jmx_uri or 'c6403' in jmx_uri:
+    return 'active'
+  return 'standby'
+
+def dummy_get_ssl_version():
+  return 3
+
 class TestAlertMetricsDeviation(RMFTestCase):
 
   def setUp(self):
@@ -127,7 +135,94 @@ class TestAlertMetricsDeviation(RMFTestCase):
     }
     self.make_alert_tests(configs, conn_mock)
 
-  def make_alert_tests(self, configs, conn_mock):
+  @patch.object(ambari_metrics_helper, 'get_metric_collectors_from_properties_file', new = MagicMock(return_value='c6401.ambari.apache.org:6188'))
+  @patch("httplib.HTTPConnection")
+  def test_alert_ha(self, conn_mock):
+    configs = {
+      '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
+      '{{hdfs-site/dfs.http.policy}}': 'HTTP_ONLY',
+      '{{ams-site/timeline.metrics.service.webapp.address}}': '0.0.0.0:6188',
+      '{{ams-site/timeline.metrics.service.http.policy}}' : 'HTTP_ONLY',
+      '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50070',
+      '{{cluster-env/security_enabled}}': 'false',
+      '{{cluster-env/smokeuser}}': 'ambari-qa',
+      '{{hdfs-site/dfs.internal.nameservices}}': 'ns',
+      '{{hdfs-site}}': {
+        'dfs.internal.nameservices': 'ns',
+        'dfs.nameservices': 'ns',
+        'dfs.ha.namenodes.ns': 'nn1,nn2',
+        'dfs.datanode.address.ns.nn1': '0.0.0.0:50010',
+        'dfs.namenode.rpc-address.ns.nn1': 'c6401.ambari.apache.org:8020',
+        'dfs.namenode.https-address.ns.nn1': 'c6401.ambari.apache.org:50470',
+        'dfs.namenode.http-address.ns.nn1': 'c6401.ambari.apache.org:50070',
+        'dfs.datanode.https.address.ns.nn1': '0.0.0.0:50475',
+        'dfs.namenode.secondary.http-address.ns.nn1': 'c6401.ambari.apache.org:50090',
+        'dfs.datanode.http.address.ns.nn1': '0.0.0.0:50075',
+        'dfs.namenode.rpc-address.ns.nn2': 'c6402.ambari.apache.org:8020',
+        'dfs.namenode.https-address.ns.nn2': 'c6402.ambari.apache.org:50470',
+        'dfs.namenode.http-address.ns.nn2': 'c6402.ambari.apache.org:50070',
+        'dfs.datanode.https.address.ns.nn2': 'c6402.ambari.apache.org:50475',
+        'dfs.namenode.secondary.http-address.ns.nn2': 'c6402.ambari.apache.org:50090',
+        'dfs.datanode.http.address.ns.nn2': 'c6402.ambari.apache.org:50075',
+        'dfs.http.policy': 'HTTP_ONLY',
+        'dfs.journalnode.https-address': '0.0.0.0:8481',
+        'dfs.journalnode.http-address': '0.0.0.0:8480',
+      }
+    }
+    self.make_alert_tests(configs, conn_mock)
+
+  @patch.object(ambari_metrics_helper, 'get_metric_collectors_from_properties_file', new = MagicMock(return_value='c6401.ambari.apache.org:6188'))
+  @patch("httplib.HTTPConnection")
+  def test_alert_federation(self, conn_mock):
+    configs = {
+      '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
+      '{{hdfs-site/dfs.http.policy}}': 'HTTP_ONLY',
+      '{{ams-site/timeline.metrics.service.webapp.address}}': '0.0.0.0:6188',
+      '{{ams-site/timeline.metrics.service.http.policy}}' : 'HTTP_ONLY',
+      '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50070',
+      '{{cluster-env/security_enabled}}': 'false',
+      '{{cluster-env/smokeuser}}': 'ambari-qa',
+      '{{hdfs-site/dfs.internal.nameservices}}': 'ns1,ns2',
+      '{{hdfs-site}}': {
+        'dfs.internal.nameservices': 'ns1,ns2',
+        'dfs.nameservices': 'ns1,ns2',
+        'dfs.ha.namenodes.ns1': 'nn1,nn2',
+        'dfs.datanode.address.ns1.nn1': 'c6401.ambari.apache.org:50010',
+        'dfs.namenode.rpc-address.ns1.nn1': 'c6401.ambari.apache.org:8020',
+        'dfs.namenode.https-address.ns1.nn1': 'c6401.ambari.apache.org:50470',
+        'dfs.namenode.http-address.ns1.nn1': 'c6401.ambari.apache.org:50070',
+        'dfs.datanode.https.address.ns1.nn1': 'c6401.ambari.apache.org:50475',
+        'dfs.namenode.secondary.http-address.ns1.nn1': 'c6401.ambari.apache.org:50090',
+        'dfs.datanode.http.address.ns1.nn1': '0.0.0.0:50075',
+        'dfs.namenode.rpc-address.ns1.nn2': 'c6402.ambari.apache.org:8020',
+        'dfs.namenode.https-address.ns1.nn2': 'c6402.ambari.apache.org:50470',
+        'dfs.namenode.http-address.ns1.nn2': 'c6402.ambari.apache.org:50070',
+        'dfs.datanode.https.address.ns1.nn2': 'c6402.ambari.apache.org:50475',
+        'dfs.namenode.secondary.http-address.ns1.nn2': 'c6402.ambari.apache.org:50090',
+        'dfs.datanode.http.address.ns1.nn2': 'c6402.ambari.apache.org:50075',
+
+        'dfs.ha.namenodes.ns2': 'nn3,nn4',
+        'dfs.namenode.rpc-address.ns2.nn3': 'c6403.ambari.apache.org:8020',
+        'dfs.namenode.https-address.ns2.nn3': 'c6403.ambari.apache.org:50470',
+        'dfs.namenode.http-address.ns2.nn3': 'c6403.ambari.apache.org:50070',
+        'dfs.datanode.https.address.ns2.nn3': 'c6403.ambari.apache.org:50475',
+        'dfs.namenode.secondary.http-address.ns2.nn3': 'c6403.ambari.apache.org:50090',
+        'dfs.datanode.http.address.ns2.nn3': '0.0.0.0:50075',
+        'dfs.namenode.rpc-address.ns2.nn4': 'c6404.ambari.apache.org:8020',
+        'dfs.namenode.https-address.ns2.nn4': 'c6404.ambari.apache.org:50470',
+        'dfs.namenode.http-address.ns2.nn4': 'c6404.ambari.apache.org:50070',
+        'dfs.datanode.https.address.ns2.nn4': 'c6404.ambari.apache.org:50475',
+        'dfs.namenode.secondary.http-address.ns2.nn4': 'c6404.ambari.apache.org:50090',
+        'dfs.datanode.http.address.ns2.nn4': 'c6404.ambari.apache.org:50075',
+        'dfs.http.policy': 'HTTP_ONLY',
+        'dfs.journalnode.https-address': '0.0.0.0:8481',
+        'dfs.journalnode.http-address': '0.0.0.0:8480',
+      }
+    }
+    self.make_alert_tests(configs, conn_mock, 'c6401.ambari.apache.org')
+
+
+  def make_alert_tests(self, configs, conn_mock, _host_name = None):
     connection = MagicMock()
     response = MagicMock()
     response.status = 200
@@ -135,29 +230,32 @@ class TestAlertMetricsDeviation(RMFTestCase):
     conn_mock.return_value = connection
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":1,"1459966370838":3}}]}'
 
+    alert._get_state_from_jmx = dummy_get_state_from_jmx
+    alert._get_ssl_version = dummy_get_ssl_version
+
     # OK, but no datapoints above the minimum threshold
-    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertEquals('There were no data points above the minimum threshold of 30 seconds',messages[0])
 
     # Unable to calculate the standard deviation for 1 data point
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000}}]}'
-    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_SKIPPED)
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertEquals('There are not enough data points to calculate the standard deviation (1 sampled)', messages[0])
 
     # OK
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000,"1459966370838":50000}}]}'
-    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertEquals('The variance for this alert is 7071ms which is within 100% of the 45000ms average (45000ms is the limit)', messages[0])
 
     # Warning
     response.read.return_value = '{"metrics":[{"metricname":"metric1","metrics":{"1459966360838":40000,"1459966370838":1000000}}]}'
-    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_WARNING)
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertEquals('The variance for this alert is 678823ms which is 131% of the 520000ms average (520000ms is the limit)', messages[0])
@@ -165,14 +263,14 @@ class TestAlertMetricsDeviation(RMFTestCase):
     # HTTP request to AMS failed
     response.read.return_value = ''
     response.status = 501
-    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_UNKNOWN)
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertEquals('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])
 
     # Unable to connect to AMS
     conn_mock.side_effect = Exception('Unable to connect to AMS')
-    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name=_host_name)
     self.assertEqual(status, RESULT_STATE_UNKNOWN)
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertEquals('Unable to retrieve metrics from the Ambari Metrics service.', messages[0])

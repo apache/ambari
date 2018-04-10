@@ -97,7 +97,7 @@
                     </h5>
                   {{/if}}
                   {{#each quickLinks in group.links}}
-                    <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
+                    <h6>{{quickLinks.publicHostNameLabel}}</h6>
                     {{#each quickLinks}}
                       <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
                     {{/each}}

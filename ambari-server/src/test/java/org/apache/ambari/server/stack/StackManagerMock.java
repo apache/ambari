@@ -21,6 +21,7 @@ package org.apache.ambari.server.stack;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -78,14 +79,21 @@ public class StackManagerMock extends StackManager {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
 
       ModulesPathsKey that = (ModulesPathsKey) o;
 
-      if (stackRoot != null ? !stackRoot.equals(that.stackRoot) : that.stackRoot != null) return false;
-      if (commonServicesRoot != null ? !commonServicesRoot.equals(that.commonServicesRoot) : that.commonServicesRoot != null)
+      if (stackRoot != null ? !stackRoot.equals(that.stackRoot) : that.stackRoot != null) {
         return false;
+      }
+      if (commonServicesRoot != null ? !commonServicesRoot.equals(that.commonServicesRoot) : that.commonServicesRoot != null) {
+        return false;
+      }
       return !(extensionRoot != null ? !extensionRoot.equals(that.extensionRoot) : that.extensionRoot != null);
 
     }
@@ -103,10 +111,10 @@ public class StackManagerMock extends StackManager {
     private Map<String, ServiceModule> cachedCommonServiceModules;
     private Map<String, StackModule> cachedStackModules;
     private Map<String, ExtensionModule> cachedExtensionModules;
-    private Map<String, StackInfo> cachedStackMap;
+    private NavigableMap<String, StackInfo> cachedStackMap;
 
     public CachedModules(Map<String, ServiceModule> cachedCommonServiceModules, Map<String, StackModule> cachedStackModules,
-                         Map<String, ExtensionModule> cachedExtensionModules, Map<String, StackInfo> cachedStackMap) {
+                         Map<String, ExtensionModule> cachedExtensionModules, NavigableMap<String, StackInfo> cachedStackMap) {
       this.cachedCommonServiceModules = cachedCommonServiceModules;
       this.cachedStackModules = cachedStackModules;
       this.cachedExtensionModules = cachedExtensionModules;
@@ -125,7 +133,7 @@ public class StackManagerMock extends StackManager {
       return cachedExtensionModules;
     }
 
-    public Map<String, StackInfo> getCachedStackMap() {
+    public NavigableMap<String, StackInfo> getCachedStackMap() {
       return cachedStackMap;
     }
   }

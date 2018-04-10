@@ -72,7 +72,7 @@ import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.jpa.JPAEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -310,7 +310,7 @@ public class ClusterImpl implements Cluster {
   private UpgradeContextFactory upgradeContextFactory;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
@@ -1607,7 +1607,7 @@ public class ClusterImpl implements Cluster {
         serviceConfigEntity.setHostIds(new ArrayList<>(configGroup.getHosts().keySet()));
         serviceConfigEntity = serviceConfigDAO.merge(serviceConfigEntity);
       }
-      stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntity,
+      STOMPUpdatePublisher.publish(new ConfigsUpdateEvent(serviceConfigEntity,
           configGroup == null ? null : configGroup.getName(), groupHostNames, changedConfigs.keySet()));
       configHelper.checkStaleConfigsStatusOnConfigsUpdate(clusterEntity.getClusterId(), serviceName, groupHostNames, changedConfigs);
     } finally {
@@ -1945,7 +1945,7 @@ public class ClusterImpl implements Cluster {
     }
 
     serviceConfigDAO.create(serviceConfigEntityClone);
-    stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntityClone,
+    STOMPUpdatePublisher.publish(new ConfigsUpdateEvent(serviceConfigEntityClone,
         configGroupName,
         groupHostNames,
         changedConfigs.keySet()));
@@ -1984,7 +1984,7 @@ List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();    String serviceN
         configTypes.add(config.getType());
       }
 
-      stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(this, appliedConfigs));
+      STOMPUpdatePublisher.publish(new ConfigsUpdateEvent(this, appliedConfigs));
       LOG.error("No service found for config types '{}', service config version not created", configTypes);
       return null;
     } else {

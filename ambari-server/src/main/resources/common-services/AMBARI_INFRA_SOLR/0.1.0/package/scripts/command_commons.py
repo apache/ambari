@@ -66,7 +66,8 @@ request_async = default("/commandParams/solr_request_async", False)
 request_tries = int(default("/commandParams/solr_request_tries", 30))
 request_time_interval = int(default("/commandParams/solr_request_time_interval", 5))
 
-check_hosts = default("/commandParams/solr_check_hosts", True)
+check_hosts_default = True if params.security_enabled else False
+check_hosts = default("/commandParams/solr_check_hosts", check_hosts_default)
 
 solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
 solr_base_url = format("{solr_protocol}://{params.hostname}:{params.infra_solr_port}/solr")
@@ -217,5 +218,8 @@ def __get_hosts_for_collection():
   return __read_hosts_from_clusterstate_json(json_path)
 
 def is_collection_available_on_host():
-  hosts_set = __get_hosts_for_collection()
-  return params.hostname in hosts_set
+  if check_hosts:
+    hosts_set = __get_hosts_for_collection()
+    return params.hostname in hosts_set
+  else:
+    return True

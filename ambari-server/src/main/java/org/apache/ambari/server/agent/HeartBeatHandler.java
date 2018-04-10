@@ -30,7 +30,7 @@ import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.AgentActionEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -90,7 +90,7 @@ public class HeartBeatHandler {
   private RecoveryConfigHelper recoveryConfigHelper;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private AgentSessionManager agentSessionManager;
@@ -184,7 +184,7 @@ public class HeartBeatHandler {
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
       // After loosing heartbeat agent should reregister
       LOG.warn("Host {} is in HEARTBEAT_LOST state - sending register command", hostname);
-      stateUpdateEventPublisher.publish(new AgentActionEvent(AgentActionEvent.AgentAction.RESTART_AGENT,
+      STOMPUpdatePublisher.publish(new AgentActionEvent(AgentActionEvent.AgentAction.RESTART_AGENT,
           hostObject.getHostId()));
       return createRegisterCommand();
     }
