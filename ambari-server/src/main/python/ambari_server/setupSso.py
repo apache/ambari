@@ -94,8 +94,8 @@ def populate_sso_public_cert(options, properties):
       properties[SSO_CERTIFICATE] = ensure_complete_cert(cert_string) if cert_string else ""
   else:
     cert_path = options.sso_public_cert_file
-    with open(cert_path) as file:
-      cert_string = file.read()
+    with open(cert_path) as cert_file:
+      cert_string = cert_file.read()
     properties[SSO_CERTIFICATE] = ensure_complete_cert(cert_string) if cert_string else ""
 
 
