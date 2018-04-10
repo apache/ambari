@@ -383,3 +383,31 @@ def get_name_service_by_hostname(hdfs_site, host_name):
       nn_rpc = nn_rpc_port.split(':')[0]
       if nn_rpc == host_name:
         return ns
+
+def get_namespace_mapping_for_hostname(hostname, hdfs_site, security_enabled, run_user):
+  namenode_address_map_list = get_namenode_states(hdfs_site, security_enabled, run_user)
+  namenode_logical_name = None
+  for each_namenode_address_map in namenode_address_map_list:
+    if len(each_namenode_address_map) != 0:
+      for namenode_hostname_logical_map_tuple in each_namenode_address_map:
+        namenode_hostname = namenode_hostname_logical_map_tuple[1].split(":")[0]
+        if hostname == namenode_hostname:
+          namenode_logical_name = namenode_hostname_logical_map_tuple[0]
+          break
+    if namenode_logical_name is not None:
+      break
+
+
+  namenode_nameservices = get_nameservices(hdfs_site)
+  namespace_nameservice = None
+  if namenode_nameservices and len(namenode_nameservices) > 0:
+    for name_service in namenode_nameservices:
+      namenode_logical_names_list = hdfs_site.get('dfs.ha.namenodes.' + str(name_service), None)
+      if namenode_logical_names_list and ',' in namenode_logical_names_list:
+        for each_namenode_logical_name in namenode_logical_names_list.split(','):
+          if namenode_logical_name == each_namenode_logical_name:
+            namespace_nameservice = name_service
+            break
+      if namespace_nameservice is not None:
+        break
+  return namespace_nameservice,namenode_logical_name
