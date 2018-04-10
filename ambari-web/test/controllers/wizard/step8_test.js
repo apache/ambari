@@ -22,6 +22,7 @@ require('controllers/main/service/info/configs');
 require('controllers/wizard/step8_controller');
 var installerStep8Controller;
 var testHelpers = require('test/helpers');
+var fileUtils = require('utils/file_utils');
 
 var configs = Em.A([
   Em.Object.create({filename: 'hdfs-site.xml', name: 'p1', value: 'v1'}),
@@ -2390,6 +2391,10 @@ describe('App.WizardStep8Controller', function () {
        sinon.spy(installerStep8Controller, 'getConfigurationDetailsForConfigType');
        sinon.spy(installerStep8Controller, 'hostInExistingHostGroup');
        sinon.spy(installerStep8Controller, 'hostInChildHostGroup');
+       sinon.stub(fileUtils, 'downloadFilesInZip');
+     });
+     afterEach(function() {
+       fileUtils.downloadFilesInZip.restore();
      });
      it('should call generateBlueprint', function() {
        installerStep8Controller.generateBlueprint();
@@ -2397,6 +2402,7 @@ describe('App.WizardStep8Controller', function () {
        sinon.assert.callCount(installerStep8Controller.getConfigurationDetailsForConfigType, 4);
        sinon.assert.callCount(installerStep8Controller.hostInExistingHostGroup, 4);
        sinon.assert.callCount(installerStep8Controller.hostInChildHostGroup, 1);
+       expect(fileUtils.downloadFilesInZip.calledOnce).to.be.true;
      });
  });
 });

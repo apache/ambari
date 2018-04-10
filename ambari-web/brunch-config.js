@@ -85,7 +85,8 @@ module.exports.config = {
           'vendor/scripts/pluralize.js',
           'vendor/scripts/sockjs.min.js',
           'vendor/scripts/stomp.min.js',
-          'vendor/scripts/theme/bootstrap-ambari.js'
+          'vendor/scripts/theme/bootstrap-ambari.js',
+          'vendor/scripts/theme/jszip.min.js'
         ]
       }
     },
