@@ -241,7 +241,7 @@ yarn_rm_summary_log_number_of_backup_files = module_configs.get_property_value(m
 
 #log4j.properties
 log4j_props = module_configs.get_property_value(module_name, 'hdfs-log4j', 'content')
-if log4j_props:
+if log4j_props and module_configs.get_property_value(module_name, 'yarn-log4j', 'content'):
   log4j_props += module_configs.get_property_value(module_name, 'yarn-log4j', 'content')
 
 refresh_topology = execution_command.need_refresh_topology()

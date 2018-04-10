@@ -65,6 +65,7 @@ sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = execution_command.get_ambari_server_host()
 
+stack_version_unformatted = execution_command.get_mpack_version()
 stack_version_formatted = execution_command.get_mpack_version()
 
 upgrade_type = Script.get_upgrade_type(execution_command.get_upgrade_type())

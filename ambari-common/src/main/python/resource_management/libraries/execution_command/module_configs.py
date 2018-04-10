@@ -31,6 +31,12 @@ class ModuleConfigs(object):
     self.__module_config_attributes = configAttributes
 
   def get_all_attributes(self, module_name, config_type):
+    """
+    Retrieve attributes from /configurationAttributes/config_type
+    :param module_name:
+    :param config_type:
+    :return:
+    """
     if config_type not in self.__module_config_attributes:
       return {}
     try:
@@ -62,5 +68,7 @@ class ModuleConfigs(object):
       return self.__module_configs[config_type][property_name]
     except:
       return default
+
+
 
 
