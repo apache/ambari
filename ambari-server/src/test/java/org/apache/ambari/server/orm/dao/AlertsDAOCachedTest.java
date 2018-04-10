@@ -17,16 +17,25 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import static org.easymock.EasyMock.createNiceMock;
+
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
+import org.apache.ambari.server.state.ClusterSettingFactory;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
+import org.apache.ambari.server.topology.StackFactory;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -277,6 +286,13 @@ public class AlertsDAOCachedTest {
       EasyMock.replay(configuration);
 
       binder.bind(Configuration.class).toInstance(configuration);
+      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+      binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+      binder.bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+      binder.bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+      binder.bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
+      binder.bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+      binder.bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
 
       PartialNiceMockBinder.newBuilder().addConfigsBindings().addAlertDefinitionBinding().build().configure(binder);
     }

@@ -53,6 +53,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -61,6 +62,8 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.ComponentResolver;
+import org.apache.ambari.server.topology.StackFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -1100,7 +1103,11 @@ public class ConfigHelperTest {
           bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
           bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
           bind(StateUpdateEventPublisher.class).toInstance(createNiceMock(StateUpdateEventPublisher.class));
-
+          bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
+          bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
+          bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
+          bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
+          bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
         }
       });
 
