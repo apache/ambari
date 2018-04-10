@@ -23,7 +23,7 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
   selectedService: null,
   stepConfigs: [],
   serverConfigData: {},
-  federationConfig: $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig),
+  federationConfig: {},
   once: false,
   isLoaded: false,
   isConfigsLoaded: false,
@@ -41,6 +41,9 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
   clearStep: function () {
     this.get('stepConfigs').clear();
     this.set('serverConfigData', {});
+    this.set('isConfigsLoaded', false);
+    this.set('isLoaded', false);
+    this.set('federationConfig', $.extend(true, {}, require('data/configs/wizards/federation_properties').federationConfig))
   },
 
   loadStep: function () {
@@ -77,13 +80,13 @@ App.NameNodeFederationWizardStep3Controller = Em.Controller.extend(App.Blueprint
 
   onLoadConfigs: function (data) {
     this.set('serverConfigData', data);
-    this.removeConfigs(this.get('configsToRemove'), data);
     this.set('isConfigsLoaded', true);
   },
 
   onLoad: function () {
     if (this.get('isConfigsLoaded') && App.router.get('clusterController.isHDFSNameSpacesLoaded')) {
       this.tweakServiceConfigs(this.get('federationConfig.configs'));
+      this.removeConfigs(this.get('configsToRemove'), this.get('serverConfigData'));
       this.renderServiceConfigs(this.get('federationConfig'));
       this.set('isLoaded', true);
     }
