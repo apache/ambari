@@ -61,6 +61,7 @@ class ManagerFactory(object):
 
     construct_rules = {
       OSConst.UBUNTU_FAMILY: AptManager,
+      OSConst.DEBIAN_FAMILY: AptManager,
       OSConst.SUSE_FAMILY: ZypperManager,
       OSConst.REDHAT_FAMILY: YumManager,
       OSConst.WINSRV_FAMILY: ChocoManager
