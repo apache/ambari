@@ -66,7 +66,6 @@ public class SecretReferenceTest {
 
   @Before
   public void setup() throws Exception {
-
     hdpCore = new StackInfo();
     ServiceInfo hdfs = new ServiceInfo();
     hdfs.setProperties(createProperties());

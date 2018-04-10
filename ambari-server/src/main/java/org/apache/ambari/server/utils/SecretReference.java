@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -175,14 +177,16 @@ public class SecretReference {
    */
   public static SetMultimap<String, String> getAllPasswordProperties(Collection<StackId> stackIds) throws IllegalArgumentException {
     AmbariMetaInfo metaInfo = AmbariServer.getController().getAmbariMetaInfo();
-    Collection<StackInfo> stacks = stackIds.stream().map( stackId -> {
-      try {
-        return metaInfo.getStack(stackId);
+    Collection<StackInfo> stacks = stackIds.stream().map(
+      stackId -> {
+        try {
+          return metaInfo.getStack(stackId);
+        }
+        catch (StackAccessException ex) {
+          throw new IllegalArgumentException(ex);
+        }
       }
-      catch (StackAccessException ex) {
-        throw new IllegalArgumentException(ex);
-      }
-    }).collect(toList());
+    ).collect(toList());
     return getAllPasswordPropertiesInternal(stacks);
   }
 
@@ -243,24 +247,42 @@ public class SecretReference {
   public static Configuration replacePasswordsInConfigurations(Configuration configuration,
                                                                      Multimap<String, String> passwordProperties) {
     // replace passwords in config properties
-    Map<String, Map<String, String>> replacedProperties = configuration.getProperties().entrySet().stream().map(
-      entry -> {
-        String configType = entry.getKey();
-        Map<String, String> replacedConfigProps =
-          replacePasswordsInPropertyMap(entry.getValue(), configType, passwordProperties);
-        return new SimpleEntry<>(configType, replacedConfigProps);
-      }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<String, Map<String, String>> replacedProperties = replaceInInnerMap(
+      configuration.getProperties(),
+      // in this case the map has {"configType": {"property": "value"}} structure
+      entry -> entry.getKey(),
+      passwordProperties);
 
     // replace passwords in config attributes
     Map<String, Map<String, Map<String, String>>> replacedAttributes = configuration.getAttributes().entrySet().stream().map(
       configTypeEntry -> {
-        String configType = configTypeEntry.getKey();
-        Map<String, Map<String, String>> replacedConfigProps = configTypeEntry.getValue().entrySet().stream().collect(
-          toMap(Map.Entry::getKey, e -> replacePasswordsInPropertyMap(e.getValue(), configType, passwordProperties)));
-        return new SimpleEntry<>(configType, replacedConfigProps);
-      }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Map<String, String>> replacedConfigProps = replaceInInnerMap(
+          configTypeEntry.getValue(),
+          // in this case the map has {"attributeType": {"property": "value"}} structure, the config type comes from the outer map
+          entry -> configTypeEntry.getKey(),
+          passwordProperties);
+        return new SimpleEntry<>(configTypeEntry.getKey(), replacedConfigProps);
+      }
+    ).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     return new Configuration(replacedProperties, replacedAttributes);
+    }
+
+  /**
+   * @param input the map that contains a property map
+   * @param configType a function that calculates the config type based on the actual map entry processed
+   *                   during transformation
+   * @param passwordProperties password type properties in a multimap.
+   *                           It has {@code config-type -> [password-prop-1, password-prop-2, ...]} structure.
+   * @return a new map in which the inner property map has its password properties replaced
+   */
+    private static Map<String, Map<String, String>> replaceInInnerMap(Map<String, Map<String, String>> input,
+                                                               Function<Map.Entry<String, Map<String, String>>, String> configType,
+                                                               Multimap<String, String> passwordProperties) {
+      return input.entrySet().stream().collect(toMap(
+        Map.Entry::getKey,
+        entry -> replacePasswordsInPropertyMap(entry.getValue(), configType.apply(entry), passwordProperties)
+      ));
     }
 
   /**
