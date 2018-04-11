@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 /**
  * KerberosTopologyUpdateTriggerServerAction is an implementation of
@@ -43,14 +42,18 @@ public class KerberosTopologyUpdateTriggerServerAction extends AbstractServerAct
 
   private final static Logger LOG = LoggerFactory.getLogger(KerberosTopologyUpdateTriggerServerAction.class);
 
+  private final TopologyHolder topologyHolder;
+
   @Inject
-  private Provider<TopologyHolder> topologyHolderProvider;
+  public KerberosTopologyUpdateTriggerServerAction(TopologyHolder topologyHolder) {
+    super();
+    this.topologyHolder = topologyHolder;
+  }
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
     CommandReport commandReport = null;
     try {
-      final TopologyHolder topologyHolder = topologyHolderProvider.get();
       final TopologyUpdateEvent updateEvent = topologyHolder.getCurrentData();
       topologyHolder.updateData(updateEvent);
     } catch (Exception e) {
