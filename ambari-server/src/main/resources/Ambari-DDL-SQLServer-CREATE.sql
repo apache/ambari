@@ -100,7 +100,7 @@ CREATE TABLE clusterconfig (
 CREATE TABLE ambari_configuration (
   category_name VARCHAR(100) NOT NULL,
   property_name VARCHAR(100) NOT NULL,
-  property_value VARCHAR(255) NOT NULL,
+  property_value VARCHAR(2048),
   CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name)
 );
 
