@@ -5511,6 +5511,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+
+
 
     hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
     hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
@@ -5518,6 +5522,9 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+
 
     // add properties that require the SECONDARY_NAMENODE, which
     // is not included in this test
@@ -5587,6 +5594,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
     assertEquals("HTTPS address HA property not properly exported",
       expectedHostNameTwo + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("servicerpc-address property not handled properly",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("servicerpc-address property not handled properly",
+      expectedHostNameTwo + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+
 
     assertEquals("fs.defaultFS should not be modified by cluster update when NameNode HA is enabled.",
       "hdfs://" + expectedNameService, coreSiteProperties.get("fs.defaultFS"));

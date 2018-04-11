@@ -92,9 +92,9 @@ public class BlueprintConfigurationProcessor {
   private final static String HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME = "dfs_ha_initial_namenode_active_set";
   private final static String HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME = "dfs_ha_initial_namenode_standby_set";
 
-  public  final static String HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME = "dfs_ha_initial_cluster_id";
+  private final static String HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME = "dfs_ha_initial_cluster_id";
 
-  public  final static String HADOOP_ENV_CONFIG_TYPE_NAME = "hadoop-env";
+  private final static String HADOOP_ENV_CONFIG_TYPE_NAME = "hadoop-env";
 
 
   /**
@@ -985,7 +985,7 @@ public class BlueprintConfigurationProcessor {
         hdfsSiteUpdatersForAvailability.put(httpPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
         final String rpcPropertyName = "dfs.namenode.rpc-address." + nameService + "." + nameNode;
         hdfsSiteUpdatersForAvailability.put(rpcPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
-        final String serviceRpcPropertyName = "dfs.namenode.servicerpc-address" + nameService + "." + nameNode;
+        final String serviceRpcPropertyName = "dfs.namenode.servicerpc-address." + nameService + "." + nameNode;
         hdfsSiteUpdatersForAvailability.put(serviceRpcPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
       }
     }
