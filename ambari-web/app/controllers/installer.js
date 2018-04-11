@@ -848,6 +848,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           this.loadConfirmedHosts();
           this.loadComponentsFromConfigs();
           this.loadRecommendations();
+          this.loadRegisteredMpacks();
         }
       }
     ],

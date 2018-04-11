@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +75,8 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   public static final String ARTIFACT_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + ARTIFACT_NAME;
   public static final String CLUSTER_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME;
   public static final String SERVICE_NAME_PROPERTY = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SERVICE_NAME;
+
+  public static final String PROVISION_REQUEST_ARTIFACT_NAME = "provision_cluster_request";
 
   /**
    * primary key fields
@@ -525,7 +528,13 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private Resource toResource(ArtifactEntity entity, Set<String> requestedIds) throws AmbariException {
     Resource resource = new ResourceImpl(Resource.Type.Artifact);
     setResourceProperty(resource, ARTIFACT_NAME_PROPERTY, entity.getArtifactName(), requestedIds);
-    setResourceProperty(resource, ARTIFACT_DATA_PROPERTY, entity.getArtifactData(), requestedIds);
+    Map<String, Object> artifactData =
+      PROVISION_REQUEST_ARTIFACT_NAME.equals(entity.getArtifactName()) ?
+        // replace passwords for cluster template artifacts
+        new ClusterTemplateArtifactPasswordReplacer().replacePasswords(entity.getArtifactData()) :
+        // return data as is for other artifacts
+        entity.getArtifactData();
+    setResourceProperty(resource, ARTIFACT_DATA_PROPERTY, artifactData, requestedIds);
 
     for (Map.Entry<String, String> entry : entity.getForeignKeys().entrySet()) {
       TypeRegistration typeRegistration = typeRegistrationsByShortFK.get(entry.getKey());

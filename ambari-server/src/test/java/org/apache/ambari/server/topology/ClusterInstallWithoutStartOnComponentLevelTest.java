@@ -425,6 +425,6 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
   @Test
   public void testProvisionCluster() throws Exception {
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
   }
 }
