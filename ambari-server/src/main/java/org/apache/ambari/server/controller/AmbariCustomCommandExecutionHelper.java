@@ -328,7 +328,6 @@ public class AmbariCustomCommandExecutionHelper {
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
-    ambariMetaInfo.getStack(stackId);
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -411,12 +410,6 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setConfigurationCredentials(configCredentials);
 
       Map<String, String> hostLevelParams = new TreeMap<>();
-
-      try {
-        repoVersionHelper.getRepoInfoString(cluster, component, host);
-      } catch (SystemException e) {
-        throw new RuntimeException(e);
-      }
 
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
@@ -850,18 +843,11 @@ public class AmbariCustomCommandExecutionHelper {
     Cluster cluster = clusters.getCluster(clusterName);
     ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
     Service service = cluster.getService(serviceName);
-    if (null != componentName) {
-      service.getServiceComponent(componentName);
-    }
-
     StackId stackId = serviceGroup.getStackId();
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), service.getServiceType());
-
-    ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
 
     Host host = clusters.getHost(hostname);
 

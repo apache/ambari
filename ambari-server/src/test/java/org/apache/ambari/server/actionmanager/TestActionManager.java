@@ -61,7 +61,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.UnitOfWork;
 
 import junit.framework.Assert;
 
@@ -74,7 +73,6 @@ public class TestActionManager {
   private String clusterName = "cluster1";
 
   private Clusters clusters;
-  private UnitOfWork unitOfWork;
   private StageFactory stageFactory;
 
   @Before
@@ -89,7 +87,6 @@ public class TestActionManager {
     clusters.addHost(hostname);
     StackId stackId = new StackId("HDP-0.1");
     clusters.addCluster(clusterName, stackId);
-    unitOfWork = injector.getInstance(UnitOfWork.class);
 
     EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
@@ -253,7 +250,6 @@ public class TestActionManager {
   @Test
   public void testCascadeDeleteStages() throws Exception {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
-    injector.getInstance(ActionManager.class);
     populateActionDB(db, hostname);
     assertEquals(1, clusters.getClusters().size());
 

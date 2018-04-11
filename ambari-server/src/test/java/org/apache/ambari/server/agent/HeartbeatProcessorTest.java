@@ -34,6 +34,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
@@ -858,9 +859,6 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
-    new StackId("HDP-1.3.0");
-    new StackId("HDP-1.2.0");
-
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
 
@@ -968,9 +966,6 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
-    new StackId("HDP-1.3.0");
-    new StackId("HDP-1.2.0");
-
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
 
@@ -1041,7 +1036,9 @@ public class HeartbeatProcessorTest {
 
     replay(am);
 
-    heartbeatTestHelper.getDummyCluster();
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    assertNotNull(cluster);
+
     Clusters fsm = clusters;
     Host hostObject = clusters.getHost(DummyHostname1);
     hostObject.setIPv4("ipv4");

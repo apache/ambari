@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -584,7 +586,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     //add host with client only
     addHost("c1-c6403", "c1");
 
-    injector.getInstance(OrmTestHelper.class);
     createService("c1", "CORE", "HADOOP_CLIENTS");
     createServiceComponent("c1", "CORE", "HADOOP_CLIENTS", "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", State.INIT);
     createServiceComponentHost("c1", "CORE", "HADOOP_CLIENTS", 1L, "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", "c1-c6403", State.INIT);
@@ -757,8 +758,10 @@ public class AmbariCustomCommandExecutionHelperTest {
     String hostC6402 = hostPrefix + "-c6402";
 
     OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
-    ormTestHelper.getOrCreateRepositoryVersion(stackId,
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId,
         respositoryVersion);
+
+    assertNotNull(repositoryVersion);
 
     createCluster(clusterName, stackId.getStackId());
 

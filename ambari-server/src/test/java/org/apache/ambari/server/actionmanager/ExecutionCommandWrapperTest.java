@@ -113,7 +113,6 @@ public class ExecutionCommandWrapperTest {
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
-    injector.getInstance(OrmTestHelper.class);
     ServiceGroup serviceGroup = cluster1.addServiceGroup("CORE", cluster1.getDesiredStackVersion().getStackId());
     cluster1.addService(serviceGroup, "HDFS", "HDFS");
 
@@ -291,8 +290,6 @@ public class ExecutionCommandWrapperTest {
     repositoryVersion.setResolved(false);
     ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
 
-    cluster.getService("HDFS");
-
     // first try with an INSTALL command - this should not populate version info
     ExecutionCommand executionCommand = new ExecutionCommand();
     Map<String, String> commandParams = new HashMap<>();
@@ -361,7 +358,6 @@ public class ExecutionCommandWrapperTest {
     StackId stackId = cluster.getDesiredStackVersion();
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
     repositoryVersion.setResolved(true); // has build number
-    cluster.getService("HDFS");
 
     repositoryVersion.addRepoOsEntities(new ArrayList<>());
 
