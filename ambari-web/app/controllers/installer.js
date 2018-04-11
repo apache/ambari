@@ -826,6 +826,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       {
         type: 'async',
         callback: function () {
+          this.loadRegisteredMpacks();
           return this.loadSelectedServiceInfo(this.getStepSavedState('customProductRepos'));
         }
       },
@@ -835,7 +836,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         type: 'sync',
         callback: function () {
           this.loadConfirmedHosts();
-          this.loadRegisteredMpacks();
         }
       }
     ],

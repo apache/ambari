@@ -1428,7 +1428,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.serviceGroups', serviceGroups);
 
     registeredMpacks.forEach(rmp => {
-      App.stackMapper.map(rmp);
+      App.stackMapper.map(JSON.parse(JSON.stringify(rmp)));
     });
   },
 

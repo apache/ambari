@@ -315,23 +315,39 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     } else {
       // from install wizard
       var downloadConfig = this.get('downloadConfig');
-      var selectedStack = this.getSelectedStack();
       var allRepos = [];
-      if (selectedStack && selectedStack.get('operatingSystems')) {
-        selectedStack.get('operatingSystems').forEach(function (os) {
-          if (os.get('isSelected')) {
-            os.get('repositories').forEach(function(repo) {
-              if (repo.get('showRepo')) {
-                allRepos.push(Em.Object.create({
-                  base_url: repo.get('baseUrl'),
-                  os_type: repo.get('osType'),
-                  repo_id: repo.get('repoId')
-                }));
+      var selectedMpacks = this.get('content.selectedMpacks');
+      var registeredMpacks = this.get('content.registeredMpacks');
+      if (selectedMpacks && registeredMpacks) {
+        selectedMpacks.forEach(mpack => {
+          if (mpack.operatingSystems) { //repos have been customized
+            mpack.operatingSystems.forEach(os => {
+              if (os.selected) {
+                os.repos.forEach(function (repo) {
+                  allRepos.push(Em.Object.create({
+                    base_url: repo.downloadUrl,
+                    os_type: os.type,
+                    repo_id: repo.repoId
+                  }));
+                });
               }
-            }, this);
+            })
+          } else { //repos have not been customized, so use default info
+            const rmp = registeredMpacks.find(rmp => rmp.MpackInfo.mpack_name === mpack.name && rmp.MpackInfo.mpack_version === mpack.version);
+            if (rmp) {
+              rmp.operating_systems.forEach(os => {
+                os.OperatingSystems.repositories.forEach(function (repo) {
+                  allRepos.push(Em.Object.create({
+                    base_url: repo.base_url,
+                    os_type: repo.os_type,
+                    repo_id: repo.repo_id
+                  }));
+                })
+              })  
+            }
           }
-        }, this);
-      }
+        });
+      }  
       allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
       this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
       this.get('clusterInfo').set('repoInfo', allRepos);

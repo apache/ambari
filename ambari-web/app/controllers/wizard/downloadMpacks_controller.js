@@ -86,14 +86,14 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
           failureMessage = request.statusText;
           break;  
         default:
-          failureMessage = Em.i18n.t('installer.downloadMpacks.failure.default');
+          failureMessage = Em.I18n.t('installer.downloadMpacks.failure.default');
       }
       
       this.get('mpacks').findProperty('name', params.name).set('failureMessage', failureMessage);
     }
   },
 
-  loadMpackInfo(data) {
+  loadMpackInfo: function (data) {
     App.ajax.send({
       name: 'mpack.get_registered_mpack',
       sender: this,
