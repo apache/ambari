@@ -53,7 +53,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.hooks.HookContext;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
@@ -72,17 +71,11 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.registry.RegistryManager;
-import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ClusterSettingFactory;
-import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
-import org.apache.ambari.server.topology.ComponentResolver;
-import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
@@ -850,13 +843,6 @@ public class UserResourceProviderTest extends EasyMockSupport {
       binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
       binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
-      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
-      binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
-      binder.bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
-      binder.bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
-      binder.bind(ComponentResolver.class).toInstance(createNiceMock(ComponentResolver.class));
-      binder.bind(ServiceGroupFactory.class).toInstance(createNiceMock(ServiceGroupFactory.class));
-      binder.bind(StackFactory.class).toInstance(createNiceMock(StackFactory.class));
     }
  }
 }

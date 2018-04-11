@@ -56,14 +56,11 @@ import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
-import org.apache.ambari.server.actionmanager.RequestFactory;
-import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
-import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
@@ -81,7 +78,6 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -92,17 +88,13 @@ import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
-import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -112,7 +104,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
@@ -129,14 +120,10 @@ import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
-import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
-import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.MapUtils;
 import org.easymock.Capture;
@@ -145,8 +132,6 @@ import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -613,42 +598,29 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder(PreconfigureKerberosActionTest.this)
+        PartialNiceMockBinder.newBuilder(
+            PreconfigureKerberosActionTest.this).addAmbariMetaInfoBinding()
             .addActionDBAccessorConfigsBindings().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
-        bind(UpgradeContextFactory.class).toInstance(createMock(UpgradeContextFactory.class));
         bind(OsFamily.class).toInstance(createMock(OsFamily.class));
         bind(StackManagerFactory.class).toInstance(createMock(StackManagerFactory.class));
-        bind(MpackManagerFactory.class).toInstance(createMock(MpackManagerFactory.class));
-        bind(RootLevelSettingsManagerFactory.class).toInstance(createMock(RootLevelSettingsManagerFactory.class));
-        bind(StageFactory.class).toInstance(createMock(StageFactory.class));
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
         bind(AmbariCustomCommandExecutionHelper.class).toInstance(createMock(AmbariCustomCommandExecutionHelper.class));
         bind(ActionManager.class).toInstance(createMock(ActionManager.class));
         bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
-        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(ArtifactDAO.class).toInstance(createNiceMock(ArtifactDAO.class));
         bind(KerberosPrincipalDAO.class).toInstance(createNiceMock(KerberosPrincipalDAO.class));
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
-        bind(RoleGraphFactory.class).toInstance(createMock(RoleGraphFactory.class));
-        bind(RequestFactory.class).toInstance(createMock(RequestFactory.class));
-        bind(RequestExecutionFactory.class).toInstance(createMock(RequestExecutionFactory.class));
-        bind(CredentialStoreService.class).toInstance(createMock(CredentialStoreService.class));
         bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
-        bind(ConfigFactory.class).toInstance(createMock(ConfigFactory.class));
-        bind(PersistedState.class).toInstance(createMock(PersistedState.class));
-        bind(ConfigureClusterTaskFactory.class).toInstance(createNiceMock(ConfigureClusterTaskFactory.class));
         bind(Configuration.class).toInstance(new Configuration(new Properties()));
-        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
         bind(HookService.class).to(UserHookService.class);
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
 
-        bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
         bind(KerberosHelper.class).to(KerberosHelperImpl.class);
         bind(Clusters.class).toInstance(createMock(Clusters.class));
         bind(StackAdvisorHelper.class).toInstance(createMock(StackAdvisorHelper.class));
@@ -659,9 +631,6 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
 
         install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class)
             .build(HookContextFactory.class));
-        install(new FactoryModuleBuilder().implement(
-            ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
-            ServiceComponentHostFactory.class));
         install(new FactoryModuleBuilder().implement(
             ServiceComponent.class, ServiceComponentImpl.class).build(
             ServiceComponentFactory.class));
