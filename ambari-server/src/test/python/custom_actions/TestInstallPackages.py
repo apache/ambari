@@ -1276,3 +1276,10 @@ class TestInstallPackages(RMFTestCase):
       )
 
       self.assertNoMoreResources()
+
+  def test_os_family_check_with_inheritance(self):
+    from ambari_commons.os_check import OSConst
+    from ambari_commons.repo_manager import ManagerFactory
+    self.assertEquals(
+      ManagerFactory.get_new_instance(OSConst.DEBIAN_FAMILY).__class__,
+      ManagerFactory.get_new_instance(OSConst.UBUNTU_FAMILY).__class__)

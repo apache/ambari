@@ -59,14 +59,13 @@ class ManagerFactory(object):
     if not os_family:
       os_family = OSCheck.get_os_family()
 
-    construct_rules = {
-      OSConst.UBUNTU_FAMILY: AptManager,
-      OSConst.DEBIAN_FAMILY: AptManager,
-      OSConst.SUSE_FAMILY: ZypperManager,
-      OSConst.REDHAT_FAMILY: YumManager,
-      OSConst.WINSRV_FAMILY: ChocoManager
-    }
-    if os_family in construct_rules:
-      return construct_rules[os_family]()
+    if OSCheck.is_in_family(os_family, OSConst.UBUNTU_FAMILY):
+      return AptManager()
+    if OSCheck.is_in_family(os_family, OSConst.SUSE_FAMILY):
+      return ZypperManager()
+    if OSCheck.is_in_family(os_family, OSConst.REDHAT_FAMILY):
+      return YumManager()
+    if OSCheck.is_in_family(os_family, OSConst.WINSRV_FAMILY):
+      return ChocoManager()
 
     raise RuntimeError("Not able to create Repository Manager object for unsupported OS family {0}".format(os_family))
