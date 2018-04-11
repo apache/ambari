@@ -390,7 +390,7 @@ class ExecutionCommand(object):
   def check_only_update_files(self):
     return self.__get_value('commandParams/update_files_only', False)
 
-  def get_ha_node_role(self):
+  def get_desired_namenode_role(self):
     """
     The desired role is only available during a Non-Rolling Upgrade in HA.
     The server calculates which of the two NameNodes will be the active,
