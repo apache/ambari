@@ -164,7 +164,8 @@ module.exports = [
     viewName: 'YARNMemoryPieChartView',
     sourceName: 'YARN',
     title: Em.I18n.t('dashboard.widgets.YARNMemory'),
-    threshold: [50, 75]
+    threshold: [50, 75],
+    isHiddenByDefault: true
   },
   {
     id: 21,
@@ -201,5 +202,12 @@ module.exports = [
     sourceName: 'PXF',
     title: Em.I18n.t('dashboard.widgets.PxfUp'),
     threshold: []
-  }
+  },
+  {
+    id: 26,
+    viewName: 'YarnContainersView',
+    sourceName: 'YARN',
+    title: Em.I18n.t('dashboard.widgets.YarnContainers'),
+    threshold: []
+  },
 ];

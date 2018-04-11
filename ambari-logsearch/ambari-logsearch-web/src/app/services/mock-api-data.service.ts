@@ -25,25 +25,25 @@ import * as moment from 'moment';
 import {mockDataGet} from "@mockdata/mock-data-get";
 import {mockDataPost} from "@mockdata/mock-data-post";
 
-export class mockBackendService extends InMemoryBackendService {
+export class MockBackendService extends InMemoryBackendService {
   getLocation(url: string): any {
     return super.getLocation(url);
   }
 }
 
-export class mockApiDataService implements InMemoryDbService {
+export class MockApiDataService implements InMemoryDbService {
 
   private filterByMessage = (value: string, filterValue: string): boolean => {
     return value.toLowerCase().indexOf(filterValue.toLowerCase()) > -1;
-  };
+  }
 
   private filterByStartTime = (value: number, filterValue: number | string | Date | moment.Moment): boolean => {
     return value >= moment(filterValue).valueOf();
-  };
+  }
 
   private filterByEndTime = (value: number, filterValue: number | string | Date | moment.Moment): boolean => {
     return value <= moment(filterValue).valueOf();
-  };
+  }
 
   private readonly filterMap = {
     'api/v1/service/logs': {
@@ -109,7 +109,7 @@ export class mockApiDataService implements InMemoryDbService {
   };
 
   parseUrl(url: string): any {
-    const urlLocation = mockBackendService.prototype.getLocation(url),
+    const urlLocation = MockBackendService.prototype.getLocation(url),
       query = urlLocation.search && new URLSearchParams(urlLocation.search.substr(1), {
           encodeKey: key => key,
           encodeValue: value => value
@@ -127,8 +127,8 @@ export class mockApiDataService implements InMemoryDbService {
 
   private findDataByUrlPatter(path: string, mockDataObj: {[key: string]: any}): {[key: string]: any} | undefined | Function {
     const paths: string[] = Object.keys(mockDataObj);
-    const matchedPath:string = paths.find((key:string):boolean => {
-      const test:RegExp = new RegExp(key);
+    const matchedPath: string = paths.find((key: string): boolean => {
+      const test: RegExp = new RegExp(key);
       return test.test(path);
     });
     return mockDataObj[matchedPath];
@@ -147,7 +147,7 @@ export class mockApiDataService implements InMemoryDbService {
       if (typeof allData === 'function') {
         allData = allData(query, interceptorArgs.requestInfo.req);
       }
-      let is404 = !allData;
+      const is404 = !allData;
 
       if (is404) {
         return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(
@@ -200,8 +200,8 @@ export class mockApiDataService implements InMemoryDbService {
             filteredData[filterMapItem.totalCountKey] = filteredCollection.length;
           }
           if (query && query.paramsMap.has('page') && query.paramsMap.has('pageSize')) {
-            const page = parseInt(query.paramsMap.get('page')[0]),
-              pageSize = parseInt(query.paramsMap.get('pageSize')[0]);
+            const page = parseInt(query.paramsMap.get('page')[0], 0),
+              pageSize = parseInt(query.paramsMap.get('pageSize')[0], 0);
             filteredCollection = filteredCollection.slice(page * pageSize, (page + 1) * pageSize);
           }
           filteredData[pathToCollection] = filteredCollection;
@@ -231,7 +231,7 @@ export class mockApiDataService implements InMemoryDbService {
     if (typeof responseBody === 'function') {
       responseBody = responseBody(query, interceptorArgs.requestInfo.req);
     }
-    let is404 = !responseBody;
+    const is404 = !responseBody;
 
     if (is404) {
       return new Observable<Response>((subscriber: Subscriber<Response>) => subscriber.error(

@@ -33,7 +33,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandler;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
@@ -42,6 +42,7 @@ import org.apache.ambari.server.security.authentication.AmbariUserAuthentication
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,6 +50,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
@@ -57,12 +59,14 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
 
 /**
- * AmbariBasicAuthenticationFilter  is used to validate JWT token and authenticate users.
+ * AmbariJwtAuthenticationFilter is used to validate JWT token and authenticate users.
  * <p>
  * This authentication filter is expected to be used withing an {@link AmbariDelegatingAuthenticationFilter}.
  *
  * @see AmbariDelegatingAuthenticationFilter
  */
+@Component
+@Order(1)
 public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariJwtAuthenticationFilter.class);
 
@@ -77,44 +81,26 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
   private final AuthenticationEntryPoint ambariEntryPoint;
 
   /**
-   * The /JWT authentication provider
+   * The JWT authentication provider
    */
   private final AuthenticationProvider authenticationProvider;
 
   /**
-   * Authentication properties for JWT authenticatioin
-   * <p>
-   * If null JWT authentication has not been enabled
+   * Authentication properties provider for JWT authentication
    */
-  private final JwtAuthenticationProperties jwtProperties;
+  private final JwtAuthenticationPropertiesProvider propertiesProvider;
 
-  /**
-   * The name of the HTTP cookie containing the authentication token
-   */
-  private final String jwtCookieName;
-
-  /**
-   * The expected/allowed JWT audiences
-   * <p>
-   * If empty, any audience is allowed
-   */
-  private final List<String> audiences;
-
-  /**
-   * The public key of the token producer, used to verify the signed token
-   */
-  private final RSAPublicKey publicKey;
 
   /**
    * Constructor.
    *
-   * @param ambariEntryPoint the Spring entry point
-   * @param configuration    the Ambari configuration
-   * @param eventHandler     the Ambari authentication event handler
+   * @param ambariEntryPoint   the Spring entry point
+   * @param propertiesProvider a provider for the SSO-related Ambari configuration
+   * @param eventHandler       the Ambari authentication event handler
    */
   AmbariJwtAuthenticationFilter(AuthenticationEntryPoint ambariEntryPoint,
-                                Configuration configuration,
-                                AuthenticationProvider authenticationProvider,
+                                JwtAuthenticationPropertiesProvider propertiesProvider,
+                                AmbariJwtAuthenticationProvider authenticationProvider,
                                 AmbariAuthenticationEventHandler eventHandler) {
     if (eventHandler == null) {
       throw new IllegalArgumentException("The AmbariAuthenticationEventHandler must not be null");
@@ -123,24 +109,14 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
     this.ambariEntryPoint = ambariEntryPoint;
     this.eventHandler = eventHandler;
 
-    this.jwtProperties = configuration.getJwtProperties();
+    this.propertiesProvider = propertiesProvider;
     this.authenticationProvider = authenticationProvider;
-
-    if (jwtProperties == null) {
-      this.jwtCookieName = null;
-      this.audiences = null;
-      this.publicKey = null;
-    } else {
-      this.jwtCookieName = jwtProperties.getCookieName();
-      this.audiences = jwtProperties.getAudiences();
-      this.publicKey = jwtProperties.getPublicKey();
-    }
   }
 
   /**
    * Tests to see if this JwtAuthenticationFilter shold be applied in the authentication
    * filter chain.
-   * <p>
+   *
    * <code>true</code> will be returned if JWT authentication is enabled and the HTTP request contains
    * a JWT authentication token cookie; otherwise <code>false</code> will be returned.
    *
@@ -151,7 +127,8 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
   public boolean shouldApply(HttpServletRequest httpServletRequest) {
     boolean shouldApply = false;
 
-    if (jwtProperties != null) {
+    JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+    if (jwtProperties != null && jwtProperties.isEnabledForAmbari()) {
       String serializedJWT = getJWTFromCookie(httpServletRequest);
       shouldApply = (serializedJWT != null && isAuthenticationRequired(serializedJWT));
     }
@@ -165,7 +142,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
   }
 
   @Override
-  public void init(FilterConfig filterConfig) throws ServletException {
+  public void init(FilterConfig filterConfig) {
 
   }
 
@@ -181,11 +158,10 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
 
-    if (eventHandler != null) {
-      eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
-    }
+    eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
 
-    if (jwtProperties == null) {
+    JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+    if (jwtProperties == null || !jwtProperties.isEnabledForAmbari()) {
       //disable filter if not configured
       chain.doFilter(servletRequest, servletResponse);
       return;
@@ -208,9 +184,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
             Authentication authentication = authenticationProvider.authenticate(new JwtAuthenticationToken(userName, serializedJWT, null));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            if (eventHandler != null) {
-              eventHandler.onSuccessfulAuthentication(this, httpServletRequest, httpServletResponse, authentication);
-            }
+            eventHandler.onSuccessfulAuthentication(this, httpServletRequest, httpServletResponse, authentication);
           } else {
             throw new BadCredentialsException("Invalid JWT token");
           }
@@ -229,17 +203,14 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
       //clear security context if authentication was required, but failed
       SecurityContextHolder.clearContext();
 
-      if (eventHandler != null) {
-        AmbariAuthenticationException cause;
-
-        if (e instanceof AmbariAuthenticationException) {
-          cause = (AmbariAuthenticationException) e;
-        } else {
-          cause = new AmbariAuthenticationException(null, e.getMessage(), false, e);
-        }
-
-        eventHandler.onUnsuccessfulAuthentication(this, httpServletRequest, httpServletResponse, cause);
+      AmbariAuthenticationException cause;
+      if (e instanceof AmbariAuthenticationException) {
+        cause = (AmbariAuthenticationException) e;
+      } else {
+        cause = new AmbariAuthenticationException(null, e.getMessage(), false, e);
       }
+
+      eventHandler.onUnsuccessfulAuthentication(this, httpServletRequest, httpServletResponse, cause);
 
       //used to indicate authentication failure, not used here as we have more than one filter
       ambariEntryPoint.commence(httpServletRequest, httpServletResponse, e);
@@ -283,6 +254,12 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
     String serializedJWT = null;
     Cookie[] cookies = req.getCookies();
     if (cookies != null) {
+      JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+      String jwtCookieName = (jwtProperties == null) ? null : jwtProperties.getCookieName();
+      if (StringUtils.isEmpty(jwtCookieName)) {
+        jwtCookieName = AmbariServerConfigurationKey.SSO_JWT_COOKIE_NAME.getDefaultValue();
+      }
+
       for (Cookie cookie : cookies) {
         if (jwtCookieName.equals(cookie.getName())) {
           LOG.info("{} cookie has been found and is being processed", jwtCookieName);
@@ -335,16 +312,23 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
       LOG.debug("JWT token is in a SIGNED state");
       if (jwtToken.getSignature() != null) {
         LOG.debug("JWT token signature is not null");
-        try {
-          JWSVerifier verifier = new RSASSAVerifier(publicKey);
-          if (jwtToken.verify(verifier)) {
-            valid = true;
-            LOG.debug("JWT token has been successfully verified");
-          } else {
-            LOG.warn("JWT signature verification failed.");
+
+        JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+        RSAPublicKey publicKey = (jwtProperties == null) ? null : jwtProperties.getPublicKey();
+        if (publicKey == null) {
+          LOG.warn("SSO server public key has not be set, validation of the JWT token cannot be performed.");
+        } else {
+          try {
+            JWSVerifier verifier = new RSASSAVerifier(publicKey);
+            if (jwtToken.verify(verifier)) {
+              valid = true;
+              LOG.debug("JWT token has been successfully verified");
+            } else {
+              LOG.warn("JWT signature verification failed.");
+            }
+          } catch (JOSEException je) {
+            LOG.warn("Error while validating signature", je);
           }
-        } catch (JOSEException je) {
-          LOG.warn("Error while validating signature", je);
         }
       }
     }
@@ -363,6 +347,9 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
     boolean valid = false;
     try {
       List<String> tokenAudienceList = jwtToken.getJWTClaimsSet().getAudience();
+      JwtAuthenticationProperties jwtProperties = propertiesProvider.getProperties();
+      List<String> audiences = (jwtProperties == null) ? null : jwtProperties.getAudiences();
+
       // if there were no expected audiences configured then just
       // consider any audience acceptable
       if (audiences == null) {

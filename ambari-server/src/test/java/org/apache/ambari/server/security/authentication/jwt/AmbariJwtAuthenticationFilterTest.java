@@ -61,7 +61,6 @@ import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -105,6 +104,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     properties.setCookieName("non-default");
     properties.setPublicKey(publicKey);
     properties.setAudiences(audiences);
+    properties.setEnabledForAmbari(true);
 
     return properties;
   }
@@ -173,14 +173,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     expect(request.getCookies()).andReturn(new Cookie[]{cookie});
 
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     String jwtFromCookie = filter.getJWTFromCookie(request);
 
     verifyAll();
@@ -190,14 +190,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testValidateSignature() throws Exception {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertTrue(filter.validateSignature(getSignedToken()));
     assertFalse(filter.validateSignature(getInvalidToken()));
 
@@ -206,14 +206,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testValidateAudiences() throws Exception {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
 
     assertTrue(filter.validateAudiences(getSignedToken()));
     assertFalse(filter.validateAudiences(getInvalidToken()));
@@ -223,14 +223,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testValidateNullAudiences() throws Exception {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties(null)).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties(null)).anyTimes();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertTrue(filter.validateAudiences(getSignedToken()));
     assertTrue(filter.validateAudiences(getInvalidToken()));
 
@@ -239,14 +239,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testValidateTokenWithoutAudiences() throws Exception {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertFalse(filter.validateAudiences(getSignedToken(null)));
 
     verifyAll();
@@ -254,14 +254,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testValidateExpiration() throws Exception {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertTrue(filter.validateExpiration(getSignedToken()));
     assertFalse(filter.validateExpiration(getInvalidToken()));
 
@@ -270,14 +270,14 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testValidateNoExpiration() throws Exception {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
 
     assertTrue(filter.validateExpiration(getSignedToken(null, "test-audience")));
     assertFalse(filter.validateExpiration(getInvalidToken()));
@@ -287,8 +287,8 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testShouldApplyTrue() throws JOSEException {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     SignedJWT token = getInvalidToken();
 
@@ -303,7 +303,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertTrue(filter.shouldApply(request));
 
     verifyAll();
@@ -311,8 +311,8 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testShouldApplyTrueBadToken() throws JOSEException {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     Cookie cookie = createMock(Cookie.class);
     expect(cookie.getName()).andReturn("non-default").atLeastOnce();
@@ -325,7 +325,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertTrue(filter.shouldApply(request));
 
     verifyAll();
@@ -333,8 +333,8 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testShouldApplyFalseMissingCookie() throws JOSEException {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     Cookie cookie = createMock(Cookie.class);
     expect(cookie.getName()).andReturn("some-other-cookie").atLeastOnce();
@@ -346,7 +346,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertFalse(filter.shouldApply(request));
 
     verifyAll();
@@ -354,8 +354,8 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testShouldApplyFalseNotEnabled() throws JOSEException {
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(null).anyTimes();
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(null).anyTimes();
 
     HttpServletRequest request = createMock(HttpServletRequest.class);
 
@@ -363,7 +363,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, configuration, null, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(null, jwtAuthenticationPropertiesProvider, null, eventHandler);
     assertFalse(filter.shouldApply(request));
 
     verify(request);
@@ -371,7 +371,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
   @Test(expected = IllegalArgumentException.class)
   public void ensureNonNullEventHandler() {
-    new AmbariJwtAuthenticationFilter(createNiceMock(AmbariEntryPoint.class), createNiceMock(Configuration.class), createNiceMock(AuthenticationProvider.class), null);
+    new AmbariJwtAuthenticationFilter(createNiceMock(AmbariEntryPoint.class), createNiceMock(JwtAuthenticationPropertiesProvider.class), createNiceMock(AmbariJwtAuthenticationProvider.class), null);
   }
 
   @Test
@@ -380,8 +380,10 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     SignedJWT token = getSignedToken();
 
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
+
     Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
     expect(configuration.getMaxAuthenticationFailures()).andReturn(10).anyTimes();
 
     HttpServletRequest request = createMock(HttpServletRequest.class);
@@ -431,7 +433,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     replayAll();
 
     AmbariJwtAuthenticationProvider provider = new AmbariJwtAuthenticationProvider(users, configuration);
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(entryPoint, configuration, provider, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(entryPoint, jwtAuthenticationPropertiesProvider, provider, eventHandler);
     filter.doFilter(request, response, filterChain);
 
     verifyAll();
@@ -449,8 +451,10 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     SignedJWT token = getSignedToken();
 
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getJwtProperties()).andReturn(createTestProperties()).anyTimes();
+    Configuration configuration = createMock(Configuration.class);
+
+    JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider = createMock(JwtAuthenticationPropertiesProvider.class);
+    expect(jwtAuthenticationPropertiesProvider.getProperties()).andReturn(createTestProperties()).anyTimes();
 
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
@@ -479,7 +483,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     replayAll();
 
     AmbariJwtAuthenticationProvider provider = new AmbariJwtAuthenticationProvider(users, configuration);
-    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(entryPoint, configuration, provider, eventHandler);
+    AmbariJwtAuthenticationFilter filter = new AmbariJwtAuthenticationFilter(entryPoint, jwtAuthenticationPropertiesProvider, provider, eventHandler);
     filter.doFilter(request, response, filterChain);
 
     verifyAll();

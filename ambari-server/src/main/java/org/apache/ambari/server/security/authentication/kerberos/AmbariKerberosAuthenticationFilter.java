@@ -32,6 +32,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandler;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Component;
  * If configured, auditing is performed using {@link AuditLogger}.
  */
 @Component
+@Order(2)
 public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProcessingFilter implements AmbariAuthenticationFilter {
 
   /**

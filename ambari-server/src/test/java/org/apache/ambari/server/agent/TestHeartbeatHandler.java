@@ -1340,7 +1340,7 @@ public class TestHeartbeatHandler {
     expect(nnComponent.getDesiredStackId()).andReturn(dummyStackId).atLeastOnce();
     componentMap.put("NAMENODE", nnComponent);
 
-    expect(service.getServiceComponents()).andReturn(componentMap);
+    expect(service.getServiceComponents()).andReturn(componentMap).atLeastOnce();
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
 

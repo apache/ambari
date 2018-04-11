@@ -20,7 +20,11 @@ const App = require('app');
 
 App.NameNodeWidgetMixin = Em.Mixin.create({
 
+  groupId: 'nn',
+
   subGroupId: 'default',
+
+  isAllItemsSubGroup: false,
 
   componentGroup: Em.computed.findByKey('model.masterComponentGroups', 'name', 'subGroupId'),
 

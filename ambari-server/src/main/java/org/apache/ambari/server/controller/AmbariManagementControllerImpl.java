@@ -2371,8 +2371,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 RepositoryVersionEntity repoVersion,
                                 boolean isUpgradeSuspended,
                                 DatabaseType databaseType,
-                                Map<String, DesiredConfig> clusterDesiredConfigs
-                                )
+                                Map<String, DesiredConfig> clusterDesiredConfigs,
+                                boolean useLatestConfigs)
                                 throws AmbariException {
 
     String serviceName = scHost.getServiceName();
@@ -2616,6 +2616,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
         execCmd.getHostname(), execCmd.getRole(), execCmd.getRoleCommand(), execCmd.getCommandId(), execCmd.getConfigurationTags().get("cluster-env").get("tag"));
     }
+    if (useLatestConfigs) {
+      execCmd.setUseLatestConfigs(useLatestConfigs);
+    }
   }
 
   /**
@@ -2722,7 +2725,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
       Map<String, String> requestParameters,
       Map<String, String> requestProperties,
-      boolean runSmokeTest, boolean reconfigureClients)
+      boolean runSmokeTest, boolean reconfigureClients, boolean useLatestConfigs)
       throws AmbariException {
 
 
@@ -3109,7 +3112,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
                 roleCommand, requestParameters, event, skipFailure, repoVersion, isUpgradeSuspended,
-                databaseType, clusterDesiredConfigs);
+                databaseType, clusterDesiredConfigs, useLatestConfigs);
             }
 
           }
@@ -3141,7 +3144,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
 
         customCommandExecutionHelper.addServiceCheckAction(stage, clientHost, smokeTestRole,
-            nowTimestamp, serviceName, componentName, null, false, false);
+            nowTimestamp, serviceName, componentName, null, false, false, useLatestConfigs);
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -3266,7 +3269,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
                      roleCommand, null, null, false, repoVersion, isUpgradeSuspended, databaseType,
-                     clusterDesiredConfigs);
+                     clusterDesiredConfigs, false);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
     // createHostAction does not take a hostLevelParams but creates one
@@ -3461,7 +3464,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                                       boolean runSmokeTest, boolean reconfigureClients) throws AmbariException {
 
     RequestStageContainer request = addStages(null, cluster, requestProperties, requestParameters, changedServices,
-      changedComponents, changedHosts, ignoredHosts, runSmokeTest, reconfigureClients);
+      changedComponents, changedHosts, ignoredHosts, runSmokeTest, reconfigureClients, false);
 
     request.persist();
     return request.getRequestStatusResponse();
@@ -3473,7 +3476,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                  Map<State, List<ServiceComponent>> changedComponents,
                                  Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
                                  Collection<ServiceComponentHost> ignoredHosts, boolean runSmokeTest,
-                                 boolean reconfigureClients) throws AmbariException {
+                                 boolean reconfigureClients, boolean useGeneratedConfigs) throws AmbariException {
 
     if (requestStages == null) {
       requestStages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
@@ -3481,7 +3484,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     requestStages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
         changedHosts, requestParameters, requestProperties,
-        runSmokeTest, reconfigureClients);
+        runSmokeTest, reconfigureClients, useGeneratedConfigs);
 
     updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
 

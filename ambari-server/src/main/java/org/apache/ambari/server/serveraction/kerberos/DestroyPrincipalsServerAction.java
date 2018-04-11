@@ -139,6 +139,7 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
           if (principalEntity != null) {
             String cachedKeytabPath = principalEntity.getCachedKeytabPath();
             KerberosKeytabEntity kke = kerberosKeytabDAO.find(resolvedPrincipal.getResolvedKerberosKeytab().getFile());
+            kerberosKeytabPrincipalDAO.remove(kerberosKeytabPrincipalDAO.findByPrincipal(principalEntity.getPrincipalName()));
             kerberosKeytabDAO.remove(kke);
             kerberosPrincipalDAO.remove(principalEntity);
 

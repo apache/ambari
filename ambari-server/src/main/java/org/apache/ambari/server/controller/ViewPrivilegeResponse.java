@@ -54,7 +54,7 @@ public class ViewPrivilegeResponse extends PrivilegeResponse implements ApiModel
     return type;
   }
 
-  public interface Wrapper extends ApiModel {
+  public interface ViewPrivilegeResponseWrapper extends ApiModel {
     @ApiModelProperty(name = ViewPrivilegeResourceProvider.PRIVILEGE_INFO)
     @SuppressWarnings("unused")
     ViewPrivilegeResponse getViewPrivilegeResponse();

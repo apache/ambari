@@ -74,7 +74,7 @@ public class AgentCommandsPublisher {
   private HostRoleCommandDAO hostRoleCommandDAO;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private AgentConfigsHolder agentConfigsHolder;
@@ -93,7 +93,7 @@ public class AgentCommandsPublisher {
         executionCommandEvent.setHostId(hostId);
         executionCommandEvent.setRequiredConfigTimestamp(agentConfigsHolder
             .initializeDataIfNeeded(hostId, true).getTimestamp());
-        stateUpdateEventPublisher.publish(executionCommandEvent);
+        STOMPUpdatePublisher.publish(executionCommandEvent);
       }
     }
   }

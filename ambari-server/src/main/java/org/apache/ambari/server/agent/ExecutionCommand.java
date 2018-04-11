@@ -195,6 +195,9 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("roleParameters")
   private Map<String, Object> roleParameters;
 
+  @SerializedName("useLatestConfigs")
+  private Boolean useLatestConfigs = null;
+
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
   }
@@ -474,6 +477,15 @@ public class ExecutionCommand extends AgentCommand {
    */
   public void setRoleParameters(Map<String, Object> params) {
     roleParameters = params;
+  }
+
+
+  public Boolean getUseLatestConfigs() {
+    return useLatestConfigs;
+  }
+
+  public void setUseLatestConfigs(Boolean useLatestConfigs) {
+    this.useLatestConfigs = useLatestConfigs;
   }
 
   /**

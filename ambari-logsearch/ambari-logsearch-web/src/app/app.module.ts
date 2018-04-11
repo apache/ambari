@@ -38,7 +38,7 @@ import {ShipperModule} from '@modules/shipper/shipper.module';
 
 import {ServiceInjector} from '@app/classes/service-injector';
 
-import {mockApiDataService} from '@app/services/mock-api-data.service';
+import {MockApiDataService} from '@app/services/mock-api-data.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -123,7 +123,7 @@ export function getXHRBackend(
   } else {
     return new InMemoryBackendService(
       injector,
-      new mockApiDataService(),
+      new MockApiDataService(),
       {
         passThruUnknownUrl: true,
         rootPath: ''

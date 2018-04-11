@@ -27,7 +27,7 @@ import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class AlertGroupsUpdateListener {
   private static final Logger LOG = LoggerFactory.getLogger(AlertGroupsUpdateListener.class);
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private AlertDispatchDAO alertDispatchDAO;
@@ -64,6 +64,6 @@ public class AlertGroupsUpdateListener {
         alertGroupUpdates.add(alertGroupUpdate);
       }
     }
-    stateUpdateEventPublisher.publish(new AlertGroupsUpdateEvent(alertGroupUpdates, UpdateEventType.UPDATE));
+    STOMPUpdatePublisher.publish(new AlertGroupsUpdateEvent(alertGroupUpdates, UpdateEventType.UPDATE));
   }
 }

@@ -317,7 +317,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       throw new IllegalArgumentException("Received an update request with no properties");
     }
 
-    RequestStageContainer requestStages = doUpdateResources(null, request, predicate, false);
+    RequestStageContainer requestStages = doUpdateResources(null, request, predicate, false, false);
 
     RequestStatusResponse response = null;
     if (requestStages != null) {
@@ -401,7 +401,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     try {
       LOG.info("Installing all components on host: " + hostname);
-      requestStages = doUpdateResources(null, installRequest, installPredicate, true);
+
+      // we need send special parameters to send install/start commands with configs
+      requestStages = doUpdateResources(null, installRequest, installPredicate, true, true);
       notifyUpdate(Resource.Type.HostComponent, installRequest, installPredicate);
       try {
         requestStages.persist();
@@ -478,7 +480,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
 
-      requestStages = doUpdateResources(null, startRequest, startPredicate, true);
+      requestStages = doUpdateResources(null, startRequest, startPredicate, true, true);
       notifyUpdate(Resource.Type.HostComponent, startRequest, startPredicate);
       try {
         requestStages.persist();
@@ -514,7 +516,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   protected RequestStageContainer updateHostComponents(RequestStageContainer stages,
                                                                     Set<ServiceComponentHostRequest> requests,
                                                                     Map<String, String> requestProperties,
-                                                                    boolean runSmokeTest) throws AmbariException, AuthorizationException {
+                                                                    boolean runSmokeTest, boolean useGeneratedConfigs) throws AmbariException, AuthorizationException {
 
     Clusters clusters = getManagementController().getClusters();
 
@@ -694,7 +696,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     return getManagementController().addStages(
         stages, cluster, requestProperties, null, null, null,
-        changedScHosts, ignoredScHosts, runSmokeTest, false);
+        changedScHosts, ignoredScHosts, runSmokeTest, false, useGeneratedConfigs);
   }
 
   @Override
@@ -790,7 +792,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @throws NoSuchParentResourceException  a specified parent resource doesn't exist
    */
   private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
-                                                  Predicate predicate, boolean performQueryEvaluation)
+                                                  Predicate predicate, boolean performQueryEvaluation, boolean useGeneratedConfigs)
                                                   throws UnsupportedPropertyException,
                                                          SystemException,
                                                          NoSuchResourceException,
@@ -840,7 +842,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         RequestStageContainer stageContainer = null;
         try {
           stageContainer = updateHostComponents(stages, requests, request.getRequestInfoProperties(),
-              runSmokeTest);
+              runSmokeTest, useGeneratedConfigs);
         } catch (Exception e) {
           LOG.info("Caught an exception while updating host components, will not try again: {}", e.getMessage(), e);
           // !!! IllegalArgumentException results in a 400 response, RuntimeException results in 500.
