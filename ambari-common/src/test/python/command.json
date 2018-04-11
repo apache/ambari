@@ -90,7 +90,8 @@
     "stack_version": "1.0.0-b141"
   },
   "ambariLevelParams": {
-    "host_sys_prepped": "false"
+    "host_sys_prepped": "false",
+    "java_version": "8"
   },
   "clusterHostInfo": {
     "ganglia_server_hosts": "host1",

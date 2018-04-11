@@ -32,6 +32,9 @@ class TestExecutionCommand(TestCase):
     try:
       with open(command_data_file) as f:
         self.__execution_command = execution_command.ExecutionCommand(json.load(f))
+        from resource_management.libraries.script import Script
+        Script.execution_command = self.__execution_command
+        Script.module_configs = Script.execution_command.get_module_configs()
     except IOError:
       Logger.error("Can not read json file with command parameters: ")
       sys.exit(1)
@@ -47,6 +50,10 @@ class TestExecutionCommand(TestCase):
   def test_get_ganglia_server_hosts(self):
     ganglia_server_hosts = self.__execution_command.get_component_hosts('ganglia_server')
     self.assertEqual(ganglia_server_hosts, 'host1')
+
+  def test_get_java_version(self):
+    java_version = self.__execution_command.get_java_version()
+    self.assertEqual(java_version, 8)
 
   def test_get_module_configs(self):
     module_configs = self.__execution_command.get_module_configs()
@@ -66,13 +73,16 @@ class TestExecutionCommand(TestCase):
     self.assertEqual(int(properties.get('clientPort')), 2181)
     self.assertEqual(properties.get('fake'), None)
 
+    sqoop = bool(module_configs.get_all_properties("zookeeper", 'sqoop-env'))
+    self.assertFalse(sqoop)
+
   def test_get_stack_name(self):
     stack_name = self.__execution_command.get_mpack_name()
     self.assertEquals(stack_name, "HDPCORE")
 
   def test_access_to_module_configs(self):
     module_configs = self.__execution_command.get_module_configs()
-    is_zoo_cfg_there = module_configs.get_property_value("zookeeper", "zoo.cfg", "") is not None
+    is_zoo_cfg_there = bool(module_configs.get_all_properties("zookeeper", "zoo.cfg"))
     self.assertTrue(is_zoo_cfg_there)
-    zoo_cfg = module_configs.get_property_value("zookeeper", "zoo.cfg", "")
+    zoo_cfg = module_configs.get_all_properties("zookeeper", "zoo.cfg")
     self.assertTrue(isinstance(zoo_cfg, dict))

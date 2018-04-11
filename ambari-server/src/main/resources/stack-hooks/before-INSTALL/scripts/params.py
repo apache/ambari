@@ -65,7 +65,6 @@ hcat_server_hosts = execution_command.get_component_hosts('webhcat_server')
 hive_server_host =  execution_command.get_component_hosts('hive_server')
 hbase_master_hosts = execution_command.get_component_hosts('hbase_master')
 hs_host = execution_command.get_component_hosts('historyserver')
-jtnode_host = execution_command.get_component_hosts('jtnode')
 namenode_host = execution_command.get_component_hosts('namenode')
 zk_hosts = execution_command.get_component_hosts('zookeeper_server')
 ganglia_server_hosts = execution_command.get_component_hosts('ganglia_server')
@@ -88,7 +87,6 @@ has_falcon_server = not len(falcon_host) == 0
 has_tez = bool(module_configs.get_all_properties(module_name, 'tez-site'))
 
 is_namenode_master = hostname in namenode_host
-is_jtnode_master = hostname in jtnode_host
 is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
 is_hbase_master = hostname in hbase_master_hosts
