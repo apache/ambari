@@ -577,8 +577,8 @@ def init_setup_sso_options(parser):
   parser.add_option('--sso-enabled-services', default=None, help="A comma separated list of services that are expected to be configured for SSO (you are allowed to use '*' to indicate ALL services)", dest='sso_enabled_services')
   parser.add_option('--sso-provider-url', default=None, help="The URL of SSO provider; this must be provided when --sso-enabled is set to 'true'", dest="sso_provider_url")
   parser.add_option('--sso-public-cert-file', default=None, help="The path where the public certificate PEM is located; this must be provided when --sso-enabled is set to 'true'", dest="sso_public_cert_file")
-  parser.add_option('--sso-jwt-cookie-name', default=None, help="The name of the JWT cookie", dest="sso_jwt_cookie_name")
-  parser.add_option('--sso-jwt-audience-list', default=None, help="A comma separated list of JWT audience(s)", dest="sso_jwt_audience_list")
+  parser.add_option('--sso-jwt-cookie-name', default="hadoop-jwt", help="The name of the JWT cookie", dest="sso_jwt_cookie_name")
+  parser.add_option('--sso-jwt-audience-list', default="", help="A comma separated list of JWT audience(s)", dest="sso_jwt_audience_list")
   parser.add_option('--ambari-admin-username', default=None, help="Ambari Admin username for LDAP setup", dest="ambari_admin_username")
   parser.add_option('--ambari-admin-password', default=None, help="Ambari Admin password for LDAP setup", dest="ambari_admin_password")
 

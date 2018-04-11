@@ -1173,10 +1173,16 @@ a.services-menu-blocks{
     word-break:break-word;
   }
 
-  .glyphicon.glyphicon-refresh {
+  .glyphicon.glyphicon-refresh, .icon-medkit {
     margin-left: 4px;
     margin-right: 4px;
+    top: 0px;
   }
+
+  .icon-medkit {
+    color: @maintenance-grey;
+  }
+
   .menu-item-name.INSTALLED:not(.client-only-service) {
     color: @health-status-red;
   }
