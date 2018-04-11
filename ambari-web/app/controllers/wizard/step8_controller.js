@@ -1031,12 +1031,14 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   createSelectedServices: function () {
     var data = this.createSelectedServicesData();
-    if (!data.length) return;
-    this.addRequestToAjaxQueue({
-      name: 'wizard.step8.create_selected_services',
-      data: {
-        data: JSON.stringify(data)
-      }
+    data.forEach(service => {
+      this.addRequestToAjaxQueue({
+        name: 'wizard.step8.create_selected_services',
+        data: {
+          serviceGroup: service.ServiceInfo.service_group_name,
+          data: JSON.stringify(service)
+        }
+      });
     });
   },
 
@@ -1069,13 +1071,15 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
     var serviceComponents = App.StackServiceComponent.find();
     this.get('selectedServices').forEach(function (_service) {
       var serviceName = _service.get('serviceName');
+      //TODO - mpacks: when we are supporting user defined service groups, this must be changed
+      const serviceGroup = _service.get('stackName');
       var componentsData = serviceComponents.filterProperty('serviceName', serviceName).map(function (_component) {
         return { "ServiceComponentInfo": { "component_name": _component.get('componentName') } };
       });
 
       // Service must be specified in terms of a query for creating multiple components at the same time.
       // See AMBARI-1018.
-      this.addRequestToCreateComponent(componentsData, serviceName);
+      this.addRequestToCreateComponent(componentsData, serviceName, serviceGroup);
     }, this);
 
     if (this.get('isAddHost')) {
@@ -1088,16 +1092,18 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       this.get('content.slaveComponentHosts').forEach(function (component) {
         if (component.componentName !== 'CLIENT' && !allServiceComponents.contains(component.componentName)) {
           this.addRequestToCreateComponent(
-              [{"ServiceComponentInfo": {"component_name": component.componentName}}],
-              App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('serviceName')
+            [{"ServiceComponentInfo": {"component_name": component.componentName}}],
+            App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('serviceName'),
+            App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('stackName') //TODO - mpacks: when we are supporting user defined service groups, this must be changed
           );
         }
       }, this);
       this.get('content.clients').forEach(function (component) {
         if (!allServiceComponents.contains(component.component_name)) {
           this.addRequestToCreateComponent(
-              [{"ServiceComponentInfo": {"component_name": component.component_name}}],
-              App.StackServiceComponent.find().findProperty('componentName', component.component_name).get('serviceName')
+            [{"ServiceComponentInfo": {"component_name": component.component_name}}],
+            App.StackServiceComponent.find().findProperty('componentName', component.component_name).get('serviceName'),
+            App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('stackName') //TODO - mpacks: when we are supporting user defined service groups, this must be changed
           );
         }
       }, this);
@@ -1109,40 +1115,13 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @param componentsData
    * @param serviceName
    */
-  addRequestToCreateComponent: function (componentsData, serviceName) {
+  addRequestToCreateComponent: function (componentsData, serviceName, serviceGroup) {
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_components',
       data: {
         data: JSON.stringify(componentsData),
-        serviceName: serviceName
-      }
-    });
-  },
-
-  /**
-   * Error callback for new service component request
-   * So, if component doesn't exist we should create it
-   * @param {object} request
-   * @param {object} ajaxOptions
-   * @param {string} error
-   * @param {object} opt
-   * @param {object} params
-   * @method newServiceComponentErrorCallback
-   */
-  newServiceComponentErrorCallback: function (request, ajaxOptions, error, opt, params) {
-    this.addRequestToAjaxQueue({
-      name: 'wizard.step8.create_components',
-      data: {
-        serviceName: params.serviceName,
-        data: JSON.stringify({
-          "components": [
-            {
-              "ServiceComponentInfo": {
-                "component_name": params.componentName
-              }
-            }
-          ]
-        })
+        serviceName: serviceName,
+        serviceGroup: serviceGroup
       }
     });
   },
