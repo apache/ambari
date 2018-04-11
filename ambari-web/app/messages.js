@@ -2327,7 +2327,7 @@ Em.I18n.translations = {
   'services.service.config.configHistory.leftArrow.tooltip': 'Show later versions',
   'services.service.config.configHistory.dismissIcon.tooltip': 'Dismiss',
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
-  'services.service.config.configHistory.comparing': 'Comparing Changes',
+  'services.service.config.configHistory.comparing': 'Comparing Changes in',
   'services.service.config.setRecommendedValue': 'Set Recommended',
   'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with Hive, you must <a href="{3}" target="_blank">' +
     'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
