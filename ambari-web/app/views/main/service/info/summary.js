@@ -166,7 +166,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var self = this;
     if (!this.get('service') || this.get('service.deleteInProgress')) return;
     Em.run.once(self, 'setComponentsContent');
-  }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount'),
+  }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount', 'svc.masterComponentGroups.length'),
 
   loadServiceSummary: function () {
     var serviceName = this.get('serviceName');
@@ -214,12 +214,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       if (Em.isNone(this.get('service'))) {
         return;
       }
-      var masters = this.get('service.hostComponents').filterProperty('isMaster');
-      var slaves = this.get('service.slaveComponents').toArray();
-      var clients = this.get('service.clientComponents').toArray();
+      const masters = this.get('service.hostComponents').filterProperty('isMaster'),
+        slaves = this.get('service.slaveComponents').toArray(),
+        clients = this.get('service.clientComponents').toArray(),
+        masterGroups = this.get('svc') ? this.get('svc.masterComponentGroups').toArray() : [];
 
-      if (this.get('mastersLength') !== masters.length) {
-        const mastersInit = this.get('mastersObj').mapProperty('components').reduce((acc, group) => {
+      if (this.get('mastersLength') !== masters.length || this.get('mastersObj.length') !== masterGroups.length) {
+        let mastersInit = this.get('mastersObj').mapProperty('components').reduce((acc, group) => {
           return [...acc, ...group];
         }, []);
         this.updateComponentList(mastersInit, masters);
@@ -286,8 +287,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   service: null,
 
   svc: function () {
-    var svc = this.get('controller.content');
-    var svcName = svc.get('serviceName');
+    let svc = this.get('controller.content');
+    const svcName = svc ? svc.get('serviceName') : null;
     if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
