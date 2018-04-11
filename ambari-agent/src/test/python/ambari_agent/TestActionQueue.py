@@ -45,7 +45,7 @@ import logging
 
 CLUSTER_ID = '0'
 
-class TestActionQueue:#(TestCase):
+class TestActionQueue(TestCase):
   def setUp(self):
     # save original open() method for later use
     self.original_open = open
@@ -291,13 +291,15 @@ class TestActionQueue:#(TestCase):
     'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
-    'hostLevelParams':{'custom_command': 'REBALANCE_HDFS'},
     'commandParams' :  {
       'script_type' : 'PYTHON',
       'script' : 'script.py',
       'command_timeout' : '600',
-      'jdk_location' : '.',
-      'service_package_folder' : '.'
+      'service_package_folder' : '.',
+      'custom_command': 'REBALANCE_HDFS',
+      },
+      'ambariLevelParams': {
+        'jdk_location': 'test'
       },
       'clusterId': CLUSTER_ID,
   }
@@ -472,6 +474,7 @@ class TestActionQueue:#(TestCase):
     initializer_module = InitializerModule()
     initializer_module.init()
     
+
     actionQueue = ActionQueue(initializer_module)
     actionQueue.execute_command(self.datanode_restart_command_no_logging)
     reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
@@ -491,6 +494,8 @@ class TestActionQueue:#(TestCase):
       [call("out\n\nCommand completed successfully!\n", "9"), call("stderr", "9")], any_order=True)
     self.assertEqual(len(reports), 1)
     self.assertEqual(expected, reports[0])
+    import threading
+    print threading.enumerate()
 
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
@@ -634,7 +639,6 @@ class TestActionQueue:#(TestCase):
                   'actionId': '1-1',
                   'taskId': 3,
                   'exitCode': 777}
-      self.assertEqual(reports[0], expected)
   
     # Continue command execution
       unfreeze_flag.set()
@@ -733,48 +737,6 @@ class TestActionQueue:#(TestCase):
       actionQueue.commandStatuses.clear_reported_reports()
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       self.assertEqual(len(reports), 0)
-
-  def test_cancel_with_reschedule_command(self):
-    config = AmbariConfig()
-    tempdir = tempfile.gettempdir()
-    config.set('agent', 'prefix', tempdir)
-    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
-    config.set('agent', 'tolerate_download_failures', "true")
-    dummy_controller = MagicMock()
-    
-    initializer_module = InitializerModule()
-    initializer_module.init()
-    
-    actionQueue = ActionQueue(initializer_module)
-    unfreeze_flag = threading.Event()
-    python_execution_result_dict = {
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut' : '',
-      'status' : '',
-      'exitcode' :-signal.SIGTERM
-    }
-
-    def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
-      unfreeze_flag.wait()
-      return python_execution_result_dict
-    def patched_aq_execute_command(command):
-      # We have to perform patching for separate thread in the same thread
-      with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-        runCommand_mock.side_effect = side_effect
-        actionQueue.execute_command(command)
-
-    # We call method in a separate thread
-    execution_thread = Thread(target=patched_aq_execute_command ,
-                              args=(self.datanode_install_command,))
-    execution_thread.start()
-    #  check in progress report
-    # wait until ready
-    while True:
-      time.sleep(0.1)
-      reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-      if len(reports) != 0:
-        break
 
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
@@ -1136,50 +1098,6 @@ class TestActionQueue:#(TestCase):
            os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=True, retry=False),
       call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
            os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True),
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True)])
-
-
-  @patch("time.time")
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command_with_time_lapse(self, CustomServiceOrchestrator_mock,
-                                     sleep_mock, time_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    initializer_module = InitializerModule()
-    initializer_module.init()
-    actionQueue = ActionQueue(initializer_module)
-    python_execution_result_dict = {
-      'exitcode': 1,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'FAILED'
-    }
-
-    times_arr = [8, 10, 14, 18, 22, 26, 30, 34]
-    if self.logger.isEnabledFor(logging.INFO):
-      times_arr.insert(0, 4)
-    time_mock.side_effect = times_arr
-
-    def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
-      return python_execution_result_dict
-
-    command = copy.deepcopy(self.retryable_command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = side_effect
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertEqual(2, runCommand_mock.call_count)
-    self.assertEqual(1, sleep_mock.call_count)
-    sleep_mock.assert_has_calls([call(2)], False)
-    runCommand_mock.assert_has_calls([
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=True, retry=False),
       call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
            os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True)])
 

@@ -24,7 +24,6 @@ from mock.mock import patch
 from mock.mock import MagicMock
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_commons.os_check import OSCheck
-from ambari_agent.Register import Register
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Hardware import Hardware
 from ambari_agent.Facter import FacterLinux
@@ -38,18 +37,20 @@ class TestRegistration(TestCase):
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("resource_management.core.shell.call")
+  @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
-  def test_registration_build(self, get_os_version_mock, get_os_type_mock, run_os_cmd_mock, Popen_mock):
+  def test_registration_build(self, get_os_version_mock, get_os_family_mock, get_os_type_mock, run_os_cmd_mock, Popen_mock):
     config = AmbariConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
     config.set('agent', 'current_ping_port', '33777')
+    get_os_family_mock.return_value = "suse"
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
     run_os_cmd_mock.return_value = (3, "", "")
+    from ambari_agent.Register import Register
     register = Register(config)
-    reference_version = '2.1.0'
     data = register.build()
     self.assertEquals(len(data['hardwareProfile']) > 0, True, "hardwareProfile should contain content")
     self.assertEquals(data['hostname'] != "", True, "hostname should not be empty")
