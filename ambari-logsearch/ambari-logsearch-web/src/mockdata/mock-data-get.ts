@@ -33,9 +33,32 @@ import {
   generateServiceLog,
   generateAuditLog
 } from './mock-data-common';
+import Base = moment.unitOfTime.Base;
 
 const currentTime: Moment = moment();
 
+function generateDataCount(from, to, unit, gap) {
+  let current = moment(from);
+  const end = moment(to);
+  const data = [];
+  while (current.isBefore(end)) {
+    data.push({
+      name: current.toISOString(),
+      value: getRandomInt(9000)
+    });
+    current = current.add(gap, unit);
+  }
+  return data;
+}
+
+function generateGraphData(from, to, unit, gap) {
+  return levels.map((level) => {
+    return {
+      dataCount: generateDataCount(from, to, unit, gap),
+      name: level
+    };
+  });
+}
 
 export const mockDataGet = {
   'login': {},
@@ -1447,35 +1470,15 @@ export const mockDataGet = {
       services: services
     }
   },
-  'api/v1/service/logs/histogram': {
-    graphData: [
-      {
-        dataCount: [
-          {
-            name: currentTime.toISOString(),
-            value: '1000'
-          },
-          {
-            name: currentTime.clone().subtract(1, 'h').toISOString(),
-            value: '2000'
-          }
-        ],
-        name: 'ERROR'
-      },
-      {
-        dataCount: [
-          {
-            name: currentTime.toISOString(),
-            value: '700'
-          },
-          {
-            name: currentTime.clone().subtract(1, 'h').toISOString(),
-            value: '900'
-          }
-        ],
-        name: 'WARN'
-      }
-    ]
+  'api/v1/service/logs/histogram': (query: URLSearchParams) => {
+    const unitParam: string[] = decodeURIComponent(query.get('unit')).match(/(\d{1,})([a-zA-Z]{1,})/);
+    const unit: Base = <Base>unitParam[2];
+    const amount: number = parseInt(unitParam[1], 0);
+    const from = moment(decodeURIComponent(query.get('from')));
+    const to = moment(decodeURIComponent(query.get('to')));
+    return {
+      graphData: generateGraphData(from, to, unit, amount)
+    };
   },
   'api/v1/service/logs/hosts': {
     groupList: hosts.map(host => Object.assign({}, {host}))
