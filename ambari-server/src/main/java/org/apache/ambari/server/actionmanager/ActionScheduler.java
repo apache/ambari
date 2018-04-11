@@ -281,8 +281,7 @@ class ActionScheduler implements Runnable {
 
     this(sleepTimeMilliSec, actionTimeoutMilliSec, db, fsmObject, maxAttempts, hostsMap, unitOfWork,
         commandReportEventPublisher, configuration, entityManagerProvider, hostRoleCommandDAO,
-        hostRoleCommandFactory,null,
-            null);
+        hostRoleCommandFactory, null, agentCommandsPublisher);
   }
 
   /**

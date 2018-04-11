@@ -31,6 +31,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
@@ -46,16 +47,20 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -67,6 +72,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
@@ -80,7 +86,9 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.ComponentResolver;
 import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.StackFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.EasyMockSupport;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -121,7 +129,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addAlertDefinitionBinding() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(Cluster.class).toInstance(createNiceMock(Cluster.class));
           binder.bind(DaoUtils.class).toInstance(createNiceMock(DaoUtils.class));
           binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
@@ -131,8 +139,21 @@ public class PartialNiceMockBinder implements Module {
       return this;
     }
 
+    public Builder addAmbariContextBindings() {
+      configurers.add((Binder binder) -> {
+          binder.bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
+          binder.bind(RootLevelSettingsManagerFactory.class).toInstance(easyMockSupport.createNiceMock(RootLevelSettingsManagerFactory.class));
+          binder.bind(ComponentResolver.class).toInstance(easyMockSupport.createNiceMock(ComponentResolver.class));
+          binder.bind(ClusterSettingFactory.class).toInstance(easyMockSupport.createNiceMock(ClusterSettingFactory.class));
+          binder.bind(RegistryManager.class).toInstance(easyMockSupport.createNiceMock(RegistryManager.class));
+          binder.bind(ServiceGroupFactory.class).toInstance(easyMockSupport.createNiceMock(ServiceGroupFactory.class));
+          binder.bind(StackFactory.class).toInstance(easyMockSupport.createNiceMock(StackFactory.class));
+      });
+      return this;
+    }
+
     public Builder addAmbariMetaInfoBinding(AmbariManagementController ambariManagementController) {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(PersistedState.class).toInstance(easyMockSupport.createNiceMock(PersistedState.class));
           binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
           binder.bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
@@ -150,6 +171,7 @@ public class PartialNiceMockBinder implements Module {
       });
       addConfigsBindings();
       addFactoriesInstallBinding();
+      addAmbariContextBindings();
       return this;
     }
 
@@ -157,9 +179,12 @@ public class PartialNiceMockBinder implements Module {
       return addAmbariMetaInfoBinding(easyMockSupport.createNiceMock(AmbariManagementController.class));
     }
 
-    public Builder addAlertDefinitionDAOBinding() {
-      addAmbariMetaInfoBinding();
-      return this;
+    public Builder addAmbariMetaInfoBinding(AmbariMetaInfo ambariMetaInfo) {
+      configurers.add((Binder binder) -> {
+        binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
+      });
+
+      return addAmbariMetaInfoBinding(easyMockSupport.createNiceMock(AmbariManagementController.class));
     }
 
     public Builder addClustersBinding(AmbariManagementController ambariManagementController) {
@@ -173,7 +198,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addDBAccessorBinding(DBAccessor dbAccessor) {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(dbAccessor);
@@ -184,7 +209,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addDBAccessorBinding() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
           binder.bind(EntityManager.class).toInstance(easyMockSupport.createNiceMock(EntityManager.class));
           binder.bind(DBAccessor.class).toInstance(easyMockSupport.createNiceMock(DBAccessor.class));
@@ -202,7 +227,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addHostRoleCommandsConfigsBindings() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_ENABLED)).to(true);
           binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_SIZE)).to(10000L);
           binder.bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES)).to(30L);
@@ -211,7 +236,7 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addActionSchedulerConfigsBindings() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
           binder.bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(1L);
       });
@@ -219,14 +244,14 @@ public class PartialNiceMockBinder implements Module {
     }
 
     public Builder addActionDBAccessorConfigsBindings() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) ->
+      configurers.add((Binder binder) ->
           binder.bindConstant().annotatedWith(Names.named("executionCommandCacheSize")).to(10000L)
       );
       return this;
     }
 
     public Builder addFactoriesInstallBinding() {
-      PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
+      configurers.add((Binder binder) -> {
           binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
           binder.install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
           binder.install(new FactoryModuleBuilder().build(RequestFactory.class));

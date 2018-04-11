@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,14 +51,12 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -586,8 +586,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     //add host with client only
     addHost("c1-c6403", "c1");
 
-    //create client service
-    OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
     createService("c1", "CORE", "HADOOP_CLIENTS");
     createServiceComponent("c1", "CORE", "HADOOP_CLIENTS", "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", State.INIT);
     createServiceComponentHost("c1", "CORE", "HADOOP_CLIENTS", 1L, "SOME_CLIENT_FOR_SERVICE_CHECK", "SOME_CLIENT_FOR_SERVICE_CHECK", "c1-c6403", State.INIT);
@@ -722,14 +720,11 @@ public class AmbariCustomCommandExecutionHelperTest {
     ServiceComponent componentZKC = serviceZK.getServiceComponent("ZOOKEEPER_CLIENT");
     Host host = clusters.getHost("c1-c6401");
 
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    RepositoryVersionDAO repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
-    ServiceComponentDesiredStateDAO componentDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    MpackDAO mpackDAO = injector.getInstance(MpackDAO.class);
     RepositoryVersionHelper repoVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
 
     CommandRepository commandRepo = repoVersionHelper.getCommandRepository(cluster, componentRM, host);
     Assert.assertEquals(2, commandRepo.getRepositories().size());
-
 
     List<RepoOsEntity> operatingSystems = new ArrayList<>();
     RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
@@ -742,14 +737,11 @@ public class AmbariCustomCommandExecutionHelperTest {
     repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
     operatingSystems.add(repoOsEntity);
 
-    StackEntity stackEntity = stackDAO.find(cluster.getDesiredStackVersion().getStackName(),
-        cluster.getDesiredStackVersion().getStackVersion());
-
-    // add a repo version associated with a component
-    ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(), serviceYARN.getServiceGroupId(),
-        serviceYARN.getServiceId(), componentRM.getName(), componentRM.getType());
-
-    componentDAO.merge(componentEntity);
+    MpackEntity mpackEntity = mpackDAO.findById(serviceYARN.getServiceGroupId());
+    mpackEntity.getRepositoryOperatingSystems().clear();
+    mpackEntity = mpackDAO.merge(mpackEntity);
+    mpackEntity.setRepositoryOperatingSystems(operatingSystems);
+    mpackEntity = mpackDAO.merge(mpackEntity);
 
     // !!! make sure the override is set
     commandRepo = repoVersionHelper.getCommandRepository(cluster, componentRM, host);
@@ -757,10 +749,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertEquals(1, commandRepo.getRepositories().size());
     CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
     Assert.assertEquals("http://foo", repo.getBaseUrl());
-
-    // verify that ZK has no repositories, since we haven't defined a repo version for ZKC
-    commandRepo = repoVersionHelper.getCommandRepository(cluster, componentZKC, host);
-    Assert.assertEquals(2, commandRepo.getRepositories().size());
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,
@@ -772,6 +760,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId,
         respositoryVersion);
+
+    assertNotNull(repositoryVersion);
 
     createCluster(clusterName, stackId.getStackId());
 

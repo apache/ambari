@@ -67,6 +67,7 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
@@ -178,8 +179,8 @@ public class ClusterTest {
 
   private void createDefaultCluster(Set<String> hostNames, StackId stackId) throws Exception {
     // TODO, use common function
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-    org.junit.Assert.assertNotNull(stackEntity);
+    MpackEntity mpackEntity = helper.createMpack(stackId);
+    assertNotNull(mpackEntity);
 
     String clusterName = "c1";
 
@@ -188,8 +189,6 @@ public class ClusterTest {
     Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
-
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     for (String hostName : hostNames) {
       clusters.addHost(hostName);

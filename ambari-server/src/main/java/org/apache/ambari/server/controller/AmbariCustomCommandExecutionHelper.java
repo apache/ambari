@@ -92,11 +92,11 @@ import org.apache.ambari.server.state.RefreshCommandConfiguration;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -165,9 +165,6 @@ public class AmbariCustomCommandExecutionHelper {
 
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
-
-  @Inject
-  private OsFamily os_family;
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
@@ -325,12 +322,12 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(message);
     }
 
+    ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
     Service service = cluster.getService(serviceGroupName, serviceName);
     StackId stackId = service.getStackId();
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -344,10 +341,11 @@ public class AmbariCustomCommandExecutionHelper {
 
       Host host = clusters.getHost(hostName);
 
-      stage.addHostRoleExecutionCommand(hostName, Role.valueOf(componentName),
+      stage.addHostRoleExecutionCommand(host, Role.valueOf(componentName),
           RoleCommand.CUSTOM_COMMAND,
           new ServiceComponentHostOpInProgressEvent(componentName, hostName, nowTimestamp),
-          cluster.getClusterName(), serviceGroupName, serviceName, retryAllowed, autoSkipFailure);
+          cluster, serviceGroup.getMpackId(), serviceGroupName, serviceName, retryAllowed,
+          autoSkipFailure);
 
       Map<String, Map<String, String>> configurations =
           new TreeMap<>();
@@ -412,14 +410,6 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setConfigurationCredentials(configCredentials);
 
       Map<String, String> hostLevelParams = new TreeMap<>();
-
-      // Set parameters required for re-installing clients on restart
-      String repoInfoString;
-      try {
-        repoInfoString = repoVersionHelper.getRepoInfoString(cluster, component, host);
-      } catch (SystemException e) {
-        throw new RuntimeException(e);
-      }
 
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
@@ -851,23 +841,21 @@ public class AmbariCustomCommandExecutionHelper {
 
     String clusterName = stage.getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
+    ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
     Service service = cluster.getService(serviceName);
-    ServiceComponent component = null;
-    if (null != componentName) {
-      component = service.getServiceComponent(componentName);
-    }
-    StackId stackId = (null != component) ? component.getStackId() : service.getStackId();
+    StackId stackId = serviceGroup.getStackId();
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), service.getServiceType());
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
 
-    stage.addHostRoleExecutionCommand(hostname, Role.valueOf(smokeTestRole),
+    Host host = clusters.getHost(hostname);
+
+    stage.addHostRoleExecutionCommand(host, Role.valueOf(smokeTestRole),
         RoleCommand.SERVICE_CHECK,
         new ServiceComponentHostOpInProgressEvent(componentName, hostname, nowTimestamp),
-        cluster.getClusterName(), serviceGroupName, serviceName, retryAllowed, autoSkipFailure);
+        cluster, serviceGroup.getMpackId(), serviceGroupName, serviceName, retryAllowed,
+        autoSkipFailure);
 
     HostRoleCommand hrc = stage.getHostRoleCommand(hostname, smokeTestRole);
     if (hrc != null) {

@@ -81,7 +81,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.publishers.AgentCommandsPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
@@ -154,9 +153,6 @@ public class TestHeartbeatHandler {
 
   @Inject
   AuditLogger auditLogger;
-
-  @Inject
-  private OrmTestHelper helper;
 
   @Inject
   private AgentCommandsPublisher agentCommandsPublisher;
@@ -865,7 +861,7 @@ public class TestHeartbeatHandler {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
         DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-          DummyCluster, "core", "HDFS", false, false);
+          DummyCluster, 1L, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);

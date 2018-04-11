@@ -42,7 +42,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
@@ -114,7 +113,6 @@ public class ExecutionCommandWrapperTest {
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
-    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
     ServiceGroup serviceGroup = cluster1.addServiceGroup("CORE", cluster1.getDesiredStackVersion().getStackId());
     cluster1.addService(serviceGroup, "HDFS", "HDFS");
 
@@ -163,7 +161,7 @@ public class ExecutionCommandWrapperTest {
     s.addHostRoleExecutionCommand(hostName, Role.NAMENODE,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.NAMENODE.toString(),
-            hostName, System.currentTimeMillis()), clusterName, "core", "HDFS", false, false);
+            hostName, System.currentTimeMillis()), clusterName, 1L, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
@@ -292,8 +290,6 @@ public class ExecutionCommandWrapperTest {
     repositoryVersion.setResolved(false);
     ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
 
-    Service service = cluster.getService("HDFS");
-
     // first try with an INSTALL command - this should not populate version info
     ExecutionCommand executionCommand = new ExecutionCommand();
     Map<String, String> commandParams = new HashMap<>();
@@ -362,7 +358,6 @@ public class ExecutionCommandWrapperTest {
     StackId stackId = cluster.getDesiredStackVersion();
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
     repositoryVersion.setResolved(true); // has build number
-    Service service = cluster.getService("HDFS");
 
     repositoryVersion.addRepoOsEntities(new ArrayList<>());
 

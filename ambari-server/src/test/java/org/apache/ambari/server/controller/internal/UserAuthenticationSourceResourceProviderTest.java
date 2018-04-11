@@ -42,11 +42,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -192,8 +190,6 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
-        bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
         bind(Users.class).toInstance(createMock(Users.class));
       }
