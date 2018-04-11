@@ -39,3 +39,4 @@
          (typeaheadOnSelect)="onParameterValueChange($event.value)" (keydown)="onParameterValueKeyDown($event)"
          (keyup)="onParameterValueKeyUp($event)" class="search-item-input value-input form-control">
 </div>
+<span *ngIf="parameters && parameters.length" class="fa fa-times-circle-o clear-all-btn" (click)="onClearButtonClick($event)"></span>

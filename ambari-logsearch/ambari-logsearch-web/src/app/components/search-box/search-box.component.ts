@@ -189,6 +189,14 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.valueInput.value = '';
   }
 
+  onClearButtonClick = (event: MouseEvent): void => {
+    this.clear();
+    this.parameters = [];
+    this.updateValueSubject.next();
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
   changeParameterName(options: SearchBoxParameterTriggered): void {
     this.parameterNameChangeSubject.next(options);
   }
