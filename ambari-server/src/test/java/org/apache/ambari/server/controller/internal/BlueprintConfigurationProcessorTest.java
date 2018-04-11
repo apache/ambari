@@ -5640,6 +5640,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_active_set"));
     assertTrue("Expected standby set not found in hadoop-env",
       hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_standby_set"));
+    assertTrue("Expected clusterId not found in hadoop-env",
+      hadoopEnvProperties.containsKey("dfs_ha_initial_cluster_id"));
+
+    // verify that the clusterID is set by default to the cluster name
+    assertEquals("Expected clusterId was not set to expected value",
+      "clusterName", hadoopEnvProperties.get("dfs_ha_initial_cluster_id"));
 
     // verify that the expected hostnames are included in the active set
     String[] activeHostNames = hadoopEnvProperties.get("dfs_ha_initial_namenode_active_set").split(",");
@@ -5699,6 +5705,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // configure the active/standy host lists to a custom set of hostnames
     hadoopEnvProperties.put("dfs_ha_initial_namenode_active_set", "test-server-five,test-server-six");
     hadoopEnvProperties.put("dfs_ha_initial_namenode_standby_set", "test-server-seven,test-server-eight");
+    hadoopEnvProperties.put("dfs_ha_initial_cluster_id", "my-custom-cluster-name");
 
 
     // setup multiple nameservices, to indicate NameNode Federation will be used
@@ -5830,6 +5837,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_active_set"));
     assertTrue("Expected standby set not found in hadoop-env",
       hadoopEnvProperties.containsKey("dfs_ha_initial_namenode_standby_set"));
+    assertTrue("Expected clusterId not found in hadoop-env",
+      hadoopEnvProperties.containsKey("dfs_ha_initial_cluster_id"));
+
+    // verify that the clusterID is not set by processor, since user has already customized it
+    assertEquals("Expected clusterId was not set to expected value",
+      "my-custom-cluster-name", hadoopEnvProperties.get("dfs_ha_initial_cluster_id"));
 
     // verify that the expected hostnames are included in the active set
     String[] activeHostNames = hadoopEnvProperties.get("dfs_ha_initial_namenode_active_set").split(",");
