@@ -48,14 +48,13 @@ class InitializerModule:
   """
   def __init__(self):
     self.stop_event = threading.Event()
+    self.config = AmbariConfig.get_resolved_config()
     self.init()
 
   def init(self):
     """
     Initialize properties
     """
-    self.config = AmbariConfig.get_resolved_config()
-
     self.is_registered = False
 
     self.metadata_cache = ClusterMetadataCache(self.config.cluster_cache_dir)
