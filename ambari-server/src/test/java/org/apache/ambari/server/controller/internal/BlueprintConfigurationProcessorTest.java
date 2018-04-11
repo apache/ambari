@@ -5497,6 +5497,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
     hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeThree + "," + expectedNodeFour);
 
+    //setup nameservice-specific properties
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameService,
+                           "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns1");
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo,
+                           "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns2");
+
 
     // setup properties that include exported host group information
     hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
@@ -5598,6 +5604,17 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       hdfsSiteProperties.containsKey("dfs.namenode.https-address"));
     assertFalse("dfs.namenode.rpc-address should have been filtered out of this HA configuration",
       hdfsSiteProperties.containsKey("dfs.namenode.rpc-address"));
+
+    // verify that the namservice-specific shared.edits properties are handled correctly
+    // expect that all servers are included in the updated config, and that the qjournal URL format is preserved
+    assertEquals("HDFS HA shared edits directory property not properly updated for cluster create.",
+      "qjournal://" + createHostAddress(expectedHostName, expectedPortNum) + ";" + createHostAddress(expectedHostNameTwo, expectedPortNum) + "/ns1",
+      hdfsSiteProperties.get("dfs.namenode.shared.edits.dir" + "." + expectedNameService));
+
+    // expect that all servers are included in the updated config, and that the qjournal URL format is preserved
+    assertEquals("HDFS HA shared edits directory property not properly updated for cluster create.",
+      "qjournal://" + createHostAddress(expectedHostName, expectedPortNum) + ";" + createHostAddress(expectedHostNameTwo, expectedPortNum) + "/ns2",
+      hdfsSiteProperties.get("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo));
 
 
     // verify that correct configuration types were listed as updated in the returned set
