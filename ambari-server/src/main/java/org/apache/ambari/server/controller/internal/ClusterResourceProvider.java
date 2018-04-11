@@ -540,7 +540,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
 
     try {
-      return topologyManager.provisionCluster(createClusterRequest);
+      return topologyManager.provisionCluster(createClusterRequest, rawRequestBody);
     } catch (InvalidTopologyException e) {
       throw new IllegalArgumentException("Topology validation failed: " + e, e);
     } catch (AmbariException e) {

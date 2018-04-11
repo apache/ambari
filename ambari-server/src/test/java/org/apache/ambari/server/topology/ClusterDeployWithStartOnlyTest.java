@@ -446,7 +446,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
   @Test
   public void testProvisionCluster() throws Exception {
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
     LogicalRequest request = topologyManager.getRequest(1);
     assertEquals(request.getHostRequests().size(), 3);
   }

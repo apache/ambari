@@ -415,7 +415,7 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).anyTimes();
     replayAll();
 
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
     //todo: assertions
   }
 
@@ -439,7 +439,7 @@ public class TopologyManagerTest {
 
     replayAll();
 
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
     //todo: assertions
   }
 
@@ -462,7 +462,7 @@ public class TopologyManagerTest {
     expect(logicalRequest.isFinished()).andReturn(true).anyTimes();
     expect(logicalRequest.isSuccessful()).andReturn(true).anyTimes();
     replayAll();
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
     requestFinished();
     Assert.assertTrue(topologyManager.isClusterProvisionWithBlueprintFinished(CLUSTER_ID));
   }
@@ -486,7 +486,7 @@ public class TopologyManagerTest {
     expect(logicalRequest.isFinished()).andReturn(true).anyTimes();
     expect(logicalRequest.isSuccessful()).andReturn(false).anyTimes();
     replayAll();
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
     requestFinished();
     Assert.assertTrue(topologyManager.isClusterProvisionWithBlueprintFinished(CLUSTER_ID));
   }
@@ -509,7 +509,7 @@ public class TopologyManagerTest {
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
     expect(logicalRequest.isFinished()).andReturn(false).anyTimes();
     replayAll();
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
     requestFinished();
     Assert.assertFalse(topologyManager.isClusterProvisionWithBlueprintFinished(CLUSTER_ID));
   }
@@ -583,7 +583,7 @@ public class TopologyManagerTest {
     replay(bpfMock);
     expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).anyTimes();
     replayAll();
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
     topologyManager.scaleHosts(new ScaleClusterRequest(propertySet));
     Assert.fail("InvalidTopologyException should have been thrown");
   }
@@ -608,7 +608,7 @@ public class TopologyManagerTest {
 
     replayAll();
 
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
   }
 
   @Test
@@ -633,7 +633,7 @@ public class TopologyManagerTest {
 
     replayAll();
 
-    topologyManager.provisionCluster(request);
+    topologyManager.provisionCluster(request, "{}");
   }
 
   private SettingEntity createQuickLinksSettingEntity(String content, long timeStamp) {
