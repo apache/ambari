@@ -85,6 +85,8 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private queryParamsSyncInProgress: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
+  private isServiceLogsFileView$: Observable<boolean> = this.appState.getParameter('isServiceLogsFileView');
+
   constructor(
     private appState: AppStateService,
     private tabsStorage: TabsService,

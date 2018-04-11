@@ -22,6 +22,7 @@ import {NotificationsService as Angular2NotificationsService} from 'angular2-not
 import {Notification} from 'angular2-notifications/src/notification.type';
 
 import {NotificationInterface} from '../interfaces/notification.interface';
+import {TranslateService} from '@ngx-translate/core';
 
 export enum NotificationType {
   SUCCESS = 'success',
@@ -33,12 +34,15 @@ export enum NotificationType {
 @Injectable()
 export class NotificationService {
 
-  constructor(private notificationService: Angular2NotificationsService) { }
+  constructor(
+    private notificationService: Angular2NotificationsService,
+    private translateService: TranslateService
+  ) { }
 
   addNotification(payload: NotificationInterface): Notification {
     const {message, title, ...config} = payload;
     const method: string = typeof this.notificationService[config.type] === 'function' ? config.type : 'info';
-    return this.notificationService[method](title, message, config);
+    return this.notificationService[method](this.translateService.instant(title), this.translateService.instant(message), config);
   }
 
 }
