@@ -1812,6 +1812,13 @@ public class ConfigHelper {
       }
     }
 
+    // check for case configs were removed
+    for (String key : actualValues.keySet()) {
+      if (!desiredValues.containsKey(key)) {
+        keys.add(type + "/" + key);
+      }
+    }
+
     return keys;
   }
 
