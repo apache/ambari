@@ -1108,7 +1108,6 @@ public class KerberosHelperTest extends EasyMockSupport {
       expectLastCall().once();
       requestStageContainer.addStages(anyObject(List.class));
       expectLastCall().once();
-
       // Create Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -1116,7 +1115,6 @@ public class KerberosHelperTest extends EasyMockSupport {
       expectLastCall().once();
       requestStageContainer.addStages(anyObject(List.class));
       expectLastCall().once();
-
       // Distribute Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -1128,25 +1126,20 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Update Configs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
+
     requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
-
-    //Triggering update topology event
-    expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.setClusterHostInfo(anyString());
-    expectLastCall().once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
-
     // TODO: Add more of these when more stages are added.
     // Clean-up/Finalize Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(4L).anyTimes();
+    expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+
     requestStageContainer.setClusterHostInfo(anyString());
     expectLastCall().once();
+
     requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
 

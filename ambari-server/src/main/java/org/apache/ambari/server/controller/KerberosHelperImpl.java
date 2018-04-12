@@ -92,7 +92,6 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosRealmException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
-import org.apache.ambari.server.serveraction.kerberos.KerberosTopologyUpdateTriggerServerAction;
 import org.apache.ambari.server.serveraction.kerberos.PrepareDisableKerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.PrepareEnableKerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
@@ -3749,27 +3748,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
-    protected void addTopologyUpdateTriggerStage(Cluster cluster, String clusterHostInfoJson, String hostParamsJson, ServiceComponentHostServerActionEvent event,
-        Map<String, String> commandParameters, RoleCommandOrder roleCommandOrder, RequestStageContainer requestStageContainer) throws AmbariException {
-      Stage stage = createServerActionStage(requestStageContainer.getLastStageId(),
-          cluster,
-          requestStageContainer.getId(),
-          "Triggering Topology Update Event",
-          "{}",
-          hostParamsJson,
-          KerberosTopologyUpdateTriggerServerAction.class,
-          event,
-          commandParameters,
-          "Triggering Topology Update Event",
-          configuration.getDefaultServerTaskTimeout());
-
-        RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
-        roleGraph.build(stage);
-
-        requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
-        requestStageContainer.addStages(roleGraph.getStages());
-    }
-
     public void addFinalizeOperationStage(Cluster cluster, String clusterHostInfoJson,
                                           String hostParamsJson, ServiceComponentHostServerActionEvent event,
                                           File dataDirectory, RoleCommandOrder roleCommandOrder,
@@ -3933,11 +3911,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       // *****************************************************************
       // Create stage to update configurations of services
       addUpdateConfigurationsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
-        roleCommandOrder, requestStageContainer);
-
-      // *****************************************************************
-      // Create stage to trigger a topology update event being published
-      addTopologyUpdateTriggerStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
         roleCommandOrder, requestStageContainer);
 
       return requestStageContainer.getLastStageId();
