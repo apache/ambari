@@ -23,14 +23,12 @@ import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
 
-import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -49,7 +47,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,32 +54,29 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 /**
  * ExportBlueprintRequest unit tests.
  */
-@SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ExportBlueprintRequest.ExportedHostGroup.class})
+@PrepareForTest({ InetAddress.class })
 public class ExportBlueprintRequestTest {
   private static final String CLUSTER_NAME = "c1";
   private static final String CLUSTER_ID = "2";
 
-  private AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-
   @Before
   public void setupTest() throws Exception {
-    Field f = ExportBlueprintRequest.class.getDeclaredField("controller");
-    f.setAccessible(true);
-    f.set(null, controller);
-
-    AmbariMetaInfo metainfo = createNiceMock(AmbariMetaInfo.class);
-    expect(controller.getAmbariMetaInfo()).andReturn(metainfo).anyTimes();
+    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
     StackInfo stackInfo = createNiceMock(StackInfo.class);
-    expect(metainfo.getStack(new StackId("TEST", "1.0"))).andReturn(stackInfo);
+    expect(metaInfo.getStack(new StackId("TEST", "1.0"))).andReturn(stackInfo);
     expect(stackInfo.getServices()).andReturn(Collections.emptySet()).anyTimes();
     expect(stackInfo.getProperties()).andReturn(Collections.emptyList()).anyTimes();
 
-    replay(controller, metainfo, stackInfo);
+    replay(controller, metaInfo, stackInfo);
 
     // This can save precious time
     mockStatic(InetAddress.class);
@@ -90,28 +84,76 @@ public class ExportBlueprintRequestTest {
     PowerMock.replay(InetAddress.class);
   }
 
-  @After
-  public void tearDown() {
-    reset(controller);
-  }
-
   //todo: test configuration processing
 
   @Test
-
-  public void testExport_noConfigs() throws Exception {
+  public void clusterWithStack() {
+    // GIVEN
     Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, CLUSTER_ID);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "TEST-1.0");
 
+    TreeNode<Resource> clusterNode = new TreeNodeImpl<>(null, clusterResource, "cluster");
+    // add empty config child resource
+    Resource configResource = new ResourceImpl(Resource.Type.Configuration);
+    clusterNode.addChild(configResource, "configurations");
+    clusterNode.addChild(new ResourceImpl(Resource.Type.Host), "hosts");
+
+    // WHEN
+    ExportBlueprintRequest exportBlueprintRequest = new ExportBlueprintRequest(clusterNode);
+
+    // THEN
+    assertEquals(CLUSTER_NAME, exportBlueprintRequest.getClusterName());
+    assertEquals(ImmutableSet.of(new StackId("TEST", "1.0")), exportBlueprintRequest.getStackIds());
+  }
+
+  @Test
+  public void clusterWithMpacks() {
+    Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
+    clusterResource.setProperty(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
 
     TreeNode<Resource> clusterNode = new TreeNodeImpl<>(null, clusterResource, "cluster");
     // add empty config child resource
     Resource configResource = new ResourceImpl(Resource.Type.Configuration);
     clusterNode.addChild(configResource, "configurations");
 
-    clusterNode.addChild(new ResourceImpl(Resource.Type.ServiceGroup), "servicegroups");
+    ResourceImpl serviceGroups = new ResourceImpl(Resource.Type.ServiceGroup);
+    TreeNode<Resource> serviceGroupsNode = clusterNode.addChild(serviceGroups, "servicegroups");
+    String mpackName = "HDPCORE";
+    String mpackVersion = "2.0";
+    ResourceImpl serviceGroupResource = new ResourceImpl(Resource.Type.ServiceGroup);
+    serviceGroupsNode.addChild(serviceGroupResource, mpackName);
+    serviceGroupResource.getPropertiesMap().putAll(ImmutableMap.of(ServiceGroupResourceProvider.RESPONSE_KEY, ImmutableMap.of(
+      ServiceGroupResourceProvider.SERVICE_GROUP_NAME, mpackName,
+      ServiceGroupResourceProvider.MPACK_NAME, mpackName,
+      ServiceGroupResourceProvider.MPACK_VERSION, mpackVersion
+    )));
+  }
+
+  @Test
+  public void testExport_noConfigs() {
+    Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
+    clusterResource.setProperty(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
+    clusterResource.setProperty(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, CLUSTER_ID);
+    clusterResource.setProperty(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "TEST-1.0");
+
+    TreeNode<Resource> clusterNode = new TreeNodeImpl<>(null, clusterResource, "cluster");
+    // add empty config child resource
+    Resource configResource = new ResourceImpl(Resource.Type.Configuration);
+    clusterNode.addChild(configResource, "configurations");
+
+    ResourceImpl serviceGroups = new ResourceImpl(Resource.Type.ServiceGroup);
+    TreeNode<Resource> serviceGroupsNode = clusterNode.addChild(serviceGroups, "servicegroups");
+    String mpackName = "HDPCORE";
+    String mpackVersion = "2.0";
+    ResourceImpl serviceGroupResource = new ResourceImpl(Resource.Type.ServiceGroup);
+    serviceGroupsNode.addChild(serviceGroupResource, mpackName);
+    serviceGroupResource.getPropertiesMap().putAll(ImmutableMap.of(ServiceGroupResourceProvider.RESPONSE_KEY, ImmutableMap.of(
+      ServiceGroupResourceProvider.SERVICE_GROUP_NAME, mpackName,
+      ServiceGroupResourceProvider.MPACK_NAME, mpackName,
+      ServiceGroupResourceProvider.MPACK_VERSION, mpackVersion
+    )));
 
     Resource hostsResource = new ResourceImpl(Resource.Type.Host);
     Resource host1Resource = new ResourceImpl(Resource.Type.Host);
@@ -140,6 +182,7 @@ public class ExportBlueprintRequestTest {
 
     // assertions
     assertEquals(CLUSTER_NAME, exportBlueprintRequest.getClusterName());
+    assertEquals(ImmutableSet.of(new StackId(mpackName, mpackVersion)), exportBlueprintRequest.getStackIds());
     Blueprint bp = exportBlueprintRequest.getBlueprint();
     assertEquals("exported-blueprint", bp.getName());
     Map<String, HostGroup> hostGroups = bp.getHostGroups();

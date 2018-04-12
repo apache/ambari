@@ -183,53 +183,29 @@ public class PersistedStateImpl implements PersistedState {
   }
 
   @Override
-  public LogicalRequest getProvisionRequest(long clusterId) {
-    Collection<TopologyRequestEntity> entities = topologyRequestDAO.findByClusterId(clusterId);
-    for (TopologyRequestEntity entity : entities) {
-      if(TopologyRequest.Type.PROVISION == TopologyRequest.Type.valueOf(entity.getAction())) {
-        TopologyLogicalRequestEntity logicalRequestEntity = entity.getTopologyLogicalRequestEntity();
-        TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
-        try {
-          ClusterTopology clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
-          Long logicalId = logicalRequestEntity.getId();
-          return logicalRequestFactory.createRequest(logicalId, replayedRequest, clusterTopology, logicalRequestEntity);
-        } catch (InvalidTopologyException e) {
-          throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
-        } catch (AmbariException e) {
-          throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
-        }
-      }
-    }
-
-    return null;
-  }
-
-  @Override
   public Map<ClusterTopology, List<LogicalRequest>> getAllRequests() {
-    //todo: we only currently support a single request per ambari instance so there should only
-    //todo: be a single cluster topology
-    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<>();
+    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<>(1);
     Collection<TopologyRequestEntity> entities = topologyRequestDAO.findAll();
 
     Map<Long, ClusterTopology> topologyRequests = new HashMap<>();
     for (TopologyRequestEntity entity : entities) {
-      TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
-      ClusterTopology clusterTopology = topologyRequests.get(replayedRequest.getClusterId());
+      TopologyRequest replayedRequest;
+      ClusterTopology clusterTopology = topologyRequests.get(entity.getClusterId());
       if (clusterTopology == null) {
+        ReplayedProvisionRequest provisionRequest = new ReplayedProvisionRequest(entity, blueprintFactory);
+        replayedRequest = provisionRequest;
         try {
-          clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
+          clusterTopology = ambariContext.createClusterTopology(provisionRequest);
           topologyRequests.put(replayedRequest.getClusterId(), clusterTopology);
           allRequests.put(clusterTopology, new ArrayList<>());
         } catch (InvalidTopologyException e) {
           throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
         }
       } else {
+        replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
         // ensure all host groups are provided in the combined cluster topology
         for (Map.Entry<String, HostGroupInfo> groupInfoEntry : replayedRequest.getHostGroupInfo().entrySet()) {
-          String name = groupInfoEntry.getKey();
-          if (! clusterTopology.getHostGroupInfo().containsKey(name)) {
-            clusterTopology.getHostGroupInfo().put(name, groupInfoEntry.getValue());
-          }
+          clusterTopology.getHostGroupInfo().putIfAbsent(groupInfoEntry.getKey(), groupInfoEntry.getValue());
         }
       }
 
@@ -242,8 +218,7 @@ public class PersistedStateImpl implements PersistedState {
           //todo: until this is fixed, increment the counter for every recovered logical request
           //todo: this will cause gaps in the request id's after recovery
           ambariContext.getNextRequestId();
-          allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
-                  logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
+          allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
         } catch (AmbariException e) {
           throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
         }
@@ -311,7 +286,30 @@ public class PersistedStateImpl implements PersistedState {
     return entity;
   }
 
-  static final class ReplayedTopologyRequest implements TopologyRequest {
+  // FIXME hard-code
+  static final class ReplayedProvisionRequest extends ReplayedTopologyRequest implements ProvisionRequest {
+
+    ReplayedProvisionRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
+      super(entity, blueprintFactory);
+    }
+
+    @Override
+    public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
+      return ConfigRecommendationStrategy.NEVER_APPLY;
+    }
+
+    @Override
+    public String getDefaultPassword() {
+      return null;
+    }
+
+    @Override
+    public SecurityConfiguration getSecurityConfiguration() {
+      return SecurityConfiguration.NONE;
+    }
+  }
+
+  static class ReplayedTopologyRequest implements TopologyRequest {
     private final Long clusterId;
     private final Type type;
     private final String description;
@@ -320,15 +318,17 @@ public class PersistedStateImpl implements PersistedState {
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
     private final ProvisionAction provisionAction;
     private final Set<StackId> stackIds;
+    private final Collection<MpackInstance> mpackInstances;
 
-    public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
+    ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
       clusterId = entity.getClusterId();
       type = Type.valueOf(entity.getAction());
       description = entity.getDescription();
       provisionAction = entity.getProvisionAction();
 
-      Collection<MpackInstance> mpackInstances = entity.getMpackInstances().stream().
-        map(e -> MpackInstance.fromEntity(e)).collect(toList());
+      mpackInstances = entity.getMpackInstances().stream()
+        .map(MpackInstance::fromEntity)
+        .collect(toList());
       stackIds = mpackInstances.stream().map(MpackInstance::getStackId).collect(toSet());
 
       try {
@@ -387,6 +387,10 @@ public class PersistedStateImpl implements PersistedState {
 
       //todo: config parent
       return new Configuration(properties, attributes);
+    }
+
+    public Collection<MpackInstance> getMpacks() {
+      return mpackInstances;
     }
 
     public ProvisionAction getProvisionAction() {

@@ -30,6 +30,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Entity representing Setting.
  */
@@ -141,6 +143,18 @@ public class SettingEntity {
             Objects.equals(content, entity.content) &&
             Objects.equals(updatedBy, entity.updatedBy) &&
             updateTimestamp == entity.updateTimestamp;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("id", id)
+      .add("name", name)
+      .add("settingType", settingType)
+      .add("content", content)
+      .add("updatedBy", updatedBy)
+      .add("updateTimestamp", updateTimestamp)
+      .toString();
   }
 
   @Override

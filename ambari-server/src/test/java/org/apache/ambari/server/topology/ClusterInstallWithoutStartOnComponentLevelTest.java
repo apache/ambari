@@ -91,7 +91,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AmbariContext.class, AmbariServer.class })
+@PrepareForTest({ AmbariServer.class })
 public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupport {
   private static final String CLUSTER_NAME = "test-cluster";
   private static final long CLUSTER_ID = 1;
@@ -364,9 +364,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
     PowerMock.replay(AmbariServer.class);
-    PowerMock.mockStatic(AmbariContext.class);
-    expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
-    PowerMock.replay(AmbariContext.class);
+    expect(ambariContext.getClusterController()).andReturn(clusterController).anyTimes();
     expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
     expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(artifactResourceProvider).anyTimes();
     RequestStatus completedStatus = createNiceMock(RequestStatus.class);

@@ -84,7 +84,7 @@ import com.google.common.collect.Maps;
 @PrepareForTest({AmbariContext.class})
 public class ClusterConfigurationRequestTest {
 
-  public static final Long CLUSTER_ID = Long.valueOf(1);
+  public static final Long CLUSTER_ID = 1L;
   public static final String CLUSTER_NAME = "testCluster";
   public static final List<String> SERVICE_NAMES = ImmutableList.of("HDFS", "KERBEROS", "ZOOKEEPER");
 
@@ -136,7 +136,6 @@ public class ClusterConfigurationRequestTest {
   /**
    * testConfigType config type should be in updatedConfigTypes, as no custom property in Blueprint
    * ==> Kerberos config property should be updated
-   * @throws Exception
    */
   @Test
   public void testProcessWithKerberos_UpdateKererosConfigProperty_WithNoCustomValue() throws Exception {
@@ -150,7 +149,6 @@ public class ClusterConfigurationRequestTest {
   /**
    * testConfigType config type should be in updatedConfigTypes, as testProperty in Blueprint is equal to stack
    * default ==> Kerberos config property should be updated
-   * @throws Exception
    */
   @Test
   public void testProcessWithKerberos_UpdateKererosConfigProperty_WithCustomValueEqualToStackDefault() throws
@@ -167,7 +165,6 @@ public class ClusterConfigurationRequestTest {
   /**
    * testConfigType config type shouldn't be in updatedConfigTypes, as testProperty in Blueprint is different that
    * stack default (custom value) ==> Kerberos config property shouldn't be updated
-   * @throws Exception
    */
   @Test
   public void testProcessWithKerberos_DontUpdateKererosConfigProperty_WithCustomValueDifferentThanStackDefault() throws
@@ -184,7 +181,6 @@ public class ClusterConfigurationRequestTest {
    * testConfigType config type shouldn't be in updatedConfigTypes, as testProperty in Blueprint is a custom value
    * (no default value in stack for testProperty)
    * ==> Kerberos config property shouldn't be updated
-   * @throws Exception
    */
   @Test
   public void testProcessWithKerberos_DontUpdateKererosConfigProperty_WithCustomValueNoStackDefault() throws Exception {
@@ -242,8 +238,7 @@ public class ClusterConfigurationRequestTest {
     }
 
     PowerMock.mockStatic(AmbariContext.class);
-    AmbariContext.getController();
-    expectLastCall().andReturn(controller).anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.getKerberosHelper()).andReturn(kerberosHelper).times(2);
@@ -277,12 +272,11 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
-    expect(topology.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
     expect(topology.getHostGroupsForComponent(anyString())).andReturn(Collections.emptyList())
       .anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
-    expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn(CLUSTER_NAME).anyTimes();
+    expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     expect(ambariContext.createConfigurationRequests(EasyMock.anyObject())).andReturn(Collections
       .emptyList()).anyTimes();
    Set<ServiceResponse> services = IntStream.range(0, SERVICE_NAMES.size()).boxed().map(
@@ -305,9 +299,9 @@ public class ClusterConfigurationRequestTest {
     expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), EasyMock.anyObject(),
       EasyMock.anyObject(), EasyMock.anyObject(), EasyMock.anyObject(), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
 
-    Capture<? extends String> captureClusterName = newCapture(CaptureType.ALL);
+    Capture<Long> captureClusterId = newCapture(CaptureType.ALL);
     Capture<? extends Set<String>> captureUpdatedConfigTypes = newCapture(CaptureType.ALL);
-    ambariContext.waitForConfigurationResolution(capture(captureClusterName), capture
+    ambariContext.waitForConfigurationResolution(capture(captureClusterId), capture
       (captureUpdatedConfigTypes));
     expectLastCall();
 
@@ -315,14 +309,13 @@ public class ClusterConfigurationRequestTest {
         ambariContext, AmbariContext.class, configHelper);
 
     ClusterConfigurationRequest clusterConfigurationRequest = new ClusterConfigurationRequest(
-      ambariContext, topology, false, stackAdvisorBlueprintProcessor, true);
+      ambariContext, topology, stackAdvisorBlueprintProcessor, true);
     clusterConfigurationRequest.process();
 
     verify(blueprint, topology, ambariContext, controller, kerberosHelper, configHelper);
 
 
-    String clusterName = captureClusterName.getValue();
-    assertEquals(CLUSTER_NAME, clusterName);
+    assertEquals(CLUSTER_ID, captureClusterId.getValue());
     return captureUpdatedConfigTypes;
   }
 
@@ -334,7 +327,7 @@ public class ClusterConfigurationRequestTest {
       new HashMap<>());
 
     PowerMock.mockStatic(AmbariContext.class);
-    AmbariContext.getController();
+    ambariContext.getController();
     expectLastCall().andReturn(controller).anyTimes();
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -378,7 +371,7 @@ public class ClusterConfigurationRequestTest {
         AmbariContext.class, configHelper);
 
     ClusterConfigurationRequest clusterConfigurationRequest = new ClusterConfigurationRequest(
-      ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+      ambariContext, topology, stackAdvisorBlueprintProcessor);
     clusterConfigurationRequest.process();
 
     verify(blueprint, topology, ambariContext, controller, configHelper);
@@ -417,7 +410,7 @@ public class ClusterConfigurationRequestTest {
 
     EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
     // WHEN
-    new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+    new ClusterConfigurationRequest(ambariContext, topology, stackAdvisorBlueprintProcessor);
     // THEN
     assertFalse("YARN service not present in topology config thus 'yarn-site' config type should be removed from config.", configuration.getFullProperties().containsKey("yarn-site"));
     assertTrue("HDFS service is present in topology host group config thus 'hdfs-site' config type should be left in the config.", configuration.getFullAttributes().containsKey("hdfs-site"));
@@ -467,7 +460,7 @@ public class ClusterConfigurationRequestTest {
 
     // When
 
-    new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+    new ClusterConfigurationRequest(ambariContext, topology, stackAdvisorBlueprintProcessor);
 
     // Then
     assertTrue("'cluster-env' config type should not be removed from configuration.", configuration.getFullProperties().containsKey("cluster-env"));
@@ -545,6 +538,7 @@ public class ClusterConfigurationRequestTest {
     hostGroupInfoMap.put("hg1", hg1);
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
+    expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
@@ -563,6 +557,7 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getAllConfigurationTypes("ZOOKEEPER")).andReturn(ImmutableSet.of("zoo.cfg", "zookeeper-env"));
     expect(stack.getAllConfigurationTypes("HDFS")).andReturn(ImmutableSet.of("hdfs-site", "hadoop-env"));
 
+    expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(ambariContext.getServices(anyString())).andReturn(serviceResponses).anyTimes();
     Capture<ClusterRequest> clusterRequestCapture = Capture.newInstance(CaptureType.ALL);
@@ -575,7 +570,7 @@ public class ClusterConfigurationRequestTest {
 
     // WHEN
     ClusterConfigurationRequest request =
-      new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+      new ClusterConfigurationRequest(ambariContext, topology, stackAdvisorBlueprintProcessor);
     request.process();
 
     // THEN
@@ -584,7 +579,7 @@ public class ClusterConfigurationRequestTest {
       "zookeeper-env", Optional.of(0L),
       "hadoop-env", Optional.of(1L),
       "hdfs-site", Optional.of(1L),
-      "cluster-env", Optional.<Long>empty()
+      "cluster-env", Optional.empty()
     );
     Set<String> clusterConfigTypes = new HashSet<>();
     clusterRequestCapture.getValues().forEach(

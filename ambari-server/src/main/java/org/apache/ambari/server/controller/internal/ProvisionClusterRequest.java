@@ -265,7 +265,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
     return credentialsMap;
   }
 
-  @Override
   public String getClusterName() {
     return clusterName;
   }

@@ -138,7 +138,7 @@ public class ClusterBlueprintRendererTest {
     PowerMock.mockStatic(AmbariContext.class);
     PowerMock.mockStatic(AmbariServer.class);
     expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
-    expect(AmbariContext.getController()).andReturn(controller).anyTimes();
+    expect(ambariContext.getController()).andReturn(controller).anyTimes();
     expect(AmbariServer.getController()).andReturn(controller).anyTimes();
 
     Map<String, String> clusterTypeProps = new HashMap<>();

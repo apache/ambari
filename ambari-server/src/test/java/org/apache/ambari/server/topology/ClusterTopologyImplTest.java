@@ -24,9 +24,6 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.replay;
-import static org.powermock.api.easymock.PowerMock.reset;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,10 +38,17 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang3.tuple.Pair;
+import org.easymock.EasyMockRule;
+import org.easymock.EasyMockRunner;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -52,21 +56,43 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Unit tests for ClusterTopologyImpl.
  */
-@SuppressWarnings("unchecked")
-public class ClusterTopologyImplTest {
+@RunWith(EasyMockRunner.class)
+public class ClusterTopologyImplTest extends EasyMockSupport {
 
   private static final String CLUSTER_NAME = "cluster_name";
   private static final long CLUSTER_ID = 1L;
   private static final String predicate = "Hosts/host_name=foo";
-  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private static final HostGroup group1 = createNiceMock(HostGroup.class);
-  private static final HostGroup group2 = createNiceMock(HostGroup.class);
-  private static final HostGroup group3 = createNiceMock(HostGroup.class);
-  private static final HostGroup group4 = createNiceMock(HostGroup.class);
   private static final StackId STACK_ID = new StackId("HDP", "2.6");
   private static final ImmutableSet<StackId> STACK_IDS = ImmutableSet.of(STACK_ID);
-  private final AmbariContext ambariContext = createNiceMock(AmbariContext.class);
-  private final StackDefinition stack = createNiceMock(StackDefinition.class);
+  private static final Configuration configuration = Configuration.createEmpty();
+
+  @Mock(type = MockType.NICE)
+  private Blueprint blueprint;
+
+  @Mock(type = MockType.NICE)
+  private HostGroup group1;
+
+  @Mock(type = MockType.NICE)
+  private HostGroup group2;
+
+  @Mock(type = MockType.NICE)
+  private HostGroup group3;
+
+  @Mock(type = MockType.NICE)
+  private HostGroup group4;
+
+  @Mock(type = MockType.NICE)
+  private AmbariContext ambariContext;
+
+  @Mock(type = MockType.NICE)
+  private StackDefinition stack;
+
+  @Rule
+  public final EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.NICE)
+  private BlueprintBasedClusterProvisionRequest request;
+
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
   private final Map<String, Set<ResolvedComponent>> resolvedComponents = ImmutableMap.of(
@@ -82,15 +108,11 @@ public class ClusterTopologyImplTest {
   );
   private BlueprintBasedClusterProvisionRequest provisionRequest;
 
-  private Configuration configuration;
   private Configuration bpconfiguration;
 
   @Before
   public void setUp() throws Exception {
-    configuration = new Configuration(new HashMap<>(),
-      new HashMap<>());
-    bpconfiguration = new Configuration(new HashMap<>(),
-      new HashMap<>());
+    bpconfiguration = Configuration.createEmpty();
 
     HostGroupInfo group1Info = new HostGroupInfo("group1");
     HostGroupInfo group2Info = new HostGroupInfo("group2");
@@ -158,17 +180,12 @@ public class ClusterTopologyImplTest {
 
   @After
   public void tearDown() {
-    reset(ambariContext, stack, blueprint, group1, group2, group3, group4);
+    verifyAll();
+    resetAll();
 
     hostGroupInfoMap.clear();
     hostGroupMap.clear();
   }
-
-  private void replayAll() {
-    replay(ambariContext, stack, blueprint, group1, group2, group3, group4);
-  }
-
-
 
   @Test(expected = InvalidTopologyException.class)
   public void testCreate_duplicateHosts() throws Exception {
@@ -193,6 +210,7 @@ public class ClusterTopologyImplTest {
     ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolvedComponents);
 
     Collection<String> assignments = topology.getHostAssignmentsForComponent("component1");
+
     assertEquals(ImmutableSet.of("host1", "host2"), ImmutableSet.copyOf(assignments));
   }
 
@@ -263,11 +281,6 @@ public class ClusterTopologyImplTest {
   }
 
   private class TestTopologyRequest implements ProvisionRequest {
-
-    @Override
-    public String getClusterName() {
-      return CLUSTER_NAME;
-    }
 
     @Override
     public Long getClusterId() {
