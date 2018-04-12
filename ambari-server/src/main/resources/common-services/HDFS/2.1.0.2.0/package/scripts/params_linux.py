@@ -166,7 +166,10 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
 
 #exclude file
-hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
+if 'all_decommissioned_hosts' in config['commandParams']:
+  hdfs_exclude_file = config['commandParams']['all_decommissioned_hosts'].split(",")
+else:
+  hdfs_exclude_file = []
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
 slave_hosts = default("/clusterHostInfo/datanode_hosts", [])
 include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)

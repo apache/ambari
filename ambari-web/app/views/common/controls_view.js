@@ -904,7 +904,7 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
   classNames: ['master-host', 'col-md-6'],
   valueBinding: 'serviceConfig.value',
 
-  template: Ember.Handlebars.compile('{{value}}')
+  template: Ember.Handlebars.compile('{{view.value}}')
 
 });
 

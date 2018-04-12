@@ -160,7 +160,7 @@ export class HttpClientService extends Http {
       }
       return handled;
     };
-    const req: Observable<Response> = super.request(this.generateUrl(url), options).share()
+    const req: Observable<Response> = super.request(this.generateUrl(url), options).first()
       .map(response => response)
       .catch((error: any) => {
         return handleResponseError(error) ? Observable.of(error) : Observable.throw(error);

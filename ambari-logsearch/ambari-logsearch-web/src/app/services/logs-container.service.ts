@@ -117,7 +117,7 @@ export class LogsContainerService {
       defaultSelection: [],
       fieldName: 'cluster'
     },
-    timeRange: {
+    timeRange: { // @ToDo remove duplication, this options are in the LogFilteringUtilsService too
       label: 'logs.duration',
       options: [
         [
@@ -661,7 +661,8 @@ export class LogsContainerService {
         this.compareFilterOptions
       );
     });
-    this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey).subscribe(this.onClusterSelectionChanged);
+    this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey)
+      .filter(selection => !!selection).subscribe(this.onClusterSelectionChanged);
   }
 
   //

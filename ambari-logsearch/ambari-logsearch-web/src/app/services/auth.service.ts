@@ -54,9 +54,9 @@ export class AuthService {
     ));
   }
 
-  onAppStateIsAuthorizedChanged = (isAuthorized):void => {
-    if (isAuthorized && this.redirectUrl) {
-      this.router.navigate([this.redirectUrl]);
+  onAppStateIsAuthorizedChanged = (isAuthorized): void => {
+    if (isAuthorized) {
+      this.router.navigate([this.redirectUrl || '/']);
       this.redirectUrl = '';
     }
   }

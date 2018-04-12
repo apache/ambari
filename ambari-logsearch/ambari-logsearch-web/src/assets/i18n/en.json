@@ -79,6 +79,8 @@
   "filter.timeRange.custom": "Custom",
   "filter.timeRange.from": "from",
   "filter.timeRange.to": "to",
+  "filter.toggleTo.exclude": "Toggle to exclude",
+  "filter.toggleTo.include": "Toggle to include",
 
   "levels.fatal": "Fatal",
   "levels.error": "Error",
