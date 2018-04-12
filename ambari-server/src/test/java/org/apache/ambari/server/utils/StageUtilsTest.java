@@ -548,6 +548,10 @@ public class StageUtilsTest extends EasyMockSupport {
     }
     assertEquals(expectedPingPorts, reindexedPorts);
 
+    assertTrue(info.containsKey("decom_tt_hosts"));
+    Set<String> decommissionedHosts = info.get("decom_tt_hosts");
+    assertEquals(2, decommissionedHosts.toString().split(",").length);
+
     // check server hostname field
     assertTrue(info.containsKey(StageUtils.AMBARI_SERVER_HOST));
     Set<String> serverHost = info.get(StageUtils.AMBARI_SERVER_HOST);
