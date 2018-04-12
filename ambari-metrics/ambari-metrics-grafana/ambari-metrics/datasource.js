@@ -343,18 +343,31 @@ define([
           };
 
             // Infra Solr Calls
-            var getSolrCoreData = function(target) {
-                var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
-                var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
-                    + target.precision;
-                var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
-                var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-                var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-                return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sCoreMetric + metricTransform + instanceId
-                + metricAggregator + '&appId=ambari-infra-solr&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
-                    allHostMetricsData(target)
-                );
-            };
+          var getSolrCoreData = function(target) {
+              var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
+              var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+                  + target.precision;
+              var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+              var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+              var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
+              return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sCoreMetric + metricTransform + instanceId
+              + metricAggregator + '&appId=ambari-infra-solr&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
+                  allHostMetricsData(target)
+              );
+          };
+
+          var getSolrCollectionData = function(target) {
+              var instanceId = typeof target.templatedCluster == 'undefined'  ? '' : '&instanceId=' + target.templatedCluster;
+              var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+                  + target.precision;
+              var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+              var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+              var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
+              return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sCollectionMetric + metricTransform + instanceId
+              + metricAggregator + '&appId=ambari-infra-solr&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
+                  allHostMetricsData(target)
+              );
+          };
 
           // Druid calls.
           var getDruidData = function(target) {
@@ -473,22 +486,39 @@ define([
               });
             }
 
-              //Templatized Dashboard for Infra Solr Cores
-              if (templateSrv.variables[0].query === "infra_solr_core") {
-                  var allCores = templateSrv.variables.filter(function(variable) { return variable.query === "infra_solr_core";});
-                  var selectedCores = (_.isEmpty(allCores)) ? "" : allCores[0].options.filter(function(core)
-                  { return core.selected; }).map(function(coreName) { return coreName.value; });
-                  selectedCores = templateSrv._values.Cores.lastIndexOf('}') > 0 ? templateSrv._values.Cores.slice(1,-1) :
-                      templateSrv._values.Cores;
-                  var selectedCore= selectedCores.split(',');
-                  _.forEach(selectedCore, function(processCore) {
-                      metricsPromises.push(_.map(options.targets, function(target) {
-                          target.sCore = processCore;
-                          target.sCoreMetric = target.metric.replace('*', target.sCore);
-                          return getSolrCoreData(target);
-                      }));
-                  });
-              }
+            //Templatized Dashboard for Infra Solr Cores
+            if (templateSrv.variables[0].query === "infra_solr_core") {
+                var allCores = templateSrv.variables.filter(function(variable) { return variable.query === "infra_solr_core";});
+                var selectedCores = (_.isEmpty(allCores)) ? "" : allCores[0].options.filter(function(core)
+                { return core.selected; }).map(function(coreName) { return coreName.value; });
+                selectedCores = templateSrv._values.Cores.lastIndexOf('}') > 0 ? templateSrv._values.Cores.slice(1,-1) :
+                    templateSrv._values.Cores;
+                var selectedCore= selectedCores.split(',');
+                _.forEach(selectedCore, function(processCore) {
+                    metricsPromises.push(_.map(options.targets, function(target) {
+                        target.sCore = processCore;
+                        target.sCoreMetric = target.metric.replace('*', target.sCore);
+                        return getSolrCoreData(target);
+                    }));
+                });
+            }
+
+            //Templatized Dashboard for Infra Solr Collections
+            if (templateSrv.variables[0].query === "infra_solr_collection") {
+                var allCollections = templateSrv.variables.filter(function(variable) { return variable.query === "infra_solr_collection";});
+                var selectedCollections = (_.isEmpty(allCollections)) ? "" : allCollections[0].options.filter(function(collection)
+                { return collection.selected; }).map(function(collectionsName) { return collectionsName.value; });
+                selectedCollections = templateSrv._values.Collections.lastIndexOf('}') > 0 ? templateSrv._values.Collections.slice(1,-1) :
+                    templateSrv._values.Collections;
+                var selectedCollection= selectedCollections.split(',');
+                _.forEach(selectedCollection, function(processCollection) {
+                    metricsPromises.push(_.map(options.targets, function(target) {
+                        target.sCollection = processCollection;
+                        target.sCollectionMetric = target.metric.replace('*', target.sCollection);
+                        return getSolrCollectionData(target);
+                    }));
+                });
+            }
 
             //Templatized Dashboard for Storm Topologies
             if (templateSrv.variables[0].query === "topologies" && !templateSrv.variables[1]) {
@@ -710,30 +740,54 @@ define([
               });
           }
 
-            var cores = [];
-            //Templated Variables for Infra Solr Cores
-            if (interpolated === "infra_solr_core") {
-                return this.initMetricAppidMapping()
-                    .then(function () {
-                        var solrMetrics = allMetrics["ambari-infra-solr"];
-                        var extractCores = solrMetrics.filter(/./.test.bind(new
-                        RegExp("^infra.solr.core.", 'g')));
-                        _.map(extractCores, function (core) {
-                            // Core naming convention is infra.solr.core.<collection_name>.<shard>.<replica>.<metric_name>
-                            // coreName should be <collection_name>.<shard>.<replica>
-                            core = core.split('.');
-                            var coreName = core.slice(3,6).join(".");
-                            if (cores.indexOf(coreName) < 0) {
-                                cores.push(coreName);
-                            }
-                        });
-                        return _.map(cores, function (cores) {
-                                return {
-                                    text: cores
-                                };
-                            });
-                        });
-            }
+          var cores = [];
+          //Templated Variables for Infra Solr Cores
+          if (interpolated === "infra_solr_core") {
+              return this.initMetricAppidMapping()
+                  .then(function () {
+                      var solrMetrics = allMetrics["ambari-infra-solr"];
+                      var extractCores = solrMetrics.filter(/./.test.bind(new
+                      RegExp("^infra.solr.core.", 'g')));
+                      _.map(extractCores, function (core) {
+                          // Core naming convention is infra.solr.core.<collection_name>.<shard>.<replica>.<metric_name>
+                          // coreName should be <collection_name>.<shard>.<replica>
+                          core = core.split('.');
+                          var coreName = core.slice(3,6).join(".");
+                          if (cores.indexOf(coreName) < 0) {
+                              cores.push(coreName);
+                          }
+                      });
+                      return _.map(cores, function (cores) {
+                              return {
+                                  text: cores
+                              };
+                          });
+                      });
+          }
+
+          var collections = [];
+          //Templated Variables for Infra Solr Collections
+          if (interpolated === "infra_solr_collection") {
+              return this.initMetricAppidMapping()
+                  .then(function () {
+                      var solrMetrics = allMetrics["ambari-infra-solr"];
+                      var extractCollections = solrMetrics.filter(/./.test.bind(new
+                      RegExp("^infra.solr.core.", 'g')));
+                      _.map(extractCollections, function (core) {
+                          // Core naming convention is infra.solr.core.<collection_name>.<shard>.<replica>.<metric_name>
+                          core = core.split('.');
+                          var collection = core[3];
+                          if (collections.indexOf(collection) < 0) {
+                              collections.push(collection);
+                          }
+                      });
+                      return _.map(collections, function (collections) {
+                              return {
+                                  text: collections
+                              };
+                          });
+                      });
+          }
 
           var topologies = {};
           //Templated Variables for Storm Topologies

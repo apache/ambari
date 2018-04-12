@@ -1,5 +1,5 @@
 {
-  "id": 45,
+  "id": 47,
   "title": "Infra Solr Host",
   "originalTitle": "Infra Solr Host",
   "tags": [
@@ -46,7 +46,7 @@
             "max": true,
             "min": false,
             "rightSide": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": true
           },
@@ -79,25 +79,11 @@
               "templatedCluster": "",
               "templatedHost": "%",
               "transform": "none"
-            },
-            {
-              "aggregator": "none",
-              "alias": "OS CPU utilization",
-              "app": "ambari-infra-solr",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "infra.solr.jvm.os.systemCpuLoad",
-              "precision": "default",
-              "refId": "B",
-              "seriesAggregator": "none",
-              "templatedCluster": "",
-              "templatedHost": "%",
-              "transform": "none"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Infra Solr CPU Utilization",
+          "title": "Infra Solr Process CPU Utilization",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -129,6 +115,78 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
+          "id": 13,
+          "isNew": true,
+          "legend": {
+            "avg": true,
+            "current": false,
+            "max": true,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "OS CPU utilization",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "infra.solr.jvm.os.systemCpuLoad",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "templatedCluster": "",
+              "templatedHost": "%",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Infra Solr OS CPU Utilization",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "percent",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
           "id": 2,
           "isNew": true,
           "legend": {
@@ -136,7 +194,7 @@
             "current": false,
             "max": true,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": true
           },
@@ -166,16 +224,74 @@
               "templatedCluster": "",
               "templatedHost": "%",
               "transform": "none"
-            },
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Infra Solr Heap Memory Utilization",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 14,
+          "isNew": true,
+          "legend": {
+            "avg": true,
+            "current": false,
+            "max": true,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
             {
-              "aggregator": "none",
+              "aggregator": "avg",
               "alias": "Non-Heap memory",
-              "app": "ambari-infra-solr",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "infra.solr.jvm.memory.non-heap.used",
               "precision": "default",
-              "refId": "B",
+              "refId": "A",
               "seriesAggregator": "none",
               "templatedCluster": "",
               "templatedHost": "%",
@@ -184,7 +300,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Infra Solr Memory Utilization",
+          "title": "Infra Solr Non-Heap Memory Utilization",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -232,7 +348,7 @@
             "current": true,
             "max": true,
             "min": true,
-            "show": true,
+            "show": false,
             "total": false,
             "values": true
           },
@@ -307,6 +423,88 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
+          "id": 8,
+          "isNew": true,
+          "legend": {
+            "avg": true,
+            "current": true,
+            "max": true,
+            "min": true,
+            "show": false,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Open file descriptors",
+              "app": "ambari-infra-solr",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "infra.solr.jvm.os.openFileDescriptorCount",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "templatedCluster": "",
+              "templatedHost": "%",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Open File Descriptors",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "FILE DESCRIPTORS"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
           "id": 4,
           "isNew": true,
           "legend": {
@@ -314,7 +512,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -387,7 +585,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -460,7 +658,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -533,7 +731,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -585,7 +783,7 @@
       "title": "JVM - CMS GC STATS"
     },
     {
-      "collapse": false,
+      "collapse": true,
       "editable": true,
       "height": "250px",
       "panels": [
@@ -615,7 +813,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -688,7 +886,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -761,7 +959,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -834,7 +1032,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -886,92 +1084,10 @@
       ],
       "showTitle": true,
       "title": "JVM - G1 GC STATS"
-    },
-    {
-      "collapse": false,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": null,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 8,
-          "isNew": true,
-          "legend": {
-            "avg": true,
-            "current": true,
-            "max": true,
-            "min": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 12,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "avg",
-              "alias": "Open file descriptors",
-              "app": "ambari-infra-solr",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "infra.solr.jvm.os.openFileDescriptorCount",
-              "precision": "default",
-              "refId": "A",
-              "seriesAggregator": "none",
-              "templatedCluster": "",
-              "templatedHost": "%",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Open File Descriptors",
-          "tooltip": {
-            "shared": true,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "short",
-            "short"
-          ]
-        }
-      ],
-      "showTitle": true,
-      "title": "FILE DESCRIPTORS"
     }
   ],
   "time": {
-    "from": "now-3h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {
@@ -1028,7 +1144,7 @@
         "allFormat": "glob",
         "current": {
           "text": "All",
-          "value": "{solr}"
+          "value": "{kkasa-infra-solr-demo-1.c.pramod-thangali.internal,kkasa-infra-solr-demo-2.c.pramod-thangali.internal}"
         },
         "datasource": null,
         "includeAll": true,
@@ -1038,14 +1154,19 @@
         "name": "hosts",
         "options": [
           {
+            "selected": true,
             "text": "All",
-            "value": "{solr}",
-            "selected": true
+            "value": "{kkasa-infra-solr-demo-1.c.pramod-thangali.internal,kkasa-infra-solr-demo-2.c.pramod-thangali.internal}"
           },
           {
-            "text": "solr",
-            "value": "solr",
-            "selected": false
+            "selected": false,
+            "text": "kkasa-infra-solr-demo-1.c.pramod-thangali.internal",
+            "value": "kkasa-infra-solr-demo-1.c.pramod-thangali.internal"
+          },
+          {
+            "selected": false,
+            "text": "kkasa-infra-solr-demo-2.c.pramod-thangali.internal",
+            "value": "kkasa-infra-solr-demo-2.c.pramod-thangali.internal"
           }
         ],
         "query": "hosts.$cluster",
@@ -1058,6 +1179,6 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 17,
+  "version": 23,
   "links": []
 }
