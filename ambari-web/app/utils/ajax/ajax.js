@@ -2194,6 +2194,16 @@ var urls = {
     'mock': '/data/stacks/HDP-2.1/recommendations.json',
     'type': 'POST',
     'format': function (data) {
+      var dataToMerge = {recommendations: {blueprint: {
+        configurations: {
+          'cluster-env': {
+            properties: {
+              recommendations_full_stack_version: App.get('fullStackVersion')
+            }
+          }
+        }}
+      }};
+      $.extend(true, data, dataToMerge);
       var q = {
         hosts: data.hosts,
         services: data.services,
@@ -2218,6 +2228,16 @@ var urls = {
     //'mock': '/data/stacks/HDP-2.1/recommendations_configs.json',
     'type': 'POST',
     'format': function (data) {
+      var dataToMerge = {recommendations: {blueprint: {
+        configurations: {
+          'cluster-env': {
+            properties: {
+              recommendations_full_stack_version: App.get('fullStackVersion')
+            }
+          }
+        }}
+      }};
+      $.extend(true, data.dataToSend, dataToMerge);
       return {
         data: JSON.stringify(data.dataToSend)
       }
