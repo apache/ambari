@@ -48,7 +48,9 @@ angular.module('ambariAdminConsole')
       method : 'POST',
       url: Settings.baseUrl + '/groups',
       data:{
-        'Groups/group_name': this.group_name
+        "Groups": {
+          'group_name': this.group_name
+        }
       }
     });
   };
@@ -73,8 +75,10 @@ angular.module('ambariAdminConsole')
     var members = [];
     angular.forEach(this.members, function(member) {
       members.push({
-        'MemberInfo/user_name' : member,
-        'MemberInfo/group_name' : self.group_name
+        "MemberInfo": {
+          'user_name' : member,
+          'group_name' : self.group_name
+        }
       });
     });
 
