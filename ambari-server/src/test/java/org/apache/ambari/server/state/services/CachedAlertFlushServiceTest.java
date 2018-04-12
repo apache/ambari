@@ -20,9 +20,7 @@ package org.apache.ambari.server.state.services;
 import static org.easymock.EasyMock.expect;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -117,8 +115,6 @@ public class CachedAlertFlushServiceTest extends EasyMockSupport {
      */
     @Override
     public void configure(Binder binder) {
-      Cluster cluster = EasyMock.createNiceMock(Cluster.class);
-
       // required for since the configuration is being mocked
       Configuration configuration = createNiceMock(Configuration.class);
       expect(configuration.getAlertEventPublisherCorePoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_CORE_SIZE.getDefaultValue())).anyTimes();
@@ -128,11 +124,9 @@ public class CachedAlertFlushServiceTest extends EasyMockSupport {
 
       EasyMock.replay(configuration);
 
-      PartialNiceMockBinder.newBuilder().addDBAccessorBinding().addAlertDefinitionDAOBinding().build().configure(binder);
+      PartialNiceMockBinder.newBuilder().addAlertDefinitionBinding().build().configure(binder);
 
       binder.bind(Configuration.class).toInstance(configuration);
-      binder.bind(Cluster.class).toInstance(cluster);
-      binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
     }
   }

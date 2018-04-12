@@ -59,7 +59,6 @@ import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.HostRequest;
@@ -81,12 +80,9 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.StageDAO;
-import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -98,13 +94,8 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
-import org.apache.ambari.server.topology.PersistedState;
-import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -114,15 +105,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.persist.UnitOfWork;
 
 /**
  * HostResourceProvider tests.
@@ -1400,38 +1388,28 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addAmbariMetaInfoBinding().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
-        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Clusters.class).toInstance(createMock(Clusters.class));
-        bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(Gson.class).toInstance(new Gson());
         bind(MaintenanceStateHelper.class).toInstance(createNiceMock(MaintenanceStateHelper.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
-        bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
-        bind(PersistedState.class).to(PersistedStateImpl.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
-        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
         bind(HookService.class).to(UserHookService.class);
         bind(StageFactory.class).to(StageFactoryImpl.class);
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
-        bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
-        bind(AuditLogger.class).toInstance(createMock(AuditLogger.class));
         bind(StageDAO.class).toInstance(createNiceMock(StageDAO.class));
         bind(HostLevelParamsHolder.class).toInstance(createNiceMock(HostLevelParamsHolder.class));
         bind(TopologyHolder.class).toInstance(createNiceMock(TopologyHolder.class));
         bind(RecoveryConfigHelper.class).toInstance(createNiceMock(RecoveryConfigHelper.class));
 
         install(new FactoryModuleBuilder().build(StackManagerFactory.class));
-        install(new FactoryModuleBuilder().implement(
-            ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
-            ServiceComponentHostFactory.class));
       }
     });
 

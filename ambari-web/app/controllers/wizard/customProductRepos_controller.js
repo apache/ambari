@@ -44,116 +44,117 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
     return false;
   },
 
-  getRegisteredMpackInfo: function () {
-    return App.ajax.send({
-      name: 'mpack.get_all_registered',
-      sender: this
-    })
+  /**
+   * Gets registered mpack info and updates it with info from user's selections.
+   * Returns mapped mpacks for use in this step.
+   */
+  getRegisteredMpackInfo: function (selectedMpacks) {
+    const registeredMpacks = this.get('content.registeredMpacks');
+    const mpacks = [];
+
+    registeredMpacks.forEach(mpack => {
+      const selectedMpack = selectedMpacks.find(selectedMpack => selectedMpack.name === mpack.MpackInfo.mpack_name && selectedMpack.version === mpack.MpackInfo.mpack_version);
+      
+      mpacks.push(Em.Object.create({
+        id: mpack.MpackInfo.id,
+        name: mpack.MpackInfo.mpack_name,
+        displayName: mpack.MpackInfo.mpack_display_name,
+        publicUrl: selectedMpack.publicUrl,
+        downloadUrl: selectedMpack.downloadUrl,
+        version: mpack.MpackInfo.mpack_version,
+        operatingSystems: mpack.default_operating_systems.map(os => {
+          //determines if the OS was selected in the database (as when the mpack is initially registered)            
+          let initiallySelected;
+          if (mpack.operating_systems) {
+            initiallySelected = mpack.operating_systems.find(mpackOs => mpackOs.OperatingSystems.os_type === os.OperatingSystems.os_type);
+          }
+
+          //checks if the OS was selected in the UI
+          let selectedOs;
+          if (selectedMpack && selectedMpack.operatingSystems) {
+            selectedOs = selectedMpack.operatingSystems.find(mpackOs => mpackOs.type === os.OperatingSystems.os_type);
+          }
+
+          return Em.Object.create({
+            postdata: JSON.parse(JSON.stringify(os.OperatingSystems)),
+            type: os.OperatingSystems.os_type,
+            initiallySelected: initiallySelected ? true : false,
+            selected: selectedOs ? true : false,
+            isFirstSelected: false,
+            isLastSelected: false,
+            repos: os.OperatingSystems.repositories.map((repo, index, repos) => {
+              let downloadUrl;
+
+              if (selectedOs && selectedOs.repos) {
+                const selectedRepo = selectedOs.repos.findProperty('repoId', repo.repo_id);
+                
+                if (selectedRepo) {
+                  downloadUrl = selectedRepo.downloadUrl;
+                }
+              }
+
+              return Em.Object.create({
+                id: `${mpack.MpackInfo.mpack_name}-${mpack.MpackInfo.mpack_version}-${os.OperatingSystems.os_type}-${repo.repo_id}`, //this is a unique ID used in client logic
+                repoId: repo.repo_id, //this is the repo ID used by the server and displayed in the UI
+                name: repo.repo_name,
+                publicUrl: repo.base_url,
+                downloadUrl: downloadUrl || repo.base_url,
+                isFirst: index === 0,
+                isLast: index === repos.length - 1
+              });
+            })
+          });
+        })
+      }))
+    });
+
+    return mpacks;
   },
 
   /**
    * Populates mpacks array, repos array, and operatingSystems array based on info about registered mpacks.
    */
   loadStep: function () {
-    this.getRegisteredMpackInfo().then(registeredMpacks => {
-      const selectedMpacks = this.get('content.selectedMpacks');
-      const mpacks = [];
+    const selectedMpacks = this.get('content.selectedMpacks');
   
-      registeredMpacks.items.forEach(mpack => {
-        const selectedMpack = selectedMpacks.find(selectedMpack => selectedMpack.name === mpack.MpackInfo.mpack_name && selectedMpack.version === mpack.MpackInfo.mpack_version);
-        
-        mpacks.push(Em.Object.create({
-          id: mpack.MpackInfo.id,
-          name: mpack.MpackInfo.mpack_name,
-          displayName: mpack.MpackInfo.mpack_display_name,
-          publicUrl: selectedMpack.publicUrl,
-          downloadUrl: selectedMpack.downloadUrl,
-          version: mpack.MpackInfo.mpack_version,
-          operatingSystems: mpack.default_operating_systems.map(os => {
-            //determines if the OS was selected in the database (as when the mpack is initially registered)            
-            let initiallySelected;
-            if (mpack.operating_systems) {
-              initiallySelected = mpack.operating_systems.find(mpackOs => mpackOs.OperatingSystems.os_type === os.OperatingSystems.os_type);
-            }
+    const mpacks = this.getRegisteredMpackInfo(selectedMpacks);
+    this.set('mpacks', mpacks);
 
-            //checks if the OS was selected in the UI
-            let selectedOs;
-            if (selectedMpack && selectedMpack.operatingSystems) {
-              selectedOs = selectedMpack.operatingSystems.find(mpackOs => mpackOs.type === os.OperatingSystems.os_type);
-            }
-
-            return Em.Object.create({
-              postdata: os.OperatingSystems,
-              type: os.OperatingSystems.os_type,
-              initiallySelected: initiallySelected ? true : false,
-              selected: selectedOs ? true : false,
-              isFirstSelected: false,
-              isLastSelected: false,
-              repos: os.OperatingSystems.repositories.map((repo, index, repos) => {
-                let downloadUrl;
-
-                if (selectedOs && selectedOs.repos) {
-                  const selectedRepo = selectedOs.repos.findProperty('repoId', repo.repo_id);
-                  
-                  if (selectedRepo) {
-                    downloadUrl = selectedRepo.downloadUrl;
-                  }
-                }
-
-                return Em.Object.create({
-                  id: `${mpack.MpackInfo.mpack_name}-${mpack.MpackInfo.mpack_version}-${os.OperatingSystems.os_type}-${repo.repo_id}`, //this is a unique ID used in client logic
-                  repoId: repo.repo_id, //this is the repo ID used by the server and displayed in the UI
-                  name: repo.repo_name,
-                  publicUrl: repo.base_url,
-                  downloadUrl: downloadUrl || repo.base_url,
-                  isFirst: index === 0,
-                  isLast: index === repos.length - 1
-                });
-              })
-            });
-          })
-        }))
-      });
-      this.set('mpacks', mpacks);
-
-      const repos = mpacks.reduce(
-        (repos, mpack) => repos.concat(
-          mpack.get('operatingSystems').reduce(
-            (repos, os) => repos.concat(
-              os.get('repos')
-            ),
-            [])
+    const repos = mpacks.reduce(
+      (repos, mpack) => repos.concat(
+        mpack.get('operatingSystems').reduce(
+          (repos, os) => repos.concat(
+            os.get('repos')
           ),
-        []
-      );
-      this.set('repos', repos);
+          [])
+        ),
+      []
+    );
+    this.set('repos', repos);
 
-      const uniqueOperatingSystems = {};
-      mpacks.forEach(mpack => {
-        mpack.get('operatingSystems').forEach(os => {
-          const osType = os.get('type');
-          uniqueOperatingSystems[osType]
-            ? uniqueOperatingSystems[osType].mpacks.pushObject(mpack)
-            : uniqueOperatingSystems[osType] = {
-                selected: os.get('selected'),
-                mpacks: [mpack]
-              };
-        })
-      });
-      
-      const operatingSystems = [];
-      for (let osType in uniqueOperatingSystems) {
-        operatingSystems.pushObject(Em.Object.create({
-          type: osType,
-          selected: uniqueOperatingSystems[osType].selected,
-          mpacks: uniqueOperatingSystems[osType].mpacks
-        }))
-      }
-      operatingSystems.sort((a, b) => a.get('type').localeCompare(b.get('type')));
-      this.set('operatingSystems', operatingSystems);
-    },
-      
-    this.get('wizardController').addErrors);
+    const uniqueOperatingSystems = {};
+    mpacks.forEach(mpack => {
+      mpack.get('operatingSystems').forEach(os => {
+        const osType = os.get('type');
+        uniqueOperatingSystems[osType]
+          ? uniqueOperatingSystems[osType].mpacks.pushObject(mpack)
+          : uniqueOperatingSystems[osType] = {
+              selected: os.get('selected'),
+              mpacks: [mpack]
+            };
+      })
+    });
+    
+    const operatingSystems = [];
+    for (let osType in uniqueOperatingSystems) {
+      operatingSystems.pushObject(Em.Object.create({
+        type: osType,
+        selected: uniqueOperatingSystems[osType].selected,
+        mpacks: uniqueOperatingSystems[osType].mpacks
+      }))
+    }
+    operatingSystems.sort((a, b) => a.get('type').localeCompare(b.get('type')));
+    this.set('operatingSystems', operatingSystems);
   },
 
   /**
@@ -224,8 +225,8 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
       ({
         name: selectedMpack.name,
         displayName: selectedMpack.displayName,
-        publicUrl: selectedMpack.publicUrl,
-        downloadUrl: selectedMpack.downloadUrl,
+        publicUrl: selectedMpack.publicUrl,     //these are the URLs of the mpack itself
+        downloadUrl: selectedMpack.downloadUrl, //don't delete them thinking they're not used :)
         version: selectedMpack.version,
         operatingSystems: selectedMpack.get('operatingSystems').filterProperty('selected').map(os =>
           ({
@@ -275,8 +276,35 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
     });
 
     $.when(...osRepoPromises).then(() => {
+      //update registeredMpacks with user's changes so they will be persisted and mapped to App.Stack model
+      this.updateRegisteredMpacks(selectedMpacks);
+
       App.router.send('next');  
-    }, () => this.get('wizardController').addError(Em.i18n.t('installer.error.mpackOsModifications')));
+    }, () => this.get('wizardController').addError(Em.I18n.t('installer.error.mpackOsModifications')));
+  },
+
+  updateRegisteredMpacks: function (selectedMpacks) {
+    const registeredMpacks = this.get('content.registeredMpacks');
+    
+    selectedMpacks.forEach(mpack => {
+      const rmp = registeredMpacks.find(rmp => rmp.MpackInfo.mpack_name === mpack.name && rmp.MpackInfo.mpack_version === mpack.version);
+      if (rmp) {
+        mpack.operatingSystems.forEach(os => {
+          const ros = rmp.operating_systems.find(ros => ros.os_type === os.type);
+          if (ros) {
+            ros.is_selected = os.selected;
+            os.repositories.forEach(repo => {
+              const rr = ros.repos.find(rr => rr.repo_id === repo.id);
+              if (rr) {
+                rr.base_url = repo.downloadUrl;
+              }
+            })
+          }
+        })
+      }  
+    });
+
+    this.set('content.registeredMpacks', registeredMpacks);
   },
 
   createOsRepos: function (mpack, os, data) {

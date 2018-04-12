@@ -397,7 +397,8 @@ public class Stage {
    * This should be called only once for a host-role for a given stage.
    */
   public synchronized void addHostRoleExecutionCommand(String host, Role role, RoleCommand command,
-      ServiceComponentHostEvent event, String clusterName, String serviceGroupName, String serviceName, boolean retryAllowed,
+      ServiceComponentHostEvent event, String clusterName, Long mpackId, String serviceGroupName,
+      String serviceName, boolean retryAllowed,
       boolean autoSkipFailure) {
 
     boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
@@ -406,6 +407,7 @@ public class Stage {
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, host, role,
         command, event, retryAllowed, isHostRoleCommandAutoSkippable);
 
+    commandWrapper.getExecutionCommand().setMpackId(mpackId);
     commandWrapper.getExecutionCommand().setServiceGroupName(serviceGroupName);
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }
@@ -416,7 +418,8 @@ public class Stage {
    * This should be called only once for a host-role for a given stage.
    */
   public synchronized void addHostRoleExecutionCommand(Host host, Role role, RoleCommand command,
-      ServiceComponentHostEvent event, Cluster cluster, String serviceGroupName, String serviceName, boolean retryAllowed,
+      ServiceComponentHostEvent event, Cluster cluster, Long mpackId, String serviceGroupName,
+      String serviceName, boolean retryAllowed,
       boolean autoSkipFailure) {
 
     boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
@@ -425,6 +428,7 @@ public class Stage {
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(cluster, host, role,
         command, event, retryAllowed, isHostRoleCommandAutoSkippable);
 
+    commandWrapper.getExecutionCommand().setMpackId(mpackId);
     commandWrapper.getExecutionCommand().setServiceGroupName(serviceGroupName);
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }

@@ -57,7 +57,7 @@ var urls = {
   },
 
   'common.services.update' : {
-    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?{urlParams}',
+    'real': '/clusters/{clusterName}/servicegroups/{serviceGroup}/services?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
       return {
@@ -247,7 +247,7 @@ var urls = {
 
   'common.service.create.configs': {
     'type': 'POST',
-    'real':'/clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/configurations',
+    'real':'/clusters/{clusterName}/servicegroups/{serviceGroup}/services/{serviceName}/configurations',
     'format': function(data) {
       return {
         apiPrefix: 'api/v2',
@@ -2096,7 +2096,7 @@ var urls = {
 
   'wizard.step8.create_selected_services': {
     'type': 'POST',
-    'real': '/clusters/{cluster}/servicegroups/{defaultServiceGroupName}/services',
+    'real': '/clusters/{cluster}/servicegroups/{serviceGroup}/services',
     'mock': '/data/stacks/HDP-2.1/recommendations.json',
     'format': function (data) {
       return {
@@ -2107,7 +2107,7 @@ var urls = {
   },
 
   'wizard.step8.create_components': {
-    'real': '/clusters/{cluster}/servicegroups/{defaultServiceGroupName}/services/{serviceName}/components',
+    'real': '/clusters/{cluster}/servicegroups/{serviceGroup}/services/{serviceName}/components',
     'mock': '',
     'format': function (data) {
       return {

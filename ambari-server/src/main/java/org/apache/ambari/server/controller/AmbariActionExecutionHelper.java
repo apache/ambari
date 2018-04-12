@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
@@ -274,6 +275,7 @@ public class AmbariActionExecutionHelper {
     // List of host to select from
     Set<String> candidateHosts = new HashSet<>();
 
+    final Long mpackId = actionContext.getMpackId();
     final String serviceGroupName = actionContext.getExpectedServiceGroupName();
     final String serviceName = actionContext.getExpectedServiceName();
     final String componentName = actionContext.getExpectedComponentName();
@@ -291,9 +293,10 @@ public class AmbariActionExecutionHelper {
 //      if (serviceGroupName != null && !serviceGroupName.isEmpty()) {
       if (serviceName != null && !serviceName.isEmpty()) {
         if (componentName != null && !componentName.isEmpty()) {
+          ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
           Service service = cluster.getService(serviceGroupName, serviceName);
           ServiceComponent component = service.getServiceComponent(componentName);
-          StackId stackId = component.getStackId();
+          StackId stackId = serviceGroup.getStackId();
 
           Map<String, ServiceComponentHost> componentHosts = component.getServiceComponentHosts();
           candidateHosts.addAll(componentHosts.keySet());
@@ -395,7 +398,7 @@ public class AmbariActionExecutionHelper {
           RoleCommand.ACTIONEXECUTE,
           new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(), hostName,
               System.currentTimeMillis()),
-          clusterName, serviceGroupName, serviceName, actionContext.isRetryAllowed(),
+          clusterName, mpackId, serviceGroupName, serviceName, actionContext.isRetryAllowed(),
           actionContext.isFailureAutoSkipped());
 
       Map<String, String> commandParams = new TreeMap<>();

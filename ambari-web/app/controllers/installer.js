@@ -114,6 +114,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     mpackVersions: [],
     mpackServiceVersions: [],
     mpackServices: [],
+    serviceGroups: [],
     // Tracks which steps have been saved before.
     // If you revisit a step, we will know if the step has been saved previously and we can warn about making changes.
     // If a previously saved step is changed, setStepSaved() will "unsave" all subsequent steps so we don't warn on every screen.
@@ -825,6 +826,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       {
         type: 'async',
         callback: function () {
+          this.loadRegisteredMpacks();
           return this.loadSelectedServiceInfo(this.getStepSavedState('customProductRepos'));
         }
       },
@@ -834,7 +836,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         type: 'sync',
         callback: function () {
           this.loadConfirmedHosts();
-          this.loadRegisteredMpacks();
         }
       }
     ],
@@ -847,6 +848,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           this.loadConfirmedHosts();
           this.loadComponentsFromConfigs();
           this.loadRecommendations();
+          this.loadRegisteredMpacks();
         }
       }
     ],
@@ -1222,6 +1224,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
     this.clearStackServices(!keepStackServices).then(() => {
       //get info about services from specific stack versions and save to StackService model
+      this.set('content.selectedServiceNames', this.getDBProperty('selectedServiceNames'));
       const selectedServices = this.get('content.selectedServices');
       const servicePromises = selectedServices.map(service =>
         this.loadMpackServiceInfo(service.mpackName, service.mpackVersion, service.name)

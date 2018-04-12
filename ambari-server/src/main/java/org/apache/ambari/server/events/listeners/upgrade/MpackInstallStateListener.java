@@ -247,6 +247,11 @@ public class MpackInstallStateListener {
       mpackId = structuredOutput.mpackId;
     }
 
+    // last chance - try to get it from the failed command report
+    if (null == mpackId) {
+      mpackId = commandReport.getMpackId();
+    }
+
     if (!StringUtils.equals(HostRoleStatus.COMPLETED.name(), commandReport.getStatus())) {
       LOG.warn(
           "Command {} for {} did not complete on {}. The management pack installation state will be updated to {}.",

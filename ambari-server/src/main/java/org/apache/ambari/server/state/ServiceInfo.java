@@ -467,7 +467,7 @@ public class ServiceInfo implements Validable {
     return properties;
   }
 
-  public void setProperties(List properties) {
+  public void setProperties(List<PropertyInfo> properties) {
     this.properties = properties;
   }
 

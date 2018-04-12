@@ -536,10 +536,22 @@ describe('App.InstallerController', function () {
 
     describe('Should load registered mpacks', function () {
       it('maps registered mpacks', function () {
-        sinon.stub(installerController, 'getDBProperty').returns([{}, {}, {}]);
+        sinon.stub(installerController, 'getDBProperty').returns([
+          {
+            MpackInfo: { mpack_name: "mpack1" }
+          },
+          {
+            MpackInfo: { mpack_name: "mpack2" }
+          },
+          {
+            MpackInfo: { mpack_name: "mpack3" }
+          }
+        ]);
         sinon.stub(App.stackMapper, 'map');
         installerController.loadRegisteredMpacks();
         expect(App.stackMapper.map.calledThrice).to.be.true;
+        const serviceGroups = installerController.get('content.serviceGroups');
+        expect(serviceGroups).to.deep.equal(["mpack1", "mpack2", "mpack3"]);
         installerController.getDBProperty.restore();
         App.stackMapper.map.restore();
       });  
@@ -570,7 +582,8 @@ describe('App.InstallerController', function () {
         },
         getStepIndex: function () {
           return 0;
-        }
+        },
+        loadRegisteredMpacks: sinon.stub()
       };
 
       beforeEach(function () {

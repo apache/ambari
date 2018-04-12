@@ -332,8 +332,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private Users users;
   @Inject
-  private HostsMap hostsMap;
-  @Inject
   private Configuration configs;
   @Inject
   private AbstractRootServiceResponseFactory rootServiceResponseFactory;
@@ -682,7 +680,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // do all validation checks
     Map<String, Map<String, Map<String, Set<String>>>> hostComponentNames = new HashMap<>();
     Set<String> duplicates = new HashSet<>();
-    Set<ServiceComponentHostResponse> createdSvcHostCmpnt = null;
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
@@ -1366,11 +1363,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       LOG.debug("Cluster State for cluster {}", builder);
     }
     return response;
-  }
-
-  private Set<ServiceComponentHostResponse> getHostComponents(
-      ServiceComponentHostRequest request) throws AmbariException {
-    return getHostComponents(request, false);
   }
 
   private Set<ServiceComponentHostResponse> getHostComponents(
@@ -2593,8 +2585,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String serviceGroupName = scHost.getServiceGroupName();
     String serviceName = scHost.getServiceName();
 
+    ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupName);
+    Long mpackId = serviceGroup.getMpackId();
+    StackId stackId = serviceGroup.getStackId();
+
     stage.addHostRoleExecutionCommand(scHost.getHost(),
-        Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, serviceGroupName, serviceName, false, skipFailure);
+        Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, mpackId,
+        serviceGroupName, serviceName, false, skipFailure);
 
     String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();
@@ -2608,7 +2605,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       //TODO fix matainfo
       servicesMap.put(clusterServiceName, ambariMetaInfo.getService(services.get(clusterServiceName)));
     }
-    StackId stackId = scHost.getServiceComponent().getStackId();
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), scHost.getServiceType());
@@ -2937,8 +2933,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               new ActionExecutionContext(actionRequest.getClusterName(),
               actionRequest.getActionName(), actionRequest.getResourceFilters(),
               actionRequest.getParameters(), actionDef.getTargetType(),
-              actionDef.getDefaultTimeout(), actionDef.getTargetServiceGroup(), actionDef.getTargetService(),
-              actionDef.getTargetComponent());
+              actionDef.getDefaultTimeout(), null, actionDef.getTargetServiceGroup(),
+              actionDef.getTargetService(), actionDef.getTargetComponent());
       actionExecutionContext.setOperationLevel(operationLevel);
       return actionExecutionContext;
     }
@@ -5170,7 +5166,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Set<RootServiceComponentRequest> requests) throws AmbariException {
     Set<RootServiceComponentResponse> response = new HashSet<>();
     for (RootServiceComponentRequest request : requests) {
-      String serviceName  = request.getServiceName();
       try {
         Set<RootServiceComponentResponse> rootServiceComponents = getRootServiceComponents(request);
         response.addAll(rootServiceComponents);
@@ -6235,8 +6230,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
-    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     clusterLevelParams.put(HOOKS_FOLDER, configs.getProperty(Configuration.HOOKS_FOLDER));
 
     return clusterLevelParams;

@@ -126,6 +126,12 @@ public class ExecutionCommand extends AgentCommand {
   @com.fasterxml.jackson.annotation.JsonProperty("commandParams")
   private Map<String, String> commandParams = new HashMap<>();
 
+  /**
+   * If set, the management pack associated with this command.
+   */
+  @SerializedName("mpackId")
+  private Long mpackId;
+
   @SerializedName("serviceGroupName")
   private String serviceGroupName;
 
@@ -203,12 +209,6 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("roleParameters")
   private Map<String, Object> roleParameters;
-
-  /**
-   * If set, the management pack associated with this command.
-   */
-  @SerializedName("mpackId")
-  private Long mpackId;
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;

@@ -311,6 +311,7 @@ public class ClusterImpl implements Cluster {
   @Inject
   private ClusterSettingDAO clusterSettingDAO;
 
+  @Inject
   private TopologyDeleteFormer topologyDeleteFormer;
 
 

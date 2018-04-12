@@ -118,11 +118,4 @@ public interface ServiceComponent {
       String hostName) throws AmbariException;
 
   void delete(DeleteHostComponentStatusMetaData deleteMetaData);
-
-  /**
-   * @return the repository state for the desired version
-   */
-  @Deprecated
-  @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  RepositoryVersionState getRepositoryState();
 }

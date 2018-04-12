@@ -123,7 +123,7 @@ App.stackMapper = App.QuickDataMapper.create({
       operatingSystems.id = stack.id + "-" + operatingSystems.os_type;
       operatingSystems.stack_id = stack.id;
       operatingSystems.repositories = repositoriesArray;
-      operatingSystems.is_selected = ops.isSelected == true || ops.isSelected == undefined;
+      operatingSystems.is_selected = false;
       resultOS.push(this.parseIt(operatingSystems, this.get('configOS')));
       operatingSystemsArray.pushObject(operatingSystems);
 
