@@ -1,0 +1,25 @@
+diff --git a/ambari-web/app/controllers/main/host/bulk_operations_controller.js b/ambari-web/app/controllers/main/host/bulk_operations_controller.js
+index 86c0db4..d65844a 100644
+--- a/ambari-web/app/controllers/main/host/bulk_operations_controller.js
++++ b/ambari-web/app/controllers/main/host/bulk_operations_controller.js
+@@ -473,7 +473,7 @@ App.BulkOperationsController = Em.Controller.extend({
+     }
+     return App.ModalPopup.show({
+       header: Em.I18n.t('rolling.nothingToDo.header'),
+-      body: Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
++      body: operationData.state == 'OFF' ?Em.I18n.t('hosts.bulkOperation.noPassiveState.nothingToDo.body'):Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
+       secondary: false
+     });
+   },
+diff --git a/ambari-web/app/messages.js b/ambari-web/app/messages.js
+index df09dfa..bd60e3c 100644
+--- a/ambari-web/app/messages.js
++++ b/ambari-web/app/messages.js
+@@ -2623,6 +2623,7 @@ Em.I18n.translations = {
+   'hosts.bulkOperation.confirmation.delete.hosts':'Are you sure you want to delete the following {0} hosts?',
+   'hosts.bulkOperation.confirmation.hostComponents':'Are you sure you want to <strong>{0} {1}</strong> on the following {2} hosts?',
+   'hosts.bulkOperation.passiveState.nothingToDo.body':'All hosts that you selected are already in Maintenance Mode.',
++  'hosts.bulkOperation.noPassiveState.nothingToDo.body':'All hosts that you selected are not in Maintenance Mode.',
+   'hosts.bulkOperation.warningInfo.body':'Components on these hosts are stopped so decommission will be skipped.',
+   'hosts.bulkOperation.host_components.passiveState.nothingToDo.body':'All host components that you selected are already in Maintenance Mode',
+   'hosts.bulkOperation.confirmation.add.component':'{0} will be added to the following hosts.',
