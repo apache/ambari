@@ -58,10 +58,8 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.lang.StringUtils;
@@ -92,8 +90,6 @@ public class StageUtils {
   protected static final String RACKS = "all_racks";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
 
-  private static Map<String, String> decommissionedToClusterInfoKeyMap =
-    new HashMap<>();
   private volatile static Gson gson;
 
   @Inject
@@ -149,12 +145,6 @@ public class StageUtils {
     StageUtils.configuration = configuration;
   }
 
-  static {
-    decommissionedToClusterInfoKeyMap.put("DATANODE", "decom_dn_hosts");
-    decommissionedToClusterInfoKeyMap.put("TASKTRACKER", "decom_tt_hosts");
-    decommissionedToClusterInfoKeyMap.put("NODEMANAGER", "decom_nm_hosts");
-    decommissionedToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "decom_hbase_rs_hosts");
-  }
 
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
@@ -301,8 +291,6 @@ public class StageUtils {
 
         String roleName = getClusterHostInfoKey(componentName);
 
-        String decomRoleName = decommissionedToClusterInfoKeyMap.get(componentName);
-
         for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
 
           if (roleName != null) {
@@ -316,22 +304,6 @@ public class StageUtils {
             int hostIndex = hostsList.indexOf(hostName);
             //Add index of host to current host role
             hostsForComponentsHost.add(hostIndex);
-          }
-
-          if (decomRoleName != null) {
-            ServiceComponentHost scHost = serviceComponent.getServiceComponentHost(hostName);
-            if (scHost.getComponentAdminState() == HostComponentAdminState.DECOMMISSIONED) {
-              SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(decomRoleName);
-
-              if (hostsForComponentsHost == null) {
-                hostsForComponentsHost = new TreeSet<>();
-                hostRolesInfo.put(decomRoleName, hostsForComponentsHost);
-              }
-
-              int hostIndex = hostsList.indexOf(hostName);
-              //Add index of host to current host role
-              hostsForComponentsHost.add(hostIndex);
-            }
           }
         }
       }
