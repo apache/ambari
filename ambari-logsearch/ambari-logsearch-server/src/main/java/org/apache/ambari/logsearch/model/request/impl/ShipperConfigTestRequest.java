@@ -20,6 +20,7 @@ package org.apache.ambari.logsearch.model.request.impl;
 
 import org.apache.ambari.logsearch.model.request.ShipperConfigTestParams;
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public class ShipperConfigTestRequest implements ShipperConfigTestParams {
   @NotBlank
   private String testEntry;
 
-  @NotBlank
+  @NotEmpty
   private Map<String, Object> shipperConfig;
 
   @Override
