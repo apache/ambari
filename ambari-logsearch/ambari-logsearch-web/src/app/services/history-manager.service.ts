@@ -161,23 +161,26 @@ export class HistoryManagerService {
       } else {
         this.currentHistoryItemId = currentHistory.length;
       }
-      this.activeHistory = [
-        {
-          value: {
-            currentValue: Object.assign({}, value),
-            previousValue: Object.assign({}, previousValue),
-            changeId: this.currentHistoryItemId,
-            previousChangeId,
-            isUndoOrRedo
-          },
-          label: this.getHistoryItemLabel(previousValue, value)
+      const newItem = {
+        value: {
+          currentValue: Object.assign({}, value),
+          previousValue: Object.assign({}, previousValue),
+          changeId: this.currentHistoryItemId,
+          previousChangeId,
+          isUndoOrRedo
         },
-        ...currentHistory
-      ].slice(0, this.maxHistoryItemsCount);
-      this.appState.setParameter('history', {
-        items: this.activeHistory.slice(),
-        currentId: this.currentHistoryItemId
-      });
+        label: this.getHistoryItemLabel(previousValue, value)
+      };
+      if (newItem.label) {
+        this.activeHistory = [
+          newItem,
+          ...currentHistory
+        ].slice(0, this.maxHistoryItemsCount);
+        this.appState.setParameter('history', {
+          items: this.activeHistory.slice(),
+          currentId: this.currentHistoryItemId
+        });
+      }
     }
   }
 
@@ -270,16 +273,18 @@ export class HistoryManagerService {
    * @returns {string}
    */
   private getHistoryItemLabel(previousFormValue: object, currentFormValue: object): string {
-    return this.filterParameters.reduce((currentResult: string, currentName: string): string => {
-      const currentValue = currentFormValue[currentName];
-      if (this.ignoredParameters.indexOf(currentName) > -1
-        || this.utils.isEqual(previousFormValue[currentName], currentValue)) {
-        return currentResult;
-      } else {
-        const currentLabel = this.getItemValueString(currentName, currentValue);
-        return `${currentResult} ${currentLabel}`;
-      }
-    }, '');
+    return this.filterParameters.reduce(
+      (currentResult: string, currentName: string): string => {
+        const currentValue = currentFormValue[currentName];
+        if (this.ignoredParameters.indexOf(currentName) > -1
+          || this.utils.isEqual(previousFormValue[currentName], currentValue)) {
+          return currentResult;
+        } else {
+          const currentLabel = this.getItemValueString(currentName, currentValue);
+          return `${currentResult} ${currentLabel}`;
+        }
+      }, ''
+    );
   }
 
   /**

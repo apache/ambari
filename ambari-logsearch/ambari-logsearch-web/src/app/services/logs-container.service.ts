@@ -661,7 +661,8 @@ export class LogsContainerService {
         this.compareFilterOptions
       );
     });
-    this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey).subscribe(this.onClusterSelectionChanged);
+    this.clusterSelectionStoreService.getParameter(LogsContainerService.clusterSelectionStoreKey)
+      .filter(selection => !!selection).subscribe(this.onClusterSelectionChanged);
   }
 
   //
