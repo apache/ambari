@@ -22,7 +22,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['reconfigureServices', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['reconfigureServices', 'installNameNode', 'installZKFC', 'restartJournalNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
 
@@ -70,6 +70,35 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   installZKFC: function () {
     this.createInstallComponentTask('ZKFC', this.get('newNameNodeHosts'), "HDFS");
+  },
+
+  restartJournalNodes: function () {
+    var context = "Restart JournalNodes";
+
+    var resource_filters = {
+      component_name: "JOURNALNODE",
+      hosts: App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName').join(','),
+      service_name: "HDFS"
+    };
+
+    var operation_level = {
+      level: "HOST_COMPONENT",
+      cluster_name: this.get('content.cluster.name'),
+      service_name: "HDFS",
+      hostcomponent_name: "JOURNALNODE"
+    };
+
+    App.ajax.send({
+      name: 'restart.hostComponents',
+      sender: this,
+      data: {
+        context: context,
+        resource_filters: [resource_filters],
+        operation_level: operation_level
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   },
 
   formatNameNode: function () {
