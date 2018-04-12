@@ -588,6 +588,8 @@ public class KerberosHelperImpl implements KerberosHelper {
           configurations.put("clusterHostInfo", clusterHostInfoMap);
         }
 
+        Map<String, String> componentToClusterInfoMap = StageUtils.getComponentToClusterInfoKeyMap();
+
         // Iterate through the recommendations to find the recommended host assignments
         for (RecommendationResponse.HostGroup hostGroup : hostGroups) {
           Set<Map<String, String>> components = hostGroup.getComponents();
@@ -605,7 +607,13 @@ public class KerberosHelperImpl implements KerberosHelper {
                   // If the component filter is null or the current component is found in the filter,
                   // include it in the map
                   if ((componentFilter == null) || componentFilter.contains(componentName)) {
-                    String key = StageUtils.getClusterHostInfoKey(componentName);
+                    String key = componentToClusterInfoMap.get(componentName);
+
+                    if (StringUtils.isEmpty(key)) {
+                      // If not found in the componentToClusterInfoMap, then keys are assumed to be
+                      // in the form of <component_name>_hosts (lowercase)
+                      key = componentName.toLowerCase() + "_hosts";
+                    }
 
                     Set<String> fqdns = new TreeSet<>();
 
