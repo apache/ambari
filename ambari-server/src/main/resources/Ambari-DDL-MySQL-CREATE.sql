@@ -1086,7 +1086,7 @@ CREATE TABLE upgrade_plan_config (
   id BIGINT NOT NULL,
   upgrade_plan_detail_id BIGINT NOT NULL,
   config_type VARCHAR(255) NOT NULL,
-  key VARCHAR(255) NOT NULL,
+  `key` VARCHAR(255) NOT NULL,
   new_value LONGTEXT,
   remove SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade_plan_config PRIMARY KEY (id),
