@@ -494,8 +494,6 @@ class TestActionQueue(TestCase):
       [call("out\n\nCommand completed successfully!\n", "9"), call("stderr", "9")], any_order=True)
     self.assertEqual(len(reports), 1)
     self.assertEqual(expected, reports[0])
-    import threading
-    print threading.enumerate()
 
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
@@ -1061,112 +1059,6 @@ class TestActionQueue(TestCase):
     self.assertEqual(2, process_command_mock.call_count)
     self.assertEqual(0, threading_mock.call_count)
     process_command_mock.assert_any_calls([call(self.datanode_install_command), call(self.hbase_install_command)])
-
-  @not_for_platform(PLATFORM_LINUX)
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command(self, CustomServiceOrchestrator_mock,
-                                     sleep_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
-    python_execution_result_dict = {
-      'exitcode': 1,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'FAILED'
-    }
-
-    def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
-      return python_execution_result_dict
-
-    command = copy.deepcopy(self.retryable_command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = side_effect
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertEqual(3, runCommand_mock.call_count)
-    self.assertEqual(2, sleep_mock.call_count)
-    sleep_mock.assert_has_calls([call(2), call(3)], False)
-    runCommand_mock.assert_has_calls([
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=True, retry=False),
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True),
-      call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
-           os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True)])
-
-  # retryable_command
-  @not_for_platform(PLATFORM_LINUX)
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command_fail_and_succeed(self, CustomServiceOrchestrator_mock,
-                                                      sleep_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
-    execution_result_fail_dict = {
-      'exitcode': 1,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'FAILED'
-    }
-    execution_result_succ_dict = {
-      'exitcode': 0,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'COMPLETED'
-    }
-
-    command = copy.deepcopy(self.retryable_command)
-    self.assertFalse('commandBeingRetried' in command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = [execution_result_fail_dict, execution_result_succ_dict]
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertEqual(2, runCommand_mock.call_count)
-    self.assertEqual(1, sleep_mock.call_count)
-    self.assertEqual(command['commandBeingRetried'], "true")
-    sleep_mock.assert_any_call(2)
-
-  @not_for_platform(PLATFORM_LINUX)
-  @patch("time.sleep")
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_execute_retryable_command_succeed(self, CustomServiceOrchestrator_mock,
-                                             sleep_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
-    execution_result_succ_dict = {
-      'exitcode': 0,
-      'stdout': 'out',
-      'stderr': 'stderr',
-      'structuredOut': '',
-      'status': 'COMPLETED'
-    }
-
-    command = copy.deepcopy(self.retryable_command)
-    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-      runCommand_mock.side_effect = [execution_result_succ_dict]
-      actionQueue.execute_command(command)
-
-    # assert that python executor start
-    self.assertTrue(runCommand_mock.called)
-    self.assertFalse(sleep_mock.called)
-    self.assertEqual(1, runCommand_mock.call_count)
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(CustomServiceOrchestrator, "runCommand")
