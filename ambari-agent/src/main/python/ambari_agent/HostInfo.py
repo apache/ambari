@@ -147,6 +147,8 @@ def get_ntp_service():
     return ("ntpd", "ntp",)
   elif OSCheck.is_ubuntu_family():
     return ("ntp", "chrony",)
+  else:
+    return ("ntpd",)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
