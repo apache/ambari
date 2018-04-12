@@ -26,8 +26,9 @@ App.alertSummaryMapper = App.QuickDataMapper.create({
     const data = {
       alerts_summary_grouped: []
     };
-    for (let name in event.summaries) {
-      data.alerts_summary_grouped.push(event.summaries[name]);
+    const definitions = event.summaries[App.get('clusterId')];
+    for (let name in definitions) {
+      data.alerts_summary_grouped.push(definitions[name]);
     }
     App.alertDefinitionSummaryMapper.map(data);
   }
