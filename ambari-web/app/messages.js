@@ -3161,6 +3161,7 @@ Em.I18n.translations = {
   'dashboard.services.hive.client':'Hive Client',
   'dashboard.services.hive.metastore':'Hive Metastore',
   'dashboard.services.hive.server2':'HiveServer2',
+  'dashboard.services.hive.server2interactive':'HiveServer2 Interactive',
 
   'dashboard.services.oozie.clients':'Oozie Clients',
   'dashboard.services.oozie.client':'Oozie Client',
