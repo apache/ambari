@@ -217,7 +217,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       const masters = this.get('service.hostComponents').filterProperty('isMaster'),
         slaves = this.get('service.slaveComponents').toArray(),
         clients = this.get('service.clientComponents').toArray(),
-        masterGroups = this.get('svc') ? this.get('svc.masterComponentGroups').toArray() : [];
+        masterGroups = this.get('svc.masterComponentGroups') ? this.get('svc.masterComponentGroups').toArray() : [];
 
       if (this.get('mastersLength') !== masters.length || this.get('mastersObj.length') !== masterGroups.length) {
         let mastersInit = this.get('mastersObj').mapProperty('components').reduce((acc, group) => {

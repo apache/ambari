@@ -102,8 +102,10 @@
               {{#each groupLayout in group.allWidgets}}
                 {{#if groupLayout.isActive}}
                   {{#each widget in groupLayout.widgets}}
-                    {{#if widget.isVisible}}
-                      {{view widget.viewClass widgetBinding="widget"}}
+                    {{#if widget}}
+                      {{#if widget.isVisible}}
+                        {{view widget.viewClass widgetBinding="widget"}}
+                      {{/if}}
                     {{/if}}
                   {{/each}}
                 {{/if}}
