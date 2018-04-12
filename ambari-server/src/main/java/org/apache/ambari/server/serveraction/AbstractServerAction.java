@@ -80,6 +80,13 @@ public abstract class AbstractServerAction implements ServerAction {
   }
 
   /**
+   * @return a command report with 0 exit code and COMPLETED HostRoleStatus
+   */
+  protected CommandReport createCompletedCommandReport() {
+    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+  }
+
+  /**
    * Creates a CommandReport used to report back to Ambari the status of this ServerAction.
    *
    * @param exitCode      an integer value declaring the exit code for this action - 0 typically
