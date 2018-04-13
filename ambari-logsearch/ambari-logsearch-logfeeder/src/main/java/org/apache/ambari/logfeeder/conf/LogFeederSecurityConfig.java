@@ -27,12 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.nio.charset.Charset;
 
 @Configuration
+@Lazy
 public class LogFeederSecurityConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(LogFeederSecurityConfig.class);

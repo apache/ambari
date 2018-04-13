@@ -65,6 +65,8 @@ limitations under the License.
 
   <root>
     <priority value="warn"/>
-    <!-- <appender-ref ref="rolling_file"/> -->
+    <!-- <appender-ref ref="console" /> -->
+    <appender-ref ref="rolling_file" />
+    <appender-ref ref="rolling_file_json"/>
   </root>
 </log4j:configuration>
