@@ -219,11 +219,11 @@ if dfs_ha_namenode_ids:
   if dfs_ha_namenode_ids_array_len > 1:
     dfs_ha_enabled = True
 
-if has_namenode or dfs_type == 'HCFS':
-    hadoop_conf_dir = get_component_conf_path(mpack_name=mpack_name, instance_name=mpack_instance_name,
-                                              module_name=HADOOP_CLIENTS_MODULE_NAME,
-                                              components_instance_type=HADOOP_CLIENT_COMPONENT_TYPE)
-    hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
+# if has_namenode or dfs_type == 'HCFS':
+#     hadoop_conf_dir = get_component_conf_path(mpack_name=mpack_name, instance_name=mpack_instance_name,
+#                                               module_name=HADOOP_CLIENTS_MODULE_NAME,
+#                                               components_instance_type=HADOOP_CLIENT_COMPONENT_TYPE)
+#     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
@@ -262,5 +262,5 @@ tez_am_view_acls = module_configs.get_property_value(module_name, 'tez-site', 't
 override_uid = get_cluster_setting_value('override_uid')
 
 # if NN HA on secure clutser, access Zookeper securely
-if stack_supports_zk_security and dfs_ha_enabled and security_enabled:
-    hadoop_zkfc_opts=format("-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client")
+# if stack_supports_zk_security and dfs_ha_enabled and security_enabled:
+#     hadoop_zkfc_opts=format("-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client")

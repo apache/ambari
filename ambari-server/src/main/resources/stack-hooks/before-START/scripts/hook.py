@@ -31,13 +31,13 @@ class BeforeStartHook(Hook):
     self.run_custom_hook('before-ANY')
     env.set_params(params)
 
-    setup_hadoop()
-    setup_configs()
+    # setup_hadoop()
+    # setup_configs()
     create_javahome_symlink()
-    create_topology_script_and_mapping()
+    # create_topology_script_and_mapping()
     setup_unlimited_key_jce_policy()
-    if params.stack_supports_hadoop_custom_extensions:
-      setup_extensions()
+    # if params.stack_supports_hadoop_custom_extensions:
+    #   setup_extensions()
 
 if __name__ == "__main__":
   BeforeStartHook().execute()
