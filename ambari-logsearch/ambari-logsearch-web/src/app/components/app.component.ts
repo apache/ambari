@@ -20,11 +20,12 @@ import {Component} from '@angular/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {Observable} from 'rxjs/Observable';
 import {Options} from 'angular2-notifications/src/options.type';
+import {notificationIcons} from '@modules/shared/services/notification.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.less']
+  styleUrls: ['./app.component.less', '../modules/shared/notifications.less']
 })
 export class AppComponent {
 
@@ -34,7 +35,9 @@ export class AppComponent {
     timeOut: 5000,
     showProgressBar: true,
     pauseOnHover: true,
-    preventLastDuplicates: 'visible'
+    preventLastDuplicates: 'visible',
+    theClass: 'app-notification',
+    icons: notificationIcons
   };
 
   constructor(

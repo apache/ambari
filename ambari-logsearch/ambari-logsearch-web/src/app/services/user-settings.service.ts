@@ -27,17 +27,11 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
+import {TranslateService} from '@ngx-translate/core';
+import {NotificationService} from '@modules/shared/services/notification.service';
 
 @Injectable()
 export class UserSettingsService {
-
-  constructor(private logsContainer: LogsContainerService, private httpClient: HttpClientService,
-              private utils: UtilsService, private settingsStorage: AppSettingsService) {
-    settingsStorage.getParameter('logIndexFilters').subscribe((filters: HomogeneousObject<HomogeneousObject<Filter>>): void => {
-      const configs = this.parseLogIndexFilterObjects(filters);
-      this.settingsFormGroup.controls.logIndexFilter.setValue(configs);
-    });
-  }
 
   settingsFormGroup: FormGroup = new FormGroup({
     logIndexFilter: new FormControl()
@@ -49,10 +43,23 @@ export class UserSettingsService {
 
   readonly levelNames = this.logsContainer.logLevels.map((level: LogLevelObject): LogLevel => level.name);
 
+  constructor(
+    private logsContainer: LogsContainerService,
+    private httpClient: HttpClientService,
+    private utils: UtilsService,
+    private settingsStorage: AppSettingsService,
+    private translateService: TranslateService,
+    private notificationService: NotificationService) {
+    settingsStorage.getParameter('logIndexFilters').subscribe((filters: HomogeneousObject<HomogeneousObject<Filter>>): void => {
+      const configs = this.parseLogIndexFilterObjects(filters);
+      this.settingsFormGroup.controls.logIndexFilter.setValue(configs);
+    });
+  }
+
   loadIndexFilterConfig(clusterNames: string[]): void {
-    let processedRequests: number = 0,
-      allFilters: HomogeneousObject<Filter> = {},
-      totalCount = clusterNames.length;
+    let processedRequests: number = 0;
+    const allFilters: HomogeneousObject<Filter> = {};
+    const totalCount = clusterNames.length;
     clusterNames.forEach((clusterName: string): void => {
       this.httpClient.get('logIndexFilters', null, {
         clusterName
@@ -71,11 +78,32 @@ export class UserSettingsService {
     });
   }
 
+  handleLogIndexFilterUpdate = (response: Response, cluster?: string): void => {
+    const title: string = this.translateService.instant('logIndexFilter.update.title');
+    const resultStr: string = response instanceof Response && response.ok ? 'success' : 'failed';
+    const data: {[key: string]: any} = response instanceof Response ? response.json() : {};
+    const message: string = this.translateService.instant(`logIndexFilter.update.${resultStr}`, {
+      message: '',
+      cluster: cluster || '',
+      ...data
+    });
+    this.notificationService.addNotification({
+      type: resultStr,
+      title,
+      message
+    });
+  }
+
   saveIndexFilterConfig(): void {
-    const savedValue = this.currentValues.logIndexFilter,
-      newValue = this.settingsFormGroup.controls.logIndexFilter.value,
-      clusters = Object.keys(newValue);
-    let storedValue = {};
+    const savedValue = this.currentValues.logIndexFilter;
+    const newValue = this.settingsFormGroup.controls.logIndexFilter.value;
+    const clusters = Object.keys(newValue);
+    const storedValue = {};
+    const addResponseHandler = (cluster: string) => {
+      return (response: Response) => {
+        this.handleLogIndexFilterUpdate(response, cluster);
+      };
+    };
     clusters.forEach((clusterName: string): void => {
       const savedConfig = savedValue[clusterName],
         newConfig = this.getLogIndexFilterObject(newValue[clusterName]);
@@ -87,7 +115,7 @@ export class UserSettingsService {
           filter: newConfig
         }, null, {
           clusterName
-        });
+        }).first().subscribe(addResponseHandler(clusterName), addResponseHandler(clusterName));
       }
     });
     this.settingsStorage.setParameter('logIndexFilters', storedValue);

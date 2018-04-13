@@ -212,6 +212,9 @@
   "logIndexFilter.addHosts": "Add Hosts",
   "logIndexFilter.hostname": "Hostname",
   "logIndexFilter.expiryDate": "Expiry Date",
+  "logIndexFilter.update.title": "Log Index Filter Update",
+  "logIndexFilter.update.success": "Log Index Filter for cluster {{cluster}} has been successfully updated.",
+  "logIndexFilter.update.error": "Error at updating Log Index Filter for cluster {{cluster}}. {{message}}",
 
   "login.title": "Login",
 
