@@ -2535,7 +2535,10 @@ a.abort-icon:hover {
 .summary-block {
   flex: 1;
   .metrics-summary {
-    margin-top:40px;
+    margin-top: 40px;
+    &.multiple-master-groups {
+      margin-top: 0;
+    }
   }
   .component-summary, .metrics-summary {
     .col-md-2 {
@@ -2940,4 +2943,9 @@ a.abort-icon:hover {
       display: block;
     }
   }
+}
+
+.widgets-group-title {
+  display: inline-block;
+  text-transform: uppercase;
 }
