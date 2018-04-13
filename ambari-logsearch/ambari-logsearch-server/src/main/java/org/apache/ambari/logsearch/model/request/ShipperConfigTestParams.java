@@ -21,25 +21,25 @@ package org.apache.ambari.logsearch.model.request;
 import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 
-import java.util.Map;
-
-import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.TOP;
+import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.LOG_ID_D;
+import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.SHIPPER_CONFIG_D;
+import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.TEST_ENTRY_D;
 
 public interface ShipperConfigTestParams {
 
-  Map<String, Object> getShipperConfig();
+  String getShipperConfig();
 
-  @ApiParam(value = TOP, name = LogSearchConstants.REQUEST_PARAM_SHIPPER_CONFIG, required = true)
-  void setShipperConfig(Map<String, Object> shipperConfig);
+  @ApiParam(value = SHIPPER_CONFIG_D, name = LogSearchConstants.REQUEST_PARAM_SHIPPER_CONFIG, required = true)
+  void setShipperConfig(String shipperConfig);
 
   String getLogId();
 
-  @ApiParam(value = TOP, name = LogSearchConstants.REQUEST_PARAM_LOG_ID, required = true)
+  @ApiParam(value = LOG_ID_D, name = LogSearchConstants.REQUEST_PARAM_LOG_ID, required = true)
   void setLogId(String logId);
 
   String getTestEntry();
 
-  @ApiParam(value = TOP, name = LogSearchConstants.REQUEST_PARAM_TEST_ENTRY, required = true)
+  @ApiParam(value = TEST_ENTRY_D, name = LogSearchConstants.REQUEST_PARAM_TEST_ENTRY, required = true)
   void setTestEntry(String testEntry);
 
 }

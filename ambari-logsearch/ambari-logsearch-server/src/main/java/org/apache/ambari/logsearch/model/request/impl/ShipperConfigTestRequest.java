@@ -22,18 +22,25 @@ import org.apache.ambari.logsearch.model.request.ShipperConfigTestParams;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import java.util.Map;
+import javax.ws.rs.FormParam;
+
+import static org.apache.ambari.logsearch.common.LogSearchConstants.REQUEST_PARAM_LOG_ID;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.REQUEST_PARAM_SHIPPER_CONFIG;
+import static org.apache.ambari.logsearch.common.LogSearchConstants.REQUEST_PARAM_TEST_ENTRY;
 
 public class ShipperConfigTestRequest implements ShipperConfigTestParams {
 
   @NotBlank
+  @FormParam(REQUEST_PARAM_LOG_ID)
   private String logId;
 
   @NotBlank
+  @FormParam(REQUEST_PARAM_TEST_ENTRY)
   private String testEntry;
 
   @NotEmpty
-  private Map<String, Object> shipperConfig;
+  @FormParam(REQUEST_PARAM_SHIPPER_CONFIG)
+  private String shipperConfig;
 
   @Override
   public String getLogId() {
@@ -46,12 +53,12 @@ public class ShipperConfigTestRequest implements ShipperConfigTestParams {
   }
 
   @Override
-  public Map<String, Object> getShipperConfig() {
+  public String getShipperConfig() {
     return shipperConfig;
   }
 
   @Override
-  public void setShipperConfig(Map<String, Object> shipperConfig) {
+  public void setShipperConfig(String shipperConfig) {
     this.shipperConfig = shipperConfig;
   }
 

@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.Valid;
 import javax.validation.executable.ValidateOnExecution;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -41,6 +42,7 @@ import org.apache.ambari.logsearch.model.request.impl.ShipperConfigTestRequest;
 import org.springframework.context.annotation.Scope;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_LOG_LEVEL_FILTER_OD;
 import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SERVICE_NAMES_OD;
@@ -99,7 +101,7 @@ public class ShipperConfigResource {
   @Path("/input/{clusterName}/test")
   @Produces({"application/json"})
   @ApiOperation(TEST_SHIPPER_CONFIG_OD)
-  public Response testShipperConfig(@Valid ShipperConfigTestRequest request, @PathParam("clusterName") String clusterName) {
+  public Response testShipperConfig(@Valid @BeanParam ShipperConfigTestRequest request, @PathParam("clusterName") String clusterName) {
     return shipperConfigManager.testShipperConfig(request.getShipperConfig(), request.getLogId(), request.getTestEntry(), clusterName);
   }
 

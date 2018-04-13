@@ -264,7 +264,6 @@ public class OutputManagerImpl extends OutputManager {
     return logLevelFilterHandler;
   }
 
-  @VisibleForTesting
   public void setLogLevelFilterHandler(LogLevelFilterHandler logLevelFilterHandler) {
     this.logLevelFilterHandler = logLevelFilterHandler;
   }
