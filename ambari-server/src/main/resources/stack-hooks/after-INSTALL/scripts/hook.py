@@ -29,9 +29,9 @@ class AfterInstallHook(Hook):
 
     env.set_params(params)
     setup_stack_symlinks(self.stroutfile)
-    setup_config()
-
-    link_configs(self.stroutfile)
+    # setup_config()
+    #
+    # link_configs(self.stroutfile)
 
 if __name__ == "__main__":
   AfterInstallHook().execute()
