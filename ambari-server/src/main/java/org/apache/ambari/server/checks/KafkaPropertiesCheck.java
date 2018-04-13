@@ -20,6 +20,7 @@ package org.apache.ambari.server.checks;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
@@ -28,9 +29,9 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.VersionUtils;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 import com.google.common.collect.Lists;
 
@@ -64,7 +65,7 @@ public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
   }
 
   /**
-   * Constructor.
+   * Constructor
    */
   public KafkaPropertiesCheck() {
     super(CheckDescription.KAFKA_PROPERTIES_VALIDATION);
@@ -76,6 +77,14 @@ public class KafkaPropertiesCheck extends AbstractCheckDescriptor {
   @Override
   public List<CheckQualification> getQualifications() {
     return Lists.<CheckQualification> newArrayList(new KafkaPropertiesMinVersionQualification());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<String> getApplicableServices(){
+    return Sets.newHashSet(KAFKA_SERVICE_NAME);
   }
 
 
