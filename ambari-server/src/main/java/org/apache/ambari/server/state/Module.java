@@ -24,6 +24,7 @@ import java.util.Objects;
 
 import com.google.gson.annotations.SerializedName;
 
+/* Representation of the modules section in the mpack.json*/
 public class Module {
   public enum Category {
     @SerializedName("SERVER")
