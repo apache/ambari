@@ -31,11 +31,13 @@
 <div [ngClass]="{'search-item-container': true, 'active': isActive, 'value': isValueInput}">
   <input #parameterInput [(ngModel)]="currentValue" [typeahead]="items" typeaheadOptionField="value"
          [typeaheadItemTemplate]="listItemTemplate" (typeaheadNoResults)="setParameterNameMatchFlag($event)"
+         [typeaheadMinLength]="0"
          (typeaheadOnSelect)="changeParameterName({item: $event.item, isExclude: false})"
          (focus)="onParameterInputFocus()" (keyup)="onParameterKeyUp($event)"
          class="search-item-input parameter-input form-control">
   <input #valueInput [(ngModel)]="currentValue" [typeahead]="activeItemValueOptions" typeaheadOptionField="value"
          [typeaheadItemTemplate]="listItemTemplate" (typeaheadNoResults)="setParameterValueMatchFlag($event)"
+         [typeaheadMinLength]="0"
          (typeaheadOnSelect)="onParameterValueChange($event.value)" (keydown)="onParameterValueKeyDown($event)"
          (keyup)="onParameterValueKeyUp($event)" class="search-item-input value-input form-control">
 </div>
