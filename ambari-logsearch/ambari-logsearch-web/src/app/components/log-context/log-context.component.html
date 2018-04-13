@@ -16,18 +16,23 @@
 -->
 
 <modal title="{{hostName}} -> {{componentName}}" submitButtonLabel="modal.close" [showCancelButton]="false"
-       [isLargeModal]="true" (init)="scrollToCurrentEntry()" (submit)="closeLogContext()" (close)="closeLogContext()">
+       [isLargeModal]="true" [isFlexLayout]="true" (init)="scrollToCurrentEntry()" (submit)="closeLogContext()" (close)="closeLogContext()"
+       [showSubmitButton]="false" [showFooter]="false">
   <ng-template>
-    <button class="btn btn-primary" (click)="loadBefore()">
-      {{'logs.loadMore' | translate}} <span class="fa fa-arrow-up"></span>
-    </button>
+    <div>
+      <button class="btn btn-primary btn-load-more" (click)="loadBefore()">
+        {{'logs.loadMore' | translate}} <span class="fa fa-arrow-up"></span>
+      </button>
+    </div>
     <div class="logs">
       <log-file-entry *ngFor="let log of logs | async" [ngClass]="log.id === id ? currentLogClassName : ''"
                    [time]="log.time" [level]="log.level" [fileName]="log.fileName" [lineNumber]="log.lineNumber"
                    [message]="log.message"></log-file-entry>
     </div>
-    <button class="btn btn-primary" (click)="loadAfter()">
-      {{'logs.loadMore' | translate}} <span class="fa fa-arrow-down"></span>
-    </button>
+    <div>
+      <button class="btn btn-primary btn-load-more" (click)="loadAfter()">
+        {{'logs.loadMore' | translate}} <span class="fa fa-arrow-down"></span>
+      </button>
+    </div>
   </ng-template>
 </modal>
