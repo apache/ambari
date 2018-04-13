@@ -60,10 +60,10 @@
     <chmod file="target/package/conf/logsearch-env.sh" perm="755"/>
     <tar compression="gzip" destfile="target/ambari-logsearch-portal.tar.gz">
       <tarfileset mode="755" dir="target/package">
-        <include name="*.sh"/>
+        <include name="**/*.sh"/>
       </tarfileset>
       <tarfileset mode="664" dir="target/package">
-        <exclude name="*.sh"/>
+        <exclude name="**/*.sh"/>
       </tarfileset>
     </tar>
   </target>
