@@ -28,6 +28,7 @@ from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -37,11 +38,12 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
-from resource_management.core.shell import call
+from resource_management.core.resources.packaging import Package
+from resource_management.core.shell import as_user, as_sudo, call
 from resource_management.core.exceptions import Fail
 
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
-from ambari_commons.constants import SERVICE
+from ambari_commons.constants import SERVICE, UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 from resource_management.libraries.functions.constants import Direction
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -242,7 +244,7 @@ def get_oozie_ext_zip_source_paths(upgrade_type, params):
 def oozie_server_specific(upgrade_type):
   import params
 
-  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+  no_op_test = as_user(format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.oozie_user)
 
   File(params.pid_file,
     action="delete",
@@ -268,7 +270,7 @@ def oozie_server_specific(upgrade_type):
   untar_sharelib = ('tar','-xvf',format('{oozie_home}/oozie-sharelib.tar.gz'),'-C',params.oozie_home)
 
   Execute( untar_sharelib,    # time-expensive
-    not_if  = format("({no_op_test}) || ({skip_recreate_sharelib})"),
+    not_if  = format("{no_op_test} || {skip_recreate_sharelib}"),
     sudo = True,
   )
 

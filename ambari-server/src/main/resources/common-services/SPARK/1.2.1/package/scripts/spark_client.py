@@ -19,6 +19,7 @@ limitations under the License.
 """
 # Python imports
 import os
+import sys
 
 # Local imports
 from resource_management.libraries.script.script import Script
@@ -33,8 +34,6 @@ from setup_spark import setup_spark
 
 class SparkClient(Script):
   def install(self, env):
-    import params
-    env.set_params(params)
     self.install_packages(env)
     self.configure(env)
 
@@ -46,12 +45,12 @@ class SparkClient(Script):
     """
     import params
     env.set_params(params)
-
+    
     setup_spark(env, 'client', upgrade_type=upgrade_type, action='config', config_dir=config_dir)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-
+  
   def stack_upgrade_save_new_config(self, env):
     """
     Because this gets called during a Rolling Upgrade, the new configs have already been saved, so we must be

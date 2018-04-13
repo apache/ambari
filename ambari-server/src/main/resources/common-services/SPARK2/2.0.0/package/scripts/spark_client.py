@@ -18,31 +18,31 @@ limitations under the License.
 
 """
 
+import sys
 from resource_management import *
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.core.logger import Logger
+from resource_management.core import shell
 from setup_spark import setup_spark
 
 
 class SparkClient(Script):
   def install(self, env):
-    import params
-    env.set_params(params)
     self.install_packages(env)
     self.configure(env)
 
   def configure(self, env, upgrade_type=None, config_dir=None):
     import params
     env.set_params(params)
-
+    
     setup_spark(env, 'client', upgrade_type=upgrade_type, action = 'config')
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-
+  
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
