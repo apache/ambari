@@ -48,8 +48,8 @@ describe('MainConfigHistoryController', function () {
 
     beforeEach(function () {
       sinon.stub(controller, 'updateTotalCounter', Em.K);
-      sinon.stub(controller, 'loadConfigVersionsToModel').returns({done: Em.K});
-      controller.load();
+      sinon.stub(controller, 'loadConfigVersionsToModel').returns({done: Em.clb});
+      controller.load(true);
     });
 
     afterEach(function () {

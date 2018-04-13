@@ -43,7 +43,7 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
       message.push(Em.I18n.t('admin.highAvailability.error.maintenanceMode'));
     }
 
-    if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
+    if (App.get('allHostNames.length') < 3) {
       message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
     }
     if (message.length > 0) {
@@ -69,7 +69,7 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
       message.push(Em.I18n.t('admin.rm_highAvailability.error.zooKeeperNum'));
     }
 
-    if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
+    if (App.get('allHostNames.length') < 3) {
       message.push(Em.I18n.t('admin.rm_highAvailability.error.hostsNum'));
     }
     if (message.length > 0) {

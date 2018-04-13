@@ -207,7 +207,8 @@ dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.internal.nameservic
 if dfs_ha_nameservices is None:
   dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.nameservices', None)
 
-dfs_ha_namenode_ids_all_ns = get_properties_for_all_nameservices(hdfs_site, 'dfs.ha.namenodes')
+# on stacks without any filesystem there is no hdfs-site
+dfs_ha_namenode_ids_all_ns = get_properties_for_all_nameservices(hdfs_site, 'dfs.ha.namenodes') if 'hdfs-site' in config['configurations'] else {}
 dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.automatic-failover.enabled", False)
 
 # Values for the current Host

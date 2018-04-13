@@ -39,9 +39,10 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.IntegrationTestingUtility;
 import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
@@ -156,6 +157,7 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
       Boolean.FALSE.toString());
     props.put("java.security.krb5.realm", "");
     props.put("java.security.krb5.kdc", "");
+    props.put(HConstants.REGIONSERVER_PORT, String.valueOf(HBaseTestingUtility.randomFreePort()));
     return props;
   }
 

@@ -58,8 +58,10 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.lang.StringUtils;
@@ -90,6 +92,10 @@ public class StageUtils {
   protected static final String RACKS = "all_racks";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
 
+  private static Map<String, String> componentToClusterInfoKeyMap =
+    new HashMap<>();
+  private static Map<String, String> decommissionedToClusterInfoKeyMap =
+    new HashMap<>();
   private volatile static Gson gson;
 
   @Inject
@@ -145,9 +151,49 @@ public class StageUtils {
     StageUtils.configuration = configuration;
   }
 
+  static {
+    componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
+    componentToClusterInfoKeyMap.put("JOBTRACKER", "jtnode_host");
+    componentToClusterInfoKeyMap.put("SECONDARY_NAMENODE", "snamenode_host");
+    componentToClusterInfoKeyMap.put("RESOURCEMANAGER", "rm_host");
+    componentToClusterInfoKeyMap.put("NODEMANAGER", "nm_hosts");
+    componentToClusterInfoKeyMap.put("HISTORYSERVER", "hs_host");
+    componentToClusterInfoKeyMap.put("JOURNALNODE", "journalnode_hosts");
+    componentToClusterInfoKeyMap.put("ZKFC", "zkfc_hosts");
+    componentToClusterInfoKeyMap.put("ZOOKEEPER_SERVER", "zookeeper_hosts");
+    componentToClusterInfoKeyMap.put("FLUME_HANDLER", "flume_hosts");
+    componentToClusterInfoKeyMap.put("HBASE_MASTER", "hbase_master_hosts");
+    componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
+    componentToClusterInfoKeyMap.put("HIVE_SERVER", "hive_server_host");
+    componentToClusterInfoKeyMap.put("HIVE_METASTORE", "hive_metastore_host");
+    componentToClusterInfoKeyMap.put("OOZIE_SERVER", "oozie_server");
+    componentToClusterInfoKeyMap.put("WEBHCAT_SERVER", "webhcat_server_host");
+    componentToClusterInfoKeyMap.put("MYSQL_SERVER", "hive_mysql_host");
+    componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
+    componentToClusterInfoKeyMap.put("GANGLIA_SERVER", "ganglia_server_host");
+    componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
+    componentToClusterInfoKeyMap.put("TASKTRACKER", "mapred_tt_hosts");
+    componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_MASTER", "accumulo_master_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_MONITOR", "accumulo_monitor_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_GC", "accumulo_gc_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_TRACER", "accumulo_tracer_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_TSERVER", "accumulo_tserver_hosts");
+  }
+
+  static {
+    decommissionedToClusterInfoKeyMap.put("DATANODE", "decom_dn_hosts");
+    decommissionedToClusterInfoKeyMap.put("TASKTRACKER", "decom_tt_hosts");
+    decommissionedToClusterInfoKeyMap.put("NODEMANAGER", "decom_nm_hosts");
+    decommissionedToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "decom_hbase_rs_hosts");
+  }
 
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
+  }
+
+  public static Map<String, String> getComponentToClusterInfoKeyMap() {
+    return componentToClusterInfoKeyMap;
   }
 
   public static long[] getRequestStage(String actionId) {
@@ -232,16 +278,6 @@ public class StageUtils {
     return commandParams;
   }
 
-  /**
-   * A helper method for generating keys for the clusterHostInfo section.
-   */
-  public static String getClusterHostInfoKey(String componentName){
-    if (componentName == null){
-      throw new IllegalArgumentException("Component name cannot be null");
-    }
-    return componentName.toLowerCase()+"_hosts";
-  }
-
   public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) throws AmbariException {
     //Fill hosts and ports lists
     Set<String>   hostsSet  = new LinkedHashSet<>();
@@ -289,7 +325,20 @@ public class StageUtils {
         ServiceComponent serviceComponent = serviceComponentEntry.getValue();
         String componentName = serviceComponent.getName();
 
-        String roleName = getClusterHostInfoKey(componentName);
+        String roleName = componentToClusterInfoKeyMap.get(componentName);
+        if(null == roleName) {
+          roleName = additionalComponentToClusterInfoKeyMap.get(componentName);
+        }
+        if (null == roleName && !serviceComponent.isClientComponent()) {
+          roleName = componentName.toLowerCase() + "_hosts";
+          additionalComponentToClusterInfoKeyMap.put(componentName, roleName);
+        }
+
+        String decomRoleName = decommissionedToClusterInfoKeyMap.get(componentName);
+
+        if (roleName == null && decomRoleName == null) {
+          continue;
+        }
 
         for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
 
@@ -305,6 +354,22 @@ public class StageUtils {
             //Add index of host to current host role
             hostsForComponentsHost.add(hostIndex);
           }
+
+          if (decomRoleName != null) {
+            ServiceComponentHost scHost = serviceComponent.getServiceComponentHost(hostName);
+            if (scHost.getComponentAdminState() == HostComponentAdminState.DECOMMISSIONED) {
+              SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(decomRoleName);
+
+              if (hostsForComponentsHost == null) {
+                hostsForComponentsHost = new TreeSet<>();
+                hostRolesInfo.put(decomRoleName, hostsForComponentsHost);
+              }
+
+              int hostIndex = hostsList.indexOf(hostName);
+              //Add index of host to current host role
+              hostsForComponentsHost.add(hostIndex);
+            }
+          }
         }
       }
     }
@@ -315,7 +380,7 @@ public class StageUtils {
       Collection<String> hostComponents = entry.getValue();
 
       for (String hostComponent : hostComponents) {
-        String roleName = getClusterHostInfoKey(hostComponent);
+        String roleName = componentToClusterInfoKeyMap.get(hostComponent);
         if (null == roleName) {
           roleName = additionalComponentToClusterInfoKeyMap.get(hostComponent);
         }

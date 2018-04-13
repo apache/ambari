@@ -52,7 +52,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom;
@@ -2578,16 +2577,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     hostParams.put(CLIENTS_TO_UPDATE_CONFIGS, getClientsToUpdateConfigs(componentInfo));
-
-    // If we are starting a component, calculate whether the unlimited key JCE policy is
-    // required for the relevant host.  One of the following indicates that the unlimited
-    // key JCE policy is required:
-    //
-    //   * The component explicitly requires it whether Kerberos is enabled or not (example, SMARTSENSE/HST_SERVER)
-    //   * The component explicitly requires it only when Kerberos is enabled AND Kerberos is enabled (example, most components)
-    //
-    // Set/update the unlimited_key_jce_required value as needed
-    hostParams.put(UNLIMITED_KEY_JCE_REQUIRED, (getUnlimitedKeyJCERequirement(componentInfo, cluster.getSecurityType())) ? "true" : "false");
 
     execCmd.setHostLevelParams(hostParams);
 
@@ -5690,6 +5679,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       statusCommandParams.put(ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS,
           getClientsToUpdateConfigs(componentInfo));
+
+      // If we are starting a component, calculate whether the unlimited key JCE policy is
+      // required for the relevant host.  One of the following indicates that the unlimited
+      // key JCE policy is required:
+      //
+      //   * The component explicitly requires it whether Kerberos is enabled or not (example, SMARTSENSE/HST_SERVER)
+      //   * The component explicitly requires it only when Kerberos is enabled AND Kerberos is enabled (example, most components)
+      //
+      // Set/update the unlimited_key_jce_required value as needed
       statusCommandParams.put(ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED,
           Boolean.toString(getUnlimitedKeyJCERequirement(componentInfo, clusterSecurityType)));
     }
