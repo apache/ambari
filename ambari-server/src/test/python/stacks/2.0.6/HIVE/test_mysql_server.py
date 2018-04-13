@@ -17,14 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from ambari_commons.os_check import OSCheck
+import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
-from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 @patch("os.path.exists", MagicMock(return_value=True))
-@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 @not_for_platform(PLATFORM_WINDOWS)
 class TestMySqlServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"

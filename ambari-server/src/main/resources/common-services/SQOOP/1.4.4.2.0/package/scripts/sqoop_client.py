@@ -19,8 +19,11 @@ limitations under the License.
 """
 
 from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from sqoop import sqoop
@@ -29,8 +32,6 @@ from ambari_commons import OSConst
 
 class SqoopClient(Script):
   def install(self, env):
-    import params
-    env.set_params(params)
     self.install_packages(env)
     self.configure(env)
 
