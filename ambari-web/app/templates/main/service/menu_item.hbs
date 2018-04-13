@@ -24,7 +24,7 @@
     <i rel="tooltip" {{bindAttr class=":icon-medkit :passive-state-service view.content.isInPassive::hidden" }} {{translateAttr data-original-title="services.service.summary.inMaintenanceMode.tooltip"}}></i>
   </span>
   {{#if view.content.alertsCount}}
-    <span {{bindAttr class=":icon-circle view.hasCriticalAlerts:service-alerts-critical:service-alerts-warning"}}></span>
+    <i {{bindAttr class=":icon-circle :status-icon view.hasCriticalAlerts:service-alerts-critical:service-alerts-warning"}}></i>
   {{/if}}
   <span {{bindAttr class="view.isClientOnlyService:client-only-service :menu-item-name view.content.workStatus" data-original-title="view.content.toolTipContent"}} rel="serviceHealthTooltip">
       {{unbound view.content.displayName}}
