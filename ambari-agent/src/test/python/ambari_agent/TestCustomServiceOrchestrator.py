@@ -207,10 +207,7 @@ class TestCustomServiceOrchestrator(TestCase):
         'exitcode': 0,
       }
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
-    try:
-      self.assertEqual(ret['exitcode'], 0)
-    except:
-      raise Exception(ret)
+    self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
     self.assertEqual(run_file_mock.call_count, 3)
 
@@ -333,11 +330,8 @@ class TestCustomServiceOrchestrator(TestCase):
     orchestrator.cancel_command(command['taskId'], 'reason')
 
     ret = async_result.get()
-    
-    try:
-      self.assertEqual(ret['exitcode'], 1)
-    except:
-      raise Exception(ret)
+
+    self.assertEqual(ret['exitcode'], 1)
     self.assertEquals(ret['stdout'], 'killed\nCommand aborted. Reason: \'reason\'')
     self.assertEquals(ret['stderr'], 'killed\nCommand aborted. Reason: \'reason\'')
 
@@ -472,10 +466,7 @@ class TestCustomServiceOrchestrator(TestCase):
       'exitcode': 0,
       }
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
-    try:
-      self.assertEqual(ret['exitcode'], 0)
-    except:
-      raise Exception(ret)
+    self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
     # Hoooks are not supported for custom actions,
     # that's why run_file() should be called only once
@@ -579,10 +570,7 @@ class TestCustomServiceOrchestrator(TestCase):
     orchestrator.dump_command_to_json = MagicMock()
 
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
-    try:
-      self.assertEqual(ret['exitcode'], 777)
-    except:
-      raise Exception(ret)
+    self.assertEqual(ret['exitcode'], 777)
 
   def tearDown(self):
     # enable stdout
