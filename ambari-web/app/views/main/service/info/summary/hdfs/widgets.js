@@ -157,6 +157,8 @@ App.HDFSSummaryWidgetsView = Em.View.extend(App.NameNodeWidgetMixin, {
     } else {
       return Em.I18n.t('services.service.summary.safeModeStatus.inSafeMode');
     }
-  }.property('safeModeStatusValue')
+  }.property('safeModeStatusValue'),
+
+  isNonFederatedHDFS: Em.computed.lt('model.masterComponentGroups.length', 2)
 
 });
