@@ -69,10 +69,12 @@ function($scope, $rootScope, User, $location, Alert, UnsavedDialog, $translate, 
     $scope.form.userCreateForm.submitted = true;
     if ($scope.form.userCreateForm.$valid) {
       User.create({
-        'Users/user_name': $scope.formData.userName,
-        'Users/password': $scope.formData.password,
-        'Users/active': Boolean($scope.formData.isActive),
-        'Users/admin': Boolean($scope.formData.isAdmin)
+        "Users": {
+          'user_name': $scope.formData.userName,
+          'password': $scope.formData.password,
+          'active': Boolean($scope.formData.isActive),
+          'admin': Boolean($scope.formData.isAdmin)
+        }
       }).then(function () {
         saveRole();
         $modalInstance.dismiss('created');

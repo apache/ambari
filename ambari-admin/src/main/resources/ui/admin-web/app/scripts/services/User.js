@@ -56,18 +56,20 @@ angular.module('ambariAdminConsole')
       return Restangular.all('users').post(userObj);
     },
     setActive: function(userId, isActive) {
-      return Restangular.one('users', userId).customPUT({'Users/active':isActive});
+      return Restangular.one('users', userId).customPUT({"Users": {'active': isActive}});
     },
     setAdmin: function(userId, isAdmin) {
-      return Restangular.one('users', userId).customPUT({'Users/admin':isAdmin});
+      return Restangular.one('users', userId).customPUT({"Users": {'admin': isAdmin}});
     },
     setPassword: function(user, password, currentUserPassword) {
       return $http({
         method: 'PUT',
         url: Settings.baseUrl + '/users/' + user.user_name,
         data: {
-          'Users/password': password,
-          'Users/old_password': currentUserPassword
+          "Users": {
+            'password': password,
+            'old_password': currentUserPassword
+          }
         }
       });
     },
@@ -86,7 +88,9 @@ angular.module('ambariAdminConsole')
         method: 'PUT',
         url: Settings.baseUrl + '/users/' + userId,
         data: {
-          'Users/consecutive_failures': 0
+          "Users": {
+            'consecutive_failures': 0
+          }
         }
       });
     },
