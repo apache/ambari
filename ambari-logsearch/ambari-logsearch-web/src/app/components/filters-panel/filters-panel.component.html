@@ -36,6 +36,7 @@
                    label="{{filters.hosts.label | translate}}" [iconClass]="filters.hosts.iconClass"
                    [subItems]="filters.hosts.options" [isMultipleChoice]="true" [isRightAlign]="true"
                    additionalLabelComponentSetter="getDataForHostsNodeBar"
+                   [class.disabled]="isServiceLogsFileView$ | async" [isDisabled]="isServiceLogsFileView$ | async"
                    [useDropDownLocalFilter]="true"></filter-button>
     <filter-button *ngIf="isFilterConditionDisplayed('users')" formControlName="users"
                    label="{{filters.users.label | translate}}" [iconClass]="filters.users.iconClass"
@@ -44,6 +45,7 @@
     <filter-button *ngIf="isFilterConditionDisplayed('components')" formControlName="components"  [useDropDownLocalFilter]="true"
                    label="{{filters.components.label | translate}}" [iconClass]="filters.components.iconClass"
                    [subItems]="filters.components.options" [isMultipleChoice]="true" [isRightAlign]="true"
+                   [class.disabled]="isServiceLogsFileView$ | async" [isDisabled]="isServiceLogsFileView$ | async"
                    additionalLabelComponentSetter="getDataForComponentsNodeBar"></filter-button>
     <filter-button *ngIf="isFilterConditionDisplayed('levels')" formControlName="levels"
                    label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
