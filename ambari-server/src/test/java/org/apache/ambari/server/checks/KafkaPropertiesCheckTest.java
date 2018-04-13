@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -158,6 +159,24 @@ public class KafkaPropertiesCheckTest {
     request.setTargetRepositoryVersion(m_repositoryVersion);
 
     assertTrue(m_kafkaPropertiresCheck.isApplicable(request));
+  }
+
+  @Test
+  public void testNotApplicable() throws Exception {
+
+    final Service service = EasyMock.createMock(Service.class);
+    m_services.put("HDFS", service);
+
+    Cluster cluster = m_clusters.getCluster("cluster");
+    EasyMock.reset(cluster);
+    expect(cluster.getServices()).andReturn(m_services).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP-2.3")).anyTimes();
+    replay(cluster);
+
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+
+    assertFalse(m_kafkaPropertiresCheck.isApplicable(request));
   }
 
   @SuppressWarnings("unchecked")
