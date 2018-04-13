@@ -442,4 +442,12 @@ public class ConfigHandler implements InputConfigMonitor {
     outputManager.close();
     inputManager.checkInAll();
   }
+
+  public void setInputManager(InputManager inputManager) {
+    this.inputManager = inputManager;
+  }
+
+  public void setOutputManager(OutputManager outputManager) {
+    this.outputManager = outputManager;
+  }
 }
