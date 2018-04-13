@@ -5683,6 +5683,130 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
                setOfStandbyHostNames.contains(expectedHostNameFour));
   }
 
+  @Test(expected = ConfigurationTopologyException.class)
+  public void testDoUpdateForClusterWithNameNodeFederationEnabledErrorClusterNameNotFound() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedNameServiceTwo = "mynameservicetwo";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedHostNameThree = "c6403.apache.ambari.org";
+    final String expectedHostNameFour = "c6404.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedNodeThree = "nn3";
+    final String expectedNodeFour = "nn4";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedHostGroupNameThree = "host-group-3";
+    final String expectedHostGroupNameFour = "host-group-4";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+    AmbariContext mockAmbariContext = mockSupport.createMock(AmbariContext.class);
+
+    // configure mock to return null cluster name (error condition)
+    expect(mockAmbariContext.getClusterName(1)).andReturn(null).anyTimes();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> properties = new HashMap<>();
+
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    Map<String, String> hbaseSiteProperties = new HashMap<>();
+    Map<String, String> hadoopEnvProperties = new HashMap<>();
+    Map<String, String> coreSiteProperties = new HashMap<>();
+    Map<String, String> accumuloSiteProperties = new HashMap<>();
+
+    properties.put("hdfs-site", hdfsSiteProperties);
+    properties.put("hadoop-env", hadoopEnvProperties);
+    properties.put("core-site", coreSiteProperties);
+    properties.put("hbase-site", hbaseSiteProperties);
+    properties.put("accumulo-site", accumuloSiteProperties);
+
+    // setup multiple nameservices, to indicate NameNode Federation will be used
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService + "," + expectedNameServiceTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeThree + "," + expectedNodeFour);
+
+    //setup nameservice-specific properties
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameService,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns1");
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir" + "." + expectedNameServiceTwo,
+      "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/ns2");
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupNameTwo));
+
+
+
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeThree, createExportedAddress(expectedPortNum, expectedHostGroupNameThree));
+    hdfsSiteProperties.put("dfs.namenode.servicerpc-address." + expectedNameServiceTwo + "." + expectedNodeFour, createExportedAddress(expectedPortNum, expectedHostGroupNameFour));
+
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
+
+    Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
+
+    Collection<String> hgComponents = new HashSet<>();
+    hgComponents.add("NAMENODE");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<>();
+    hgComponents2.add("NAMENODE");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    // add third and fourth hostgroup with NAMENODE, to simulate HDFS NameNode Federation
+    TestHostGroup group3 = new TestHostGroup(expectedHostGroupNameThree, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameThree));
+    TestHostGroup group4 = new TestHostGroup(expectedHostGroupNameFour, Collections.singleton("NAMENODE"), Collections.singleton(expectedHostNameFour));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+    hostGroups.add(group4);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
+    expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups, mockAmbariContext);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+  }
+
   @Test
   public void testDoUpdateForClusterWithNameNodeFederationEnabledWithCustomizedActiveStandbyHostSets() throws Exception {
     final String expectedNameService = "mynameservice";
@@ -8832,7 +8956,12 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   private ClusterTopology createClusterTopology(Blueprint blueprint, Configuration configuration,
-                                                Collection<TestHostGroup> hostGroups)
+                                                Collection<TestHostGroup> hostGroups) throws InvalidTopologyException {
+    return createClusterTopology(blueprint, configuration, hostGroups, null);
+  }
+
+  private ClusterTopology createClusterTopology(Blueprint blueprint, Configuration configuration,
+                                                Collection<TestHostGroup> hostGroups, AmbariContext ambariContextReplacement)
     throws InvalidTopologyException {
 
 
@@ -8882,6 +9011,13 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(topologyRequestMock.getHostGroupInfo()).andReturn(hostGroupInfo).anyTimes();
 
     replay(bp, topologyRequestMock);
+
+    if (ambariContextReplacement != null) {
+      // override the mock AmbariContext setup in the default Before method
+      // Note, this should only be used in a small number of test cases to verify exception
+      // behavior when the AmbariContext returns an unexpected value
+      ambariContext = ambariContextReplacement;
+    }
 
     ClusterTopology topology = new ClusterTopologyImpl(ambariContext, topologyRequestMock);
     topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.NEVER_APPLY);

@@ -482,12 +482,7 @@ public class BlueprintConfigurationProcessor {
 
               // also set the clusterID property, required for Federation installs of HDFS
               if (!isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME)) {
-                final String clusterName = getClusterName();
-                if (clusterName != null) {
-                  clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, clusterName);
-                } else {
-                  LOG.warn("Cluster name could not obtained, this may indicate a deployment or configuration error.");
-                }
+                clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, getClusterName());
               }
 
               configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
@@ -510,12 +505,16 @@ public class BlueprintConfigurationProcessor {
     return configTypesUpdated;
   }
 
-  private String getClusterName() {
+  private String getClusterName() throws ConfigurationTopologyException {
     String clusterNameToReturn = null;
     try {
       clusterNameToReturn = clusterTopology.getAmbariContext().getClusterName(clusterTopology.getClusterId());
     } catch (AmbariException e) {
-      LOG.debug("Exception encountered while trying to obtain cluster name", e);
+      throw new ConfigurationTopologyException("Cluster name could not obtained, this may indicate a deployment or configuration error.", e);
+    }
+
+    if (clusterNameToReturn == null) {
+      throw new ConfigurationTopologyException("Cluster name could not obtained, this may indicate a deployment or configuration error.");
     }
 
     return clusterNameToReturn;
