@@ -22,13 +22,17 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['reconfigureServices', 'installNameNode', 'installZKFC', 'restartJournalNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
 
   newNameNodeHosts: function () {
     return this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', false).mapProperty('hostName');
   }.property('content.masterComponentHosts.@each.hostName'),
+
+  stopRequiredServices: function () {
+    this.stopServices(["ZOOKEEPER"]);
+  },
 
   reconfigureServices: function () {
     var configs = [];
@@ -72,33 +76,9 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.createInstallComponentTask('ZKFC', this.get('newNameNodeHosts'), "HDFS");
   },
 
-  restartJournalNodes: function () {
-    var context = "Restart JournalNodes";
-
-    var resource_filters = {
-      component_name: "JOURNALNODE",
-      hosts: App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName').join(','),
-      service_name: "HDFS"
-    };
-
-    var operation_level = {
-      level: "HOST_COMPONENT",
-      cluster_name: this.get('content.cluster.name'),
-      service_name: "HDFS",
-      hostcomponent_name: "JOURNALNODE"
-    };
-
-    App.ajax.send({
-      name: 'restart.hostComponents',
-      sender: this,
-      data: {
-        context: context,
-        resource_filters: [resource_filters],
-        operation_level: operation_level
-      },
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+  startJournalNodes: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
+    this.updateComponent('JOURNALNODE', hostNames, "HDFS", "Start");
   },
 
   formatNameNode: function () {
