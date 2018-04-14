@@ -3382,6 +3382,55 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             'id': '1',
             'stackVersionType': 'HDP',
             'stackVersionNumber': '2.6',
+            'isCurrent': false,
+            'isStandard': true,
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.6.5'
+              })
+            ]
+          }),
+          Em.Object.create({
+            'id': '2',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'isCurrent': false,
+            'isStandard': true,
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.7.3'
+              })
+            ]
+          })
+        ],
+
+        services: [
+          Em.Object.create({
+            'serviceName': 'YARN',
+            'desiredRepositoryVersionId': '2'
+          })
+        ],
+
+        stackServices: [
+          Em.Object.create({
+            'serviceName': 'HDFS',
+            'stackName': 'HDP',
+            'stackVersion': '2.6'
+          })
+        ],
+        title: 'No standard repo in current state - nothing should be returned',
+        expected: {'HDFS': ''}
+      },
+      {
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.6',
+        repoVersions : [
+          Em.Object.create({
+            'id': '1',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
             'isCurrent': true,
             'isStandard': true,
             'stackServices': [
@@ -3422,7 +3471,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         ],
         title: 'Service not installed - get version from current & standard repo',
         expected: {'HDFS': '2.6.5'}
-      }
+      },
+
     ];
 
     afterEach(function() {
