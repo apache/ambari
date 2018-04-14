@@ -316,7 +316,7 @@ user_group = config['configurations']['cluster-env']["user_group"]
 hadoop_user = "hadoop"
 
 kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-kinit_cmd = ""
+monitor_kinit_cmd = ""
 klist_path_local = functions.get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
 klist_cmd = ""
 
@@ -344,8 +344,18 @@ if security_enabled:
   regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
   regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
 
-  kinit_cmd = '%s -kt %s %s' % (kinit_path_local, config['configurations']['ams-hbase-security-site']['ams.monitor.keytab'], config['configurations']['ams-hbase-security-site']['ams.monitor.principal'].replace('_HOST',_hostname_lowercase))
-  klist_cmd = '%s' % klist_path_local
+  # Monitor SPNEGO configs
+  ams_monitor_keytab = None
+  if (('ams-hbase-security-site' in config['configurations']) and ('ams.monitor.keytab' in config['configurations']['ams-hbase-security-site'])):
+    ams_monitor_keytab = config['configurations']['ams-hbase-security-site']['ams.monitor.keytab']
+
+  ams_monitor_principal = None
+  if (('ams-hbase-security-site' in config['configurations']) and ('ams.monitor.principal' in config['configurations']['ams-hbase-security-site'])):
+    ams_monitor_principal = config['configurations']['ams-hbase-security-site']['ams.monitor.principal']
+
+  if ams_monitor_keytab and ams_monitor_principal:
+    monitor_kinit_cmd = '%s -kt %s %s' % (kinit_path_local, ams_monitor_keytab, ams_monitor_principal.replace('_HOST',_hostname_lowercase))
+    klist_cmd = '%s' % klist_path_local
 
 #Ambari metrics log4j settings
 ams_hbase_log_maxfilesize = default('configurations/ams-hbase-log4j/ams_hbase_log_maxfilesize',256)
