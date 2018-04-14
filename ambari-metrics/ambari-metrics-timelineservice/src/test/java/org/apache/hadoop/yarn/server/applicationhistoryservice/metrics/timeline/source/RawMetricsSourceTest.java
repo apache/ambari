@@ -59,7 +59,6 @@ public class RawMetricsSourceTest {
     replayAll();
   }
 
-  @Ignore
   @Test
   public void testRawMetricsSourcedAtFlushInterval() throws Exception {
     InternalSourceProvider internalSourceProvider = new DefaultInternalMetricsSourceProvider();
@@ -92,7 +91,6 @@ public class RawMetricsSourceTest {
     verify(rawMetricsSink);
   }
 
-  @Ignore
   @Test(timeout = 10000)
   public void testRawMetricsCachedAndSourced() throws Exception {
     ExternalMetricsSink rawMetricsSink = createNiceMock(ExternalMetricsSink.class);

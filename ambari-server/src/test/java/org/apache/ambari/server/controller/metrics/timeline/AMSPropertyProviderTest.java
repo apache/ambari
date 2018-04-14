@@ -72,7 +72,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
@@ -113,7 +112,6 @@ public class AMSPropertyProviderTest {
 
   //    SecurityContextHolder.getContext().setAuthentication(null);
 
-  @Ignore
   @Test
   public void testRbacForAMSPropertyProvider() throws Exception {
 
@@ -141,29 +139,69 @@ public class AMSPropertyProviderTest {
     }
   }
 
-  @Ignore
+  @Test
   public void testAMSPropertyProviderAsViewUser() throws Exception {
     // Setup user with 'ViewUser'
     // ViewUser doesn't have the 'CLUSTER_VIEW_METRICS', 'HOST_VIEW_METRICS' and 'SERVICE_VIEW_METRICS', thus
     // can't retrieve the Metrics.
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser("ViewUser", 2L));
 
-    testPopulateResourcesForSingleHostMetric();
-    testPopulateResourcesForSingleHostMetricPointInTime();
-    testPopulateResourcesForMultipleHostMetricscPointInTime();
-    testPopulateResourcesForMultipleHostMetrics();
-    testPopulateResourcesForRegexpMetrics();
-    testPopulateResourcesForSingleComponentMetric();
-    testPopulateMetricsForEmbeddedHBase();
-    testAggregateFunctionForComponentMetrics();
-    testFilterOutOfBandMetricData();
-    testPopulateResourcesForHostComponentHostMetrics();
-    testPopulateResourcesForHostComponentMetricsForMultipleHosts();
-    testPopulateResourcesHostBatches();
-    testPopulateResourcesForMultipleComponentsMetric();
+    try {
+      testPopulateResourcesForSingleHostMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForSingleHostMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForMultipleHostMetrics();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForSingleComponentMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testAggregateFunctionForComponentMetrics();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForHostComponentHostMetrics();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForHostComponentMetricsForMultipleHosts();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesHostBatches();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
+    try {
+      testPopulateResourcesForMultipleComponentsMetric();
+      Assert.fail();
+    } catch (AuthorizationException ignored) {
+    }
+
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForSingleHostMetric() throws Exception {
     setUpCommonMocks();
@@ -210,7 +248,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(111, val.length);
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForSingleHostMetricPointInTime() throws Exception {
     setUpCommonMocks();
@@ -258,7 +295,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(41.088, val, 0.001);
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForMultipleHostMetricscPointInTime() throws Exception {
     setUpCommonMocks();
@@ -315,7 +351,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(2.47025664E8, val2, 0.1);
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForMultipleHostMetrics() throws Exception {
     setUpCommonMocks();
@@ -380,7 +415,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(86, val.length);
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForRegexpMetrics() throws Exception {
     setUpCommonMocks();
@@ -437,7 +471,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(238, val.length);
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForSingleComponentMetric() throws Exception {
     setUpCommonMocks();
@@ -541,7 +574,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(2, allSpecs.size());
   }
 
-  @Ignore
   @Test
   public void testPopulateMetricsForEmbeddedHBase() throws Exception {
     AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
@@ -622,7 +654,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(189, val.length);
   }
 
-  @Ignore
   @Test
   public void testAggregateFunctionForComponentMetrics() throws Exception {
     AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
@@ -704,7 +735,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(32, val.length);
   }
 
-  @Ignore
   @Test
   public void testFilterOutOfBandMetricData() throws Exception {
     setUpCommonMocks();
@@ -776,7 +806,6 @@ public class AMSPropertyProviderTest {
     }
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForHostComponentHostMetrics() throws Exception {
     setUpCommonMocks();
@@ -935,7 +964,6 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(2, allSpecs.size());
   }
 
-  @Ignore
   @Test
   public void testPopulateResourcesForHostComponentMetricsForMultipleHosts() throws Exception {
     setUpCommonMocks();

@@ -43,7 +43,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class AMSReportPropertyProviderTest {
@@ -61,7 +60,6 @@ public class AMSReportPropertyProviderTest {
     cacheProvider = new TimelineMetricCacheProvider(new Configuration(), cacheEntryFactory);
   }
 
-  @Ignore
   @Test
   public void testPopulateResources() throws Exception {
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
@@ -105,7 +103,6 @@ public class AMSReportPropertyProviderTest {
     Assert.assertEquals(111, val.length);
   }
 
-  @Ignore
   @Test
   public void testPopulateResourceWithAggregateFunction() throws Exception {
     TestStreamProvider streamProvider = new TestStreamProvider(AGGREGATE_CLUSTER_METRICS_FILE_PATH);
