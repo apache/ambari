@@ -54,7 +54,7 @@
         <table class="table table-hover" id="component_assign_table" {{QAAttr "slave-clients-table"}}>
           <thead>
           <tr>
-            <th class="host-column">{{t common.host}}</th>
+            <th class="host-column freeze">{{t common.host}}</th>
             {{#each header in controller.headers}}
               <th {{bindAttr class="header.name"}}>
                 <a href="#" {{QAAttr "select-all"}} {{bindAttr class="header.allChecked:selected:deselected header.isDisabled:remove-link" id="header.allId"}}
@@ -67,8 +67,8 @@
           </thead>
           <tbody>
             {{#each host in view.pageContent}}
-              <tr {{QAAttr "host-row"}}>
-                {{#view App.WizardStep6HostView hostBinding="host" }}
+              <tr {{QAAttr "host-row"}} {{bindAttr class="host.isLast:last-row"}}>
+                  {{#view App.WizardStep6HostView hostBinding="host" }}
                   <div class="checkbox">
                     <span class="trim_hostname">{{host.hostName}}</span>
                     {{#if host.hasMaster}}
@@ -103,7 +103,7 @@
           <tfoot>
             <tr>
               <td colspan="100">
-                {{view App.PaginationView}}
+                {{view App.PaginationView classNames="static-pagination"}}
               </td>
             </tr>
           </tfoot>
@@ -115,12 +115,13 @@
 
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <button type="button" {{QAAttr "wizard-back"}} class="btn btn-default installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+    <button type="button" {{QAAttr "wizard-back"}} class="btn btn-default installer-back-btn pull-left" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
       &larr; {{t common.back}}
       {{#if App.router.backBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
     </button>
+    {{template "templates/wizard/installer_cancel_button"}}
     <button type="button" {{QAAttr "wizard-next"}} class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action next}}>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

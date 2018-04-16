@@ -22,15 +22,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.agent.stomp.StompResponse;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  *
  * Controller to Agent response data model.
  *
  */
-public class RegistrationResponse {
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class RegistrationResponse extends StompResponse {
   @JsonProperty("response")
+  @JsonIgnore
   private RegistrationStatus response;
 
   /**
@@ -38,6 +44,7 @@ public class RegistrationResponse {
    * alert definitions it needs to schedule.
    */
   @JsonProperty("alertDefinitionCommands")
+  @JsonIgnore
   private List<AlertDefinitionCommand> alertDefinitionCommands = new ArrayList<>();
 
   /**
@@ -47,27 +54,34 @@ public class RegistrationResponse {
    *                different version of agent and server)
    */
   @JsonProperty("exitstatus")
+  @com.fasterxml.jackson.annotation.JsonProperty("exitstatus")
   private int exitstatus;
 
   /**
    * log - message, which will be printed to agents  log
    */
   @JsonProperty("log")
+  @com.fasterxml.jackson.annotation.JsonProperty("log")
   private String log;
 
   //Response id to start with, usually zero.
   @JsonProperty("responseId")
+  @com.fasterxml.jackson.annotation.JsonProperty("id")
   private long responseId;
 
   @JsonProperty("recoveryConfig")
+  @JsonIgnore
   private RecoveryConfig recoveryConfig;
 
   @JsonProperty("agentConfig")
+  @JsonIgnore
   private Map<String, String> agentConfig;
 
   @JsonProperty("statusCommands")
+  @JsonIgnore
   private List<StatusCommand> statusCommands = null;
 
+  @JsonIgnore
   public RegistrationStatus getResponseStatus() {
     return response;
   }

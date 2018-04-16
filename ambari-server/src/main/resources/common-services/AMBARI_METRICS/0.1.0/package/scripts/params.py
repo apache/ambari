@@ -20,6 +20,7 @@ limitations under the License.
 
 import ConfigParser
 import os
+import re
 
 from ambari_commons import OSCheck
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
@@ -109,9 +110,9 @@ for host in ams_collector_hosts.split(","):
     metric_truststore_alias = host
   metric_truststore_alias_list.append(metric_truststore_alias)
 
-agent_cache_dir = config['hostLevelParams']['agentCacheDir']
+agent_cache_dir = config['agentLevelParams']['agentCacheDir']
 service_package_folder = config['commandParams']['service_package_folder']
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 dashboards_dirs = []
 # Stack specific
 dashboards_dirs.append(os.path.join(agent_cache_dir, service_package_folder,
@@ -154,6 +155,7 @@ def get_ambari_version():
     pass
   return ambari_version
 
+hostname = config['agentLevelParams']['hostname']
 
 ams_collector_log_dir = config['configurations']['ams-env']['metrics_collector_log_dir']
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
@@ -207,15 +209,15 @@ security_enabled = False if not is_hbase_distributed else config['configurations
 # this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
-java_home = config['hostLevelParams']['java_home']
-ambari_java_home = default("/commandParams/ambari_java_home", None)
+java_home = config['ambariLevelParams']['java_home']
+ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
 # not supporting 32 bit jdk.
 java64_home = ambari_java_home if ambari_java_home is not None else java_home
-ambari_java_version = default("/commandParams/ambari_java_version", None)
+ambari_java_version = default("/ambariLevelParams/ambari_java_version", None)
 if ambari_java_version:
-  java_version = expect("/commandParams/ambari_java_version", int)
+  java_version = expect("/ambariLevelParams/ambari_java_version", int)
 else :
-  java_version = expect("/hostLevelParams/java_version", int)
+  java_version = expect("/ambariLevelParams/java_version", int)
 
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512")
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
@@ -234,8 +236,14 @@ metrics_collector_heapsize = check_append_heap_property(str(metrics_collector_he
 master_heapsize = check_append_heap_property(str(master_heapsize), "m")
 regionserver_heapsize = check_append_heap_property(str(regionserver_heapsize), "m")
 
-host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
+host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", False)
 host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+is_aggregation_https_enabled = False
+if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 host_in_memory_aggregation_jvm_arguments = default("/configurations/ams-env/timeline.metrics.host.inmemory.aggregation.jvm.arguments",
                                                    "-Xmx256m -Xms128m -XX:PermSize=68m")
 
@@ -265,9 +273,8 @@ else:
   hbase_heapsize = master_heapsize
 
 max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
-hostname = config["hostname"]
 
-cluster_zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
+cluster_zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_server_hosts'])
 if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
   cluster_zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
 else:
@@ -314,7 +321,7 @@ klist_path_local = functions.get_klist_path(default('/configurations/kerberos-en
 klist_cmd = ""
 
 if security_enabled:
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
   smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
   smoke_user_princ = config['configurations']['cluster-env']['smokeuser_principal_name']

@@ -72,7 +72,7 @@ AMBARI_LOCATION=$AMBARI_LOCATION
 ZOOKEEPER_VERSION=3.4.10
 ZOOKEEPER_CONNECTION_STRING=zookeeper:2181
 
-SOLR_VERSION=6.6.2
+SOLR_VERSION=7.2.1
 
 HADOOP_VERSION=3.0.0
 EOF
@@ -119,6 +119,6 @@ case $command in
      kill_containers
      ;;
    *)
-   echo "Available commands: (start|stop|build-and-run|build|build-docker-and-run|build-mvn-and-run|build-docker-only|build-mvn-only)"
+   echo "Available commands: (start|stop)"
    ;;
 esac

@@ -44,7 +44,7 @@ import time
 import signal
 import warnings
 import errno
-import subprocess
+from ambari_commons import subprocess32
 try:
     import pwd
 except ImportError:
@@ -1163,14 +1163,14 @@ class Process(object):
 # =====================================================================
 
 class Popen(Process):
-    """A more convenient interface to stdlib subprocess module.
+    """A more convenient interface to stdlib subprocess32 module.
     It starts a sub process and deals with it exactly as when using
-    subprocess.Popen class but in addition also provides all the
+    subprocess32.Popen class but in addition also provides all the
     properties and methods of psutil.Process class as a unified
     interface:
 
       >>> import psutil
-      >>> from subprocess import PIPE
+      >>> from ambari_commons.subprocess32 import PIPE
       >>> p = psutil.Popen(["python", "-c", "print 'hi'"], stdout=PIPE)
       >>> p.name()
       'python'
@@ -1188,24 +1188,24 @@ class Popen(Process):
     For method names common to both classes such as kill(), terminate()
     and wait(), psutil.Process implementation takes precedence.
 
-    Unlike subprocess.Popen this class pre-emptively checks wheter PID
+    Unlike subprocess32.Popen this class pre-emptively checks wheter PID
     has been reused on send_signal(), terminate() and kill() so that
     you don't accidentally terminate another process, fixing
     http://bugs.python.org/issue6973.
 
     For a complete documentation refer to:
-    http://docs.python.org/library/subprocess.html
+    http://docs.python.org/library/subprocess32.html
     """
 
     def __init__(self, *args, **kwargs):
         # Explicitly avoid to raise NoSuchProcess in case the process
-        # spawned by subprocess.Popen terminates too quickly, see:
+        # spawned by subprocess32.Popen terminates too quickly, see:
         # https://code.google.com/p/psutil/issues/detail?id=193
-        self.__subproc = subprocess.Popen(*args, **kwargs)
+        self.__subproc = subprocess32.Popen(*args, **kwargs)
         self._init(self.__subproc.pid, _ignore_nsp=True)
 
     def __dir__(self):
-        return sorted(set(dir(Popen) + dir(subprocess.Popen)))
+        return sorted(set(dir(Popen) + dir(subprocess32.Popen)))
 
     def __getattribute__(self, name):
         try:

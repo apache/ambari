@@ -34,6 +34,7 @@ import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -508,13 +509,13 @@ public class HostVersionOutOfSyncListenerTest {
     List<ServiceComponentHost> hostComponents = c1.getServiceComponentHosts(host3);
     for (ServiceComponentHost sch : hostComponents) {
       if (sch.getServiceName().equals("HDFS")) {
-        sch.delete();
+        sch.delete(new DeleteHostComponentStatusMetaData());
 
         StackId clusterStackId = c1.getDesiredStackVersion();
 
         ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
             c1.getClusterId(), clusterStackId.getStackName(), clusterStackId.getStackVersion(),
-            "HDFS", "DATANODE", sch.getHostName(), false, -1l);
+            "HDFS", "DATANODE", sch.getHostName(), false, false, -1l);
 
         m_eventPublisher.publish(event);
       }
@@ -585,7 +586,7 @@ public class HostVersionOutOfSyncListenerTest {
           .getServiceComponent(componentName), hostName));
       ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(cl.getClusterId(),
           stackIdObj.getStackName(), stackIdObj.getStackVersion(),
-          serviceName, componentName, hostName, false /* recovery not enabled */);
+          serviceName, componentName, hostName, false /* recovery not enabled */, false);
       m_eventPublisher.publish(event);
     }
   }

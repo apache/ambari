@@ -27,11 +27,15 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   attributes: null,
 
   /**
-   * Contain array with list of master components from <code>App.Service.hostComponets</code> which are
+   * Contain array with list of groups of master components from <code>App.Service.hostComponets</code> which are
    * <code>App.HostComponent</code> models.
-   * @type {App.HostComponent[]}
+   * @type {{title: String, hosts: String[], components: App.HostComponent[]}[]}
    */
-  mastersObj: [],
+  mastersObj: [
+    {
+      components: []
+    }
+  ],
   mastersLength: 0,
 
   /**
@@ -74,6 +78,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {
       HBASE: App.MainDashboardServiceHbaseView,
       HDFS: App.MainDashboardServiceHdfsView,
+      ONEFS: App.MainDashboardServiceHdfsView,
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       RANGER: App.MainDashboardServiceRangerView,
@@ -155,12 +160,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return {};
   }.property('controller.content'),
 
+  showComponentsTitleForNonMasters: Em.computed.or('!mastersLength', 'hasMultipleMasterGroups'),
 
   componentsLengthDidChange: function() {
     var self = this;
     if (!this.get('service') || this.get('service.deleteInProgress')) return;
     Em.run.once(self, 'setComponentsContent');
-  }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount'),
+  }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount', 'svc.masterComponentGroups.length'),
 
   loadServiceSummary: function () {
     var serviceName = this.get('serviceName');
@@ -208,12 +214,17 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       if (Em.isNone(this.get('service'))) {
         return;
       }
-      var masters = this.get('service.hostComponents').filterProperty('isMaster');
-      var slaves = this.get('service.slaveComponents').toArray();
-      var clients = this.get('service.clientComponents').toArray();
+      const masters = this.get('service.hostComponents').filterProperty('isMaster'),
+        slaves = this.get('service.slaveComponents').toArray(),
+        clients = this.get('service.clientComponents').toArray(),
+        masterGroups = this.get('svc.masterComponentGroups') ? this.get('svc.masterComponentGroups').toArray() : [];
 
-      if (this.get('mastersLength') !== masters.length) {
-        this.updateComponentList(this.get('mastersObj'), masters);
+      if (this.get('mastersLength') !== masters.length || this.get('mastersObj.length') !== masterGroups.length) {
+        let mastersInit = this.get('mastersObj').mapProperty('components').reduce((acc, group) => {
+          return [...acc, ...group];
+        }, []);
+        this.updateComponentList(mastersInit, masters);
+        this.set('mastersObj', this.getGroupedMasterComponents(mastersInit));
         this.set('mastersLength', masters.length);
       }
       if (this.get('slavesLength') !== slaves.length) {
@@ -276,8 +287,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   service: null,
 
   svc: function () {
-    var svc = this.get('controller.content');
-    var svcName = svc.get('serviceName');
+    let svc = this.get('controller.content');
+    const svcName = svc ? svc.get('serviceName') : null;
     if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
@@ -410,5 +421,65 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   rollingRestartStaleConfigSlaveComponents: function (componentName) {
     batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('service.displayName'), this.get('service.passiveState') === "ON", true);
+  },
+
+  hasMultipleMasterGroups: Em.computed.gt('mastersObj.length', 1),
+
+  getGroupedMasterComponents: function (components) {
+    switch (this.get('serviceName')) {
+      case 'HDFS':
+        const masterComponentGroups = this.get('service.masterComponentGroups'),
+          hostComponents = this.get('service.hostComponents'),
+          zkfcs = hostComponents.filterProperty('componentName', 'ZKFC'),
+          hasNameNodeFederation = this.get('service.hasMultipleMasterComponentGroups');
+        let groups = [];
+        hostComponents.forEach(component => {
+          if (component.get('isMaster') && component.get('componentName') !== 'JOURNALNODE') {
+            const hostName = component.get('hostName'),
+              zkfc = zkfcs.findProperty('hostName', hostName);
+            if (hasNameNodeFederation) {
+              const name = component.get('haNameSpace'),
+                existingGroup = groups.findProperty('name', name),
+                currentGroup = existingGroup || Object.assign({}, masterComponentGroups.findProperty('name', name));
+              if (!existingGroup) {
+                groups.push(currentGroup);
+                Em.setProperties(currentGroup, {
+                  components: [],
+                  componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
+                    nameSpace: name
+                  })
+                });
+              }
+              currentGroup.components.push(component);
+              if (zkfc) {
+                zkfc.set('isSubComponent', true);
+                currentGroup.components.push(zkfc);
+              }
+            } else {
+              if (!groups.length) {
+                groups.push({
+                  components: [],
+                  componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
+                    nameSpace: component.get('haNameSpace') || 'default'
+                  })
+                });
+              }
+              const defaultGroupComponents = groups[0].components;
+              defaultGroupComponents.push(component);
+              if (zkfc) {
+                zkfc.set('isSubComponent', true);
+                defaultGroupComponents.push(zkfc);
+              }
+            }
+          }
+        });
+        return groups;
+      default:
+        return [
+          {
+            components
+          }
+        ];
+    }
   }
 });

@@ -52,7 +52,7 @@ Monitoring
 ----
 The Ambari API provides access to monitoring and metrics information of an Apache Hadoop cluster.
 
-###GET
+### GET
 Use the GET method to read the properties, metrics and sub-resources of an Ambari resource.  Calling the GET method returns the requested resources and produces no side-effects.  A response code of 200 indicates that the request was successfully processed with the requested resource included in the response body.
  
 **Example**
@@ -113,7 +113,7 @@ Management
 ----
 The Ambari API provides for the management of the resources of an Apache Hadoop cluster.  This includes the creation, deletion and updating of resources.
 
-###POST
+### POST
 The POST method creates a new resource. If a new resource is created then a 201 response code is returned.  The code 202 can also be returned to indicate that the instruction was accepted by the server (see [asynchronous response](#asynchronous-response)). 
 
 **Example**
@@ -128,7 +128,7 @@ Create the HDFS service.
 
     201 Created
 
-###PUT
+### PUT
 Use the PUT method to update resources.  If an existing resource is modified then a 200 response code is retrurned to indicate successful completion of the request.  The response code 202 can also be returned to indicate that the instruction was accepted by the server (see [asynchronous response](#asynchronous-response)).
 
 **Example**
@@ -161,7 +161,7 @@ The response code 202 indicates that the server has accepted the instruction to 
     }
 
 
-###DELETE
+### DELETE
 Use the DELETE method to delete a resource. If an existing resource is deleted then a 200 response code is retrurned to indicate successful completion of the request.  The response code 202 can also be returned which indicates that the instruction was accepted by the server and the resource was marked for deletion (see [asynchronous response](#asynchronous-response)).
 
 **Example**
@@ -174,7 +174,7 @@ Delete the cluster named 'c1'.
 
     200 OK
 
-###Asynchronous Response
+### Asynchronous Response
 
 The managment APIs can return a response code of 202 which indicates that the request has been accepted.  The body of the response contains the ID and href of the request resource that was created to carry out the instruction. 
     
@@ -241,7 +241,7 @@ The returned task resources can be used to determine the status of the request.
 
 Resources
 ----
-###Collection Resources
+### Collection Resources
 
 
 A collection resource is a set of resources of the same type, rather than any specific resource. For example:
@@ -250,7 +250,7 @@ A collection resource is a set of resources of the same type, rather than any sp
 
   _Refers to a collection of clusters_
 
-###Instance Resources
+### Instance Resources
 
 An instance resource is a single specific resource. For example:
 
@@ -258,7 +258,7 @@ An instance resource is a single specific resource. For example:
 
   _Refers to the cluster resource identified by the id "c1"_
 
-###Types
+### Types
 Resources are grouped into types.  This allows the user to query for collections of resources of the same type.  Some resource types are composed of subtypes (e.g. services are sub-resources of clusters).
 
 The following is a list of some of the Ambari resource types with descriptions and usage examples.
@@ -705,7 +705,7 @@ Query Predicates
 
 Used to limit which data is returned by a query.  This is synonymous to the “where” clause in a SQL query.  Providing query parameters does not result in any link expansion in the data that is returned, with the exception of the fields used in the predicates.  Query predicates can only be applied to collection resources.  A predicate consists of at least one relational expression.  Predicates with multiple relational expressions also contain logical operators, which connect the relational expressions.  Predicates may also use brackets for explicit grouping of expressions. 
 
-###Relational Query Operators
+### Relational Query Operators
 
 <table>
   <tr>
@@ -745,7 +745,7 @@ Used to limit which data is returned by a query.  This is synonymous to the “w
   </tr>  
 </table>
 
-###Logical Query Operators
+### Logical Query Operators
 
 <table>
   <tr>
@@ -774,7 +774,7 @@ Used to limit which data is returned by a query.  This is synonymous to the “w
 
 Standard logical operator precedence rules apply.  The above logical operators are listed in order of precedence starting with the lowest priority.  
 
-###Brackets
+### Brackets
 
 <table>
   <tr>
@@ -794,7 +794,7 @@ Standard logical operator precedence rules apply.  The above logical operators a
   
 Brackets can be used to provide explicit grouping of expressions. Expressions within brackets have the highest precedence.
 
-###Operator Functions
+### Operator Functions
  
 <table>
   <tr>
@@ -815,7 +815,7 @@ Brackets can be used to provide explicit grouping of expressions. Expressions wi
 </table>
 Operator functions behave like relational operators and provide additional functionality.  Some operator functions, such as in(), act as binary operators like the above relational operators, where there is a left and right operand.  Some operator functions are unary operators, such as isEmpty(), where there is only a single operand.
 
-###Query Examples
+### Query Examples
 
 **Example – Get all hosts with “HEALTHY” status that have 2 or more cpu**
 	
@@ -901,7 +901,7 @@ RequestInfo allows the user to specify additional properties in the body of a re
   </tr>
 </table>
 
-###query
+### query
 
 
 The query property allows the user to specify the query string as part of the request body.  This is sometimes required in the case of a very long query string that causes the request to exceed the limits of the URL.
@@ -964,7 +964,7 @@ The query property can also be applied to the elements of a [batch request](#bat
     ]
 
 
-###context
+### context
 In some cases a request will return a 202 to indicate that the instruction was accepted by the server (see [asynchronous response](#asynchronous-response)).  In these cases the body of the response contains the ID and href of the request resource that was created to carry out the instruction.  It may be desirable to attach a context string to the request which will then be assigned to the resulting request response.
 
 In the following example a request is made to stop the HDFS service.  Notice that a context is passed as a RequestInfo property.

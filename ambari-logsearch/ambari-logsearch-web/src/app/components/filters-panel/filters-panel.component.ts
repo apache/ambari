@@ -16,52 +16,36 @@
  * limitations under the License.
  */
 
-import {Component, OnChanges, SimpleChanges, Input, ViewContainerRef} from '@angular/core';
+import {Component, OnDestroy, Input, ViewContainerRef, OnInit} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/observable/from';
+import 'rxjs/add/operator/defaultIfEmpty';
 import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {LogsType} from '@app/classes/string';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {UtilsService} from '@app/services/utils.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
+import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'filters-panel',
   templateUrl: './filters-panel.component.html',
   styleUrls: ['./filters-panel.component.less']
 })
-export class FiltersPanelComponent implements OnChanges {
-
-  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef) {
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.hasOwnProperty('logsType')) {
-      let result;
-      switch (changes.logsType.currentValue) {
-        case 'auditLogs':
-          result = this.logsContainer.auditLogsColumns;
-          break;
-        case 'serviceLogs':
-          result = this.logsContainer.serviceLogsColumns;
-          break;
-        default:
-          result = Observable.from([]);
-          break;
-      }
-      this.searchBoxItems = result;
-    }
-  }
+export class FiltersPanelComponent implements OnDestroy, OnInit {
 
   @Input()
   filtersForm: FormGroup;
 
-  @Input()
-  logsType: LogsType;
+  private subscriptions: Subscription[] = [];
 
-  searchBoxItems: Observable<ListItem[]>;
+  searchBoxItems$: Observable<ListItem[]>;
+
+  searchBoxValueUpdate: Subject<void> = new Subject();
 
   get containerEl(): Element {
     return this.viewContainerRef.element.nativeElement;
@@ -95,7 +79,40 @@ export class FiltersPanelComponent implements OnChanges {
     return this.logsContainer.queryParameterAdd;
   }
 
-  searchBoxValueUpdate: Subject<void> = new Subject();
+  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef,
+              private utils: UtilsService, private appState: AppStateService) {
+  }
+
+  ngOnInit() {
+    this.subscriptions.push(this.appState.getParameter('activeLogsType').subscribe(this.onLogsTypeChange));
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+  }
+
+  private onLogsTypeChange = (currentLogsType: LogsType): void => {
+    const logsType = this.logsContainer.logsTypeMap[currentLogsType];
+    const fieldsModel: any = logsType && logsType.fieldsModel;
+    let subType: string;
+    let fields: Observable<any>;
+    switch (currentLogsType) {
+      case 'auditLogs':
+        fields = fieldsModel.getParameter(subType ? 'overrides' : 'defaults');
+        if (subType) {
+          fields = fields.map(items => items && items[subType]);
+        }
+        break;
+      case 'serviceLogs':
+        fields = fieldsModel.getAll();
+        break;
+      default:
+        fields = Observable.from([]);
+        break;
+    }
+    this.searchBoxItems$ = fields.defaultIfEmpty([]).map(items => items ? items.filter(field => field.filterable) : [])
+      .map(this.utils.logFieldToListItemMapper);
+  }
 
   isFilterConditionDisplayed(key: string): boolean {
     return this.logsContainer.isFilterConditionDisplayed(key);

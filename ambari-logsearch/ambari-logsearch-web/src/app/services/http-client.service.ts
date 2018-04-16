@@ -19,6 +19,7 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/first';
+import 'rxjs/add/observable/throw';
 import {
   Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams
 } from '@angular/http';
@@ -33,10 +34,6 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Injectable()
 export class HttpClientService extends Http {
-
-  constructor(backend: XHRBackend, defaultOptions: RequestOptions, private appState: AppStateService) {
-    super(backend, defaultOptions);
-  }
 
   private readonly apiPrefix = 'api/v1/';
 
@@ -73,6 +70,9 @@ export class HttpClientService extends Http {
     components: {
       url: 'service/logs/components/levels/counts'
     },
+    serviceComponentsName: {
+      url: 'service/logs/components'
+    },
     clusters: {
       url: 'service/logs/clusters'
     },
@@ -85,10 +85,24 @@ export class HttpClientService extends Http {
     },
     logIndexFilters: {
       url: variables => `shipper/filters/${variables.clusterName}/level`
+    },
+
+    shipperClusterServiceList: {
+      url: variables => `shipper/input/${variables.cluster}/services`
+    },
+    shipperClusterServiceConfiguration: {
+      url: variables => `shipper/input/${variables.cluster}/services/${variables.service}`
+    },
+    shipperClusterServiceConfigurationTest: {
+      url: variables => `shipper/input/${variables.cluster}/test`
     }
   };
 
   private readonly unauthorizedStatuses = [401, 403, 419];
+
+  constructor(backend: XHRBackend, defaultOptions: RequestOptions, private appState: AppStateService) {
+    super(backend, defaultOptions);
+  }
 
   private generateUrlString(url: string, urlVariables?: HomogeneousObject<string>): string {
     const preset = this.endPoints[url];
@@ -137,17 +151,20 @@ export class HttpClientService extends Http {
     }
   }
 
-  private handleError(request: Observable<Response>): void {
-    request.subscribe(null, (error: any) => {
+  request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
+    const handleResponseError = (error) => {
+      let handled: boolean = false;
       if (this.unauthorizedStatuses.indexOf(error.status) > -1) {
         this.appState.setParameter('isAuthorized', false);
+        handled = true;
       }
-    });
-  }
-
-  request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
-    let req = super.request(this.generateUrl(url), options).share().first();
-    this.handleError(req);
+      return handled;
+    };
+    const req: Observable<Response> = super.request(this.generateUrl(url), options).first()
+      .map(response => response)
+      .catch((error: any) => {
+        return handleResponseError(error) ? Observable.of(error) : Observable.throw(error);
+      });
     return req;
   }
 
@@ -159,18 +176,26 @@ export class HttpClientService extends Http {
     return super.put(this.generateUrlString(url, urlVariables), body, this.generateOptions(url, params));
   }
 
-  postFormData(url: string, params: HomogeneousObject<string>, options?: RequestOptionsArgs): Observable<Response> {
+  post(url: string, body: any, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {
+    return super.post(this.generateUrlString(url, urlVariables), body, this.generateOptions(url, params));
+  }
+
+  postFormData(
+    url: string,
+    params: HomogeneousObject<string>,
+    options?: RequestOptionsArgs,
+    urlVariables?: HomogeneousObject<string>): Observable<Response> {
     const encodedParams = this.generateOptions(url, params).params;
     let body;
     if (encodedParams && encodedParams instanceof URLSearchParams) {
       body = encodedParams.rawParams;
     }
-    let requestOptions = Object.assign({}, options);
+    const requestOptions = Object.assign({}, options);
     if (!requestOptions.headers) {
       requestOptions.headers = new Headers();
     }
     requestOptions.headers.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    return super.post(url, body, requestOptions);
+    return super.post(this.generateUrlString(url, urlVariables), body, requestOptions);
   }
 
 }

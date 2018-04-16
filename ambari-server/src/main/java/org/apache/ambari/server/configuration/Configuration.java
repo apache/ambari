@@ -33,8 +33,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -65,9 +63,7 @@ import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.services.RetryUpgradeActionService;
@@ -1135,59 +1131,6 @@ public class Configuration {
   public static final ConfigurationProperty<String> STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.command.details.to.ignore", "\"Execute HDFS Finalize\"");
 
-  /**
-   * Determines whether to use JWT authentication when connecting to remote Hadoop resources.
-   */
-  @Markdown(description = "Determines whether to use JWT authentication when connecting to remote Hadoop resources.")
-  public static final ConfigurationProperty<Boolean> JWT_AUTH_ENABLED = new ConfigurationProperty<>(
-      "authentication.jwt.enabled", Boolean.FALSE);
-
-  /**
-   * The URL for authentication of the user in the absence of a JWT token when
-   * handling a JWT request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The URL for authentication of the user in the absence of a JWT token when handling a JWT request.")
-  public static final ConfigurationProperty<String> JWT_AUTH_PROVIDER_URL = new ConfigurationProperty<>(
-      "authentication.jwt.providerUrl", null);
-
-  /**
-   * The public key to use when verifying the authenticity of a JWT token.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The public key to use when verifying the authenticity of a JWT token.")
-  public static final ConfigurationProperty<String> JWT_PUBLIC = new ConfigurationProperty<>(
-      "authentication.jwt.publicKey", null);
-
-  /**
-   * A list of the JWT audiences expected. Leaving this blank will allow for any audience.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "A list of the JWT audiences expected. Leaving this blank will allow for any audience.")
-  public static final ConfigurationProperty<String> JWT_AUDIENCES = new ConfigurationProperty<>(
-      "authentication.jwt.audiences", null);
-
-  /**
-   * The name of the cookie which will be used to extract the JWT token from the request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The name of the cookie which will be used to extract the JWT token from the request.")
-  public static final ConfigurationProperty<String> JWT_COOKIE_NAME = new ConfigurationProperty<>(
-      "authentication.jwt.cookieName", "hadoop-jwt");
-
-  /**
-   * The original URL to use when constructing the logic URL for JWT.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The original URL to use when constructing the logic URL for JWT.")
-  public static final ConfigurationProperty<String> JWT_ORIGINAL_URL_QUERY_PARAM = new ConfigurationProperty<>(
-      "authentication.jwt.originalUrlParamName", "originalUrl");
-
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    * Kerberos authentication-specific properties
    * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
@@ -1851,6 +1794,70 @@ public class Configuration {
       markdown = @Markdown(description = "The size of the Jetty connection pool used for handling incoming Ambari Agent requests."))
   public static final ConfigurationProperty<Integer> AGENT_THREADPOOL_SIZE = new ConfigurationProperty<>(
       "agent.threadpool.size.max", 25);
+
+  /**
+   * The thread pool size for spring messaging.
+   */
+  @Markdown(description = "Thread pool size for spring messaging")
+  public static final ConfigurationProperty<Integer> MESSAGING_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "messaging.threadpool.size", 1);
+
+  /**
+   * The thread pool size for agents registration.
+   */
+  @Markdown(description = "Thread pool size for agents registration")
+  public static final ConfigurationProperty<Integer> REGISTRATION_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "registration.threadpool.size", 10);
+
+  /**
+   * Maximal cache size for spring subscription registry.
+   */
+  @Markdown(description = "Maximal cache size for spring subscription registry.")
+  public static final ConfigurationProperty<Integer> SUBSCRIPTION_REGISTRY_CACHE_MAX_SIZE = new ConfigurationProperty<>(
+      "subscription.registry.cache.size", 1500);
+
+  /**
+   * Queue size for agents in registration.
+   */
+  @Markdown(description = "Queue size for agents in registration.")
+  public static final ConfigurationProperty<Integer> AGENTS_REGISTRATION_QUEUE_SIZE = new ConfigurationProperty<>(
+      "agents.registration.queue.size", 200);
+
+
+  /**
+   * Period in seconds with agents reports will be processed.
+   */
+  @Markdown(description = "Period in seconds with agents reports will be processed.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_PROCESSING_PERIOD = new ConfigurationProperty<>(
+      "agents.reports.processing.period", 1);
+
+  /**
+   * Timeout in seconds before start processing of agents' reports.
+   */
+  @Markdown(description = "Timeout in seconds before start processing of agents' reports.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_PROCESSING_START_TIMEOUT = new ConfigurationProperty<>(
+      "agents.reports.processing.start.timeout", 5);
+
+  /**
+   * Thread pool size for agents reports processing.
+   */
+  @Markdown(description = "Thread pool size for agents reports processing.")
+  public static final ConfigurationProperty<Integer> AGENTS_REPORT_THREAD_POOL_SIZE = new ConfigurationProperty<>(
+      "agents.reports.thread.pool.size", 10);
+
+  /**
+   * Server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  @Markdown(description = "Server to API STOMP endpoint heartbeat interval in milliseconds.")
+  public static final ConfigurationProperty<Integer> API_HEARTBEAT_INTERVAL = new ConfigurationProperty<>(
+      "api.heartbeat.interval", 10000);
+
+  /**
+   * The maximum size of a stomp text message. Default is 2 MB.
+   */
+  @Markdown(description = "The maximum size of a stomp text message. Default is 2 MB.")
+  public static final ConfigurationProperty<Integer> STOMP_MAX_MESSAGE_SIZE = new ConfigurationProperty<>(
+      "stomp.max.message.size", 2*1024*1024);
 
   /**
    * The maximum number of threads used to extract Ambari Views when Ambari
@@ -2531,6 +2538,12 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> SERVER_SIDE_ALERTS_CORE_POOL_SIZE = new ConfigurationProperty<>(
           "alerts.server.side.scheduler.threadpool.size.core", 4);
 
+  /**
+   * Default value of Max number of tasks to schedule in parallel for upgrades.
+   */
+  @Markdown(description = "Default value of max number of tasks to schedule in parallel for upgrades. Upgrade packs can override this value.")
+  public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
+    "stack.upgrade.default.parallelism", 100);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -4490,6 +4503,70 @@ public class Configuration {
   }
 
   /**
+   * @return max thread pool size for clients, default 25
+   */
+  public int getSpringMessagingThreadPoolSize() {
+    return Integer.parseInt(getProperty(MESSAGING_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return max thread pool size for agents registration, default 10
+   */
+  public int getRegistrationThreadPoolSize() {
+    return Integer.parseInt(getProperty(REGISTRATION_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return max cache size for spring subscription registry.
+   */
+  public int getSubscriptionRegistryCacheSize() {
+    return Integer.parseInt(getProperty(SUBSCRIPTION_REGISTRY_CACHE_MAX_SIZE));
+  }
+
+  /**
+   * @return queue size for agents in registration.
+   */
+  public int getAgentsRegistrationQueueSize() {
+    return Integer.parseInt(getProperty(AGENTS_REGISTRATION_QUEUE_SIZE));
+  }
+
+
+  /**
+   * @return period in seconds with agents reports will be processed.
+   */
+  public int getAgentsReportProcessingPeriod() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_PROCESSING_PERIOD));
+  }
+
+  /**
+   * @return timeout in seconds before start processing of agents' reports.
+   */
+  public int getAgentsReportProcessingStartTimeout() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_PROCESSING_START_TIMEOUT));
+  }
+
+  /**
+   * @return thread pool size for agents reports processing.
+   */
+  public int getAgentsReportThreadPoolSize() {
+    return Integer.parseInt(getProperty(AGENTS_REPORT_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  public int getAPIHeartbeatInterval() {
+    return Integer.parseInt(getProperty(API_HEARTBEAT_INTERVAL));
+  }
+
+  /**
+   * @return the maximum size of a stomp text message. Default is 2 MB.
+   */
+  public int getStompMaxMessageSize() {
+    return Integer.parseInt(getProperty(STOMP_MAX_MESSAGE_SIZE));
+  }
+
+  /**
    * @return max thread pool size for agents, default 25
    */
   public int getAgentThreadPoolSize() {
@@ -4987,48 +5064,6 @@ public class Configuration {
   }
 
   /**
-   * Get set of properties desribing SSO configuration (JWT)
-   */
-  public JwtAuthenticationProperties getJwtProperties() {
-    boolean enableJwt = Boolean.valueOf(getProperty(JWT_AUTH_ENABLED));
-
-    if (enableJwt) {
-      String providerUrl = getProperty(JWT_AUTH_PROVIDER_URL);
-      if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.");
-        return null;
-      }
-      String publicKeyPath = getProperty(JWT_PUBLIC);
-      if (publicKeyPath == null) {
-        LOG.error("Public key pem not specified for JWT auth provider {}. JWT auth will be disabled.", providerUrl);
-        return null;
-      }
-      try {
-        RSAPublicKey publicKey = CertificateUtils.getPublicKeyFromFile(publicKeyPath);
-        JwtAuthenticationProperties jwtProperties = new JwtAuthenticationProperties();
-        jwtProperties.setAuthenticationProviderUrl(providerUrl);
-        jwtProperties.setPublicKey(publicKey);
-
-        jwtProperties.setCookieName(getProperty(JWT_COOKIE_NAME));
-        jwtProperties.setAudiencesString(getProperty(JWT_AUDIENCES));
-        jwtProperties.setOriginalUrlQueryParam(getProperty(JWT_ORIGINAL_URL_QUERY_PARAM));
-
-        return jwtProperties;
-
-      } catch (IOException e) {
-        LOG.error("Unable to read public certificate file. JWT auth will be disabled.", e);
-        return null;
-      } catch (CertificateException e) {
-        LOG.error("Unable to parse public certificate file. JWT auth will be disabled.", e);
-        return null;
-      }
-    } else {
-      return null;
-    }
-
-  }
-
-  /**
    * Gets the Kerberos authentication-specific properties container
    *
    * @return an AmbariKerberosAuthenticationProperties
@@ -5370,6 +5405,13 @@ public class Configuration {
    */
   public boolean isSecurityPasswordEncryptionEnabled() {
     return Boolean.parseBoolean(getProperty(SECURITY_PASSWORD_ENCRYPTON_ENABLED));
+  }
+
+  /**
+   * @return default value of number of tasks to run in parallel during upgrades
+   */
+  public int getDefaultMaxParallelismForUpgrades() {
+    return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
   }
 
   /**

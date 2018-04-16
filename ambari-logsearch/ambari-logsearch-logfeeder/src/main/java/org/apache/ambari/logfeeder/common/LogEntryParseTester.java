@@ -27,6 +27,9 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputFileMarker;
+import org.apache.ambari.logfeeder.input.InputManagerImpl;
+import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
+import org.apache.ambari.logfeeder.output.OutputManagerImpl;
 import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.output.Output;
@@ -77,6 +80,12 @@ public class LogEntryParseTester {
   public Map<String, Object> parse() throws Exception {
     InputConfig inputConfig = getInputConfig();
     ConfigHandler configHandler = new ConfigHandler(null);
+    configHandler.setInputManager(new InputManagerImpl());
+    OutputManagerImpl outputManager = new OutputManagerImpl();
+    LogLevelFilterHandler logLevelFilterHandler = new LogLevelFilterHandler(null);
+    logLevelFilterHandler.setLogFeederProps(new LogFeederProps());
+    outputManager.setLogLevelFilterHandler(logLevelFilterHandler);
+    configHandler.setOutputManager(outputManager);
     Input input = configHandler.getTestInput(inputConfig, logId);
     final Map<String, Object> result = new HashMap<>();
     input.getFirstFilter().init(new LogFeederProps());

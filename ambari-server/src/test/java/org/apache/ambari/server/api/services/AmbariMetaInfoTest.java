@@ -48,6 +48,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -1838,7 +1839,7 @@ public class AmbariMetaInfoTest {
     List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
     assertEquals(13, definitions.size());
 
-    cluster.deleteService("HDFS");
+    cluster.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
     metaInfo.reconcileAlertDefinitions(clusters, false);
     List<AlertDefinitionEntity> updatedDefinitions = dao.findAll(clusterId);
     assertEquals(7, updatedDefinitions.size());

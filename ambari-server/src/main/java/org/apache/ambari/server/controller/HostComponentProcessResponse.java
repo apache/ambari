@@ -19,6 +19,10 @@ package org.apache.ambari.server.controller;
 
 import java.util.Map;
 
+import org.apache.ambari.server.controller.internal.HostComponentProcessResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Response object for HostComponent processes
  */
@@ -47,6 +51,7 @@ public class HostComponentProcessResponse {
   /**
    * @return the cluster
    */
+  @ApiModelProperty(name = HostComponentProcessResourceProvider.CLUSTER_NAME_PROPERTY_ID)
   public String getCluster() {
     return cluster;
   }
@@ -54,6 +59,7 @@ public class HostComponentProcessResponse {
   /**
    * @return the host
    */
+  @ApiModelProperty(name = HostComponentProcessResourceProvider.HOST_NAME_PROPERTY_ID)
   public String getHost() {
     return host;
   }
@@ -61,6 +67,7 @@ public class HostComponentProcessResponse {
   /**
    * @return the component
    */
+  @ApiModelProperty(name = HostComponentProcessResourceProvider.COMPONENT_NAME_PROPERTY_ID)
   public String getComponent() {
     return component;
   }

@@ -257,7 +257,6 @@ describe('App.ChartLinearTimeView', function () {
         fromSeconds: -3599,
         stepSeconds: 15,
         hostName: 'host1',
-        nameNodeName: '',
         resourceManager: ''
       });
     });
@@ -272,7 +271,6 @@ describe('App.ChartLinearTimeView', function () {
         fromSeconds: -3599,
         stepSeconds: 15,
         hostName: '',
-        nameNodeName: 'host1',
         resourceManager: ''
       });
       services.hdfsService = [];
@@ -288,7 +286,6 @@ describe('App.ChartLinearTimeView', function () {
         fromSeconds: -3599,
         stepSeconds: 15,
         hostName: '',
-        nameNodeName: 'host1',
         resourceManager: ''
       });
       services.hdfsService = [];
@@ -304,7 +301,6 @@ describe('App.ChartLinearTimeView', function () {
         fromSeconds: -3599,
         stepSeconds: 15,
         hostName: '',
-        nameNodeName: '',
         resourceManager: 'host1'
       });
       services.yarnService = [];

@@ -35,21 +35,6 @@ describe('MainHostController', function () {
     hostController.destroy();
   });
 
-  describe("#totalCount()", function () {
-
-    it("TOTAL is undefined", function () {
-      hostController.set('hostsCountMap', {});
-      hostController.propertyDidChange('totalCount');
-      expect(hostController.get('totalCount')).to.be.equal(0);
-    });
-
-    it("TOTAL is 1", function () {
-      hostController.set('hostsCountMap', {TOTAL: 1});
-      hostController.propertyDidChange('totalCount');
-      expect(hostController.get('totalCount')).to.be.equal(1);
-    });
-  });
-
   describe('#getRegExp()', function () {
     var message = '`{0}` should convert to `{1}`',
       tests = [
@@ -128,36 +113,6 @@ describe('MainHostController', function () {
       expect(db.mainHostController).to.eql([{name: 'hostName', status: 'sorting_asc'}]);
     });
 
-  });
-
-  describe("#updateStatusCounters()", function() {
-
-    it("isCountersUpdating is false", function() {
-      hostController.set('isCountersUpdating', false);
-      hostController.updateStatusCounters();
-      expect(testHelpers.findAjaxRequest('name', 'host.status.total_count')).to.be.undefined;
-    });
-
-    it("isCountersUpdating is true", function() {
-      hostController.set('isCountersUpdating', true);
-      hostController.updateStatusCounters();
-      expect(testHelpers.findAjaxRequest('name', 'host.status.total_count')).to.be.exist;
-    });
-  });
-
-  describe("#updateStatusCountersSuccessCallback()", function() {
-    var data = {
-      Clusters: {
-        total_hosts: 21
-      }
-    };
-
-    it("hostsCountMap should be set", function() {
-      hostController.updateStatusCountersSuccessCallback(data);
-      expect(hostController.get('hostsCountMap')).to.be.eql({
-        "TOTAL": 21
-      });
-    });
   });
 
   describe("#getProperValue()", function() {

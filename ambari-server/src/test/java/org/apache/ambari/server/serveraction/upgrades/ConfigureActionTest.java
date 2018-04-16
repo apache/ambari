@@ -1703,6 +1703,7 @@ public class ConfigureActionTest {
   private void makeUpgradeCluster() throws Exception {
     String clusterName = "c1";
     String hostName = "h1";
+    Long hostId = 1L;
 
     clusters.addCluster(clusterName, repoVersion2110.getStackId());
 
@@ -1717,6 +1718,7 @@ public class ConfigureActionTest {
     host.setHostAttributes(hostAttributes);
 
     clusters.mapHostToCluster(hostName, clusterName);
+    clusters.updateHostMappings(host);
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!

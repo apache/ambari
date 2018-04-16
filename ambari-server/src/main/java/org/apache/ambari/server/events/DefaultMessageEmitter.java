@@ -1,0 +1,68 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.ambari.server.events;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.MessageDestinationIsNotDefinedException;
+import org.apache.ambari.server.agent.AgentSessionManager;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+public class DefaultMessageEmitter extends MessageEmitter {
+  private final Map<STOMPEvent.Type, String> DEFAULT_DESTINATIONS =
+      Collections.unmodifiableMap(new HashMap<STOMPEvent.Type, String>(){{
+        put(STOMPEvent.Type.ALERT, "/events/alerts");
+        put(STOMPEvent.Type.ALERT_GROUP, "/events/alert_group");
+        put(STOMPEvent.Type.METADATA, "/events/metadata");
+        put(STOMPEvent.Type.HOSTLEVELPARAMS, "/host_level_params");
+        put(STOMPEvent.Type.UI_TOPOLOGY, "/events/ui_topologies");
+        put(STOMPEvent.Type.AGENT_TOPOLOGY, "/events/topologies");
+        put(STOMPEvent.Type.AGENT_CONFIGS, "/configs");
+        put(STOMPEvent.Type.CONFIGS, "/events/configs");
+        put(STOMPEvent.Type.HOSTCOMPONENT, "/events/hostcomponents");
+        put(STOMPEvent.Type.REQUEST, "/events/requests");
+        put(STOMPEvent.Type.SERVICE, "/events/services");
+        put(STOMPEvent.Type.HOST, "/events/hosts");
+        put(STOMPEvent.Type.COMMAND, "/commands");
+        put(STOMPEvent.Type.ALERT_DEFINITIONS, "/alert_definitions");
+        put(STOMPEvent.Type.UI_ALERT_DEFINITIONS, "/events/alert_definitions");
+        put(STOMPEvent.Type.UPGRADE, "/events/upgrade");
+        put(STOMPEvent.Type.AGENT_ACTIONS, "/agent_actions");
+  }});
+
+  public DefaultMessageEmitter(AgentSessionManager agentSessionManager, SimpMessagingTemplate simpMessagingTemplate) {
+    super(agentSessionManager, simpMessagingTemplate);
+  }
+
+  @Override
+  public void emitMessage(STOMPEvent event) throws AmbariException {
+    String destination = DEFAULT_DESTINATIONS.get(event.getType());
+    if (destination == null) {
+      throw new MessageDestinationIsNotDefinedException(event.getType());
+    }
+    if (event instanceof STOMPHostEvent) {
+      STOMPHostEvent hostUpdateEvent = (STOMPHostEvent) event;
+      emitMessageToHost(hostUpdateEvent, destination);
+    } else {
+      emitMessageToAll(event, destination);
+    }
+  }
+}

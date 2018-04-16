@@ -111,7 +111,7 @@
           id="role"
           name="role"
           ng-model="formData.role"
-          required>
+          ng-required="cluster">
           <option value="" class="hide">{{'common.select' | translate}}</option>
           <option ng-repeat="role in roleOptions" value="{{role.permission_name}}">{{role.permission_label}}</option>
         </select>
@@ -124,7 +124,11 @@
     <div class="form-group">
       <label>
         {{'users.isAmbariAdmin' | translate}}<span>&nbsp;*</span>
-        <i class="fa fa-question-circle" aria-hidden="true"></i>
+        <i class="fa fa-question-circle"
+           aria-hidden="true"
+           tooltip="{{'users.adminTip' | translate}}"
+           tooltip-trigger="click"
+           tooltip-placement="top"></i>
       </label>
       <div>
         <toggle-switch model="formData.isAdmin" class="switch-success" data-off-color="danger"></toggle-switch>
@@ -136,7 +140,11 @@
     <div class="form-group">
       <label>
         {{'users.isActive' | translate}}<span>&nbsp;*</span>
-        <i class="fa fa-question-circle" aria-hidden="true"></i>
+        <i class="fa fa-question-circle"
+           aria-hidden="true"
+           tooltip="{{'users.deactivateTip' | translate}}"
+           tooltip-trigger="click"
+           tooltip-placement="top"></i>
       </label>
       <div>
         <toggle-switch model="formData.isActive" class="switch-success" data-off-color="danger"></toggle-switch>

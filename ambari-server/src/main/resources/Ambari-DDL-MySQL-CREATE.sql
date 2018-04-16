@@ -107,7 +107,7 @@ CREATE TABLE clusterconfig (
 CREATE TABLE ambari_configuration (
   category_name VARCHAR(100) NOT NULL,
   property_name VARCHAR(100) NOT NULL,
-  property_value VARCHAR(255) NOT NULL,
+  property_value VARCHAR(2048),
   CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE serviceconfig (
@@ -253,6 +253,7 @@ CREATE TABLE hostcomponentstate (
   component_name VARCHAR(100) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_state VARCHAR(255) NOT NULL,
+  last_live_state VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN',
   host_id BIGINT NOT NULL,
   service_name VARCHAR(100) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
@@ -326,7 +327,7 @@ CREATE TABLE user_authentication (
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
   authentication_key TEXT,
-  create_time TIMESTAMP NOT NULL DEFAULT 0,
+  create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
   CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
@@ -389,6 +390,7 @@ CREATE TABLE request (
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   cluster_host_info LONGBLOB,
+  user_name VARCHAR(255),
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -742,6 +744,7 @@ CREATE TABLE widget (
   widget_values LONGTEXT,
   properties LONGTEXT,
   cluster_id BIGINT NOT NULL,
+  tag VARCHAR(255),
   CONSTRAINT PK_widget PRIMARY KEY (id)
 );
 

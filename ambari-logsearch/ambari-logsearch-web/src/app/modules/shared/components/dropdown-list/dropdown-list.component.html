@@ -1,0 +1,68 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<ng-template #listItem let-item let-isMultipleChoice="isMultipleChoice">
+  <li [class.divider]="item.isDivider" [class.filtered]="isFiltered(item)"
+      [attr.role]="item.isDivider ? 'separator' : null" [class]="(item.cssClass || '')">
+    <ng-container *ngIf="!item.isDivider">
+      <label class="list-item-label" *ngIf="isMultipleChoice">
+        <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
+               (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked}, $event)">
+        <label [attr.for]="item.id || item.value" class="label-container">
+          <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
+          <span class="item-label-text">{{item.label | translate}}</span>
+          <span #additionalComponent></span>
+        </label>
+      </label>
+      <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item, $event)">
+        <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
+        <span class="item-label-text">{{item.label | translate}}</span>
+        <span #additionalComponent></span>
+      </span>
+    </ng-container>
+  </li>
+</ng-template>
+
+<li *ngIf="useLocalFilter" class="filter">
+  <input #filter [value]="filterStr" (keyup)="onFilterInputKeyUp($event)" class="form-control">
+  <i class="fa fa-search"></i>
+  <i class="fa fa-times-circle-o clear-filter" [class.hide]="!filterRegExp" (click)="clearFilter($event)"></i>
+</li>
+<li class="selection-all" *ngIf="isMultipleChoice">
+  <label *ngIf="isMultipleChoice && items && items.length" class="list-item-label" (click)="changeAllSelection($event)">
+    <input type="checkbox" #selectAll [value]="items && items.length"
+           [checked]="items && (items.length === itemsSelected.length)">
+    <label class="label-container">
+      <span>{{'dropdown.selection.all' | translate:({total: items && items.length, listName: ''})}}</span>
+    </label>
+  </label>
+</li>
+<li *ngIf="isMultipleChoice && items && items.length" class="divider"></li>
+<li class="selections" *ngIf="itemsSelected.length>0">
+  <span>{{'dropdown.selection' | translate:({total: itemsSelected.length})}}</span>
+  <a href="#" (click)="onClearSelectionClick($event)">{{'dropdown.selection.clear' | translate}}</a>
+</li>
+
+<ng-container *ngFor="let item of itemsSelected">
+  <ng-container
+    *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+</ng-container>
+
+<li *ngIf="itemsSelected.length && itemsUnSelected.length" class="divider"></li>
+<ng-container *ngFor="let item of itemsUnSelected">
+  <ng-container
+    *ngTemplateOutlet="listItem; context:{$implicit: item, isMultipleChoice: isMultipleChoice}"></ng-container>
+</ng-container>

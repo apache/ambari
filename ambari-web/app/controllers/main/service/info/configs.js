@@ -52,7 +52,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   activeServiceTabs: function () {
     var selectedServiceName = this.get('selectedService.serviceName');
-    return selectedServiceName ? App.Tab.find().filterProperty('serviceName', selectedServiceName) : [];
+    return selectedServiceName ? App.Tab.find().rejectProperty('isCategorized').filterProperty('serviceName', selectedServiceName) : [];
   }.property('selectedService.serviceName'),
 
   /**
@@ -112,7 +112,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    * @type {App.ServiceConfigVersion}
    */
   selectedVersionRecord: function() {
-    return App.ServiceConfigVersion.find().findProperty('version', this.get('selectedVersion'));
+    const id = App.serviceConfigVersionsMapper.makeId(this.get('content.serviceName'), this.get('selectedVersion'));
+    return App.ServiceConfigVersion.find(id);
   }.property('selectedVersion'),
 
   /**
@@ -162,7 +163,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   errorsCount: function() {
     return this.get('selectedService.configsWithErrors').filter(function(c) {
-      return Em.isNone(c.get('widget'));
+      return Em.isNone(c.get('isInDefaultTheme'));
     }).length;
   }.property('selectedService.configsWithErrors'),
 
@@ -351,7 +352,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   loadStep: function () {
     var serviceName = this.get('content.serviceName'), self = this;
-    App.router.get('mainController').stopPolling();
     this.clearStep();
     this.set('dependentServiceNames', this.getServicesDependencies(serviceName));
     this.trackRequestChain(this.loadConfigTheme(serviceName).always(function () {
@@ -363,16 +363,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       self.trackRequest(self.loadServiceConfigVersions());
     }));
   },
-
-  /**
-   * Turn on polling when all requests are finished
-   */
-  trackRequestsDidChange: function() {
-    var allCompleted = this.get('requestsInProgress').everyProperty('completed', true);
-    if (this.get('requestsInProgress').length && allCompleted) {
-      App.router.get('mainController').startPolling();
-    }
-  }.observes('requestsInProgress.@each.completed'),
 
   /**
    * Generate "finger-print" for current <code>stepConfigs[0]</code>

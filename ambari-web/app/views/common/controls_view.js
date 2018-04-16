@@ -168,7 +168,7 @@ App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 
   onValueUpdate: function () {
     if (!this.get('isVisible')) return;
-    if (this.get('selected')) {
+    if (this.get('selected') || this.get('serviceConfig.changedViaUndoValue')) {
       var self = this, config = this.get('serviceConfig'),
         controller = this.get('controller');
       delay(function(){
@@ -200,12 +200,8 @@ App.WidgetValueObserver = Em.Mixin.create(App.ValueObserver, {
  */
 App.ServiceConfigCalculateId = Ember.Mixin.create({
   'data-qa': Ember.computed(function () {
-    var config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
-    var label = Em.get(config, 'name') ? Em.get(config, 'name').toLowerCase().replace(/\./g, '-') : '',
-        fileName = Em.get(config, 'filename') ? Em.get(config, 'filename').toLowerCase().replace(/\./g, '-') : '',
-        group = Em.get(config, 'group.name') || 'default',
-        isOrigin = Em.getWithDefault(config, 'compareConfigs.length', 0) > 0 ? '-origin' : '';
-    return 'service-config-' + label + '-' + fileName + '-' + group + isOrigin;
+    const config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
+    return Em.get(config, 'name') || '';
   })
 });
 
@@ -253,12 +249,15 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 App.ServiceConfigTextFieldUserGroupWithID = Ember.View.extend(App.ServiceConfigPopoverSupport, {
   valueBinding: 'serviceConfig.value',
   placeholderBinding: 'serviceConfig.savedValue',
-  classNames: 'display-inline-block',
+  classNamesBindings: 'view.fullWidth::display-inline-block',
+
+  fullWidth: false,
 
   templateName: require('templates/wizard/controls_service_config_usergroup_with_id'),
 
   isUIDGIDVisible: function () {
-    var overrideUid = this.get('parentView').serviceConfigs.findProperty('name', 'override_uid');
+    var serviceConfigs = this.get('parentView').serviceConfigs;
+    var overrideUid = serviceConfigs && serviceConfigs.findProperty('name', 'override_uid');
     //don't display the ugid field if there is no uid/gid for this property or override_uid is unchecked
     if (Em.isNone(this.get('serviceConfig.ugid')) || overrideUid && overrideUid.value === 'false') {
       return false;
@@ -303,6 +302,8 @@ App.ServiceConfigPasswordField = Ember.View.extend(App.ServiceConfigPopoverSuppo
   placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
 
   templateName: require('templates/common/configs/widgets/service_config_password_field'),
+
+  classNames: ['password-field-wrapper'],
 
   readOnly: Em.computed.not('serviceConfig.isEditable'),
 
@@ -413,10 +414,11 @@ var checkboxConfigView = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, 
     if (this.get('serviceConfig').isDestroyed) return;
     this._super();
     this.addObserver('serviceConfig.value', this, 'toggleChecker');
+    var isInverted = this.get('serviceConfig.displayType') === 'boolean-inverted';
     Object.keys(this.get('allowedPairs')).forEach(function(key) {
       if (this.get('allowedPairs')[key].contains(this.get('serviceConfig.value'))) {
-        this.set('trueValue', this.get('allowedPairs')[key][0]);
-        this.set('falseValue', this.get('allowedPairs')[key][1]);
+        this.set('trueValue', isInverted ? this.get('allowedPairs')[key][1] :this.get('allowedPairs')[key][0]);
+        this.set('falseValue', isInverted ? this.get('allowedPairs')[key][0] :this.get('allowedPairs')[key][1]);
       }
     }, this);
     this.set('checked', this.get('serviceConfig.value') === this.get('trueValue'));
@@ -732,8 +734,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     var databases = /MySQL|PostgreSQL|Postgres|Oracle|Derby|MSSQL|SQLA|Anywhere/gi;
     var currentDB = currentValue.match(databases)[0];
     /** TODO: Remove SQLA from the list of databases once Ranger DB_FLAVOR=SQLA is replaced with SQL Anywhere */
-    var databasesTypes = /MySQL|Postgres|Oracle|Derby|MSSQL|SQLA|Anywhere/gi;
-    var currentDBType = currentValue.match(databasesTypes)[0];
     var checkDatabase = /existing/gi.test(currentValue);
     // db connection check button show up if existed db selected
     var propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
@@ -904,7 +904,7 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
   classNames: ['master-host', 'col-md-6'],
   valueBinding: 'serviceConfig.value',
 
-  template: Ember.Handlebars.compile('{{value}}')
+  template: Ember.Handlebars.compile('{{view.value}}')
 
 });
 
@@ -1173,7 +1173,7 @@ App.CheckDBConnectionView = Ember.View.extend({
       } else {
         name = 'AD';
       }
-      App.popover(this.$(), {
+      App.popover(this.$('.connection-result'), {
         title: Em.I18n.t('services.service.config.database.btn.idle'),
         content: Em.I18n.t('installer.controls.checkConnection.popover').format(name),
         placement: 'right',

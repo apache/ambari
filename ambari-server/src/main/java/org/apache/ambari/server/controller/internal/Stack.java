@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
@@ -257,6 +259,17 @@ public class Stack {
       }
     }
     return componentInfo;
+  }
+
+  /**
+   * @return an optional ServiceInfo of the given serviceName or Optional.empty() if the service doesn't exist in the stack
+   */
+  public Optional<ServiceInfo> getServiceInfo(String serviceName) {
+    try {
+      return Optional.of(controller.getAmbariMetaInfo().getService(getName(), getVersion(), serviceName));
+    } catch (AmbariException e) {
+      return Optional.empty();
+    }
   }
 
   /**

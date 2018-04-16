@@ -283,6 +283,7 @@ App.config = Em.Object.create({
    * @returns {*|Object}
    */
   getDefaultConfig: function(name, fileName, coreObject) {
+    name = JSON.parse('"' + name + '"');
     var cfg = App.configsCollection.getConfigByName(name, fileName) ||
       App.config.createDefaultConfig(name, fileName, false);
     if (Em.typeOf(coreObject) === 'object') {
@@ -551,6 +552,8 @@ App.config = Em.Object.create({
       case 'checkbox':
       case 'boolean':
         return dependentConfigPattern ? App.ServiceConfigCheckboxWithDependencies : App.ServiceConfigCheckbox;
+      case 'boolean-inverted':
+        return App.ServiceConfigCheckbox;
       case 'password':
         return App.ServiceConfigPasswordField;
       case 'combobox':
@@ -914,7 +917,7 @@ App.config = Em.Object.create({
    */
   getPropertiesFromTheme: function (serviceName) {
     var properties = [];
-    App.Tab.find().forEach(function (t) {
+    App.Tab.find().rejectProperty('isCategorized').forEach(function (t) {
       if (!t.get('isAdvanced') && t.get('serviceName') === serviceName) {
         t.get('sections').forEach(function (s) {
           s.get('subSections').forEach(function (ss) {
@@ -1317,38 +1320,53 @@ App.config = Em.Object.create({
    * @return {*|{then}}
    */
   getConfigsByTypes: function (sites) {
-    var dfd = $.Deferred();
-    App.ajax.send({
-      name: 'config.tags.selected',
-      sender: this,
-      data: {
-        tags: sites.mapProperty('site').join(',')
-      }
-    }).done(function (data) {
-      App.router.get('configurationController').getConfigsByTags(data.items.map(function (item) {
-        return {siteName: item.type, tagName: item.tag};
-      })).done(function (configs) {
-        var result = [];
-        configs.forEach(function(config){
-          var configsArray = [];
-          var configsObject = config.properties;
-          for (var property in configsObject) {
-            if (configsObject.hasOwnProperty(property)) {
-              configsArray.push(Em.Object.create({
-                name: property,
-                value: configsObject[property],
-                filename: App.config.getOriginalFileName(config.type)
-              }));
-            }
-          }
-          result.push(Em.Object.create({
-            serviceName: sites.findProperty('site', config.type).serviceName,
-            configs: configsArray
-          }));
+    const dfd = $.Deferred();
+    if (_.isEqual(sites.mapProperty('site'), ['cluster-env'])) {
+      // if only cluster-env requested the use cached data
+      dfd.resolve(this.getMappedConfigs([App.router.get('clusterController.clusterEnv')], sites));
+    } else {
+      App.ajax.send({
+        name: 'config.tags.selected',
+        sender: this,
+        data: {
+          tags: sites.mapProperty('site').join(',')
+        }
+      }).done((data) => {
+        App.router.get('configurationController').getConfigsByTags(data.items.map(function (item) {
+          return {siteName: item.type, tagName: item.tag};
+        })).done((configs) => {
+          dfd.resolve(this.getMappedConfigs(configs, sites));
         });
-        dfd.resolve(result);
       });
-    });
+    }
     return dfd.promise();
+  },
+
+  /**
+   *
+   * @param configs
+   * @param sites
+   */
+  getMappedConfigs: function (configs, sites) {
+    const result = [];
+    configs.forEach(function (config) {
+      var configsArray = [];
+      var configsObject = config.properties;
+      for (var property in configsObject) {
+        if (configsObject.hasOwnProperty(property)) {
+          configsArray.push(Em.Object.create({
+            name: property,
+            value: configsObject[property],
+            filename: App.config.getOriginalFileName(config.type)
+          }));
+        }
+      }
+      result.push(Em.Object.create({
+        serviceName: sites.findProperty('site', config.type).serviceName,
+        configs: configsArray
+      }));
+    });
+
+    return result;
   }
 });

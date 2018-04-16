@@ -54,6 +54,15 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   private String rowtype;
 
   @ShipperConfigElementDescription(
+    path = "/input/[]/group",
+    type = "string",
+    description = "Group of the input type.",
+    examples = {"Ambari", "Yarn"}
+  )
+  @Expose
+  private String group;
+
+  @ShipperConfigElementDescription(
     path = "/input/[]/path",
     type = "string",
     description = "The path of the source, may contain '*' characters too.",
@@ -179,7 +188,17 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   @SerializedName("is_enabled")
   private Boolean isEnabled;
 
-  private Map<String, Object> allProperties;
+
+  @ShipperConfigElementDescription(
+    path = "/input/[]/init_default_fields",
+    type = "boolean",
+    description = "Init default fields (ip, path etc.) before applying the filter.",
+    examples = {"true", "false"},
+    defaultValue = "false"
+  )
+  @Expose
+  @SerializedName("init_default_fields")
+  private Boolean initDefaultFields;
 
   public String getType() {
     return type;
@@ -291,5 +310,23 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
 
   public void setIsEnabled(Boolean isEnabled) {
     this.isEnabled = isEnabled;
+  }
+
+  @Override
+  public String getGroup() {
+    return this.group;
+  }
+
+  public void setGroup(String group) {
+    this.group = group;
+  }
+
+  @Override
+  public Boolean isInitDefaultFields() {
+    return this.initDefaultFields;
+  }
+
+  public void setInitDefaultFields(Boolean initDefaultFields) {
+    this.initDefaultFields = initDefaultFields;
   }
 }

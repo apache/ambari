@@ -1,0 +1,116 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<ng-template #typeAheadTpl let-item="item">
+  {{item | translate}}
+</ng-template>
+<div class="container-fluid">
+  <div class="row">
+    <div class="shipper-form-configuration col-md-6">
+      <form [formGroup]="configurationForm" (ngSubmit)="onConfigurationSubmit($event)">
+        <h2>{{(serviceName ? 'shipperConfiguration.form.titleEdit' : 'shipperConfiguration.form.titleAdd') | translate}}</h2>
+        <div [ngClass]="{'has-error': serviceNameField.invalid, 'form-group': true}">
+          <label>
+            {{'shipperConfiguration.form.serviceLabel' | translate}}
+            <span *ngIf="serviceNameField.errors && serviceNameField.errors.serviceNameExists"
+                  class="help-block validation-block pull-right">
+              {{'shipperConfiguration.form.errors.serviceName.exists' | translate}}
+            </span>
+            <span *ngIf="serviceNameField.errors && serviceNameField.errors.required"
+                  class="help-block validation-block pull-right">
+              {{'common.form.errors.required' | translate}}
+            </span>
+          </label>
+          <input *ngIf="!serviceName" formControlName="serviceName" class="form-control">
+          <ng-container *ngIf="serviceName">
+            <div class="shipper-configuration-service-name">{{serviceName}}</div>
+            <input type="hidden" name="serviceName" formControlName="serviceName">
+          </ng-container>
+        </div>
+        <input type="hidden" name="clusterName" formControlName="clusterName">
+        <div [ngClass]="{'has-error': configurationField.invalid, 'form-group': true}">
+          <label>
+            {{'shipperConfiguration.form.configurationJSONLabel' | translate}}
+            <span *ngIf="configurationField.errors && configurationField.errors.invalidJSON"
+                  class="help-block validation-block pull-right">
+              {{'shipperConfiguration.form.errors.configuration.invalidJSON' | translate}}
+            </span>
+            <span *ngIf="configurationField.errors && configurationField.errors.required"
+                  class="help-block validation-block pull-right">
+              {{'common.form.errors.required' | translate}}
+            </span>
+          </label>
+          <textarea class="form-control configuration" name="configuration"
+            formControlName="configuration"></textarea>
+        </div>
+        <button class="btn btn-primary pull-right" type="submit"
+                [disabled]="(!configurationForm.valid || configurationForm.pristine)">
+          {{'shipperConfiguration.form.saveBtn.label' | translate}}
+        </button>
+      </form>
+    </div>
+    <div class="shipper-form-validator col-md-6">
+      <div class="container-fluid">
+        <div class="row">
+          <form [formGroup]="validatorForm" (ngSubmit)="onValidationSubmit($event)">
+            <h2>{{'shipperConfiguration.validator.title' | translate}}</h2>
+            <input type="hidden" name="clusterName" formControlName="clusterName">
+            <div [ngClass]="{'has-warning': componentNameField.invalid, 'form-group': true}">
+              <label>
+                {{'shipperConfiguration.validator.componentNameLabel' | translate}}
+                <span *ngIf="componentNameField.errors && componentNameField.errors.required"
+                      class="help-block validation-block pull-right">
+                  {{'common.form.errors.required' | translate}}
+                </span>
+              </label>
+              <input class="form-control component-name" name="componentName" formControlName="componentName"
+                     [typeahead]="configurationComponents$ | async"
+                     [typeaheadItemTemplate]="typeAheadTpl"
+                     [disableControl]="configurationForm.invalid">
+            </div>
+            <div [ngClass]="{'has-warning': sampleDataField.invalid, 'form-group': true}">
+              <label>
+                {{'shipperConfiguration.validator.sampleDataLabel' | translate}}
+                <span *ngIf="sampleDataField.errors && sampleDataField.errors.required"
+                      class="help-block validation-block pull-right">
+                  {{'common.form.errors.required' | translate}}
+                </span>
+              </label>
+              <textarea class="form-control sample-data" name="sampleData" formControlName="sampleData"
+                        [disableControl]="configurationForm.invalid"></textarea>
+            </div>
+            <div *ngIf="validationResponse" class="form-group">
+              <label>
+                {{'shipperConfiguration.validator.result' | translate}}
+              </label>
+              <textarea class="form-control validation-result" name="validationResult"
+                [disableControl]="configurationForm.invalid" [value]="validationResponse | json"></textarea>
+            </div>
+            <button class="btn btn-default pull-right" type="submit"
+                    [disabled]="(!validatorForm.valid)">
+              <i class="fa fa-table" aria-hidden="true"></i> {{'shipperConfiguration.form.testBtn.label' | translate}}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<modal *ngIf="isLeavingDirtyForm" (submit)="leaveDirtyFormConfirmed()" (cancel)="leaveDirtyFormCancelled()"
+       (close)="leaveDirtyFormCancelled()" showCloseButton="false" isSmallModal="true"
+       title="{{'shipperConfiguration.form.leavingDirty.title' | translate}}"
+       bodyText="{{'shipperConfiguration.form.leavingDirty.message' | translate}}">
+</modal>

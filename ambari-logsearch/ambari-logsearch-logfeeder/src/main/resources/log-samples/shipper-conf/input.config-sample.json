@@ -3,7 +3,8 @@
     {
       "type": "service_sample",
       "rowtype": "service",
-      "path": "target/classes/log-samples/logs/service_sample.txt"
+      "path": "target/classes/log-samples/logs/service_sample.txt",
+      "group": "Ambari"
     }
   ],
   "filter": [

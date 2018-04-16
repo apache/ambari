@@ -40,9 +40,9 @@ from ambari_server.serverConfiguration import configDefaults, get_resources_loca
   check_database_name_property, get_ambari_properties, get_ambari_version, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
   update_database_name_property, get_admin_views_dir, get_views_dir, get_views_jars, \
-  AMBARI_PROPERTIES_FILE, CLIENT_SECURITY, RESOURCES_DIR_PROPERTY, \
+  AMBARI_PROPERTIES_FILE, CLIENT_SECURITY, RESOURCES_DIR_PROPERTY, GPL_LICENSE_ACCEPTED_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
-  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir, write_gpl_license_accepted
+  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir, write_gpl_license_accepted, set_property
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
@@ -50,7 +50,7 @@ from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_ba
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.setupMpacks import replay_mpack_logs
-from ambari_commons.logging_utils import get_debug_mode,   set_debug_mode_from_options
+from ambari_commons.logging_utils import get_debug_mode, set_debug_mode_from_options, get_silent
 
 logger = logging.getLogger(__name__)
 
@@ -123,8 +123,11 @@ def change_objects_owner(args):
 
 def run_schema_upgrade(args):
   db_title = get_db_type(get_ambari_properties()).title
+  silent = get_silent()
+  default_answer = 'y' if silent else 'n'
+  default_value = silent
   confirm = get_YN_input("Ambari Server configured for %s. Confirm "
-                        "you have made a backup of the Ambari Server database [y/n] (y)? " % db_title, True)
+                         "you have made a backup of the Ambari Server database [y/n] (%s)? " % (db_title, default_answer), default_value)
 
   if not confirm:
     print_error_msg("Database backup is not confirmed")
@@ -177,6 +180,7 @@ def run_schema_upgrade(args):
 
 def check_gpl_license_approved(upgrade_response):
   if 'lzo_enabled' not in upgrade_response or upgrade_response['lzo_enabled'].lower() != "true":
+    set_property(GPL_LICENSE_ACCEPTED_PROPERTY, "false", rewrite=False)
     return
 
   while not write_gpl_license_accepted(text = LZO_ENABLED_GPL_TEXT) and not get_YN_input(INSTALLED_LZO_WITHOUT_GPL_TEXT, False):
@@ -440,7 +444,7 @@ def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_n
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
       managed_services.append(os.path.basename(service))
   # add deprecated managed services
-  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT"])
+  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT","AMBARI_INFRA"])
 
   stack_backup_dirs = glob.glob(os.path.join(resources_dir, old_dir_name))
   if stack_backup_dirs:

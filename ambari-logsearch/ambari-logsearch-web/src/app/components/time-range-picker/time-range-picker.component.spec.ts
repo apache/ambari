@@ -19,7 +19,7 @@
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -40,23 +40,21 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {TimeRangePickerComponent} from './time-range-picker.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('TimeRangePickerComponent', () => {
   let component: TimeRangePickerComponent;
   let fixture: ComponentFixture<TimeRangePickerComponent>;
 
   beforeEach(async(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       declarations: [TimeRangePickerComponent],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           appState,
@@ -75,10 +73,7 @@ describe('TimeRangePickerComponent', () => {
         ...TranslationModules
       ],
       providers: [
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
+        ...MockHttpRequestModules,
         LogsContainerService,
         UtilsService,
         AppSettingsService,
@@ -93,7 +88,11 @@ describe('TimeRangePickerComponent', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

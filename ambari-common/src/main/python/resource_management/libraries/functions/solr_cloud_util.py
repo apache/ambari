@@ -87,7 +87,7 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
             )
 
 def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java64_home,
-                      shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10,
+                      shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10, implicitRouting = False,
                       router_name = None, router_field = None, jaas_file = None, key_store_location = None,
                       key_store_password = None, key_store_type = None, trust_store_location = None,
                       trust_store_password = None, trust_store_type = None, java_opts=None):
@@ -103,11 +103,13 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, java_opts)
 
   if max_shards == 1: # if max shards is not specified use this strategy
-    max_shards = replication_factor * shards
+    max_shards = int(replication_factor) * int(shards)
 
   create_collection_cmd = format('{solr_cli_prefix} --create-collection --collection {collection} --config-set {config_set} '\
                                  '--shards {shards} --replication {replication_factor} --max-shards {max_shards} --retry {retry} '\
-                                 '--interval {interval} --no-sharding')
+                                 '--interval {interval}')
+
+  create_collection_cmd = create_collection_cmd + ' --implicit-routing' if implicitRouting else create_collection_cmd
   appendableDict = {}
   appendableDict["--router-name"] = router_name
   appendableDict["--router-field"] = router_field
@@ -324,7 +326,7 @@ def add_solr_roles(config, roles = [], new_service_principals = [], tries = 30, 
     and solr_hosts is not None \
     and len(solr_hosts) > 0:
     solr_protocol = "https" if solr_ssl_enabled else "http"
-    hostname = config['hostname'].lower()
+    hostname = config['agentLevelParams']['hostname'].lower()
     solr_host = __get_random_solr_host(hostname, solr_hosts)
     solr_url = format("{solr_protocol}://{solr_host}:{solr_port}/solr/admin/authorization")
     solr_user = config['configurations']['infra-solr-env']['infra_solr_user']

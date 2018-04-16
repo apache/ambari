@@ -50,6 +50,10 @@ The following are the properties which can be used to configure Ambari.
 | agent.stack.retry.tries | The number of times an Ambari Agent should retry package installation when it fails due to a repository error. <br/><br/> This property is related to `agent.stack.retry.on_repo_unavailability`. |`5` | 
 | agent.task.timeout | The time, in seconds, before agent commands are killed. This does not include package installation commands. |`900` | 
 | agent.threadpool.size.max | The size of the Jetty connection pool used for handling incoming Ambari Agent requests. |`25` | 
+| agents.registration.queue.size | Queue size for agents in registration. |`200` | 
+| agents.reports.processing.period | Period in seconds with agents reports will be processed. |`1` | 
+| agents.reports.processing.start.timeout | Timeout in seconds before start processing of agents' reports. |`5` | 
+| agents.reports.thread.pool.size | Thread pool size for agents reports processing. |`10` | 
 | alerts.ambari.snmp.dispatcher.udp.port | The UDP port to use when binding the Ambari SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
 | alerts.cache.enabled | Determines whether current alerts should be cached. Enabling this can increase performance on large cluster, but can also result in lost alert data if the cache is not flushed frequently. |`false` | 
 | alerts.cache.flush.interval | The time, in minutes, after which cached alert information is flushed to the database<br/><br/> This property is related to `alerts.cache.enabled`. |`10` | 
@@ -70,15 +74,10 @@ The following are the properties which can be used to configure Ambari.
 | api.csrfPrevention.enabled | Determines whether Cross-Site Request Forgery attacks are prevented by looking for the `X-Requested-By` header. |`true` | 
 | api.gzip.compression.enabled | Determines whether data sent to and from the Ambari service should be compressed. |`true` | 
 | api.gzip.compression.min.size | Used in conjunction with `api.gzip.compression.enabled`, determines the mininum size that an HTTP request must be before it should be compressed. This is measured in bytes. |`10240` | 
+| api.heartbeat.interval | Server to API STOMP endpoint heartbeat interval in milliseconds. |`10000` | 
 | api.ssl | Determines whether SSL is used in for secure connections to Ambari. When enabled, ambari-server setup-https must be run in order to properly configure keystores. |`false` | 
 | auditlog.enabled | Determines whether audit logging is enabled. |`true` | 
 | auditlog.logger.capacity | The size of the worker queue for audit logger events.<br/><br/> This property is related to `auditlog.enabled`. |`10000` | 
-| authentication.jwt.audiences | A list of the JWT audiences expected. Leaving this blank will allow for any audience.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
-| authentication.jwt.cookieName | The name of the cookie which will be used to extract the JWT token from the request.<br/><br/> This property is related to `authentication.jwt.enabled`. |`hadoop-jwt` | 
-| authentication.jwt.enabled | Determines whether to use JWT authentication when connecting to remote Hadoop resources. |`false` | 
-| authentication.jwt.originalUrlParamName | The original URL to use when constructing the logic URL for JWT.<br/><br/> This property is related to `authentication.jwt.enabled`. |`originalUrl` | 
-| authentication.jwt.providerUrl | The URL for authentication of the user in the absence of a JWT token when handling a JWT request.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
-| authentication.jwt.publicKey | The public key to use when verifying the authenticity of a JWT token.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
 | authentication.kerberos.auth_to_local.rules | The auth-to-local rules set to use when translating a user's principal name to a local user name during authentication via SPNEGO. |`DEFAULT` | 
 | authentication.kerberos.enabled | Determines whether to use Kerberos (SPNEGO) authentication when connecting Ambari. |`false` | 
 | authentication.kerberos.spnego.keytab.file | The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO |`/etc/security/keytabs/spnego.service.keytab` | 
@@ -132,6 +131,7 @@ The following are the properties which can be used to configure Ambari.
 | logsearch.portal.connect.timeout | The time, in milliseconds, that the Ambari Server will wait while attempting to connect to the LogSearch Portal service. |`5000` | 
 | logsearch.portal.external.address | Address of an external LogSearch Portal service. (managed outside of Ambari) Using Ambari Credential store is required for this feature (credential: 'logsearch.admin.credential') | | 
 | logsearch.portal.read.timeout | The time, in milliseconds, that the Ambari Server will wait while attempting to read a response from the LogSearch Portal service. |`5000` | 
+| messaging.threadpool.size | Thread pool size for spring messaging |`1` | 
 | metadata.path | The location on the Ambari Server where the stack resources exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/stacks`</ul> | | 
 | metrics.retrieval-service.cache.timeout | The amount of time, in minutes, that JMX and REST metrics retrieved directly can remain in the cache. |`30` | 
 | metrics.retrieval-service.request.ttl | The number of seconds to wait between issuing JMX or REST metric requests to the same endpoint. This property is used to throttle requests to the same URL being made too close together<br/><br/> This property is related to `metrics.retrieval-service.request.ttl.enabled`. |`5` | 
@@ -152,6 +152,7 @@ The following are the properties which can be used to configure Ambari.
 | recovery.retry_interval | The delay, in minutes, between automatic retry windows. | | 
 | recovery.type | The type of automatic recovery of failed services and components to use.<br/><br/>The following are examples of valid values:<ul><li>`DEFAULT`<li>`AUTO_START`<li>`FULL`</ul> | | 
 | recovery.window_in_minutes | The length of a recovery window, in minutes, in which recovery attempts can be retried.<br/><br/> This property is related to `recovery.max_count`. | | 
+| registration.threadpool.size | Thread pool size for agents registration |`10` | 
 | repo.validation.suffixes.default | The suffixes to use when validating most types of repositories. |`/repodata/repomd.xml` | 
 | repo.validation.suffixes.ubuntu | The suffixes to use when validating Ubuntu repositories. |`/dists/%s/Release` | 
 | repositories.legacy-override.enabled | This property is used in specific testing circumstances only. Its use otherwise will lead to very unpredictable results with repository management and package installation |`false` | 
@@ -270,7 +271,10 @@ The following are the properties which can be used to configure Ambari.
 | stack.upgrade.auto.retry.command.names.to.ignore | A comma-separate list of upgrade tasks names to skip when retrying failed commands automatically. |`"ComponentVersionCheckAction","FinalizeUpgradeAction"` | 
 | stack.upgrade.auto.retry.timeout.mins | The amount of time to wait in order to retry a command during a stack upgrade when an agent loses communication. This value must be greater than the `agent.task.timeout` value. |`0` | 
 | stack.upgrade.bypass.prechecks | Determines whether pre-upgrade checks will be skipped when performing a rolling or express stack upgrade. |`false` | 
+| stack.upgrade.default.parallelism | Default value of max number of tasks to schedule in parallel for upgrades. Upgrade packs can override this value. |`100` | 
 | stackadvisor.script | The location and name of the Python stack advisor script executed when configuring services. |`/var/lib/ambari-server/resources/scripts/stack_advisor.py` | 
+| stomp.max.message.size | The maximum size of a stomp text message. Default is 2 MB. |`2097152` | 
+| subscription.registry.cache.size | Maximal cache size for spring subscription registry. |`1500` | 
 | task.query.parameterlist.size | The maximum number of tasks which can be queried by ID from the database. |`999` | 
 | topology.task.creation.parallel | Indicates whether parallel topology task creation is enabled |`false` | 
 | topology.task.creation.parallel.threads | The number of threads to use for parallel topology task creation if enabled |`10` | 

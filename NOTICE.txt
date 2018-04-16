@@ -4,9 +4,14 @@ Copyright 2011-2013 The Apache Software Foundation
 This product includes software developed at The Apache Software
 Foundation (http://www.apache.org/).
 
-Component ambari-common/src/test/python are under the following copyright:
+Component ambari-common/src/test/python/mock are under the following copyright:
 
 Copyright (c) 2003-2012, Michael Foord
+All rights reserved.
+
+Component ambari-common/src/test/python/coilmq are under the following copyright:
+
+Copyright 2009 Hans Lellelid
 All rights reserved.
 
  
@@ -25,3 +30,7 @@ This product includes Simplejson, library fast encoding and decoding of json. (h
 Copyright (c) 2006 Bob Ippolito.
 All rights reserved.
 
+Ws4py, python library for websocket connectivity
+
+Copyright (c) 2011-2016, Sylvain Hellegouarch
+All rights reserved.

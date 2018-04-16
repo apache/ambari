@@ -23,13 +23,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -270,8 +267,6 @@ public class AlertsDAOCachedTest {
      */
     @Override
     public void configure(Binder binder) {
-      Cluster cluster = EasyMock.createNiceMock(Cluster.class);
-
       // required for since the configuration is being mocked
       Configuration configuration = EasyMock.createNiceMock(Configuration.class);
       EasyMock.expect(configuration.getAlertEventPublisherCorePoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_CORE_SIZE.getDefaultValue())).anyTimes();
@@ -282,13 +277,8 @@ public class AlertsDAOCachedTest {
       EasyMock.replay(configuration);
 
       binder.bind(Configuration.class).toInstance(configuration);
-      binder.bind(Clusters.class).toInstance(EasyMock.createNiceMock(Clusters.class));
-      binder.bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
-      binder.bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));
-      binder.bind(Cluster.class).toInstance(cluster);
-      binder.bind(AlertDefinitionDAO.class).toInstance(EasyMock.createNiceMock(AlertDefinitionDAO.class));
-      binder.bind(EntityManager.class).toInstance(EasyMock.createNiceMock(EntityManager.class));
-      binder.bind(DaoUtils.class).toInstance(EasyMock.createNiceMock(DaoUtils.class));
+
+      PartialNiceMockBinder.newBuilder().addConfigsBindings().addAlertDefinitionBinding().build().configure(binder);
     }
   }
 }

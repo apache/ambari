@@ -79,6 +79,8 @@ public class StackServiceResponse {
 
   private boolean isSupportDeleteViaUI;
 
+  private final boolean ssoIntegrationSupported;
+
   /**
    * Constructor.
    *
@@ -114,6 +116,7 @@ public class StackServiceResponse {
     credentialStoreSupported = service.isCredentialStoreSupported();
     credentialStoreEnabled = service.isCredentialStoreEnabled();
     isSupportDeleteViaUI = service.isSupportDeleteViaUI();
+    ssoIntegrationSupported = service.isSingleSignOnSupported();
   }
 
   @ApiModelProperty(name = "selection")
@@ -330,6 +333,14 @@ public class StackServiceResponse {
   @ApiModelProperty(hidden = true)
   public boolean isSupportDeleteViaUI(){
     return isSupportDeleteViaUI;
+  }
+
+  /**
+   * Indicates if this service supports single sign-on integration.
+   */
+  @ApiModelProperty(name = "sso_integration_supported")
+  public boolean isSsoIntegrationSupported() {
+    return ssoIntegrationSupported;
   }
 
   public interface StackServiceResponseSwagger extends ApiModel {

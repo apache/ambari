@@ -69,7 +69,6 @@ import com.google.inject.Injector;
 public class HeartbeatMonitor implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(HeartbeatMonitor.class);
   private Clusters clusters;
-  private ActionQueue actionQueue;
   private ActionManager actionManager;
   private final int threadWakeupInterval; //1 minute
   private volatile boolean shouldRun = true;
@@ -80,10 +79,9 @@ public class HeartbeatMonitor implements Runnable {
   private final Configuration configuration;
   private final AgentRequests agentRequests;
 
-  public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
+  public HeartbeatMonitor(Clusters clusters, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
     this.clusters = clusters;
-    actionQueue = aq;
     actionManager = am;
     this.threadWakeupInterval = threadWakeupInterval;
     configHelper = injector.getInstance(ConfigHelper.class);
@@ -171,13 +169,14 @@ public class HeartbeatMonitor implements Runnable {
               !sch.getState().equals(State.UNINSTALLED) &&
               !sch.getState().equals(State.DISABLED)) {
               LOG.warn("Setting component state to UNKNOWN for component " + sc.getName() + " on " + host);
+              State oldState = sch.getState();
               sch.setState(State.UNKNOWN);
+              sch.setLastValidState(oldState);
             }
           }
         }
 
         //Purge action queue
-        actionQueue.dequeueAll(host);
         //notify action manager
         actionManager.handleLostHost(host);
       }
@@ -187,17 +186,6 @@ public class HeartbeatMonitor implements Runnable {
           //Go back to init, the agent will be asked to register again in the next heartbeat
           LOG.warn("timeSpentInState + 5*threadWakeupInterval < now, Go back to init");
           hostObj.setState(HostState.INIT);
-        }
-      }
-
-      // Get status of service components
-      List<StatusCommand> cmds = generateStatusCommands(hostname);
-      LOG.trace("Generated {} status commands for host: {}", cmds.size(), hostname);
-      if (cmds.isEmpty()) {
-        // Nothing to do
-      } else {
-        for (StatusCommand command : cmds) {
-          actionQueue.enqueue(hostname, command);
         }
       }
     }

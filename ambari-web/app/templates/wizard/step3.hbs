@@ -26,7 +26,7 @@
       <div class="panel panel-default panel-internal">
         <div class="panel-heading compact-panel-heading">
           <div class="button-section">
-            {{#unless view.noHostsSelected}}
+            {{#unless view.noNotRunningHostsSelected}}
               <button class="btn btn-primary" {{action removeSelectedHosts target="controller"}} {{QAAttr "remove-selected-button"}}>
                 <i class="glyphicon glyphicon-trash glyphicon-white"></i>
                 <span class="hidden-sm">{{t installer.step3.removeSelected}}</span>
@@ -153,6 +153,7 @@
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
     </button>
+    {{template "templates/wizard/installer_cancel_button"}}
     <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

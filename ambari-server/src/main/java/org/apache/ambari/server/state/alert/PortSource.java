@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -25,6 +29,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PortSource extends ParameterizedSource {
 
   @SerializedName("uri")
@@ -36,6 +41,7 @@ public class PortSource extends ParameterizedSource {
   /**
    * @return the URI to check for a valid port
    */
+  @JsonProperty("uri")
   public String getUri() {
     return m_uri;
   }
@@ -51,6 +57,7 @@ public class PortSource extends ParameterizedSource {
   /**
    * @return the port to check on the given URI.
    */
+  @JsonProperty("default_port")
   public int getPort() {
     return m_port;
   }
@@ -63,22 +70,11 @@ public class PortSource extends ParameterizedSource {
     m_port = port;
   }
 
-  /**
-   *
-   */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + m_port;
-    result = prime * result + ((m_uri == null) ? 0 : m_uri.hashCode());
-
-    return result;
+    return Objects.hash(super.hashCode(), m_port, m_uri);
   }
 
-  /**
-   *
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -94,20 +90,8 @@ public class PortSource extends ParameterizedSource {
     }
 
     PortSource other = (PortSource) obj;
-
-    if (m_port != other.m_port) {
-      return false;
-    }
-
-    if (m_uri == null) {
-      if (other.m_uri != null) {
-        return false;
-      }
-    } else if (!m_uri.equals(other.m_uri)) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(m_port, other.m_port) &&
+      Objects.equals(m_uri, other.m_uri);
   }
 
 }

@@ -98,7 +98,7 @@ App.ServiceConfigView = Em.View.extend({
    * @return {object}
    */
   save: function () {
-    var self = this;
+    var controller = this.get('controller');
     var passwordWasChanged = this.get('controller.passwordConfigsAreChanged');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
@@ -127,23 +127,25 @@ App.ServiceConfigView = Em.View.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
-        var newVersionToBeCreated = App.ServiceConfigVersion.find().filterProperty('serviceName', self.get('serviceName')).get('length') + 1;
-        self.get('controller').setProperties({
+        const newVersionToBeCreated = Math.max.apply(null, App.ServiceConfigVersion.find().mapProperty('version')) + 1;
+        const isDefault = controller.get('selectedConfigGroup.name') === App.ServiceConfigGroup.defaultGroupName;
+        controller.setProperties({
           saveConfigsFlag: true,
           serviceConfigVersionNote: this.get('serviceConfigNote'),
+          currentDefaultVersion: isDefault ? newVersionToBeCreated : controller.get('currentDefaultVersion'),
           preSelectedConfigVersion: Em.Object.create({
             version: newVersionToBeCreated,
-            serviceName: self.get('controller.content.serviceName'),
-            groupName: self.get('controller.selectedConfigGroup.name')
+            serviceName: controller.get('content.serviceName'),
+            groupName: controller.get('selectedConfigGroup.name')
           })
         });
-        self.get('controller').saveStepConfigs();
+        controller.saveStepConfigs();
         this.hide();
       },
       onDiscard: function () {
         this.hide();
-        self.set('controller.preSelectedConfigVersion', null);
-        self.get('controller').loadStep();
+        controller.set('preSelectedConfigVersion', null);
+        controller.loadStep();
       },
       onCancel: function () {
         this.hide();
@@ -163,7 +165,7 @@ App.ServiceConfigView = Em.View.extend({
       });
       var isAllConfigsHidden = configsToShow.get('length') == 0;
       var isAdvancedHidden = isAllConfigsHidden || configsToShow.filter(function (config) {
-        return Em.isNone(config.get('widget'));
+        return Em.isNone(config.get('isInDefaultTheme'));
       }).get('length') == 0;
       this.set('isAllConfigsHidden', isAllConfigsHidden);
       var advancedTab = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).findProperty('isAdvanced');
@@ -177,8 +179,8 @@ App.ServiceConfigView = Em.View.extend({
    */
   supportsConfigLayout: function() {
     var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController', 'mainHostServiceConfigsController'];
-    if (App.Tab.find().someProperty('serviceName', this.get('controller.selectedService.serviceName')) && supportedControllers.contains(this.get('controller.name'))) {
-      return !Em.isEmpty(App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).filterProperty('isAdvanced', false));
+     if (App.Tab.find().rejectProperty('isCategorized').someProperty('serviceName', this.get('controller.selectedService.serviceName')) && supportedControllers.contains(this.get('controller.name'))) {
+      return !Em.isEmpty(App.Tab.find().rejectProperty('isCategorized').filterProperty('serviceName', this.get('controller.selectedService.serviceName')).filterProperty('isAdvanced', false));
     } else {
       return false;
     }
@@ -245,7 +247,7 @@ App.ServiceConfigView = Em.View.extend({
    * @returns {Ember.A}
    */
   tabs: function() {
-    var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
+    var tabs = App.Tab.find().rejectProperty('isCategorized').filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
     var advancedTab = tabs.findProperty('isAdvanced', true);
     if (advancedTab) {
       advancedTab.set('isRendered', advancedTab.get('isActive'));

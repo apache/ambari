@@ -131,6 +131,20 @@
           margin-bottom: 5px;
         }
       }
+      .overrideField {
+        .long-input {
+          width: 101%;
+        }
+        .config-controls {
+          padding-left: 0;
+          padding-right: 0;
+          margin-left: -5px;
+          .help-block {
+            margin: 0;
+            line-height: 32px;
+          }
+        }
+      }
     }
     form {
       margin-bottom: 0;
@@ -269,11 +283,15 @@
     .glyphicon-warning-sign {
       color: @health-status-red;
     }
+    .btn-wrapper {
+      min-width: 200px;
+    }
     .connection-result {
       font-size: 15px;
-      line-height: 30px;
+      line-height: @default-button-height;
     }
-    a.mute {
+    a {
+      vertical-align: top;
       color: #333;
       &:hover {
         text-decoration: none;
@@ -289,6 +307,7 @@
   }
   .config-controls {
     line-height: 34px;
+    vertical-align: top;
   }
   .clear-left{
     clear:left;
@@ -327,5 +346,13 @@
         left: auto;
       }
     }
+  }
+}
+
+.password-field-wrapper {
+  width: 75%;
+  display: inline-block;
+  .row {
+    padding: 0;
   }
 }

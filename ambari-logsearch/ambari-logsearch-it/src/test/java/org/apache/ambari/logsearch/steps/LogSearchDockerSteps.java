@@ -62,6 +62,6 @@ public class LogSearchDockerSteps extends AbstractLogSearchSteps {
 
   @AfterStories
   public void removeLogSearchContainer() {
-    runCommand(new String[]{StoryDataRegistry.INSTANCE.getShellScriptLocation(), "stop"});
+    runCommand(StoryDataRegistry.INSTANCE.getShellScriptFolder(), new String[]{StoryDataRegistry.INSTANCE.getShellScriptLocation(), "stop"});
   }
 }

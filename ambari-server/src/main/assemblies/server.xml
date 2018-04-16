@@ -418,6 +418,11 @@
     </file>
     <file>
       <fileMode>755</fileMode>
+      <source>src/main/resources/stacks/ambari_configuration.py</source>
+      <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
       <source>src/main/python/bootstrap.py</source>
       <outputDirectory>/usr/lib/ambari-server/lib/ambari_server</outputDirectory>
     </file>
@@ -448,10 +453,6 @@
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
       <scope>runtime</scope>
-      <excludes>
-        <exclude>org.slf4j:slf4j-jdk14</exclude>
-        <exclude>org.slf4j:slf4j-nop</exclude>
-      </excludes>
     </dependencySet>
   </dependencySets>
 </assembly>

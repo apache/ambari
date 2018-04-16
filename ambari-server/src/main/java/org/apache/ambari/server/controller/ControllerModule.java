@@ -158,10 +158,7 @@ import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
-import org.eclipse.jetty.server.SessionIdManager;
-import org.eclipse.jetty.server.SessionManager;
-import org.eclipse.jetty.server.session.HashSessionIdManager;
-import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -321,12 +318,8 @@ public class ControllerModule extends AbstractModule {
   protected void configure() {
     installFactories();
 
-    final SessionIdManager sessionIdManager = new HashSessionIdManager();
-    final SessionManager sessionManager = new HashSessionManager();
-    sessionManager.getSessionCookieConfig().setPath("/");
-    sessionManager.setSessionIdManager(sessionIdManager);
-    bind(SessionManager.class).toInstance(sessionManager);
-    bind(SessionIdManager.class).toInstance(sessionIdManager);
+    final SessionHandler sessionHandler = new SessionHandler();
+    bind(SessionHandler.class).toInstance(sessionHandler);
 
     bind(KerberosOperationHandlerFactory.class);
     bind(KerberosDescriptorFactory.class);

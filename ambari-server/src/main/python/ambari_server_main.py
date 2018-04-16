@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
-import subprocess
+from ambari_commons import subprocess32
 import sys
 import logging
 import time
@@ -181,8 +181,8 @@ def generate_child_process_param_list(ambari_user, java_exe, class_path,
   param_list = [locate_file('sh', '/bin'), "-c"]
   if is_root() and ambari_user != "root":
     # To inherit exported environment variables (especially AMBARI_PASSPHRASE),
-    # from subprocess, we have to skip --login option of su command. That's why
-    # we change dir to / (otherwise subprocess can face with 'permission denied'
+    # from subprocess32, we have to skip --login option of su command. That's why
+    # we change dir to / (otherwise subprocess32 can face with 'permission denied'
     # errors while trying to list current directory
     cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c '. {ambari_env_file} && {command}'".format(ulimit_cmd=ulimit_cmd,
                                                                                 su=locate_file('su', '/bin'), ambari_user=ambari_user,
@@ -384,7 +384,7 @@ def server_process_main(options, scmStatus=None):
         pass
 
   print_info_msg("Running server: " + str(param_list))
-  procJava = subprocess.Popen(param_list, env=environ, preexec_fn=make_process_independent)
+  procJava = subprocess32.Popen(param_list, env=environ, preexec_fn=make_process_independent)
 
   pidJava = procJava.pid
   if pidJava <= 0:

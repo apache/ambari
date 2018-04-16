@@ -216,13 +216,23 @@ describe('App.QuickViewLinks', function () {
     beforeEach(function () {
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
-          isMaster: true,
+          componentName: 'HBASE_MASTER',
           hostName: 'host1'
         })
+      ]);
+      sinon.stub(App.QuickLinksConfig, 'find').returns([
+        {
+          links: [
+            {
+              component_name: 'HBASE_MASTER'
+            }
+          ]
+        }
       ]);
     });
     afterEach(function () {
       App.HostComponent.find.restore();
+      App.QuickLinksConfig.find.restore();
     });
     it("call $.ajax", function () {
       quickViewLinks.getQuickLinksHosts();
@@ -231,7 +241,7 @@ describe('App.QuickViewLinks', function () {
       expect(args[0].sender).to.be.eql(quickViewLinks);
       expect(args[0].data).to.be.eql({
         clusterName: App.get('clusterName'),
-        masterHosts: 'host1',
+        hosts: 'host1',
         urlParams: ''
       });
     });
@@ -243,7 +253,7 @@ describe('App.QuickViewLinks', function () {
       expect(args[0].sender).to.be.eql(quickViewLinks);
       expect(args[0].data).to.be.eql({
         clusterName: App.get('clusterName'),
-        masterHosts: 'host1',
+        hosts: 'host1',
         urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
       });
     });
@@ -258,6 +268,7 @@ describe('App.QuickViewLinks', function () {
       sinon.stub(quickViewLinks, 'setEmptyLinks');
       sinon.stub(quickViewLinks, 'setSingleHostLinks');
       sinon.stub(quickViewLinks, 'setMultipleHostLinks');
+      sinon.stub(quickViewLinks, 'setMultipleGroupLinks');
       quickViewLinks.set('content.quickLinks', []);
     });
     afterEach(function () {
@@ -266,6 +277,8 @@ describe('App.QuickViewLinks', function () {
       quickViewLinks.setEmptyLinks.restore();
       quickViewLinks.setSingleHostLinks.restore();
       quickViewLinks.setMultipleHostLinks.restore();
+      quickViewLinks.setMultipleGroupLinks.restore();
+      quickViewLinks.get('masterGroups').clear();
     });
     it("no hosts", function () {
       this.mock.returns([]);
@@ -292,6 +305,14 @@ describe('App.QuickViewLinks', function () {
       this.mock.returns([{hostName: 'host1'}, {hostName: 'host2'}]);
       quickViewLinks.setQuickLinksSuccessCallback();
       expect(quickViewLinks.setMultipleHostLinks.calledWith(
+        [{hostName: 'host1'}, {hostName: 'host2'}]
+      )).to.be.true;
+    });
+    it("multiple grouped hosts", function () {
+      this.mock.returns([{hostName: 'host1'}, {hostName: 'host2'}]);
+      quickViewLinks.set('masterGroups', [{}, {}]);
+      quickViewLinks.setQuickLinksSuccessCallback();
+      expect(quickViewLinks.setMultipleGroupLinks.calledWith(
         [{hostName: 'host1'}, {hostName: 'host2'}]
       )).to.be.true;
     });
@@ -365,24 +386,17 @@ describe('App.QuickViewLinks', function () {
 
   describe("#processHdfsHosts()", function () {
     beforeEach(function () {
-      quickViewLinks.set('content.activeNameNode', null);
-      quickViewLinks.set('content.standbyNameNode', null);
-      quickViewLinks.set('content.standbyNameNode2', null);
+      quickViewLinks.set('content.activeNameNodes', []);
+      quickViewLinks.set('content.standbyNameNodes', []);
     });
     it("active namenode host", function () {
-      quickViewLinks.set('content.activeNameNode', Em.Object.create({hostName: 'host1'}));
+      quickViewLinks.get('content.activeNameNodes').pushObject(Em.Object.create({hostName: 'host1'}));
       var host = {hostName: 'host1'};
       quickViewLinks.processHdfsHosts([host]);
       expect(host.status).to.equal(Em.I18n.t('quick.links.label.active'));
     });
     it("standby namenode host", function () {
-      quickViewLinks.set('content.standbyNameNode', Em.Object.create({hostName: 'host1'}));
-      var host = {hostName: 'host1'};
-      quickViewLinks.processHdfsHosts([host]);
-      expect(host.status).to.equal(Em.I18n.t('quick.links.label.standby'));
-    });
-    it("second standby namenode host", function () {
-      quickViewLinks.set('content.standbyNameNode2', Em.Object.create({hostName: 'host1'}));
+      quickViewLinks.get('content.standbyNameNodes').pushObject(Em.Object.create({hostName: 'host1'}));
       var host = {hostName: 'host1'};
       quickViewLinks.processHdfsHosts([host]);
       expect(host.status).to.equal(Em.I18n.t('quick.links.label.standby'));
@@ -835,6 +849,28 @@ describe('App.QuickViewLinks', function () {
       });
     });
   });
+
+  describe('#resolvePlaceholders', function() {
+    beforeEach(function() {
+      quickViewLinks.setProperties({
+      configProperties: [{
+          'type': 'config-type1',
+          'properties': {'property1': 'value1'}
+        }],
+        actualTags: [""],
+        quickLinks: [{}]
+      });
+    }),
+    it("replaces placeholders from config", function () {
+      expect(quickViewLinks.resolvePlaceholders('${config-type1/property1}')).to.equal('value1');
+    }),
+    it("leaves url as it is if config-type was not found", function () {
+      expect(quickViewLinks.resolvePlaceholders('${unknown-config-type/property1}')).to.equal('${unknown-config-type/property1}');
+    }),
+    it("leaves url as it is if property was not found", function () {
+      expect(quickViewLinks.resolvePlaceholders('${config-type1/unknown-property}')).to.equal('${config-type1/unknown-property}');
+    })
+  }),
 
   describe('#setPort', function () {
     var testData = [

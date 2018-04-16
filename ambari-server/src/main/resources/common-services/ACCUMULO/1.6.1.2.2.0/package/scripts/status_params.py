@@ -44,10 +44,10 @@ pid_dir = config['configurations']['accumulo-env']['accumulo_pid_dir']
 accumulo_user = config['configurations']['accumulo-env']['accumulo_user']
 
 # Security related/required params
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()
 
 # stack name
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

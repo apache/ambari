@@ -19,7 +19,7 @@
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {FormGroup, FormControl} from '@angular/forms';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
@@ -36,11 +36,15 @@ import {
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 import {FiltersPanelComponent} from './filters-panel.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('FiltersPanelComponent', () => {
   let component: FiltersPanelComponent;
@@ -60,6 +64,7 @@ describe('FiltersPanelComponent', () => {
         FiltersPanelComponent
       ],
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           appSettings,
           clusters,
@@ -78,6 +83,7 @@ describe('FiltersPanelComponent', () => {
         ...TranslationModules
       ],
       providers: [
+        ...MockHttpRequestModules,
         AppSettingsService,
         ClustersService,
         ComponentsService,
@@ -92,11 +98,11 @@ describe('FiltersPanelComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         LogsContainerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
-        UtilsService
+        UtilsService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
@@ -109,7 +115,6 @@ describe('FiltersPanelComponent', () => {
     component.filtersForm = new FormGroup({
       control: new FormControl()
     });
-    component.logsType = 'auditLogs';
     fixture.detectChanges();
   });
 

@@ -242,36 +242,7 @@ describe('App.MainHostSummaryView', function() {
     });
 
   });
-
-  describe("#redrawComponents()", function() {
-
-    beforeEach(function() {
-      this.mock = sinon.stub(App.router, 'get');
-      sinon.stub(mainHostSummaryView, 'sortedComponentsFormatter');
-      sinon.stub(App.router, 'set');
-    });
-    afterEach(function() {
-      this.mock.restore();
-      mainHostSummaryView.sortedComponentsFormatter.restore();
-      App.router.set.restore();
-    });
-
-    it("redrawComponents is false", function() {
-      this.mock.returns(false);
-      mainHostSummaryView.redrawComponents();
-      expect(mainHostSummaryView.sortedComponentsFormatter.called).to.be.false;
-    });
-
-    it("redrawComponents is true", function() {
-      this.mock.returns(true);
-      mainHostSummaryView.redrawComponents();
-      expect(mainHostSummaryView.sortedComponentsFormatter.calledOnce).to.be.true;
-      expect(mainHostSummaryView.get('sorteComponents')).to.be.empty;
-      expect(App.router.set.calledWith('mainHostDetailsController.redrawComponents', false)).to.be.true;
-    });
-
-  });
-
+  
   describe("#willInsertElement()", function() {
 
     beforeEach(function() {
@@ -387,16 +358,25 @@ describe('App.MainHostSummaryView', function() {
       $.timeago.restore();
     });
 
-    it("rawLastHeartBeatTime = null", function() {
-      mainHostSummaryView.set('content.rawLastHeartBeatTime', null);
+    it("lastHeartBeatTime = null", function() {
+      mainHostSummaryView.set('content.isNotHeartBeating', true);
+      mainHostSummaryView.set('content.lastHeartBeatTime', null);
       mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
       expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.empty;
     });
 
-    it("rawLastHeartBeatTime = 1", function() {
-      mainHostSummaryView.set('content.rawLastHeartBeatTime', '1');
+    it("lastHeartBeatTime = 1", function() {
+      mainHostSummaryView.set('content.isNotHeartBeating', true);
+      mainHostSummaryView.set('content.lastHeartBeatTime', '1');
       mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
       expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.equal('1');
+    });
+
+    it("host has heartbeat", function() {
+      mainHostSummaryView.set('content.isNotHeartBeating', false);
+      mainHostSummaryView.set('content.lastHeartBeatTime', '1');
+      mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
+      expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.equal(Em.I18n.t('common.minute.ago'));
     });
   });
 });

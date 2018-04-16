@@ -19,13 +19,14 @@
   <div class="row">
     <div class="col-md-12 tabs-menu-container">
       <tabs class="pull-left" [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
-            (tabClosed)="onCloseTab($event[0], $event[1])"></tabs>
+        (tabClosed)="onCloseTab($event[0], $event[1])"
+        [switchMode]="'ROUTE_SEGMENT'" [basePathForRoutingMode]="routerPath" queryParamsHandling=""></tabs>
       <action-menu class="pull-right"></action-menu>
     </div>
   </div>
 </div>
 <div #container [ngClass]="{'container-fluid': true, 'fixed-filterbar': isFilterPanelFixedPostioned}">
-  <filters-panel class="row" [filtersForm]="filtersForm" [logsType]="logsType" #filtersPanel></filters-panel>
+  <filters-panel class="row" [filtersForm]="filtersForm" #filtersPanel></filters-panel>
   <div class="row events-count">
     <div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
       <div class="auto-refresh-message pull-right">

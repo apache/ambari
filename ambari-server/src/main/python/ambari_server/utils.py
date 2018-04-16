@@ -24,7 +24,7 @@ import socket
 import sys
 import time
 import glob
-import subprocess
+from ambari_commons import subprocess32
 import logging
 import platform
 from ambari_commons import OSConst,OSCheck
@@ -270,10 +270,10 @@ def get_postgre_hba_dir(OS_FAMILY):
     pg_hba_init_basename = os.path.basename(get_pg_hba_init_files())
     # Get postgres_data location (default: /var/lib/pgsql/data)
     cmd = "alias basename='echo {0}; true' ; alias exit=return; source {1} status &>/dev/null; echo $PGDATA".format(pg_hba_init_basename, get_pg_hba_init_files())
-    p = subprocess.Popen(cmd,
-                         stdout=subprocess.PIPE,
-                         stdin=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
+    p = subprocess32.Popen(cmd,
+                         stdout=subprocess32.PIPE,
+                         stdin=subprocess32.PIPE,
+                         stderr=subprocess32.PIPE,
                          shell=True)
     (PG_HBA_ROOT, err) = p.communicate()
 

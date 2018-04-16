@@ -43,7 +43,7 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
       message.push(Em.I18n.t('admin.highAvailability.error.maintenanceMode'));
     }
 
-    if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
+    if (App.get('allHostNames.length') < 3) {
       message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
     }
     if (message.length > 0) {
@@ -69,7 +69,7 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
       message.push(Em.I18n.t('admin.rm_highAvailability.error.zooKeeperNum'));
     }
 
-    if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
+    if (App.get('allHostNames.length') < 3) {
       message.push(Em.I18n.t('admin.rm_highAvailability.error.hostsNum'));
     }
     if (message.length > 0) {
@@ -113,6 +113,28 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
    */
   enableRAHighAvailability: function () {
     App.router.transitionTo('main.services.enableRAHighAvailability');
+    return true;
+  },
+
+  /**
+   * enable NameNode Federation
+   * @return {Boolean}
+   */
+  enableNameNodeFederation: function () {
+    //Prerequisite Checks
+    var message = [];
+    if (!App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').everyProperty('workStatus', 'STARTED')) {
+      message.push(Em.I18n.t('admin.nameNodeFederation.wizard.required.zookeepers'));
+    }
+
+    if (!App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').everyProperty('workStatus', 'STARTED')) {
+      message.push(Em.I18n.t('admin.nameNodeFederation.wizard.required.journalnodes'));
+    }
+    if (message.length > 0) {
+      this.showErrorPopup(message);
+      return false;
+    }
+    App.router.transitionTo('main.services.enableNameNodeFederation');
     return true;
   },
 

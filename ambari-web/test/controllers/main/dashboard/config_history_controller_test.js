@@ -48,8 +48,8 @@ describe('MainConfigHistoryController', function () {
 
     beforeEach(function () {
       sinon.stub(controller, 'updateTotalCounter', Em.K);
-      sinon.stub(controller, 'loadConfigVersionsToModel').returns({done: Em.K});
-      controller.load();
+      sinon.stub(controller, 'loadConfigVersionsToModel').returns({done: Em.clb});
+      controller.load(true);
     });
 
     afterEach(function () {
@@ -131,28 +131,31 @@ describe('MainConfigHistoryController', function () {
     });
   });
 
-  describe('#doPolling()', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'load', function(){
-        return {done: Em.K};
-      });
-      this.clock = sinon.useFakeTimers();
+  describe('#subscribeToUpdates', function() {
+    beforeEach(function() {
+      sinon.stub(App.StompClient, 'addHandler');
     });
-    afterEach(function () {
-      this.clock.restore();
-      controller.load.restore();
+    afterEach(function() {
+      App.StompClient.addHandler.restore();
     });
-    it('isPolling false', function () {
-      controller.set('isPolling', false);
-      controller.doPolling();
-      this.clock.tick(App.componentsUpdateInterval);
-      expect(controller.load.called).to.be.false;
+
+    it('App.StompClient.subscribe should be called', function() {
+      controller.subscribeToUpdates();
+      expect(App.StompClient.addHandler.calledWith('/events/configs', 'history')).to.be.true;
     });
-    it('isPolling true', function () {
-      controller.set('isPolling', true);
-      controller.doPolling();
-      this.clock.tick(App.componentsUpdateInterval);
-      expect(controller.load.calledOnce).to.be.true;
+  });
+
+  describe('#unsubscribeOfUpdates', function() {
+    beforeEach(function() {
+      sinon.stub(App.StompClient, 'removeHandler');
+    });
+    afterEach(function() {
+      App.StompClient.removeHandler.restore();
+    });
+
+    it('App.StompClient.subscribe should be called', function() {
+      controller.unsubscribeOfUpdates();
+      expect(App.StompClient.removeHandler.calledWith('/events/configs', 'history')).to.be.true;
     });
   });
 });

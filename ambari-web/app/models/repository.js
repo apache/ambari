@@ -53,7 +53,7 @@ App.Repository = DS.Model.extend({
   }.property('baseUrl'),
 
   isEmpty: function() {
-    return this.get('baseUrl') == '';
+    return this.get('showRepo') && this.get('baseUrl') === '';
   }.property('baseUrl'),
 
   invalidError: function() {

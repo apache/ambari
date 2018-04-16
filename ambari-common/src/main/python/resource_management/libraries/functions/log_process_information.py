@@ -19,7 +19,6 @@ limitations under the License.
 Ambari Agent
 
 """
-from ambari_commons.shell import shellRunner
 from ambari_commons.os_check import OSCheck
 
 __all__ = ["log_process_information"]
@@ -28,6 +27,8 @@ def log_process_information(logger):
   """
   Check if certain configuration sent from the server has been received.
   """
+
+  from ambari_commons.shell import shellRunner
   if OSCheck.is_windows_family():
     cmd_list = ["WMIC path win32_process get Caption,Processid,Commandline", "netstat -an"]
   else:

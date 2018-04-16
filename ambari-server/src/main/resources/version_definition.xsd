@@ -56,6 +56,7 @@
       <xs:enumeration value="redhat-ppc7" />
       <xs:enumeration value="debian6" />
       <xs:enumeration value="debian7" />
+      <xs:enumeration value="debian9" />
       <xs:enumeration value="ubuntu12" />
       <xs:enumeration value="ubuntu14" />
       <xs:enumeration value="ubuntu16" />

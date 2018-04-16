@@ -17,22 +17,25 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.Objects;
+
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
 /**
  * An alert represents a problem or notice for a cluster.
  */
 public class Alert {
-  private String cluster = null;
-  private String name = null;
-  private String instance = null;
-  private String service = null;
-  private String component = null;
-  private String hostName = null;
+  private String name;
+  private String instance;
+  private String service;
+  private String component;
+  private String hostName;
   private AlertState state = AlertState.UNKNOWN;
-  private String label = null;
-  private String text = null;
-  private long timestamp = 0L;
+  private String label;
+  private String text;
+  private long timestamp;
+  private Long clusterId;
+  private String uuid;
 
   // Maximum string size for MySql TEXT (utf8) column data type
   protected final static int MAX_ALERT_TEXT_SIZE = 32617;
@@ -67,6 +70,7 @@ public class Alert {
    */
 
   @JsonProperty("name")
+  @com.fasterxml.jackson.annotation.JsonProperty("name")
   public String getName() {
     return name;
   }
@@ -75,6 +79,7 @@ public class Alert {
    * @return the service
    */
   @JsonProperty("service")
+  @com.fasterxml.jackson.annotation.JsonProperty("service")
   public String getService() {
     return service;
   }
@@ -83,6 +88,7 @@ public class Alert {
    * @return the component
    */
   @JsonProperty("component")
+  @com.fasterxml.jackson.annotation.JsonProperty("component")
   public String getComponent() {
     return component;
   }
@@ -91,6 +97,7 @@ public class Alert {
    * @return the host
    */
   @JsonProperty("host")
+  @com.fasterxml.jackson.annotation.JsonProperty("host")
   public String getHostName() {
     return hostName;
   }
@@ -99,6 +106,7 @@ public class Alert {
    * @return the state
    */
   @JsonProperty("state")
+  @com.fasterxml.jackson.annotation.JsonProperty("state")
   public AlertState getState() {
     return state;
   }
@@ -107,6 +115,7 @@ public class Alert {
    * @return a short descriptive label for the alert
    */
   @JsonProperty("label")
+  @com.fasterxml.jackson.annotation.JsonProperty("label")
   public String getLabel() {
     return label;
   }
@@ -115,6 +124,7 @@ public class Alert {
    * @param alertLabel a short descriptive label for the alert
    */
   @JsonProperty("label")
+  @com.fasterxml.jackson.annotation.JsonProperty("label")
   public void setLabel(String alertLabel) {
     label = alertLabel;
   }
@@ -123,6 +133,7 @@ public class Alert {
    * @return detail text about the alert
    */
   @JsonProperty("text")
+  @com.fasterxml.jackson.annotation.JsonProperty("text")
   public String getText() {
     return text;
   }
@@ -131,166 +142,115 @@ public class Alert {
    * @param alertText detail text about the alert
    */
   @JsonProperty("text")
+  @com.fasterxml.jackson.annotation.JsonProperty("text")
   public void setText(String alertText) {
     // middle-ellipsize the text to reduce the size to 32617 characters
     text = StringUtils.abbreviateMiddle(alertText, "…", MAX_ALERT_TEXT_SIZE);
   }
 
   @JsonProperty("instance")
+  @com.fasterxml.jackson.annotation.JsonProperty("instance")
   public String getInstance() {
     return instance;
   }
 
   @JsonProperty("instance")
+  @com.fasterxml.jackson.annotation.JsonProperty("instance")
   public void setInstance(String instance) {
     this.instance = instance;
   }
 
   @JsonProperty("name")
+  @com.fasterxml.jackson.annotation.JsonProperty("name")
   public void setName(String name) {
     this.name = name;
   }
 
   @JsonProperty("service")
+  @com.fasterxml.jackson.annotation.JsonProperty("service")
   public void setService(String service) {
     this.service = service;
   }
 
   @JsonProperty("component")
+  @com.fasterxml.jackson.annotation.JsonProperty("component")
   public void setComponent(String component) {
     this.component = component;
   }
 
   @JsonProperty("host")
+  @com.fasterxml.jackson.annotation.JsonProperty("host")
   public void setHostName(String hostName) {
     this.hostName = hostName;
   }
 
   @JsonProperty("state")
+  @com.fasterxml.jackson.annotation.JsonProperty("state")
   public void setState(AlertState state) {
     this.state = state;
   }
 
   @JsonProperty("timestamp")
+  @com.fasterxml.jackson.annotation.JsonProperty("timestamp")
   public void setTimestamp(long ts) {
     timestamp = ts;
   }
 
   @JsonProperty("timestamp")
+  @com.fasterxml.jackson.annotation.JsonProperty("timestamp")
   public long getTimestamp() {
     return timestamp;
   }
 
-  /**
-   * @return
-   */
-  @JsonProperty("cluster")
-  public String getCluster() {
-    return cluster;
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterId")
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  @JsonProperty("cluster")
-  public void setCluster(String cluster){
-    this.cluster = cluster;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  @com.fasterxml.jackson.annotation.JsonProperty("uuid")
+  public String getUUID() {
+    return uuid;
+  }
+
+  public void setUUID(String uuid) {
+    this.uuid = uuid;
+  }
+
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((state == null) ? 0 : state.hashCode());
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result = prime * result + ((service == null) ? 0 : service.hashCode());
-    result = prime * result + ((component == null) ? 0 : component.hashCode());
-    result = prime * result + ((hostName == null) ? 0 : hostName.hashCode());
-    result = prime * result + ((cluster == null) ? 0 : cluster.hashCode());
-    result = prime * result + ((instance == null) ? 0 : instance.hashCode());
-    return result;
+    return Objects.hash(state, name, service, component, hostName, instance, clusterId);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
     }
 
-    if (obj == null) {
-      return false;
-    }
-
-    if (getClass() != obj.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
     Alert other = (Alert) obj;
 
-    if (state != other.state) {
-      return false;
-    }
-
-    if (name == null) {
-      if (other.name != null) {
-        return false;
-      }
-    } else if (!name.equals(other.name)) {
-      return false;
-    }
-
-    if (service == null) {
-      if (other.service != null) {
-        return false;
-      }
-    } else if (!service.equals(other.service)) {
-      return false;
-    }
-
-    if (component == null) {
-      if (other.component != null) {
-        return false;
-      }
-    } else if (!component.equals(other.component)) {
-      return false;
-    }
-
-    if (hostName == null) {
-      if (other.hostName != null) {
-        return false;
-      }
-    } else if (!hostName.equals(other.hostName)) {
-      return false;
-    }
-
-    if (cluster == null) {
-      if (other.cluster != null) {
-        return false;
-      }
-    } else if (!cluster.equals(other.cluster)) {
-      return false;
-    }
-
-    if (instance == null) {
-      if (other.instance != null) {
-        return false;
-      }
-    } else if (!instance.equals(other.instance)) {
-      return false;
-    }
-
-
-    return true;
+    return Objects.equals(state, other.state) &&
+      Objects.equals(name, other.name) &&
+      Objects.equals(service, other.service) &&
+      Objects.equals(component, other.component) &&
+      Objects.equals(hostName, other.hostName) &&
+      Objects.equals(instance, other.instance) &&
+      Objects.equals(clusterId, other.clusterId);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append('{');
-    sb.append("cluster=").append(cluster).append(", ");
+    sb.append("clusterId=").append(clusterId).append(", ");
     sb.append("state=").append(state).append(", ");
     sb.append("name=").append(name).append(", ");
     sb.append("service=").append(service).append(", ");

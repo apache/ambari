@@ -33,7 +33,7 @@ config = Script.get_config()
 stack_root = Script.get_stack_root()
 
 slider_home_dir = format('{stack_root}/current/slider-client')
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #hadoop params
@@ -50,10 +50,8 @@ slider_tar_gz = format('{slider_lib_dir}/slider.tar.gz')
 user_group = config['configurations']['cluster-env']['user_group']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
-
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 

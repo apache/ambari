@@ -255,6 +255,24 @@ public class ClusterDAO {
   }
 
   /**
+   * Gets the latest configurations for the specified cluster.
+   *
+   * @param clusterId
+   *          the cluster that the service is a part of.
+   * @return the latest configurations for the specified cluster.
+   */
+  @RequiresSession
+  public List<ClusterConfigEntity> getEnabledConfigs(long clusterId) {
+
+    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findEnabledConfigs", ClusterConfigEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets the latest config in the given cluster by type name. Only a config
    * which is enabled can be returned.
    *

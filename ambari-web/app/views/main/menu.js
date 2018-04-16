@@ -169,18 +169,20 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
     return App.router.get('mainServiceController.content').filter(function (item) {
       return !this.get('disabledServices').contains(item.get('id'));
     }, this);
-  }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
+  }.property('App.router.mainServiceController.content.length').volatile(),
 
   didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
     App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
     App.tooltip($("[rel='serviceHealthTooltip']"), {html:true, placement:"right"});
+    App.tooltip(this.$(".passive-state-service"), {html: true, placement: "top"});
   },
 
   willDestroyElement: function() {
     App.router.location.removeObserver('lastSetURL', this, 'renderOnRoute');
     this.$(".restart-required-service").tooltip('destroy');
+    this.$(".passive-state-service").tooltip('destroy');
   },
 
   activeServiceId:null,

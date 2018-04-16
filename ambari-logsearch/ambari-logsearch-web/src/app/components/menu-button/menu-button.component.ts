@@ -59,6 +59,9 @@ export class MenuButtonComponent {
   @Input()
   caretClass: string = 'fa-caret-down';
 
+  @Input()
+  useDropDownLocalFilter: boolean = false;
+
   /**
    * The minimum time to handle a mousedown as a longclick. Default is 500 ms (0.5sec)
    * @default 500
@@ -74,6 +77,9 @@ export class MenuButtonComponent {
    */
   @Input()
   maxLongClickDelay: number = 0;
+
+  @Input()
+  isDisabled: boolean = false;
 
   @Input()
   listClass: string = '';
@@ -113,23 +119,25 @@ export class MenuButtonComponent {
    * @param {MouseEvent} event
    */
   onMouseClick(event: MouseEvent): void {
-    let el = <HTMLElement>event.target;
-    let now = Date.now();
-    let mdt = this.mouseDownTimestamp; // mousedown time
-    let isLongClick = mdt && mdt + this.minLongClickDelay <= now && (
-      !this.maxLongClickDelay || mdt + this.maxLongClickDelay >= now
-    );
-    let openDropdown = this.hasSubItems && (
-      el.classList.contains(this.caretClass) || isLongClick || !this.buttonClick.observers.length
-    );
-    if (openDropdown && this.dropdown) {
-      if (this.toggleDropdown()) {
-        this.listenToClickOut();
+    if (!this.isDisabled) {
+      const el = <HTMLElement>event.target;
+      const now = Date.now();
+      const mdt = this.mouseDownTimestamp; // mousedown time
+      const isLongClick = mdt && mdt + this.minLongClickDelay <= now && (
+        !this.maxLongClickDelay || mdt + this.maxLongClickDelay >= now
+      );
+      const openDropdown = this.hasSubItems && (
+        el.classList.contains(this.caretClass) || isLongClick || !this.buttonClick.observers.length
+      );
+      if (openDropdown && this.dropdown) {
+        if (this.toggleDropdown()) {
+          this.listenToClickOut();
+        }
+      } else if (this.buttonClick.observers.length) {
+        this.buttonClick.emit();
       }
-    } else if (this.buttonClick.observers.length) {
-      this.buttonClick.emit();
+      this.mouseDownTimestamp = 0;
     }
-    this.mouseDownTimestamp = 0;
     event.preventDefault();
   }
 
@@ -138,20 +146,22 @@ export class MenuButtonComponent {
    * component.
    */
   private listenToClickOut = (): void => {
-    this.dropdownIsOpen && document.addEventListener('click', this.onDocumentMouseClick);
-  };
+    if (this.dropdownIsOpen) {
+      document.addEventListener('click', this.onDocumentMouseClick);
+    }
+  }
 
   /**
    * Handling the click event on the document to hide the dropdown list if it needs.
    * @param {MouseEvent} event
    */
   private onDocumentMouseClick = (event: MouseEvent): void => {
-    let el = <HTMLElement>event.target;
+    const el = <HTMLElement>event.target;
     if (!this.dropdown.nativeElement.contains(el)) {
       this.closeDropdown();
-      this.removeDocumentClickListener()
+      this.removeDocumentClickListener();
     }
-  };
+  }
 
   /**
    * Handling the mousedown event, so that we can check the long clicks and open the dropdown if any.
@@ -159,18 +169,18 @@ export class MenuButtonComponent {
    */
   onMouseDown = (event: MouseEvent): void => {
     if (this.hasSubItems) {
-      let el = <HTMLElement>event.target;
+      const el = <HTMLElement>event.target;
       if (!el.classList.contains(this.caretClass)) {
         this.mouseDownTimestamp = Date.now();
       }
     }
-  };
+  }
 
   /**
    * The goal is to have one and only one place where we open the dropdown. So that later if we need to change the way
    * how we do, it will be easier.
    */
-  private openDropdown():void {
+  private openDropdown(): void {
     this.dropdownIsOpen = true;
   }
 
@@ -178,7 +188,7 @@ export class MenuButtonComponent {
    * The goal is to have one and only one place where we close the dropdown. So that later if we need to change the way
    * how we do, it will be easier.
    */
-  private closeDropdown():void {
+  private closeDropdown(): void {
     this.dropdownIsOpen = false;
   }
 
@@ -205,7 +215,9 @@ export class MenuButtonComponent {
    */
   onDropdownItemChange(options: ListItem) {
     this.updateSelection(options);
-    !this.isMultipleChoice && this.closeDropdown();
+    if (!this.isMultipleChoice) {
+      this.closeDropdown();
+    }
   }
 
   updateSelection(options: ListItem) {

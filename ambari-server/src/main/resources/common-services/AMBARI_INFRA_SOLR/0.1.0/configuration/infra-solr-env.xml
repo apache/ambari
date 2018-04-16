@@ -1,0 +1,294 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<!-- This is a special config file for properties used to monitor status of the service -->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>infra_solr_port</name>
+    <value>8886</value>
+    <description>Solr port</description>
+    <display-name>Infra Solr port</display-name>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_jmx_port</name>
+    <value>18886</value>
+    <description>Solr JMX port</description>
+    <display-name>Infra Solr JMX port</display-name>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_pid_dir</name>
+    <value>/var/run/ambari-infra-solr</value>
+    <description>Solr Process ID Directory</description>
+    <display-name>Infra Solr pid dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_log_dir</name>
+    <value>/var/log/ambari-infra-solr</value>
+    <description>Directory for Solr logs</description>
+    <display-name>Infra Solr log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_user</name>
+    <value>infra-solr</value>
+    <property-type>USER</property-type>
+    <description>Solr user</description>
+    <display-name>Infra Solr User</display-name>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_datadir</name>
+    <value>/var/lib/ambari-infra-solr/data</value>
+    <display-name>Infra Solr data dir</display-name>
+    <description>Directory for storting Solr index. Make sure you have enough disk space</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_ssl_enabled</name>
+    <value>false</value>
+    <display-name>Enable SSL to Infra Solr</display-name>
+    <description>Enable ssl to Solr</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_truststore_location</name>
+    <value>/etc/security/serverKeys/infra.solr.trustStore.jks</value>
+    <display-name>Infra Solr trust store location</display-name>
+    <description>Location of the trust store file. (default value is not generated)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_truststore_type</name>
+    <value>jks</value>
+    <display-name>Infra Solr trust store type</display-name>
+    <description>Type of the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_truststore_password</name>
+    <value>bigdata</value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Infra Solr trust store password</display-name>
+    <description>Password to open the trust store file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_keystore_location</name>
+    <value>/etc/security/serverKeys/infra.solr.keyStore.jks</value>
+    <display-name>Infra Solr key store location</display-name>
+    <description>Location of the key store file. (default value is not generated)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_keystore_type</name>
+    <value>jks</value>
+    <display-name>Infra Solr key store type</display-name>
+    <description>Type of the key store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_keystore_password</name>
+    <value>bigdata</value>
+    <display-name>Infra Solr key store password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the key store file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_znode</name>
+    <value>/infra-solr</value>
+    <description>Zookeeper znode, e.g: /ambari-solr</description>
+    <display-name>Infra Solr ZNode</display-name>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_minmem</name>
+    <value>1024</value>
+    <display-name>Infra Solr Minimum Heap Size</display-name>
+    <description>Solr minimum heap size e.g. 512m</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>32768</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_maxmem</name>
+    <value>2048</value>
+    <display-name>Infra Solr Maximum Heap Size</display-name>
+    <description>Solr maximum heap size e.g. 512m</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>32768</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>infra_solr_jmx_enabled</name>
+    <value>false</value>
+    <display-name>Enable JMX</display-name>
+    <description>Set to true to activate the JMX RMI connector to allow remote JMX client applications to monitor the JVM hosting Solr
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_kerberos_keytab</name>
+    <value>/etc/security/keytabs/infra_solr.service.keytab</value>
+    <display-name>Infra Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of the Infra Solr.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>infra_solr_kerberos_principal</name>
+    <value>infra-solr</value>
+    <display-name>Infra Solr principal</display-name>
+    <description>The service principal for Infra Solr.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>infra_solr_web_kerberos_keytab</name>
+    <value>/etc/security/keytabs/spnego.service.keytab</value>
+    <display-name>Infra Solr Http keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of the Infra Solr.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>infra_solr_web_kerberos_principal</name>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
+    <display-name>Infra Solr Http principal</display-name>
+    <description>The service principal for the Infra Solr.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>infra_solr_zookeeper_quorum</name>
+    <value>{zookeeper_quorum}</value>
+    <display-name>Infra Solr Znode</display-name>
+    <description>Placeholder for Infra Solr Zookeeper connection string. (Use the cluster one by default, you can override this with a custom one if ZK needs to be external)</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>infra_solr_zookeeper_external_principal</name>
+    <value>zookeeper/_HOST@EXAMPLE.COM</value>
+    <display-name>External ZK principal</display-name>
+    <description>The kerberos service principal name for external ZooKeeper.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>infra_solr_zookeeper_external_enabled</name>
+    <value>false</value>
+    <display-name>Enable External ZK</display-name>
+    <description>Enable external ZooKeeper. If the Solr is secure, the external ZK should be secure as well.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>infra_solr_kerberos_name_rules</name>
+    <value>DEFAULT</value>
+    <display-name>Infra Solr Kerberos name rules</display-name>
+    <description>Kerberos name rules for Spnego</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>infra_solr_user_nofile_limit</name>
+    <value>128000</value>
+    <description>Max open files limit setting for infra-solr user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for infra-solr user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <!-- infra-solr-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>infra-solr-env template</display-name>
+    <description>This is the jinja template for infra-solr-env.sh file</description>
+    <value/>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>infra-solr-env.sh.j2</property-file-name>
+      <property-file-type>text</property-file-type>
+    </value-attributes>
+    <on-ambari-upgrade add="false" update="true"/>
+  </property>
+</configuration>

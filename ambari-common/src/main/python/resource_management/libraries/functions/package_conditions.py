@@ -79,6 +79,15 @@ def should_install_mysql():
     return False
   return _has_applicable_local_component(config, "MYSQL_SERVER")
 
+def should_install_mysql_connector():
+  config = Script.get_config()
+  hive_database = config['configurations']['hive-env']['hive_database']
+  hive_use_existing_db = hive_database.startswith('Existing')
+
+  if hive_use_existing_db:
+    return False
+  return _has_applicable_local_component(config, ["MYSQL_SERVER", "HIVE_METASTORE", "HIVE_SERVER", "HIVE_SERVER_INTERACTIVE"])
+
 def should_install_hive_atlas():
   atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
   has_atlas = len(atlas_hosts) > 0
@@ -86,7 +95,7 @@ def should_install_hive_atlas():
 
 def should_install_falcon_atlas_hook():
   config = Script.get_config()
-  stack_version_unformatted = config['hostLevelParams']['stack_version']
+  stack_version_unformatted = config['clusterLevelParams']['stack_version']
   stack_version_formatted = format_stack_version(stack_version_unformatted)
   if check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, stack_version_formatted) \
       or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted):

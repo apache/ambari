@@ -3,7 +3,8 @@
     {
       "type": "hst_agent",
       "rowtype": "service",
-      "path": "/root/test-logs/smartsense/hst-agent-test-log.txt"
+      "path": "/root/test-logs/smartsense/hst-agent-test-log.txt",
+      "group": "Smartsense"
     }
   ],
   "filter": [

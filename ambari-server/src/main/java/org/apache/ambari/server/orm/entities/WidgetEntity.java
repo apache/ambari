@@ -113,6 +113,9 @@ public class WidgetEntity {
   @Column(name = "cluster_id", nullable = false)
   private Long clusterId;
 
+  @Column(name = "tag", length = 255)
+  private String tag;
+
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, updatable = false, insertable = false)
   private ClusterEntity clusterEntity;
@@ -222,6 +225,20 @@ public class WidgetEntity {
 
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
+  }
+
+  /**
+   * Gets the Tag used by the ui to store additional info e.g.:Name Service
+   */
+  public String getTag() {
+    return tag;
+  }
+
+  /**
+   * Sets the Tag used by the ui to store additional info e.g.:Name Service
+   */
+  public void setTag(String tag) {
+    this.tag = tag;
   }
 
   public List<WidgetLayoutUserWidgetEntity> getListWidgetLayoutUserWidgetEntity() {

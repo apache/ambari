@@ -17,6 +17,12 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
@@ -25,11 +31,6 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public interface TimelineMetricStore {
   /**
@@ -79,7 +80,8 @@ public interface TimelineMetricStore {
    * @throws SQLException
    * @throws IOException
    */
-  Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String query) throws SQLException, IOException;
+  Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String appId, String metricPattern,
+                                                                             boolean includeBlacklistedMetrics) throws SQLException, IOException;
 
   TimelinePutResponse putHostAggregatedMetrics(AggregationResult aggregationResult) throws SQLException, IOException;
   /**
@@ -98,9 +100,11 @@ public interface TimelineMetricStore {
    */
   Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId) throws SQLException, IOException;
 
-  /**
-   * Return a list of known live collector nodes
-   * @return [ hostname ]
-   */
+  byte[] getUuid(String metricName, String appId, String instanceId, String hostname) throws SQLException, IOException;
+
+    /**
+     * Return a list of known live collector nodes
+     * @return [ hostname ]
+     */
   List<String> getLiveInstances();
 }

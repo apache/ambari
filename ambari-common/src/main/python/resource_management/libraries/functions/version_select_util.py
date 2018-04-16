@@ -34,7 +34,7 @@ def get_component_version_from_symlink(stack_name, component_name):
   version which is referenced by the symlink.
 
   :param stack_name: one of HDP, HDPWIN, BIGTOP, PHD, etc. usually retrieved from
-  the command-#.json file's ["hostLevelParams"]["stack_name"]
+  the command-#.json file's ["clusterLevelParams"]["stack_name"]
   :param component_name: Component name as a string necessary to get the version
   :return: Returns a string if found, e.g., 2.2.1.0-2175, otherwise, returns None
   """

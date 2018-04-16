@@ -61,7 +61,7 @@ def sqoop(type=None):
     XmlConfig("sqoop-site.xml",
               conf_dir = params.sqoop_conf_dir,
               configurations = configs,
-              configuration_attributes=params.config['configuration_attributes']['sqoop-site'],
+              configuration_attributes=params.config['configurationAttributes']['sqoop-site'],
               owner = params.sqoop_user,
               group = params.user_group
               )

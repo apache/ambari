@@ -34,8 +34,11 @@ import java.util.regex.Pattern;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -50,7 +53,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -197,13 +202,22 @@ public class UpgradeHelper {
    * Used to update the configuration properties.
    */
   @Inject
-  private Provider<AmbariManagementController> m_controllerProvider;
+  private Provider<AmbariManagementControllerImpl> m_controllerProvider;
+
+  @Inject
+  private Provider<MetadataHolder> m_metadataHolder;
+
+  @Inject
+  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   /**
    * Used to get configurations by service name.
    */
   @Inject
   ServiceConfigDAO m_serviceConfigDAO;
+
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
 
   /**
    * Get right Upgrade Pack, depends on stack, direction and upgrade type
@@ -830,6 +844,11 @@ public class UpgradeHelper {
     processConfigurationsIfRequired(upgradeContext);
   }
 
+  public void publishDesiredRepositoriesUpdates(UpgradeContext upgradeContext) throws AmbariException {
+    Cluster cluster = upgradeContext.getCluster();
+    ambariEventPublisher.publish(new ClusterComponentsRepoChangedEvent(cluster.getClusterId()));
+  }
+
   /**
    * Transitions all affected components to {@link UpgradeState#IN_PROGRESS}.
    * Transition is performed only for components that advertise their version.
@@ -931,6 +950,7 @@ public class UpgradeHelper {
 
     Set<String> clusterConfigTypes = new HashSet<>();
     Set<String> processedClusterConfigTypes = new HashSet<>();
+    boolean configsChanged = false;
 
     // merge or revert configurations for any service that needs it
     for (String serviceName : servicesInUpgrade) {
@@ -955,6 +975,7 @@ public class UpgradeHelper {
       // downgrade is easy - just remove the new and make the old current
       if (direction == Direction.DOWNGRADE) {
         cluster.applyLatestConfigurations(targetStackId, serviceName);
+        configsChanged = true;
         continue;
       }
 
@@ -992,6 +1013,9 @@ public class UpgradeHelper {
           String configurationType = currentServiceConfig.getType();
 
           Config currentClusterConfigForService = cluster.getDesiredConfigByType(configurationType);
+          if (currentClusterConfigForService == null) {
+            throw new AmbariException(String.format("configuration type %s did not have a selected version", configurationType));
+          }
           existingServiceConfigs.add(currentClusterConfigForService);
           foundConfigTypes.add(configurationType);
         }
@@ -1130,7 +1154,12 @@ public class UpgradeHelper {
 
         configHelper.createConfigTypes(cluster, targetStackId, controller,
             newServiceDefaultConfigsByType, userName, serviceVersionNote);
+        configsChanged = true;
       }
+    }
+    if (configsChanged) {
+      m_metadataHolder.get().updateData(m_controllerProvider.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
     }
   }
 

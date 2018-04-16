@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -57,6 +58,7 @@ public class DownSamplerTest {
     Assert.assertTrue(downSamplers.get(0) instanceof TopNDownSampler);
   }
 
+  @Ignore
   @Test
   public void testPrepareTopNDownSamplingStatement() throws Exception {
     Configuration configuration = new Configuration();
@@ -91,5 +93,25 @@ public class DownSamplerTest {
       "SUM(METRIC_SUM), 1, SUM(METRIC_SUM), SUM(METRIC_SUM) FROM METRIC_AGGREGATE_MINUTE WHERE " +
       "METRIC_NAME LIKE 'pattern1' AND SERVER_TIME > 14000000 AND SERVER_TIME <= 14100000 " +
       "GROUP BY METRIC_NAME, APP_ID, INSTANCE_ID, UNITS ORDER BY SUM(METRIC_SUM) DESC LIMIT 4"));
+  }
+
+  @Test
+  public void testPrepareEventDownSamplingStatement() throws Exception {
+    Configuration configuration = new Configuration();
+    configuration.setIfUnset("timeline.metrics.downsampler.event.metric.patterns", "pattern1,pattern2");
+
+    Map<String, String> conf = configuration.getValByRegex(DownSamplerUtils.downSamplerConfigPrefix);
+
+    EventMetricDownSampler eventMetricDownSampler = EventMetricDownSampler.fromConfig(conf);
+    List<String> stmts = eventMetricDownSampler.prepareDownSamplingStatement(14000000l, 14100000l, "METRIC_RECORD");
+    Assert.assertEquals(stmts.size(),2);
+
+    Assert.assertTrue(stmts.get(0).equals("SELECT METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, 14100000 AS SERVER_TIME, " +
+      "UNITS, SUM(METRIC_SUM), SUM(METRIC_COUNT), MAX(METRIC_MAX), MIN(METRIC_MIN) FROM METRIC_RECORD WHERE METRIC_NAME " +
+      "LIKE 'pattern1' AND SERVER_TIME > 14000000 AND SERVER_TIME <= 14100000 GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, UNITS"));
+
+    Assert.assertTrue(stmts.get(1).equals("SELECT METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, 14100000 AS SERVER_TIME, " +
+      "UNITS, SUM(METRIC_SUM), SUM(METRIC_COUNT), MAX(METRIC_MAX), MIN(METRIC_MIN) FROM METRIC_RECORD WHERE METRIC_NAME " +
+      "LIKE 'pattern2' AND SERVER_TIME > 14000000 AND SERVER_TIME <= 14100000 GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, UNITS"));
   }
 }

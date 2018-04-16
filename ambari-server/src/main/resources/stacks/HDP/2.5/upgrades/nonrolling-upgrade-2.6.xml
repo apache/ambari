@@ -281,6 +281,11 @@
       <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply external depedency config 3">
         <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
       </execute-stage>
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply zeppelin.notebook.storage config">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixNotebookStorage">
+          <summary>Adjusting Zeppelin Notebook properties</summary>
+        </task>
+      </execute-stage>
 
       <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs NameNode">
@@ -289,6 +294,10 @@
 
       <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
         <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set User-Agent">
+        <task xsi:type="configure" id="hdfs_user_agent" />
       </execute-stage>
 
       <!--YARN-->
@@ -1236,7 +1245,7 @@
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
-          <task xsi:type="restart-task"/>
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 

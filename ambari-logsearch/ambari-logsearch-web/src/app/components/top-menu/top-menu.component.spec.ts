@@ -20,7 +20,6 @@ import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {StoreModule} from '@ngrx/store';
-import {TranslationModules} from '@app/test-config.spec';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
@@ -37,27 +36,26 @@ import {ClustersService, clusters} from '@app/services/storage/clusters.service'
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {AuthService} from '@app/services/auth.service';
 import {UtilsService} from '@app/services/utils.service';
 
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
+
 import {TopMenuComponent} from './top-menu.component';
+import {RouterTestingModule} from '@angular/router/testing';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('TopMenuComponent', () => {
   let component: TopMenuComponent;
   let fixture: ComponentFixture<TopMenuComponent>;
-  const httpClient = {
-    get: () => {
-      return {
-        subscribe: () => {
-        }
-      };
-    }
-  };
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         ReactiveFormsModule,
         StoreModule.provideStore({
           auditLogs,
@@ -78,11 +76,8 @@ describe('TopMenuComponent', () => {
       ],
       declarations: [TopMenuComponent],
       providers: [
+        ...MockHttpRequestModules,
         LogsContainerService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         AuthService,
         UtilsService,
         AuditLogsService,
@@ -97,7 +92,11 @@ describe('TopMenuComponent', () => {
         TabsService,
         ClustersService,
         ComponentsService,
-        HostsService
+        HostsService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

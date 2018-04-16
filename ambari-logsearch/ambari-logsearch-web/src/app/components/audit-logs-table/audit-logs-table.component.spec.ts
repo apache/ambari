@@ -22,7 +22,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
-import {TranslationModules} from '@app/test-config.spec';
+import {MockHttpRequestModules, TranslationModules} from '@app/test-config.spec';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
@@ -40,23 +40,19 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
+import {DropdownListComponent} from '@modules/shared/components/dropdown-list/dropdown-list.component';
 
 import {AuditLogsTableComponent} from './audit-logs-table.component';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
 
 describe('AuditLogsTableComponent', () => {
   let component: AuditLogsTableComponent;
   let fixture: ComponentFixture<AuditLogsTableComponent>;
-  const httpClient = {
-    get: () => {
-      return {
-        subscribe: () => {
-        }
-      };
-    }
-  };
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -66,6 +62,7 @@ describe('AuditLogsTableComponent', () => {
         DropdownListComponent
       ],
       imports: [
+        RouterTestingModule,
         FormsModule,
         ReactiveFormsModule,
         MomentModule,
@@ -88,12 +85,9 @@ describe('AuditLogsTableComponent', () => {
         })
       ],
       providers: [
+        ...MockHttpRequestModules,
         LogsContainerService,
         UtilsService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
@@ -106,7 +100,11 @@ describe('AuditLogsTableComponent', () => {
         TabsService,
         ClustersService,
         ComponentsService,
-        HostsService
+        HostsService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

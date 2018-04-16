@@ -16,19 +16,32 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'main-container',
   templateUrl: './main-container.component.html',
   styleUrls: ['./main-container.component.less']
 })
-export class MainContainerComponent {
+export class MainContainerComponent implements OnInit, OnDestroy{
 
-  constructor(private appState: AppStateService) {
-    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
-    appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value);
+  private subscriptions: Subscription[] = [];
+
+  constructor(private appState: AppStateService) {}
+
+  ngOnInit() {
+    this.subscriptions.push(
+      this.appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value)
+    );
+    this.subscriptions.push(
+      this.appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value)
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
   }
 
   isAuthorized: boolean = false;

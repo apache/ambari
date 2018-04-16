@@ -23,6 +23,11 @@ import {Observable} from 'rxjs/Observable';
 
 import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import {Router} from "@angular/router";
+import {Subscription} from "rxjs/Subscription";
+
+export const IS_AUTHORIZED_APP_STATE_KEY: string = 'isAuthorized';
+export const IS_LOGIN_IN_PROGRESS_APP_STATE_KEY: string = 'isLoginInProgress';
 
 /**
  * This service meant to be a single place where the authorization should happen.
@@ -30,8 +35,31 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 @Injectable()
 export class AuthService {
 
-  constructor(private httpClient: HttpClientService, private appState: AppStateService) {}
+  private subscriptions: Subscription[] = [];
 
+  /**
+   * A string set by any service or component (mainly from AuthGuard service) to redirect the application after the
+   * authorization done.
+   * @type string
+   */
+  redirectUrl: string;
+
+  constructor(
+    private httpClient: HttpClientService,
+    private appState: AppStateService,
+    private router: Router
+  ) {
+    this.subscriptions.push(this.appState.getParameter(IS_AUTHORIZED_APP_STATE_KEY).subscribe(
+      this.onAppStateIsAuthorizedChanged
+    ));
+  }
+
+  onAppStateIsAuthorizedChanged = (isAuthorized): void => {
+    if (isAuthorized) {
+      this.router.navigate([this.redirectUrl || '/']);
+      this.redirectUrl = '';
+    }
+  }
   /**
    * The single entry point to request a login action.
    * @param {string} username
@@ -40,15 +68,15 @@ export class AuthService {
    */
   login(username: string, password: string): Observable<Response> {
     this.setLoginInProgressAppState(true);
-    let obs = this.httpClient.postFormData('login', {
+    const response$ = this.httpClient.postFormData('login', {
       username: username,
       password: password
     });
-    obs.subscribe(
+    response$.subscribe(
       (resp: Response) => this.onLoginResponse(resp),
       (resp: Response) => this.onLoginError(resp)
     );
-    return obs;
+    return response$;
   }
 
   /**
@@ -56,12 +84,12 @@ export class AuthService {
    * @returns {Observable<boolean | Error>}
    */
   logout(): Observable<Response> {
-    let obs = this.httpClient.get('logout');
-    obs.subscribe(
+    const response$ = this.httpClient.get('logout');
+    response$.subscribe(
       (resp: Response) => this.onLogoutResponse(resp),
       (resp: Response) => this.onLogoutError(resp)
     );
-    return obs;
+    return response$;
   }
 
   /**
@@ -70,7 +98,7 @@ export class AuthService {
    * @param {boolean} state the new value of the isLoginInProgress app state.
    */
   private setLoginInProgressAppState(state: boolean) {
-    this.appState.setParameter('isLoginInProgress', state);
+    this.appState.setParameter(IS_LOGIN_IN_PROGRESS_APP_STATE_KEY, state);
   }
 
   /**
@@ -79,7 +107,7 @@ export class AuthService {
    * @param {boolean} state The new value of the isAuthorized app state.
    */
   private setAuthorizedAppState(state: boolean) {
-    this.appState.setParameter('isAuthorized', state);
+    this.appState.setParameter(IS_AUTHORIZED_APP_STATE_KEY, state);
   }
 
   /**
@@ -87,8 +115,8 @@ export class AuthService {
    * @param resp
    */
   private onLoginResponse(resp: Response): void {
+    this.setLoginInProgressAppState(false);
     if (resp && resp.ok) {
-      this.setLoginInProgressAppState(false);
       this.setAuthorizedAppState(resp.ok);
     }
   }
@@ -119,5 +147,12 @@ export class AuthService {
    * @param {Response} resp
    */
   private onLogoutError(resp: Response): void {}
+
+  /**
+   * Simply return with the boolean value of the isAuthorized application state key.
+   */
+  public isAuthorized(): Observable<boolean> {
+    return this.appState.getParameter(IS_AUTHORIZED_APP_STATE_KEY);
+  }
 
 }

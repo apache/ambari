@@ -92,7 +92,7 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
             serviceName, null, null, null);
 
           Set<ServiceComponentHostResponse> hostComponentResponses =
-            managementControllerProvider.get().getHostComponents(Collections.singleton(request));
+            managementControllerProvider.get().getHostComponents(Collections.singleton(request), true);
 
           State   masterState = null;
           State   clientState = null;

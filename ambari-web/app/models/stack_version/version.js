@@ -43,7 +43,9 @@ App.StackVersion = DS.Model.extend({
 
   noInitHosts: Em.computed.empty('notInstalledHosts'),
 
-  isCurrent: Em.computed.equal('state', 'CURRENT')
+  isCurrent: Em.computed.equal('state', 'CURRENT'),
+
+  isOutOfSync: Em.computed.equal('state', 'OUT_OF_SYNC')
 });
 
 App.StackVersion.FIXTURES = [];

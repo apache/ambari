@@ -27,21 +27,12 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
   private final String m_componentName;
   private final String m_hostName;
   private final boolean m_recoveryEnabled;
+  private final boolean masterComponent;
   private final Long m_hostId;
 
-  /**
-   * Constructor.
-   *
-   * @param clusterId
-   * @param stackName
-   * @param stackVersion
-   * @param serviceName
-   * @param componentName
-   * @param hostName
-   */
   public ServiceComponentUninstalledEvent(long clusterId, String stackName,
       String stackVersion, String serviceName, String componentName,
-      String hostName, boolean recoveryEnabled, Long hostId) {
+      String hostName, boolean recoveryEnabled, boolean masterComponent, Long hostId) {
     super(AmbariEventType.SERVICE_COMPONENT_UNINSTALLED_SUCCESS, clusterId,
         stackName,
         stackVersion, serviceName);
@@ -49,6 +40,7 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     m_componentName = componentName;
     m_hostName = hostName;
     m_recoveryEnabled = recoveryEnabled;
+    this.masterComponent = masterComponent;
     m_hostId = hostId;
   }
 
@@ -73,6 +65,10 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     return m_recoveryEnabled;
   }
 
+  public boolean isMasterComponent() {
+    return masterComponent;
+  }
+
   public Long getHostId() {
     return m_hostId;
   }
@@ -83,7 +79,7 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("ServiceComponentUninstalledEvent{");
-    buffer.append("cluserId=").append(m_clusterId);
+    buffer.append("clusterId=").append(m_clusterId);
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);
     buffer.append(", serviceName=").append(m_serviceName);

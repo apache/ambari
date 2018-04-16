@@ -57,9 +57,30 @@
     </depends-on>
   </property>
   <property>
+    <name>dfs.datanode.http.address</name>
+    <value>0.0.0.0:8082</value>
+    <description>The datanode http server address and port.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>dfs.datanode.https.address</name>
+    <value>0.0.0.0:8080</value>
+    <description>The datanode https server address and port.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>dfs.client-write-packet-size</name>
     <value>131072</value>
     <description>Packet size for clients to write</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>dfs.checksum.type</name>
+    <value>NULL</value>
+    <description>The checksum method to be used by default. To maintain
+      compatibility, it is being set to CRC32. Once all migration steps
+      are complete, we can change it to CRC32C and take advantage of the
+      additional performance benefit.</description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

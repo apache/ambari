@@ -17,8 +17,8 @@ package org.apache.ambari.server.ldap.service.ads;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.LdapConfigurationService;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
@@ -102,8 +102,8 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   public void testShouldUserAttributeConfigurationCheckSucceedWhenUserDnIsFound() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS.key(), "person");
-    configMap.put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key(), "uid");
+    configMap.put(AmbariServerConfigurationKey.USER_OBJECT_CLASS.key(), "person");
+    configMap.put(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE.key(), "uid");
 
     AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(configMap);
 
@@ -126,8 +126,8 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   public void testShouldUserAttributeConfigurationCheckFailWhenNoUsersFound() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS.key(), "posixAccount");
-    configMap.put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key(), "dn");
+    configMap.put(AmbariServerConfigurationKey.USER_OBJECT_CLASS.key(), "posixAccount");
+    configMap.put(AmbariServerConfigurationKey.USER_NAME_ATTRIBUTE.key(), "dn");
 
     AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(configMap);
 
@@ -209,10 +209,10 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
 
   private Map<String, String> groupConfigObjectMap() {
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS.key(), "groupOfNames");
-    configMap.put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
-    configMap.put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE.key(), "uid");
-    configMap.put(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE.key(), "member");
+    configMap.put(AmbariServerConfigurationKey.GROUP_OBJECT_CLASS.key(), "groupOfNames");
+    configMap.put(AmbariServerConfigurationKey.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
+    configMap.put(AmbariServerConfigurationKey.GROUP_NAME_ATTRIBUTE.key(), "uid");
+    configMap.put(AmbariServerConfigurationKey.GROUP_MEMBER_ATTRIBUTE.key(), "member");
     return configMap;
   }
 

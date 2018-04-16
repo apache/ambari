@@ -78,9 +78,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * @method loadPreSelectedConfigVersion
    */
   loadPreSelectedConfigVersion: function() {
-    var preSelectedId = App.serviceConfigVersionsMapper.makeId(this.get('preSelectedConfigVersion.serviceName'), this.get('preSelectedConfigVersion.version'));
-    var defaultConfigVersion = App.ServiceConfigVersion.find(App.serviceConfigVersionsMapper.makeId(this.get('content.serviceName'), this.get('currentDefaultVersion')));
-    var preSelectedVersion = App.ServiceConfigVersion.find().someProperty('id', preSelectedId) ? this.get('preSelectedConfigVersion') : defaultConfigVersion;
+    var preSelectedVersion = this.get('preSelectedConfigVersion');
 
     this.set('selectedVersion', this.get('preSelectedConfigVersion.version'));
     /** handling redirecting from config history page **/
@@ -154,16 +152,18 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     version = version || this.get('currentDefaultVersion');
     this.clearRecommendationsInfo();
     if (version === this.get('currentDefaultVersion') && (!switchToGroup || switchToGroup.get('isDefault'))) {
+      // current version with default group
       this.set('selectedVersion', this.get('currentDefaultVersion'));
       this.loadCurrentVersions();
     } else {
-      //version of non-default group require properties from current version of default group to correctly display page
+      // - version with DEFAULT config group but not CURRENT
+      // - ANY version with NON_DEFAULT config group
       this.loadDefaultGroupVersion(version, switchToGroup);
     }
   },
 
   /**
-   *
+   * version with NON_DEFAULT group require properties from CURRENT version of DEFAULT group to correctly display page
    * @param {string} version
    * @param {?Em.Object} switchToGroup
    */

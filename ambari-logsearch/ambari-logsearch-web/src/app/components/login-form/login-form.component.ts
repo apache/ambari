@@ -21,6 +21,7 @@ import {Response} from '@angular/http';
 import 'rxjs/add/operator/finally';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
+import {Observable} from 'rxjs/Observable';
 
 @Component({
   selector: 'login-form',
@@ -29,17 +30,15 @@ import {AuthService} from '@app/services/auth.service';
 })
 export class LoginFormComponent {
 
-  constructor(private authService: AuthService, private appState: AppStateService) {
-    appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value);
-  }
-
   username: string;
 
   password: string;
 
   isLoginAlertDisplayed: boolean;
 
-  isLoginInProgress: boolean;
+  isLoginInProgress$: Observable<boolean> = this.appState.getParameter('isLoginInProgress');
+
+  constructor(private authService: AuthService, private appState: AppStateService) {}
 
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
@@ -48,7 +47,8 @@ export class LoginFormComponent {
    */
   private onLoginError = (resp: Response): void => {
     this.isLoginAlertDisplayed = true;
-  };
+  }
+
   /**
    * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
    * When it gets success response it hides.
@@ -56,10 +56,10 @@ export class LoginFormComponent {
    */
   private onLoginSuccess = (resp: Response): void => {
     this.isLoginAlertDisplayed = false;
-  };
+  }
 
   login() {
-    this.authService.login(this.username,this.password).subscribe(this.onLoginSuccess, this.onLoginError);
+    this.authService.login(this.username, this.password).subscribe(this.onLoginSuccess, this.onLoginError);
   }
 
 }

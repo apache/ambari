@@ -103,6 +103,8 @@ class ExecuteUpgradeTasks(Script):
 
     # These 2 variables are optional
     service_package_folder = default('/commandParams/service_package_folder', None)
+    if service_package_folder is None:
+      service_package_folder = default('/serviceLevelParams/service_package_folder', None)
     hooks_folder = default('/commandParams/hooks_folder', None)
 
     tasks = json.loads(config['roleParams']['tasks'])
@@ -115,13 +117,15 @@ class ExecuteUpgradeTasks(Script):
         if task.script and task.function:
           file_cache = FileCache(agent_config)
 
-          server_url_prefix = default('/hostLevelParams/jdk_location', "")
+          server_url_prefix = default('/ambariLevelParams/jdk_location', "")
 
           if service_package_folder and hooks_folder:
             command_paths = {
               "commandParams": {
                 "service_package_folder": service_package_folder,
-                "hooks_folder": hooks_folder
+              },
+              "clusterLevelParams": {
+                   "hooks_folder": hooks_folder
               }
             } 
 

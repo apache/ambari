@@ -141,7 +141,8 @@ describe('App.DashboardWidgetView', function () {
       view.set('parentView.userPreferences', {
         visible: [1],
         hidden: [],
-        threshold: []
+        threshold: [],
+        groups: {}
       });
       view.deleteWidget();
     });
@@ -150,7 +151,8 @@ describe('App.DashboardWidgetView', function () {
       expect(view.get('parentView.userPreferences')).to.be.eql({
         visible: [],
         hidden: [1],
-        threshold: []
+        threshold: [],
+        groups: {}
       });
     });
 

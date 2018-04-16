@@ -21,6 +21,26 @@ var App = require('app');
 
 App.WizardStep7View = Em.View.extend({
 
-  templateName: require('templates/wizard/step7')
+  templateName: function () {
+    return require(this.get('controller.isInstallWizard') ? 'templates/wizard/step7_with_category_tabs' : 'templates/wizard/step7');
+  }.property('controller.content.controllerName'),
+
+  willInsertElement: function () {
+    if (this.get('controller.isInstallWizard')) {
+      this.get('controller').initTabs();
+      this.get('controller').loadStep();
+    }
+  },
+
+  willDestroyElement: function () {
+    this.get('controller').clearStep();
+  },
+
+  /**
+   * Link to model with credentials tab
+   */
+  credentialsTab: function () {
+    return App.Tab.find().findProperty('name', 'credentials_tab');
+  }.property()
 
 });

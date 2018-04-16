@@ -107,7 +107,6 @@ public class RecoveryConfigHelper {
     recoveryConfig.setRetryGap(autoStartConfig.getNodeRecoveryRetryGap());
     recoveryConfig.setType(autoStartConfig.getNodeRecoveryType());
     recoveryConfig.setWindowInMinutes(autoStartConfig.getNodeRecoveryWindowInMin());
-    recoveryConfig.setRecoveryTimestamp(now);
     if (autoStartConfig.isRecoveryEnabled()) {
       recoveryConfig.setEnabledComponents(StringUtils.join(autoStartConfig.getEnabledComponents(hostname), ','));
     }

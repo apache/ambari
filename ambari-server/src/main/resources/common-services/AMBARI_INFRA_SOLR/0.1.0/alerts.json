@@ -1,0 +1,37 @@
+{
+  "AMBARI_INFRA_SOLR": {
+    "INFRA_SOLR": [
+      {
+        "name": "infra_solr",
+        "label": "Infra Solr Web UI",
+        "description": "This host-level alert is triggered if the Solr Cloud Instance is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{infra-solr-env/infra_solr_port}}",
+            "https": "{{infra-solr-env/infra_solr_port}}",
+            "https_property": "{{infra-solr-env/infra_solr_ssl_enabled}}",
+            "https_property_value": "true",
+            "connection_timeout": 5.0,
+            "kerberos_keytab": "{{infra-solr-env/infra_solr_web_kerberos_keytab}}",
+            "kerberos_principal": "{{infra-solr-env/infra_solr_web_kerberos_principal}}",
+            "default_port": 8886
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning": {
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1} ({3})"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

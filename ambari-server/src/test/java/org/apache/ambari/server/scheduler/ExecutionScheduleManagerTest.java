@@ -660,7 +660,7 @@ public class ExecutionScheduleManagerTest {
     ExecutionScheduleManager scheduleManager =
       new ExecutionScheduleManager(configurationMock, executionSchedulerMock,
         tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
-    
+
     assertEquals(clustersEndpoint,
       scheduleManager.extendApiResource(webResource, "clusters").getURI().toString());
     assertEquals(clustersEndpoint,

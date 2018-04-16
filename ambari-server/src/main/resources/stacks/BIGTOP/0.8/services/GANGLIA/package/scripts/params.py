@@ -111,7 +111,7 @@ ganglia_cluster_names = {
   "jn_hosts": [("HDPJournalNode", 8654)],
   "flume_hosts": [("HDPFlumeServer", 8655)],
   "hbase_rs_hosts": [("HDPHBaseRegionServer", 8656)],
-  "nm_hosts": [("HDPNodeManager", 8657)],
+  "nodemanager_hosts": [("HDPNodeManager", 8657)],
   "mapred_tt_hosts": [("HDPTaskTracker", 8658)],
   "slave_hosts": [("HDPDataNode", 8659)],
   "namenode_host": [("HDPNameNode", 8661)],

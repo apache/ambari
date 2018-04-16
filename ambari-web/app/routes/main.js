@@ -215,7 +215,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       label: Em.I18n.t('menu.item.hosts'),
       route: 'hosts',
       beforeTransition() {
-        App.router.set('mainHostController.showFilterConditionsFirstLoad', false);
+        App.router.set('mainHostController.showFilterConditionsFirstLoad', true);
+        App.router.set('mainHostController.saveSelection', true);
       }
     },
 
@@ -282,7 +283,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           });
         },
         exitRoute: function (router, context, callback) {
-          router.get('mainController').startPolling();
           callback();
         }
       }),
@@ -353,6 +353,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     addHost: function (router) {
       router.transitionTo('hostAdd');
+    },
+
+    exit: function (router) {
+      router.set('mainHostController.saveSelection', false);
     }
 
   }),
@@ -664,7 +668,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       },
       exitRoute: function (router, context, callback) {
         var controller = router.get('mainAdminServiceAutoStartController');
-        if (!controller.get('isSaveDisabled')) {
+        if (controller.get('isModified')) {
           controller.showSavePopup(callback);
         } else {
           callback();
@@ -819,7 +823,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             //if service is not existed then route to default service
             if (item.get('isLoaded')) {
               if (router.get('mainServiceItemController.isConfigurable')) {
-                router.get('mainController').stopPolling();
                 router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
               }
               else {
@@ -834,17 +837,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         },
         exitRoute: function (router, nextRoute, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
-          var exitCallback = function() {
-            if (!/\/main\/services\/\w+\/configs$/.test(nextRoute)) {
-              router.get('mainController').startPolling();
-            }
-            callback();
-          };
           // If another user is running some wizard, current user can't save configs
           if (controller.hasUnsavedChanges() && !router.get('wizardWatcherController.isWizardRunning')) {
-            controller.showSavePopup(exitCallback);
+            controller.showSavePopup(callback);
           } else {
-            exitCallback();
+            callback();
           }
         }
       }),
@@ -885,6 +882,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 
     enableRAHighAvailability: require('routes/ra_high_availability_routes'),
+
+    enableNameNodeFederation: require('routes/namenode_federation_routes'),
 
     addHawqStandby: require('routes/add_hawq_standby_routes'),
 

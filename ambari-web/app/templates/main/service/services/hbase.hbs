@@ -17,35 +17,41 @@
 }}
 
 <div class="row">
-  <div class="col-md-12 component-summary">
-    <div class="col-md-2">{{t dashboard.services.hdfs.summary.components}}</div>
-    <div class="col-md-10">
-      {{! HBase Master Server }}
-      {{view view.dashboardMasterComponentView}}
-      {{! RegionServers }}
-      {{#if view.isRegionServerCreated}}
-        <div {{bindAttr class=":row :component :col-md-3 view.regionServerComponent.componentName"}}>
-          <div class="summary-value main-info">
-            {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-              <span>
-                {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.regionServersStarted" totalComponentsBinding="view.service.regionServersTotal"}}
-                  {{view.liveComponents}}/{{view.totalComponents}}
-                {{/view}}
-              </span>
-              {{t common.live}}
-            {{else}}
-              {{t common.loading.eclipses}}
-            {{/if}}
+  <div class="component-summary">
+    {{! HBase Master Server }}
+    {{view view.dashboardMasterComponentView}}
+    <div class="col-md-12">
+      <div class="col-md-2">
+        {{#if view.hasMultipleMasterGroups}}
+          {{t dashboard.services.hdfs.summary.components}}
+        {{/if}}
+      </div>
+      <div class="col-md-10">
+        {{! RegionServers }}
+        {{#if view.isRegionServerCreated}}
+          <div {{bindAttr class=":row :component :col-md-3 view.regionServerComponent.componentName"}}>
+            <div class="summary-value main-info">
+              {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+                <span>
+                  {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.regionServersStarted" totalComponentsBinding="view.service.regionServersTotal"}}
+                    {{view.liveComponents}}/{{view.totalComponents}}
+                  {{/view}}
+                </span>
+                {{t common.live}}
+              {{else}}
+                {{t common.loading.eclipses}}
+              {{/if}}
+            </div>
+            <div class="summary-label">
+              <a
+                href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
+            </div>
           </div>
-          <div class="summary-label">
-            <a href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
-          </div>
-        </div>
-      {{/if}}
-      {{! PhoenixServers }}
-      {{#if view.isPhoenixQueryServerCreated}}
-        <div {{bindAttr class=":row :component :col-md-3 view.phoenixServerComponent.componentName"}}>
-          <div class="summary-value main-info">
+        {{/if}}
+        {{! PhoenixServers }}
+        {{#if view.isPhoenixQueryServerCreated}}
+          <div {{bindAttr class=":row :component :col-md-3 view.phoenixServerComponent.componentName"}}>
+            <div class="summary-value main-info">
             <span>
               {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.phoenixServersStarted" totalComponentsBinding="view.service.phoenixServersTotal"}}
                 {{#if App.router.clusterController.isServiceContentFullyLoaded}}
@@ -53,17 +59,19 @@
                 {{/if}}
               {{/view}}
             </span>
-            {{t common.live}}
+              {{t common.live}}
+            </div>
+            <div class="summary-label">
+              <a
+                href="#" {{action filterHosts view.phoenixServerComponent}}>{{t dashboard.services.hbase.phoenixServers}}</a>
+            </div>
           </div>
-          <div class="summary-label">
-            <a href="#" {{action filterHosts view.phoenixServerComponent}}>{{t dashboard.services.hbase.phoenixServers}}</a>
-          </div>
+        {{/if}}
+        {{! Regions in Transition }}
+        <div class="row col-md-3 regions-in-trnasition">
+          <div class="summary-value main-info">{{view.service.regionsInTransition}}</div>
+          <div class="summary-label">{{t dashboard.services.hbase.regions.transition}}</div>
         </div>
-      {{/if}}
-      {{! Regions in Transition }}
-      <div class="row col-md-3 regions-in-trnasition">
-        <div class="summary-value main-info">{{view.service.regionsInTransition}}</div>
-        <div class="summary-label">{{t dashboard.services.hbase.regions.transition}}</div>
       </div>
     </div>
   </div>

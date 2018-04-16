@@ -19,6 +19,7 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.expect;
+import static org.mockito.Matchers.anyBoolean;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,9 +40,11 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -65,10 +68,13 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
 
+  private final TopologyHolder topologyHolder = createNiceMock(TopologyHolder.class);
+
   @Test
   @Ignore("Update accordingly to changes")
   public void executeMITKDCOption() throws Exception {
     String clusterName = "c1";
+    String clusterId = "1";
     Injector injector = setup(clusterName);
 
     File dataDirectory = createDataDirectory();
@@ -77,7 +83,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     commandParams.put(KerberosServerAction.KDC_TYPE, KDCType.MIT_KDC.name());
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
 
-    ExecutionCommand executionCommand = createMockExecutionCommand(clusterName, commandParams);
+    ExecutionCommand executionCommand = createMockExecutionCommand(clusterId, clusterName, commandParams);
     HostRoleCommand hostRoleCommand = createMockHostRoleCommand();
 
     PrincipalKeyCredential principleKeyCredential = createMock(PrincipalKeyCredential.class);
@@ -89,7 +95,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
 
     ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
 
-    FinalizeKerberosServerAction action = injector.getInstance(FinalizeKerberosServerAction.class);
+    FinalizeKerberosServerAction action = new FinalizeKerberosServerAction(topologyHolder);
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -106,6 +112,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
   @Test
   public void executeManualOption() throws Exception {
     String clusterName = "c1";
+    String clusterId = "1";
     Injector injector = setup(clusterName);
 
     File dataDirectory = createDataDirectory();
@@ -113,14 +120,14 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
 
-    ExecutionCommand executionCommand = createMockExecutionCommand(clusterName, commandParams);
+    ExecutionCommand executionCommand = createMockExecutionCommand(clusterId, clusterName, commandParams);
     HostRoleCommand hostRoleCommand = createMockHostRoleCommand();
 
     replayAll();
 
     ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
 
-    FinalizeKerberosServerAction action = injector.getInstance(FinalizeKerberosServerAction.class);
+    FinalizeKerberosServerAction action = new FinalizeKerberosServerAction(topologyHolder);
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -150,8 +157,9 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     Assert.assertEquals("{}", commandReport.getStructuredOut());
   }
 
-  private ExecutionCommand createMockExecutionCommand(String clusterName, Map<String, String> commandParams) {
+  private ExecutionCommand createMockExecutionCommand(String clusterId, String clusterName, Map<String, String> commandParams) {
     ExecutionCommand executionCommand = createMock(ExecutionCommand.class);
+    expect(executionCommand.getClusterId()).andReturn(clusterId).anyTimes();
     expect(executionCommand.getClusterName()).andReturn(clusterName).anyTimes();
     expect(executionCommand.getCommandParams()).andReturn(commandParams).anyTimes();
     expect(executionCommand.getRoleCommand()).andReturn(RoleCommand.EXECUTE).anyTimes();
@@ -192,6 +200,10 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     final Clusters clusters = createMock(Clusters.class);
     expect(clusters.getHostsForCluster(clusterName)).andReturn(clusterHostMap).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+
+    final TopologyUpdateEvent event = createNiceMock(TopologyUpdateEvent.class);
+    expect(topologyHolder.getCurrentData()).andReturn(event).once();
+    expect(topologyHolder.updateData(event)).andReturn(anyBoolean()).once();
 
     return Guice.createInjector(new AbstractModule() {
 

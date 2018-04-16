@@ -126,7 +126,7 @@ class TestRangerTagsync(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-tagsync/conf',
       configurations = self.getConfig()['configurations']['ranger-tagsync-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-tagsync-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-tagsync-site'],
       mode=0644
     )
 
@@ -155,7 +155,7 @@ class TestRangerTagsync(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-tagsync/conf',
       configurations = ranger_tagsync_policymgr_ssl_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-tagsync-policymgr-ssl'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-tagsync-policymgr-ssl'],
       mode = 0644,
     )
 
@@ -276,6 +276,6 @@ class TestRangerTagsync(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-tagsync/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       mode = 0644
     )

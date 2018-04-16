@@ -49,4 +49,8 @@ public interface InputDescriptor {
   Long getCacheDedupInterval();
 
   Boolean isEnabled();
+
+  String getGroup();
+
+  Boolean isInitDefaultFields();
 }

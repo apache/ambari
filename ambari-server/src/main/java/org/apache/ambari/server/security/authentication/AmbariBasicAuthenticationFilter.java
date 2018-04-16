@@ -21,20 +21,20 @@ import java.io.IOException;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.stereotype.Component;
 
 /**
  * AmbariBasicAuthenticationFilter extends a {@link BasicAuthenticationFilter} to allow for auditing
@@ -44,6 +44,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  *
  * @see AmbariDelegatingAuthenticationFilter
  */
+@Component
+@Order(3)
 public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter implements AmbariAuthenticationFilter {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariBasicAuthenticationFilter.class);
 
@@ -100,20 +102,19 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
   /**
    * Checks whether the authentication information is filled. If it is not, then a login failed audit event is logged
    *
-   * @param servletRequest  the request
-   * @param servletResponse the response
-   * @param chain           the Spring filter chain
+   * @param httpServletRequest  the request
+   * @param httpServletResponse the response
+   * @param filterChain           the Spring filter chain
    * @throws IOException
    * @throws ServletException
    */
   @Override
-  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
-
+  public void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws IOException, ServletException {
     if (eventHandler != null) {
-      eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
+      eventHandler.beforeAttemptAuthentication(this, httpServletRequest, httpServletResponse);
     }
 
-    super.doFilter(servletRequest, servletResponse, chain);
+    super.doFilterInternal(httpServletRequest, httpServletResponse, filterChain);
   }
 
   /**

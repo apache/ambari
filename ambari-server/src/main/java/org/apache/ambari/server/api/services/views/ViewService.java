@@ -29,6 +29,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -39,6 +40,8 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.ViewResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 
+import org.apache.http.HttpStatus;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -46,6 +49,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
 
 /**
  * Service responsible for view resource requests.
@@ -64,18 +68,23 @@ public class ViewService extends BaseService {
    * @return view collection resource representation
    */
   @GET
-  @Produces("text/plain")
-  @ApiOperation(value = "Get all views", nickname = "ViewService#getViews", notes = "Returns details of all views.", response = ViewResponse.class, responseContainer = "List")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all views", nickname = "getViews", notes = "Returns details of all views.", response = ViewResponse.class, responseContainer = "List")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter view details", defaultValue = "ViewInfo/*", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "ViewInfo/view_name.asc", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "page_size", value = "The number of resources to be returned for the paged response.", defaultValue = "10", dataType = "integer", paramType = "query"),
-    @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "Views/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, defaultValue = "Views/view_name.asc", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = ViewResponse.class, responseContainer = "List")}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getViews(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET, createViewResource(null));
   }
@@ -92,14 +101,19 @@ public class ViewService extends BaseService {
    */
   @GET
   @Path("{viewName}")
-  @Produces("text/plain")
-  @ApiOperation(value = "Get single view", nickname = "ViewService#getView", notes = "Returns view details.", response = ViewResponse.class)
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get single view", response = ViewResponse.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "fields", value = "Filter view details", defaultValue = "ViewInfo", dataType = "string", paramType = "query")
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "Views/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
   })
-  @ApiResponses(value = {
-    @ApiResponse(code = 200, message = "Successful operation", response = ViewResponse.class)}
-  )
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+  })
   public Response getView(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                           @ApiParam(value = "view name", required = true) @PathParam("viewName") String viewName) {
 
@@ -118,10 +132,9 @@ public class ViewService extends BaseService {
    */
   @POST @ApiIgnore // until documented
   @Path("{viewName}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response createView(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("viewName") String viewName) {
-
     return handleRequest(headers, body, ui, Request.Type.POST, createViewResource(viewName));
   }
 
@@ -137,7 +150,7 @@ public class ViewService extends BaseService {
    */
   @PUT @ApiIgnore // until documented
   @Path("{viewName}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response updateView(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                              @ApiParam(value = "view name", required = true) @PathParam("viewName") String viewName) {
 
@@ -156,7 +169,7 @@ public class ViewService extends BaseService {
    */
   @DELETE @ApiIgnore // until documented
   @Path("{viewName}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
   public Response deleteView(@Context HttpHeaders headers, @Context UriInfo ui,
                              @ApiParam(value = "view name", required = true) @PathParam("viewName") String viewName) {
 

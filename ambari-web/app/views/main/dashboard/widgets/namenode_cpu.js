@@ -18,12 +18,15 @@
 
 var App = require('app');
 
-App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
+App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend(App.NameNodeWidgetMixin, {
 
-  widgetHtmlId: 'widget-nn-cpu',
+  widgetHtmlId: Em.computed.format('widget-nn-cpu-{0}', 'subGroupId'),
   cpuWio: null,
   nnHostName: "",
   intervalId: null,
+
+  activeNameNodes: Em.computed.alias('model.activeNameNodes'),
+  nameNode: Em.computed.alias('model.nameNode'),
 
   willDestroyElement: function () {
     clearInterval(this.get("intervalId"));
@@ -31,20 +34,20 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
 
   didInsertElement: function () {
     this._super();
-    var self = this,
-      intervalId;
-    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
+    let intervalId;
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(() => {
       if (App.get('isHaEnabled')) {
-        self.set('nnHostName', self.get('model.activeNameNode.hostName'));
+        const nn = this.get('activeNameNodes').findProperty('haNameSpace', this.get('subGroupId'));
+        if (nn) {
+          this.set('nnHostName', nn.get('hostName'));
+        }
       } else {
-        self.set('nnHostName', self.get('model.nameNode.hostName'));
+        this.set('nnHostName', this.get('nameNode.hostName'));
       }
-      if (self.get('nnHostName')) {
-        self.getValue();
-        intervalId = setInterval(function () {
-          self.getValue()
-        }, App.componentsUpdateInterval);
-        self.set('intervalId', intervalId);
+      if (this.get('nnHostName')) {
+        this.getValue();
+        intervalId = setInterval(() => this.getValue(), App.componentsUpdateInterval);
+        this.set('intervalId', intervalId);
       }
     });
   },

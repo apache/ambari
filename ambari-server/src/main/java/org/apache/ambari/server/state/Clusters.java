@@ -109,14 +109,13 @@ public interface Clusters {
   /**
    * Gets whether the specified cluster has a mapping for the specified host.
    *
-   * @param clusterName
-   *          the cluster (not {@code null}).
+   * @param clusterId the cluster ID
    * @param hostName
    *          the host (not {@code null}).
    * @return {@code true} if the host belongs to the cluster, {@code false}
    *         otherwise.
    */
-  boolean isHostMappedToCluster(String clusterName, String hostName);
+  boolean isHostMappedToCluster(long clusterId, String hostName);
 
   /**
    * Get a Host object managed by this server

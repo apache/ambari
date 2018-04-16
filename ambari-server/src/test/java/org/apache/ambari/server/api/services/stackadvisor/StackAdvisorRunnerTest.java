@@ -26,8 +26,10 @@ import static org.powermock.api.support.membermodification.MemberModifier.stub;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommandType;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.After;
 import org.junit.Before;
@@ -64,11 +66,13 @@ public class StackAdvisorRunnerTest {
     File actionDirectory = temp.newFolder("actionDir");
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
     StackAdvisorRunner saRunner = new StackAdvisorRunner();
-
+    Configuration configMock = createNiceMock(Configuration.class);
+    saRunner.setConfigs(configMock);
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
     expect(processBuilder.start()).andThrow(new IOException());
-    replay(processBuilder);
+    replay(processBuilder, configMock);
     saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
   }
 
@@ -80,12 +84,14 @@ public class StackAdvisorRunnerTest {
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
     Process process = createNiceMock(Process.class);
     StackAdvisorRunner saRunner = new StackAdvisorRunner();
-
+    Configuration configMock = createNiceMock(Configuration.class);
+    saRunner.setConfigs(configMock);
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(1);
-    replay(processBuilder, process);
+    replay(processBuilder, process, configMock);
     saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
   }
 
@@ -97,12 +103,15 @@ public class StackAdvisorRunnerTest {
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
     Process process = createNiceMock(Process.class);
     StackAdvisorRunner saRunner = new StackAdvisorRunner();
+    Configuration configMock = createNiceMock(Configuration.class);
+    saRunner.setConfigs(configMock);
 
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(2);
-    replay(processBuilder, process);
+    replay(processBuilder, process, configMock);
     saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
   }
 
@@ -114,12 +123,15 @@ public class StackAdvisorRunnerTest {
     ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
     Process process = createNiceMock(Process.class);
     StackAdvisorRunner saRunner = new StackAdvisorRunner();
+    Configuration configMock = createNiceMock(Configuration.class);
+    saRunner.setConfigs(configMock);
 
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(0);
-    replay(processBuilder, process);
+    replay(processBuilder, process, configMock);
     try {
       saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
     } catch (StackAdvisorException ex) {

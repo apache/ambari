@@ -137,7 +137,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     }
     return showAlert;
   },
-  
+
   showPopup: function(hostComponent) {
     var missingDependentServices = this.getAllMissingDependentServices();
     var isNonWizardPage = !this.get('content.controllerName');
@@ -146,9 +146,9 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     } else {
       this.set('mastersToCreate', [hostComponent.componentName]);
       this.showAssignComponentPopup();
-    }  
+    }
   },
-  
+
   /**
    * Used to set showAddControl/showRemoveControl flag
    * @param componentName
@@ -384,7 +384,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     var recommendationsHostGroups = this.get('content.recommendationsHostGroups');
     var mastersToCreate = this.get('mastersToCreate');
     mastersToCreate.forEach(function(componentName) {
-      var hostName = this.getSelectedHostName(componentName);
+      var hostName = this.getSelectedHostNames(componentName)[0];
       if (hostName && recommendationsHostGroups) {
         var hostGroups = recommendationsHostGroups.blueprint_cluster_binding.host_groups;
         var isHostPresent = false;
@@ -409,25 +409,25 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   },
 
   /**
-   * Get the fqdn hostname as selected by the user for the component.
+   * Get the fqdn hostnames as selected by the user for the component.
    * @param componentName
-   * @return {String}
+   * @return {String[]}
    */
-  getSelectedHostName: function(componentName) {
+  getSelectedHostNames: function(componentName) {
     var selectedServicesMasters = this.get('selectedServicesMasters');
-    return selectedServicesMasters.findProperty('component_name', componentName).selectedHost;
+    return selectedServicesMasters.filterProperty('component_name', componentName).mapProperty('selectedHost');
   },
 
   /**
    * set App.componentToBeAdded to use it on subsequent validation call while saving configuration
    * @param componentName {String}
-   * @param hostName {String}
+   * @param hostNames {String[]}
    * @method {setGlobalComponentToBeAdded}
    */
-  setGlobalComponentToBeAdded: function(componentName, hostName) {
+  setGlobalComponentToBeAdded: function(componentName, hostNames) {
     var componentToBeAdded = Em.Object.create({
        componentName: componentName,
-       hostNames: [hostName]
+       hostNames: hostNames
     });
     App.set('componentToBeAdded', componentToBeAdded);
   },
@@ -467,7 +467,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       var context = self.get('configWidgetContext');
       context.toggleProperty('controller.forceUpdateBoundaries');
       var configActionComponent = self.get('configActionComponent');
-      var componentHostName = self.getSelectedHostName(configActionComponent.componentName);
+      var componentHostNames = self.getSelectedHostNames(configActionComponent.componentName);
       var config = self.get('configWidgetContext.config');
 
       // TODO remove after stack advisor is able to handle this case
@@ -484,82 +484,20 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
         var miscConfigs = context.get('controller.stepConfigs').findProperty('serviceName', 'MISC').get('configs');
         serviceConfigs = serviceConfigs.concat(miscConfigs);
       } else {
-        self.setGlobalComponentToBeAdded(configActionComponent.componentName, componentHostName);
+        self.setGlobalComponentToBeAdded(configActionComponent.componentName, componentHostNames);
         self.clearComponentsToBeDeleted(configActionComponent.componentName);
       }
 
-      configActionComponent.hostName = componentHostName;
+      configActionComponent.hostNames = componentHostNames;
       config.set('configActionComponent', configActionComponent);
-      /* TODO uncomment after stack advisor is able to handle this case
+
        var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
        context.get('controller').loadConfigRecommendations([{
         type: App.config.getConfigTagFromFileName(config.get('fileName')),
         name: config.get('name'),
         old_value: config.get(oldValueKey)
       }]);
-      */
-      self.resolveDependencies(dependencies, serviceConfigs, context);
     });
-  },
-
-  /**
-   * TODO remove after stack advisor is able to handle this case
-   * workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive
-   * @param {object} dependencies
-   * @param {array} serviceConfigs
-   * @param {Em.Object} context
-   */
-  resolveDependencies: function(dependencies, serviceConfigs, context) {
-    if (dependencies) {
-      var foreignKeys = this.getDependenciesForeignKeys(dependencies, serviceConfigs);
-
-      if (dependencies.properties && dependencies.initializer) {
-        var initializer = App.get(dependencies.initializer.name);
-        var setup = Em.getProperties(foreignKeys, dependencies.initializer.setupKeys);
-        initializer.setup(setup);
-        var blueprintObject = {};
-        dependencies.properties.forEach(function (property) {
-          var propertyObject = Em.getProperties(property, ['name', 'fileName']);
-          if (property.nameTemplate) {
-            var name = property.nameTemplate;
-            Em.keys(foreignKeys).forEach(function (key) {
-              name = name.replace('{{' + key + '}}', foreignKeys[key]);
-            });
-            propertyObject.name = name;
-          }
-          if (!blueprintObject[property.fileName]) {
-            blueprintObject[property.fileName] = {
-              properties: {}
-            };
-          }
-          var result = initializer.initialValue(propertyObject, {
-            masterComponentHosts: this.getMasterComponents(dependencies, context)
-          });
-
-          var propertiesMap = blueprintObject[propertyObject.fileName].properties;
-          propertiesMap[propertyObject.name] = result.value;
-
-          if (property.isHostsList) {
-            var service = App.config.get('serviceByConfigTypeMap')[propertyObject.fileName];
-            if (service) {
-              var serviceName = service.get('serviceName');
-              var configs = serviceName === context.get('controller.selectedService.serviceName') ? serviceConfigs :
-                context.get('controller.stepConfigs').findProperty('serviceName', serviceName).get('configs');
-              var originalFileName = App.config.getOriginalFileName(propertyObject.fileName);
-              var currentProperty = configs.find(function (configProperty) {
-                return configProperty.get('filename') === originalFileName && configProperty.get('name') === propertyObject.name;
-              });
-              if (currentProperty) {
-                propertiesMap[propertyObject.name] = currentProperty.get('value');
-                App.config.updateHostsListValue(propertiesMap, propertyObject.fileName, propertyObject.name, propertyObject.value, property.isHostsArray);
-              }
-            }
-          }
-          this.saveRecommendations(context, blueprintObject);
-          initializer.cleanup();
-        }, this);
-      }
-    }
   },
 
   /**

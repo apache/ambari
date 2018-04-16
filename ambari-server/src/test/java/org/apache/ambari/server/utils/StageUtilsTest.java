@@ -44,45 +44,26 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
 import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.security.SecurityHelper;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigFactory;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.UpgradeContextFactory;
-import org.apache.ambari.server.state.cluster.ClusterFactory;
-import org.apache.ambari.server.state.host.HostFactory;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.easymock.EasyMockSupport;
@@ -113,30 +94,16 @@ public class StageUtilsTest extends EasyMockSupport {
 
       @Override
       protected void configure() {
-        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
-        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(ClusterFactory.class).toInstance(createNiceMock(ClusterFactory.class));
-        bind(HostFactory.class).toInstance(createNiceMock(HostFactory.class));
-        bind(SecurityHelper.class).toInstance(createNiceMock(SecurityHelper.class));
-        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
-        bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
+
+        PartialNiceMockBinder.newBuilder(StageUtilsTest.this).addAmbariMetaInfoBinding()
+            .addDBAccessorBinding().build().configure(binder());
+
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
-        bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
-        bind(StageFactory.class).to(StageFactoryImpl.class);
-        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
         bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
-        bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
-        bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
-        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
 
         install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
-        install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
-        install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
         install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
-        install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
       }
     });
 

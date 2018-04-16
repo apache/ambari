@@ -27,12 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.nio.charset.Charset;
 
 @Configuration
+@Lazy
 public class LogFeederSecurityConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(LogFeederSecurityConfig.class);
@@ -48,7 +50,7 @@ public class LogFeederSecurityConfig {
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
 
-  private static final String LOGFEEDER_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
+  private static final String LOGFEEDER_CERT_DEFAULT_FOLDER = "/usr/lib/ambari-logsearch-logfeeder/conf/keys";
   private static final String LOGFEEDER_STORE_DEFAULT_PASSWORD = "bigdata";
 
   private static final String CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY = "hadoop.security.credential.provider.path";
@@ -65,7 +67,7 @@ public class LogFeederSecurityConfig {
   @LogSearchPropertyDescription(
     name = LogFeederConstants.SOLR_JAAS_FILE_PROPERTY,
     description = "The jaas file used for solr.",
-    examples = {"/etc/ambari-logsearch-logfeeder/conf/logfeeder_jaas.conf"},
+    examples = {"/usr/lib/ambari-logsearch-logfeeder/conf/logfeeder_jaas.conf"},
     defaultValue = LogFeederConstants.DEFAULT_SOLR_JAAS_FILE,
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )

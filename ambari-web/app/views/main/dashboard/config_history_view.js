@@ -59,17 +59,15 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
     this.set('isInitialRendering', true);
-    this.refresh();
-    this.set('controller.isPolling', true);
-    this.get('controller').doPolling();
+    this.refresh(true);
+    this.get('controller').subscribeToUpdates();
   },
 
   /**
    * stop polling after leaving config history page
    */
   willDestroyElement: function () {
-    this.set('controller.isPolling', false);
-    clearTimeout(this.get('controller.timeoutRef'));
+    this.get('controller').unsubscribeOfUpdates();
   },
 
   sortView: sort.serverWrapperView,
@@ -118,11 +116,12 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
 
   /**
    * refresh table content
+   * @param {boolean} shouldUpdateCounter
    */
-  refresh: function () {
+  refresh: function (shouldUpdateCounter) {
     var self = this;
     this.set('filteringComplete', false);
-    this.get('controller').load().done(function () {
+    this.get('controller').load(shouldUpdateCounter).done(function () {
       self.refreshDone.apply(self);
     });
   },

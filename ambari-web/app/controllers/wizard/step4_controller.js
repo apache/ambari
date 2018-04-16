@@ -193,8 +193,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       this.serviceValidation(callback, 'AMBARI_METRICS', 'ambariMetricsCheck');
       this.serviceValidation(callback, 'SMARTSENSE', 'smartSenseCheck');
     }
-    this.dependentServiceValidation('ATLAS', 'AMBARI_INFRA', 'ambariInfraCheck', callback);
-    this.dependentServiceValidation('LOGSEARCH', 'AMBARI_INFRA', 'ambariLogsearchCheck', callback);
+    this.dependentServiceValidation('ATLAS', 'AMBARI_INFRA_SOLR', 'ambariInfraCheck', callback);
+    this.dependentServiceValidation('LOGSEARCH', 'AMBARI_INFRA_SOLR', 'ambariLogsearchCheck', callback);
     this.rangerValidation(callback);
     this.sparkValidation(callback);
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
@@ -379,7 +379,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         }
         else
         {
-          //if multiple DFS are not selected, remove the related error from the error array 
+          //if multiple DFS are not selected, remove the related error from the error array
           var fsError = this.get('errorStack').filterProperty('id',"multipleDFS");
           if(fsError)
           {

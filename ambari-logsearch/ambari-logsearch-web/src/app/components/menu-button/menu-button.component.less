@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-@import '../mixins';
+@import '../../modules/shared/mixins';
 
 :host {
   cursor: pointer;
   display: inline-block;
   position: relative;
+  &.disabled {
+    cursor: auto;
+  }
   a {
     text-align: center;
     text-decoration: none;
@@ -44,5 +47,12 @@
     position: absolute;
     top: 0;
     right: -1em;
+  }
+
+  .disabled {
+    * {
+      color: @unknown-color;
+      cursor: auto;
+    }
   }
 }

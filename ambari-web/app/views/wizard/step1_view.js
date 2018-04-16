@@ -23,29 +23,33 @@ App.WizardStep1View = Em.View.extend({
 
   templateName: require('templates/wizard/step1'),
 
-  didInsertElement: function () {
-    $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
-    $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
-    $('.add-os-button,.redhat-label').tooltip();
-    this.$().on('mouseover', '.version-contents-body .table-hover > tbody > tr', function () {
-      App.tooltip($(this).find('.action .icon'), {placement: 'bottom'});
-      App.tooltip($(this).find('.icon-undo'), {placement: 'bottom'});
-    });
-    if (this.get('controller.selectedStack.showAvailable')) {
-      // first time load
-      if (this.get('controller.selectedStack.useRedhatSatellite')) {
-        // restore `use local repo` on page refresh
-        this.get('controller').useLocalRepo();
-      }
-    } else {
-      var selected = this.get('controller.content.stacks') && this.get('controller.content.stacks').findProperty('showAvailable');
-      if (!selected) {
-        // network disconnection
-        Em.trySet(this, 'controller.selectedStack.useLocalRepo', true);
-        Em.trySet(this, 'controller.selectedStack.usePublicRepo', false);
-      }
+  initView: function () {
+    if (this.get('controller.isLoadingComplete') && this.get('state') === 'inDOM') {
+      Em.run.next(() => {
+        $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
+        $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
+        $('.add-os-button,.redhat-label').tooltip();
+        this.$().on('mouseover', '.version-contents-body .table-hover > tbody > tr', function () {
+          App.tooltip($(this).find('.action .icon'), {placement: 'bottom'});
+          App.tooltip($(this).find('.icon-undo'), {placement: 'bottom'});
+        });
+        if (this.get('controller.selectedStack.showAvailable')) {
+          // first time load
+          if (this.get('controller.selectedStack.useRedhatSatellite')) {
+            // restore `use local repo` on page refresh
+            this.get('controller').useLocalRepo();
+          }
+        } else {
+          var selected = this.get('controller.content.stacks') && this.get('controller.content.stacks').findProperty('showAvailable');
+          if (!selected) {
+            // network disconnection
+            Em.trySet(this, 'controller.selectedStack.useLocalRepo', true);
+            Em.trySet(this, 'controller.selectedStack.usePublicRepo', false);
+          }
+        }
+      });
     }
-  },
+  }.observes('controller.isLoadingComplete'),
 
   willDestroyElement: function () {
     $("[rel=skip-validation-tooltip]").tooltip('destroy');
@@ -175,12 +179,12 @@ App.WizardStep1View = Em.View.extend({
    * @type {bool}
    */
   invalidFormatUrlExist: function () {
-    if (this.get('controller.selectedStack.useRedhatSatellite')) {
-      return false;
-    }
     var allRepositories = this.get('allRepositories');
     if (!allRepositories) {
       return false;
+    }
+    if (this.get('controller.selectedStack.useRedhatSatellite')) {
+      allRepositories = allRepositories.filter(this.isRedhat);
     }
     return allRepositories.someProperty('invalidFormatError', true);
   }.property('controller.selectedStack.useRedhatSatellite', 'allRepositories.@each.invalidFormatError'),
@@ -196,6 +200,15 @@ App.WizardStep1View = Em.View.extend({
    * @type {bool}
    */
   isNoOsChecked: Em.computed.everyBy('controller.selectedStack.operatingSystems', 'isSelected', false),
+
+  /**
+   *
+   * @param {App.Repository} item
+   * @returns {boolean}
+   */
+  isRedhat: function(item) {
+    return Boolean(item.get('osType') && item.get('osType').contains('redhat'));
+  },
 
   /**
    * If all OSes are empty
@@ -242,6 +255,16 @@ App.WizardStep1View = Em.View.extend({
       }
       return false;
     }
+  }),
+
+  repositoryTextField: Ember.TextField.extend({
+    repository: null,
+    placeholderBinding: "repository.placeholder",
+    valueBinding: "repository.baseUrl",
+    disabled: function() {
+      var isRedhat = this.get('parentView').isRedhat(this.get('repository'));
+      return this.get('controller.selectedStack.useRedhatSatellite') && !isRedhat;
+    }.property('controller.selectedStack.useRedhatSatellite')
   }),
 
   /**

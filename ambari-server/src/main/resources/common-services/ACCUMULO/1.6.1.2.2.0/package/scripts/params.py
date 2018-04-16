@@ -45,7 +45,7 @@ stack_name = status_params.stack_name
 
 # stack version
 version = default("/commandParams/version", None)
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 has_secure_user_auth = False
@@ -77,7 +77,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 pid_dir = status_params.pid_dir
 
 # accumulo env
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 accumulo_master_heapsize = config['configurations']['accumulo-env']['accumulo_master_heapsize']
 accumulo_tserver_heapsize = config['configurations']['accumulo-env']['accumulo_tserver_heapsize']
 accumulo_monitor_heapsize = config['configurations']['accumulo-env']['accumulo_monitor_heapsize']
@@ -120,7 +120,7 @@ info_log_size = config['configurations']['accumulo-log4j']['info_log_size']
 info_num_logs = config['configurations']['accumulo-log4j']['info_num_logs']
 
 # metrics2 properties
-ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
+ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_hosts', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
 
 set_instanceId = "false"
@@ -155,10 +155,16 @@ metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sin
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
 host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
+is_aggregation_https_enabled = False
+if default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+  host_in_memory_aggregation_protocol = 'https'
+  is_aggregation_https_enabled = True
+else:
+  host_in_memory_aggregation_protocol = 'http'
 
 # if accumulo is selected accumulo_tserver_hosts should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
-  tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/slave_hosts')
+  tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/datanode_hosts')
 else:
   tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/all_hosts')
 master_hosts = default('/clusterHostInfo/accumulo_master_hosts', [])

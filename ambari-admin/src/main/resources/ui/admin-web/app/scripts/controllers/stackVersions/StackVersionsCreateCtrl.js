@@ -292,8 +292,7 @@ angular.module('ambariAdminConsole')
         enabled = true
       }
     });
-    var isRedhatSatelliteSelected = $scope.useRedhatSatellite;
-    return !(isRedhatSatelliteSelected || (enabled && $scope.validBaseUrlsExist()));
+    return !(enabled && $scope.validBaseUrlsExist());
   };
 
   $scope.defaulfOSRepos = {};
@@ -308,12 +307,6 @@ angular.module('ambariAdminConsole')
         $scope.updateObj.operating_systems.push(os);
       }
     });
-
-    if ( $scope.useRedhatSatellite ){
-      angular.forEach( $scope.osList, function (os) {
-        os.repositories = [];
-      } )
-    }
 
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
     return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
@@ -353,7 +346,7 @@ angular.module('ambariAdminConsole')
                 $t('versions.register.error.body'),
                 null,
                 null,
-                true
+                {hideCancelButton: true}
               )
             });
           }
@@ -426,7 +419,7 @@ angular.module('ambariAdminConsole')
       },
       $t('common.controls.ok'),
       $t('common.controls.cancel'),
-      true
+      {hideCancelButton: true}
     )
   };
 

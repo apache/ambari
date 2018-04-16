@@ -18,15 +18,23 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
+import org.apache.commons.collections.MapUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -97,6 +105,35 @@ public class ServiceComponentDesiredStateDAO {
     }
 
     return entity;
+  }
+
+  /**
+   * Finds a {@link ServiceComponentDesiredStateEntity} by a combination of cluster id, service and component names.
+   * @param serviceComponentDesiredStates - component names mapped by service names and cluster ids.
+   * @return all found entities according to input map.
+   */
+  @RequiresSession
+  public List<ServiceComponentDesiredStateEntity> findByNames(Map<Long, Map<String, List<String>>> serviceComponentDesiredStates) {
+    if (MapUtils.isEmpty(serviceComponentDesiredStates)) {
+      return Collections.emptyList();
+    }
+    CriteriaBuilder cb = entityManagerProvider.get().getCriteriaBuilder();
+    CriteriaQuery<ServiceComponentDesiredStateEntity> cq = cb.createQuery(ServiceComponentDesiredStateEntity.class);
+    Root<ServiceComponentDesiredStateEntity> desiredStates = cq.from(ServiceComponentDesiredStateEntity.class);
+
+    List<Predicate> clusters = new ArrayList<>();
+    for (Map.Entry<Long, Map<String, List<String>>> cluster : serviceComponentDesiredStates.entrySet()) {
+      List<Predicate> services = new ArrayList<>();
+      for (Map.Entry<String, List<String>> service : cluster.getValue().entrySet()) {
+        services.add(cb.and(cb.equal(desiredStates.get("serviceName"), service.getKey()),
+            desiredStates.get("componentName").in(service.getValue())));
+      }
+      clusters.add(cb.and(cb.equal(desiredStates.get("clusterId"), cluster.getKey()),
+          cb.or(services.toArray(new Predicate[services.size()]))));
+    }
+    cq.where(cb.or(clusters.toArray(new Predicate[clusters.size()])));
+    TypedQuery<ServiceComponentDesiredStateEntity> query = entityManagerProvider.get().createQuery(cq);
+    return daoUtils.selectList(query);
   }
 
   @Transactional

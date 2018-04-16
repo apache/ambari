@@ -217,7 +217,7 @@ public class StackServiceComponentResourceProvider extends
           response.isReassignAlllowed(), requestedIds);
 
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
-          response.getCustomCommands(), requestedIds);
+          response.getVisibleCustomCommands(), requestedIds);
 
       setResourceProperty(resource, BULK_COMMANDS_DISPLAY_NAME_PROPERTY_ID,
           response.getBulkCommandsDisplayName(), requestedIds);

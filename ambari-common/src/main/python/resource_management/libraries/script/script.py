@@ -28,6 +28,7 @@ import logging
 import platform
 import inspect
 import tarfile
+import traceback
 import time
 from optparse import OptionParser
 import resource_management
@@ -59,7 +60,6 @@ from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.core.providers import get_provider
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -80,7 +80,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
-[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1
+[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1_2
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
@@ -103,30 +103,7 @@ def get_path_from_configuration(name, configuration):
 def get_config_lock_file():
   return os.path.join(Script.get_tmp_dir(), "link_configs_lock_file")
 
-class LockedConfigureMeta(type):
-  '''
-  This metaclass ensures that Script.configure() is invoked with a fcntl-based process lock
-  if necessary (when Ambari Agent is configured to execute tasks concurrently) for all subclasses.
-  '''
-  def __new__(meta, classname, supers, classdict):
-    if 'configure' in classdict:
-      original_configure = classdict['configure']
-
-      def locking_configure(obj, *args, **kw):
-        # local import to avoid circular dependency (default imports Script)
-        from resource_management.libraries.functions.default import default
-        parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
-        lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
-        with lock:
-          original_configure(obj, *args, **kw)
-
-      classdict['configure'] = locking_configure
-
-    return type.__new__(meta, classname, supers, classdict)
-
 class Script(object):
-  __metaclass__ = LockedConfigureMeta
-
   instance = None
 
   """
@@ -152,7 +129,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = "PROTOCOL_TLSv1"
+  force_https_protocol = "PROTOCOL_TLSv1_2"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -264,7 +241,7 @@ class Script(object):
 
         # if repository_version_id is passed, pass it back with the version
         from resource_management.libraries.functions.default import default
-        repo_version_id = default("/hostLevelParams/repository_version_id", None)
+        repo_version_id = default("/repositoryFile/repoVersionId", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:
@@ -280,7 +257,7 @@ class Script(object):
     :return: True or False
     """
     from resource_management.libraries.functions.default import default
-    stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
+    stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
       if command_name.lower() == "status":
@@ -493,6 +470,7 @@ class Script(object):
     :return: stack version including the build number. e.g.: 2.3.4.0-1234.
     """
     from resource_management.libraries.functions import stack_select
+    from ambari_commons.repo_manager import ManagerFactory
 
     # preferred way is to get the actual selected version of current component
     stack_select_package_name = stack_select.get_package_name()
@@ -505,7 +483,7 @@ class Script(object):
     if not Script.stack_version_from_distro_select or '*' in Script.stack_version_from_distro_select:
       # FIXME: this method is not reliable to get stack-selector-version
       # as if there are multiple versions installed with different <stack-selector-tool>, we won't detect the older one (if needed).
-      pkg_provider = get_provider("Package")
+      pkg_provider = ManagerFactory.get()
 
       Script.stack_version_from_distro_select = pkg_provider.get_installed_package_version(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
@@ -558,7 +536,6 @@ class Script(object):
     if package_version is None:
       package_version = default("hostLevelParams/package_version", None)
 
-    package_version = None
     if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
       self.load_available_packages()
       package_name = self.get_package_from_available(name, self.available_packages_in_repos)
@@ -620,7 +597,7 @@ class Script(object):
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1 by default
+    :return: protocol name, PROTOCOL_TLSv1_2 by default
     """
     return Script.force_https_protocol
 
@@ -661,11 +638,11 @@ class Script(object):
   @staticmethod
   def get_stack_name():
     """
-    Gets the name of the stack from hostLevelParams/stack_name.
+    Gets the name of the stack from clusterLevelParams/stack_name.
     :return: a stack name or None
     """
     from resource_management.libraries.functions.default import default
-    stack_name = default("/hostLevelParams/stack_name", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
     if stack_name is None:
       stack_name = default("/configurations/cluster-env/stack_name", "HDP")
 
@@ -700,10 +677,10 @@ class Script(object):
     :return: a normalized stack version or None
     """
     config = Script.get_config()
-    if 'hostLevelParams' not in config or 'stack_version' not in config['hostLevelParams']:
+    if 'clusterLevelParams' not in config or 'stack_version' not in config['clusterLevelParams']:
       return None
 
-    stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+    stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
@@ -781,10 +758,12 @@ class Script(object):
     self.install_packages(env)
 
   def load_available_packages(self):
+    from ambari_commons.repo_manager import ManagerFactory
+
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
-    pkg_provider = get_provider("Package")   
+    pkg_provider = ManagerFactory.get()
     try:
       self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
     except Exception as err:
@@ -804,16 +783,16 @@ class Script(object):
     """
     config = self.get_config()
 
-    if 'host_sys_prepped' in config['hostLevelParams']:
+    if 'host_sys_prepped' in config['ambariLevelParams']:
       # do not install anything on sys-prepped host
-      if config['hostLevelParams']['host_sys_prepped'] is True:
+      if config['ambariLevelParams']['host_sys_prepped'] is True:
         Logger.info("Node has all packages pre-installed. Skipping.")
         return
       pass
     try:
-      package_list_str = config['hostLevelParams']['package_list']
-      agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-      agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
+      package_list_str = config['commandParams']['package_list']
+      agent_stack_retry_on_unavailability = bool(config['ambariLevelParams']['agent_stack_retry_on_unavailability'])
+      agent_stack_retry_count = int(config['ambariLevelParams']['agent_stack_retry_count'])
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
@@ -830,15 +809,15 @@ class Script(object):
                       retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
                       retry_count=agent_stack_retry_count)
     except KeyError:
-      pass  # No reason to worry
+      traceback.print_exc()
 
     if OSCheck.is_windows_family():
       #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
       hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(config['hostLevelParams']['jdk_location'],
-                          config["hostLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
+      install_windows_msi(config['ambariLevelParams']['jdk_location'],
+                          config["agentLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
                           hadoop_user, self.get_password(hadoop_user),
-                          str(config['hostLevelParams']['stack_version']))
+                          str(config['clusterLevelParams']['stack_version']))
       reload_windows_env()
 
   def check_package_condition(self, package):
@@ -949,7 +928,7 @@ class Script(object):
     else:
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      if "upgrade_type" in inspect.getargspec(self.stop).args:
+      if True:
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
@@ -1057,7 +1036,7 @@ class Script(object):
   def generate_configs_get_xml_file_content(self, filename, dict):
     config = self.get_config()
     return {'configurations':config['configurations'][dict],
-            'configuration_attributes':config['configuration_attributes'][dict]}
+            'configuration_attributes':config['configurationAttributes'][dict]}
 
   def generate_configs_get_xml_file_dict(self, filename, dict):
     config = self.get_config()

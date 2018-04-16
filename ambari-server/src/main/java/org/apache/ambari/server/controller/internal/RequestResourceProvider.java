@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.CLUSTER_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.COMPONENT_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_NAME;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.SERVICE_NAME;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -127,6 +127,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String REQUEST_PROGRESS_PERCENT_ID = REQUESTS + "/progress_percent";
   public static final String REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID = REQUESTS + "/remove_pending_host_requests";
   public static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = REQUESTS + "/pending_host_request_count";
+  public static final String REQUEST_USER_NAME = REQUESTS + "/user_name";
   public static final String COMMAND_ID = "command";
   public static final String SERVICE_ID = "service_name";
   public static final String COMPONENT_ID = "component_name";
@@ -176,7 +177,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_PROGRESS_PERCENT_ID,
     REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID,
     REQUEST_PENDING_HOST_REQUEST_COUNT_ID,
-    REQUEST_CLUSTER_HOST_INFO_ID
+    REQUEST_CLUSTER_HOST_INFO_ID,
+    REQUEST_USER_NAME
   );
 
   // ----- Constructors ----------------------------------------------------
@@ -537,16 +539,16 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       ResourceProvider resourceProvider = getResourceProvider(Resource.Type.HostComponent);
 
       Set<String> propertyIds = new HashSet<>();
-      propertyIds.add(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-      propertyIds.add(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-      propertyIds.add(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+      propertyIds.add(CLUSTER_NAME);
+      propertyIds.add(SERVICE_NAME);
+      propertyIds.add(COMPONENT_NAME);
 
       Request request = PropertyHelper.getReadRequest(propertyIds);
 
       Predicate finalPredicate = new PredicateBuilder(filterPredicate)
-        .property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-        .property(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID).equals(serviceName).and()
-        .property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals(componentName)
+        .property(CLUSTER_NAME).equals(clusterName).and()
+        .property(SERVICE_NAME).equals(serviceName).and()
+        .property(COMPONENT_NAME).equals(componentName)
         .toPredicate();
 
       try {
@@ -556,10 +558,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           // Allow request to span services / components using just the predicate
           Map<ServiceComponentTuple, List<String>> dupleListMap = new HashMap<>();
           for (Resource resource : resources) {
-            String hostnameStr = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+            String hostnameStr = (String) resource.getPropertyValue(HOST_NAME);
             if (hostnameStr != null) {
-              String computedServiceName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
-              String computedComponentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+              String computedServiceName = (String) resource.getPropertyValue(SERVICE_NAME);
+              String computedComponentName = (String) resource.getPropertyValue(COMPONENT_NAME);
               ServiceComponentTuple duple =
                 new ServiceComponentTuple(computedServiceName, computedComponentName);
 
@@ -800,7 +802,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
     }
 
-
     Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
 
     // get summaries from TopologyManager for logical requests
@@ -852,6 +853,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             hostRoleStatusCounters.get(HostRoleStatus.QUEUED), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_COMPLETED_TASK_CNT_ID,
             hostRoleStatusCounters.get(HostRoleStatus.COMPLETED), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_USER_NAME, entity.getUserName(), requestedPropertyIds);
 
     return resource;
   }

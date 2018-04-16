@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-@import '../mixins';
+@import '../../modules/shared/mixins';
 
 @inactive-input-width: 1px;
 @label-margin: 2px;
@@ -42,8 +42,14 @@
       font-weight: normal;
     }
 
-    .remove-parameter {
+    .action-icon {
       cursor: pointer;
+    }
+    .fa-search-plus {
+      color: @form-success-color;
+    }
+    .fa-search-minus {
+      color: @form-error-color;
     }
   }
 
@@ -56,6 +62,7 @@
     position: relative;
     min-width: @inactive-input-width;
     height: @input-height;
+    flex-grow: 1;
 
     .search-item-input {
       border: none;
@@ -103,5 +110,12 @@
         }
       }
     }
+  }
+
+  .clear-all-btn {
+    color: @unknown-color;
+    cursor: pointer;
+    height: 1em;
+    width: 1em;
   }
 }

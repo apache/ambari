@@ -3,7 +3,8 @@
     {
       "type": "system_message",
       "rowtype": "service",
-      "path": "/root/test-logs/system_message/message_logs.txt"
+      "path": "/root/test-logs/system_message/message_logs.txt",
+      "group": "System"
     }
   ],
   "filter": [

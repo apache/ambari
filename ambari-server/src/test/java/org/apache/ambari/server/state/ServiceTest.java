@@ -28,6 +28,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -216,7 +217,7 @@ public class ServiceTest {
         s.getServiceComponent("HDFS_CLIENT").getDesiredState());
 
     // delete service component
-    s.deleteServiceComponent("NAMENODE");
+    s.deleteServiceComponent("NAMENODE", new DeleteHostComponentStatusMetaData());
 
     assertEquals(3, s.getServiceComponents().size());
   }

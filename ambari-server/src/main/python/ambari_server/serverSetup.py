@@ -23,7 +23,7 @@ import os
 import re
 import shutil
 import sys
-import subprocess
+from ambari_commons import subprocess32
 import getpass
 import logging
 
@@ -846,10 +846,10 @@ class JDKSetupLinux(JDKSetup):
 
     cmd = " && ".join(cmds)
 
-    process = subprocess.Popen(cmd,
-                           stdout=subprocess.PIPE,
-                           stdin=subprocess.PIPE,
-                           stderr=subprocess.PIPE,
+    process = subprocess32.Popen(cmd,
+                           stdout=subprocess32.PIPE,
+                           stdin=subprocess32.PIPE,
+                           stderr=subprocess32.PIPE,
                            shell=True
                            )
     (stdoutdata, stderrdata) = process.communicate()
@@ -1263,10 +1263,10 @@ def check_ambari_java_version_is_valid(java_home, java_bin, min_version, propert
   print 'Check JDK version for Ambari Server...'
   try:
     command = JDK_VERSION_CHECK_CMD.format(os.path.join(java_home, 'bin', java_bin))
-    process = subprocess.Popen(command,
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE,
+    process = subprocess32.Popen(command,
+                               stdout=subprocess32.PIPE,
+                               stdin=subprocess32.PIPE,
+                               stderr=subprocess32.PIPE,
                                shell=True
                                )
     (out, err) = process.communicate()

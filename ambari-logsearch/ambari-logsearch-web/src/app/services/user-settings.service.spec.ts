@@ -17,6 +17,7 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {MockHttpRequestModules, TranslationModules} from "@app/test-config.spec";
 import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -33,24 +34,21 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {UserSettingsService} from './user-settings.service';
+import {ClusterSelectionService} from '@app/services/storage/cluster-selection.service';
+import {RouterTestingModule} from '@angular/router/testing';
+import {RoutingUtilsService} from '@app/services/routing-utils.service';
+import {LogsFilteringUtilsService} from '@app/services/logs-filtering-utils.service';
+import {LogsStateService} from '@app/services/storage/logs-state.service';
 
 describe('UserSettingsService', () => {
   beforeEach(() => {
-    const httpClient = {
-      get: () => {
-        return {
-          subscribe: () => {
-          }
-        }
-      }
-    };
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         StoreModule.provideStore({
           auditLogs,
           serviceLogs,
@@ -65,14 +63,12 @@ describe('UserSettingsService', () => {
           hosts,
           serviceLogsTruncated,
           tabs
-        })
+        }),
+        ...TranslationModules
       ],
       providers: [
+        ...MockHttpRequestModules,
         UserSettingsService,
-        {
-          provide: HttpClientService,
-          useValue: httpClient
-        },
         LogsContainerService,
         UtilsService,
         AuditLogsService,
@@ -87,7 +83,11 @@ describe('UserSettingsService', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
-        TabsService
+        TabsService,
+        ClusterSelectionService,
+        RoutingUtilsService,
+        LogsFilteringUtilsService,
+        LogsStateService
       ]
     });
   });

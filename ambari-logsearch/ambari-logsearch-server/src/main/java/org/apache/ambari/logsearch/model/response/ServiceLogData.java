@@ -60,4 +60,9 @@ public interface ServiceLogData extends CommonLogData, ComponentTypeLogData, Hos
   String getHost();
 
   void setHost(String host);
+
+  @JsonProperty("group")
+  String getGroup();
+
+  void setGroup(String group);
 }

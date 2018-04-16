@@ -21,7 +21,7 @@ var App = require('app');
 require('utils/config');
 
 App.Service = DS.Model.extend({
-  serviceName: DS.attr('string'),
+  serviceName: DS.attr('string', {defaultValue: ''}),
   displayName: Em.computed.formatRole('serviceName', true),
   passiveState: DS.attr('string', {defaultValue: "OFF"}),
   workStatus: DS.attr('string'),
@@ -40,6 +40,12 @@ App.Service = DS.Model.extend({
   clientComponents: DS.hasMany('App.ClientComponent'),
   slaveComponents: DS.hasMany('App.SlaveComponent'),
   masterComponents: DS.hasMany('App.MasterComponent'),
+
+  masterComponentGroups: DS.attr('array', {
+    defaultValue: []
+  }),
+
+  hasMultipleMasterComponentGroups: Em.computed.gt('masterComponentGroups.length', 1),
 
   /**
    * Check master/slave component state of service
@@ -96,7 +102,7 @@ App.Service = DS.Model.extend({
   serviceTypes: function() {
     var typeServiceMap = {
       GANGLIA: ['MONITORING'],
-      HDFS: ['HA_MODE'],
+      HDFS: ['HA_MODE', 'FEDERATION'],
       YARN: ['HA_MODE'],
       RANGER: ['HA_MODE'],
       HAWQ: ['HA_MODE']
@@ -248,6 +254,7 @@ App.Service.Health = {
  */
 App.Service.extendedModel = {
   'HDFS': 'HDFSService',
+  'ONEFS' : 'ONEFSService',
   'HBASE': 'HBaseService',
   'YARN': 'YARNService',
   'MAPREDUCE2': 'MapReduce2Service',

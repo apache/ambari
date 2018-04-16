@@ -33,8 +33,9 @@
     </property>
     <property>
         <name>ignore_groupsusers_create</name>
+        <display-name>Use Ambari to Manage Group Memberships</display-name>
         <value>false</value>
-        <description>Whether to ignore failures on users and group creation</description>
+        <description>Ambari will add or remove service accounts from groups.</description>
     </property>
     <property>
         <name>smokeuser</name>

@@ -40,7 +40,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <reassignAllowed>true</reassignAllowed>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/application_timeline_server.py</script>
             <scriptType>PYTHON</scriptType>
@@ -72,7 +72,7 @@
           <displayName>FAKEResourceManager</displayName>
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
 
           <commandScript>
             <script>scripts/resourcemanager.py</script>
@@ -135,7 +135,7 @@
           <displayName>FAKENodeManager</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <decommissionAllowed>true</decommissionAllowed>
           <commandScript>
             <script>scripts/nodemanager.py</script>
@@ -159,7 +159,7 @@
           <displayName>FAKEYARN Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/yarn_client.py</script>
             <scriptType>PYTHON</scriptType>
@@ -240,7 +240,7 @@
           <displayName>FAKEHistory Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
           <auto-deploy>
             <enabled>true</enabled>
@@ -290,7 +290,7 @@
           <displayName>FAKEMapReduce2 Client</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/mapreduce2_client.py</script>
             <scriptType>PYTHON</scriptType>

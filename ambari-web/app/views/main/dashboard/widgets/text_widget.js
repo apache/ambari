@@ -24,6 +24,8 @@ App.TextDashboardWidgetView = App.DashboardWidgetView.extend({
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
 
+  isEditable: true,
+
   isRed: Em.computed.lteProperties('data', 'thresholdMin'),
   isOrange: Em.computed.and('!isGreen', '!isRed'),
   isGreen: Em.computed.gtProperties('data', 'thresholdMax'),

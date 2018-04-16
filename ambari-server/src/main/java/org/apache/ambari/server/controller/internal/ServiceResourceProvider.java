@@ -75,6 +75,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -119,6 +120,15 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
       "ServiceInfo", "desired_repository_version_id");
 
+  private static final String SSO_INTEGRATION_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "ServiceInfo", "sso_integration_supported");
+
+  private static final String SSO_INTEGRATION_ENABLED_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "ServiceInfo", "sso_integration_enabled");
+
+  private static final String SSO_INTEGRATION_DESIRED_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "ServiceInfo", "sso_integration_desired");
+
   protected static final String SERVICE_REPOSITORY_STATE = "ServiceInfo/repository_state";
 
   //Parameters from the predicate
@@ -158,6 +168,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(QUERY_PARAMETERS_RECONFIGURE_CLIENT);
     PROPERTY_IDS.add(QUERY_PARAMETERS_START_DEPENDENCIES);
 
+    PROPERTY_IDS.add(SSO_INTEGRATION_SUPPORTED_PROPERTY_ID);
+    PROPERTY_IDS.add(SSO_INTEGRATION_ENABLED_PROPERTY_ID);
+    PROPERTY_IDS.add(SSO_INTEGRATION_DESIRED_PROPERTY_ID);
+
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_CLUSTER_NAME_PROPERTY_ID);
@@ -170,6 +184,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    */
   @Inject
   private KerberosHelper kerberosHelper;
+
+  @Inject
+  private TopologyDeleteFormer topologyDeleteFormer;
 
   /**
    * Used to lookup the repository when creating services.
@@ -270,6 +287,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       setResourceProperty(resource, SERVICE_REPOSITORY_STATE,
           response.getRepositoryVersionState(), requestedIds);
+
+      setResourceProperty(resource, SSO_INTEGRATION_SUPPORTED_PROPERTY_ID,
+        response.isSsoIntegrationSupported(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_ENABLED_PROPERTY_ID,
+        response.isSsoIntegrationEnabled(), requestedIds);
+      setResourceProperty(resource, SSO_INTEGRATION_DESIRED_PROPERTY_ID,
+        response.isSsoIntegrationDesired(), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);
@@ -409,7 +433,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     o = properties.get(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
     if (null != o) {
-      svcRequest.setMaintenanceState(o.toString());
+      svcRequest.setCredentialStoreSupported(o.toString());
     }
 
     return svcRequest;
@@ -772,7 +796,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     return controller.addStages(requestStages, cluster, requestProperties,
       null, changedServices, changedComps, changedScHosts,
-        ignoredScHosts, runSmokeTest, reconfigureClients);
+        ignoredScHosts, runSmokeTest, reconfigureClients, false);
   }
 
   private void updateServiceComponents(RequestStageContainer requestStages,
@@ -940,9 +964,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
     for (Service service : removable) {
-      service.getCluster().deleteService(service.getName());
+      service.getCluster().deleteService(service.getName(), deleteMetaData);
+      topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
     }
+    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
 
     return null;
   }

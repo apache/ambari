@@ -91,7 +91,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
       }
 
       var metricObject = App.MainChartHeatmapMetric.create({
-        name: this.get('content.displayName'),
+        name: this.get('content.widgetName'),
         units: this.get('content.properties.display_unit'),
         maximumValue: this.get('controller.inputMaximum'),
         hostNames: hostNames,

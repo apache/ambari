@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>AMBARI_INFRA_SOLR</name>
+      <displayName>Infra Solr</displayName>
+      <comment>Core shared service used by Ambari managed components.</comment>
+      <version>0.1.0</version>
+      <components>
+        <component>
+          <name>INFRA_SOLR</name>
+          <timelineAppid>infra-solr</timelineAppid>
+          <displayName>Infra Solr Instance</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/infra_solr.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>infra_solr</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>BACKUP</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>RESTORE</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>MIGRATE</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/infra_solr.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>36000</timeout>
+                <background>true</background>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+          <dependencies>
+            <dependency>
+              <name>AMBARI_INFRA_SOLR/INFRA_SOLR_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+
+          </dependencies>
+          <configuration-dependencies>
+            <config-type>infra-solr-env</config-type>
+            <config-type>infra-solr-xml</config-type>
+            <config-type>infra-solr-log4j</config-type>
+            <config-type>infra-solr-security-json</config-type>
+          </configuration-dependencies>
+        </component>
+
+        <component>
+          <name>INFRA_SOLR_CLIENT</name>
+          <displayName>Infra Solr Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/infra_solr_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>infra-solr-client-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
+          <configuration-dependencies>
+            <config-type>infra-solr-client-log4j</config-type>
+          </configuration-dependencies>
+        </component>
+
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>ambari-infra-solr-client</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>ambari-infra-solr</name>
+              <condition>should_install_infra_solr</condition>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>ambari-infra-solr-client</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>ambari-infra-solr</name>
+              <condition>should_install_infra_solr</condition>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+    </service>
+  </services>
+</metainfo>

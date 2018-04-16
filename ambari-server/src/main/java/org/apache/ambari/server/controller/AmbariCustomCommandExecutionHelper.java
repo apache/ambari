@@ -61,6 +61,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -405,14 +406,14 @@ public class AmbariCustomCommandExecutionHelper {
 
       Map<String, String> hostLevelParams = new TreeMap<>();
 
-      hostLevelParams.put(CUSTOM_COMMAND, commandName);
-
       // Set parameters required for re-installing clients on restart
+      String repoInfoString;
       try {
-        hostLevelParams.put(REPO_INFO, repoVersionHelper.getRepoInfo(cluster, component, host));
+        repoInfoString = repoVersionHelper.getRepoInfoString(cluster, component, host);
       } catch (SystemException e) {
-        throw new AmbariException("", e);
+        throw new RuntimeException(e);
       }
+      hostLevelParams.put(REPO_INFO, repoInfoString);
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
@@ -445,6 +446,7 @@ public class AmbariCustomCommandExecutionHelper {
           commandParams.put(key, additionalCommandParams.get(key));
         }
       }
+      commandParams.put(CUSTOM_COMMAND, commandName);
 
       boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
       int commandTimeout = Short.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand)).intValue();
@@ -519,6 +521,14 @@ public class AmbariCustomCommandExecutionHelper {
 
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
+
+      CommandRepository commandRepository;
+      try {
+        commandRepository = repoVersionHelper.getCommandRepository(cluster, component, host);
+      } catch (SystemException e) {
+        throw new RuntimeException(e);
+      }
+      execCmd.setRepositoryFile(commandRepository);
 
       // perform any server side command related logic - eg - set desired states on restart
       applyCustomCommandBackendLogic(cluster, serviceName, componentName, commandName, hostName);
@@ -657,7 +667,7 @@ public class AmbariCustomCommandExecutionHelper {
     Map<String, String> actionParameters = actionExecutionContext.getParameters();
     addServiceCheckAction(stage, preferredHostName, smokeTestRole, nowTimestamp, serviceName, componentName,
         actionParameters, actionExecutionContext.isRetryAllowed(),
-        actionExecutionContext.isFailureAutoSkipped());
+        actionExecutionContext.isFailureAutoSkipped(),false);
   }
 
   /**
@@ -707,7 +717,7 @@ public class AmbariCustomCommandExecutionHelper {
    */
   public void addServiceCheckAction(Stage stage, String hostname, String smokeTestRole,
       long nowTimestamp, String serviceName, String componentName,
-      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure)
+      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure, boolean useLatestConfigs)
           throws AmbariException {
 
     String clusterName = stage.getClusterName();
@@ -784,7 +794,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
     }
 
-    String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
+    String commandTimeout = getStatusCommandTimeout(serviceInfo);
 
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       // Service check command is not custom command
@@ -792,9 +802,6 @@ public class AmbariCustomCommandExecutionHelper {
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        if (script.getTimeout() > 0) {
-          commandTimeout = String.valueOf(script.getTimeout());
-        }
       } else {
         String message = String.format("Service %s has no command script " +
             "defined. It is not possible to run service check" +
@@ -802,12 +809,6 @@ public class AmbariCustomCommandExecutionHelper {
         throw new AmbariException(message);
       }
       // We don't need package/repo information to perform service check
-    }
-
-    // Try to apply overridden service check timeout value if available
-    Long overriddenTimeout = configs.getAgentServiceCheckTaskTimeout();
-    if (!overriddenTimeout.equals(Configuration.AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue())) {
-      commandTimeout = String.valueOf(overriddenTimeout);
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
@@ -824,6 +825,9 @@ public class AmbariCustomCommandExecutionHelper {
 
     if (actionParameters != null) { // If defined
       execCmd.setRoleParams(actionParameters);
+    }
+    if (useLatestConfigs) {
+      execCmd.setUseLatestConfigs(useLatestConfigs);
     }
   }
 
@@ -1209,6 +1213,9 @@ public class AmbariCustomCommandExecutionHelper {
   }
 
 
+
+
+
   /**
    * Helper method to fill execution command information.
    *
@@ -1442,4 +1449,29 @@ public class AmbariCustomCommandExecutionHelper {
     return removedHosts;
   }
 
+  public String getStatusCommandTimeout(ServiceInfo serviceInfo) throws AmbariException {
+    String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
+
+    if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
+      // Service check command is not custom command
+      CommandScriptDefinition script = serviceInfo.getCommandScript();
+      if (script != null) {
+        if (script.getTimeout() > 0) {
+          commandTimeout = String.valueOf(script.getTimeout());
+        }
+      } else {
+        String message = String.format("Service %s has no command script " +
+            "defined. It is not possible to run service check" +
+            " for this service", serviceInfo.getName());
+        throw new AmbariException(message);
+      }
+    }
+
+    // Try to apply overridden service check timeout value if available
+    Long overriddenTimeout = configs.getAgentServiceCheckTaskTimeout();
+    if (!overriddenTimeout.equals(Configuration.AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue())) {
+      commandTimeout = String.valueOf(overriddenTimeout);
+    }
+    return commandTimeout;
+  }
 }

@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-<div #dropdown [ngClass]="{'dropdown': hasSubItems, 'text-center': true, 'open': dropdownIsOpen}">
+<div #dropdown [ngClass]="{'dropdown': hasSubItems, 'text-center': true, 'open': dropdownIsOpen, 'disabled': isDisabled}">
   <a class="dropdown-toggle" [ngClass]="(labelClass || '') + (hasCaret ? ' has-caret' : '')"
     (click)="onMouseClick($event)"
     (mousedown)="onMouseDown($event)">
@@ -27,5 +27,6 @@
       (selectedItemChange)="onDropdownItemChange($event)" [isMultipleChoice]="isMultipleChoice"
       [additionalLabelComponentSetter]="additionalLabelComponentSetter"
       [ngClass]="'dropdown-menu' + (isRightAlign ? ' dropdown-menu-right' : '') + (listClass ? ' ' + listClass : '')"
+      [useLocalFilter]="useDropDownLocalFilter"
   ></ul>
 </div>

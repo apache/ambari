@@ -24,6 +24,7 @@ import tempfile
 import time
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch, call
+from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.script.script import Script
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
@@ -1132,14 +1133,14 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               mode = 0644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
@@ -1200,14 +1201,14 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site']
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
                               mode = 0644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
@@ -1257,7 +1258,7 @@ class TestNamenode(RMFTestCase):
                        call_mocks=[(1, "no kinit")]
     )
     tempdir = tempfile.gettempdir()
-    ccache_path =  os.path.join(tempfile.gettempdir(), "hdfs_rebalance_cc_7add60ca651f1bd1ed909a6668937ba9")
+    ccache_path =  os.path.join(tempfile.gettempdir(), "hdfs_rebalance_cc_676e87466798ee1b4128732da3effe26e7dfc902e2c9ebdfde4331d2")
     kinit_cmd = "/usr/bin/kinit -c {0} -kt /etc/security/keytabs/hdfs.headless.keytab hdfs@EXAMPLE.COM".format(ccache_path)
     rebalance_cmd = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin KRB5CCNAME={0} ; hdfs --config /etc/hadoop/conf balancer -threshold -1'".format(ccache_path)
 
@@ -1267,10 +1268,6 @@ class TestNamenode(RMFTestCase):
 
     self.assertResourceCalled('Execute', rebalance_cmd,
                               wait_for_finish=False
-                              )
-
-    self.assertResourceCalled('File', ccache_path,
-                              action = ['delete'],
                               )
 
     self.assertNoMoreResources()
@@ -1381,11 +1378,10 @@ class TestNamenode(RMFTestCase):
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
+                       call_mocks = [(0, None),(0, None, ''), (0, None)],
                        mocks_dict=mocks_dict)
 
     self.assertTrue(setup_ranger_plugin_mock.called)
-
     self.assertResourceCalledByIndex(7, 'Execute',
       ('mv', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh.bak'),
       only_if='test -f /usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh',
@@ -1597,7 +1593,7 @@ class TestNamenode(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.0'
+    json_content['clusterLevelParams']['stack_version'] = '2.0'
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
@@ -1623,7 +1619,7 @@ class TestNamenode(RMFTestCase):
     version = '2.2.0.0-1234'
     del json_content['commandParams']['version']
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.2'
+    json_content['clusterLevelParams']['stack_version'] = '2.2'
     json_content['commandParams']['version'] = version
 
     mocks_dict = {}
@@ -1652,7 +1648,7 @@ class TestNamenode(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['commandParams']['upgrade_direction'] = 'upgrade'
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.3'
+    json_content['clusterLevelParams']['stack_version'] = '2.3'
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
@@ -1777,6 +1773,24 @@ class TestNamenode(RMFTestCase):
       #                       logoutput=True
       #                       )
 
+  def test_initial_active_namenode_unspecified(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({}), frozenset())
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': '' }), frozenset())
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active_set': '' }), frozenset())
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': '', 'dfs_ha_initial_namenode_active_set': '' }), frozenset())
+
+  def test_initial_active_namenode_single(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'c6401.ambari.apache.org' }), frozenset(['c6401.ambari.apache.org']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'c6401,c7401' }), frozenset(['c6401', 'c7401']))
+
+  def test_initial_active_namenode_set(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active_set': 'c6401.ambari.apache.org' }), frozenset(['c6401.ambari.apache.org']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active_set': 'c6401,c7401' }), frozenset(['c6401', 'c7401']))
+
+  def test_initial_active_namenode_both(self):
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': '', 'dfs_ha_initial_namenode_active_set': 'mult1,mult2' }), frozenset(['mult1', 'mult2']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'single', 'dfs_ha_initial_namenode_active_set': 'mult1,mult2' }), frozenset(['mult1', 'mult2']))
+    self.assertEqual(namenode_ha_utils.get_initial_active_namenodes({ 'dfs_ha_initial_namenode_active': 'single', 'dfs_ha_initial_namenode_active_set': '' }), frozenset(['single']))
 
 
 class Popen_Mock:

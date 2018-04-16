@@ -199,8 +199,8 @@ def __setup_unlimited_key_jce_policy(custom_java_home, custom_jdk_name, custom_j
   The following criteria must be met:
 
     * The cluster has not been previously prepared (sys preped) - cluster-env/sysprep_skip_setup_jce = False
-    * Ambari is managing the host's JVM - /hostLevelParams/jdk_name is set
-    * Either security is enabled OR a service requires it - /hostLevelParams/unlimited_key_jce_required = True
+    * Ambari is managing the host's JVM - /ambariLevelParams/jdk_name is set
+    * Either security is enabled OR a service requires it - /componentLevelParams/unlimited_key_jce_required = True
     * The unlimited key JCE policy has not already been installed
 
   If the conditions are met, the following steps are taken to install the unlimited key JCE policy JARs
@@ -218,10 +218,10 @@ def __setup_unlimited_key_jce_policy(custom_java_home, custom_jdk_name, custom_j
     Logger.info("Skipping unlimited key JCE policy check and setup since the host is sys prepped")
 
   elif not custom_jdk_name:
-    Logger.debug("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
+    Logger.info("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
 
   elif not params.unlimited_key_jce_required:
-    Logger.debug("Skipping unlimited key JCE policy check and setup since it is not required")
+    Logger.info("Skipping unlimited key JCE policy check and setup since it is not required")
 
   else:
     jcePolicyInfo = JcePolicyInfo(custom_java_home)

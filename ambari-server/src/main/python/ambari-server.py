@@ -494,6 +494,18 @@ def init_setup_parser_options(parser):
                                                                "Name sid|sname", dest="sid_or_sname")
   other_group.add_option('--enable-lzo-under-gpl-license', action="store_true", default=False, help="Automatically accepts GPL license", dest="accept_gpl")
 
+  # the --master-key option is needed in the event passwords in the ambari.properties file are encrypted
+  other_group.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
+
+  parser.add_option_group(other_group)
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_reset_parser_options(parser):
+  other_group = optparse.OptionGroup(parser, 'Other options')
+
+  # the --master-key option is needed in the event passwords in the ambari.properties file are encrypted
+  other_group.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
+
   parser.add_option_group(other_group)
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -555,6 +567,18 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
   parser.add_option('--ldap-force-lowercase-usernames', default=None, help="Declares whether to force the ldap user name to be lowercase or leave as-is", dest="ldap_force_lowercase_usernames")
   parser.add_option('--ldap-pagination-enabled', default=None, help="Determines whether results from LDAP are paginated when requested", dest="ldap_pagination_enabled")
+  parser.add_option('--ldap-force-setup', action="store_true", default=False, help="Forces the use of LDAP even if other (i.e. PAM) authentication method is configured already or if there is no authentication method configured at all", dest="ldap_force_setup")
+  parser.add_option('--ambari-admin-username', default=None, help="Ambari Admin username for LDAP setup", dest="ambari_admin_username")
+  parser.add_option('--ambari-admin-password', default=None, help="Ambari Admin password for LDAP setup", dest="ambari_admin_password")
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_setup_sso_options(parser):
+  parser.add_option('--sso-enabled', default=None, help="Indicates whether to enable/disable SSO", dest="sso_enabled")
+  parser.add_option('--sso-enabled-services', default=None, help="A comma separated list of services that are expected to be configured for SSO (you are allowed to use '*' to indicate ALL services)", dest='sso_enabled_services')
+  parser.add_option('--sso-provider-url', default=None, help="The URL of SSO provider; this must be provided when --sso-enabled is set to 'true'", dest="sso_provider_url")
+  parser.add_option('--sso-public-cert-file', default=None, help="The path where the public certificate PEM is located; this must be provided when --sso-enabled is set to 'true'", dest="sso_public_cert_file")
+  parser.add_option('--sso-jwt-cookie-name', default="hadoop-jwt", help="The name of the JWT cookie", dest="sso_jwt_cookie_name")
+  parser.add_option('--sso-jwt-audience-list', default="", help="A comma separated list of JWT audience(s)", dest="sso_jwt_audience_list")
   parser.add_option('--ambari-admin-username', default=None, help="Ambari Admin username for LDAP setup", dest="ambari_admin_username")
   parser.add_option('--ambari-admin-password', default=None, help="Ambari Admin password for LDAP setup", dest="ambari_admin_password")
 
@@ -820,7 +844,7 @@ def init_action_parser(action, parser):
     START_ACTION: init_start_parser_options,
     STOP_ACTION: init_empty_parser_options,
     RESTART_ACTION: init_start_parser_options,
-    RESET_ACTION: init_empty_parser_options,
+    RESET_ACTION: init_reset_parser_options,
     STATUS_ACTION: init_empty_parser_options,
     UPGRADE_ACTION: init_empty_parser_options,
     LDAP_SETUP_ACTION: init_ldap_setup_parser_options,
@@ -833,7 +857,7 @@ def init_action_parser(action, parser):
     UPDATE_HOST_NAMES_ACTION: init_empty_parser_options,
     CHECK_DATABASE_ACTION: init_empty_parser_options,
     ENABLE_STACK_ACTION: init_enable_stack_parser_options,
-    SETUP_SSO_ACTION: init_empty_parser_options,
+    SETUP_SSO_ACTION: init_setup_sso_options,
     DB_PURGE_ACTION: init_db_purge_parser_options,
     INSTALL_MPACK_ACTION: init_install_mpack_parser_options,
     UNINSTALL_MPACK_ACTION: init_uninstall_mpack_parser_options,

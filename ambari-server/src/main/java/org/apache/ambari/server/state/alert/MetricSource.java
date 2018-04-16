@@ -22,12 +22,17 @@ import static java.util.stream.IntStream.range;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
+import org.apache.ambari.server.state.UriInfo;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -36,10 +41,11 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class MetricSource extends Source {
 
   @SerializedName("uri")
-  private AlertUri uri = null;
+  private UriInfo uri = null;
 
   @SerializedName("jmx")
   private JmxInfo jmxInfo = null;
@@ -50,6 +56,7 @@ public class MetricSource extends Source {
   /**
    * @return the jmx info, if this metric is jmx-based
    */
+  @JsonProperty("jmx")
   public JmxInfo getJmxInfo() {
     return jmxInfo;
   }
@@ -57,6 +64,7 @@ public class MetricSource extends Source {
   /**
    * @return the ganglia info, if this metric is ganglia-based
    */
+  @JsonProperty("ganglia")
   public String getGangliaInfo() {
     return gangliaInfo;
   }
@@ -64,28 +72,16 @@ public class MetricSource extends Source {
   /**
    * @return the uri info, which may include port information
    */
-  public AlertUri getUri() {
+  @JsonProperty("uri")
+  public UriInfo getUri() {
     return uri;
   }
 
-  /**
-   *
-   */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result
-        + ((gangliaInfo == null) ? 0 : gangliaInfo.hashCode());
-    result = prime * result + ((uri == null) ? 0 : uri.hashCode());
-    result = prime * result + ((jmxInfo == null) ? 0 : jmxInfo.hashCode());
-
-    return result;
+    return Objects.hash(super.hashCode(), gangliaInfo, uri, jmxInfo);
   }
 
-  /**
-   *
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -101,40 +97,21 @@ public class MetricSource extends Source {
     }
 
     MetricSource other = (MetricSource) obj;
-    if (gangliaInfo == null) {
-      if (other.gangliaInfo != null) {
-        return false;
-      }
-    } else if (!gangliaInfo.equals(other.gangliaInfo)) {
-      return false;
-    }
-
-    if (uri == null) {
-      if (other.uri != null) {
-        return false;
-      }
-    } else if (!uri.equals(other.uri)) {
-      return false;
-    }
-
-    if (jmxInfo == null) {
-      if (other.jmxInfo != null) {
-        return false;
-      }
-    } else if (!jmxInfo.equals(other.jmxInfo)) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(gangliaInfo, other.gangliaInfo) &&
+      Objects.equals(uri, other.uri) &&
+      Objects.equals(jmxInfo, other.jmxInfo);
   }
 
   /**
    * Represents the {@code jmx} element in a Metric alert.
    */
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
   public static class JmxInfo {
     @SerializedName("property_list")
     private List<String> propertyList;
 
+    @SerializedName("value")
     private String value = "{0}";
 
     @SerializedName("url_suffix")

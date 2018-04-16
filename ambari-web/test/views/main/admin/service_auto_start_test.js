@@ -24,7 +24,8 @@ describe('App.MainAdminServiceAutoStartView', function () {
   beforeEach(function () {
     view = App.MainAdminServiceAutoStartView.create({
       controller: Em.Object.create({
-        load: Em.K
+        load: Em.K,
+        componentsConfigsGrouped: []
       })
     });
   });
@@ -33,27 +34,15 @@ describe('App.MainAdminServiceAutoStartView', function () {
   describe('#didInsertElement()', function() {
 
     beforeEach(function() {
-      sinon.stub(view, 'initSwitcher');
-      sinon.stub(Em.run, 'next', Em.clb);
-      sinon.stub(view.get('controller'), 'load').returns({
-        then: Em.clb
-      })
+      sinon.stub(view.get('controller'), 'load');
     });
-
     afterEach(function() {
-      view.initSwitcher.restore();
       view.get('controller').load.restore();
-      Em.run.next.restore();
     });
 
-    it('initSwitcher should be called', function() {
+    it('load should be called', function() {
       view.didInsertElement();
-      expect(view.initSwitcher).to.be.calledOnce;
-    });
-
-    it('isLoaded should be true', function() {
-      view.didInsertElement();
-      expect(view.get('isLoaded')).to.be.true;
+      expect(view.get('controller').load.calledOnce).to.be.true;
     });
   });
 
@@ -80,6 +69,54 @@ describe('App.MainAdminServiceAutoStartView', function () {
       view.set('switcher', mock);
       view.onValueChange();
       expect(mock.bootstrapSwitch).to.be.calledOnce;
+    });
+  });
+
+  describe('#observeAllComponentsChecked', function() {
+
+    it('should skip checking child checkboxes', function() {
+      view.set('skipCyclicCall', true);
+      view.observeAllComponentsChecked();
+      expect(view.get('skipCyclicCall')).to.be.false;
+    });
+
+    it('should check all child checkboxes', function() {
+      view.get('controller').set('componentsConfigsGrouped', [
+        Em.Object.create({
+          recoveryEnabled: false
+        })
+      ]);
+      view.set('skipCyclicCall', false);
+      view.set('allComponentsChecked', true);
+      view.observeAllComponentsChecked();
+      expect(view.get('controller.componentsConfigsGrouped').mapProperty('recoveryEnabled')).to.be.eql(
+        [true]
+      );
+    });
+  });
+
+  describe('#observesEachComponentChecked', function() {
+
+    it('should be false when at least one checkbox unchecked', function() {
+      view.set('allComponentsChecked', true);
+      view.get('controller').set('componentsConfigsGrouped', [
+        Em.Object.create({
+          recoveryEnabled: false
+        })
+      ]);
+      view.observesEachComponentChecked();
+      expect(view.get('allComponentsChecked')).to.be.false;
+    });
+
+    it('should be true when all checked', function() {
+      view.set('allComponentsChecked', false);
+      view.get('controller').set('componentsConfigsGrouped', [
+        Em.Object.create({
+          recoveryEnabled: true
+        })
+      ]);
+      view.observesEachComponentChecked();
+      expect(view.get('allComponentsChecked')).to.be.true;
     });
   });
 });
