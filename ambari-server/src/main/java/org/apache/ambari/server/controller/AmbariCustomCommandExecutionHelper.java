@@ -129,6 +129,7 @@ public class AmbariCustomCommandExecutionHelper {
 
   public final static String DECOM_INCLUDED_HOSTS = "included_hosts";
   public final static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
+  public final static String ALL_DECOMMISSIONED_HOSTS = "all_decommissioned_hosts";
   public final static String DECOM_SLAVE_COMPONENT = "slave_type";
   public final static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
   public final static String UPDATE_FILES_ONLY = "update_files_only";
@@ -1056,6 +1057,10 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       Map<String, String> commandParams = new HashMap<>();
+
+      commandParams.put(ALL_DECOMMISSIONED_HOSTS,
+          StringUtils.join(calculateDecommissionedNodes(service, slaveCompType), ','));
+
       if (serviceName.equals(Service.Type.HBASE.name())) {
         commandParams.put(DECOM_EXCLUDED_HOSTS, StringUtils.join(listOfExcludedHosts, ','));
         if ((isDrainOnlyRequest != null) && isDrainOnlyRequest.equals("true")) {
@@ -1070,6 +1075,17 @@ public class AmbariCustomCommandExecutionHelper {
         addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString(), null);
       }
     }
+  }
+
+  private Set<String> calculateDecommissionedNodes(Service service, String slaveCompType) throws AmbariException {
+    Set<String> decommissionedHostsSet = new HashSet<>();
+    ServiceComponent serviceComponent = service.getServiceComponent(slaveCompType);
+    for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
+      if (serviceComponentHost.getComponentAdminState() == HostComponentAdminState.DECOMMISSIONED) {
+        decommissionedHostsSet.add(serviceComponentHost.getHostName());
+      }
+    }
+    return decommissionedHostsSet;
   }
 
 
