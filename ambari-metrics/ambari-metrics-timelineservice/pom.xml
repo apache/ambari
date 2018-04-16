@@ -763,6 +763,11 @@
       <artifactId>ignite-log4j</artifactId>
       <version>2.1.0</version>
     </dependency>
+    <dependency>
+      <groupId>net.sf.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>2.10.0</version>
+    </dependency>
   </dependencies>
 
   <profiles>
