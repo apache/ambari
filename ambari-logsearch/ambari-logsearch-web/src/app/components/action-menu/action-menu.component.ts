@@ -30,6 +30,12 @@ import {ListItem} from '@app/classes/list-item';
 })
 export class ActionMenuComponent {
 
+  isLogIndexFilterDisplayed: boolean = false;
+
+  settingsForm: FormGroup = this.settings.settingsFormGroup;
+
+  isModalSubmitDisabled: boolean = true;
+
   constructor(
     private logsContainer: LogsContainerService, private historyManager: HistoryManagerService,
     private settings: UserSettingsService
@@ -51,12 +57,6 @@ export class ActionMenuComponent {
   get captureSeconds(): number {
     return this.logsContainer.captureSeconds;
   }
-
-  isLogIndexFilterDisplayed: boolean = false;
-
-  settingsForm: FormGroup = this.settings.settingsFormGroup;
-
-  isModalSubmitDisabled: boolean = true;
 
   setModalSubmitDisabled(isDisabled: boolean): void {
     this.isModalSubmitDisabled = isDisabled;

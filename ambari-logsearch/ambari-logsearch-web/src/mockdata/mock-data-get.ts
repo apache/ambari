@@ -1769,7 +1769,7 @@ export const mockDataGet = {
       configurationUploaded: true
     }
   },
-  'api/v1/shipper/filters/\[a-zA-Z0-9\]/level': {
+  'api/v1/shipper/filters/\[a-zA-Z0-9\]{1,}/level': {
     'filter': {
       'ambari_agent': {
         'label': 'ambari_agent',
