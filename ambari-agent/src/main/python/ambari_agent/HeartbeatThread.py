@@ -69,11 +69,11 @@ class HeartbeatThread(threading.Thread):
     self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener, self.host_level_params_events_listener, self.alert_definitions_events_listener, self.agent_actions_events_listener]
 
     self.post_registration_requests = [
-    (Constants.TOPOLOGY_REQUEST_ENDPOINT, initializer_module.topology_cache, self.topology_events_listener),
-    (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener),
-    (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener),
-    (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener),
-    (Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener)
+    (Constants.TOPOLOGY_REQUEST_ENDPOINT, initializer_module.topology_cache, self.topology_events_listener, Constants.TOPOLOGIES_TOPIC),
+    (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener, Constants.METADATA_TOPIC),
+    (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener, Constants.CONFIGURATIONS_TOPIC),
+    (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener, Constants.HOST_LEVEL_PARAMS_TOPIC),
+    (Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener, Constants.ALERTS_DEFINITIONS_TOPIC)
     ]
     self.responseId = 0
     self.file_cache = initializer_module.file_cache
@@ -129,7 +129,7 @@ class HeartbeatThread(threading.Thread):
 
     self.handle_registration_response(response)
 
-    for endpoint, cache, listener in self.post_registration_requests:
+    for endpoint, cache, listener, subscribe_to in self.post_registration_requests:
       # should not hang forever on these requests
       response = self.blocking_request({'hash': cache.hash}, endpoint, log_handler=listener.get_log_message)
       try:
@@ -138,7 +138,10 @@ class HeartbeatThread(threading.Thread):
         logger.exception("Exception while handing response to request at {0}. {1}".format(endpoint, response))
         raise
 
+      self.subscribe_to_topics([subscribe_to])
+
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
+
     self.file_cache.reset()
     self.initializer_module.is_registered = True
     # now when registration is done we can expose connection to other threads.
