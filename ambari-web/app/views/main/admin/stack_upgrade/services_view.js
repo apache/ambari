@@ -32,15 +32,14 @@ App.MainAdminStackServicesView = Em.View.extend({
   services: function() {
     var services = App.supports.installGanglia ? App.StackService.find() : App.StackService.find().without(App.StackService.find('GANGLIA'));
     var controller = this.get('controller');
-    controller.loadServiceVersionFromVersionDefinitions().complete(function () {
-      return services.map(function(s) {
-        s.set('serviceVersionDisplay', controller.get('serviceVersionsMap')[s.get('serviceName')]);
-        s.set('isInstalled', App.Service.find().someProperty('serviceName', s.get('serviceName')));
-        return s;
-      });
+
+    services.map(function(s) {
+      s.set('serviceVersionDisplay', controller.get('serviceVersionsMap')[s.get('serviceName')]);
+      s.set('isInstalled', App.Service.find().someProperty('serviceName', s.get('serviceName')));
+      return s;
     });
     return services;
-  }.property('App.router.clusterController.isLoaded'),
+  }.property('App.router.clusterController.isLoaded', 'controller.serviceVersionsMap'),
 
   didInsertElement: function () {
     if (!App.get('stackVersionsAvailable')) {

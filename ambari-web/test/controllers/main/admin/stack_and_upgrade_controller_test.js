@@ -3283,88 +3283,215 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#loadServiceVersionFromVersionDefinitions()", function () {
+  describe("#getServiceVersionFromRepo()", function () {
 
-    it("App.ajax.send should be called", function() {
-      App.set('clusterName', 'c1');
-      controller.loadServiceVersionFromVersionDefinitions();
-      var args = testHelpers.findAjaxRequest('name', 'cluster.load_current_repo_stack_services');
-      expect(args[0]).to.be.eql({
-        name: 'cluster.load_current_repo_stack_services',
-        sender: controller,
-        data: {
-          clusterName: App.get('clusterName')
-        },
-        success: 'loadServiceVersionFromVersionDefinitionsSuccessCallback',
-        error: 'loadServiceVersionFromVersionDefinitionsErrorCallback'
-      });
-    });
-  });
+    var cases = [
+      {
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.6',
+        repoVersions: [
+          Em.Object.create({
+            'id': '1',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.5',
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.6.2'
+              })
+            ]
+          }),
+          Em.Object.create({
+            'id': '2',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.7.3'
+              })
+            ]
+          })
+        ],
+        services: [
+          Em.Object.create({
+            'serviceName': 'HDFS',
+            'desiredRepositoryVersionId': '2'
+          })
+        ],
+        stackServices: [
+          Em.Object.create({
+            'serviceName': 'HDFS',
+            'stackName': 'HDP',
+            'stackVersion': '2.6'
+          })
+        ],
+        title: 'If multiple stacks should select the repo on the current stack',
+        expected: {'HDFS': '2.7.3'}
+      },
 
-  describe("#loadServiceVersionFromVersionDefinitionsSuccessCallback()", function () {
-    var cases;
-    beforeEach(function() {
-      this.appGetStub = sinon.stub(App, 'get');
-    });
+      {
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.6',
+        repoVersions : [
+          Em.Object.create({
+            'id': '1',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.6.5'
+              })
+            ]
+          }),
+          Em.Object.create({
+            'id': '2',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.7.3'
+              })
+            ]
+          })
+        ],
+        services: [
+          Em.Object.create({
+            'serviceName': 'HDFS',
+            'desiredRepositoryVersionId': '2'
+          })
+        ],
+        stackServices: [
+          Em.Object.create({
+            'serviceName': 'HDFS',
+            'stackName': 'HDP',
+            'stackVersion': '2.6'
+          })
+        ],
+        title: 'If multiple repositories in the same stack should select by id',
+        expected: {'HDFS': '2.7.3'}
+      },
+
+      {
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.6',
+        repoVersions : [
+          Em.Object.create({
+            'id': '1',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'isCurrent': false,
+            'isStandard': true,
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.6.5'
+              })
+            ]
+          }),
+          Em.Object.create({
+            'id': '2',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'isCurrent': false,
+            'isStandard': true,
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.7.3'
+              })
+            ]
+          })
+        ],
+
+        services: [
+          Em.Object.create({
+            'serviceName': 'YARN',
+            'desiredRepositoryVersionId': '2'
+          })
+        ],
+
+        stackServices: [
+          Em.Object.create({
+            'serviceName': 'HDFS',
+            'stackName': 'HDP',
+            'stackVersion': '2.6'
+          })
+        ],
+        title: 'No standard repo in current state - nothing should be returned',
+        expected: {'HDFS': ''}
+      },
+      {
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.6',
+        repoVersions : [
+          Em.Object.create({
+            'id': '1',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'isCurrent': true,
+            'isStandard': true,
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.6.5'
+              })
+            ]
+          }),
+          Em.Object.create({
+            'id': '2',
+            'stackVersionType': 'HDP',
+            'stackVersionNumber': '2.6',
+            'isCurrent': false,
+            'isStandard': true,
+            'stackServices': [
+              Em.Object.create({
+                'name': 'HDFS',
+                'latestVersion': '2.7.3'
+              })
+            ]
+          })
+        ],
+
+        services: [
+          Em.Object.create({
+            'serviceName': 'YARN',
+            'desiredRepositoryVersionId': '2'
+          })
+        ],
+
+        stackServices: [
+          Em.Object.create({
+            'serviceName': 'HDFS',
+            'stackName': 'HDP',
+            'stackVersion': '2.6'
+          })
+        ],
+        title: 'Service not installed - get version from current & standard repo',
+        expected: {'HDFS': '2.6.5'}
+      },
+
+    ];
 
     afterEach(function() {
       App.get.restore();
+      App.Service.find.restore();
+      App.StackService.find.restore();
+      App.RepositoryVersion.find.restore();
       controller.set('serviceVersionsMap', {});
     });
-    cases = [
-      {
-        jsonData: {
-          items: [
-            {
-              ClusterStackVersions: {
-                version: '2.3',
-                stack: 'HDP',
-                state: 'NOT_REQUIRED'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S3', versions: ['v3']}
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              ClusterStackVersions: {
-                version: '2.2',
-                stack: 'HDP',
-                state: 'NOT_REQUIRED'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S2', versions: ['v2']}
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        currentStackData: {
-          currentStackVersionNumber: '2.2',
-          currentStackName: 'HDP'
-        },
-        m: 'should add stack services from stack version by current stack name and version number',
-        e: { "S2": "v2"}
-      }
-    ];
 
-    cases.forEach(function(test) {
-      it(test.m, function() {
-        this.appGetStub.withArgs('currentStackName').returns(test.currentStackData.currentStackName)
-          .withArgs('currentStackVersionNumber').returns(test.currentStackData.currentStackVersionNumber);
-        controller.loadServiceVersionFromVersionDefinitionsSuccessCallback(test.jsonData);
-        expect(controller.get('serviceVersionsMap')).to.be.eql(test.e);
-      })
+    cases.forEach(function(item) {
+      it(item.title, function() {
+        sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
+        sinon.stub(App.Service, 'find').returns(item.services);
+        sinon.stub(App.StackService, 'find').returns(item.stackServices);
+        sinon.stub(App.RepositoryVersion, 'find').returns(item.repoVersions);
+        controller.getServiceVersionFromRepo();
+        expect(controller.get('serviceVersionsMap')).to.be.eql(item.expected);
+      });
     });
   });
 

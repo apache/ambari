@@ -2162,41 +2162,45 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     newWindow.focus();
   },
 
-  /**
-   * load version for services to display on Choose Services page
-   * should load from VersionDefinition endpoint
-   */
-  loadServiceVersionFromVersionDefinitions: function () {
-    return App.ajax.send({
-      name: 'cluster.load_current_repo_stack_services',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName')
-      },
-      success: 'loadServiceVersionFromVersionDefinitionsSuccessCallback',
-      error: 'loadServiceVersionFromVersionDefinitionsErrorCallback'
-    });
-  },
-
   serviceVersionsMap: {},
 
   /**
-   * @param {object|null} jsonData
+   * load version for services to display on admin service page
+   * it should be fetched from the repo which corresponds to the desiredRepositoryVersionId of the service
    */
-  loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var rv = Em.getWithDefault(jsonData, 'items', []).filter(function(i) {
-      return Em.getWithDefault(i, 'ClusterStackVersions.stack', null) === App.get('currentStackName') &&
-       Em.getWithDefault(i, 'ClusterStackVersions.version', null) === App.get('currentStackVersionNumber');
-    })[0];
-    var map = this.get('serviceVersionsMap');
-    var stackServices = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.stack_services', false);
-    if (stackServices) {
-      stackServices.forEach(function (item) {
-        map[item.name] = item.versions[0];
-      });
-    }
-  },
+  getServiceVersionFromRepo: function () {
 
-  loadServiceVersionFromVersionDefinitionsErrorCallback: function (request, ajaxOptions, error) {}
+    var currentStackName = App.get('currentStackName');
+    var currentStackVersionNumber = App.get('currentStackVersionNumber');
+    var map = this.get('serviceVersionsMap');
+
+    var stackServices = App.StackService.find().filter(function (service) {
+      return service.get('stackName') === currentStackName && service.get('stackVersion') === currentStackVersionNumber;
+    });
+
+    stackServices.forEach(function (service) {
+      var serviceName = service.get('serviceName');
+
+      var installedService = App.Service.find().findProperty('serviceName', serviceName);
+      var desiredRepositoryVersionId = installedService ? installedService.get('desiredRepositoryVersionId') : null;
+      var serviceVersion = "";
+      var currentStackRepoVersions = App.RepositoryVersion.find().filter(function (repoVersion) {
+        return repoVersion.get('stackVersionType') === currentStackName && repoVersion.get('stackVersionNumber') === currentStackVersionNumber;
+      });
+
+      //Get service version from the current standard repo for stack services which are not installed else search by id
+      if(!desiredRepositoryVersionId) {
+        currentStackRepoVersions.forEach(function(repoVersion) {
+          if(repoVersion.get('isCurrent') && repoVersion.get('isStandard')) {
+            serviceVersion = repoVersion.get('stackServices').findProperty('name', serviceName).get('latestVersion');
+          }
+        })
+      } else {
+        var repoVersion = currentStackRepoVersions.findProperty('id', desiredRepositoryVersionId);
+        serviceVersion = repoVersion.get('stackServices').findProperty('name', serviceName).get('latestVersion');
+      }
+      map[serviceName] = serviceVersion;
+    });
+  }.observes('App.router.clusterController.isLoaded')
 
 });
