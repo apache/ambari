@@ -73,9 +73,11 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -124,6 +126,7 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
     ServiceResponse serviceResponse = createNiceMock(ServiceResponse.class);
     StackId stackId = new StackId("HDP-2.5");
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
@@ -141,13 +144,18 @@ public class ServiceResourceProviderTest {
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
+    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup);
+    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
+    expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
+    expect(service.getServiceGroupId()).andReturn(1L).anyTimes();
+
     expect(service.convertToResponse()).andReturn(serviceResponse).anyTimes();
 
     expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
     expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service,
+    replay(managementController, clusters, serviceGroup, cluster, service,
         ambariMetaInfo, serviceFactory, serviceInfo, serviceResponse);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -174,7 +182,7 @@ public class ServiceResourceProviderTest {
     provider.createResources(request);
 
     // verify
-    verify(managementController, clusters, cluster, service,
+    verify(managementController, clusters, serviceGroup, cluster, service,
         ambariMetaInfo, serviceFactory, serviceInfo);
   }
 
@@ -868,8 +876,10 @@ public class ServiceResourceProviderTest {
 
   private void testDeleteResources(Authentication authentication) throws Exception{
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
     Service service = createNiceMock(Service.class);
 
     String serviceName = "Service100";
@@ -883,10 +893,15 @@ public class ServiceResourceProviderTest {
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
     expect(service.getCluster()).andReturn(cluster);
+    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup);
+    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
+    //expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
+    expect(service.getServiceGroupId()).andReturn(1L).anyTimes();
+
     cluster.deleteService(eq(serviceName), anyObject(DeleteHostComponentStatusMetaData.class));
 
     // replay
-    replay(managementController, clusters, cluster, service);
+    replay(managementController, clusters, cluster, serviceGroup, topologyDeleteFormer, service);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -910,7 +925,7 @@ public class ServiceResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
-    verify(managementController, clusters, cluster, service);
+    verify(managementController, clusters, cluster, serviceGroup, topologyDeleteFormer, service);
   }
 
   @Test
@@ -1167,6 +1182,7 @@ public class ServiceResourceProviderTest {
     AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
     Service service1 = createNiceMock(Service.class);
     ServiceResponse response1 = createNiceMock(ServiceResponse.class);
     ServiceResponse response2 = createNiceMock(ServiceResponse.class);
@@ -1187,9 +1203,13 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(
-        ImmutableMap.<String, Service>builder()
-          .put("Service100", service1).build()).atLeastOnce();
+    expect(cluster.getServiceGroup("TEST_GROUP")).andReturn(serviceGroup);
+    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
+    //expect(stackId.getStackName()).andReturn("HDP");
+    //expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
+    expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
+    expect(service1.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(service2.getServiceGroupId()).andReturn(1L).anyTimes();
 
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
@@ -1198,7 +1218,7 @@ public class ServiceResourceProviderTest {
     expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service1, service2, response1, response2,
+    replay(managementController, clusters, cluster, serviceGroup, service1, service2, response1, response2,
         ambariMetaInfo, serviceFactory, serviceInfo);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
@@ -1225,7 +1245,7 @@ public class ServiceResourceProviderTest {
     provider.createResources(request);
 
     // verify
-    verify(managementController, clusters, cluster, service1, service2,
+    verify(managementController, clusters, serviceGroup, cluster, service1, service2,
         ambariMetaInfo, serviceFactory, serviceInfo);
   }
 
@@ -1234,6 +1254,7 @@ public class ServiceResourceProviderTest {
     AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
     Service service1 = createNiceMock(Service.class);
     Service service2 = createNiceMock(Service.class);
     ServiceResponse response1 = createNiceMock(ServiceResponse.class);
@@ -1258,9 +1279,11 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
-    expect(cluster.getServices()).andReturn(
-        ImmutableMap.<String, Service>builder()
-          .put("Service100", service1).build()).atLeastOnce();
+    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup);
+    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
+    expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
+    expect(service1.getServiceGroupId()).andReturn(1L).anyTimes();
+    expect(service2.getServiceGroupId()).andReturn(1L).anyTimes();
 
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
@@ -1268,8 +1291,9 @@ public class ServiceResourceProviderTest {
     expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
     expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
+
     // replay
-    replay(managementController, clusters, cluster, service1, service2, response1, response2,
+    replay(managementController, clusters, cluster, serviceGroup, service1, service2, response1, response2,
         ambariMetaInfo, serviceFactory, serviceInfo, repoVersion);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
@@ -1296,7 +1320,7 @@ public class ServiceResourceProviderTest {
     provider.createResources(request);
 
     // verify
-    verify(managementController, clusters, cluster, service1, service2,
+    verify(managementController, clusters, cluster, serviceGroup, service1, service2,
         ambariMetaInfo, serviceFactory, serviceInfo);
   }
 

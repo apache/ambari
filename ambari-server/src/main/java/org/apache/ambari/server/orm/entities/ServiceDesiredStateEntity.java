@@ -25,23 +25,28 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 
-@javax.persistence.IdClass(ServiceDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "servicedesiredstate")
+@NamedQueries({
+  @NamedQuery(name = "ServiceDesiredStateByServiceId", query =
+    "SELECT serviceDesiredState " +
+    "FROM ServiceDesiredStateEntity serviceDesiredState " +
+    "WHERE serviceDesiredState.serviceId=:serviceId ")
+})
+
 @Entity
 public class ServiceDesiredStateEntity {
 
-  @Id
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false, length = 10)
   private Long clusterId;
 
-  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
-  @Id
+  @Column(name = "service_group_id", nullable = false, insertable = true, updatable = false, length = 10)
   private Long serviceGroupId;
 
   @Column(name = "service_id", nullable = false, insertable = false, updatable = false, length = 10)
@@ -64,12 +69,7 @@ public class ServiceDesiredStateEntity {
   private short credentialStoreEnabled = 0;
 
   @OneToOne
-  @JoinColumns(
-    {
-      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-      @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
-      @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
-    })
+  @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
   private ClusterServiceEntity clusterServiceEntity;
 
   public Long getClusterId() {

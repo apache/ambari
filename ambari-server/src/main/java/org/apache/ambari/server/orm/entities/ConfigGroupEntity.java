@@ -26,7 +26,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -81,12 +80,7 @@ public class ConfigGroupEntity {
   private Long serviceGroupId;
 
   @ManyToOne
-  @JoinColumns(
-      {
-          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
-          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", insertable = false, updatable = false, nullable = false),
-          @JoinColumn(name = "service_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
-      })
+  @JoinColumn(name = "service_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
   private ClusterServiceEntity clusterServiceEntity;
 
   @ManyToOne

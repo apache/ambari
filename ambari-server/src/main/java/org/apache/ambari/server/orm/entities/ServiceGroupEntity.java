@@ -26,7 +26,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -35,24 +34,28 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 
 
-@IdClass(ServiceGroupEntityPK.class)
-@Table(name = "servicegroups")
 @NamedQueries({
-  @NamedQuery(name = "serviceGroupByClusterAndServiceGroupIds", query =
+  @NamedQuery(name = "serviceGroupById", query =
     "SELECT serviceGroup " +
       "FROM ServiceGroupEntity serviceGroup " +
-      "JOIN serviceGroup.clusterEntity cluster " +
-      "WHERE serviceGroup.serviceGroupId=:serviceGroupId AND cluster.clusterId=:clusterId"),
+      "WHERE serviceGroup.serviceGroupId=:serviceGroupId"),
   @NamedQuery(name = ServiceGroupDAO.SERVICE_GROUP_BY_CLUSTER_ID_AND_SERVICE_GROUP_NAME, query =
     "SELECT serviceGroup " +
       "FROM ServiceGroupEntity serviceGroup " +
       "WHERE serviceGroup.serviceGroupName = :serviceGroupName AND serviceGroup.clusterId = :clusterId")
 })
 @Entity
+@Table(
+    name = "servicegroups",
+    uniqueConstraints = @UniqueConstraint(
+                name = "UQ_servicegroups_id",
+                columnNames = { "cluster_id", "service_group_name" }))
+
 @TableGenerator(name = "service_group_id_generator",
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "service_group_id_seq"
@@ -60,7 +63,6 @@ import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 )
 public class ServiceGroupEntity {
 
-  @Id
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 

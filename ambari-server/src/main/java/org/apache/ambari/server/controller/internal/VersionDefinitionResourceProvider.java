@@ -148,43 +148,43 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * Key property ids
    */
   private static final Set<String> PK_PROPERTY_IDS = Sets.newHashSet(
-      VERSION_DEF_ID,
-      VERSION_DEF_STACK_NAME,
-      VERSION_DEF_STACK_VERSION,
-      VERSION_DEF_FULL_VERSION);
+          VERSION_DEF_ID,
+          VERSION_DEF_STACK_NAME,
+          VERSION_DEF_STACK_VERSION,
+          VERSION_DEF_FULL_VERSION);
 
   /**
    * The property ids for an version definition resource.
    */
   private static final Set<String> PROPERTY_IDS = Sets.newHashSet(
-      VERSION_DEF_ID,
-      VERSION_DEF_TYPE_PROPERTY_ID,
-      VERSION_DEF_DEFINITION_URL,
-      VERSION_DEF_DEFINITION_BASE64,
-      VERSION_DEF_AVAILABLE_DEFINITION,
-      VERSION_DEF_STACK_NAME,
-      VERSION_DEF_STACK_VERSION,
-      VERSION_DEF_FULL_VERSION,
-      VERSION_DEF_RELEASE_NOTES,
-      VERSION_DEF_RELEASE_COMPATIBLE_WITH,
-      VERSION_DEF_RELEASE_VERSION,
-      VERSION_DEF_RELEASE_BUILD,
-      VERSION_DEF_AVAILABLE_SERVICES,
-      VERSION_DEF_STACK_SERVICES,
-      VERSION_DEF_STACK_DEFAULT,
-      VERSION_DEF_STACK_REPO_UPDATE_LINK_EXISTS,
-      VERSION_DEF_DISPLAY_NAME,
-      VERSION_DEF_VALIDATION,
-      VERSION_DEF_MIN_JDK,
-      VERSION_DEF_MAX_JDK,
-      SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
-      SHOW_AVAILABLE);
+          VERSION_DEF_ID,
+          VERSION_DEF_TYPE_PROPERTY_ID,
+          VERSION_DEF_DEFINITION_URL,
+          VERSION_DEF_DEFINITION_BASE64,
+          VERSION_DEF_AVAILABLE_DEFINITION,
+          VERSION_DEF_STACK_NAME,
+          VERSION_DEF_STACK_VERSION,
+          VERSION_DEF_FULL_VERSION,
+          VERSION_DEF_RELEASE_NOTES,
+          VERSION_DEF_RELEASE_COMPATIBLE_WITH,
+          VERSION_DEF_RELEASE_VERSION,
+          VERSION_DEF_RELEASE_BUILD,
+          VERSION_DEF_AVAILABLE_SERVICES,
+          VERSION_DEF_STACK_SERVICES,
+          VERSION_DEF_STACK_DEFAULT,
+          VERSION_DEF_STACK_REPO_UPDATE_LINK_EXISTS,
+          VERSION_DEF_DISPLAY_NAME,
+          VERSION_DEF_VALIDATION,
+          VERSION_DEF_MIN_JDK,
+          VERSION_DEF_MAX_JDK,
+          SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
+          SHOW_AVAILABLE);
 
   /**
    * The key property ids for an version definition resource.
    */
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS =
-      Collections.singletonMap(Resource.Type.VersionDefinition, VERSION_DEF_ID);
+          Collections.singletonMap(Resource.Type.VersionDefinition, VERSION_DEF_ID);
 
   /**
    * Constructor.
@@ -198,9 +198,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
   @Override
   protected RequestStatus createResourcesAuthorized(final Request request)
-      throws SystemException,
-      UnsupportedPropertyException, ResourceAlreadyExistsException,
-      NoSuchParentResourceException {
+          throws SystemException,
+          UnsupportedPropertyException, ResourceAlreadyExistsException,
+          NoSuchParentResourceException {
 
     Set<Map<String, Object>> requestProperties = request.getProperties();
 
@@ -211,15 +211,15 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     final Map<String, Object> properties = requestProperties.iterator().next();
 
     if (!properties.containsKey(VERSION_DEF_DEFINITION_URL) &&
-        !properties.containsKey(VERSION_DEF_DEFINITION_BASE64) &&
-        !properties.containsKey(VERSION_DEF_AVAILABLE_DEFINITION)) {
+            !properties.containsKey(VERSION_DEF_DEFINITION_BASE64) &&
+            !properties.containsKey(VERSION_DEF_AVAILABLE_DEFINITION)) {
       throw new IllegalArgumentException(String.format("Creation method is not known.  %s or %s is required or upload the file directly",
-          VERSION_DEF_DEFINITION_URL, VERSION_DEF_AVAILABLE_DEFINITION));
+              VERSION_DEF_DEFINITION_URL, VERSION_DEF_AVAILABLE_DEFINITION));
     }
 
     if (properties.containsKey(VERSION_DEF_DEFINITION_URL) && properties.containsKey(VERSION_DEF_DEFINITION_BASE64)) {
       throw new IllegalArgumentException(String.format("Specify ONLY the url with %s or upload the file directly",
-          VERSION_DEF_DEFINITION_URL));
+              VERSION_DEF_DEFINITION_URL));
     }
 
     final String definitionUrl = (String) properties.get(VERSION_DEF_DEFINITION_URL);
@@ -269,7 +269,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
         try {
           RepositoryVersionResourceProvider.validateRepositoryVersion(s_repoVersionDAO,
-              s_metaInfo.get(), holder.entity, skipUrlCheck);
+                  s_metaInfo.get(), holder.entity, skipUrlCheck);
         } catch (AmbariException e) {
           if (dryRun) {
             validations.add(e.getMessage());
@@ -295,7 +295,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     if (s_repoVersionDAO.findByDisplayName(xmlHolder.entity.getDisplayName()) != null) {
       String err = String.format("Repository version with name %s already exists.",
-          xmlHolder.entity.getDisplayName());
+              xmlHolder.entity.getDisplayName());
 
       if (dryRun) {
         validations.add(err);
@@ -322,18 +322,18 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       // done via sub-resources, but that model breaks down since we don't have a saved
       // entity yet
       Set<String> ids = Sets.newHashSet(
-        VERSION_DEF_TYPE_PROPERTY_ID,
-        VERSION_DEF_FULL_VERSION,
-        VERSION_DEF_RELEASE_BUILD,
-        VERSION_DEF_RELEASE_COMPATIBLE_WITH,
-        VERSION_DEF_RELEASE_NOTES,
-        VERSION_DEF_RELEASE_VERSION,
-        VERSION_DEF_DISPLAY_NAME,
-        VERSION_DEF_AVAILABLE_SERVICES,
-        VERSION_DEF_VALIDATION,
-        VERSION_DEF_MIN_JDK,
-        VERSION_DEF_MAX_JDK,
-        VERSION_DEF_STACK_SERVICES);
+              VERSION_DEF_TYPE_PROPERTY_ID,
+              VERSION_DEF_FULL_VERSION,
+              VERSION_DEF_RELEASE_BUILD,
+              VERSION_DEF_RELEASE_COMPATIBLE_WITH,
+              VERSION_DEF_RELEASE_NOTES,
+              VERSION_DEF_RELEASE_VERSION,
+              VERSION_DEF_DISPLAY_NAME,
+              VERSION_DEF_AVAILABLE_SERVICES,
+              VERSION_DEF_VALIDATION,
+              VERSION_DEF_MIN_JDK,
+              VERSION_DEF_MAX_JDK,
+              VERSION_DEF_STACK_SERVICES);
 
       res = toResource(null, xmlHolder.xml, ids, validations);
       // !!! if the definition name is not null, it can only be from available
@@ -360,8 +360,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
-      throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
+          throws SystemException, UnsupportedPropertyException,
+          NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Resource> results = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
@@ -378,7 +378,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       for (Map<String, Object> propertyMap : propertyMaps) {
 
         if (propertyMap.containsKey(SHOW_AVAILABLE) &&
-            Boolean.parseBoolean(propertyMap.get(SHOW_AVAILABLE).toString())) {
+                Boolean.parseBoolean(propertyMap.get(SHOW_AVAILABLE).toString())) {
 
           for (Entry<String, VersionDefinitionXml> entry : s_metaInfo.get().getVersionDefinitions().entrySet()) {
             Resource res = toResource(entry.getKey(), entry.getValue(), requestPropertyIds, null);
@@ -402,7 +402,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
               if (null == xml) {
                 throw new NoSuchResourceException(String.format("Could not find version %s",
-                    id));
+                        id));
               }
               Resource res = toResource(id, xml, requestPropertyIds, null);
               res.setProperty(SHOW_AVAILABLE, true);
@@ -424,16 +424,16 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
   @Override
   protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
-    throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
+          throws SystemException, UnsupportedPropertyException,
+          NoSuchResourceException, NoSuchParentResourceException {
 
     throw new SystemException("Cannot update Version Definitions");
   }
 
   @Override
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
-      throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
+          throws SystemException, UnsupportedPropertyException,
+          NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException("Cannot delete Version Definitions");
   }
 
@@ -449,11 +449,11 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     }
 
     List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStackAndType(
-        entity.getStackId(), RepositoryType.STANDARD);
+            entity.getStackId(), RepositoryType.STANDARD);
 
     if (entities.isEmpty()) {
       throw new IllegalArgumentException(String.format("Patch %s was uploaded, but there are no repositories for %s",
-          entity.getVersion(), entity.getStackId().toString()));
+              entity.getVersion(), entity.getStackId().toString()));
     }
 
     List<RepositoryVersionEntity> matching = new ArrayList<>();
@@ -483,7 +483,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       String format = "No versions matched pattern %s";
 
       throw new IllegalArgumentException(String.format(format,
-          emptyCompatible ? holder.xml.release.version : holder.xml.release.compatibleWith));
+              emptyCompatible ? holder.xml.release.version : holder.xml.release.compatibleWith));
     } else if (matching.size() > 1) {
 
       Function<RepositoryVersionEntity, String> function = new Function<RepositoryVersionEntity, String>() {
@@ -499,19 +499,19 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
       if (used.isEmpty()) {
         throw new IllegalArgumentException(String.format("Could not determine which version " +
-          "to associate patch %s. Remove one of %s and try again.",
-          entity.getVersion(), StringUtils.join(versions, ", ")));
+                        "to associate patch %s. Remove one of %s and try again.",
+                entity.getVersion(), StringUtils.join(versions, ", ")));
       } else if (used.size() > 1) {
         Collection<String> usedVersions = Collections2.transform(used, function);
 
         throw new IllegalArgumentException(String.format("Patch %s was found to match more " +
-            "than one repository in use: %s. Move all services to a common version and try again.",
-            entity.getVersion(), StringUtils.join(usedVersions, ", ")));
+                        "than one repository in use: %s. Move all services to a common version and try again.",
+                entity.getVersion(), StringUtils.join(usedVersions, ", ")));
       } else {
         parent = used.get(0);
         LOG.warn("Patch {} was found to match more than one repository in {}. " +
-            "Repository {} is in use and will be the parent.", entity.getVersion(),
-               StringUtils.join(versions, ", "), parent.getVersion());
+                        "Repository {} is in use and will be the parent.", entity.getVersion(),
+                StringUtils.join(versions, ", "), parent.getVersion());
       }
     } else {
       parent = matching.get(0);
@@ -519,7 +519,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     if (null == parent) {
       throw new IllegalArgumentException(String.format("Could not find any parent repository for %s.",
-          entity.getVersion()));
+              entity.getVersion()));
     }
 
     entity.setParent(parent);
@@ -580,7 +580,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         stream = uri.toURL().openStream();
       } else {
         URLStreamProvider provider = new URLStreamProvider(connectTimeout, readTimeout,
-            ComponentSSLConfiguration.instance());
+                ComponentSSLConfiguration.instance());
 
         stream = provider.readFrom(definitionUrl);
       }
@@ -589,7 +589,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       holder.xml = VersionDefinitionXml.load(holder.xmlString);
     } catch (Exception e) {
       String err = String.format("Could not load url from %s.  %s",
-          definitionUrl, e.getMessage());
+              definitionUrl, e.getMessage());
       throw new AmbariException(err, e);
     }
 
@@ -636,7 +636,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * @throws SystemException
    */
   private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds,
-      Set<String> validations) throws SystemException {
+                              Set<String> validations) throws SystemException {
 
     Resource resource = new ResourceImpl(Resource.Type.VersionDefinition);
     resource.setProperty(VERSION_DEF_ID, id);
@@ -686,7 +686,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * @return the resource representation of the entity (never {@code null}).
    */
   private Resource toResource(RepositoryVersionEntity entity, Set<String> requestedIds)
-      throws SystemException {
+          throws SystemException {
 
     Resource resource = new ResourceImpl(Resource.Type.VersionDefinition);
     resource.setProperty(VERSION_DEF_ID, entity.getId());
@@ -718,7 +718,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     StackInfo stack = null;
 
     if (isPropertyRequested(VERSION_DEF_AVAILABLE_SERVICES, requestedIds) ||
-        isPropertyRequested(VERSION_DEF_STACK_SERVICES, requestedIds)) {
+            isPropertyRequested(VERSION_DEF_STACK_SERVICES, requestedIds)) {
       try {
         stack = s_metaInfo.get().getStack(stackId.getStackName(), stackId.getStackVersion());
       } catch (AmbariException e) {
@@ -750,17 +750,17 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
       ObjectNode osElement = factory.objectNode();
       osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
-          os.isAmbariManaged());
+              os.isAmbariManaged());
       osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID),
-          os.getFamily());
+              os.getFamily());
 
       osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID),
-          entity.getStackName());
+              entity.getStackName());
       osElement.put(PropertyHelper.getPropertyName(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID),
-          entity.getStackVersion());
+              entity.getStackVersion());
 
       osBase.put(PropertyHelper.getPropertyCategory(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
-          osElement);
+              osElement);
 
       ArrayNode reposArray = factory.arrayNode();
       for (RepoDefinitionEntity repo : os.getRepoDefinitionEntities()) {
@@ -769,31 +769,31 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         ObjectNode repoElement = factory.objectNode();
 
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
-            repo.getBaseUrl());
+                repo.getBaseUrl());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID),
-            os.getFamily());
+                os.getFamily());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID),
-            repo.getRepoID());
+                repo.getRepoID());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID),
-            repo.getRepoName());
+                repo.getRepoName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID),
-            repo.getDistribution());
+                repo.getDistribution());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID),
-            repo.getComponents());
+                repo.getComponents());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID),
-            entity.getStackName());
+                entity.getStackName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),
-            entity.getStackVersion());
+                entity.getStackVersion());
 
         ArrayNode tagsNode = factory.arrayNode();
         for (RepoTag repoTag : repo.getTags()) {
           tagsNode.add(repoTag.toString());
         }
         repoElement.put(PropertyHelper.getPropertyName(
-            RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID), tagsNode);
+                RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID), tagsNode);
 
         repoBase.put(PropertyHelper.getPropertyCategory(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
-            repoElement);
+                repoElement);
 
         reposArray.add(repoBase);
       }

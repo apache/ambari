@@ -2097,7 +2097,7 @@ public class ClusterImpl implements Cluster {
       Service service = getService(serviceId);
       StackId serviceStackId = service.getStackId();
       StackEntity stackEntity = stackDAO.find(serviceStackId);
-      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(clusterId, service.getServiceGroupId(), service.getServiceId());
+      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(service.getServiceId());
 
       serviceConfigEntity.setServiceId(serviceId);
       serviceConfigEntity.setClusterEntity(clusterEntity);
