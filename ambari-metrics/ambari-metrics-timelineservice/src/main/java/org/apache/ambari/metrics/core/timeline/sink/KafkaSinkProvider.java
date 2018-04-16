@@ -35,6 +35,15 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.KAFKA_ACKS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.KAFKA_BATCH_SIZE;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.KAFKA_BUFFER_MEM;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.KAFKA_LINGER_MS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.KAFKA_RETRIES;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.KAFKA_SERVERS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.KAFKA_SINK_TIMEOUT_SECONDS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL;
+
 /*
   This will be used by the single Metrics committer thread. Hence it is
   important to make this non-blocking export.
@@ -54,15 +63,15 @@ public class KafkaSinkProvider implements ExternalSinkProvider {
 
     Properties configProperties = new Properties();
     try {
-      configProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getMetricsConf().getTrimmed(TimelineMetricConfiguration.KAFKA_SERVERS));
-      configProperties.put(ProducerConfig.ACKS_CONFIG, configuration.getMetricsConf().getTrimmed(TimelineMetricConfiguration.KAFKA_ACKS, "all"));
+      configProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getMetricsConf().getTrimmed(KAFKA_SERVERS));
+      configProperties.put(ProducerConfig.ACKS_CONFIG, configuration.getMetricsConf().getTrimmed(KAFKA_ACKS, "all"));
       // Avoid duplicates - No transactional semantics
-      configProperties.put(ProducerConfig.RETRIES_CONFIG, configuration.getMetricsConf().getInt(TimelineMetricConfiguration.KAFKA_RETRIES, 0));
-      configProperties.put(ProducerConfig.BATCH_SIZE_CONFIG, configuration.getMetricsConf().getInt(TimelineMetricConfiguration.KAFKA_BATCH_SIZE, 128));
-      configProperties.put(ProducerConfig.LINGER_MS_CONFIG, configuration.getMetricsConf().getInt(TimelineMetricConfiguration.KAFKA_LINGER_MS, 1));
-      configProperties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, configuration.getMetricsConf().getLong(TimelineMetricConfiguration.KAFKA_BUFFER_MEM, 33554432)); // 32 MB
-      FLUSH_SECONDS = configuration.getMetricsConf().getInt(TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, 3);
-      TIMEOUT_SECONDS = configuration.getMetricsConf().getInt(TimelineMetricConfiguration.KAFKA_SINK_TIMEOUT_SECONDS, 10);
+      configProperties.put(ProducerConfig.RETRIES_CONFIG, configuration.getMetricsConf().getInt(KAFKA_RETRIES, 0));
+      configProperties.put(ProducerConfig.BATCH_SIZE_CONFIG, configuration.getMetricsConf().getInt(KAFKA_BATCH_SIZE, 128));
+      configProperties.put(ProducerConfig.LINGER_MS_CONFIG, configuration.getMetricsConf().getInt(KAFKA_LINGER_MS, 1));
+      configProperties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, configuration.getMetricsConf().getLong(KAFKA_BUFFER_MEM, 33554432)); // 32 MB
+      FLUSH_SECONDS = configuration.getMetricsConf().getInt(TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, 3);
+      TIMEOUT_SECONDS = configuration.getMetricsConf().getInt(KAFKA_SINK_TIMEOUT_SECONDS, 10);
     } catch (Exception e) {
       LOG.error("Configuration error!", e);
       throw new ExceptionInInitializerError(e);

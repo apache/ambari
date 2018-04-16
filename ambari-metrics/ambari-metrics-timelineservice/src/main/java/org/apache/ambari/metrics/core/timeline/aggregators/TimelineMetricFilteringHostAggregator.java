@@ -33,6 +33,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL;
+
 public class TimelineMetricFilteringHostAggregator extends TimelineMetricHostAggregator {
   private static final Log LOG = LogFactory.getLog(TimelineMetricFilteringHostAggregator.class);
   private TimelineMetricMetadataManager metricMetadataManager;
@@ -84,7 +86,7 @@ public class TimelineMetricFilteringHostAggregator extends TimelineMetricHostAgg
       endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
-    condition.setStatement(String.format(PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL, tableName));
+    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, tableName));
     // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
