@@ -36,6 +36,8 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
 
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL;
+
 public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
   private static final Log LOG = LogFactory.getLog(TimelineMetricHostAggregator.class);
   TimelineMetricReadHelper readHelper;
@@ -73,7 +75,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
       endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
-    condition.setStatement(String.format(PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL, tableName));
+    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, tableName));
     // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");

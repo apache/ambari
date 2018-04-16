@@ -18,6 +18,14 @@
 package org.apache.ambari.metrics.core.timeline;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_APP_ID;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_BACKUPS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_NODES;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getJavaRegexFromSqlRegex;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getRoundedCheckPointTimeMillis;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getTimeSlices;
@@ -84,7 +92,7 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
     //TODO add config to disable logging
 
     //enable ssl for ignite requests
-    if (metricConf.get(TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY) != null && metricConf.get(TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY).equalsIgnoreCase("HTTPS_ONLY")) {
+    if (metricConf.get(TIMELINE_SERVICE_HTTP_POLICY) != null && metricConf.get(TIMELINE_SERVICE_HTTP_POLICY).equalsIgnoreCase("HTTPS_ONLY")) {
       SslContextFactory sslContextFactory = new SslContextFactory();
       String keyStorePath = sslConf.get("ssl.server.keystore.location");
       String keyStorePassword = sslConf.get("ssl.server.keystore.password");
@@ -100,11 +108,11 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
 
     //aggregation parameters
     appIdsToAggregate = timelineMetricConfiguration.getAppIdsForHostAggregation();
-    interpolationEnabled = Boolean.parseBoolean(metricConf.get(TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, "true"));
-    cacheSliceIntervalMillis = SECONDS.toMillis(metricConf.getInt(TimelineMetricConfiguration.CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL, 30));
-    Long aggregationInterval = metricConf.getLong(TimelineMetricConfiguration.CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL, 120L);
+    interpolationEnabled = Boolean.parseBoolean(metricConf.get(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, "true"));
+    cacheSliceIntervalMillis = SECONDS.toMillis(metricConf.getInt(CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL, 30));
+    Long aggregationInterval = metricConf.getLong(CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL, 120L);
 
-    String filteredMetricPatterns = metricConf.get(TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
+    String filteredMetricPatterns = metricConf.get(TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
     if (!StringUtils.isEmpty(filteredMetricPatterns)) {
       LOG.info("Skipping aggregation for metric patterns : " + filteredMetricPatterns);
       for (String patternString : filteredMetricPatterns.split(",")) {
@@ -113,10 +121,10 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
       }
     }
 
-    if (metricConf.get(TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_NODES) != null) {
+    if (metricConf.get(TIMELINE_METRICS_COLLECTOR_IGNITE_NODES) != null) {
       TcpDiscoverySpi discoverySpi = new TcpDiscoverySpi();
       TcpDiscoveryVmIpFinder ipFinder = new TcpDiscoveryVmIpFinder();
-      ipFinder.setAddresses(Arrays.asList(metricConf.get(TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_NODES).split(",")));
+      ipFinder.setAddresses(Arrays.asList(metricConf.get(TIMELINE_METRICS_COLLECTOR_IGNITE_NODES).split(",")));
       LOG.info("Setting ignite nodes to : " + ipFinder.getRegisteredAddresses());
       discoverySpi.setIpFinder(ipFinder);
       igniteConfiguration.setDiscoverySpi(discoverySpi);
@@ -143,7 +151,7 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
     cacheConfiguration.setName("metrics_cache");
     //set cache mode to partitioned with # of backups
     cacheConfiguration.setCacheMode(CacheMode.PARTITIONED);
-    cacheConfiguration.setBackups(metricConf.getInt(TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_BACKUPS, 1));
+    cacheConfiguration.setBackups(metricConf.getInt(TIMELINE_METRICS_COLLECTOR_IGNITE_BACKUPS, 1));
     //disable throttling due to cpu impact
     cacheConfiguration.setRebalanceThrottle(0);
     //enable locks
@@ -214,7 +222,7 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
           putMetricIntoCache(metricDoubleEntry.getKey(), newMetricClusterAggregate);
           if (hostMetadata != null) {
             //calculate app host metric
-            if (metric.getAppId().equalsIgnoreCase(TimelineMetricConfiguration.HOST_APP_ID)) {
+            if (metric.getAppId().equalsIgnoreCase(HOST_APP_ID)) {
               // Candidate metric, update app aggregates
               if (hostMetadata.containsKey(metric.getHostName())) {
                 updateAppAggregatesFromHostMetric(metricDoubleEntry.getKey(), newMetricClusterAggregate, hostMetadata.get(metric.getHostName()));

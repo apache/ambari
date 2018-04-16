@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.metrics.core.timeline;
 
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 import static org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
 import java.io.IOException;
@@ -92,7 +94,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
 
   /**
    * Construct the service.
-   *
    */
   public HBaseTimelineMetricsService(TimelineMetricConfiguration configuration) {
     super(HBaseTimelineMetricsService.class.getName());
@@ -159,8 +160,8 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
         }
       }
 
-      defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT, "20"));
-      if (Boolean.parseBoolean(metricsConf.get(TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
+      defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
+      if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
       }
 
@@ -587,7 +588,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
         aggregator.getSleepIntervalMillis(),
         TimeUnit.MILLISECONDS);
       LOG.info("Scheduled aggregator thread " + aggregator.getName() + " every " +
-        +aggregator.getSleepIntervalMillis() + " milliseconds.");
+        + aggregator.getSleepIntervalMillis() + " milliseconds.");
     } else {
       LOG.info("Skipped scheduling " + aggregator.getName() + " since it is disabled.");
     }

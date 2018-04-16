@@ -31,6 +31,8 @@ import org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL;
+
 public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
 
   public TimelineMetricHostAggregator(AggregationTaskRunner.AGGREGATOR_NAME aggregatorName,
@@ -62,7 +64,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     EmptyCondition condition = new EmptyCondition();
     condition.setDoUpdate(true);
 
-    condition.setStatement(String.format(PhoenixTransactSQL.GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL,
+    condition.setStatement(String.format(GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL,
       outputTableName, endTime, tableName,
       getDownsampledMetricSkipClause(), startTime, endTime));
 

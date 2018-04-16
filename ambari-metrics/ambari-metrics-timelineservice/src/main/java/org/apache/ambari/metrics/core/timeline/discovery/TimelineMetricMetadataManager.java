@@ -50,6 +50,12 @@ import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
 import org.apache.ambari.metrics.core.timeline.uuid.HashBasedUuidGenStrategy;
 
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.DISABLE_METRIC_METADATA_MGMT;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_INIT_DELAY;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_SCHEDULE_DELAY;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_UUID_GEN_STRATEGY;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_METADATA_FILTERS;
+
 public class TimelineMetricMetadataManager {
   private static final Log LOG = LogFactory.getLog(TimelineMetricMetadataManager.class);
   private boolean isDisabled = false;
@@ -82,7 +88,7 @@ public class TimelineMetricMetadataManager {
   public TimelineMetricMetadataManager(Configuration metricsConf, PhoenixHBaseAccessor hBaseAccessor) {
     this.metricsConf = metricsConf;
     this.hBaseAccessor = hBaseAccessor;
-    String patternStrings = metricsConf.get(TimelineMetricConfiguration.TIMELINE_METRIC_METADATA_FILTERS);
+    String patternStrings = metricsConf.get(TIMELINE_METRIC_METADATA_FILTERS);
     if (!StringUtils.isEmpty(patternStrings)) {
       metricNameFilters.addAll(Arrays.asList(patternStrings.split(",")));
     }
@@ -98,14 +104,14 @@ public class TimelineMetricMetadataManager {
    * Initialize Metadata from the store
    */
   public void initializeMetadata() {
-    if (metricsConf.getBoolean(TimelineMetricConfiguration.DISABLE_METRIC_METADATA_MGMT, false)) {
+    if (metricsConf.getBoolean(DISABLE_METRIC_METADATA_MGMT, false)) {
       isDisabled = true;
     } else {
       metricMetadataSync = new TimelineMetricMetadataSync(this);
       // Schedule the executor to sync to store
       executorService.scheduleWithFixedDelay(metricMetadataSync,
-        metricsConf.getInt(TimelineMetricConfiguration.METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
-        metricsConf.getInt(TimelineMetricConfiguration.METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
+        metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
+        metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
         TimeUnit.SECONDS);
       // Read from store and initialize map
       try {
@@ -330,7 +336,7 @@ public class TimelineMetricMetadataManager {
    * @return
    */
   private MetricUuidGenStrategy getUuidStrategy(Configuration configuration) {
-    String strategy = configuration.get(TimelineMetricConfiguration.TIMELINE_METRICS_UUID_GEN_STRATEGY, "");
+    String strategy = configuration.get(TIMELINE_METRICS_UUID_GEN_STRATEGY, "");
     if ("random".equalsIgnoreCase(strategy)) {
       return new RandomUuidGenStrategy();
     } else {

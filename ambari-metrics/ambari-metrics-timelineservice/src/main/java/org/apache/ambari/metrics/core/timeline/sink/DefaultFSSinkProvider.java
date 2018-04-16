@@ -31,6 +31,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL;
+
 public class DefaultFSSinkProvider implements ExternalSinkProvider {
   private static final Log LOG = LogFactory.getLog(DefaultFSSinkProvider.class);
   TimelineMetricConfiguration conf = TimelineMetricConfiguration.getInstance();
@@ -64,7 +66,7 @@ public class DefaultFSSinkProvider implements ExternalSinkProvider {
     @Override
     public int getFlushSeconds() {
       try {
-        return conf.getMetricsConf().getInt(TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, 3);
+        return conf.getMetricsConf().getInt(TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, 3);
       } catch (Exception e) {
         LOG.warn("Cannot read cache commit interval.");
       }
