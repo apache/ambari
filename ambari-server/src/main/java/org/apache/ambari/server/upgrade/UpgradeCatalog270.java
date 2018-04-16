@@ -543,19 +543,19 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.executeUpdate(
         "insert into " + temporaryTable +
           "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-          " select" +
+          " select distinct" +
           "  u." + USERS_USER_ID_COLUMN + "," +
           "  t.min_user_id," +
           "  u." + USERS_USER_TYPE_COLUMN + "," +
           "  u." + USERS_USER_PASSWORD_COLUMN + "," +
           "  u." + USERS_CREATE_TIME_COLUMN + "," +
           "  u." + USERS_CREATE_TIME_COLUMN +
-          " from " + USERS_TABLE + " as u inner join" +
+          " from " + USERS_TABLE + " u inner join" +
           "   (select" +
           "     lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
           "     min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
           "    from " + USERS_TABLE +
-          "    group by lower(" + USERS_USER_NAME_COLUMN + ")) as t" +
+          "    group by lower(" + USERS_USER_NAME_COLUMN + ")) t" +
           " on (lower(u." + USERS_USER_NAME_COLUMN + ") = lower(t." + USERS_USER_NAME_COLUMN + "))"
       );
 
@@ -571,7 +571,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.executeUpdate(
         "insert into " + USER_AUTHENTICATION_TABLE +
           "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-          " select distinct " +
+          " select " +
           USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN +
           " from " + temporaryTable
       );
@@ -699,7 +699,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    m." + MEMBERS_MEMBER_ID_COLUMN + "," +
         "    u.min_user_id," +
         "    m." + MEMBERS_GROUP_ID_COLUMN +
-        "  from " + MEMBERS_TABLE + " as m inner join" +
+        "  from " + MEMBERS_TABLE + " m inner join" +
         "    (" +
         "      select" +
         "        iu." + USERS_USER_NAME_COLUMN + "," +
@@ -712,8 +712,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "            min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
         "          from " + USERS_TABLE +
         "          group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-        "        ) as t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
-        "    ) as u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
+        "        ) t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
+        "    ) u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
 
     // Truncate existing membership records
     dbAccessor.truncateTable(MEMBERS_TABLE);
@@ -780,7 +780,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
-        "  from " + ADMINPRIVILEGE_TABLE + " as ap" +
+        "  from " + ADMINPRIVILEGE_TABLE + " ap" +
         "  where ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " not in" +
         "        (" +
         "          select " + USERS_PRINCIPAL_ID_COLUMN +
@@ -792,29 +792,29 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
         "    t.new_principal_id" +
-        "  from " + ADMINPRIVILEGE_TABLE + " as ap inner join" +
+        "  from " + ADMINPRIVILEGE_TABLE + " ap inner join" +
         "    (" +
         "      select" +
         "        u." + USERS_USER_ID_COLUMN + "," +
         "        u." + USERS_USER_NAME_COLUMN + "," +
         "        u." + USERS_PRINCIPAL_ID_COLUMN + " as new_principal_id," +
         "        t1." + USERS_PRINCIPAL_ID_COLUMN + " as orig_principal_id" +
-        "      from " + USERS_TABLE + " as u inner join" +
+        "      from " + USERS_TABLE + " u inner join" +
         "        (" +
         "          select" +
         "            u1." + USERS_USER_NAME_COLUMN + "," +
         "            u1." + USERS_PRINCIPAL_ID_COLUMN + "," +
         "            t2.min_user_id" +
-        "          from " + USERS_TABLE + " as u1 inner join" +
+        "          from " + USERS_TABLE + " u1 inner join" +
         "            (" +
         "              select" +
         "                lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
         "                min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
         "              from " + USERS_TABLE +
         "              group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-        "            ) as t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
-        "        ) as t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
-        "    ) as t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id);");
+        "            ) t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
+        "        ) t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
+        "    ) t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id)");
 
     // Truncate existing adminprivilege records
     dbAccessor.truncateTable(ADMINPRIVILEGE_TABLE);
