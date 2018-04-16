@@ -930,7 +930,7 @@
                   <classpathPrefix></classpathPrefix>
                   <!-- Specifies the main class of the application -->
                   <mainClass>
-                    org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.MetricsLoadSimulator
+                    org.apache.ambari.metrics.core.loadsimulator.MetricsLoadSimulator
                   </mainClass>
                 </manifest>
               </archive>
