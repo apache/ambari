@@ -115,7 +115,7 @@ export class UserSettingsService {
           filter: newConfig
         }, null, {
           clusterName
-        }).first().subscribe(addResponseHandler(clusterName), addResponseHandler(clusterName));
+        }).subscribe(addResponseHandler(clusterName), addResponseHandler(clusterName));
       }
     });
     this.settingsStorage.setParameter('logIndexFilters', storedValue);
