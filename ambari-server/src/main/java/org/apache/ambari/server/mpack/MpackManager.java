@@ -51,6 +51,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.MpackOsSpecific;
 import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
@@ -365,15 +366,20 @@ public class MpackManager {
     version.setActive(true);
     generatedMetainfo.setVersion(version);
 
-    //Add osSpecifics to the metainfo.xml
-    OsSpecific osSpecific = new OsSpecific("any");
-    OsSpecific.Package pkg = new OsSpecific.Package();
-    pkg.setName(mpack.getName().toLowerCase());
-    ArrayList<OsSpecific.Package> packageArrayList = new ArrayList<>();
-    packageArrayList.add(pkg);
     ArrayList<OsSpecific> osSpecificArrayList = new ArrayList<>();
-    osSpecificArrayList.add(osSpecific);
-    osSpecific.addPackages(packageArrayList);
+    //Add osSpecifics to the metainfo.xml
+    for(MpackOsSpecific mpackOsSpecific : mpack.getOsSpecifics()){
+      OsSpecific osSpecific = new OsSpecific(mpackOsSpecific.getOsFamily());
+      ArrayList<OsSpecific.Package> packageArrayList = new ArrayList<>();
+      for(String packageName : mpackOsSpecific.getPackages()){
+        OsSpecific.Package pkg = new OsSpecific.Package();
+        pkg.setName(packageName);
+        packageArrayList.add(pkg);
+      }
+      osSpecific.addPackages(packageArrayList);
+      osSpecificArrayList.add(osSpecific);
+    }
+
     generatedMetainfo.setOsSpecifics(osSpecificArrayList);
 
     Map<String, String> prerequisites = mpack.getPrerequisites();

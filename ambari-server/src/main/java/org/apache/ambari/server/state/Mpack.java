@@ -67,6 +67,9 @@ public class Mpack {
   @SerializedName("displayName")
   private String displayName;
 
+  @SerializedName("osSpecifics")
+  private List<MpackOsSpecific> osSpecifics;
+
   private String mpackUri;
 
   private HashMap<String, Module> moduleHashMap;
@@ -162,6 +165,15 @@ public class Mpack {
 
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
+  }
+
+
+  public List<MpackOsSpecific> getOsSpecifics() {
+    return osSpecifics;
+  }
+
+  public void setOsSpecifics(List<MpackOsSpecific> osSpecifics) {
+    this.osSpecifics = osSpecifics;
   }
 
   /**
