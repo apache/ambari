@@ -44,14 +44,10 @@ module.exports = App.WizardRoute.extend({
 
         onClose: function () {
           var nameNodeFederationWizardController = router.get('nameNodeFederationWizardController'),
-              currStep = nameNodeFederationWizardController.get('currentStep');
-          if (parseInt(currStep) === 4) {
-            App.showConfirmationPopup(function () {
-              nameNodeFederationWizardController.resetOnClose(nameNodeFederationWizardController, 'main.services.index');
-            }, Em.I18n.t('admin.nameNodeFederation.closePopup'));
-          } else {
+            currStep = nameNodeFederationWizardController.get('currentStep');
+          App.showConfirmationPopup(function () {
             nameNodeFederationWizardController.resetOnClose(nameNodeFederationWizardController, 'main.services.index');
-          }
+          }, Em.I18n.t(parseInt(currStep) === 4 ? 'admin.nameNodeFederation.closePopup2' : 'admin.nameNodeFederation.closePopup'));
         },
         didInsertElement: function () {
           this._super();
