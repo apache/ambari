@@ -44,7 +44,6 @@ import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -476,11 +475,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Transactional
   protected void persistEntities(ServiceComponentDesiredStateEntity desiredStateEntity) {
-    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-    pk.setClusterId(service.getClusterId());
-    pk.setServiceGroupId(service.getServiceGroupId());
-    pk.setServiceId(service.getServiceId());
-    ClusterServiceEntity serviceEntity = clusterServiceDAO.findByPK(pk);
+    ClusterServiceEntity serviceEntity = clusterServiceDAO.findByPK(service.getServiceId());
 
     desiredStateEntity.setClusterServiceEntity(serviceEntity);
     serviceComponentDesiredStateDAO.create(desiredStateEntity);

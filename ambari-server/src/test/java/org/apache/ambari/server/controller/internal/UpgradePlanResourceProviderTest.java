@@ -104,8 +104,7 @@ public class UpgradePlanResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
     ServiceGroupEntity randomServiceGroup = createNiceMock(ServiceGroupEntity.class);
-    expect(serviceGroupDAO.findByClusterAndServiceGroupIds(EasyMock.anyLong(),
-        EasyMock.anyLong())).andReturn(randomServiceGroup).atLeastOnce();
+    expect(serviceGroupDAO.findByPK(EasyMock.anyLong())).andReturn(randomServiceGroup).atLeastOnce();
 
     MpackEntity randomMpack = createNiceMock(MpackEntity.class);
     expect(mpackDAO.findById(EasyMock.anyLong())).andReturn(randomMpack).atLeastOnce();

@@ -301,8 +301,7 @@ public class UpgradePlanResourceProvider extends AbstractControllerResourceProvi
       .filter(sgJson -> sgJson.mpackTargetId != null && sgJson.serviceGroupId != null)
       .forEach(sgJson -> {
 
-        ServiceGroupEntity sgEntity = s_serviceGroupDAO.findByClusterAndServiceGroupIds(
-            clusterId, sgJson.serviceGroupId);
+        ServiceGroupEntity sgEntity = s_serviceGroupDAO.findByPK(sgJson.serviceGroupId);
         if (null == sgEntity) {
           throw new IllegalArgumentException(
               String.format("Cannot find service group identified by %s", sgJson.serviceGroupId));

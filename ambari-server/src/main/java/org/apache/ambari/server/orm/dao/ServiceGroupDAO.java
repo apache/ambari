@@ -27,7 +27,6 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceGroupDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
-import org.apache.ambari.server.orm.entities.ServiceGroupEntityPK;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -43,22 +42,8 @@ public class ServiceGroupDAO {
   DaoUtils daoUtils;
 
   @RequiresSession
-  public ServiceGroupEntity findByPK(ServiceGroupEntityPK clusterServiceGroupEntityPK) {
-    return entityManagerProvider.get().find(ServiceGroupEntity.class, clusterServiceGroupEntityPK);
-  }
-
-  @RequiresSession
-  public ServiceGroupEntity findByClusterAndServiceGroupIds(Long clusterId, Long serviceGroupId) {
-    TypedQuery<ServiceGroupEntity> query = entityManagerProvider.get()
-      .createNamedQuery("serviceGroupByClusterAndServiceGroupIds", ServiceGroupEntity.class);
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("serviceGroupId", serviceGroupId);
-
-    try {
-      return query.getSingleResult();
-    } catch (NoResultException ignored) {
-      return null;
-    }
+  public ServiceGroupEntity findByPK(Long serviceGroupId) {
+    return entityManagerProvider.get().find(ServiceGroupEntity.class, serviceGroupId);
   }
 
   @RequiresSession
@@ -133,8 +118,8 @@ public class ServiceGroupDAO {
   }
 
   @Transactional
-  public void removeByPK(ServiceGroupEntityPK clusterServiceGroupEntityPK) {
-    ServiceGroupEntity entity = findByPK(clusterServiceGroupEntityPK);
+  public void removeByPK(Long serviceGroupId) {
+    ServiceGroupEntity entity = findByPK(serviceGroupId);
     entityManagerProvider.get().remove(entity);
   }
 

@@ -23,7 +23,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
@@ -45,33 +44,27 @@ public class ServiceDependencyEntity {
   @Column(name = "service_id", nullable = false, insertable = false, updatable = false)
   private long serviceId;
 
-  @Column(name = "service_cluster_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "service_cluster_id", nullable = false, insertable = true, updatable = false)
   private long serviceClusterId;
 
-  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "service_group_id", nullable = false, insertable = true, updatable = false)
   private long serviceGroupId;
 
   @Column(name = "dependent_service_id", nullable = false, insertable = false, updatable = false)
   private long dependentServiceId;
 
-  @Column(name = "dependent_service_group_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "dependent_service_group_id", nullable = false, insertable = true, updatable = false)
   private long dependentServiceGroupId;
 
-  @Column(name = "dependent_service_cluster_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "dependent_service_cluster_id", nullable = false, insertable = true, updatable = false)
   private long dependentServiceClusterId;
 
   @ManyToOne
-  @JoinColumns({
-          @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false),
-          @JoinColumn(name = "service_cluster_id", referencedColumnName = "cluster_id", nullable = false),
-          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false) })
+  @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
   private ClusterServiceEntity service;
 
   @ManyToOne
-  @JoinColumns({
-          @JoinColumn(name = "dependent_service_id", referencedColumnName = "id", nullable = false),
-          @JoinColumn(name = "dependent_service_cluster_id", referencedColumnName = "cluster_id", nullable = false),
-          @JoinColumn(name = "dependent_service_group_id", referencedColumnName = "service_group_id", nullable = false) })
+  @JoinColumn(name = "dependent_service_id", referencedColumnName = "id", nullable = false)
   private ClusterServiceEntity serviceDependency;
 
   public Long getServiceDependencyId() {
@@ -84,6 +77,14 @@ public class ServiceDependencyEntity {
 
   public void setDependentServiceGroupId(long dependentServiceGroupId) {
     this.dependentServiceGroupId = dependentServiceGroupId;
+  }
+
+  public long getServiceClusterId() {
+    return serviceClusterId;
+  }
+
+  public void setServiceClusterId(long serviceClusterId) {
+    this.serviceClusterId = serviceClusterId;
   }
 
   public long getDependentServiceId() {

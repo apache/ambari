@@ -133,7 +133,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setDescription(description);
     configGroupEntity.setServiceId(serviceId);
     configGroupEntity.setServiceGroupId(serviceGroupId);
-    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(cluster.getClusterId(), serviceGroupId, serviceId);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(serviceId);
     configGroupEntity.setClusterServiceEntity(clusterServiceEntity);
 
     m_hosts = hosts == null ? new ConcurrentHashMap<>()
@@ -363,7 +363,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setTimestamp(System.currentTimeMillis());
     configGroupEntity.setServiceGroupId(serviceGroupId);
     configGroupEntity.setServiceId(serviceId);
-    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(cluster.getClusterId(), serviceGroupId, serviceId);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(serviceId);
     configGroupEntity.setClusterServiceEntity(clusterServiceEntity);
     configGroupDAO.create(configGroupEntity);
 

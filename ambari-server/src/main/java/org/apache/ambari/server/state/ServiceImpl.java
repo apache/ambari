@@ -51,12 +51,10 @@ import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.serveraction.kerberos.Component;
 import org.slf4j.Logger;
@@ -71,8 +69,8 @@ import com.google.inject.persist.Transactional;
 
 public class ServiceImpl implements Service {
   private final Lock lock = new ReentrantLock();
-  private ServiceDesiredStateEntityPK serviceDesiredStateEntityPK;
-  private ClusterServiceEntityPK serviceEntityPK;
+  private ServiceDesiredStateEntity serviceDesiredStateEntity;
+  private ClusterServiceEntity serviceEntity;
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceImpl.class);
 
@@ -149,7 +147,7 @@ public class ServiceImpl implements Service {
     this.ambariMetaInfo = ambariMetaInfo;
 
 
-    ClusterServiceEntity serviceEntity = new ClusterServiceEntity();
+    serviceEntity = new ClusterServiceEntity();
     serviceEntity.setClusterId(cluster.getClusterId());
     serviceEntity.setServiceGroupId(serviceGroup.getServiceGroupId());
     serviceEntity.setServiceName(serviceName);
@@ -169,7 +167,7 @@ public class ServiceImpl implements Service {
         }
 
 
-        ClusterServiceEntity dependencyServiceEntity = clusterServiceDAO.findById(serviceKey.getClusterId(), serviceKey.getServiceGroupId(), serviceKey.getServiceId());
+        ClusterServiceEntity dependencyServiceEntity = clusterServiceDAO.findByPK(serviceKey.getServiceId());
         ServiceDependencyEntity serviceDependencyEntity = new ServiceDependencyEntity();
         serviceDependencyEntity.setService(serviceEntity);
         serviceDependencyEntity.setServiceDependency(dependencyServiceEntity);
@@ -184,8 +182,6 @@ public class ServiceImpl implements Service {
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
     serviceDesiredStateEntity.setClusterId(cluster.getClusterId());
     serviceDesiredStateEntity.setServiceGroupId(serviceGroup.getServiceGroupId());
-    serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
-    serviceEntityPK = getServiceEntityPK(serviceEntity);
 
     serviceDesiredStateEntity.setClusterServiceEntity(serviceEntity);
     serviceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
@@ -227,8 +223,6 @@ public class ServiceImpl implements Service {
     serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
-    serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
-    serviceEntityPK = getServiceEntityPK(serviceEntity);
 
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
       for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity
@@ -556,7 +550,7 @@ public class ServiceImpl implements Service {
 
   @Override
   public ClusterServiceEntity removeDependencyService(Long dependencyServiceId) {
-    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(), getServiceGroupId(), getServiceId());
+    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findByPK(getServiceId());
 
     ServiceDependencyEntity dependencyEntityToRemove = null;
     if (currentServiceEntity.getServiceDependencies() != null) {
@@ -593,13 +587,17 @@ public class ServiceImpl implements Service {
       }
     }
 
-    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(), getServiceGroupId(), getServiceId());
-    ClusterServiceEntity dependentServiceEntity = clusterServiceDAO.findById(dependentService.getClusterId(),
-            dependentService.getServiceGroupId(), dependentService.getServiceId());
+    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findByPK(getServiceId());
+    ClusterServiceEntity dependentServiceEntity = clusterServiceDAO.findByPK(dependentService.getServiceId());
 
     ServiceDependencyEntity newServiceDependency = new ServiceDependencyEntity();
     newServiceDependency.setService(currentServiceEntity);
+    newServiceDependency.setServiceGroupId(currentServiceEntity.getServiceGroupId());
+    newServiceDependency.setServiceClusterId(currentServiceEntity.getClusterId());
+
     newServiceDependency.setServiceDependency(dependentServiceEntity);
+    newServiceDependency.setDependentServiceGroupId(dependentServiceEntity.getServiceGroupId());
+    newServiceDependency.setDependentServiceClusterId(dependentServiceEntity.getClusterId());
 
     return addServiceDependencyEntity(newServiceDependency, currentServiceEntity);
   }
@@ -655,14 +653,12 @@ public class ServiceImpl implements Service {
   void persistEntities(ClusterServiceEntity serviceEntity) {
     long clusterId = cluster.getClusterId();
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
-    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByClusterAndServiceGroupIds(
-      clusterId, serviceGroup.getServiceGroupId());
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroup.getServiceGroupId());
     serviceEntity.setServiceGroupEntity(serviceGroupEntity);
     serviceEntity.setClusterEntity(clusterEntity);
+    serviceEntity.setClusterId(clusterId);
     clusterServiceDAO.create(serviceEntity);
     serviceId = serviceEntity.getServiceId();
-    serviceEntityPK.setServiceId(serviceId);
-    serviceDesiredStateEntityPK.setServiceId(serviceId);
     clusterEntity.getClusterServiceEntities().add(serviceEntity);
     serviceEntity.getServiceDesiredStateEntity().setServiceId(serviceId);
     clusterDAO.merge(clusterEntity);
@@ -817,8 +813,8 @@ public class ServiceImpl implements Service {
 
   @Transactional
   protected void removeEntities() throws AmbariException {
-    serviceDesiredStateDAO.removeByPK(serviceDesiredStateEntityPK);
-    clusterServiceDAO.removeByPK(serviceEntityPK);
+    serviceDesiredStateDAO.removeByServiceId(serviceEntity.getServiceId());
+    clusterServiceDAO.removeByPK(serviceEntity.getServiceId());
   }
 
   @Override
@@ -840,25 +836,9 @@ public class ServiceImpl implements Service {
     return maintenanceState.get();
   }
 
-  private ClusterServiceEntityPK getServiceEntityPK(ClusterServiceEntity serviceEntity) {
-    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-    pk.setClusterId(serviceEntity.getClusterId());
-    pk.setServiceGroupId(serviceEntity.getServiceGroupId());
-    pk.setServiceId(serviceEntity.getServiceId());
-    return pk;
-  }
-
-  private ServiceDesiredStateEntityPK getServiceDesiredStateEntityPK(ServiceDesiredStateEntity serviceDesiredStateEntity) {
-    ServiceDesiredStateEntityPK pk = new ServiceDesiredStateEntityPK();
-    pk.setClusterId(serviceDesiredStateEntity.getClusterId());
-    pk.setServiceGroupId(serviceDesiredStateEntity.getServiceGroupId());
-    pk.setServiceId(serviceDesiredStateEntity.getServiceId());
-    return pk;
-  }
-
   // Refresh the cached reference on setters
   private ServiceDesiredStateEntity getServiceDesiredStateEntity() {
-    return serviceDesiredStateDAO.findByPK(serviceDesiredStateEntityPK);
+    return serviceDesiredStateDAO.findByServiceId(serviceId);
   }
 
   public boolean isSsoIntegrationDesired() {

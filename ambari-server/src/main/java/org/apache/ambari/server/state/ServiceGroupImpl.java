@@ -35,7 +35,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
-import org.apache.ambari.server.orm.entities.ServiceGroupEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +46,6 @@ import com.google.inject.persist.Transactional;
 public class ServiceGroupImpl implements ServiceGroup {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceGroupImpl.class);
-
-  private ServiceGroupEntityPK serviceGroupEntityPK;
 
   private final Cluster cluster;
 
@@ -95,8 +92,6 @@ public class ServiceGroupImpl implements ServiceGroup {
       this.serviceGroupDependencies = serviceGroupDependencies;
     }
 
-    serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
-
     persist(serviceGroupEntity);
   }
 
@@ -121,7 +116,6 @@ public class ServiceGroupImpl implements ServiceGroup {
     stackId = new StackId(stack.getStackName(), stack.getStackVersion());
     serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
-    serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
   }
 
   @Override
@@ -211,10 +205,7 @@ public class ServiceGroupImpl implements ServiceGroup {
           }
         }
 
-        ServiceGroupEntityPK serviceGroupEntityPK = new ServiceGroupEntityPK();
-        serviceGroupEntityPK.setClusterId(dependencyServiceGroupEntity.getClusterId());
-        serviceGroupEntityPK.setServiceGroupId(dependencyServiceGroupEntity.getServiceGroupId());
-        ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
+        ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(dependencyServiceGroupEntity.getServiceGroupId());
         String serviceGroupDependencyName = "";
         Long serviceGroupDependencId = null;
         if (serviceGroupEntity != null) {
@@ -282,9 +273,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   @Transactional
   public void refresh() {
-    serviceGroupEntityPK.setClusterId(getClusterId());
-    serviceGroupEntityPK.setServiceGroupId(getServiceGroupId());
-    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(getServiceGroupId());
     serviceGroupDAO.refresh(serviceGroupEntity);
   }
 
@@ -305,19 +294,14 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Override
   public ServiceGroupEntity addServiceGroupDependency(Long dependencyServiceGroupId) throws AmbariException {
-    ServiceGroupEntityPK serviceGroupEntityPK = new ServiceGroupEntityPK();
-    serviceGroupEntityPK.setClusterId(getClusterId());
-    serviceGroupEntityPK.setServiceGroupId(getServiceGroupId());
-    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(getServiceGroupId());
 
-    ServiceGroupEntityPK dependencyServiceGroupEntityPK = new ServiceGroupEntityPK();
-    dependencyServiceGroupEntityPK.setClusterId(getServiceGroupClusterId(dependencyServiceGroupId));
-    dependencyServiceGroupEntityPK.setServiceGroupId(dependencyServiceGroupId);
-    ServiceGroupEntity dependencyServiceGroupEntity = serviceGroupDAO.findByPK(dependencyServiceGroupEntityPK);
-
+    ServiceGroupEntity dependencyServiceGroupEntity = serviceGroupDAO.findByPK(dependencyServiceGroupId);
 
     ServiceGroupDependencyEntity newDependency = new ServiceGroupDependencyEntity();
     newDependency.setServiceGroup(serviceGroupEntity);
+    newDependency.setServiceGroupClusterId(serviceGroupEntity.getClusterId());
+    newDependency.setDependentServiceGroupClusterId(dependencyServiceGroupEntity.getClusterId());
     newDependency.setServiceGroupDependency(dependencyServiceGroupEntity);
     createServiceGroupDependency(newDependency);
 
@@ -345,10 +329,7 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Override
   public ServiceGroupEntity deleteServiceGroupDependency(Long dependencyServiceGroupId) throws AmbariException {
-    ServiceGroupEntityPK pk = new ServiceGroupEntityPK();
-    pk.setClusterId(getClusterId());
-    pk.setServiceGroupId(getServiceGroupId());
-    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(pk);
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(getServiceGroupId());
     ServiceGroupDependencyEntity dependencyToRemove = null;
     for (ServiceGroupDependencyEntity dependency : serviceGroupEntity.getServiceGroupDependencies()) {
       if (dependency.getServiceGroupDependency().getServiceGroupId() == dependencyServiceGroupId) {
@@ -371,24 +352,14 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Transactional
   protected void removeEntities() throws AmbariException {
-
-    ServiceGroupEntityPK pk = new ServiceGroupEntityPK();
-    pk.setClusterId(getClusterId());
-    pk.setServiceGroupId(getServiceGroupId());
-    serviceGroupDAO.removeByPK(pk);
+    serviceGroupDAO.removeByPK(getServiceGroupId());
   }
 
   // Refresh the cached reference on setters
   private ServiceGroupEntity getServiceGroupEntity() {
-    return serviceGroupDAO.findByPK(serviceGroupEntityPK);
+    return serviceGroupDAO.findByPK(getServiceGroupId());
   }
 
-  private ServiceGroupEntityPK getServiceGroupEntityPK(ServiceGroupEntity serviceGroupEntity) {
-    ServiceGroupEntityPK pk = new ServiceGroupEntityPK();
-    pk.setClusterId(serviceGroupEntity.getClusterId());
-    pk.setServiceGroupId(serviceGroupEntity.getServiceGroupId());
-    return pk;
-  }
 
   /**
    * {@inheritDoc}
