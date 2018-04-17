@@ -36,6 +36,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Downloads (registers) missing (declared by the blueprint or the cluster template but not present) management packs
+ * during cluster creation.
+ */
 public class DownloadMpacksTask {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMpacksTask.class);
 
@@ -45,6 +49,10 @@ public class DownloadMpacksTask {
     this.mpackResourceProvider = mpackResourceProvider;
   }
 
+  /**
+   * Registers/downloads all required management packs
+   * @param mpackInstances management pack instances decleared in the blueprint and/or the cluster creation template
+   */
   public void downloadMissingMpacks(Collection<MpackInstance> mpackInstances) {
     Set<StackId> missingMpacks = mpackInstances.stream().
       filter(this::isStackMissing).
@@ -65,6 +73,10 @@ public class DownloadMpacksTask {
     }
   }
 
+  /**
+   * @param mpackUri the uri of the mpack
+   * @return the Request to send to {@link MpackResourceProvider} to to register the mpack
+   */
   private Request createRequest(String mpackUri) {
     return PropertyHelper.getCreateRequest(
       ImmutableSet.of(
@@ -74,7 +86,11 @@ public class DownloadMpacksTask {
     );
   }
 
-
+  /**
+   *
+   * @param mpackInstance the mpack to check
+   * @return {@code true} if the mpack (stack) is not registered, {@code false} if already registered.
+   */
   boolean isStackMissing(MpackInstance mpackInstance) {
     AmbariMetaInfo metaInfo = AmbariServer.getController().getAmbariMetaInfo();
     try {
