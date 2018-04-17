@@ -349,48 +349,41 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public boolean tableHasForeignKey(String tableName, String fkName) throws SQLException {
-    DatabaseMetaData metaData = getDatabaseMetaData();
-
-    ResultSet rs = metaData.getImportedKeys(null, dbSchema, convertObjectName(tableName));
-
-    if (rs != null) {
-      try {
-        while (rs.next()) {
-          if (StringUtils.equalsIgnoreCase(fkName, rs.getString("FK_NAME"))) {
-            return true;
-          }
-        }
-      } finally {
-        rs.close();
-      }
-    }
-
-    LOG.warn("FK {} not found for table {}", convertObjectName(fkName), convertObjectName(tableName));
-
-    return false;
+    return getCheckedForeignKey(tableName, fkName) != null;
   }
 
-  public String getCheckedForeignKey(String tableName, String fkName) throws SQLException {
+  public String getCheckedForeignKey(String rawTableName, String rawForeignKeyName) throws SQLException {
     DatabaseMetaData metaData = getDatabaseMetaData();
 
-    ResultSet rs = metaData.getImportedKeys(null, dbSchema, convertObjectName(tableName));
-
-    if (rs != null) {
-      try {
-        while (rs.next()) {
-          if (StringUtils.equalsIgnoreCase(fkName, rs.getString("FK_NAME"))) {
-            return rs.getString("FK_NAME");
-          }
+    String tableName = convertObjectName(rawTableName);
+    String foreignKeyName = convertObjectName(rawForeignKeyName);
+    try (ResultSet rs = metaData.getImportedKeys(null, dbSchema, tableName)) {
+      while (rs.next()) {
+        String foundName = rs.getString("FK_NAME");
+        if (StringUtils.equals(foreignKeyName, foundName)) {
+          return foundName;
         }
-      } finally {
-        rs.close();
       }
     }
 
-    LOG.warn("FK {} not found for table {}", convertObjectName(fkName), convertObjectName(tableName));
+    DatabaseType databaseType = configuration.getDatabaseType();
+    if (databaseType == DatabaseType.ORACLE) {
+      try (PreparedStatement ps = getConnection().prepareStatement("SELECT constraint_name FROM user_constraints WHERE table_name = ? AND constraint_type = 'R' AND constraint_name = ?")) {
+        ps.setString(1, tableName);
+        ps.setString(2, foreignKeyName);
+        try (ResultSet rs = ps.executeQuery()) {
+          if (rs.next()) {
+            return foreignKeyName;
+          }
+        }
+      }
+    }
+
+    LOG.warn("FK {} not found for table {}", foreignKeyName, tableName);
 
     return null;
   }
+
   @Override
   public boolean tableHasForeignKey(String tableName, String refTableName,
           String columnName, String refColumnName) throws SQLException {
@@ -1390,14 +1383,22 @@ public class DBAccessorImpl implements DBAccessor {
    *          the value to escape
    * @return the escaped value
    */
-  protected String escapeParameter(Object value) {
-    // Only String and number supported.
-    // Taken from:
-    // org.eclipse.persistence.internal.databaseaccess.appendParameterInternal
-    Object dbValue = databasePlatform.convertToDatabaseType(value);
+  private String escapeParameter(Object value) {
+    return escapeParameter(value, databasePlatform);
+  }
+
+  public static String escapeParameter(Object value, DatabasePlatform databasePlatform) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value instanceof Enum<?>) {
+      value = ((Enum) value).name();
+    }
+
     String valueString = value.toString();
-    if (dbValue instanceof String) {
-      valueString = "'" + value + "'";
+    if (value instanceof String || databasePlatform.convertToDatabaseType(value) instanceof String) {
+      valueString = "'" + valueString + "'";
     }
 
     return valueString;
