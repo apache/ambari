@@ -455,25 +455,6 @@ public class RepositoryVersionHelper {
       hostLevelParams.put(KeyNames.STACK_NAME, stackId.getStackName());
       hostLevelParams.put(KeyNames.STACK_VERSION, stackId.getStackVersion());
     }
-
-    JsonObject rootJsonObject = new JsonObject();
-    JsonArray repositories = new JsonArray();
-
-    String hostOsFamily = cluster.getHost(hostName).getOsFamily();
-    for (RepoOsEntity operatingSystemEntity : repositoryVersion.getRepoOsEntities()) {
-      if (operatingSystemEntity.getFamily().equals(hostOsFamily)) {
-        for (RepoDefinitionEntity repositoryEntity : operatingSystemEntity.getRepoDefinitionEntities()) {
-          JsonObject repositoryInfo = new JsonObject();
-          repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
-          repositoryInfo.addProperty("repo_name", repositoryEntity.getRepoName());
-          repositoryInfo.addProperty("repo_id", repositoryEntity.getRepoID());
-
-          repositories.add(repositoryInfo);
-        }
-        rootJsonObject.add("repositories", repositories);
-      }
-    }
-    hostLevelParams.put(KeyNames.REPO_INFO, rootJsonObject.toString());
   }
 
 
