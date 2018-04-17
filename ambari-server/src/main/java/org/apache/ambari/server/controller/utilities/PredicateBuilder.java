@@ -74,6 +74,12 @@ public class PredicateBuilder {
     return this;
   }
 
+  public PredicateBuilder build() {
+	  checkDone();
+	  return new PredicateBuilder(this);
+  }
+  
+  @Deprecated
   public PredicateBuilder begin() {
     checkDone();
     return new PredicateBuilder(this);
