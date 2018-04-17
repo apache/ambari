@@ -96,8 +96,9 @@
               <label>
                 {{'shipperConfiguration.validator.result' | translate}}
               </label>
-              <textarea class="form-control validation-result" name="validationResult"
-                [disableControl]="configurationForm.invalid" [value]="validationResponse | json"></textarea>
+              <!--textarea class="form-control validation-result" name="validationResult"
+                [disableControl]="configurationForm.invalid" [value]="validationResponse | json"></textarea-->
+              <pre>{{validationResponse | json}}</pre>
             </div>
             <button class="btn btn-default pull-right" type="submit"
                     [disabled]="(!validatorForm.valid)">
