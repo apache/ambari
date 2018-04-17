@@ -3312,6 +3312,7 @@ Em.I18n.translations = {
   'dashboard.widgets.wizard.step2.threshold.warning.tooltip': 'This is the threshold value at which the widget color changes from orange (Warning) to red (Critical)',
   'dashboard.widgets.wizard.onClose.popup.body': 'You have unsaved changes. Your changes will not be saved if you exit the wizard at this step.',
   'dashboard.widgets.wizard.onClose.popup.discardAndExit': 'Discard and Exit',
+  'dashboard.widgets.wizard.step2.nameSpaceDropDownItem': '{0} (Active)',
 
   'restart.service.all': 'Restart All',
   'restart.service.all.affected': 'Restart All Affected',

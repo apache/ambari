@@ -99,7 +99,9 @@ App.WidgetWizardComponentDropdownView = Em.View.extend({
 
   tagName: 'li',
 
-  classNames: ['dropdown-submenu']
+  classNames: ['dropdown-submenu'],
+
+  displayName: ''
 
 });
 
