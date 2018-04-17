@@ -51,6 +51,15 @@ export class NotificationService {
   addNotification(payload: NotificationInterface): Notification {
     const {message, title, ...config} = payload;
     const method: string = typeof this.notificationService[config.type] === 'function' ? config.type : 'info';
+    if (config.type === NotificationType.ERROR) {
+      Object.assign(config, {
+        clickToClose: true,
+        timeOut: 0,
+        showProgressBar: false,
+        pauseOnHover: false,
+        ...config
+      });
+    }
     return this.notificationService[method](
       this.translateService.instant(title),
       this.translateService.instant(message),

@@ -242,15 +242,16 @@
   "shipperConfiguration.validator.componentNameLabel": "Component Name",
   "shipperConfiguration.validator.sampleDataLabel": "Sample Data",
   "shipperConfiguration.validator.filters": "Filters",
+  "shipperConfiguration.validator.result": "Validation result",
 
   "shipperConfiguration.action.add.title": "New Configuration",
   "shipperConfiguration.action.add.success.message": "New configuration has been added successfully.",
-  "shipperConfiguration.action.add.error.message": "Error at adding new configuration:<br>Cluster: ${cluster}<br>Service: ${service}",
+  "shipperConfiguration.action.add.error.message": "Error at adding new configuration.\nCluster: {{clusterName}}\nService: {{componentName}}",
   "shipperConfiguration.action.update.title": "Update Configuration",
-  "shipperConfiguration.action.update.success.message": "The configuration has been updated successfully.",
-  "shipperConfiguration.action.update.error.message": "Error at updating the configuration:<br>Cluster: ${cluster}<br>Service: ${service}",
+  "shipperConfiguration.action.update.success.message": "The configuration has been updated successfully.\nCluster: {{clusterName}}\nService: {{componentName}}",
+  "shipperConfiguration.action.update.error.message": "Error at updating the configuration.\nCluster: {{clusterName}}\nService: {{componentName}}",
   "shipperConfiguration.action.validate.title": "Validate Configuration",
   "shipperConfiguration.action.validate.success.message": "The configuration is valid.",
-  "shipperConfiguration.action.validate.error.message": "The configuration is not valid."
+  "shipperConfiguration.action.validate.error.message": "The configuration is not valid.\nCluster: {{clusterName}}\nService: {{componentName}}\n{{errorMessage}}"
 
 }
