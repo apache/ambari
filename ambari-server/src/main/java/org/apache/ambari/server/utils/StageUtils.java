@@ -92,6 +92,8 @@ public class StageUtils {
   protected static final String RACKS = "all_racks";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
 
+  private static Map<String, String> componentToClusterInfoKeyMap =
+          new HashMap<>();
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
     new HashMap<>();
   private volatile static Gson gson;
@@ -147,6 +149,44 @@ public class StageUtils {
   //todo: proper static injection
   public static void setConfiguration(Configuration configuration) {
     StageUtils.configuration = configuration;
+  }
+
+  private static void put2componentToClusterInfoKeyMap(String component){
+    componentToClusterInfoKeyMap.put(component, getClusterHostInfoKey(component));
+  }
+
+  /**
+   * Even though this map is populated systematically, we still need this map
+   * since components like Atlas Client that are missing from this map
+   * and cleint components are handled differently
+   */
+  static {
+    put2componentToClusterInfoKeyMap("NAMENODE");
+    put2componentToClusterInfoKeyMap("JOBTRACKER");
+    put2componentToClusterInfoKeyMap("SECONDARY_NAMENODE");
+    put2componentToClusterInfoKeyMap("RESOURCEMANAGER");
+    put2componentToClusterInfoKeyMap("NODEMANAGER");
+    put2componentToClusterInfoKeyMap("HISTORYSERVER");
+    put2componentToClusterInfoKeyMap("JOURNALNODE");
+    put2componentToClusterInfoKeyMap("ZKFC");
+    put2componentToClusterInfoKeyMap("ZOOKEEPER_SERVER");
+    put2componentToClusterInfoKeyMap("FLUME_HANDLER");
+    put2componentToClusterInfoKeyMap("HBASE_MASTER");
+    put2componentToClusterInfoKeyMap("HBASE_REGIONSERVER");
+    put2componentToClusterInfoKeyMap("HIVE_SERVER");
+    put2componentToClusterInfoKeyMap("HIVE_METASTORE");
+    put2componentToClusterInfoKeyMap("OOZIE_SERVER");
+    put2componentToClusterInfoKeyMap("WEBHCAT_SERVER");
+    put2componentToClusterInfoKeyMap("MYSQL_SERVER");
+    put2componentToClusterInfoKeyMap("DASHBOARD");
+    put2componentToClusterInfoKeyMap("GANGLIA_SERVER");
+    put2componentToClusterInfoKeyMap("DATANODE");
+    put2componentToClusterInfoKeyMap("TASKTRACKER");
+    put2componentToClusterInfoKeyMap("ACCUMULO_MASTER");
+    put2componentToClusterInfoKeyMap("ACCUMULO_MONITOR");
+    put2componentToClusterInfoKeyMap("ACCUMULO_GC");
+    put2componentToClusterInfoKeyMap("ACCUMULO_TRACER");
+    put2componentToClusterInfoKeyMap("ACCUMULO_TSERVER");
   }
 
   static {
@@ -299,9 +339,20 @@ public class StageUtils {
         ServiceComponent serviceComponent = serviceComponentEntry.getValue();
         String componentName = serviceComponent.getName();
 
-        String roleName = getClusterHostInfoKey(componentName);
+        String roleName = componentToClusterInfoKeyMap.get(componentName);
+        if(null == roleName) {
+          roleName = additionalComponentToClusterInfoKeyMap.get(componentName);
+        }
+        if (null == roleName && !serviceComponent.isClientComponent()) {
+          roleName = componentName.toLowerCase() + "_hosts";
+          additionalComponentToClusterInfoKeyMap.put(componentName, roleName);
+        }
 
         String decomRoleName = decommissionedToClusterInfoKeyMap.get(componentName);
+
+        if (roleName == null && decomRoleName == null) {
+          continue;
+        }
 
         for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
 
