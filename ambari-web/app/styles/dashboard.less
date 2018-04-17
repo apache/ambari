@@ -34,17 +34,27 @@
       float: left;
       width: 100%;
     }
-    .add-widgets-apply-button {
-      margin: 0px 20px 20px 0px;
-    }
   }
-  #widgets-options-menu {
-    .add-widgets-text.pull-left .dropdown-menu {
-      overflow: auto;
-      width: 210px;
-      left: -210px;
-      .add-widgets-dropdown-list ul {
-        list-style: none;
+  .widgets-options-menu {
+    .add-widgets-text {
+      .dropdown-menu {
+        .add-widgets-dropdown-list {
+          ul {
+            list-style: none;
+            padding-top: 10px;
+            padding-bottom: 10px;
+          }
+        }
+        .add-widgets-apply-button {
+          margin: 0 20px 40px 0;
+        }
+      }
+      &.pull-left {
+        .dropdown-menu {
+          overflow: auto;
+          width: 210px;
+          left: -210px;
+        }
       }
     }
     .reset-all-widgets.pull-left .dropdown-menu {
