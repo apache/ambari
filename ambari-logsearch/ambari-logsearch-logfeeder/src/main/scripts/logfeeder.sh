@@ -33,7 +33,7 @@ LOGFEEDER_ROOT_DIR="`dirname \"$SCRIPT_DIR\"`"
 LOGFEEDER_LIBS_DIR="$LOGFEEDER_ROOT_DIR/libs"
 
 if [ "$LOGFEEDER_CONF_DIR" = "" ]; then
-  LOGFEEDER_CONF_DIR="/etc/ambari-logsearch-logfeeder/conf"
+  LOGFEEDER_CONF_DIR="/usr/lib/ambari-logsearch-logfeeder/conf"
   if [ ! -d $LOGFEEDER_CONF_DIR ]; then
     if [ -d "$LOGFEEDER_ROOT_DIR/conf" ]; then
       LOGFEEDER_CONF_DIR="$LOGFEEDER_ROOT_DIR/conf"

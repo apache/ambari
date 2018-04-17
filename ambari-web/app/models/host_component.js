@@ -544,7 +544,7 @@ App.HostComponentActionMap = {
         action: 'openNameNodeFederationWizard',
         label: Em.I18n.t('admin.nameNodeFederation.button.enable'),
         cssClass: 'icon icon-sitemap',
-        //todo: provide disabled flag
+        disabled: !App.get('isHaEnabled')
       }
     };
   },

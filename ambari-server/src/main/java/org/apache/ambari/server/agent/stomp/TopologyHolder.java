@@ -131,7 +131,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         copiedUpdate.getEventType()
       );
       prepareAgentTopology(topologyAgentUpdateEvent);
-      stateUpdateEventPublisher.publish(topologyAgentUpdateEvent);
+      STOMPUpdatePublisher.publish(topologyAgentUpdateEvent);
     }
 
     return changed;
@@ -176,6 +176,7 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
         for (TopologyComponent topologyComponent : topologyCluster.getTopologyComponents()) {
           topologyComponent.setHostNames(new HashSet<>());
           topologyComponent.setPublicHostNames(new HashSet<>());
+          topologyComponent.setLastComponentState(null);
         }
         if (topologyUpdateEvent.getEventType().equals(TopologyUpdateEvent.EventType.DELETE)) {
           for (TopologyHost topologyHost : topologyCluster.getTopologyHosts()) {

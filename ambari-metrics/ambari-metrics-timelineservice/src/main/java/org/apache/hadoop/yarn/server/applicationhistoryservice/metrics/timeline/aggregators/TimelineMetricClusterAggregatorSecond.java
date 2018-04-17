@@ -22,6 +22,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_EVENT_METRIC_PATTERNS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getJavaRegexFromSqlRegex;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getTimeSlices;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
@@ -68,7 +69,6 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   protected final boolean interpolationEnabled;
   private TimelineMetricMetadataManager metadataManagerInstance;
   private String skipAggrPatternStrings;
-  private String skipInterpolationMetricPatternStrings;
   private Set<Pattern> skipInterpolationMetricPatterns = new HashSet<>();
   private final static String liveHostsMetricName = "live_hosts";
 
@@ -95,11 +95,11 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     this.serverTimeShiftAdjustment = Long.parseLong(metricsConf.get(SERVER_SIDE_TIMESIFT_ADJUSTMENT, "90000"));
     this.interpolationEnabled = Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, "true"));
     this.skipAggrPatternStrings = metricsConf.get(TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
-    this.skipInterpolationMetricPatternStrings = metricsConf.get(TIMELINE_METRICS_EVENT_METRIC_PATTERNS, "");
+    String skipInterpolationMetricPatternStrings = metricsConf.get(TIMELINE_METRICS_EVENT_METRIC_PATTERNS, "");
 
     if (StringUtils.isNotEmpty(skipInterpolationMetricPatternStrings)) {
       for (String patternString : skipInterpolationMetricPatternStrings.split(",")) {
-        String javaPatternString = hBaseAccessor.getJavaRegexFromSqlRegex(patternString);
+        String javaPatternString = getJavaRegexFromSqlRegex(patternString);
         LOG.info("SQL pattern " + patternString + " converted to Java pattern : " + javaPatternString);
         skipInterpolationMetricPatterns.add(Pattern.compile(javaPatternString));
       }

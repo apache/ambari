@@ -20,3 +20,16 @@
 .modal-xl {
   width: @large-modal-width;
 }
+
+.modal-flex-layout {
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 85vh;
+    overflow: hidden;
+    .modal-body {
+      flex-grow: 1;
+      overflow: auto;
+    }
+  }
+}

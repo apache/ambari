@@ -18,6 +18,10 @@
 package org.apache.ambari.server.upgrade;
 
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -30,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 
@@ -538,19 +543,19 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.executeUpdate(
         "insert into " + temporaryTable +
           "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-          " select" +
+          " select distinct" +
           "  u." + USERS_USER_ID_COLUMN + "," +
           "  t.min_user_id," +
           "  u." + USERS_USER_TYPE_COLUMN + "," +
           "  u." + USERS_USER_PASSWORD_COLUMN + "," +
           "  u." + USERS_CREATE_TIME_COLUMN + "," +
           "  u." + USERS_CREATE_TIME_COLUMN +
-          " from " + USERS_TABLE + " as u inner join" +
+          " from " + USERS_TABLE + " u inner join" +
           "   (select" +
           "     lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
           "     min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
           "    from " + USERS_TABLE +
-          "    group by lower(" + USERS_USER_NAME_COLUMN + ")) as t" +
+          "    group by lower(" + USERS_USER_NAME_COLUMN + ")) t" +
           " on (lower(u." + USERS_USER_NAME_COLUMN + ") = lower(t." + USERS_USER_NAME_COLUMN + "))"
       );
 
@@ -566,7 +571,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       dbAccessor.executeUpdate(
         "insert into " + USER_AUTHENTICATION_TABLE +
           "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
-          " select distinct " +
+          " select " +
           USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN +
           " from " + temporaryTable
       );
@@ -694,7 +699,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    m." + MEMBERS_MEMBER_ID_COLUMN + "," +
         "    u.min_user_id," +
         "    m." + MEMBERS_GROUP_ID_COLUMN +
-        "  from " + MEMBERS_TABLE + " as m inner join" +
+        "  from " + MEMBERS_TABLE + " m inner join" +
         "    (" +
         "      select" +
         "        iu." + USERS_USER_NAME_COLUMN + "," +
@@ -707,8 +712,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "            min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
         "          from " + USERS_TABLE +
         "          group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-        "        ) as t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
-        "    ) as u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
+        "        ) t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
+        "    ) u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
 
     // Truncate existing membership records
     dbAccessor.truncateTable(MEMBERS_TABLE);
@@ -775,7 +780,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
-        "  from " + ADMINPRIVILEGE_TABLE + " as ap" +
+        "  from " + ADMINPRIVILEGE_TABLE + " ap" +
         "  where ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " not in" +
         "        (" +
         "          select " + USERS_PRINCIPAL_ID_COLUMN +
@@ -787,29 +792,29 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
         "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
         "    t.new_principal_id" +
-        "  from " + ADMINPRIVILEGE_TABLE + " as ap inner join" +
+        "  from " + ADMINPRIVILEGE_TABLE + " ap inner join" +
         "    (" +
         "      select" +
         "        u." + USERS_USER_ID_COLUMN + "," +
         "        u." + USERS_USER_NAME_COLUMN + "," +
         "        u." + USERS_PRINCIPAL_ID_COLUMN + " as new_principal_id," +
         "        t1." + USERS_PRINCIPAL_ID_COLUMN + " as orig_principal_id" +
-        "      from " + USERS_TABLE + " as u inner join" +
+        "      from " + USERS_TABLE + " u inner join" +
         "        (" +
         "          select" +
         "            u1." + USERS_USER_NAME_COLUMN + "," +
         "            u1." + USERS_PRINCIPAL_ID_COLUMN + "," +
         "            t2.min_user_id" +
-        "          from " + USERS_TABLE + " as u1 inner join" +
+        "          from " + USERS_TABLE + " u1 inner join" +
         "            (" +
         "              select" +
         "                lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
         "                min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
         "              from " + USERS_TABLE +
         "              group by lower(" + USERS_USER_NAME_COLUMN + ")" +
-        "            ) as t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
-        "        ) as t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
-        "    ) as t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id);");
+        "            ) t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
+        "        ) t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
+        "    ) t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id)");
 
     // Truncate existing adminprivilege records
     dbAccessor.truncateTable(ADMINPRIVILEGE_TABLE);
@@ -854,7 +859,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, String.class, 100, null, false));
     columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, String.class, 100, null, false));
-    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 2048, null, true));
 
     dbAccessor.createTable(AMBARI_CONFIGURATION_TABLE, columns);
     dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
@@ -930,7 +935,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     updateLogSearchConfigs();
     updateKerberosConfigurations();
     updateHostComponentLastStateTable();
-    upgradeLdapConfiguration();
+    moveAmbariPropertiesToAmbariConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
     updateSolrConfigurations();
@@ -1339,53 +1344,86 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Moves LDAP related properties from ambari.properties to ambari_configuration DB table
+   * Moves SSO and LDAP related properties from ambari.properties to ambari_configuration DB table
    *
    * @throws AmbariException if there was any issue when clearing ambari.properties
    */
-  protected void upgradeLdapConfiguration() throws AmbariException {
-    LOG.info("Moving LDAP related properties from ambari.properties to ambari_congiuration DB table...");
-    final AmbariConfigurationDAO ambariConfigurationDao = injector.getInstance(AmbariConfigurationDAO.class);
-    final Map<String, String> propertiesToBeSaved = new HashMap<>();
-    final Map<AmbariServerConfigurationKey, String> ldapConfigurationMap = getLdapConfigurationMap();
-    ldapConfigurationMap.forEach((key, oldPropertyName) -> {
-      String ldapPropertyValue = configuration.getProperty(oldPropertyName);
-      if (StringUtils.isNotBlank(ldapPropertyValue)) {
+  protected void moveAmbariPropertiesToAmbariConfiguration() throws AmbariException {
+    LOG.info("Moving LDAP and SSO related properties from ambari.properties to ambari_configuration DB table...");
+    final AmbariConfigurationDAO ambariConfigurationDAO = injector.getInstance(AmbariConfigurationDAO.class);
+    final Map<AmbariServerConfigurationCategory, Map<String, String>> propertiesToBeMoved = new HashMap<>();
+
+    final Map<AmbariServerConfigurationKey, String> configurationMap = getAmbariConfigurationMap();
+    configurationMap.forEach((key, oldPropertyName) -> {
+      String propertyValue = configuration.getProperty(oldPropertyName);
+      if (propertyValue != null) { // Empty strings are ok
         if (AmbariServerConfigurationKey.SERVER_HOST == key || AmbariServerConfigurationKey.SECONDARY_SERVER_HOST == key) {
-          final HostAndPort hostAndPort = HostAndPort.fromString(ldapPropertyValue);
+          final HostAndPort hostAndPort = HostAndPort.fromString(propertyValue);
           AmbariServerConfigurationKey keyToBesaved = AmbariServerConfigurationKey.SERVER_HOST == key ? AmbariServerConfigurationKey.SERVER_HOST
-            : AmbariServerConfigurationKey.SECONDARY_SERVER_HOST;
-          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.getHostText());
+              : AmbariServerConfigurationKey.SECONDARY_SERVER_HOST;
+          populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, keyToBesaved, hostAndPort.getHostText());
 
           keyToBesaved = AmbariServerConfigurationKey.SERVER_HOST == key ? AmbariServerConfigurationKey.SERVER_PORT : AmbariServerConfigurationKey.SECONDARY_SERVER_PORT;
-          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), String.valueOf(hostAndPort.getPort()));
+          populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, keyToBesaved, String.valueOf(hostAndPort.getPort()));
+        } else if (AmbariServerConfigurationKey.SSO_PROVIDER_CERTIFICATE == key) {
+          // Read in the PEM file and store the PEM data rather than the file path...
+          StringBuilder contentBuilder = new StringBuilder();
+          try (Stream<String> stream = Files.lines(Paths.get(propertyValue), StandardCharsets.UTF_8)) {
+            stream.forEach(s -> contentBuilder.append(s).append("\n"));
+          } catch (IOException e) {
+            LOG.error(String.format("Failed to read the SSO provider's certificate file, %s: %s", propertyValue, e.getMessage()), e);
+          }
+          populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, key, contentBuilder.toString());
+        } else if (AmbariServerConfigurationKey.SSO_AUTHENTICATION_ENABLED == key) {
+          populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, key, propertyValue);
+
+          if("true".equalsIgnoreCase(propertyValue)) {
+            // Add the new properties to tell Ambari that SSO is enabled:
+            populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.SSO_MANAGE_SERVICES, "true");
+            populateConfigurationToBeMoved(propertiesToBeMoved, null, AmbariServerConfigurationKey.SSO_ENABLED_SERVICES, "AMBARI");
+          }
         } else {
-          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, key.key(), ldapPropertyValue);
+          populateConfigurationToBeMoved(propertiesToBeMoved, oldPropertyName, key, propertyValue);
         }
       }
     });
 
-    if (propertiesToBeSaved.isEmpty()) {
-      LOG.info("There was no LDAP related properties in ambari.properties; moved 0 elements");
+    if (propertiesToBeMoved.isEmpty()) {
+      LOG.info("There are no properties to be moved from ambari.properties to the Ambari DB; moved 0 elements");
     } else {
-      ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), propertiesToBeSaved, false);
-      configuration.removePropertiesFromAmbariProperties(ldapConfigurationMap.values());
-      LOG.info(propertiesToBeSaved.size() + " LDAP related properties " + (propertiesToBeSaved.size() == 1 ? "has" : "have") + " been moved to DB");
+      for (Map.Entry<AmbariServerConfigurationCategory, Map<String, String>> entry : propertiesToBeMoved.entrySet()) {
+        Map<String, String> properties = entry.getValue();
+
+        if (properties != null) {
+          String categoryName = entry.getKey().getCategoryName();
+          ambariConfigurationDAO.reconcileCategory(categoryName, entry.getValue(), false);
+          LOG.info("Moved {} properties to the {} Ambari Configuration category", properties.size(), categoryName);
+        }
+      }
+
+      configuration.removePropertiesFromAmbariProperties(configurationMap.values());
     }
   }
 
-  private void populateLdapConfigurationToBeUpgraded(Map<String, String> propertiesToBeSaved, String oldPropertyName, String newPropertyName, String value) {
-    propertiesToBeSaved.put(newPropertyName, value);
-    LOG.info("About to upgrade '" + oldPropertyName + "' as '" + newPropertyName + "' (value=" + value + ")");
+  private void populateConfigurationToBeMoved(Map<AmbariServerConfigurationCategory, Map<String, String>> propertiesToBeSaved, String oldPropertyName, AmbariServerConfigurationKey key, String value) {
+    AmbariServerConfigurationCategory category = key.getConfigurationCategory();
+    String newPropertyName = key.key();
+    Map<String, String> categoryProperties = propertiesToBeSaved.computeIfAbsent(category, k->new HashMap<>());
+    categoryProperties.put(newPropertyName, value);
+
+    if(oldPropertyName != null) {
+      LOG.info("Upgrading '{}' to '{}'", oldPropertyName, newPropertyName);
+    }
   }
 
   /**
    * @return a map describing the new LDAP configuration key to the old ambari.properties property name
    */
   @SuppressWarnings("serial")
-  private Map<AmbariServerConfigurationKey, String> getLdapConfigurationMap() {
+  private Map<AmbariServerConfigurationKey, String> getAmbariConfigurationMap() {
     Map<AmbariServerConfigurationKey, String> map = new HashMap<>();
 
+    // LDAP-related properties
     map.put(AmbariServerConfigurationKey.LDAP_ENABLED, "ambari.ldap.isConfigured");
     map.put(AmbariServerConfigurationKey.SERVER_HOST, "authentication.ldap.primaryUrl");
     map.put(AmbariServerConfigurationKey.SECONDARY_SERVER_HOST, "authentication.ldap.secondaryUrl");
@@ -1416,6 +1454,14 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.REFERRAL_HANDLING, "authentication.ldap.referral");
     map.put(AmbariServerConfigurationKey.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
     map.put(AmbariServerConfigurationKey.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
+
+    // SSO-related properties
+    map.put(AmbariServerConfigurationKey.SSO_PROVIDER_URL, "authentication.jwt.providerUrl");
+    map.put(AmbariServerConfigurationKey.SSO_PROVIDER_CERTIFICATE, "authentication.jwt.publicKey");
+    map.put(AmbariServerConfigurationKey.SSO_PROVIDER_ORIGINAL_URL_PARAM_NAME, "authentication.jwt.originalUrlParamName");
+    map.put(AmbariServerConfigurationKey.SSO_AUTHENTICATION_ENABLED, "authentication.jwt.enabled");
+    map.put(AmbariServerConfigurationKey.SSO_JWT_AUDIENCES, "authentication.jwt.audiences");
+    map.put(AmbariServerConfigurationKey.SSO_JWT_COOKIE_NAME, "authentication.jwt.cookieName");
 
     return map;
   }

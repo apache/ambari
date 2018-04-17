@@ -310,7 +310,10 @@ yarn_job_summary_log = format("{yarn_log_dir_prefix}/{yarn_user}/hadoop-mapreduc
 user_group = config['configurations']['cluster-env']['user_group']
 
 #exclude file
-exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
+if 'all_decommissioned_hosts' in config['commandParams']:
+  exclude_hosts = config['commandParams']['all_decommissioned_hosts'].split(",")
+else:
+  exclude_hosts = []
 exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 rm_nodes_exclude_dir = os.path.dirname(exclude_file_path)
 

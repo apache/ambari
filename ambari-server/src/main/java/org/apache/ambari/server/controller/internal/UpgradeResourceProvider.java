@@ -64,7 +64,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.UpgradeUpdateEvent;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -258,7 +258,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static UpgradeContextFactory s_upgradeContextFactory;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
@@ -898,7 +898,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgradeEntity.setRequestEntity(requestEntity);
     s_upgradeDAO.create(upgradeEntity);
 
-    stateUpdateEventPublisher.publish(UpgradeUpdateEvent
+    STOMPUpdatePublisher.publish(UpgradeUpdateEvent
         .formFullEvent(s_hostRoleCommandDAO, s_requestDAO, upgradeEntity, UpdateEventType.CREATE));
     cluster.setUpgradeEntity(upgradeEntity);
 
@@ -1532,7 +1532,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         // set the upgrade to suspended
         upgradeEntity.setSuspended(suspended);
         upgradeEntity = s_upgradeDAO.merge(upgradeEntity);
-        stateUpdateEventPublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO,requestDAO, upgradeEntity));
+        STOMPUpdatePublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO,requestDAO, upgradeEntity));
       } else {
         // otherwise remove the association with the cluster since it's being
         // full aborted
@@ -1553,7 +1553,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
       lastUpgradeItemForCluster.setSuspended(false);
       lastUpgradeItemForCluster = s_upgradeDAO.merge(lastUpgradeItemForCluster);
-      stateUpdateEventPublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO, requestDAO, lastUpgradeItemForCluster));
+      STOMPUpdatePublisher.publish(UpgradeUpdateEvent.formUpdateEvent(hostRoleCommandDAO, requestDAO, lastUpgradeItemForCluster));
     }
   }
 

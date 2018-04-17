@@ -80,5 +80,9 @@ module.exports = [
   {
     wizardControllerName: App.router.get('widgetEditController.name'),
     route: 'main.editWidget'
+  },
+  {
+    wizardControllerName: App.router.get('nameNodeFederationWizardController.name'),
+    route: 'main.services.enableNameNodeFederation'
   }
 ];

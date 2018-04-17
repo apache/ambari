@@ -47,6 +47,8 @@ export class FiltersPanelComponent implements OnDestroy, OnInit {
 
   searchBoxValueUpdate: Subject<void> = new Subject();
 
+  private isServiceLogsFileView$: Observable<boolean> = this.appState.getParameter('isServiceLogsFileView');
+
   get containerEl(): Element {
     return this.viewContainerRef.element.nativeElement;
   }

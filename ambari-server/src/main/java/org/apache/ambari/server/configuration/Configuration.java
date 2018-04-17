@@ -33,8 +33,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -65,9 +63,7 @@ import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.services.RetryUpgradeActionService;
@@ -1134,59 +1130,6 @@ public class Configuration {
   @Markdown(description = "A comma-separate list of upgrade tasks details to skip when retrying failed commands automatically.")
   public static final ConfigurationProperty<String> STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.command.details.to.ignore", "\"Execute HDFS Finalize\"");
-
-  /**
-   * Determines whether to use JWT authentication when connecting to remote Hadoop resources.
-   */
-  @Markdown(description = "Determines whether to use JWT authentication when connecting to remote Hadoop resources.")
-  public static final ConfigurationProperty<Boolean> JWT_AUTH_ENABLED = new ConfigurationProperty<>(
-      "authentication.jwt.enabled", Boolean.FALSE);
-
-  /**
-   * The URL for authentication of the user in the absence of a JWT token when
-   * handling a JWT request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The URL for authentication of the user in the absence of a JWT token when handling a JWT request.")
-  public static final ConfigurationProperty<String> JWT_AUTH_PROVIDER_URL = new ConfigurationProperty<>(
-      "authentication.jwt.providerUrl", null);
-
-  /**
-   * The public key to use when verifying the authenticity of a JWT token.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The public key to use when verifying the authenticity of a JWT token.")
-  public static final ConfigurationProperty<String> JWT_PUBLIC = new ConfigurationProperty<>(
-      "authentication.jwt.publicKey", null);
-
-  /**
-   * A list of the JWT audiences expected. Leaving this blank will allow for any audience.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "A list of the JWT audiences expected. Leaving this blank will allow for any audience.")
-  public static final ConfigurationProperty<String> JWT_AUDIENCES = new ConfigurationProperty<>(
-      "authentication.jwt.audiences", null);
-
-  /**
-   * The name of the cookie which will be used to extract the JWT token from the request.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The name of the cookie which will be used to extract the JWT token from the request.")
-  public static final ConfigurationProperty<String> JWT_COOKIE_NAME = new ConfigurationProperty<>(
-      "authentication.jwt.cookieName", "hadoop-jwt");
-
-  /**
-   * The original URL to use when constructing the logic URL for JWT.
-   */
-  @Markdown(
-      relatedTo = "authentication.jwt.enabled",
-      description = "The original URL to use when constructing the logic URL for JWT.")
-  public static final ConfigurationProperty<String> JWT_ORIGINAL_URL_QUERY_PARAM = new ConfigurationProperty<>(
-      "authentication.jwt.originalUrlParamName", "originalUrl");
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    * Kerberos authentication-specific properties
@@ -5118,48 +5061,6 @@ public class Configuration {
    */
   public boolean useMetricsCacheCustomSizingEngine() {
     return Boolean.parseBoolean(getProperty(TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE));
-  }
-
-  /**
-   * Get set of properties desribing SSO configuration (JWT)
-   */
-  public JwtAuthenticationProperties getJwtProperties() {
-    boolean enableJwt = Boolean.valueOf(getProperty(JWT_AUTH_ENABLED));
-
-    if (enableJwt) {
-      String providerUrl = getProperty(JWT_AUTH_PROVIDER_URL);
-      if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.");
-        return null;
-      }
-      String publicKeyPath = getProperty(JWT_PUBLIC);
-      if (publicKeyPath == null) {
-        LOG.error("Public key pem not specified for JWT auth provider {}. JWT auth will be disabled.", providerUrl);
-        return null;
-      }
-      try {
-        RSAPublicKey publicKey = CertificateUtils.getPublicKeyFromFile(publicKeyPath);
-        JwtAuthenticationProperties jwtProperties = new JwtAuthenticationProperties();
-        jwtProperties.setAuthenticationProviderUrl(providerUrl);
-        jwtProperties.setPublicKey(publicKey);
-
-        jwtProperties.setCookieName(getProperty(JWT_COOKIE_NAME));
-        jwtProperties.setAudiencesString(getProperty(JWT_AUDIENCES));
-        jwtProperties.setOriginalUrlQueryParam(getProperty(JWT_ORIGINAL_URL_QUERY_PARAM));
-
-        return jwtProperties;
-
-      } catch (IOException e) {
-        LOG.error("Unable to read public certificate file. JWT auth will be disabled.", e);
-        return null;
-      } catch (CertificateException e) {
-        LOG.error("Unable to parse public certificate file. JWT auth will be disabled.", e);
-        return null;
-      }
-    } else {
-      return null;
-    }
-
   }
 
   /**

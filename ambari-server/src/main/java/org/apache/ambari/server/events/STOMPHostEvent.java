@@ -22,7 +22,7 @@ import java.beans.Transient;
 /**
  * Update data from server side, will be sent as STOMP message only to specified recipient.
  */
-public abstract class AmbariHostUpdateEvent extends AmbariUpdateEvent {
+public abstract class STOMPHostEvent extends STOMPEvent {
 
   /**
    * Host id message will sent to.
@@ -31,7 +31,7 @@ public abstract class AmbariHostUpdateEvent extends AmbariUpdateEvent {
   @Transient
   public abstract Long getHostId();
 
-  public AmbariHostUpdateEvent(Type type) {
+  public STOMPHostEvent(Type type) {
     super(type);
   }
 }

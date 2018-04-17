@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-FROM centos:centos6
+FROM centos:centos7
 
 RUN echo root:changeme | chpasswd
 

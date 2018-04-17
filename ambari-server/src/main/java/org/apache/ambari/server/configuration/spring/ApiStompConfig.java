@@ -18,7 +18,7 @@
 package org.apache.ambari.server.configuration.spring;
 
 import org.apache.ambari.server.api.stomp.TestController;
-import org.apache.ambari.server.events.listeners.requests.StateUpdateListener;
+import org.apache.ambari.server.events.listeners.requests.STOMPUpdateListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -45,8 +45,8 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   }
 
   @Bean
-  public StateUpdateListener requestStatusListener(Injector injector) {
-    return new StateUpdateListener(injector);
+  public STOMPUpdateListener requestSTOMPListener(Injector injector) {
+    return new STOMPUpdateListener(injector);
   }
 
   @Override

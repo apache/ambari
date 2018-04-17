@@ -20,14 +20,18 @@ const App = require('app');
 
 App.NameNodeWidgetMixin = Em.Mixin.create({
 
+  groupId: 'nn',
+
   subGroupId: 'default',
+
+  isAllItemsSubGroup: false,
 
   componentGroup: Em.computed.findByKey('model.masterComponentGroups', 'name', 'subGroupId'),
 
   clusterId: Em.computed.alias('componentGroup.clusterId'),
 
   hostName: function () {
-    const allHostNames = this.get('componentGroup.hosts'),
+    const allHostNames = this.get('componentGroup.hosts') || [],
       hostComponents = App.HostComponent.find().filter(component => {
         return component.get('componentName') === 'NAMENODE' && allHostNames.contains(component.get('hostName'));
       }),

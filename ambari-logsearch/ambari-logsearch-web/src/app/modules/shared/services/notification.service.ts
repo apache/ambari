@@ -22,23 +22,49 @@ import {NotificationsService as Angular2NotificationsService} from 'angular2-not
 import {Notification} from 'angular2-notifications/src/notification.type';
 
 import {NotificationInterface} from '../interfaces/notification.interface';
+import {Icons, defaultIcons} from 'angular2-notifications/src/icons';
+import {TranslateService} from '@ngx-translate/core';
 
 export enum NotificationType {
   SUCCESS = 'success',
   INFO = 'info',
   ERROR = 'error',
-  WARNING = 'warning'
+  ALERT = 'alert'
 }
+
+export const notificationIcons: Icons = {
+  success: `<i class="fa fa-check"></i>`,
+  info: `<i class="fa fa-info-circle"></i>`,
+  error: `<i class="fa fa-exclamation-circle"></i>`,
+  alert: `<i class="fa fa-bell"></i>`
+};
+Object.assign(defaultIcons, notificationIcons);
 
 @Injectable()
 export class NotificationService {
 
-  constructor(private notificationService: Angular2NotificationsService) { }
+  constructor(
+    private notificationService: Angular2NotificationsService,
+    private translateService: TranslateService
+  ) { }
 
   addNotification(payload: NotificationInterface): Notification {
     const {message, title, ...config} = payload;
     const method: string = typeof this.notificationService[config.type] === 'function' ? config.type : 'info';
-    return this.notificationService[method](title, message, config);
+    if (config.type === NotificationType.ERROR) {
+      Object.assign(config, {
+        clickToClose: true,
+        timeOut: 0,
+        showProgressBar: false,
+        pauseOnHover: false,
+        ...config
+      });
+    }
+    return this.notificationService[method](
+      this.translateService.instant(title),
+      this.translateService.instant(message),
+      {...config, icon: notificationIcons[method] || notificationIcons['info']}
+    );
   }
 
 }

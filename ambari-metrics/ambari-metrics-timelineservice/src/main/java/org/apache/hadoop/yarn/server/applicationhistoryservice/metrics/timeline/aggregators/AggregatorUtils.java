@@ -251,4 +251,18 @@ public class AggregatorUtils {
     long currentTime = System.currentTimeMillis();
     return currentTime - (currentTime % aggregatorPeriod);
   }
+
+  public static String getJavaRegexFromSqlRegex(String sqlRegex) {
+    String javaRegEx;
+    if (sqlRegex.contains("*") || sqlRegex.contains("__%")) {
+      //Special case handling for metric name with * and __%.
+      //For example, dfs.NNTopUserOpCounts.windowMs=300000.op=*.user=%.count
+      // or dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%.count
+      String metricNameWithEscSeq = sqlRegex.replace("*", "\\*").replace("__%", "..%");
+      javaRegEx = metricNameWithEscSeq.replace("%", ".*");
+    } else {
+      javaRegEx = sqlRegex.replace("%", ".*");
+    }
+    return javaRegEx;
+  }
 }

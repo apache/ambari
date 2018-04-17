@@ -20,7 +20,10 @@ package org.apache.ambari.server.controller;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.state.Config;
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class ConfigGroupRequest {
   private Long id;
@@ -46,6 +49,7 @@ public class ConfigGroupRequest {
     this.configs = configs;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.CLUSTER_NAME_PROPERTY_ID)
   public String getClusterName() {
     return clusterName;
   }
@@ -54,6 +58,7 @@ public class ConfigGroupRequest {
     this.clusterName = clusterName;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.GROUP_NAME_PROPERTY_ID)
   public String getGroupName() {
     return groupName;
   }
@@ -62,6 +67,7 @@ public class ConfigGroupRequest {
     this.groupName = groupName;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.TAG_PROPERTY_ID)
   public String getTag() {
     return tag;
   }
@@ -70,6 +76,7 @@ public class ConfigGroupRequest {
     this.tag = tag;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.SERVICE_NAME_PROPERTY_ID)
   public String getServiceName() {
     return serviceName;
   }
@@ -78,6 +85,7 @@ public class ConfigGroupRequest {
     this.serviceName = serviceName;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.DESCRIPTION_PROPERTY_ID)
   public String getDescription() {
     return description;
   }
@@ -86,6 +94,7 @@ public class ConfigGroupRequest {
     this.description = description;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.HOSTS_PROPERTY_ID)
   public Set<String> getHosts() {
     return hosts;
   }
@@ -94,6 +103,7 @@ public class ConfigGroupRequest {
     this.hosts = hosts;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.DESIRED_CONFIGS_PROPERTY_ID)
   public Map<String, Config> getConfigs() {
     return configs;
   }
@@ -102,6 +112,7 @@ public class ConfigGroupRequest {
     this.configs = configs;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.ID_PROPERTY_ID)
   public Long getId() {
     return id;
   }
@@ -110,6 +121,7 @@ public class ConfigGroupRequest {
     this.id = id;
   }
 
+  @ApiModelProperty(name = ConfigGroupResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID)
   public String getServiceConfigVersionNote() {
     return serviceConfigVersionNote;
   }

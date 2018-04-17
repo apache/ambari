@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.apache.ambari.server.state.State;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -40,6 +41,7 @@ public class TopologyComponent {
   private Set<String> publicHostNames = new HashSet<>();
   private TreeMap<String, String> componentLevelParams = new TreeMap<>();
   private TreeMap<String, String> commandParams = new TreeMap<>();
+  private State lastComponentState;
 
   private TopologyComponent() {
   }
@@ -95,6 +97,11 @@ public class TopologyComponent {
 
     public Builder setCommandParams(TreeMap<String, String> commandParams) {
       TopologyComponent.this.setCommandParams(commandParams);
+      return this;
+    }
+
+    public Builder setLastComponentState(State lastComponentState) {
+      TopologyComponent.this.setLastComponentState(lastComponentState);
       return this;
     }
 
@@ -267,6 +274,14 @@ public class TopologyComponent {
 
   public void setCommandParams(TreeMap<String, String> commandParams) {
     this.commandParams = commandParams;
+  }
+
+  public State getLastComponentState() {
+    return lastComponentState;
+  }
+
+  public void setLastComponentState(State lastComponentState) {
+    this.lastComponentState = lastComponentState;
   }
 
   @Override

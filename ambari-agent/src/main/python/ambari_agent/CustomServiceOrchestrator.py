@@ -24,6 +24,7 @@ import ambari_simplejson as json
 import sys
 from ambari_commons import shell
 import threading
+from collections import defaultdict
 
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
@@ -32,8 +33,6 @@ from resource_management.core.utils import PasswordString
 from ambari_commons import subprocess32
 from ambari_agent.Utils import Utils
 from ambari_commons.constants import AGENT_TMP_DIR
-import hostname
-import Constants
 
 
 logger = logging.getLogger()
@@ -108,6 +107,9 @@ class CustomServiceOrchestrator():
     self.commands_in_progress_lock = threading.RLock()
     self.commands_in_progress = {}
 
+    # save count (not boolean) for parallel execution cases
+    self.commands_for_component_in_progress = defaultdict(lambda:defaultdict(lambda:0))
+
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
       logger.debug('Maps taskId=%s to pid=%s', task_id, processId)
@@ -147,6 +149,9 @@ class CustomServiceOrchestrator():
 
     conf_dir = os.path.join(self.credential_conf_dir, service_name.lower())
     return conf_dir
+
+  def commandsRunningForComponent(self, clusterId, componentName):
+    return self.commands_for_component_in_progress[clusterId][componentName] > 0
 
   def getConfigTypeCredentials(self, commandJson):
     """
@@ -308,11 +313,14 @@ class CustomServiceOrchestrator():
     forced_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
     """
+    incremented_commands_for_component = False
+
     try:
       command = self.generate_command(command_header)
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
+      cluster_id = str(command['clusterId'])
 
       server_url_prefix = command['ambariLevelParams']['jdk_location']
 
@@ -393,6 +401,10 @@ class CustomServiceOrchestrator():
       backup_log_files = not command_name in self.DONT_BACKUP_LOGS_FOR_COMMANDS
       log_out_files = self.config.get("logging","log_out_files", default="0") != "0"
 
+      if cluster_id != '-1' and cluster_id != 'null':
+        self.commands_for_component_in_progress[cluster_id][command['role']] += 1
+        incremented_commands_for_component = True
+
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir,
@@ -437,6 +449,10 @@ class CustomServiceOrchestrator():
         'structuredOut' : '{}',
         'exitcode': 1,
       }
+    finally:
+      if incremented_commands_for_component:
+        self.commands_for_component_in_progress[cluster_id][command['role']] -= 1
+
     return ret
 
   def command_canceled_reason(self, task_id):
@@ -536,49 +552,6 @@ class CustomServiceOrchestrator():
       content = json.dumps(command, sort_keys = False, indent = 4)
       f.write(content)
     return file_path
-
-  def decompressClusterHostInfo(self, clusterHostInfo):
-    info = clusterHostInfo.copy()
-    #Pop info not related to host roles
-    hostsList = info.pop(self.HOSTS_LIST_KEY)
-    pingPorts = info.pop(self.PING_PORTS_KEY)
-    racks = info.pop(self.RACKS_KEY)
-    ipv4_addresses = info.pop(self.IPV4_ADDRESSES_KEY)
-
-    ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
-    ambariServerPort = info.pop(self.AMBARI_SERVER_PORT)
-    ambariServerUseSsl = info.pop(self.AMBARI_SERVER_USE_SSL)
-
-    decompressedMap = {}
-
-    for k,v in info.items():
-      # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8]
-      indexes = self.convertRangeToList(v)
-      # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
-      decompressedMap[k] = [hostsList[i] for i in indexes]
-
-    #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
-    pingPorts = self.convertMappedRangeToList(pingPorts)
-    racks = self.convertMappedRangeToList(racks)
-    ipv4_addresses = self.convertMappedRangeToList(ipv4_addresses)
-
-    #Convert all elements to str
-    pingPorts = map(str, pingPorts)
-
-    #Add ping ports to result
-    decompressedMap[self.PING_PORTS_KEY] = pingPorts
-    #Add hosts list to result
-    decompressedMap[self.HOSTS_LIST_KEY] = hostsList
-    #Add racks list to result
-    decompressedMap[self.RACKS_KEY] = racks
-    #Add ips list to result
-    decompressedMap[self.IPV4_ADDRESSES_KEY] = ipv4_addresses
-    #Add ambari-server properties to result
-    decompressedMap[self.AMBARI_SERVER_HOST] = ambariServerHost
-    decompressedMap[self.AMBARI_SERVER_PORT] = ambariServerPort
-    decompressedMap[self.AMBARI_SERVER_USE_SSL] = ambariServerUseSsl
-
-    return decompressedMap
 
   # Converts from 1-3,5,6-8 to [1,2,3,5,6,7,8]
   def convertRangeToList(self, list):

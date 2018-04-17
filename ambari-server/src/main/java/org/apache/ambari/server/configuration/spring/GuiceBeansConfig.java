@@ -22,6 +22,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandlerImpl;
 import org.apache.ambari.server.security.authentication.AmbariLocalAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPropertiesProvider;
 import org.apache.ambari.server.security.authentication.pam.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
@@ -84,6 +85,11 @@ public class GuiceBeansConfig {
   @Bean
   public AmbariJwtAuthenticationProvider ambariJwtAuthenticationProvider() {
     return injector.getInstance(AmbariJwtAuthenticationProvider.class);
+  }
+
+  @Bean
+  public JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider() {
+    return injector.getInstance(JwtAuthenticationPropertiesProvider.class);
   }
 
   @Bean

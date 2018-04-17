@@ -25,10 +25,14 @@
         <div class="corner-icon col-md-1">
           <button class="dropdown-toggle ellipsis-menu button-border" data-toggle="dropdown" href="#"></button>
           <ul class="dropdown-menu">
-            <li><button type="button" href="#" class="button-border"
-              {{action editWidget target="view"}}>
-              <i class="icon-pencil"></i>&nbsp;{{t common.edit}}</button>
-            </li>
+            {{#if view.isEditable}}
+              <li>
+                <button type="button" href="#" class="button-border"
+                  {{action editWidget target="view"}}>
+                  <i class="icon-pencil"></i>&nbsp;{{t common.edit}}
+                </button>
+              </li>
+            {{/if}}
             <li><button type="button" href="#" class="button-border"
               {{action deleteWidget target="view"}}>
               <i class="icon-trash"></i>&nbsp;{{t common.delete}}</button>

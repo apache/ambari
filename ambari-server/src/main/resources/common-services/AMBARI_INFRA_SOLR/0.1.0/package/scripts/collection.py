@@ -35,7 +35,7 @@ def backup_collection(env):
               group=params.user_group
               )
     collection_available = command_commons.is_collection_available_on_host()
-    if command_commons.check_hosts and not collection_available:
+    if not collection_available:
       Logger.info(format("No any '{collection}' replica is used on {params.hostname} host"))
       return
 

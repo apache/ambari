@@ -22,13 +22,17 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['reconfigureServices', 'installNameNode', 'installZKFC', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
 
   newNameNodeHosts: function () {
     return this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', false).mapProperty('hostName');
   }.property('content.masterComponentHosts.@each.hostName'),
+
+  stopRequiredServices: function () {
+    this.stopServices(["ZOOKEEPER"]);
+  },
 
   reconfigureServices: function () {
     var configs = [];
@@ -70,6 +74,11 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   installZKFC: function () {
     this.createInstallComponentTask('ZKFC', this.get('newNameNodeHosts'), "HDFS");
+  },
+
+  startJournalNodes: function () {
+    var hostNames = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
+    this.updateComponent('JOURNALNODE', hostNames, "HDFS", "Start");
   },
 
   formatNameNode: function () {

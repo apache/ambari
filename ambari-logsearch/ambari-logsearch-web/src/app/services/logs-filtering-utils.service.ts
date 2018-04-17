@@ -23,6 +23,190 @@ import {HomogeneousObject} from '@app/classes/object';
 import {LogsType, SortingType} from '@app/classes/string';
 import {UtilsService} from '@app/services/utils.service';
 
+// @ToDo remove duplication, this options are in the LogContainerService
+const timeRangeFilterOptions = [{
+    label: 'filter.timeRange.7d',
+    value: {
+      type: 'LAST',
+      unit: 'd',
+      interval: 7
+    }
+  },
+  {
+    label: 'filter.timeRange.30d',
+    value: {
+      type: 'LAST',
+      unit: 'd',
+      interval: 30
+    }
+  },
+  {
+    label: 'filter.timeRange.60d',
+    value: {
+      type: 'LAST',
+      unit: 'd',
+      interval: 60
+    }
+  },
+  {
+    label: 'filter.timeRange.90d',
+    value: {
+      type: 'LAST',
+      unit: 'd',
+      interval: 90
+    }
+  },
+  {
+    label: 'filter.timeRange.6m',
+    value: {
+      type: 'LAST',
+      unit: 'M',
+      interval: 6
+    }
+  },
+  {
+    label: 'filter.timeRange.1y',
+    value: {
+      type: 'LAST',
+      unit: 'y',
+      interval: 1
+    }
+  },
+  {
+    label: 'filter.timeRange.2y',
+    value: {
+      type: 'LAST',
+      unit: 'y',
+      interval: 2
+    }
+  },
+  {
+    label: 'filter.timeRange.5y',
+    value: {
+      type: 'LAST',
+      unit: 'y',
+      interval: 5
+    }
+  }, {
+    label: 'filter.timeRange.yesterday',
+    value: {
+      type: 'PAST',
+      unit: 'd'
+    }
+  },
+  {
+    label: 'filter.timeRange.previousWeek',
+    value: {
+      type: 'PAST',
+      unit: 'w'
+    }
+  },
+  {
+    label: 'filter.timeRange.previousMonth',
+    value: {
+      type: 'PAST',
+      unit: 'M'
+    }
+  },
+  {
+    label: 'filter.timeRange.previousYear',
+    value: {
+      type: 'PAST',
+      unit: 'y'
+    }
+  },
+  {
+    label: 'filter.timeRange.today',
+    value: {
+      type: 'CURRENT',
+      unit: 'd'
+    }
+  },
+  {
+    label: 'filter.timeRange.thisWeek',
+    value: {
+      type: 'CURRENT',
+      unit: 'w'
+    }
+  },
+  {
+    label: 'filter.timeRange.thisMonth',
+    value: {
+      type: 'CURRENT',
+      unit: 'M'
+    }
+  },
+  {
+    label: 'filter.timeRange.thisYear',
+    value: {
+      type: 'CURRENT',
+      unit: 'y'
+    }
+  }, {
+    label: 'filter.timeRange.5min',
+    value: {
+      type: 'LAST',
+      unit: 'm',
+      interval: 5
+    }
+  },
+  {
+    label: 'filter.timeRange.15min',
+    value: {
+      type: 'LAST',
+      unit: 'm',
+      interval: 15
+    }
+  },
+  {
+    label: 'filter.timeRange.30min',
+    value: {
+      type: 'LAST',
+      unit: 'm',
+      interval: 30
+    }
+  },
+  {
+    label: 'filter.timeRange.1hr',
+    value: {
+      type: 'LAST',
+      unit: 'h',
+      interval: 1
+    }
+  },
+  {
+    label: 'filter.timeRange.3hr',
+    value: {
+      type: 'LAST',
+      unit: 'h',
+      interval: 3
+    }
+  },
+  {
+    label: 'filter.timeRange.6hr',
+    value: {
+      type: 'LAST',
+      unit: 'h',
+      interval: 6
+    }
+  },
+  {
+    label: 'filter.timeRange.12hr',
+    value: {
+      type: 'LAST',
+      unit: 'h',
+      interval: 12
+    }
+  },
+  {
+    label: 'filter.timeRange.24hr',
+    value: {
+      type: 'LAST',
+      unit: 'h',
+      interval: 24
+    }
+  }];
+
 @Injectable()
 export class LogsFilteringUtilsService {
 
@@ -226,9 +410,17 @@ export class LogsFilteringUtilsService {
           break;
         case 'timeRangeType':
           const type = queryParams.timeRangeType || 'LAST';
-          const timeRangeFilterValue: {[key: string]: any} = {type};
+          const interval = parseInt(queryParams.timeRangeInterval, 0);
+          const unit = queryParams.timeRangeUnit;
+          const timeRangeFilterValue: {[key: string]: any} = {type, unit, interval};
           let timeRangeFilterLabel = 'filter.timeRange.';
-          if (queryParams.timeRangeType !== 'CUSTOM') {
+          const timeRangeOption = timeRangeFilterOptions.find((option: any) => {
+            const value = option.value;
+            return value.type === type && value.unit === timeRangeFilterValue.unit && value.interval === timeRangeFilterValue.interval;
+          });
+          if (timeRangeOption) {
+            timeRangeFilterLabel = timeRangeOption.label;
+          } else if (queryParams.timeRangeType !== 'CUSTOM') {
             Object.assign(timeRangeFilterValue, {
               unit: queryParams.timeRangeUnit,
               interval: parseInt(queryParams.timeRangeInterval, 0)

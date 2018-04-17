@@ -28,8 +28,8 @@ module.exports =
     sites: ['core-site'],
     configs: [
       {
-        "name": "dfs.journalnode.edits.dir.{{nameservice1}}",
-        "displayName": "dfs.journalnode.edits.dir.{{nameservice1}}",
+        "name": "dfs.journalnode.edits.dir.{{nameservice2}}",
+        "displayName": "dfs.journalnode.edits.dir.{{nameservice2}}",
         "description": "The Directory where the JournalNode will store its local state.",
         "isReconfigurable": true,
         "recommendedValue": "",
@@ -40,12 +40,12 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "name": "dfs.journalnode.edits.dir.{{nameservice2}}",
-        "displayName": "dfs.journalnode.edits.dir.{{nameservice2}}",
+        "name": "dfs.journalnode.edits.dir.{{nameservice1}}",
+        "displayName": "dfs.journalnode.edits.dir.{{nameservice1}}",
         "description": "The Directory where the JournalNode will store its local state.",
-        "isReconfigurable": true,
-        "recommendedValue": "",
-        "value": "",
+        "isReconfigurable": false,
+        "recommendedValue": "{{journalnode_edits_dir}}",
+        "value": "{{journalnode_edits_dir}}",
         "displayType": "directory",
         "category": "HDFS",
         "filename": "hdfs-site",

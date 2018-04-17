@@ -433,6 +433,7 @@ class BaseAlert(object):
     ha_alias_key = alert_uri_lookup_keys.ha_alias_key
     ha_http_pattern = alert_uri_lookup_keys.ha_http_pattern
     ha_https_pattern = alert_uri_lookup_keys.ha_https_pattern
+    ha_nameservice_aliases = {}
 
     # if HA alias key is not defined then it's not HA environment
     if ha_alias_key is None:
@@ -444,18 +445,25 @@ class BaseAlert(object):
         return None
 
       # convert dfs.ha.namenodes.{{ha-nameservice}} into dfs.ha.namenodes.c1ha
-      ha_alias_key = ha_alias_key.replace(self.HA_NAMESERVICE_PARAM, ha_nameservice)
-      ha_nameservice_alias = self._get_configuration_value(configurations, ha_alias_key)
+      ha_nameservices = filter(None, ha_nameservice.split(','))
 
-      if ha_nameservice_alias is None:
+      for nameservice in ha_nameservices:
+        ha_alias_key_nameservice = ha_alias_key.replace(self.HA_NAMESERVICE_PARAM, nameservice)
+        ha_nameservice_alias = self._get_configuration_value(configurations, ha_alias_key_nameservice)
+
+
+        if ha_nameservice_alias:
+          ha_nameservice_aliases[nameservice] = ha_nameservice_alias
+
+      if not ha_nameservice_aliases:
         logger.warning("[Alert][{0}] HA nameservice value is present but there are no aliases for {1}".format(
           self.get_name(), ha_alias_key))
         return None
     else:
-      ha_nameservice_alias = self._get_configuration_value(configurations, ha_alias_key)
+      ha_nameservice_aliases = {None: self._get_configuration_value(configurations, ha_alias_key)}
 
       # if HA nameservice is not defined then the fact that the HA alias_key could not be evaluated shows that it's not HA environment
-      if ha_nameservice_alias is None:
+      if ha_nameservice_aliases[None] is None:
         return None
 
     # determine which pattern to use (http or https)
@@ -477,22 +485,25 @@ class BaseAlert(object):
 
       return None
 
-    # convert dfs.namenode.http-address.{{ha-nameservice}}.{{alias}} into
-    # dfs.namenode.http-address.c1ha.{{alias}}
-    if ha_nameservice is not None:
-      ha_pattern = ha_pattern.replace(self.HA_NAMESERVICE_PARAM, ha_nameservice)
-
     # for each alias, grab it and check to see if this host matches
-    for alias in ha_nameservice_alias.split(','):
-      # convert dfs.namenode.http-address.c1ha.{{alias}} into
-      # dfs.namenode.http-address.c1ha.nn1
-      key = ha_pattern.replace(self.HA_ALIAS_PARAM, alias.strip())
+    for nameservice, aliases in ha_nameservice_aliases.iteritems():
+      for alias in aliases.split(','):
 
-      # get the host for dfs.namenode.http-address.c1ha.nn1 and see if it's
-      # this host
-      value = self._get_configuration_value(configurations, key)
-      if value is not None and (self.host_name.lower() in value.lower() or self.public_host_name.lower() in value.lower()):
-        return AlertUri(uri=value, is_ssl_enabled=is_ssl_enabled)
+        # convert dfs.namenode.http-address.{{ha-nameservice}}.{{alias}} into
+        # dfs.namenode.http-address.c1ha.{{alias}}
+        ha_pattern_current = ha_pattern
+        if nameservice is not None:
+          ha_pattern_current = ha_pattern_current.replace(self.HA_NAMESERVICE_PARAM, nameservice)
+        # convert dfs.namenode.http-address.c1ha.{{alias}} into
+        # dfs.namenode.http-address.c1ha.nn1
+        key = ha_pattern_current.replace(self.HA_ALIAS_PARAM, alias.strip())
+
+        # get the host for dfs.namenode.http-address.c1ha.nn1 and see if it's
+        # this host
+        value = self._get_configuration_value(configurations, key)
+
+        if value is not None and (self.host_name.lower() in value.lower() or self.public_host_name.lower() in value.lower()):
+          return AlertUri(uri=value, is_ssl_enabled=is_ssl_enabled)
 
     return None
 

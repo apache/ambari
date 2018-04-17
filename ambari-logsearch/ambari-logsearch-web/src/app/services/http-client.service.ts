@@ -19,6 +19,7 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/first';
+import 'rxjs/add/observable/throw';
 import {
   Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams
 } from '@angular/http';
@@ -150,17 +151,20 @@ export class HttpClientService extends Http {
     }
   }
 
-  private handleError(request: Observable<Response>): void {
-    request.subscribe(null, (error: any) => {
+  request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
+    const handleResponseError = (error) => {
+      let handled: boolean = false;
       if (this.unauthorizedStatuses.indexOf(error.status) > -1) {
         this.appState.setParameter('isAuthorized', false);
+        handled = true;
       }
-    });
-  }
-
-  request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
-    const req: Observable<Response> = super.request(this.generateUrl(url), options).share().first();
-    this.handleError(req);
+      return handled;
+    };
+    const req: Observable<Response> = super.request(this.generateUrl(url), options).first()
+      .map(response => response)
+      .catch((error: any) => {
+        return handleResponseError(error) ? Observable.of(error) : Observable.throw(error);
+      });
     return req;
   }
 

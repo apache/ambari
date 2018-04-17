@@ -47,25 +47,26 @@ limitations under the License.
   <!-- Logs to suppress BEGIN -->
   <category name="org.apache.solr.common.cloud.ZkStateReader" additivity="false">
     <priority value="error" />
-    <appender-ref ref="daily_rolling_file" />
+    <appender-ref ref="rolling_file" />
   </category>
 
   <category name="apache.solr.client.solrj.impl.CloudSolrClient" additivity="false">
     <priority value="fatal" />
-    <appender-ref ref="daily_rolling_file" />
+    <appender-ref ref="rolling_file" />
   </category>
   <!-- Logs to suppress END -->
 
   <category name="org.apache.ambari.logfeeder" additivity="false">
     <priority value="INFO" />
-    <appender-ref ref="console" />
-    <!-- <appender-ref ref="daily_rolling_file" /> -->
+    <!-- <appender-ref ref="console" /> -->
+    <appender-ref ref="rolling_file" />
     <appender-ref ref="rolling_file_json"/>
   </category>
 
   <root>
     <priority value="warn"/>
-    <!-- <appender-ref ref="rolling_file"/> -->
-    <!-- <appender-ref ref="daily_rolling_file" /> -->
+    <!-- <appender-ref ref="console" /> -->
+    <appender-ref ref="rolling_file" />
+    <appender-ref ref="rolling_file_json"/>
   </root>
 </log4j:configuration>

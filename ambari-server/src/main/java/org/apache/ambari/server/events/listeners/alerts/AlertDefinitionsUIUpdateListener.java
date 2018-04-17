@@ -38,7 +38,7 @@ import org.apache.ambari.server.events.AlertDefinitionsUIUpdateEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -65,7 +65,7 @@ public class AlertDefinitionsUIUpdateListener {
   private Provider<Clusters> clusters;
 
   @Inject
-  private StateUpdateEventPublisher stateUpdateEventPublisher;
+  private STOMPUpdatePublisher STOMPUpdatePublisher;
 
   @Inject
   private AlertDefinitionsHolder alertDefinitionsHolder;
@@ -117,7 +117,7 @@ public class AlertDefinitionsUIUpdateListener {
 
     alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(UPDATE, event.getClusterId(), definitions, hostName);
     Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    stateUpdateEventPublisher.publish(new AlertDefinitionsUIUpdateEvent(UPDATE, map));
+    STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(UPDATE, map));
   }
 
   @Subscribe
@@ -129,7 +129,7 @@ public class AlertDefinitionsUIUpdateListener {
     }
     alertDefinitionsHolder.provideAlertDefinitionAgentUpdateEvent(DELETE, event.getClusterId(), definitions, hostName);
     Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    stateUpdateEventPublisher.publish(new AlertDefinitionsUIUpdateEvent(DELETE, map));
+    STOMPUpdatePublisher.publish(new AlertDefinitionsUIUpdateEvent(DELETE, map));
   }
 
   private void handleSingleDefinitionChange(AlertDefinitionEventType eventType, AlertDefinition alertDefinition) throws AmbariException {
@@ -147,6 +147,6 @@ public class AlertDefinitionsUIUpdateListener {
     }
     Map<Long, AlertCluster> update = Collections.singletonMap(alertDefinition.getClusterId(), new AlertCluster(alertDefinition, null));
     AlertDefinitionsUIUpdateEvent event = new AlertDefinitionsUIUpdateEvent(eventType, update);
-    stateUpdateEventPublisher.publish(event);
+    STOMPUpdatePublisher.publish(event);
   }
 }

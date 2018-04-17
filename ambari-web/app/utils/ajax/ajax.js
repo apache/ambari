@@ -1518,15 +1518,6 @@ var urls = {
       };
     }
   },
-  'admin.security.add.cluster_configs': {
-    'real': '/clusters/{clusterName}' + '?fields=Clusters/desired_configs',
-    'mock': '',
-    'format': function () {
-      return {
-        timeout: 10000
-      };
-    }
-  },
 
   'kerberos.session.state': {
     'real': '/clusters/{clusterName}/services/KERBEROS?fields=Services/attributes/kdc_validation_result,Services/attributes/kdc_validation_failure_details',
@@ -2608,10 +2599,6 @@ var urls = {
       };
     }
   },
-  'host.status.total_count': {
-    'real': '/clusters/{clusterName}?fields=Clusters/total_hosts&minimal_response=true',
-    'mock': '/data/hosts/HDP2/host_status_counters.json'
-  },
   'host.stack_versions.install': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/stack_versions',
     'mock': '',
@@ -3076,7 +3063,7 @@ var urls = {
   },
 
   'widgets.hostComponent.metrics.get': {
-    real: '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding',
+    real: '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding{selectedHostsParam}',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   },
 

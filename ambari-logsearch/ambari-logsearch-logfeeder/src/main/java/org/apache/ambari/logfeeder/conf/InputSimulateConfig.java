@@ -22,8 +22,10 @@ import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
+@Lazy
 public class InputSimulateConfig {
 
   @LogSearchPropertyDescription(

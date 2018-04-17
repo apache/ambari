@@ -93,6 +93,11 @@ class ComponentStatusExecutor(threading.Thread):
               service_name = component_dict.serviceName
               component_name = component_dict.componentName
 
+              # do not run status commands for the component which is starting/stopping or doing other action
+              if self.customServiceOrchestrator.commandsRunningForComponent(cluster_id, component_name):
+                logger.info("Skipping status command for {0}. Since command for it is running".format(component_name))
+                continue
+
               command_dict = {
                 'serviceName': service_name,
                 'role': component_name,
@@ -102,6 +107,11 @@ class ComponentStatusExecutor(threading.Thread):
 
               component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
               status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
+
+              # if exec command for component started to run after status command completion
+              if self.customServiceOrchestrator.commandsRunningForComponent(cluster_id, component_name):
+                logger.info("Skipped status command result for {0}. Since command for it is running".format(component_name))
+                continue
 
               # log if status command failed
               if status == LiveStatus.DEAD_STATUS:

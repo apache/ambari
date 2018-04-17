@@ -23,13 +23,13 @@
                (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked}, $event)">
         <label [attr.for]="item.id || item.value" class="label-container">
           <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
-          {{item.label | translate}}
+          <span class="item-label-text">{{item.label | translate}}</span>
           <span #additionalComponent></span>
         </label>
       </label>
       <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item, $event)">
         <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
-        {{item.label | translate}}
+        <span class="item-label-text">{{item.label | translate}}</span>
         <span #additionalComponent></span>
       </span>
     </ng-container>
@@ -41,7 +41,7 @@
   <i class="fa fa-search"></i>
   <i class="fa fa-times-circle-o clear-filter" [class.hide]="!filterRegExp" (click)="clearFilter($event)"></i>
 </li>
-<li class="selection-all">
+<li class="selection-all" *ngIf="isMultipleChoice">
   <label *ngIf="isMultipleChoice && items && items.length" class="list-item-label" (click)="changeAllSelection($event)">
     <input type="checkbox" #selectAll [value]="items && items.length"
            [checked]="items && (items.length === itemsSelected.length)">
