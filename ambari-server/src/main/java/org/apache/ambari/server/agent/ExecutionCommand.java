@@ -28,6 +28,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.utils.StageUtils;
@@ -180,8 +181,7 @@ public class ExecutionCommand extends AgentCommand {
 
 
   /**
-   * Provides information regarding the content of repositories.  This structure replaces
-   * the deprecated use of {@link KeyNames#REPO_INFO}
+   * Provides information regarding the content of repositories.
    */
   @SerializedName("repositoryFile")
   private CommandRepository commandRepository;
@@ -449,14 +449,33 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
+   * Gets the repository file which was set on this command. The repository can
+   * be set either by the creator of the command or by the
+   * {@link ExecutionCommandWrapper} when it is about to execute the command.
+   *
    * @return the repository file that is to be written.
+   * @see #setRepositoryFile(CommandRepository)
    */
   public CommandRepository getRepositoryFile() {
     return commandRepository;
   }
 
   /**
-   * @param repository  the command repository instance.
+   * Sets the {@link CommandRepository} which will be sent down to the agent
+   * instructing it on which repository file to create on the host. In most
+   * cases, it is not necessary to set this file since the
+   * {@link ExecutionCommandWrapper} will set it in the event that it is
+   * missing. In fact, it is only appropriate to set this file in the following
+   * cases:
+   * <ul>
+   * <li>When distributing a repository to hosts in preparation for upgrade.
+   * This is because the service/component desired stack is not pointing to the
+   * new repository yet</li>
+   * <li>If the command does not contain a host or service/component></li>
+   * </ul>
+   *
+   * @param repository
+   *          the command repository instance.
    */
   public void setRepositoryFile(CommandRepository repository) {
     commandRepository = repository;
@@ -521,12 +540,6 @@ public class ExecutionCommand extends AgentCommand {
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
     String CLIENTS_TO_UPDATE_CONFIGS = "clientsToUpdateConfigs";
-    /**
-     * Keep for backward compatibility.
-     */
-    @Deprecated
-    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-    String REPO_INFO = "repo_info";
 
     String DB_NAME = "db_name";
     String GLOBAL = "global";

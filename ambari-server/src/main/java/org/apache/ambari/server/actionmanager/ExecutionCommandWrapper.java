@@ -44,8 +44,6 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.state.UpgradeContextFactory;
@@ -199,10 +197,9 @@ public class ExecutionCommandWrapper {
         final String componentName = executionCommand.getComponentName();
 
         try {
-
           if (null != componentName) {
             ServiceComponent serviceComponent = service.getServiceComponent(componentName);
-            commandRepository = repoVersionHelper.getCommandRepository(null, serviceComponent, host);
+            commandRepository = repoVersionHelper.getCommandRepository(cluster, serviceComponent, host);
           } else {
             RepositoryVersionEntity repoVersion = service.getDesiredRepositoryVersion();
             RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
@@ -211,7 +208,8 @@ public class ExecutionCommandWrapper {
           executionCommand.setRepositoryFile(commandRepository);
 
         } catch (SystemException e) {
-          throw new RuntimeException(e);
+          LOG.debug("Unable to find command repository with a correct operating system for host {}",
+              host, e);
         }
       }
 
@@ -265,10 +263,6 @@ public class ExecutionCommandWrapper {
           && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
           commandParams.put(VERSION, repositoryVersion.getVersion());
         }
-
-        StackId stackId = repositoryVersion.getStackId();
-        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
-          stackId.getStackVersion());
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
           commandParams.put(HOOKS_FOLDER,configuration.getProperty(Configuration.HOOKS_FOLDER));

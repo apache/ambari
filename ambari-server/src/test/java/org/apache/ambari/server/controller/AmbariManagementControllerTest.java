@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -214,8 +213,6 @@ public class AmbariManagementControllerTest {
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private static AmbariMetaInfo ambariMetaInfo;
   private EntityManager entityManager;
-  private static Properties backingProperties;
-  private Configuration configuration;
   private ConfigHelper configHelper;
   private ConfigGroupFactory configGroupFactory;
   private OrmTestHelper helper;
@@ -241,7 +238,6 @@ public class AmbariManagementControllerTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
-    backingProperties = module.getProperties();
     injector = Guice.createInjector(module);
     H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
@@ -269,7 +265,6 @@ public class AmbariManagementControllerTest {
         ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(
         ServiceComponentHostFactory.class);
-    configuration = injector.getInstance(Configuration.class);
     configHelper = injector.getInstance(ConfigHelper.class);
     configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
     helper = injector.getInstance(OrmTestHelper.class);
@@ -2094,8 +2089,7 @@ public class AmbariManagementControllerTest {
 
       for (String host : stage.getHosts()) {
         for (ExecutionCommandWrapper ecw : stage.getExecutionCommands(host)) {
-          Assert.assertFalse(
-              ecw.getExecutionCommand().getHostLevelParams().get("repo_info").isEmpty());
+          Assert.assertNotNull(ecw.getExecutionCommand().getRepositoryFile());
         }
       }
     }
@@ -6499,10 +6493,11 @@ public class AmbariManagementControllerTest {
       Assert.assertNotNull(params.get("oracle_jdbc_url"));
     }
 
-    Map<String, String> paramsCmd = stages.get(0).getOrderedHostRoleCommands().get
-      (0).getExecutionCommandWrapper().getExecutionCommand()
-      .getHostLevelParams();
-    Assert.assertNotNull(paramsCmd.get("repo_info"));
+    ExecutionCommand executionCommand = stages.get(0).getOrderedHostRoleCommands().get(
+        0).getExecutionCommandWrapper().getExecutionCommand();
+
+    Map<String, String> paramsCmd = executionCommand.getHostLevelParams();
+    Assert.assertNotNull(executionCommand.getRepositoryFile());
     Assert.assertNotNull(paramsCmd.get("clientsToUpdateConfigs"));
   }
 

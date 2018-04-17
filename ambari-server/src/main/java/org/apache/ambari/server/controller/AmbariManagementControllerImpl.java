@@ -45,7 +45,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
@@ -361,9 +360,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private TopologyDeleteFormer topologyDeleteFormer;
 
   @Inject
-  private AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper;
-
-  @Inject
   private Provider<TopologyHolder> m_topologyHolder;
 
   private Provider<MetadataHolder> m_metadataHolder;
@@ -411,6 +407,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
+
   @Inject
   private AmbariActionExecutionHelper actionExecutionHelper;
 
@@ -2539,7 +2536,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Map<String, String> hostParams = new TreeMap<>();
-    hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
 
     if (roleCommand.equals(RoleCommand.INSTALL)) {
@@ -5603,6 +5599,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return metadataUpdateEvent;
   }
 
+  @Override
   public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) throws AmbariException {
     TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
     StackId stackId = cl.getDesiredStackVersion();
@@ -5834,7 +5831,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           serviceStackId.getStackVersion(), service.getName());
       Long statusCommandTimeout = null;
       if (serviceInfo.getCommandScript() != null) {
-        statusCommandTimeout = new Long(ambariCustomCommandExecutionHelper.getStatusCommandTimeout(serviceInfo));
+        statusCommandTimeout = new Long(customCommandExecutionHelper.getStatusCommandTimeout(serviceInfo));
       }
 
       String servicePackageFolder = serviceInfo.getServicePackageFolder();
