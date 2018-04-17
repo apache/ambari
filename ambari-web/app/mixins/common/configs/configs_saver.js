@@ -487,7 +487,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     if (Object.keys(attributes.final).length || Object.keys(attributes.password).length) {
       desired_config.properties_attributes = attributes;
     }
-    return desired_config;
+    return { "Config": desired_config };
   },
 
   /**
