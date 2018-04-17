@@ -2693,6 +2693,7 @@ Em.I18n.translations = {
   'hosts.bulkOperation.host_components.passiveState.nothingToDo.body':'All host components that you selected are already in Maintenance Mode',
   'hosts.bulkOperation.confirmation.add.component':'{0} will be added to the following hosts.',
   'hosts.bulkOperation.confirmation.add.component.skip':'{0} already installed.',
+  'hosts.bulkOperation.confirmation.add.component.noHeartBeat.skip':'Host heartbeat lost',
   'hosts.bulkOperation.confirmation.add.component.nothingToDo.body': 'All the selected hosts have {0} installed already.',
   'hosts.bulkOperation.confirmation.cannot.add1': 'The following hosts will be skipped (expand for reason):',
   'hosts.bulkOperation.confirmation.cannot.add2': '{0} cannot be added to the following hosts (expand for reason):',
