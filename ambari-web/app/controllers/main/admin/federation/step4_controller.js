@@ -22,7 +22,7 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'startNameNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'createWidgets', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
 
@@ -79,6 +79,11 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
   startJournalNodes: function () {
     var hostNames = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
     this.updateComponent('JOURNALNODE', hostNames, "HDFS", "Start");
+  },
+
+  startNameNodes: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled').mapProperty('hostName');
+    this.updateComponent('NAMENODE', hostNames, "HDFS", "Start");
   },
 
   formatNameNode: function () {
