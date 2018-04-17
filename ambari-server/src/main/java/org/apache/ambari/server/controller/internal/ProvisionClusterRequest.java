@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Request for provisioning a cluster.
@@ -535,6 +536,16 @@ public class ProvisionClusterRequest extends BaseClusterRequest implements Provi
   @Override
   public Collection<MpackInstance> getMpacks() {
     return mpackInstances;
+  }
+
+  /**
+   * @return a set containing the mpacks in the provision request and the blueprint combined.
+   */
+  public Set<MpackInstance> getAllMpacks() {
+    return ImmutableSet.<MpackInstance>builder().
+      addAll(mpackInstances).
+      addAll(blueprint.getMpacks()).
+      build();
   }
 
   @Override
