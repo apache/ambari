@@ -87,7 +87,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <name>TEZ_CLUSTER_INSTANCE</name>
     <label>Tez View</label>
     <description>Monitor and debug all Tez jobs, submitted by Hive queries and Pig scripts (auto-created)</description>
-    <stack-id>HDP-2.*</stack-id>
+    <stack-id>HDP-*</stack-id>
     <services>
       <service>TEZ</service>
     </services>

@@ -391,7 +391,7 @@
         <name>AUTO_HIVE20_INSTANCE</name>
         <label>Hive View 2.0</label>
         <description>This view instance is auto created when the Hive service is added to a cluster.</description>
-        <stack-id>HDP-2.*</stack-id>
+        <stack-id>HDP-*</stack-id>
         <services>
             <service>HIVE</service>
         </services>
