@@ -1234,6 +1234,19 @@ public abstract class AbstractProviderModule implements ProviderModule,
    *          the change event.
    */
   @Subscribe
+  public void clearConfigurationChangedEvent(ClusterConfigChangedEvent event) {
+    clusterJmxProtocolMap.clear();
+  }
+  
+  /**
+   * Handles {@link ClusterConfigChangedEvent} which means that some caches
+   * should invalidate.
+   *
+   * @param event
+   *          the change event.
+   */
+  @Subscribe
+  @Deprecated
   public void onConfigurationChangedEvent(ClusterConfigChangedEvent event) {
     clusterJmxProtocolMap.clear();
   }
