@@ -133,7 +133,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat7,amazonlinux2,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
@@ -159,7 +159,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,redhat6,centos6,centos7</osFamily>
+          <osFamily>redhat7,redhat6,amazonlinux2</osFamily>
           <packages>
             <package>
               <name>python-kerberos</name>

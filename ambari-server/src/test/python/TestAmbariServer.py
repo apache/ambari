@@ -1956,18 +1956,6 @@ class TestAmbariServer(TestCase):
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
-    get_os_type_mock.return_value = ""
-    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
-    get_os_major_version_mock.return_value = 6
-
-    firewall_obj = Firewall().getFirewallObject()
-    shell_call_mock.return_value = (0, "Table: filter", "err")
-    self.assertEqual("FirewallChecks", firewall_obj.__class__.__name__)
-    self.assertTrue(firewall_obj.check_firewall())
-    shell_call_mock.return_value = (3, "", "err")
-    self.assertFalse(firewall_obj.check_firewall())
-    self.assertEqual("err", firewall_obj.stderrdata)
-
     get_os_major_version_mock.return_value = 7
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY

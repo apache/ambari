@@ -6,7 +6,6 @@
           "fedora",
           "centos",
           "oraclelinux",
-          "amazon",
           "ascendos",
           "xenserver",
           "oel",
@@ -31,6 +30,15 @@
         "versions": [
           6,
           7
+        ]
+      },
+      "amazonlinux": {
+        "extends" : "redhat",
+        "distro": [
+          "amazonlinux"
+        ],
+        "versions": [
+          2
         ]
       },
       "debian": {
@@ -78,9 +86,6 @@
       }
     },
     "aliases": {
-      "amazon2015": "amazon6",
-      "amazon2016": "amazon6",
-      "amazon2017": "redhat7",
       "suse11sp3": "suse11"
     }
 }
