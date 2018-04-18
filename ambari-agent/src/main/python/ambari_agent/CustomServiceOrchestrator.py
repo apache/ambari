@@ -211,8 +211,8 @@ class CustomServiceOrchestrator():
     :return:
     """
     configtype_credentials = {}
-    if 'configuration_credentials' in commandJson:
-      for config_type, password_properties in commandJson['configuration_credentials'].items():
+    if 'serviceLevelParams' in commandJson and 'configuration_credentials' in commandJson['serviceLevelParams']:
+      for config_type, password_properties in commandJson['serviceLevelParams']['configuration_credentials'].items():
         if config_type in commandJson['configurations']:
           value_names = []
           config = commandJson['configurations'][config_type]
@@ -278,6 +278,9 @@ class CustomServiceOrchestrator():
     if len(configtype_credentials) == 0:
       logger.info("Credential store is enabled but no property are found that can be encrypted.")
       commandJson['credentialStoreEnabled'] = "false"
+    # CS is enabled and config properties are available
+    else:
+      commandJson['credentialStoreEnabled'] = "true"
 
     for config_type, credentials in configtype_credentials.items():
       config = commandJson['configurations'][config_type]
