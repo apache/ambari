@@ -17,7 +17,7 @@ limitations under the License.
 from resource_management.core.logger import Logger
 from resource_management.core.resources import File, Execute
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_core_site_for_required_plugins
+from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_configuration_file_for_required_plugins
 
 def setup_ranger_kafka():
   import params
@@ -84,14 +84,14 @@ def setup_ranger_kafka():
     if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_kafka and params.kerberos_security_enabled:
       if params.has_namenode:
         Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is installed, creating create core-site.xml from namenode configurations")
-        setup_core_site_for_required_plugins(component_user = params.kafka_user, component_group = params.user_group,
+        setup_configuration_file_for_required_plugins(component_user = params.kafka_user, component_group = params.user_group,
                                              create_core_site_path = params.conf_dir, configurations = params.config['configurations']['core-site'],
-                                             configuration_attributes = params.config['configuration_attributes']['core-site'])
+                                             configuration_attributes = params.config['configuration_attributes']['core-site'], file_name='core-site.xml')
       else:
         Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is not installed, creating create core-site.xml from default configurations")
-        setup_core_site_for_required_plugins(component_user = params.kafka_user, component_group = params.user_group,
+        setup_configuration_file_for_required_plugins(component_user = params.kafka_user, component_group = params.user_group,
                                              create_core_site_path = params.conf_dir, configurations = { 'hadoop.security.authentication' : 'kerberos' if params.kerberos_security_enabled else 'simple' },
-                                             configuration_attributes = {})
+                                             configuration_attributes = {}, file_name='core-site.xml')
 
     else:
       Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
