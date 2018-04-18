@@ -56,11 +56,6 @@ App.QuickLinksView = Em.View.extend({
   quickLinks: [],
 
   /**
-   * @type {string[]}
-   */
-  actualTags: [],
-
-  /**
    * @type {object[]}
    */
   configProperties: [],
@@ -98,7 +93,6 @@ App.QuickLinksView = Em.View.extend({
 
   willDestroyElement: function () {
     this.get('configProperties').clear();
-    this.get('actualTags').clear();
     this.get('quickLinks').clear();
     this.get('requiredSiteNames').clear();
   },
@@ -113,7 +107,10 @@ App.QuickLinksView = Em.View.extend({
    */
   setQuickLinks: function () {
     if (App.get('router.clusterController.isServiceMetricsLoaded')) {
-      this.loadTags();
+      this.setConfigProperties().done((configProperties) => {
+        this.get('configProperties').pushObjects(configProperties);
+        this.getQuickLinksHosts();
+      });
     }
   }.observes(
     'App.currentStackVersionNumber',
@@ -122,52 +119,7 @@ App.QuickLinksView = Em.View.extend({
     'App.router.clusterController.quickLinksUpdateCounter'
   ),
 
-  /**
-   * call for configuration tags
-   *
-   * @returns {$.ajax}
-   */
-  loadTags: function () {
-    return App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      success: 'loadTagsSuccess',
-      error: 'loadTagsError'
-    });
-  },
-
-  /**
-   * Success-callback for load-tags request
-   *
-   * @param {object} data
-   * @method loadTagsSuccess
-   */
-  loadTagsSuccess: function (data) {
-    this.get('actualTags').clear();
-    var self = this;
-    var tags = Object.keys(data.Clusters.desired_configs).map(function (prop) {
-      return Em.Object.create({
-        siteName: prop,
-        tagName: data.Clusters.desired_configs[prop].tag
-      });
-    });
-    this.get('actualTags').pushObjects(tags);
-    this.setConfigProperties().done(function (configProperties) {
-      self.get('configProperties').pushObjects(configProperties);
-      self.getQuickLinksHosts();
-    });
-  },
-
-  /**
-   * Error-callback for load-tags request
-   *
-   * @method loadTagsError
-   */
-  loadTagsError: function () {
-    this.getQuickLinksHosts();
-  },
-
-  /**
+   /**
    * Request for quick-links config
    *
    * @returns {$.ajax}
@@ -334,11 +286,7 @@ App.QuickLinksView = Em.View.extend({
    */
   setConfigProperties: function () {
     this.get('configProperties').clear();
-    var requiredSiteNames = this.get('requiredSiteNames');
-    var tags = this.get('actualTags').filter(function (tag) {
-      return requiredSiteNames.contains(tag.siteName);
-    });
-    return App.router.get('configurationController').getConfigsByTags(tags);
+    return App.router.get('configurationController').getCurrentConfigsBySites(this.get('requiredSiteNames'));
   },
 
   /**

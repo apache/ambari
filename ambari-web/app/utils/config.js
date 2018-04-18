@@ -1316,33 +1316,6 @@ App.config = Em.Object.create({
   },
 
   /**
-   * Load cluster-env configs mapped to array
-   * @return {*|{then}}
-   */
-  getConfigsByTypes: function (sites) {
-    const dfd = $.Deferred();
-    if (_.isEqual(sites.mapProperty('site'), ['cluster-env'])) {
-      // if only cluster-env requested the use cached data
-      dfd.resolve(this.getMappedConfigs([App.router.get('clusterController.clusterEnv')], sites));
-    } else {
-      App.ajax.send({
-        name: 'config.tags.selected',
-        sender: this,
-        data: {
-          tags: sites.mapProperty('site').join(',')
-        }
-      }).done((data) => {
-        App.router.get('configurationController').getConfigsByTags(data.items.map(function (item) {
-          return {siteName: item.type, tagName: item.tag};
-        })).done((configs) => {
-          dfd.resolve(this.getMappedConfigs(configs, sites));
-        });
-      });
-    }
-    return dfd.promise();
-  },
-
-  /**
    *
    * @param configs
    * @param sites

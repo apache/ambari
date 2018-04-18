@@ -198,53 +198,28 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * Load configurations for implicit usage for service actions
    * not related to configs displayed on Configs page
    */
-  loadConfigs: function(){
+  loadConfigs: function() {
     this.set('isServiceConfigsLoaded', false);
     this.set('stepConfigs', []);
-    App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      success: 'onLoadConfigsTags',
-      error: 'onTaskError'
-    });
-  },
-
-  /**
-   * Load all configs for sites from <code>serviceConfigsMap</code> for current service
-   * @param data
-   */
-  onLoadConfigsTags: function (data) {
-    var self = this;
-    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(function () {
-      var sitesToLoad = self.get('sitesToLoad'),
-        allConfigs = [],
-        loadedSites = data.Clusters.desired_configs,
-        siteTagsToLoad = [];
-      for (var site in loadedSites) {
-        if (sitesToLoad.contains(site)) {
-          siteTagsToLoad.push({
-            siteName: site,
-            tagName: loadedSites[site].tag
-          });
-        }
-      }
-      App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
-        configs.forEach(function (site) {
-          self.get('configs')[site.type] = site.properties;
+    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(() => {
+      App.router.get('configurationController').getCurrentConfigsBySites(this.get('sitesToLoad')).done((configs) => {
+        let allConfigs = [];
+        configs.forEach((site) => {
+          this.get('configs')[site.type] = site.properties;
           allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
         });
 
-        self.get('configDependentServiceNames').forEach(function(serviceName) {
+        this.get('configDependentServiceNames').forEach((serviceName) => {
           var configTypes = App.StackService.find(serviceName).get('configTypeList');
           var configsByService = allConfigs.filter(function (c) {
             return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
           });
           if (App.config.get('preDefinedServiceConfigs').someProperty('serviceName', serviceName)) {
-            self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+            this.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
           }
         });
 
-        self.set('isServiceConfigsLoaded', true);
+        this.set('isServiceConfigsLoaded', true);
       });
     });
   },
