@@ -1316,6 +1316,18 @@ App.config = Em.Object.create({
   },
 
   /**
+   * Load cluster-env configs mapped to array
+   * @return {*|{then}}
+   */
+  getConfigsByTypes: function (sites) {
+    const dfd = $.Deferred();
+    App.router.get('configurationController').getCurrentConfigsBySites(sites.mapProperty('site')).done((configs) => {
+      dfd.resolve(this.getMappedConfigs(configs, sites));
+    });
+    return dfd.promise();
+  },
+
+  /**
    *
    * @param configs
    * @param sites
