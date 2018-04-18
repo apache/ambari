@@ -20,11 +20,9 @@
 
 package org.apache.ambari.server.serveraction.upgrades;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.union;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
@@ -83,10 +81,9 @@ public class DeleteUnsupportedServicesAndComponents extends AbstractUpgradeServe
 
   private void deleteUpgradeHistory(Cluster cluster, Predicate<UpgradeHistoryEntity> predicate) {
     UpgradeEntity upgradeInProgress = cluster.getUpgradeInProgress();
-    List<UpgradeHistoryEntity> removed = upgradeInProgress.getHistory().stream()
+    upgradeInProgress.getHistory().stream()
       .filter(each -> each != null && predicate.test(each))
-      .collect(toList());
-    removed.forEach(each -> upgradeInProgress.removeHistory(each));
+      .forEach(each -> upgradeInProgress.removeHistory(each));
     m_upgradeDAO.merge(upgradeInProgress);
   }
 }

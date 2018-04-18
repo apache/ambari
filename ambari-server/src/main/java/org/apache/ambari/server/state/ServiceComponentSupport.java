@@ -99,6 +99,10 @@ public class ServiceComponentSupport {
   public Collection<String> allUnsupported(Cluster cluster, String stackName, String stackVersion) throws AmbariException {
     return union(
       unsupportedServices(cluster, stackName, stackVersion),
-      unsupportedComponents(cluster, stackName, stackVersion).stream().map(each -> each.getName()).collect(toSet()));
+      names(unsupportedComponents(cluster, stackName, stackVersion)));
+  }
+
+  private Set<String> names(Set<ServiceComponent> serviceComponents) {
+    return serviceComponents.stream().map(each -> each.getName()).collect(toSet());
   }
 }

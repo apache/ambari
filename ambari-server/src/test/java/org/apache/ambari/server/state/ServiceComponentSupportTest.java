@@ -58,7 +58,7 @@ public class ServiceComponentSupportTest extends EasyMockSupport {
   @Test
   public void testNoUnsupportedIfAllExistsInTargetStack() throws Exception {
     targetStackWith("SERVICE1", "SERVICE2");
-    Set<String> unsupported = unsupporterServices(clusterWith("SERVICE1", "SERVICE2"));
+    Set<String> unsupported = unsupportedServices(clusterWith("SERVICE1", "SERVICE2"));
     assertThat(unsupported, hasSize(0));
     verifyAll();
   }
@@ -66,7 +66,7 @@ public class ServiceComponentSupportTest extends EasyMockSupport {
   @Test
   public void testUnsupportedIfDoesntExistInTargetStack() throws Exception {
     targetStackWith("SERVICE1");
-    Set<String> unsupported = unsupporterServices(clusterWith("SERVICE1", "SERVICE2"));
+    Set<String> unsupported = unsupportedServices(clusterWith("SERVICE1", "SERVICE2"));
     assertThat(unsupported, hasOnlyItems(is("SERVICE2")));
     verifyAll();
   }
@@ -75,7 +75,7 @@ public class ServiceComponentSupportTest extends EasyMockSupport {
   public void testUnsupportedIfDeletedFromTargetStack() throws Exception {
     targetStackWith("SERVICE1", "SERVICE2");
     markAsDeleted("SERVICE2");
-    Set<String> unsupported = unsupporterServices(clusterWith("SERVICE1", "SERVICE2"));
+    Set<String> unsupported = unsupportedServices(clusterWith("SERVICE1", "SERVICE2"));
     assertThat(unsupported, hasOnlyItems(is("SERVICE2")));
     verifyAll();
   }
@@ -93,7 +93,7 @@ public class ServiceComponentSupportTest extends EasyMockSupport {
     return serviceInfoMap;
   }
 
-  private Set<String> unsupporterServices(Cluster cluster) {
+  private Set<String> unsupportedServices(Cluster cluster) {
     return componentSupport.unsupportedServices(cluster, STACK_NAME, VERSION);
   }
 
