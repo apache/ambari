@@ -18,21 +18,30 @@
 
 package org.apache.ambari.server.agent.stomp.dto;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 public class MetadataServiceInfo {
   private String version;
   private Boolean credentialStoreEnabled;
+
+  @JsonProperty("configuration_credentials")
+  private Map<String, Map<String, String>> credentialStoreEnabledProperties;
+
   @JsonProperty("status_commands_timeout")
   private Long statusCommandsTimeout;
 
   @JsonProperty("service_package_folder")
   private String servicePackageFolder;
 
-  public MetadataServiceInfo(String version, Boolean credentialStoreEnabled, Long statusCommandsTimeout,
-                             String servicePackageFolder) {
+  public MetadataServiceInfo(String version, Boolean credentialStoreEnabled,
+                             Map<String, Map<String, String>> credentialStoreEnabledProperties,
+                             Long statusCommandsTimeout, String servicePackageFolder) {
     this.version = version;
     this.credentialStoreEnabled = credentialStoreEnabled;
+    this.credentialStoreEnabledProperties = credentialStoreEnabledProperties;
     this.statusCommandsTimeout = statusCommandsTimeout;
     this.servicePackageFolder = servicePackageFolder;
   }
@@ -51,6 +60,14 @@ public class MetadataServiceInfo {
 
   public void setCredentialStoreEnabled(Boolean credentialStoreEnabled) {
     this.credentialStoreEnabled = credentialStoreEnabled;
+  }
+
+  public Map<String, Map<String, String>> getCredentialStoreEnabledProperties() {
+    return credentialStoreEnabledProperties;
+  }
+
+  public void setCredentialStoreEnabledProperties(Map<String, Map<String, String>> credentialStoreEnabledProperties) {
+    this.credentialStoreEnabledProperties = credentialStoreEnabledProperties;
   }
 
   public Long getStatusCommandsTimeout() {
@@ -79,6 +96,8 @@ public class MetadataServiceInfo {
     if (version != null ? !version.equals(that.version) : that.version != null) return false;
     if (credentialStoreEnabled != null ? !credentialStoreEnabled.equals(that.credentialStoreEnabled) : that.credentialStoreEnabled != null)
       return false;
+    if (credentialStoreEnabledProperties != null ? !credentialStoreEnabledProperties.equals(that.credentialStoreEnabledProperties) : that.credentialStoreEnabledProperties != null)
+      return false;
     if (statusCommandsTimeout != null ? !statusCommandsTimeout.equals(that.statusCommandsTimeout) : that.statusCommandsTimeout != null)
       return false;
     return servicePackageFolder != null ? servicePackageFolder.equals(that.servicePackageFolder) : that.servicePackageFolder == null;
@@ -88,6 +107,7 @@ public class MetadataServiceInfo {
   public int hashCode() {
     int result = version != null ? version.hashCode() : 0;
     result = 31 * result + (credentialStoreEnabled != null ? credentialStoreEnabled.hashCode() : 0);
+    result = 31 * result + (credentialStoreEnabledProperties != null ? credentialStoreEnabledProperties.hashCode() : 0);
     result = 31 * result + (statusCommandsTimeout != null ? statusCommandsTimeout.hashCode() : 0);
     result = 31 * result + (servicePackageFolder != null ? servicePackageFolder.hashCode() : 0);
     return result;

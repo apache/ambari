@@ -5640,6 +5640,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return metadataUpdateEvent;
   }
 
+  public MetadataUpdateEvent getClusterMetadataOnServiceCredentialStoreUpdate(Cluster cl, String serviceName) throws AmbariException {
+    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+
+    MetadataCluster metadataCluster = new MetadataCluster(null,
+        getMetadataServiceLevelParams(cl.getService(serviceName)),
+        new TreeMap<>());
+    metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
+
+    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters,
+        null);
+    return metadataUpdateEvent;
+  }
+
   private String getClientsToUpdateConfigs(ComponentInfo componentInfo) {
     List<String> clientsToUpdateConfigsList = componentInfo.getClientsToUpdateConfigs();
     if (clientsToUpdateConfigsList == null) {
@@ -5836,9 +5849,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       String servicePackageFolder = serviceInfo.getServicePackageFolder();
 
+      // Get the map of service config type to password properties for the service
+      Map<String, Map<String, String>> configCredentials;
+      configCredentials = configCredentialsForService.get(service.getName());
+      if (configCredentials == null) {
+        configCredentials = configHelper.getCredentialStoreEnabledProperties(serviceStackId, service);
+        configCredentialsForService.put(service.getName(), configCredentials);
+      }
+
       serviceLevelParams.put(serviceInfo.getName(),
           new MetadataServiceInfo(serviceInfo.getVersion(),
-              serviceInfo.isCredentialStoreEnabled(),
+              service.isCredentialStoreEnabled(),
+              configCredentials,
               statusCommandTimeout,
               servicePackageFolder));
     }

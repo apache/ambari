@@ -175,7 +175,12 @@ public abstract class AmbariEvent {
     /**
      * Service component's repo has been changed..
      */
-    SERVICE_COMPONENT_REPO_CHANGE;
+    SERVICE_COMPONENT_REPO_CHANGE,
+
+    /**
+     * Service credential store has been enabled or disabled..
+     */
+    SERVICE_CREDENTIAL_STORE_UPDATE;
   }
 
   /**

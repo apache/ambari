@@ -25,6 +25,7 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.events.ClusterComponentsRepoChangedEvent;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.events.ServiceCredentialStoreUpdateEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
@@ -99,5 +100,11 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   public void onClusterComponentsRepoUpdate(ClusterComponentsRepoChangedEvent clusterComponentsRepoChangedEvent) throws AmbariException {
     Cluster cluster = m_clusters.get().getCluster(clusterComponentsRepoChangedEvent.getClusterId());
     updateData(ambariManagementController.getClusterMetadataOnRepoUpdate(cluster));
+  }
+
+  @Subscribe
+  public void onServiceCredentialStoreUpdate(ServiceCredentialStoreUpdateEvent serviceCredentialStoreUpdateEvent) throws AmbariException {
+    Cluster cluster = m_clusters.get().getCluster(serviceCredentialStoreUpdateEvent.getClusterId());
+    updateData(ambariManagementController.getClusterMetadataOnServiceCredentialStoreUpdate(cluster, serviceCredentialStoreUpdateEvent.getServiceName()));
   }
 }
