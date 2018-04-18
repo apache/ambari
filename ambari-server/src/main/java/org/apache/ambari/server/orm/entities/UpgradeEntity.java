@@ -498,4 +498,12 @@ public class UpgradeEntity {
         upgradePackage);
   }
 
+ /**
+ * Removes historical entry for a service component in this upgrade.
+ */
+ public void removeHistory(UpgradeHistoryEntity upgradeHistoryEntity) {
+    if (upgradeHistory != null) {
+      upgradeHistory.remove(upgradeHistoryEntity);
+    }
+  }
 }

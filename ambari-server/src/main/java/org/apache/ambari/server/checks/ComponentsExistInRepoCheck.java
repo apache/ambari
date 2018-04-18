@@ -17,28 +17,18 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.ServiceComponentSupport;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.commons.lang.StringUtils;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -48,105 +38,28 @@ import com.google.inject.Singleton;
  */
 @Singleton
 @UpgradeCheck(
-    group = UpgradeCheckGroup.TOPOLOGY,
-    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
+  group = UpgradeCheckGroup.INFORMATIONAL_WARNING,
+  required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING })
 public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
+  @Inject
+  ServiceComponentSupport serviceComponentSupport;
 
-  /**
-   * Constructor.
-   */
   public ComponentsExistInRepoCheck() {
     super(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO);
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
-      throws AmbariException {
-    final String clusterName = request.getClusterName();
-    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
-
-    StackId sourceStack = request.getSourceStackId();
-    StackId targetStack = repositoryVersion.getStackId();
-
-    Set<ServiceDetail> failedServices = new TreeSet<>();
-    Set<ServiceComponentDetail> failedComponents = new TreeSet<>();
-
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
-    for (String serviceName : servicesInUpgrade) {
-      try {
-        ServiceInfo serviceInfo = ambariMetaInfo.get().getService(targetStack.getStackName(),
-            targetStack.getStackVersion(), serviceName);
-
-        if (serviceInfo.isDeleted() || !serviceInfo.isValid()) {
-          failedServices.add(new ServiceDetail(serviceName));
-          continue;
-        }
-
-        Service service = cluster.getService(serviceName);
-        Map<String, ServiceComponent> componentsInUpgrade = service.getServiceComponents();
-        for (String componentName : componentsInUpgrade.keySet()) {
-          try {
-            ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(
-                targetStack.getStackName(), targetStack.getStackVersion(), serviceName,
-                componentName);
-
-            // if this component isn't included in the upgrade, then skip it
-            if (!componentInfo.isVersionAdvertised()) {
-              continue;
-            }
-
-            if (componentInfo.isDeleted()) {
-              failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
-            }
-
-          } catch (StackAccessException stackAccessException) {
-            failedComponents.add(new ServiceComponentDetail(serviceName, componentName));
-          }
-        }
-      } catch (StackAccessException stackAccessException) {
-        failedServices.add(new ServiceDetail(serviceName));
-      }
-    }
-
-    if (failedServices.isEmpty() && failedComponents.isEmpty()) {
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+    Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+    String stackName = request.getTargetRepositoryVersion().getStackName();
+    String stackVersion = request.getTargetRepositoryVersion().getStackVersion();
+    Collection<String> allUnsupported = serviceComponentSupport.allUnsupported(cluster, stackName, stackVersion);
+    if (allUnsupported.isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
-      return;
+    } else {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(allUnsupported));
     }
-
-    Set<String> failedServiceNames = failedServices.stream().map(
-        failureDetail -> failureDetail.serviceName).collect(
-            Collectors.toCollection(LinkedHashSet::new));
-
-    Set<String> failedComponentNames = failedComponents.stream().map(
-        failureDetail -> failureDetail.componentName).collect(
-            Collectors.toCollection(LinkedHashSet::new));
-
-    LinkedHashSet<String> failures = new LinkedHashSet<>();
-    failures.addAll(failedServiceNames);
-    failures.addAll(failedComponentNames);
-
-    prerequisiteCheck.setFailedOn(failures);
-    prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-
-    prerequisiteCheck.getFailedDetail().addAll(failedServices);
-    prerequisiteCheck.getFailedDetail().addAll(failedComponents);
-
-    String message = "The following {0} exist in {1} but are not included in {2}. They must be removed before upgrading.";
-    String messageFragment = "";
-    if (!failedServices.isEmpty()) {
-      messageFragment = "services";
-    }
-
-    if( !failedComponents.isEmpty() ){
-      if(!StringUtils.isEmpty(messageFragment)){
-        messageFragment += " and ";
-      }
-
-      messageFragment += "components";
-    }
-
-    message = MessageFormat.format(message, messageFragment, sourceStack, targetStack);
-    prerequisiteCheck.setFailReason(message);
   }
 }
