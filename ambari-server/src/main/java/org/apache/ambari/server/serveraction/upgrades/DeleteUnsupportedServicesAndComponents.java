@@ -87,5 +87,6 @@ public class DeleteUnsupportedServicesAndComponents extends AbstractUpgradeServe
       .filter(each -> each != null && predicate.test(each))
       .collect(toList());
     upgradeInProgress.removeHistories(removed);
+    m_upgradeDAO.merge(upgradeInProgress);
   }
 }
