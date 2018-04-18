@@ -226,7 +226,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var dfd = $.Deferred();
     // check if we have configs from 'cluster-env', if not, then load them, as they are mandatory for validation request
     if (!serviceConfigs.findProperty('serviceName', 'MISC')) {
-      App.router.get('configurationController').getCurrentConfigsBySites(['cluster-env']).done(function(configs) {
+      App.config.getConfigsByTypes([{site: 'cluster-env', serviceName: 'MISC'}]).done(function(configs) {
         dfd.resolve(blueprintUtils.buildConfigsJSON(serviceConfigs.concat(configs)));
       });
     } else {
