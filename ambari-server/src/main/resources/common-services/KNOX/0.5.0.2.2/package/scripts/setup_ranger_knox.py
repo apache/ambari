@@ -116,7 +116,7 @@ def setup_ranger_knox(upgrade_type=None):
         Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is installed, creating create core-site.xml from namenode configurations")
         setup_configuration_file_for_required_plugins(component_user = params.knox_user, component_group = params.knox_group,
                                              create_core_site_path = params.knox_conf_dir, configurations = params.config['configurations']['core-site'],
-                                             configuration_attributes = params.config['configuration_attributes']['core-site'], file_name = 'core-site.xml')
+                                             configuration_attributes = params.config['configurationAttributes']['core-site'], file_name = 'core-site.xml')
       else:
         Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is not installed, creating create core-site.xml from default configurations")
         setup_configuration_file_for_required_plugins(component_user = params.knox_user, component_group = params.knox_group,
