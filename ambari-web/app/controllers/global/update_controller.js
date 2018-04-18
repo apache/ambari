@@ -210,7 +210,7 @@ App.UpdateController = Em.Controller.extend({
     App.StompClient.subscribe('/events/hostcomponents', App.hostComponentStatusMapper.map.bind(App.hostComponentStatusMapper));
     App.StompClient.subscribe('/events/alerts', App.alertSummaryMapper.map.bind(App.alertSummaryMapper));
     App.StompClient.subscribe('/events/ui_topologies', App.topologyMapper.map.bind(App.topologyMapper));
-    App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
+    App.StompClient.subscribe('/events/configs', this.configsChangedHandler.bind(this));
     App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
     App.StompClient.subscribe('/events/hosts', App.hostStateMapper.map.bind(App.hostStateMapper));
     App.StompClient.subscribe('/events/alert_definitions', App.alertDefinitionsMapperAdapter.map.bind(App.alertDefinitionsMapperAdapter));
@@ -683,25 +683,17 @@ App.UpdateController = Em.Controller.extend({
     });
   },
 
-  makeCallForClusterEnv: function(event) {
+  configsChangedHandler: function(event) {
     if (event.configs && event.configs.someProperty('type', 'cluster-env')) {
       this.updateClusterEnv();
     }
+    App.router.get('configurationController').updateConfigTags();
   },
 
   //TODO - update service auto-start to use this
-  updateClusterEnv: function (callback) {
-    this.loadClusterConfig(callback).done(function (data) {
-      var tag = [
-        {
-          siteName: 'cluster-env',
-          tagName: data.Clusters.desired_configs['cluster-env'].tag,
-          newTagName: null
-        }
-      ];
-      App.router.get('configurationController').getConfigsByTags(tag).done(function (config) {
-        App.router.get('clusterController').set('clusterEnv', config[0]);
-      });
+  updateClusterEnv: function () {
+    return App.router.get('configurationController').getCurrentConfigsBySites(['cluster-env']).done(function (config) {
+      App.router.get('clusterController').set('clusterEnv', config[0]);
     });
   },
 
@@ -750,14 +742,8 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateHDFSNameSpaces: function () {
-    if (App.Service.find().someProperty('serviceName', 'HDFS') && App.get('isHaEnabled')) {
-      const siteName = 'hdfs-site',
-        storedHdfsSiteconfigs = App.db.getConfigs().findProperty('type', siteName),
-        tagName = storedHdfsSiteconfigs && storedHdfsSiteconfigs.tag;
-      App.router.get('configurationController').getConfigsByTags([{
-        siteName,
-        tagName
-      }]).done(configs => {
+    if (App.Service.find('HDFS').get('isLoaded') && App.get('isHaEnabled')) {
+      App.router.get('configurationController').getCurrentConfigsBySites(['hdfs-site']).done(configs => {
         const properties = configs && configs[0] && configs[0].properties;
         if (properties) {
           const nameSpaceProperty = properties['dfs.nameservices'];

@@ -226,21 +226,14 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    */
   setHiveEndPointsValue: function() {
     var self = this;
-    var tags = [
-      {
-        siteName: 'hive-site'
-      },
-      {
-        siteName: 'hive-interactive-site'
-      }
-    ];
+    const sites = ['hive-site', 'hive-interactive-site'];
 
     var siteToComponentMap = {
       'hive-site': 'HIVE_SERVER',
       'hive-interactive-site': 'HIVE_SERVER_INTERACTIVE'
     };
 
-    App.router.get('configurationController').getConfigsByTags(tags).done(function (configs) {
+    App.router.get('configurationController').getCurrentConfigsBySites(sites).done(function (configs) {
 
       var hiveSiteIndex =  configs.map(function(item){
         return item.type;

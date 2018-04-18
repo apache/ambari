@@ -528,17 +528,24 @@ describe('App.UpdateController', function () {
     });
   });
 
-  describe('#makeCallForClusterEnv', function() {
+  describe('#configsChangedHandler', function() {
     beforeEach(function() {
       sinon.stub(c, 'updateClusterEnv');
+      sinon.stub(App.router.get('configurationController'), 'updateConfigTags');
     });
     afterEach(function() {
       c.updateClusterEnv.restore();
+      App.router.get('configurationController').updateConfigTags.restore();
     });
 
     it('updateClusterEnv should be called', function() {
-      c.makeCallForClusterEnv({configs: [{type: 'cluster-env'}]});
+      c.configsChangedHandler({configs: [{type: 'cluster-env'}]});
       expect(c.updateClusterEnv.calledOnce).to.be.true;
+    });
+
+    it('updateConfigTags should be called', function() {
+      c.configsChangedHandler({configs: [{type: 'cluster-env'}]});
+      expect(App.router.get('configurationController').updateConfigTags.calledOnce).to.be.true;
     });
   });
 });
