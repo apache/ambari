@@ -458,6 +458,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     Em.assert('type should be defined', type);
     var desired_config = {
       "type": type,
+      "tag": "v1", //REMOVE
       "properties": {}
     };
     if (!ignoreVersionNote) {
