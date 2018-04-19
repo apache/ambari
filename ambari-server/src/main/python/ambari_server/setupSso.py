@@ -30,7 +30,7 @@ from ambari_server.serverUtils import is_server_runing, get_ambari_admin_usernam
 from ambari_server.setupSecurity import REGEX_TRUE_FALSE
 from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
 
-AMBARI_JWT_AUTH_ENBABLED = "ambari.sso.authentication.enabled"
+AMBARI_SSO_AUTH_ENABLED = "ambari.sso.authentication.enabled"
 SSO_MANAGE_SERVICES = "ambari.sso.manage_services"
 SSO_ENABLED_SERVICES = "ambari.sso.enabled_services"
 SSO_PROVIDER_URL = "ambari.sso.provider.url"
@@ -69,6 +69,10 @@ def validate_options(options):
       errors.append("Missing option: --sso-public-cert-file")
     if options.sso_provider_url and not re.match(REGEX_URL, options.sso_provider_url):
       errors.append("Invalid --sso-provider-url")
+    if options.sso_enabled_ambari and not re.match(REGEX_TRUE_FALSE, options.sso_enabled_ambari):
+      errors.append("--sso-enabled-ambari should be to either 'true' or 'false'")
+    if options.sso_manage_services and not re.match(REGEX_TRUE_FALSE, options.sso_manage_services):
+      errors.append("--sso-manage-services should be to either 'true' or 'false'")
 
   if len(errors) > 0:
     error_msg = "The following errors occurred while processing your request: {0}"
@@ -78,7 +82,7 @@ def validate_options(options):
 def populate_sso_provider_url(options, properties):
   if not options.sso_provider_url:
       provider_url = get_value_from_dictionary(properties, SSO_PROVIDER_URL, SSO_PROVIDER_URL_DEFAULT)
-      provider_url = get_validated_string_input("Provider URL ({0}):".format(provider_url), provider_url, REGEX_URL,
+      provider_url = get_validated_string_input("Provider URL ({0}): ".format(provider_url), provider_url, REGEX_URL,
                                                 "Invalid provider URL", False)
   else:
     provider_url = options.sso_provider_url
@@ -88,7 +92,7 @@ def populate_sso_provider_url(options, properties):
 def populate_sso_public_cert(options, properties):
   if not options.sso_public_cert_file:
     cert = get_value_from_dictionary(properties, SSO_CERTIFICATE)
-    get_cert = True if not cert else get_YN_input("The SSO provider's public certificate has already set. Do you want to change it [y/n] (n): ", False)
+    get_cert = True if not cert else get_YN_input("The SSO provider's public certificate has already set. Do you want to change it [y/n] (n)? ", False)
 
     if get_cert:
       cert_string = get_multi_line_input("Public Certificate PEM")
@@ -103,7 +107,7 @@ def populate_sso_public_cert(options, properties):
 def populate_jwt_cookie_name(options, properties):
   if not options.sso_jwt_cookie_name and (not options.sso_provider_url or not options.sso_public_cert_file):
     cookie_name = get_value_from_dictionary(properties, JWT_COOKIE_NAME, JWT_COOKIE_NAME_DEFAULT)
-    cookie_name = get_validated_string_input("JWT Cookie name ({0}):".format(cookie_name), cookie_name, REGEX_ANYTHING,
+    cookie_name = get_validated_string_input("JWT Cookie name ({0}): ".format(cookie_name), cookie_name, REGEX_ANYTHING,
                                          "Invalid cookie name", False)
   else:
     cookie_name = options.sso_jwt_cookie_name if options.sso_jwt_cookie_name else JWT_COOKIE_NAME_DEFAULT
@@ -114,13 +118,23 @@ def populate_jwt_cookie_name(options, properties):
 def populate_jwt_audiences(options, properties):
   if options.sso_jwt_audience_list is None and (not options.sso_provider_url or not options.sso_public_cert_file):
     audiences = get_value_from_dictionary(properties, JWT_AUDIENCES, JWT_AUDIENCES_DEFAULT)
-    audiences = get_validated_string_input("JWT audiences list (comma-separated), empty for any ({0}):".format(audiences), audiences,
+    audiences = get_validated_string_input("JWT audiences list (comma-separated), empty for any ({0}): ".format(audiences), audiences,
                                         REGEX_ANYTHING, "Invalid value", False)
   else:
     audiences = options.sso_jwt_audience_list if options.sso_jwt_audience_list else JWT_AUDIENCES_DEFAULT
 
   properties[JWT_AUDIENCES] = audiences
-  
+
+def populate_ambari_requires_sso(options, properties):
+  if options.sso_enabled_ambari is None:
+    enabled = get_boolean_from_dictionary(properties, AMBARI_SSO_AUTH_ENABLED, False)
+    enabled = get_YN_input("Use SSO for Ambari [y/n] ({0})? ".format('y' if enabled else 'n'), enabled)
+  else:
+    enabled = 'true' == options.sso_enabled_ambari
+
+  properties[AMBARI_SSO_AUTH_ENABLED] = 'true' if enabled else 'false'
+
+
 def get_eligible_services(properties, admin_login, admin_password, cluster_name):
   print_info_msg("Fetching SSO enabled services")
 
@@ -129,7 +143,7 @@ def get_eligible_services(properties, admin_login, admin_password, cluster_name)
   response_code, json_data = get_json_via_rest_api(properties, admin_login, admin_password,
                                                    FETCH_SERVICES_FOR_SSO_ENTRYPOINT % safe_cluster_name)
 
-  services = [SERVICE_NAME_AMBARI]
+  services = []
 
   if json_data and 'items' in json_data:
     items = json_data['items']
@@ -137,31 +151,68 @@ def get_eligible_services(properties, admin_login, admin_password, cluster_name)
       for item in items:
         services.append(item['ServiceInfo']['service_name'])
 
-    print_info_msg('Found SSO enabled services: %s' % ', '.join(services))
-
-  return services
-
-
-def get_services_requires_sso(options, ambari_properties, admin_login, admin_password):
-  if not options.sso_enabled_services:
-    configure_for_all_services = get_YN_input("Use SSO for all services [y/n] (n): ", False)
-    if configure_for_all_services:
-      services = [WILDCARD_FOR_ALL_SERVICES]
+    if len(services) > 0:
+      print_info_msg('Found SSO enabled services: %s' % ', '.join(services))
     else:
-      services = []
-      cluster_name = get_cluster_name(ambari_properties, admin_login, admin_password)
-
-      if cluster_name:
-        eligible_services = get_eligible_services(ambari_properties, admin_login, admin_password, cluster_name)
-        if eligible_services:
-          for service in eligible_services:
-            question = "Use SSO for {0} [y/n] (y): ".format(service)
-            if get_YN_input(question, True):
-              services.append(service)
-  else:
-    services = options.sso_enabled_services.upper().split(',') if options.sso_enabled_services else []
+      print_info_msg('No SSO enabled services were found')
 
   return services
+
+
+def populate_service_management(options, properties, ambari_properties, admin_login, admin_password):
+  if not options.sso_enabled_services:
+    if not options.sso_manage_services:
+      manage_services = get_boolean_from_dictionary(properties, SSO_MANAGE_SERVICES, False)
+      manage_services = get_YN_input("Manage SSO configurations for eligible services [y/n] ({0})? ".format('y' if manage_services else 'n'), manage_services)
+    else:
+      manage_services = 'true' == options.sso_manage_services
+
+      if not options.sso_provider_url:
+        stored_manage_services = get_boolean_from_dictionary(properties, SSO_MANAGE_SERVICES, False)
+        print("Manage SSO configurations for eligible services [y/n] ({0})? {1}"
+              .format('y' if stored_manage_services else 'n', 'y' if manage_services else 'n'))
+
+    if manage_services:
+      enabled_services = get_value_from_dictionary(properties, SSO_ENABLED_SERVICES, "").upper().split(',')
+
+      all = "*" in enabled_services
+      configure_for_all_services = get_YN_input(" Use SSO for all services [y/n] ({0})? ".format('y' if all else 'n'), all)
+      if configure_for_all_services:
+        services = WILDCARD_FOR_ALL_SERVICES
+      else:
+        cluster_name = get_cluster_name(ambari_properties, admin_login, admin_password)
+
+        if cluster_name:
+          eligible_services = get_eligible_services(ambari_properties, admin_login, admin_password, cluster_name)
+
+          if eligible_services and len(eligible_services) > 0:
+            service_list = []
+
+            for service in eligible_services:
+              enabled = service.upper() in enabled_services
+              question = "   Use SSO for {0} [y/n] ({1})? ".format(service, 'y' if enabled else 'n')
+              if get_YN_input(question, enabled):
+                service_list.append(service)
+
+            services = ','.join(service_list)
+          else:
+            print ("   There are no eligible services installed.")
+            services = ""
+        else:
+          services = ""
+    else:
+      services = ""
+  else:
+    if options.sso_manage_services:
+      manage_services = 'true' == options.sso_manage_services
+    else:
+      manage_services = True
+
+    services = options.sso_enabled_services.upper() if options.sso_enabled_services else ""
+
+  properties[SSO_MANAGE_SERVICES] = 'true' if manage_services else "false"
+  properties[SSO_ENABLED_SERVICES] = services
+
 
 def get_sso_properties(properties, admin_login, admin_password):
   print_info_msg("Fetching SSO configuration from DB")
@@ -180,6 +231,11 @@ def get_sso_properties(properties, admin_login, admin_password):
     return json_data['Configuration']['properties']
   else:
     return {}
+
+
+def remove_sso_conf(ambari_properties, admin_login, admin_password):
+  perform_changes_via_rest_api(ambari_properties, admin_login, admin_password, SSO_CONFIG_API_ENTRYPOINT, 'DELETE')
+
 
 def update_sso_conf(ambari_properties, sso_configuration_properties, admin_login, admin_password):
   request_data = {
@@ -210,38 +266,40 @@ def setup_sso(options):
     properties = get_sso_properties(ambari_properties, admin_login, admin_password)
 
     if not options.sso_enabled:
-      sso_enabled = get_value_from_dictionary(properties, SSO_MANAGE_SERVICES, None)
-      if sso_enabled:
-        sso_status = "enabled" if sso_enabled == "true" else "disabled"
+      ambari_auth_enabled = get_value_from_dictionary(properties, AMBARI_SSO_AUTH_ENABLED)
+      manage_services = get_value_from_dictionary(properties, SSO_MANAGE_SERVICES)
+
+      if ambari_auth_enabled or manage_services:
+        if (ambari_auth_enabled and 'true' == ambari_auth_enabled) or \
+          (manage_services and 'true' == manage_services):
+          sso_status = "enabled"
+        else:
+          sso_status = "disabled"
       else:
         sso_status = "not configured"
       sys.stdout.write("\nSSO is currently %s\n" % sso_status)
 
       if sso_status == "enabled":
         enable_sso = not get_YN_input("Do you want to disable SSO authentication [y/n] (n)? ", False)
+      elif get_YN_input("Do you want to configure SSO authentication [y/n] (y)? ", True):
+        enable_sso = True
       else:
-        if get_YN_input("Do you want to configure SSO authentication [y/n] (y)? ", True):
-          enable_sso = True
-        else:
-          return False
+        return False
     else:
       enable_sso = options.sso_enabled == 'true'
 
-    services = None
     if enable_sso:
       populate_sso_provider_url(options, properties)
       populate_sso_public_cert(options, properties)
+      populate_ambari_requires_sso(options, properties)
+      populate_service_management(options, properties, ambari_properties, admin_login, admin_password)
       populate_jwt_cookie_name(options, properties)
       populate_jwt_audiences(options, properties)
-      services = get_services_requires_sso(options, ambari_properties, admin_login, admin_password)
 
-    enable_jwt_auth = services and (WILDCARD_FOR_ALL_SERVICES in services or SERVICE_NAME_AMBARI in services)
-    properties[AMBARI_JWT_AUTH_ENBABLED]  = "true" if enable_jwt_auth else "false"
-    properties[SSO_MANAGE_SERVICES] = "true" if enable_sso else "false"
-    properties[SSO_ENABLED_SERVICES] = ','.join(services) if services else ""
+      update_sso_conf(ambari_properties, properties, admin_login, admin_password)
+    else:
+      remove_sso_conf(ambari_properties, admin_login, admin_password)
 
-    update_sso_conf(ambari_properties, properties, admin_login, admin_password)
-    pass
   else:
     warning = "setup-sso is not enabled in silent mode."
     raise NonFatalException(warning)
@@ -263,3 +321,8 @@ def ensure_complete_cert(cert_string):
 
 def get_value_from_dictionary(properties, key, default_value=None):
   return properties[key] if properties and key in properties else default_value
+
+def get_boolean_from_dictionary(properties, key, default_value=False):
+  value = get_value_from_dictionary(properties, key, None)
+  return 'true' == value.lower() if value else default_value
+
