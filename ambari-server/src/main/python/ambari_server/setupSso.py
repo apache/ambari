@@ -42,6 +42,7 @@ JWT_COOKIE_NAME = "ambari.sso.jwt.cookieName"
 SSO_PROVIDER_ORIGINAL_URL_QUERY_PARAM_DEFAULT = "originalUrl"
 SSO_PROVIDER_URL_DEFAULT = "https://knox.example.com:8443/gateway/knoxsso/api/v1/websso"
 JWT_COOKIE_NAME_DEFAULT = "hadoop-jwt"
+JWT_AUDIENCES_DEFAULT = ""
 
 CERTIFICATE_HEADER = "-----BEGIN CERTIFICATE-----"
 CERTIFICATE_FOOTER = "-----END CERTIFICATE-----"
@@ -100,23 +101,23 @@ def populate_sso_public_cert(options, properties):
 
 
 def populate_jwt_cookie_name(options, properties):
-  if not options.sso_jwt_cookie_name:
+  if not options.sso_jwt_cookie_name and (not options.sso_provider_url or not options.sso_public_cert_file):
     cookie_name = get_value_from_dictionary(properties, JWT_COOKIE_NAME, JWT_COOKIE_NAME_DEFAULT)
     cookie_name = get_validated_string_input("JWT Cookie name ({0}):".format(cookie_name), cookie_name, REGEX_ANYTHING,
                                          "Invalid cookie name", False)
   else:
-    cookie_name = options.sso_jwt_cookie_name
+    cookie_name = options.sso_jwt_cookie_name if options.sso_jwt_cookie_name else JWT_COOKIE_NAME_DEFAULT
 
   properties[JWT_COOKIE_NAME] = cookie_name
 
 
 def populate_jwt_audiences(options, properties):
-  if options.sso_jwt_audience_list is None:
-    audiences = get_value_from_dictionary(properties, JWT_AUDIENCES)
+  if options.sso_jwt_audience_list is None and (not options.sso_provider_url or not options.sso_public_cert_file):
+    audiences = get_value_from_dictionary(properties, JWT_AUDIENCES, JWT_AUDIENCES_DEFAULT)
     audiences = get_validated_string_input("JWT audiences list (comma-separated), empty for any ({0}):".format(audiences), audiences,
                                         REGEX_ANYTHING, "Invalid value", False)
   else:
-    audiences = options.sso_jwt_audience_list
+    audiences = options.sso_jwt_audience_list if options.sso_jwt_audience_list else JWT_AUDIENCES_DEFAULT
 
   properties[JWT_AUDIENCES] = audiences
   
