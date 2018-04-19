@@ -228,6 +228,11 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     List<String> hosts = Arrays.asList("dummy_host%", "dummy_3h");
     uuids = metadataManager.getUuids(metrics, hosts, "dummy_app2", null);
     Assert.assertTrue(uuids.size() == 9);
+
+    metrics = Arrays.asList("abc%");
+    hosts = Arrays.asList("dummy_host");
+    uuids = metadataManager.getUuids(metrics, hosts, "dummy_app2", null);
+    Assert.assertTrue(uuids.isEmpty());
   }
 
 

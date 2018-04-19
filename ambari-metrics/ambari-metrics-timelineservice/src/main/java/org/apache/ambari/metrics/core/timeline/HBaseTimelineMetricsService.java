@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -262,7 +263,14 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     Multimap<String, List<Function>> metricFunctions =
       parseMetricNamesToAggregationFunctions(metricNames);
 
+    TimelineMetrics metrics = new TimelineMetrics();
+
     List<byte[]> uuids = metricMetadataManager.getUuids(metricFunctions.keySet(), hostnames, applicationId, instanceId);
+
+    if (uuids.isEmpty()) {
+      LOG.warn("No metric UUIDs generated for query : " + Arrays.asList(metricNames).toString());
+      return metrics;
+    }
 
     ConditionBuilder conditionBuilder = new ConditionBuilder(new ArrayList<String>(metricFunctions.keySet()))
       .hostnames(hostnames)
@@ -295,8 +303,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     }
 
     Condition condition = conditionBuilder.build();
-
-    TimelineMetrics metrics;
 
     if (hostnames == null || hostnames.isEmpty()) {
       metrics = hBaseAccessor.getAggregateMetricRecords(condition, metricFunctions);
