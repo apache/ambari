@@ -346,9 +346,9 @@ public class CheckDescription {
     PrereqCheckType.CLUSTER,
     "Check installed services which are not supported in the installed stack",
     new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT,
-              "The following services and/or components do not exist in the target stack and will be automatically removed during the upgrade.")
-          .build()
+      .put(ComponentsExistInRepoCheck.AUTO_REMOVE, "The following services and/or components do not exist in the target stack and will be automatically removed during the upgrade.")
+      .put(ComponentsExistInRepoCheck.MANUAL_REMOVE, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
+      .build()
     );
 
   public static CheckDescription DRUID_HA_WARNING = new CheckDescription(

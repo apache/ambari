@@ -22,10 +22,16 @@ import java.util.LinkedHashSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.serveraction.upgrades.DeleteUnsupportedServicesAndComponents;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentSupport;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ServerActionTask;
+import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Inject;
@@ -41,25 +47,61 @@ import com.google.inject.Singleton;
   group = UpgradeCheckGroup.INFORMATIONAL_WARNING,
   required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING })
 public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
+  public static final String AUTO_REMOVE = "auto_remove";
+  public static final String MANUAL_REMOVE = "manual_remove";
   @Inject
   ServiceComponentSupport serviceComponentSupport;
+  @Inject
+  UpgradeHelper upgradeHelper;
 
   public ComponentsExistInRepoCheck() {
     super(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO);
   }
 
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+  public void perform(PrerequisiteCheck check, PrereqCheckRequest request) throws AmbariException {
     Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     String stackName = request.getTargetRepositoryVersion().getStackName();
     String stackVersion = request.getTargetRepositoryVersion().getStackVersion();
     Collection<String> allUnsupported = serviceComponentSupport.allUnsupported(cluster, stackName, stackVersion);
+    report(check, request, allUnsupported);
+  }
+
+  private void report(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request, Collection<String> allUnsupported) throws AmbariException {
     if (allUnsupported.isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
-    } else {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(allUnsupported));
+      return;
     }
+    prerequisiteCheck.setFailedOn(new LinkedHashSet<>(allUnsupported));
+    if (hasDeleteUnsupportedServicesAction(upgradePack(request))) {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
+      prerequisiteCheck.setFailReason(getFailReason(AUTO_REMOVE, prerequisiteCheck, request));
+    } else {
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(getFailReason(MANUAL_REMOVE, prerequisiteCheck, request));
+    }
+  }
+
+  private UpgradePack upgradePack(PrereqCheckRequest request) throws AmbariException {
+    return upgradeHelper.suggestUpgradePack(
+      request.getClusterName(),
+      request.getSourceStackId(),
+      request.getTargetRepositoryVersion().getStackId(),
+      request.getDirection(),
+      request.getUpgradeType(),
+      null);
+  }
+
+  private boolean hasDeleteUnsupportedServicesAction(UpgradePack upgradePack) {
+    return upgradePack.getAllGroups().stream()
+      .filter(ClusterGrouping.class::isInstance)
+      .flatMap(group -> ((ClusterGrouping) group).executionStages.stream())
+      .map(executeStage -> executeStage.task)
+      .anyMatch(this::isDeleteUnsupportedTask);
+  }
+
+  private boolean isDeleteUnsupportedTask(Task task) {
+    return task instanceof ServerActionTask
+      && DeleteUnsupportedServicesAndComponents.class.getName().equals(((ServerActionTask)task).getImplementationClass());
   }
 }

@@ -23,14 +23,22 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.serveraction.upgrades.DeleteUnsupportedServicesAndComponents;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceComponentSupport;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ServerActionTask;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -50,7 +58,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   @Mock
   private ServiceComponentSupport serviceComponentSupport;
   @Mock
-  private RepositoryVersionEntity repositoryVersion;
+  private UpgradeHelper upgradeHelper;
   private PrerequisiteCheck prereq = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
   private PrereqCheckRequest request = new PrereqCheckRequest("cluster");
 
@@ -58,11 +66,10 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   public void before() throws Exception {
     check.clustersProvider = () -> clusters;
     check.serviceComponentSupport = serviceComponentSupport;
+    check.upgradeHelper = upgradeHelper;
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
-    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
-    expect(repositoryVersion.getStackName()).andReturn(STACK_NAME).anyTimes();
-    expect(repositoryVersion.getStackVersion()).andReturn(STACK_VERSION).anyTimes();
-    request.setTargetRepositoryVersion(repositoryVersion);
+    request.setTargetRepositoryVersion(repoVersion());
+    request.setSourceStackId(new StackId(STACK_NAME, "1.0"));
   }
 
   @Test
@@ -74,11 +81,52 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
   }
 
   @Test
-  public void testWarnsWhenUnsupportedFoundInTargetStack() throws Exception {
+  public void testFailsWhenUnsupportedFoundInTargetStack() throws Exception {
     expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(singletonList("ANY_SERVICE")).anyTimes();
+    suggestedUpgradePackIs(new UpgradePack());
+    replayAll();
+    check.perform(prereq, request);
+    assertEquals(PrereqCheckStatus.FAIL, prereq.getStatus());
+  }
+
+  @Test
+  public void testWarnsWhenUnsupportedFoundInTargetStackAndUpgradePackHasAutoDeleteTask() throws Exception {
+    expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(singletonList("ANY_SERVICE")).anyTimes();
+    suggestedUpgradePackIs(upgradePackWithDeleteUnsupportedTask());
     replayAll();
     check.perform(prereq, request);
     assertEquals(PrereqCheckStatus.WARNING, prereq.getStatus());
+  }
 
+  private RepositoryVersionEntity repoVersion() {
+    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
+    repositoryVersion.setType(RepositoryType.STANDARD);
+    StackEntity stack = new StackEntity();
+    repositoryVersion.setStack(stack);
+    stack.setStackName(STACK_NAME);
+    stack.setStackVersion(STACK_VERSION);
+    return repositoryVersion;
+  }
+
+  private void suggestedUpgradePackIs(UpgradePack upgradePack) throws AmbariException {
+    expect(upgradeHelper.suggestUpgradePack(
+      "cluster",
+      request.getSourceStackId(),
+      request.getTargetRepositoryVersion().getStackId(),
+      request.getDirection(),
+      request.getUpgradeType(),
+      null)).andReturn(upgradePack).anyTimes();
+  }
+
+  private UpgradePack upgradePackWithDeleteUnsupportedTask() {
+    UpgradePack upgradePack = new UpgradePack();
+    ClusterGrouping group = new ClusterGrouping();
+    ClusterGrouping.ExecuteStage stage = new ClusterGrouping.ExecuteStage();
+    ServerActionTask task = new ServerActionTask();
+    task.setImplClass(DeleteUnsupportedServicesAndComponents.class.getName());
+    stage.task = task;
+    group.executionStages = singletonList(stage);
+    upgradePack.getAllGroups().add(group);
+    return upgradePack;
   }
 }

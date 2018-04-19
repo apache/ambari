@@ -55,6 +55,9 @@ public class DeleteUnsupportedServicesAndComponents extends AbstractUpgradeServe
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
     Cluster cluster = getClusters().getCluster(getExecutionCommand().getClusterName());
+    if (cluster.getUpgradeInProgress().isDowngradeAllowed()) {
+      throw new AmbariException(this.getClass() + " should not be used in upgrade packs with downgrade support");
+    }
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
     Set<String> removedComponents = deleteUnsupportedComponents(cluster, upgradeContext.getRepositoryVersion());
     Set<String> removedServices = deleteUnsupportedServices(cluster, upgradeContext.getRepositoryVersion());
