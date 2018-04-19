@@ -480,7 +480,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         sender: this,
         data: {
           hostName: hostName[i],
-          componentName: componentName,
+          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId'),
           passive_state: "ON",
           taskNum: hostName.length,
           callback: 'checkBeforeDelete'
@@ -501,7 +501,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         name: 'admin.high_availability.getHostComponent',
         sender: this,
         data: {
-          componentName: componentName,
+          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId'),
           hostName: hostName[i],
           taskNum: hostName.length,
           callback: 'deleteComponent'
@@ -550,7 +550,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         name: 'common.delete.host_component',
         sender: this,
         data: {
-          componentName: componentName,
+          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId'),
           hostName: hostName[i]
         },
         success: 'onDeleteComplete',

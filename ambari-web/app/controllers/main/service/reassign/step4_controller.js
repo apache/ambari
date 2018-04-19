@@ -271,7 +271,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         data: {
           hostName: hostName,
           passive_state: "ON",
-          componentName: hostComponents[i]
+          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('compId')
         },
         success: 'onComponentsTasksSuccess',
         error: 'onTaskError'
@@ -457,7 +457,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         sender: this,
         data: {
           hostName: hostName,
-          componentName: hostComponents[i]
+          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('compId')
         },
         success: 'onComponentsTasksSuccess',
         error: 'onDeleteHostComponentsError'
@@ -534,7 +534,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         context: "Start MySQL Server",
         hostName: App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('hostName'),
         serviceName: "HIVE",
-        componentName: "MYSQL_SERVER",
+        componentId: App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('compId'),
         HostRoles: {
           state: "STARTED"
         }
@@ -581,7 +581,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         context: "Start MySQL Server",
         hostName: this.get('content.reassignHosts.target'),
         serviceName: "HIVE",
-        componentName: "MYSQL_SERVER",
+        componentId: App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('compId'),
         HostRoles: {
           state: "STARTED"
         }

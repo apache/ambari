@@ -52,13 +52,14 @@ App.SupportClientConfigsDownload = Em.Mixin.create({
   _getUrl: function (hostName, serviceName, componentName, resourceType) {
     var result;
     var prefix = App.get('apiPrefix') + '/clusters/' + App.router.getClusterName() + '/';
+    var componentId = App.HostComponent.find().findProperty('componentName', componentName).get('compId');
 
     switch (resourceType) {
       case this.resourceTypeEnum.SERVICE_COMPONENT:
         result = prefix + 'services/' + serviceName + '/components/' + componentName;
         break;
       case this.resourceTypeEnum.HOST_COMPONENT:
-        result = prefix + 'hosts/' + hostName + '/host_components/' + componentName;
+        result = prefix + 'hosts/' + hostName + '/host_components/' + componentId;
         break;
       case this.resourceTypeEnum.HOST:
         result = prefix + 'hosts/' + hostName + '/host_components';

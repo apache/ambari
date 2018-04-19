@@ -310,7 +310,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
       name: 'common.delete.host_component',
       sender: this,
       data: {
-        componentName: 'SECONDARY_NAMENODE',
+        componentId: App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE').get('compId'),
         hostName: hostName
       },
       success: 'onTaskCompleted',

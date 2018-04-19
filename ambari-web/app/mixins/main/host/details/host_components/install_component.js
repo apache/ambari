@@ -68,7 +68,7 @@ App.InstallComponent = Em.Mixin.create({
       sender: App.router.get('mainHostDetailsController'),
       data: {
         hostName: params.hostName,
-        componentName: params.component.get('componentName'),
+        componentId: params.component.get('compId'),
         serviceName: params.component.get('serviceName'),
         component: params.component,
         "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + params.component.get('displayName'),
