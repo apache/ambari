@@ -939,6 +939,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     createRoleAuthorizations();
     addUserAuthenticationSequence();
     updateSolrConfigurations();
+    updateHdfsLog4jConfiguration();
   }
 
   protected void renameAmbariInfra() throws SQLException {
@@ -1491,8 +1492,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       return;
 
     Map<String, Cluster> clusterMap = clusters.getClusters();
-
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    
     if (clusterMap == null || clusterMap.isEmpty())
       return;
 
@@ -1550,5 +1550,28 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     return content.replaceAll("SOLR_KERB_NAME_RULES=\".*\"", "")
             .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
             .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
+  }
+
+  protected void updateHdfsLog4jConfiguration() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null)
+      return;
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap == null || clusterMap.isEmpty()) {
+      return;
+    }
+
+    for (final Cluster cluster : clusterMap.values()) {
+      updateConfig(cluster, "hdfs-log4j", (content) -> {
+        StringBuilder sb = new StringBuilder(content);
+        sb.append("\n");
+        sb.append("# Adding logging for 3rd party library");
+        sb.append("log4j.logger.org.apache.commons.beanutils=WARN");
+        return sb.toString();
+      });
+    }
   }
 }
