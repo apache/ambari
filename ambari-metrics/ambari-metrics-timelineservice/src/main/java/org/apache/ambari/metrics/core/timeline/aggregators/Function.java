@@ -24,8 +24,7 @@ import java.util.Arrays;
 /**
  * Is used to determine metrics aggregate table.
  *
- * @see TimelineWebServices#getTimelineMetric
- * @see TimelineWebServices#getTimelineMetrics
+ * @see org.apache.ambari.metrics.webapp.TimelineWebServices#getTimelineMetrics
  */
 public class Function {
   public static Function DEFAULT_VALUE_FUNCTION = new Function(ReadFunction.VALUE, null);

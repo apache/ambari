@@ -55,6 +55,7 @@ import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguratio
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_SCHEDULE_DELAY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_UUID_GEN_STRATEGY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_METADATA_FILTERS;
+import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getJavaRegexFromSqlRegex;
 
 public class TimelineMetricMetadataManager {
   private static final Log LOG = LogFactory.getLog(TimelineMetricMetadataManager.class);
@@ -497,19 +498,11 @@ public class TimelineMetricMetadataManager {
   public List<byte[]> getUuids(Collection<String> metricNames, List<String> hostnames, String appId, String instanceId) {
 
     Collection<String> sanitizedMetricNames = new HashSet<>();
+    List<byte[]> uuids = new ArrayList<>();
 
     for (String metricName : metricNames) {
       if (metricName.contains("%")) {
-        String metricRegEx;
-        //Special case handling for metric name with * and __%.
-        //For example, dfs.NNTopUserOpCounts.windowMs=300000.op=*.user=%.count
-        // or dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%.count
-        if (metricName.contains("*") || metricName.contains("__%")) {
-          String metricNameWithEscSeq = metricName.replace("*", "\\*").replace("__%", "..%");
-          metricRegEx = metricNameWithEscSeq.replace("%", ".*");
-        } else {
-          metricRegEx = metricName.replace("%", ".*");
-        }
+        String metricRegEx = getJavaRegexFromSqlRegex(metricName);
         for (TimelineMetricMetadataKey key : METADATA_CACHE.keySet()) {
           String metricNameFromMetadata = key.getMetricName();
           if (metricNameFromMetadata.matches(metricRegEx)) {
@@ -519,6 +512,10 @@ public class TimelineMetricMetadataManager {
       } else {
         sanitizedMetricNames.add(metricName);
       }
+    }
+
+    if(sanitizedMetricNames.isEmpty()) {
+      return uuids;
     }
 
     Set<String> sanitizedHostNames = new HashSet<>();
@@ -537,8 +534,6 @@ public class TimelineMetricMetadataManager {
         }
       }
     }
-
-    List<byte[]> uuids = new ArrayList<>();
 
     if ( StringUtils.isNotEmpty(appId) && !(appId.equals("HOST") || appId.equals("FLUME_HANDLER"))) { //HACK.. Why??
       appId = appId.toLowerCase();
