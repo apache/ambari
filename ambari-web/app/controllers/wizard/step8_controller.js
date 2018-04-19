@@ -1051,7 +1051,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
       this.addRequestToAjaxQueue({
         name: 'wizard.step8.create_selected_services',
         data: {
-          serviceGroupName: service.ServiceInfo.service_group_name,
+          serviceGroup: service.ServiceInfo.service_group_name,
           data: JSON.stringify(service)
         }
       });
@@ -1131,13 +1131,13 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @param componentsData
    * @param serviceName
    */
-  addRequestToCreateComponent: function (componentsData, serviceName, serviceGroupName) {
+  addRequestToCreateComponent: function (componentsData, serviceName, serviceGroup) {
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_components',
       data: {
         data: JSON.stringify(componentsData),
         serviceName: serviceName,
-        serviceGroupName: serviceGroupName
+        serviceGroup: serviceGroup
       }
     });
   },
@@ -1529,54 +1529,16 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    */
   createServiceConfigurations: function () {
     this.get('selectedServices').forEach(function (service) {
-      let serviceConfigs = {
-        serviceName: service.get('serviceName'),
-        serviceGroupName: service.get('stackName'), //TODO - mpacks: for now
-        data: {
-          "ServiceConfigVersion": {
-            "service_config_version_note": this.getServiceConfigNote('', service.get('displayName')),
-            "stack_id": `${service.get('stackName')}-${service.get('stackVersion')}`
-          },
-          "configurations": []
+      Object.keys(service.get('configTypes')).forEach(function (type) {
+        if (!this.get('serviceConfigTags').someProperty('type', type)) {
+          var configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(type));
+          var serviceConfigNote = this.getServiceConfigNote(type, service.get('displayName'));
+          this.get('serviceConfigTags').pushObject(this.createDesiredConfig(type, configs, serviceConfigNote));
         }
-      };
-
-      Object.keys(service.get('configTypesRendered')).forEach(function (typeName) {
-        const type = service.get('configTypes')[typeName]; //just ensure that the type is in both lists; they contain the same data if so
-        if (type) {
-          const configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(typeName));
-          serviceConfigs.data.configurations.push(this.createDesiredConfig(typeName, configs, null, true));
-        }  
       }, this);
-
-      if (serviceConfigs.data.configurations.length > 0) {
-        this.get('serviceConfigTags').pushObject(Em.Object.create(serviceConfigs));
-      }  
     }, this);
-    
     this.createNotification();
   },
-
-  /**
-   * Send <code>serviceConfigTags</code> to server
-   * Queued request
-   * One request for each service config data item,
-   * each of which corresponds to a single service instance
-   * @param serviceConfigData
-   * @method applyConfigurationsToCluster
-   */
-  applyConfigurationsToCluster: function (serviceConfigData) {
-    serviceConfigData.forEach(function (serviceConfig) {
-      this.addRequestToAjaxQueue({
-        name: 'common.service.create.configs',
-        data: {
-          serviceName: serviceConfig.get('serviceName'),
-          serviceGroupName: serviceConfig.get('serviceGroupName'),
-          data: serviceConfig.get('data')
-        }
-      });
-    }, this);
-  },  
 
   /**
    * Get config version message
@@ -1584,11 +1546,55 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @param type
    * @param serviceDisplayName
    * @returns {*}
-   */ 
+   */
   getServiceConfigNote: function(type, serviceDisplayName) {
     return this.get('isAddService') && type === 'core-site' ?
       Em.I18n.t('dashboard.configHistory.table.notes.addService') : Em.I18n.t('dashboard.configHistory.table.notes.default').format(serviceDisplayName);
-  },    
+  },
+
+  /**
+   * Send <code>serviceConfigTags</code> to server
+   * Queued request
+   * One request for each service config tag
+   * @param serviceConfigTags
+   * @method applyConfigurationsToCluster
+   */
+  applyConfigurationsToCluster: function (serviceConfigTags) {
+    var allServices = this.get('installedServices').concat(this.get('selectedServices'));
+    var allConfigData = [];
+    allServices.forEach(function (service) {
+      var serviceConfigData = [];
+      Object.keys(service.get('configTypesRendered')).forEach(function (type) {
+        var serviceConfigTag = serviceConfigTags.findProperty('type', type);
+        if (serviceConfigTag) {
+          serviceConfigData.pushObject(serviceConfigTag);
+        }
+      }, this);
+      if (serviceConfigData.length) {
+        allConfigData.pushObject(JSON.stringify({
+          Clusters: {
+            desired_config: serviceConfigData.map(function(item) {
+              var props = {};
+              Em.keys(item.properties).forEach(function(propName) {
+                if (item.properties[propName] !== null) {
+                  props[propName] = item.properties[propName];
+                }
+              });
+              item.properties = props;
+              return item;
+            })
+          }
+        }));
+      }
+    }, this);
+
+    this.addRequestToAjaxQueue({
+      name: 'common.across.services.configurations',
+      data: {
+        data: '[' + allConfigData.toString() + ']'
+      }
+    });
+  },
 
   /**
    * Create and update config groups

@@ -137,46 +137,38 @@ describe('App.ConfigsSaverMixin', function() {
 
     it('generates config without properties', function() {
       expect(mixin.createDesiredConfig('type1')).to.eql({
-        "Config": {
-          "type": 'type1',
-          "properties": {},
-          "service_config_version_note": ""
-        }
+        "type": 'type1',
+        "properties": {},
+        "service_config_version_note": ""
       })
     });
 
     it('generates config with properties', function() {
       expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: true})], "note")).to.eql({
-        "Config": {
-          "type": 'type1',
-          "properties": {
-            "p1": 'v1',
-            "p2": 'v2'
-          },
-          "service_config_version_note": 'note'
-        }
+        "type": 'type1',
+        "properties": {
+          "p1": 'v1',
+          "p2": 'v2'
+        },
+        "service_config_version_note": 'note'
       })
     });
 
     it('generates config with properties and skip isRequiredByAgent', function() {
       expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: false})], "note")).to.eql({
-        "Config": {
-          "type": 'type1',
-          "properties": {
-            p1: 'v1'
-          },
-          "service_config_version_note": 'note'
-        }
+        "type": 'type1',
+        "properties": {
+          p1: 'v1'
+        },
+        "service_config_version_note": 'note'
       })
     });
 
     it('generates config with properties and skip service_config_version_note', function() {
       expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true})], "note", true)).to.eql({
-        "Config": {
-          "type": 'type1',
-          "properties": {
-            p1: 'v1'
-          }
+        "type": 'type1',
+        "properties": {
+          p1: 'v1'
         }
       })
     });
@@ -191,49 +183,47 @@ describe('App.ConfigsSaverMixin', function() {
           Em.Object.create({name: 'p6', value: 'v6', isRequiredByAgent: true, propertyType: ["TEXT", "VALUE_FROM_PROPERTY_FILE"]}),
           Em.Object.create({name: 'p7', value: 'v7', isRequiredByAgent: true, propertyType: ["PASSWORD"]})
         ], "note")).to.eql({
-          "Config": {
-            "type": 'type1',
-            "properties": {
-              p1: 'v1',
-              p2: 'v2',
-              p3: 'v3',
-              p4: 'v4',
-              p5: 'v5',
-              p6: 'v6',
-              p7: 'v7'
-            },
-            "properties_attributes": {
-              final: {
-                'p1': "true"
-              },
-              password: {
-                "p3": "true",
-                "p4": "true",
-                "p7": "true"
-              },
-              user: {
-                "p3": "true"
-              },
-              group: {
-                "p3": "true"
-              },
-              text: {
-                "p4": "true",
-                "p6": "true"
-              },
-              additional_user_property: {
-                "p4": "true"
-              },
-              not_managed_hdfs_path: {
-                "p5": "true"
-              },
-              value_from_property_file: {
-                "p6": "true"
-              }
-            },
-            "service_config_version_note": 'note'
+        "type": 'type1',
+        "properties": {
+          p1: 'v1',
+          p2: 'v2',
+          p3: 'v3',
+          p4: 'v4',
+          p5: 'v5',
+          p6: 'v6',
+          p7: 'v7'
+        },
+        "properties_attributes": {
+          final: {
+            'p1': "true"
+          },
+          password: {
+            "p3": "true",
+            "p4": "true",
+            "p7": "true"
+          },
+          user: {
+            "p3": "true"
+          },
+          group: {
+            "p3": "true"
+          },
+          text: {
+            "p4": "true",
+            "p6": "true"
+          },
+          additional_user_property: {
+            "p4": "true"
+          },
+          not_managed_hdfs_path: {
+            "p5": "true"
+          },
+          value_from_property_file: {
+            "p6": "true"
           }
-        })
+        },
+        "service_config_version_note": 'note'
+      })
     })
   });
 

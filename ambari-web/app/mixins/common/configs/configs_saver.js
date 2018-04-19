@@ -458,7 +458,6 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     Em.assert('type should be defined', type);
     var desired_config = {
       "type": type,
-      "tag": "v1", //REMOVE
       "properties": {}
     };
     if (!ignoreVersionNote) {
@@ -488,7 +487,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     if (Object.keys(attributes.final).length || Object.keys(attributes.password).length) {
       desired_config.properties_attributes = attributes;
     }
-    return { "Config": desired_config };
+    return desired_config;
   },
 
   /**

@@ -522,7 +522,7 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
 
         serviceGroups = this.get('content.serviceGroups');
         promises = serviceGroups.map(sg => {
-          data.serviceGroupName = sg;
+          data.serviceGroup = sg;
 
           return App.ajax.send({
             name: 'common.services.update',
@@ -544,7 +544,7 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
 
         serviceGroups = this.get('content.serviceGroups');
         promises = serviceGroups.map(sg => {
-          data.serviceGroupName = sg;
+          data.serviceGroup = sg;
 
           return App.ajax.send({
             name: 'common.services.update',

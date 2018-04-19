@@ -529,7 +529,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     const serviceGroups = this.get('content.serviceGroups');
     
     const installPromises = serviceGroups.map(sg => {
-      data.serviceGroupName = sg;
+      data.serviceGroup = sg;
 
       return App.ajax.send({
         name: isRetry ? 'common.host_components.update' : 'common.services.update',
