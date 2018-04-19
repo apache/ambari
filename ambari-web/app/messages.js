@@ -1681,6 +1681,7 @@ Em.I18n.translations = {
   'admin.nameNodeFederation.wizard.step1.nameserviceid.existing':'Existing Nameservice ID',
   'admin.nameNodeFederation.wizard.step1.nameserviceid.error':'Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
   'admin.nameNodeFederation.wizard.step2.header': 'Select Hosts',
+  'admin.nameNodeFederation.wizard.step2.body': 'Select hosts running the NameNodes for {0}',
   'admin.nameNodeFederation.wizard.step3.header': 'Review',
   'admin.nameNodeFederation.wizard.step3.confirm.config.body': '<div class="alert alert-info">' +
     '<p><b>Review Configuration Changes.</b></p>' +
