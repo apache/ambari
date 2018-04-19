@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # PostgreSQL settings
 PG_STATUS_RUNNING_DEFAULT = "running"
 PG_HBA_ROOT_DEFAULT = "/var/lib/pgsql/data"
+PG_HBA_ROOT_DEFAULT_VERSIONED = "/var/lib/pgsql/*/data"
 
 #Environment
 ENV_PATH_DEFAULT = ['/bin', '/usr/bin', '/sbin', '/usr/sbin']  # default search path
@@ -259,9 +260,7 @@ def get_postgre_hba_dir(OS_FAMILY):
     # Like: /etc/postgresql/9.1/main/
     return os.path.join(get_pg_hba_init_files(), get_ubuntu_pg_version(),
                         "main")
-  elif not glob.glob(get_pg_hba_init_files() + '*'): # this happens when the service file is of new format (/usr/lib/systemd/system/postgresql.service)
-    return PG_HBA_ROOT_DEFAULT
-  else:
+  elif glob.glob(get_pg_hba_init_files() + '*'): # this happens when the service file is of old format (not like /usr/lib/systemd/system/postgresql.service)
     if not os.path.isfile(get_pg_hba_init_files()):
       # Link: /etc/init.d/postgresql --> /etc/init.d/postgresql-9.1
       os.symlink(glob.glob(get_pg_hba_init_files() + '*')[0],
@@ -279,8 +278,13 @@ def get_postgre_hba_dir(OS_FAMILY):
 
     if PG_HBA_ROOT and len(PG_HBA_ROOT.strip()) > 0:
       return PG_HBA_ROOT.strip()
-    else:
-      return PG_HBA_ROOT_DEFAULT
+
+  if not os.path.exists(PG_HBA_ROOT_DEFAULT):
+    versioned_dirs = glob.glob(PG_HBA_ROOT_DEFAULT_VERSIONED)
+    if versioned_dirs:
+      return versioned_dirs[0]
+
+  return PG_HBA_ROOT_DEFAULT
 
 
 def get_postgre_running_status():
