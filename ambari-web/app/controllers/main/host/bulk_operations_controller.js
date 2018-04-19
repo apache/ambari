@@ -503,11 +503,12 @@ App.BulkOperationsController = Em.Controller.extend({
     var allHostsWithComponent = data.items.mapProperty('Hosts.host_name');
     var hostsWithComponent = [];
     hosts.forEach(function (host) {
-      if(allHostsWithComponent.contains(host.hostName)) {
+      var noHeartBeat = App.Host.find().findProperty('hostName', host.hostName).get('isNotHeartBeating');
+      if(allHostsWithComponent.contains(host.hostName) || noHeartBeat) {
         hostsWithComponent.push(Em.Object.create({
           error: {
             key: host.hostName,
-            message: Em.I18n.t('hosts.bulkOperation.confirmation.add.component.skip').format(operationData.componentNameFormatted)
+            message: noHeartBeat ? Em.I18n.t('hosts.bulkOperation.confirmation.add.component.noHeartBeat.skip') : Em.I18n.t('hosts.bulkOperation.confirmation.add.component.skip').format(operationData.componentNameFormatted)
           },
           isCollapsed: true,
           isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
