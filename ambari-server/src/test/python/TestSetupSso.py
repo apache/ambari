@@ -69,12 +69,11 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
               with patch("__builtin__.open"):
                 from ambari_commons.exceptions import FatalException, NonFatalException
                 from ambari_server.properties import Properties
-                from ambari_server.setupSso import setup_sso, AMBARI_JWT_AUTH_ENBABLED, \
+                from ambari_server.setupSso import setup_sso, AMBARI_SSO_AUTH_ENABLED, \
                   SSO_PROVIDER_URL, SSO_CERTIFICATE, JWT_COOKIE_NAME, JWT_AUDIENCES, \
                   SSO_ENABLED_SERVICES, SSO_MANAGE_SERVICES
 
 class TestSetupSso(unittest.TestCase):
-
   @patch("ambari_server.setupSso.is_server_runing")
   def test_sso_setup_should_fail_if_server_is_not_running(self, is_server_runing_mock):
     out = StringIO.StringIO()
@@ -114,7 +113,6 @@ class TestSetupSso(unittest.TestCase):
     pass
 
 
-
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   def test_invalid_sso_enabled_cli_option_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
@@ -135,7 +133,6 @@ class TestSetupSso(unittest.TestCase):
 
     sys.stdout = sys.__stdout__
     pass
-
 
 
   @patch("ambari_server.setupSso.get_silent")
@@ -161,7 +158,6 @@ class TestSetupSso(unittest.TestCase):
     pass
 
 
-
   @patch("ambari_server.setupSso.get_silent")
   @patch("ambari_server.setupSso.is_server_runing")
   def test_missing_sso_public_cert_file_cli_option_when_enabling_sso_should_result_in_error(self, is_server_runing_mock, get_silent_mock):
@@ -183,7 +179,6 @@ class TestSetupSso(unittest.TestCase):
 
     sys.stdout = sys.__stdout__
     pass
-
 
 
   @patch("ambari_server.setupSso.get_silent")
@@ -263,6 +258,8 @@ class TestSetupSso(unittest.TestCase):
     sso_jwt_audience_list = 'test, audience, list'
     options = self._create_empty_options_mock()
     options.sso_enabled = sso_enabled
+    options.sso_enabled_ambari = 'true'
+    options.sso_manage_services = 'true'
     options.sso_provider_url = sso_provider_url
     options.sso_public_cert_file = sso_public_cert_file
     options.sso_jwt_cookie_name = sso_jwt_cookie_name
@@ -277,7 +274,7 @@ class TestSetupSso(unittest.TestCase):
     requestData = args[5]
     self.assertTrue(isinstance(requestData, dict))
     ssoProperties = requestData['Configuration']['properties']
-    self.assertEqual(ssoProperties[AMBARI_JWT_AUTH_ENBABLED], sso_enabled)
+    self.assertEqual(ssoProperties[AMBARI_SSO_AUTH_ENABLED], sso_enabled)
     self.assertEqual(ssoProperties[SSO_PROVIDER_URL], sso_provider_url)
     self.assertEqual(ssoProperties[SSO_CERTIFICATE], certificate_data)
     self.assertEqual(ssoProperties[JWT_COOKIE_NAME], sso_jwt_cookie_name)
@@ -285,7 +282,6 @@ class TestSetupSso(unittest.TestCase):
 
     sys.stdout = sys.__stdout__
     pass
-
 
   @patch("ambari_server.setupSso.perform_changes_via_rest_api")
   @patch("ambari_server.setupSso.get_ambari_properties")
@@ -335,15 +331,12 @@ class TestSetupSso(unittest.TestCase):
     self.assertTrue(perform_changes_via_rest_api_mock.called)
     requestCall = perform_changes_via_rest_api_mock.call_args_list[0]
     args, kwargs = requestCall
-    requestData = args[5]
-    self.assertTrue(isinstance(requestData, dict))
-    ssoProperties = requestData['Configuration']['properties']
-    self.assertEqual(ssoProperties[SSO_MANAGE_SERVICES], "false")
-    self.assertEqual(ssoProperties[AMBARI_JWT_AUTH_ENBABLED], "false")
+    requestMethod = args[4]
+    self.assertTrue(isinstance(requestMethod, str))
+    self.assertEqual(requestMethod, "DELETE")
 
     sys.stdout = sys.__stdout__
     pass
-
 
   @patch("ambari_server.setupSso.perform_changes_via_rest_api")
   @patch("ambari_server.setupSso.get_YN_input")
@@ -377,7 +370,11 @@ class TestSetupSso(unittest.TestCase):
     get_ambari_properties_mock.return_value = Properties()
 
     def yn_input_side_effect(*args, **kwargs):
-      if 'all services' in args[0]:
+      if 'Manage SSO configurations' in args[0]:
+        return True
+      elif 'Manage SSO configurations' in args[0]:
+        return True
+      elif 'all services' in args[0]:
         return True
       else:
         raise Exception("ShouldNotBeInvoked") # only the 'Use SSO for all services' question should be asked for now
@@ -392,6 +389,8 @@ class TestSetupSso(unittest.TestCase):
 
     options = self._create_empty_options_mock()
     options.sso_enabled = sso_enabled
+    options.sso_enabled_ambari = 'true'
+    options.sso_manage_services = 'true'
     options.sso_provider_url = sso_provider_url
     options.sso_public_cert_file = sso_public_cert_file
     options.sso_jwt_cookie_name = sso_jwt_cookie_name
@@ -405,7 +404,7 @@ class TestSetupSso(unittest.TestCase):
     requestData = args[5]
     self.assertTrue(isinstance(requestData, dict))
     ssoProperties = requestData['Configuration']['properties']
-    self.assertEqual(ssoProperties[AMBARI_JWT_AUTH_ENBABLED], sso_enabled)
+    self.assertEqual(ssoProperties[AMBARI_SSO_AUTH_ENABLED], sso_enabled)
     self.assertEqual(ssoProperties[SSO_PROVIDER_URL], sso_provider_url)
     self.assertEqual(ssoProperties[SSO_CERTIFICATE], certificate_data)
     self.assertEqual(ssoProperties[JWT_COOKIE_NAME], sso_jwt_cookie_name)
@@ -459,6 +458,8 @@ class TestSetupSso(unittest.TestCase):
 
     options = self._create_empty_options_mock()
     options.sso_enabled = sso_enabled
+    options.sso_enabled_ambari = sso_enabled
+    options.sso_manage_services = 'true'
     options.sso_provider_url = sso_provider_url
     options.sso_public_cert_file = sso_public_cert_file
     options.sso_jwt_cookie_name = sso_jwt_cookie_name
@@ -472,7 +473,7 @@ class TestSetupSso(unittest.TestCase):
     requestData = args[5]
     self.assertTrue(isinstance(requestData, dict))
     ssoProperties = requestData['Configuration']['properties']
-    self.assertEqual(ssoProperties[AMBARI_JWT_AUTH_ENBABLED], sso_enabled)
+    self.assertEqual(ssoProperties[AMBARI_SSO_AUTH_ENABLED], sso_enabled)
     self.assertEqual(ssoProperties[SSO_PROVIDER_URL], sso_provider_url)
     self.assertEqual(ssoProperties[SSO_CERTIFICATE], certificate_data)
     self.assertEqual(ssoProperties[JWT_COOKIE_NAME], sso_jwt_cookie_name)
@@ -572,6 +573,8 @@ class TestSetupSso(unittest.TestCase):
 
     options = self._create_empty_options_mock()
     options.sso_enabled = 'true'
+    options.sso_enabled_ambari = 'true'
+    options.sso_manage_services = 'true'
     options.sso_provider_url = 'http://testHost:8080'
     options.sso_public_cert_file = '/test/file/path'
     options.sso_jwt_cookie_name = 'test_cookie'
@@ -586,7 +589,7 @@ class TestSetupSso(unittest.TestCase):
     self.assertTrue(isinstance(requestData, dict))
     ssoProperties = requestData['Configuration']['properties']
     self.assertEqual(ssoProperties[SSO_MANAGE_SERVICES], "true")
-    self.assertEqual(ssoProperties[SSO_ENABLED_SERVICES], "AMBARI,HDFS,ZOOKEPER")
+    self.assertEqual(ssoProperties[SSO_ENABLED_SERVICES], "HDFS,ZOOKEPER")
 
     sys.stdout = sys.__stdout__
     pass
@@ -594,6 +597,8 @@ class TestSetupSso(unittest.TestCase):
   def _create_empty_options_mock(self):
     options = MagicMock()
     options.sso_enabled = None
+    options.sso_enabled_ambari = None
+    options.sso_manage_services = None
     options.sso_enabled_services = None
     options.sso_provider_url = None
     options.sso_public_cert_file = None
