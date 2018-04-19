@@ -17,344 +17,116 @@
  */
 package org.apache.ambari.server.checks;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.serveraction.upgrades.DeleteUnsupportedServicesAndComponents;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceComponentSupport;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.ClusterVersionSummary;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ServerActionTask;
+import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import com.google.inject.Provider;
-
-/**
- * Tests for {@link ComponentsExistInRepoCheck}
- */
+@RunWith(EasyMockRunner.class)
 public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
-
-  private final ComponentsExistInRepoCheck m_check = new ComponentsExistInRepoCheck();
-
+  public static final String STACK_NAME = "HDP";
+  public static final String STACK_VERSION = "2.2.0";
+  private ComponentsExistInRepoCheck check = new ComponentsExistInRepoCheck();
   @Mock
-  private Clusters m_clusters;
-
+  private Clusters clusters;
   @Mock
-  private Cluster m_cluster;
-
-  // pick two stacks which have different services
-  private final StackId SOURCE_STACK = new StackId("HDP", "0.1");
-  private final StackId TARGET_STACK = new StackId("HDP", "2.2.0");
-
-  private final Map<String, Service> CLUSTER_SERVICES = new HashMap<>();
-  private final Map<String, ServiceComponent> FOO_SERVICE_COMPONENTS = new HashMap<>();
-  private final Map<String, ServiceComponent> ZK_SERVICE_COMPONENTS = new HashMap<>();
-
+  private Cluster cluster;
   @Mock
-  private AmbariMetaInfo m_ambariMetaInfo;
-
+  private ServiceComponentSupport serviceComponentSupport;
   @Mock
-  private Service m_fooService;
-
-  @Mock
-  private Service m_zookeeperService;
-
-  @Mock
-  private ServiceInfo m_fooInfo;
-
-  @Mock
-  private ServiceInfo m_zookeeperInfo;
-
-  @Mock
-  private ComponentInfo m_fooComponentInfo;
-
-  @Mock
-  private ComponentInfo m_zookeeperServerInfo;
-
-  @Mock
-  private ServiceComponent m_fooComponent;
-
-  @Mock
-  private ServiceComponent m_zookeeperServer;
-
-  @Mock
-  private ClusterVersionSummary m_clusterVersionSummary;
-
-  @Mock
-  private VersionDefinitionXml m_vdfXml;
-
-  @Mock
-  private RepositoryVersionEntity m_repositoryVersion;
+  private UpgradeHelper upgradeHelper;
+  private PrerequisiteCheck prereq = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
+  private PrereqCheckRequest request = new PrereqCheckRequest("cluster");
 
   @Before
   public void before() throws Exception {
-
-    EasyMockSupport.injectMocks(this);
-
-    m_check.clustersProvider = new Provider<Clusters>() {
-      @Override
-      public Clusters get() {
-        return m_clusters;
-      }
-    };
-
-    m_check.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
-      @Override
-      public AmbariMetaInfo get() {
-        return m_ambariMetaInfo;
-      }
-    };
-
-    expect(m_cluster.getServices()).andReturn(CLUSTER_SERVICES).atLeastOnce();
-    expect(m_cluster.getService("ZOOKEEPER")).andReturn(m_zookeeperService).anyTimes();
-    expect(m_cluster.getService("FOO_SERVICE")).andReturn(m_fooService).anyTimes();
-
-    expect(m_clusters.getCluster((String) anyObject())).andReturn(m_cluster).anyTimes();
-
-    ZK_SERVICE_COMPONENTS.put("ZOOKEEPER_SERVER", m_zookeeperServer);
-    FOO_SERVICE_COMPONENTS.put("FOO_COMPONENT", m_fooComponent);
-
-    expect(m_zookeeperService.getServiceComponents()).andReturn(ZK_SERVICE_COMPONENTS).anyTimes();
-    expect(m_fooService.getServiceComponents()).andReturn(FOO_SERVICE_COMPONENTS).anyTimes();
-
-    expect(m_zookeeperInfo.getComponentByName("ZOOKEEPER_SERVER")).andReturn(
-        m_zookeeperServerInfo).anyTimes();
-
-    expect(m_fooInfo.getComponentByName("FOO_COMPONENT")).andReturn(m_fooComponentInfo).anyTimes();
-
-    expect(m_ambariMetaInfo.getService(TARGET_STACK.getStackName(), TARGET_STACK.getStackVersion(),
-        "ZOOKEEPER")).andReturn(m_zookeeperInfo).anyTimes();
-
-    expect(m_ambariMetaInfo.getComponent(TARGET_STACK.getStackName(),
-        TARGET_STACK.getStackVersion(), "ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(
-            m_zookeeperServerInfo).anyTimes();
-
-    expect(m_repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
-    expect(m_repositoryVersion.getStackId()).andReturn(TARGET_STACK).anyTimes();
-    expect(m_repositoryVersion.getVersion()).andReturn("2.2.0").anyTimes();
-
-    expect(m_repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).anyTimes();
-    expect(m_vdfXml.getClusterSummary(anyObject(Cluster.class))).andReturn(m_clusterVersionSummary).anyTimes();
-    expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(CLUSTER_SERVICES.keySet()).anyTimes();
-
+    check.clustersProvider = () -> clusters;
+    check.serviceComponentSupport = serviceComponentSupport;
+    check.upgradeHelper = upgradeHelper;
+    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
+    request.setTargetRepositoryVersion(repoVersion());
+    request.setSourceStackId(new StackId(STACK_NAME, "1.0"));
   }
 
-  /**
-   * Tests that the check passes when services and components exist.
-   *
-   * @throws Exception
-   */
   @Test
-  public void testCheckPassesWhenServicAndComponentsExist() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
-    expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperInfo.isDeleted()).andReturn(false).atLeastOnce();
-    expect(m_zookeeperServerInfo.isVersionAdvertised()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperServerInfo.isDeleted()).andReturn(false).atLeastOnce();
-
+  public void testPassesWhenNoUnsupportedInTargetStack() throws Exception {
+    expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(emptyList()).anyTimes();
     replayAll();
-
-    Assert.assertTrue(m_check.isApplicable(request));
-
-    m_check.perform(check, request);
-
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
-    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
+    check.perform(prereq, request);
+    assertEquals(PrereqCheckStatus.PASS, prereq.getStatus());
   }
 
-  /**
-   * Tests that the check passes when a service doesn't exist but isn't
-   * advertising its version.
-   *
-   * @throws Exception
-   */
   @Test
-  public void testCheckPassesWhenComponentNotAdvertisingVersion() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
-
-    expect(m_ambariMetaInfo.getService(TARGET_STACK.getStackName(), TARGET_STACK.getStackVersion(),
-        "FOO_SERVICE")).andReturn(m_fooInfo).anyTimes();
-
-    expect(m_ambariMetaInfo.getComponent(TARGET_STACK.getStackName(),
-        TARGET_STACK.getStackVersion(), "FOO_SERVICE", "FOO_COMPONENT")).andReturn(
-            m_fooComponentInfo).atLeastOnce();
-
-    expect(m_fooInfo.isValid()).andReturn(true).atLeastOnce();
-    expect(m_fooInfo.isDeleted()).andReturn(false).atLeastOnce();
-    expect(m_fooComponentInfo.isVersionAdvertised()).andReturn(false).atLeastOnce();
-    expect(m_fooComponentInfo.isDeleted()).andReturn(true).atLeastOnce();
-
+  public void testFailsWhenUnsupportedFoundInTargetStack() throws Exception {
+    expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(singletonList("ANY_SERVICE")).anyTimes();
+    suggestedUpgradePackIs(new UpgradePack());
     replayAll();
-
-    Assert.assertTrue(m_check.isApplicable(request));
-
-    m_check.perform(check, request);
-
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-    Assert.assertTrue(check.getFailedDetail().isEmpty());
-    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
+    check.perform(prereq, request);
+    assertEquals(PrereqCheckStatus.FAIL, prereq.getStatus());
   }
 
-  /**
-   * Tests that the check fails when the service exists but was deleted.
-   *
-   * @throws Exception
-   */
   @Test
-  public void testCheckFailsWhenServiceExistsButIsDeleted() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
-    expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperInfo.isDeleted()).andReturn(true).atLeastOnce();
-
+  public void testWarnsWhenUnsupportedFoundInTargetStackAndUpgradePackHasAutoDeleteTask() throws Exception {
+    expect(serviceComponentSupport.allUnsupported(cluster, STACK_NAME, STACK_VERSION)).andReturn(singletonList("ANY_SERVICE")).anyTimes();
+    suggestedUpgradePackIs(upgradePackWithDeleteUnsupportedTask());
     replayAll();
-
-    Assert.assertTrue(m_check.isApplicable(request));
-
-    m_check.perform(check, request);
-
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("ZOOKEEPER"));
+    check.perform(prereq, request);
+    assertEquals(PrereqCheckStatus.WARNING, prereq.getStatus());
   }
 
-  /**
-   * Tests that the check fails when the component exists but what deleted.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testCheckFailsWhenComponentExistsButIsDeleted() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
-    expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperInfo.isDeleted()).andReturn(false).atLeastOnce();
-    expect(m_zookeeperServerInfo.isVersionAdvertised()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperServerInfo.isDeleted()).andReturn(true).atLeastOnce();
-
-    replayAll();
-
-    Assert.assertTrue(m_check.isApplicable(request));
-
-    m_check.perform(check, request);
-
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("ZOOKEEPER_SERVER"));
+  private RepositoryVersionEntity repoVersion() {
+    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
+    repositoryVersion.setType(RepositoryType.STANDARD);
+    StackEntity stack = new StackEntity();
+    repositoryVersion.setStack(stack);
+    stack.setStackName(STACK_NAME);
+    stack.setStackVersion(STACK_VERSION);
+    return repositoryVersion;
   }
 
-  /**
-   * Tests that the check fails when the component exists but what deleted.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testCheckFailsWhenServiceIsMissing() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(
-        CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    CLUSTER_SERVICES.put("ZOOKEEPER", m_zookeeperService);
-    CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
-
-    expect(m_ambariMetaInfo.getService(TARGET_STACK.getStackName(), TARGET_STACK.getStackVersion(),
-        "FOO_SERVICE")).andThrow(new StackAccessException(""));
-
-    expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperInfo.isDeleted()).andReturn(false).atLeastOnce();
-    expect(m_zookeeperServerInfo.isVersionAdvertised()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperServerInfo.isDeleted()).andReturn(false).atLeastOnce();
-
-    replayAll();
-
-    Assert.assertTrue(m_check.isApplicable(request));
-
-    m_check.perform(check, request);
-
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("FOO_SERVICE"));
+  private void suggestedUpgradePackIs(UpgradePack upgradePack) throws AmbariException {
+    expect(upgradeHelper.suggestUpgradePack(
+      "cluster",
+      request.getSourceStackId(),
+      request.getTargetRepositoryVersion().getStackId(),
+      request.getDirection(),
+      request.getUpgradeType(),
+      null)).andReturn(upgradePack).anyTimes();
   }
 
-  /**
-   * Tests that the check fails when the component exists but what deleted.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testCheckFailsWhenComponentIsMissing() throws Exception {
-    PrerequisiteCheck check = new PrerequisiteCheck(
-        CheckDescription.COMPONENTS_EXIST_IN_TARGET_REPO, "c1");
-    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setSourceStackId(SOURCE_STACK);
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
-    CLUSTER_SERVICES.put("FOO_SERVICE", m_fooService);
-
-    expect(m_ambariMetaInfo.getService(TARGET_STACK.getStackName(), TARGET_STACK.getStackVersion(),
-        "FOO_SERVICE")).andReturn(m_fooInfo).anyTimes();
-
-    expect(m_ambariMetaInfo.getComponent(TARGET_STACK.getStackName(),
-        TARGET_STACK.getStackVersion(), "FOO_SERVICE", "FOO_COMPONENT")).andThrow(
-            new StackAccessException(""));
-
-    expect(m_zookeeperInfo.isValid()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperInfo.isDeleted()).andReturn(false).atLeastOnce();
-    expect(m_zookeeperServerInfo.isVersionAdvertised()).andReturn(true).atLeastOnce();
-    expect(m_zookeeperServerInfo.isDeleted()).andReturn(false).atLeastOnce();
-
-    expect(m_fooInfo.isValid()).andReturn(true).atLeastOnce();
-    expect(m_fooInfo.isDeleted()).andReturn(false).atLeastOnce();
-
-    replayAll();
-
-    Assert.assertTrue(m_check.isApplicable(request));
-
-    m_check.perform(check, request);
-
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertEquals(1, check.getFailedDetail().size());
-    Assert.assertTrue(check.getFailedOn().contains("FOO_COMPONENT"));
+  private UpgradePack upgradePackWithDeleteUnsupportedTask() {
+    UpgradePack upgradePack = new UpgradePack();
+    ClusterGrouping group = new ClusterGrouping();
+    ClusterGrouping.ExecuteStage stage = new ClusterGrouping.ExecuteStage();
+    ServerActionTask task = new ServerActionTask();
+    task.setImplClass(DeleteUnsupportedServicesAndComponents.class.getName());
+    stage.task = task;
+    group.executionStages = singletonList(stage);
+    upgradePack.getAllGroups().add(group);
+    return upgradePack;
   }
-
 }
