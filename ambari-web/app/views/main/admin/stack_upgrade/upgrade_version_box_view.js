@@ -173,7 +173,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('action', 'confirmRevertPatchUpgrade');
       element.set('actionText', Em.I18n.t('common.revert'));
     }
-    else if (['INSTALLING', 'CURRENT'].contains(status) && !this.get('content.isPatch')) {
+    else if (['INSTALLING', 'CURRENT'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
     }
     else if (status === 'NOT_REQUIRED') {
