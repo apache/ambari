@@ -114,7 +114,7 @@
            {{service.latestVersion}}
        </span>
         {{#if service.notUpgradable}}
-          <i class="icon-info-sign not-upgradable"></i>
+          <i class="icon-info-sign not-upgradable" {{bindAttr data-original-title="service.notUpgradableTitle"}}></i>
         {{/if}}
     </p>
   {{/each}}

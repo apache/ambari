@@ -17,6 +17,9 @@
  */
 @import 'common.less';
 
+@left-menu-table-z-index: 999;
+@version-line-height: 20px;
+
 #advancedRepoAccordion{
   .panel-heading {
     background-color: #f0f0f0;
@@ -163,7 +166,7 @@
     .border-extended-table {
       width: 100%;
       position: relative;
-      z-index: 999;
+      z-index: @left-menu-table-z-index;
       background: transparent;
       td.service-display-name {
         border-top: 1px solid #d2d9dd;
@@ -244,8 +247,8 @@
       color: #000;
       text-align: center;
       font-weight: 500;
-      font-size: 20px;
-      line-height: 20px;
+      font-size: @version-line-height;
+      line-height: @version-line-height;
       padding: 5px 5px 0 5px;
       margin-bottom: 0;
       span {
@@ -254,7 +257,7 @@
       .pull-right .not-active {
         font-size: 15px;
         color: #0088cc;
-        line-height: 20px;
+        line-height: @version-line-height;
       }
     }
     .repository-name {
@@ -267,7 +270,7 @@
     .patch-icon {
       text-align: center;
       color: #ff4500;
-      height: 20px;
+      height: @version-line-height;
       font-size: 14px;
       margin: 18px 0px -18px 1px;
       padding: 1px;
@@ -305,7 +308,7 @@
     }
     .version-column-display-type{
       text-align: center;
-      height: 20px;
+      height: @version-line-height;
       margin-bottom: 0;
       color: #ff4500;
     }
@@ -321,7 +324,7 @@
     }
     .state {
       margin: 5px 0 15px 0;
-      line-height: 20px;
+      line-height: @version-line-height;
       height: 35px;
       .label-wrapper{
         display: inline-block;
@@ -352,6 +355,7 @@
       }
       .open .dropdown-menu {
         min-width: 90px;
+        z-index: @left-menu-table-z-index + 2;
       }
     }
     .state.installing {
@@ -363,7 +367,7 @@
       padding-bottom: 4px;
       margin-top: -5px;
       .service-version-info {
-        line-height: 20px;
+        line-height: @version-line-height;
         margin-bottom: 9px;
         padding-top: 6px;
         text-align: center;
@@ -378,6 +382,9 @@
   }
   div.version-column {
     .not-upgradable {
+      position: absolute;
+      z-index: @left-menu-table-z-index + 1;
+      line-height: @version-line-height;
       padding-left: 10px;
       margin-right: -20px;
       cursor: pointer;
