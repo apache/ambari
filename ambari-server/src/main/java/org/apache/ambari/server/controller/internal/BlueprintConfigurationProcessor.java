@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -139,7 +140,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Collection of all updaters
    */
-  private static Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
+  private static List<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
     new ArrayList<>();
 
   /**
@@ -346,7 +347,6 @@ public class BlueprintConfigurationProcessor {
   public Set<String> doUpdateForClusterCreate() throws ConfigurationTopologyException {
       Set<String> configTypesUpdated = new HashSet<>();
     Configuration clusterConfig = clusterTopology.getConfiguration();
-    Map<String, HostGroupInfo> groupInfoMap = clusterTopology.getHostGroupInfo();
 
     doRecommendConfigurations(clusterConfig, configTypesUpdated);
 
@@ -359,6 +359,180 @@ public class BlueprintConfigurationProcessor {
     // removes a property other than the property it is registered for then we will
     // have an issue as it won't be removed from the clusterProps map as it is a copy.
     Map<String, Map<String, String>> clusterProps = clusterConfig.getFullProperties();
+    doGeneralPropertyUpdatesForClusterCreate2(clusterConfig, clusterProps, configTypesUpdated);
+
+    //todo: lots of hard coded HA rules included here
+    if (clusterTopology.isNameNodeHAEnabled()) {
+      doNameNodeHAUpdateOnClusterCreation(clusterConfig, clusterProps, configTypesUpdated);
+    }
+
+    // Explicitly set any properties that are required but not currently provided in the stack definition.
+    setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
+    setRetryConfiguration(clusterConfig, configTypesUpdated);
+    setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
+    addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getStack());
+
+    trimProperties(clusterConfig, clusterTopology);
+
+    return configTypesUpdated;
+  }
+
+  private void doNameNodeHAUpdateOnClusterCreation(Configuration clusterConfig,
+                                                   Map<String, Map<String, String>> clusterProps,
+                                                   Set<String> configTypesUpdated) throws ConfigurationTopologyException {
+    // add "dfs.internal.nameservices" if it's not specified
+    Map<String, String> hdfsSiteConfig = clusterConfig.getFullProperties().get("hdfs-site");
+    String nameservices = hdfsSiteConfig.get("dfs.nameservices");
+    String int_nameservices = hdfsSiteConfig.get("dfs.internal.nameservices");
+    if(int_nameservices == null && nameservices != null) {
+      clusterConfig.setProperty("hdfs-site", "dfs.internal.nameservices", nameservices);
+    }
+
+    // parse out the nameservices value
+    String[] parsedNameServices = parseNameServices(hdfsSiteConfig);
+
+    // if a single nameservice is configured (default HDFS HA deployment)
+    if (parsedNameServices.length == 1) {
+      LOG.info("Processing a single HDFS NameService, which indicates a default HDFS NameNode HA deployment");
+      // if the active/standby namenodes are not specified, assign them automatically
+      if (! isNameNodeHAInitialActiveNodeSet(clusterProps) && ! isNameNodeHAInitialStandbyNodeSet(clusterProps)) {
+        Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
+        if (nnHosts.size() < 2) {
+          throw new ConfigurationTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
+            nnHosts.size() + " Hosts: " + nnHosts);
+        }
+
+        // set the properties that configure which namenode is active,
+        // and which is a standby node in this HA deployment
+        Iterator<String> nnHostIterator = nnHosts.iterator();
+        clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, "dfs_ha_initial_namenode_active", nnHostIterator.next());
+        clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, "dfs_ha_initial_namenode_standby", nnHostIterator.next());
+
+        configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
+      }
+    } else {
+      if (!isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME) && !isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME)) {
+        // multiple nameservices indicates an HDFS NameNode Federation install
+        // process each nameservice to determine the active/standby nodes
+        LOG.info("Processing multiple HDFS NameService instances, which indicates a NameNode Federation deployment");
+        if (parsedNameServices.length > 1) {
+          Set<String> activeNameNodeHostnames = new HashSet<>();
+          Set<String> standbyNameNodeHostnames = new HashSet<>();
+
+          for (String nameService : parsedNameServices) {
+            List<String> hostNames = new ArrayList<>();
+            String[] nameNodes = parseNameNodes(nameService, hdfsSiteConfig);
+            for (String nameNode : nameNodes) {
+              // use the HA rpc-address property to obtain the NameNode hostnames
+              String propertyName = "dfs.namenode.rpc-address." + nameService + "." + nameNode;
+              String propertyValue = hdfsSiteConfig.get(propertyName);
+              if (propertyValue == null) {
+                throw new ConfigurationTopologyException("NameNode HA property = " + propertyName + " is not found in the cluster config.  This indicates an error in configuration for HA/Federated clusters.  " +
+                  "Please recheck the HDFS configuration and try this deployment again");
+              }
+
+              String hostName = propertyValue.split(":")[0];
+              hostNames.add(hostName);
+            }
+
+            if (hostNames.size() < 2) {
+              throw new ConfigurationTopologyException("NAMENODE HA for nameservice = " + nameService + " requires at least 2 hosts running NAMENODE but there are: " +
+                hostNames.size() + " Hosts: " + hostNames);
+            } else {
+              // by default, select the active and standby namenodes for this nameservice
+              // using the first two hostnames found
+              // since HA is assumed, there should only be two NameNodes deployed per NameService
+              activeNameNodeHostnames.add(hostNames.get(0));
+              standbyNameNodeHostnames.add(hostNames.get(1));
+            }
+          }
+
+          // set the properties what configure the NameNode Active/Standby status for each nameservice
+          if (!activeNameNodeHostnames.isEmpty() && !standbyNameNodeHostnames.isEmpty()) {
+            clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, String.join(",", activeNameNodeHostnames));
+            clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, String.join(",", standbyNameNodeHostnames));
+
+            // also set the clusterID property, required for Federation installs of HDFS
+            if (!isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME)) {
+              clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, getClusterName());
+            }
+
+            configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
+          } else {
+            LOG.warn("Error in processing the set of active/standby namenodes in this federated cluster, please check hdfs-site configuration");
+          }
+        }
+      }
+    }
+  }
+
+  private void doGeneralPropertyUpdatesForClusterCreate2(Configuration clusterConfig,
+                                                          Map<String, Map<String, String>> clusterProps,
+                                                          Set<String> configTypesUpdated) {
+    UpdatersForClusterCreate updaters = new UpdatersForClusterCreate();
+
+    // update global cluster configs
+    updateAllProps(clusterConfig, clusterProps, configTypesUpdated, updaters);
+
+    // update host group configs
+    clusterTopology.getHostGroupInfo().values().stream().forEach(
+      hostGroup -> {
+        Configuration hostGroupConfig = hostGroup.getConfiguration();
+        Map<String, Map<String, String>> hostGroupConfigProps = hostGroupConfig.getFullProperties(1);
+        updateAllProps(hostGroupConfig, hostGroupConfigProps, configTypesUpdated, updaters);
+      });
+  }
+
+  /**
+   * Iterates through all given properties. For each property, if there are updaters registered for that property, the
+   * updaters will be called. When no updaters exist for a property, the default {@link HostGroupUpdater} is be called
+   * to make sure %HOSTGROUP::name% token replacement happens.
+   * @param configuration
+   * @param properties
+   * @param configTypesUpdated
+   * @param updaters
+   */
+  private void updateAllProps(Configuration configuration,
+                              Map<String, Map<String, String>> properties,
+                              Set<String> configTypesUpdated,
+                              UpdatersForClusterCreate updaters) {
+    properties.entrySet().forEach(
+      configTypeEntry -> {
+        String configType = configTypeEntry.getKey();
+        configTypeEntry.getValue().entrySet().forEach(
+          propertyEntry -> {
+            String propertyName = propertyEntry.getKey();
+            String oldValue = propertyEntry.getValue();
+            Collection<PropertyUpdater> propertyUpdaters = updaters.getUpdaters(configType, propertyName);
+            propertyUpdaters.forEach( updater ->
+              updateValue(configType, propertyName, oldValue, updater, properties, configuration, configTypesUpdated, true));
+            // Do the %HOSTGROUP::name% token replacement for properties that don't have registered updaters. In this
+            // case only update the configuration if the value changes
+            // (as opposed to the case when updaters exist. In that case the configuration object will be modified
+            // whenever the updated property value is not {@code null}. TODO: why this latter behavior?)
+            if (propertyUpdaters.isEmpty()) {
+              updateValue(configType, propertyName, oldValue, HostGroupUpdater.INSTANCE, properties, configuration, configTypesUpdated, false);
+            }
+          });
+      });
+  }
+
+  class UpdatersForClusterCreate {
+    Collection<Map<String, Map<String, PropertyUpdater>>> updaters = createCollectionOfUpdaters();
+
+    Collection<PropertyUpdater> getUpdaters(String configType, String propertyName) {
+      return updaters.stream().
+        filter(m -> m.containsKey(configType)).
+        map(m -> m.get(configType)).
+        filter(m -> m.containsKey(propertyName)).
+        map(m -> m.get(propertyName)).
+        collect(toList());
+    }
+  }
+
+  private void doGeneralPropertyUpdatesForClusterCreate(Configuration clusterConfig,
+                                                        Map<String, Map<String, String>> clusterProps,
+                                                        Set<String> configTypesUpdated) {
     for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
         String type = entry.getKey();
@@ -385,7 +559,7 @@ public class BlueprintConfigurationProcessor {
           }
 
           // host group configs
-          for (HostGroupInfo groupInfo : groupInfoMap.values()) {
+          for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
             Configuration hgConfig = groupInfo.getConfiguration();
             Map<String, Map<String, String>> hgConfigProps = hgConfig.getFullProperties(1);
             Map<String, String> hgTypeMap = hgConfigProps.get(type);
@@ -404,106 +578,28 @@ public class BlueprintConfigurationProcessor {
         }
       }
     }
+  }
 
-    //todo: lots of hard coded HA rules included here
-    if (clusterTopology.isNameNodeHAEnabled()) {
-
-      // add "dfs.internal.nameservices" if it's not specified
-      Map<String, String> hdfsSiteConfig = clusterConfig.getFullProperties().get("hdfs-site");
-      String nameservices = hdfsSiteConfig.get("dfs.nameservices");
-      String int_nameservices = hdfsSiteConfig.get("dfs.internal.nameservices");
-      if(int_nameservices == null && nameservices != null) {
-        clusterConfig.setProperty("hdfs-site", "dfs.internal.nameservices", nameservices);
+  private String updateValue(String configType,
+                           String propertyName,
+                           String oldValue,
+                           PropertyUpdater updater,
+                           Map<String, Map<String, String>> clusterProps,
+                           Configuration configuration,
+                           Set<String> configTypesUpdated,
+                           boolean alwaysUpdateConfig) {
+    String newValue = updater.updateForClusterCreate(propertyName, oldValue, clusterProps, clusterTopology);
+    if (null != newValue) {
+      if (!newValue.equals(oldValue)) {
+        configTypesUpdated.add(configType);
       }
-
-      // parse out the nameservices value
-      String[] parsedNameServices = parseNameServices(hdfsSiteConfig);
-
-      // if a single nameservice is configured (default HDFS HA deployment)
-      if (parsedNameServices.length == 1) {
-        LOG.info("Processing a single HDFS NameService, which indicates a default HDFS NameNode HA deployment");
-        // if the active/stanbdy namenodes are not specified, assign them automatically
-        if (! isNameNodeHAInitialActiveNodeSet(clusterProps) && ! isNameNodeHAInitialStandbyNodeSet(clusterProps)) {
-          Collection<String> nnHosts = clusterTopology.getHostAssignmentsForComponent("NAMENODE");
-          if (nnHosts.size() < 2) {
-            throw new ConfigurationTopologyException("NAMENODE HA requires at least 2 hosts running NAMENODE but there are: " +
-                nnHosts.size() + " Hosts: " + nnHosts);
-          }
-
-          // set the properties that configure which namenode is active,
-          // and which is a standby node in this HA deployment
-          Iterator<String> nnHostIterator = nnHosts.iterator();
-          clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, "dfs_ha_initial_namenode_active", nnHostIterator.next());
-          clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, "dfs_ha_initial_namenode_standby", nnHostIterator.next());
-
-          configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
-        }
-      } else {
-        if (!isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME) && !isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME)) {
-          // multiple nameservices indicates an HDFS NameNode Federation install
-          // process each nameservice to determine the active/standby nodes
-          LOG.info("Processing multiple HDFS NameService instances, which indicates a NameNode Federation deployment");
-          if (parsedNameServices.length > 1) {
-            Set<String> activeNameNodeHostnames = new HashSet<>();
-            Set<String> standbyNameNodeHostnames = new HashSet<>();
-
-            for (String nameService : parsedNameServices) {
-              List<String> hostNames = new ArrayList<>();
-              String[] nameNodes = parseNameNodes(nameService, hdfsSiteConfig);
-              for (String nameNode : nameNodes) {
-                // use the HA rpc-address property to obtain the NameNode hostnames
-                String propertyName = "dfs.namenode.rpc-address." + nameService + "." + nameNode;
-                String propertyValue = hdfsSiteConfig.get(propertyName);
-                if (propertyValue == null) {
-                  throw new ConfigurationTopologyException("NameNode HA property = " + propertyName + " is not found in the cluster config.  This indicates an error in configuration for HA/Federated clusters.  " +
-                    "Please recheck the HDFS configuration and try this deployment again");
-                }
-
-                String hostName = propertyValue.split(":")[0];
-                hostNames.add(hostName);
-              }
-
-              if (hostNames.size() < 2) {
-                throw new ConfigurationTopologyException("NAMENODE HA for nameservice = " + nameService + " requires at least 2 hosts running NAMENODE but there are: " +
-                  hostNames.size() + " Hosts: " + hostNames);
-              } else {
-                // by default, select the active and standby namenodes for this nameservice
-                // using the first two hostnames found
-                // since HA is assumed, there should only be two NameNodes deployed per NameService
-                activeNameNodeHostnames.add(hostNames.get(0));
-                standbyNameNodeHostnames.add(hostNames.get(1));
-              }
-            }
-
-            // set the properties what configure the NameNode Active/Standby status for each nameservice
-            if (!activeNameNodeHostnames.isEmpty() && !standbyNameNodeHostnames.isEmpty()) {
-              clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_ACTIVE_NAMENODE_SET_PROPERTY_NAME, String.join(",", activeNameNodeHostnames));
-              clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_STANDBY_NAMENODE_SET_PROPERTY_NAME, String.join(",", standbyNameNodeHostnames));
-
-              // also set the clusterID property, required for Federation installs of HDFS
-              if (!isPropertySet(clusterProps, HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME)) {
-                clusterConfig.setProperty(HADOOP_ENV_CONFIG_TYPE_NAME, HDFS_HA_INITIAL_CLUSTER_ID_PROPERTY_NAME, getClusterName());
-              }
-
-              configTypesUpdated.add(HADOOP_ENV_CONFIG_TYPE_NAME);
-            } else {
-              LOG.warn("Error in processing the set of active/standby namenodes in this federated cluster, please check hdfs-site configuration");
-            }
-          }
-        }
+      if (!newValue.equals(oldValue) || alwaysUpdateConfig) {
+        configuration.setProperty(configType, propertyName, newValue);
       }
     }
-
-    // Explicitly set any properties that are required but not currently provided in the stack definition.
-    setStackToolsAndFeatures(clusterConfig, configTypesUpdated);
-    setRetryConfiguration(clusterConfig, configTypesUpdated);
-    setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
-    addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getStack());
-
-    trimProperties(clusterConfig, clusterTopology);
-
-    return configTypesUpdated;
+    return newValue;
   }
+
 
   private String getClusterName() throws ConfigurationTopologyException {
     String clusterNameToReturn = null;
@@ -782,7 +878,7 @@ public class BlueprintConfigurationProcessor {
    *
    * @return Collection of PropertyUpdater maps used to handle cluster config update
    */
-  private Collection<Map<String, Map<String, PropertyUpdater>>> createCollectionOfUpdaters() {
+  Collection<Map<String, Map<String, PropertyUpdater>>> createCollectionOfUpdaters() {
     Collection<Map<String, Map<String, PropertyUpdater>>> updaters = allUpdaters;
 
     if (clusterTopology.isNameNodeHAEnabled()) {
