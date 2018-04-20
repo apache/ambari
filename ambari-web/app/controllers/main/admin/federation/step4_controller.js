@@ -132,50 +132,50 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   createWidgets: function () {
     var self = this;
-    this.getNameNodeWidgets().done(function (data) {
-      var newWidgetsIds = [];
-      var oldWidgetIds = [];
-      var nameservice1 = App.HDFSService.find().objectAt(0).get('masterComponentGroups')[0].name;
-      var nameservice2 = self.get('content.nameServiceId');
-      var widgetsCount = data.items.length;
-      data.items.forEach(function (widget) {
-        if (!widget.WidgetInfo.tag) {
-          var oldId = widget.WidgetInfo.id;
-          oldWidgetIds.push(oldId);
+      this.getNameNodeWidgets().done(function (data) {
+        var newWidgetsIds = [];
+        var oldWidgetIds = [];
+        var nameservice1 = App.HDFSService.find().objectAt(0).get('masterComponentGroups')[0].name;
+        var nameservice2 = self.get('content.nameServiceId');
+        var widgetsCount = data.items.length;
+        data.items.forEach(function (widget) {
+          if (!widget.WidgetInfo.tag) {
+            var oldId = widget.WidgetInfo.id;
+            oldWidgetIds.push(oldId);
           delete widget.href;
           delete widget.WidgetInfo.id;
           delete widget.WidgetInfo.cluster_name;
           delete widget.WidgetInfo.author;
-          widget.WidgetInfo.tag = nameservice1;
+            widget.WidgetInfo.tag = nameservice1;
           widget.WidgetInfo.metrics = JSON.parse(widget.WidgetInfo.metrics);
           widget.WidgetInfo.values = JSON.parse(widget.WidgetInfo.values);
-          self.createWidget(widget).done(function (w) {
-            newWidgetsIds.push(w.resources[0].WidgetInfo.id);
-            widget.WidgetInfo.tag = nameservice2;
             self.createWidget(widget).done(function (w) {
               newWidgetsIds.push(w.resources[0].WidgetInfo.id);
-              self.deleteWidget(oldId).done(function () {
-                if (!--widgetsCount) {
-                  self.getDefaultHDFStWidgetLayout().done(function (layout) {
-                    layout = layout.items[0].WidgetLayoutInfo;
-                    layout.widgets = layout.widgets.filter(function (w) {
-                      return !oldWidgetIds.contains(w.WidgetInfo.id);
-                    }).map(function (w) {
-                      return w.WidgetInfo.id;
-                    }).concat(newWidgetsIds);
-                    self.updateDefaultHDFStWidgetLayout(layout).done(function () {
-                      self.onTaskCompleted();
+              widget.WidgetInfo.tag = nameservice2;
+              self.createWidget(widget).done(function (w) {
+                newWidgetsIds.push(w.resources[0].WidgetInfo.id);
+                self.deleteWidget(oldId).done(function () {
+                  if (!--widgetsCount) {
+                    self.getDefaultHDFStWidgetLayout().done(function (layout) {
+                      layout = layout.items[0].WidgetLayoutInfo;
+                      layout.widgets = layout.widgets.filter(function (w) {
+                        return !oldWidgetIds.contains(w.WidgetInfo.id);
+                      }).map(function (w) {
+                        return w.WidgetInfo.id;
+                      }).concat(newWidgetsIds);
+                      self.updateDefaultHDFStWidgetLayout(layout).done(function () {
+                        self.onTaskCompleted();
+                      });
                     });
-                  });
-                }
+                  }
+                });
               });
             });
-          });
-        } else {
-          widgetsCount--;
-        }
+          } else {
+            widgetsCount--;
+          }
+        });
       });
-    });
   },
 
   createWidget: function (data) {
