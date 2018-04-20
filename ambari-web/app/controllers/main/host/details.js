@@ -603,11 +603,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method _doDeleteHostComponent
    */
   _doDeleteHostComponent: function (componentName) {
+    var hostComponent = App.HostComponent.find().findProperty('componentName', componentName);
     return App.ajax.send({
       name: (Em.isNone(componentName)) ? 'common.delete.host' : 'common.delete.host_component',
       sender: this,
       data: {
-        componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId') || '',
+        componentId: hostComponent ? hostComponent.get('compId') : '',
         hostName: this.get('content.hostName')
       },
       success: '_doDeleteHostComponentSuccessCallback',

@@ -265,17 +265,20 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var hostName = this.get('content.reassignHosts.source');
     this.set('multiTaskCounter', hostComponents.length);
     for (var i = 0; i < hostComponents.length; i++) {
-      App.ajax.send({
-        name: 'common.host.host_component.passive',
-        sender: this,
-        data: {
-          hostName: hostName,
-          passive_state: "ON",
-          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('compId')
-        },
-        success: 'onComponentsTasksSuccess',
-        error: 'onTaskError'
-      });
+      var hostComponent = App.HostComponent.find().findProperty('componentName', hostComponents[i]);
+      if(hostComponent) {
+        App.ajax.send({
+          name: 'common.host.host_component.passive',
+          sender: this,
+          data: {
+            hostName: hostName,
+            passive_state: "ON",
+            componentId: hostComponent.get('compId')
+          },
+          success: 'onComponentsTasksSuccess',
+          error: 'onTaskError'
+        });
+      }
     }
   },
 

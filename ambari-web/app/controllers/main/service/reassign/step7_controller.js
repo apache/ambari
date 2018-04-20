@@ -68,7 +68,7 @@ App.ReassignMasterWizardStep7Controller = App.ReassignMasterWizardStep4Controlle
         data: {
           hostName: hostName,
           passive_state: "ON",
-          componentName: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('compId')
+          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('compId')
         },
         success: 'onComponentsTasksSuccess',
         error: 'onTaskError'

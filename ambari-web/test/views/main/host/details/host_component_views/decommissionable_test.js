@@ -237,7 +237,7 @@ describe('App.Decommissionable', function() {
       hostComponentView = Em.View.create(App.Decommissionable, {
         content: Em.Object.create({
           hostName: 'host1',
-          componentName: 'C1'
+          compId: '1'
         })
       });
       hostComponentView.getDesiredAdminState();
@@ -246,7 +246,7 @@ describe('App.Decommissionable', function() {
       expect(args[0].sender).to.be.eql(hostComponentView);
       expect(args[0].data).to.be.eql({
         hostName: 'host1',
-        componentName: 'C1'
+        componentId: '1'
       });
     });
   });
