@@ -217,6 +217,7 @@ public class MpackManager {
       mpackTarPath = downloadMpack(mpackRequest.getMpackUri(), mpack.getDefinition());
 
       LOG.info("Custom Mpack Registration :" + mpackRequest.getMpackUri());
+      createMpackDirectory(mpack);
       mpackDirectory = mpacksStaging + File.separator + mpack.getName() + File.separator + mpack.getVersion();
     }
 
@@ -319,7 +320,7 @@ public class MpackManager {
    */
   private void extractMpackTar(Mpack mpack, Path mpackTarPath, String mpackDirectory) throws IOException {
 
-    if(!Files.exists(mpackTarPath)) {
+    if(!Files.exists(Paths.get(mpackDirectory))) {
       extractTar(mpackTarPath, mpacksStaging);
 
       String mpackTarDirectory = mpackTarPath.toString();
