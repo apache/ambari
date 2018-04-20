@@ -50,10 +50,6 @@ class HostStatusReporter(threading.Thread):
           if self.initializer_module.is_registered and not Utils.are_dicts_equal(report, self.last_report, keys_to_skip=["agentTimeStampAtReporting"]):
             self.initializer_module.connection.send(message=report, destination=Constants.HOST_STATUS_REPORTS_ENDPOINT)
             self.last_report = report
-
-        # don't use else to avoid race condition
-        if not self.initializer_module.is_registered:
-          self.last_report = {}
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
       except:
@@ -73,3 +69,6 @@ class HostStatusReporter(threading.Thread):
     }
 
     return report
+
+  def clean_cache(self):
+    self.last_report = {}

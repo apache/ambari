@@ -78,6 +78,7 @@ class HeartbeatThread(threading.Thread):
     self.responseId = 0
     self.file_cache = initializer_module.file_cache
     self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
+    self.post_registration_actions = [self.file_cache.reset]
 
 
   def run(self):
@@ -142,10 +143,14 @@ class HeartbeatThread(threading.Thread):
 
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
 
-    self.file_cache.reset()
+    self.run_post_registration_actions()
     self.initializer_module.is_registered = True
     # now when registration is done we can expose connection to other threads.
     self.initializer_module._connection = self.connection
+
+  def run_post_registration_actions(self):
+    for post_registration_action in self.post_registration_actions:
+      post_registration_action()
 
   def unregister(self):
     """
