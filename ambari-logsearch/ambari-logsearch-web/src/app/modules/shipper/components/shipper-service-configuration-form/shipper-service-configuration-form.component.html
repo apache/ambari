@@ -75,10 +75,15 @@
                       class="help-block validation-block pull-right">
                   {{'common.form.errors.required' | translate}}
                 </span>
+                <span *ngIf="validatorForm.controls.componentName.value && componentNameField.errors && componentNameField.errors.serviceNameDoesNotExistInConfiguration"
+                      class="help-block validation-block pull-right">
+                  {{'shipperConfiguration.form.errors.componentNameField.serviceNameDoesNotExistInConfiguration' | translate}}
+                </span>
               </label>
               <input class="form-control component-name" name="componentName" formControlName="componentName"
                      [typeahead]="configurationComponents$ | async"
                      [typeaheadItemTemplate]="typeAheadTpl"
+                     [typeaheadMinLength]="0"
                      [disableControl]="configurationForm.invalid">
             </div>
             <div [ngClass]="{'has-warning': sampleDataField.invalid, 'form-group': true}">
@@ -96,8 +101,6 @@
               <label>
                 {{'shipperConfiguration.validator.result' | translate}}
               </label>
-              <!--textarea class="form-control validation-result" name="validationResult"
-                [disableControl]="configurationForm.invalid" [value]="validationResponse | json"></textarea-->
               <pre>{{validationResponse | json}}</pre>
             </div>
             <button class="btn btn-default pull-right" type="submit"

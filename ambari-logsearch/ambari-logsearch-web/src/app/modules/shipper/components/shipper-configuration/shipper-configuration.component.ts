@@ -142,6 +142,7 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
   getResponseHandler(cmd: string, type: string, msgVariables?: {[key: string]: any}) {
     return (response: Response) => {
       const result = response.json();
+      // @ToDo change the backend response status to some error code if the configuration is not valid and don't use the .errorMessage prop
       const resultType = response ? (response.ok && !result.errorMessage ? NotificationType.SUCCESS : NotificationType.ERROR) : type;
       const translateParams = {errorMessage: '', ...msgVariables, ...result};
       const title = this.translate.instant(`shipperConfiguration.action.${cmd}.title`, translateParams);
@@ -175,7 +176,12 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
       this.getResponseHandler('validate', NotificationType.SUCCESS, rawValue),
       this.getResponseHandler('validate', NotificationType.ERROR, rawValue)
     );
-    request$.map((response: Response) => response.json()).subscribe(this.setValidationResult);
+    request$
+      .filter((response: Response): boolean => response.ok)
+      .map((response: Response) => response.json())
+      // @ToDo change the backend response status to some error code if the configuration is not valid and don't use the .errorMessage prop
+      .filter(result => result.errorMessage === undefined)
+      .subscribe(this.setValidationResult);
   }
 
   canDeactivate() {
