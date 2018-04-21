@@ -98,7 +98,7 @@ public class LogSearchConfigFactory {
         logSearchConfig = defaultClass.newInstance();
       }
       if (init) {
-        logSearchConfig.init(properties, clusterName);
+        logSearchConfig.init(properties, clusterName == null ? "null" : clusterName.toLowerCase());
       }
       return logSearchConfig;
     } catch (Exception e) {
