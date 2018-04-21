@@ -67,7 +67,7 @@
   <field name="_expire_at_" type="tdate" multiValued="false" stored="true"/>
   <field name="_router_field_" type="int" multiValued="false" indexed="false" stored="false"/>
   <field name="_ttl_" type="string" multiValued="false" indexed="true" stored="true"/>
-  <field name="_version_" type="long" indexed="false" stored="true"/>
+  <field name="_version_" type="long" indexed="false" stored="false"/>
   <field name="access" type="key_lower_case" multiValued="false"/>
   <field name="action" type="key_lower_case" multiValued="false"/>
   <field name="agent" type="key_lower_case" multiValued="false"/>
