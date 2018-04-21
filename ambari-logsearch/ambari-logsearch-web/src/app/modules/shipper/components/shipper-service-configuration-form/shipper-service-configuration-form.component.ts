@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
 import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
@@ -94,9 +94,11 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
   private canDeactivateModalResult: Subject<boolean> = new Subject<boolean>();
 
   private canDeactivateObservable$: Observable<boolean> = Observable.create((observer: Observer<boolean>)  => {
-    this.canDeactivateModalResult.subscribe((result: boolean) => {
-      observer.next(result);
-    });
+    this.subscriptions.push(
+      this.canDeactivateModalResult.subscribe((result: boolean) => {
+        observer.next(result);
+      })
+    );
   });
 
   private serviceNamesListSubject: BehaviorSubject<ShipperClusterService[]> = new BehaviorSubject<ShipperClusterService[]>([]);
@@ -105,8 +107,7 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
 
   constructor(
     private utilsService: UtilsService,
-    private formBuilder: FormBuilder,
-    private changeDetectorRef: ChangeDetectorRef
+    private formBuilder: FormBuilder
   ) {}
 
   ngOnInit() {
@@ -205,10 +206,21 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
     });
 
     this.validatorForm = this.formBuilder.group({
-      clusterName: this.formBuilder.control(this.clusterName, Validators.required),
-      componentName: this.formBuilder.control('', Validators.required),
+      clusterName: this.formBuilder.control(
+        this.clusterName,
+        [Validators.required]
+      ),
+      componentName: this.formBuilder.control('', [
+        Validators.required,
+        formValidators.getConfigurationServiceValidator(this.configurationForm.controls.configuration)
+      ]),
       sampleData: this.formBuilder.control('', Validators.required)
     });
+    this.subscriptions.push(
+      this.configurationForm.valueChanges.subscribe(() => {
+        this.validatorForm.controls.componentName.updateValueAndValidity();
+      })
+    );
   }
 
   onConfigurationSubmit(configurationForm: FormGroup): void {

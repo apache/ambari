@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-import {AbstractControl, ValidatorFn} from '@angular/forms';
+import {AbstractControl, AsyncValidatorFn, ValidatorFn} from '@angular/forms';
 import {ShipperClusterService} from '@modules/shipper/models/shipper-cluster-service.type';
 import {ValidationErrors} from '@angular/forms/src/directives/validators';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {Observable} from 'rxjs/Observable';
 
 export function configurationValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -45,3 +46,17 @@ export function uniqueServiceNameValidator(
   };
 }
 
+export function getConfigurationServiceValidator(configControl: AbstractControl): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    let components: string[];
+    try {
+      const inputs: {[key: string]: any}[] = (configControl.value ? JSON.parse(configControl.value) : {}).input;
+      components = inputs && inputs.length ? inputs.map(input => input.type) : [];
+    } catch (error) {
+      components = [];
+    }
+    return components.length && components.indexOf(control.value) === -1 ? {
+      serviceNameDoesNotExistInConfiguration: {value: control.value}
+    } : null;
+  };
+}

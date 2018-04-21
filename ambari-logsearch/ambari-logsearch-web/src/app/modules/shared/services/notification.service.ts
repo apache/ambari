@@ -40,6 +40,14 @@ export const notificationIcons: Icons = {
 };
 Object.assign(defaultIcons, notificationIcons);
 
+export const messageTemplate = `
+<div class="notification-wrapper">
+  <div class="notification-header sn-title">{{title}}</div>
+  <div class="notification-body sn-content">{{message}}</div>
+  {{icon}}
+</div>
+`;
+
 @Injectable()
 export class NotificationService {
 
@@ -60,11 +68,12 @@ export class NotificationService {
         ...config
       });
     }
-    return this.notificationService[method](
-      this.translateService.instant(title),
-      this.translateService.instant(message),
-      {...config, icon: notificationIcons[method] || notificationIcons['info']}
-    );
+    const icon = notificationIcons[method] || notificationIcons['info'];
+    const htmlMsg = messageTemplate
+      .replace(/{{title}}/gi, this.translateService.instant(title))
+      .replace(/{{message}}/gi, this.translateService.instant(message))
+      .replace(/{{icon}}/gi, icon);
+    return this.notificationService.html(htmlMsg, method, {icon, ...config});
   }
 
 }
