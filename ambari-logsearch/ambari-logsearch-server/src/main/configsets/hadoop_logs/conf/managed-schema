@@ -32,7 +32,7 @@
       <tokenizer class="solr.PathHierarchyTokenizerFactory" replace="." delimiter="."/>
     </analyzer>
   </fieldType>
-  <fieldType name="logLevel" class="solr.EnumField" enumsConfig="enumsConfig.xml" enumName="log_levels"/>
+  <fieldType name="logLevel" class="solr.EnumFieldType" enumsConfig="enumsConfig.xml" enumName="log_levels"/>
   <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
   <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
   <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true"/>

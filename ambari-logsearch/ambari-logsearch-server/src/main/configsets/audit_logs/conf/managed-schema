@@ -21,9 +21,9 @@
   <fieldType name="binary" class="solr.BinaryField"/>
   <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
   <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
-  <fieldType name="date" class="solr.TrieDateField" docValues="true"/>
-  <fieldType name="double" class="solr.TrieDoubleField" docValues="true"/>
-  <fieldType name="float" class="solr.TrieFloatField" docValues="true"/>
+  <fieldType name="date" class="solr.DatePointField" docValues="true"/>
+  <fieldType name="double" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="float" class="solr.FloatPointField" docValues="true"/>
   <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true"/>
   <fieldType name="int" class="solr.IntPointField" docValues="true"/>
   <fieldType name="long" class="solr.LongPointField" docValues="true"/>
