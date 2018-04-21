@@ -32,7 +32,7 @@
       <tokenizer class="solr.PathHierarchyTokenizerFactory" replace="." delimiter="."/>
     </analyzer>
   </fieldType>
-  <fieldType name="logLevel" class="solr.EnumField" enumsConfig="enumsConfig.xml" enumName="log_levels"/>
+  <fieldType name="logLevel" class="solr.EnumFieldType" enumsConfig="enumsConfig.xml" enumName="log_levels"/>
   <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
   <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
   <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true"/>
@@ -79,7 +79,7 @@
 
   <field name="@timestamp" type="tdate" multiValued="false" stored="false"/>
   <field name="@version" type="long" multiValued="false" indexed="false" stored="false"/>
-  <field name="_version_" type="long" indexed="false" stored="true"/>
+  <field name="_version_" type="long" indexed="false" stored="false"/>
   <field name="_expire_at_" type="tdate" stored="true"  multiValued="false"/>
   <field name="_ttl_" type="string" indexed="true" stored="true" multiValued="false"/>
   <field name="_router_field_" type="int" indexed="false" stored="false" multiValued="false"/>

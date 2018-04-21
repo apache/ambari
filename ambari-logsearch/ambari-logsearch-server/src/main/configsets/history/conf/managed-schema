@@ -28,7 +28,7 @@
   <fieldType name="double" class="solr.DoublePointField" docValues="true"/>
   <fieldType name="float" class="solr.FloatPointField" docValues="true"/>
   <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true"/>
-  <fieldType name="int" class="solr.TrieIntField"/>
+  <fieldType name="int" class="solr.IntPointField"/>
   <fieldType name="ip_address" class="solr.TextField">
     <analyzer>
       <tokenizer class="solr.PathHierarchyTokenizerFactory" replace="." delimiter="."/>
@@ -41,7 +41,7 @@
   <fieldType name="tdate" class="solr.DatePointField" docValues="true"/>
   <fieldType name="tdates" class="solr.DatePointField" multiValued="true" docValues="true"/>
   <fieldType name="tdouble" class="solr.DoublePointField"/>
-  <fieldType name="tdoubles" class="solr.TrieDoubleField" multiValued="true" docValues="true"/>
+  <fieldType name="tdoubles" class="solr.DoublePointField" multiValued="true" docValues="true"/>
   <fieldType name="tfloat" class="solr.FloatPointField" docValues="true"/>
   <fieldType name="tfloats" class="solr.FloatPointField" multiValued="true" docValues="true"/>
   <fieldType name="tint" class="solr.IntPointField" docValues="true"/>
