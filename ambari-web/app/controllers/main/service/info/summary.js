@@ -407,7 +407,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   },
 
   goToView: function(event) {
-    App.router.route(event.context.get('internalAmbariUrl'));
+    if (event.context) {
+      window.open(event.context.get('internalAmbariUrl'));
+    }
   }
 
 });
