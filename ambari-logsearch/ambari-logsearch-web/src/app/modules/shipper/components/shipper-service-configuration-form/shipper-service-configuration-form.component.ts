@@ -108,10 +108,13 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
   constructor(
     private utilsService: UtilsService,
     private formBuilder: FormBuilder
-  ) {}
+  ) {
+    // This is a fix to avoid the ExpressionChangedAfterItHasBeenCheckedError exception
+    // We create forms checking if there is serviceName set, so that is why we put this in the constructor.
+    this.createForms();
+  }
 
   ngOnInit() {
-    this.createForms();
     this.configurationComponents$ = this.configurationForm.controls.configuration.valueChanges.map((newValue: string): string[] => {
       let components: string[];
       try {
