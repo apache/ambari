@@ -40,6 +40,7 @@ class AlertStatusReporter(threading.Thread):
     self.alert_reports_interval = initializer_module.config.alert_reports_interval
     self.alert_definitions_cache = initializer_module.alert_definitions_cache
     self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
+    self.server_responses_listener = initializer_module.server_responses_listener
     self.reported_alerts = defaultdict(lambda:defaultdict(lambda:[]))
     threading.Thread.__init__(self)
 
@@ -57,12 +58,12 @@ class AlertStatusReporter(threading.Thread):
           self.clean_not_existing_clusters_info()
           alerts = self.collector.alerts()
           self.stale_alerts_monitor.save_executed_alerts(alerts)
-
           changed_alerts = self.get_changed_alerts(alerts)
 
           if changed_alerts and self.initializer_module.is_registered:
-            self.initializer_module.connection.send(message=changed_alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT, log_message_function=AlertStatusReporter.log_sending)
-            self.save_results(changed_alerts)
+            correlation_id = self.initializer_module.connection.send(message=changed_alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT, log_message_function=AlertStatusReporter.log_sending)
+            self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_results(changed_alerts)
+
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
       except:

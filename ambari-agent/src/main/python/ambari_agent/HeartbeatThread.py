@@ -58,7 +58,7 @@ class HeartbeatThread(threading.Thread):
     self.config = initializer_module.config
 
     # listeners
-    self.server_responses_listener = ServerResponsesListener()
+    self.server_responses_listener = initializer_module.server_responses_listener
     self.commands_events_listener = CommandsEventListener(initializer_module.action_queue)
     self.metadata_events_listener = MetadataEventListener(initializer_module.metadata_cache)
     self.topology_events_listener = TopologyEventListener(initializer_module.topology_cache)
@@ -243,7 +243,7 @@ class HeartbeatThread(threading.Thread):
     """
     def presend_hook(correlation_id):
       if log_handler:
-        self.server_responses_listener.logging_handlers[str(correlation_id)] = log_handler 
+        self.server_responses_listener.logging_handlers[correlation_id] = log_handler
            
     try:
       correlation_id = self.connection.send(message=message, destination=destination, presend_hook=presend_hook)
@@ -253,6 +253,6 @@ class HeartbeatThread(threading.Thread):
       raise
 
     try:
-      return self.server_responses_listener.responses.blocking_pop(str(correlation_id), timeout=timeout)
+      return self.server_responses_listener.responses.blocking_pop(correlation_id, timeout=timeout)
     except BlockingDictionary.DictionaryPopTimeout:
       raise Exception("{0} seconds timeout expired waiting for response from server at {1} to message from {2}".format(timeout, Constants.SERVER_RESPONSES_TOPIC, destination))

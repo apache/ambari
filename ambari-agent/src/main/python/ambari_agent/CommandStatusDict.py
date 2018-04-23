@@ -47,6 +47,7 @@ class CommandStatusDict():
     self.lock = threading.RLock()
     self.initializer_module = initializer_module
     self.command_update_output = initializer_module.config.command_update_output
+    self.server_responses_listener = initializer_module.server_responses_listener
     self.reported_reports = set()
 
 
@@ -63,30 +64,37 @@ class CommandStatusDict():
       self.reported_reports.discard(key)
       self.current_state.pop(key, None)
 
-    is_sent = self.force_update_to_server({command['clusterId']: [report]})
+    is_sent, correlation_id = self.force_update_to_server({command['clusterId']: [report]})
     updatable = report['status'] == ActionQueue.IN_PROGRESS_STATUS and self.command_update_output
 
     if not is_sent or updatable:
-      # if sending is not successful send later
-      with self.lock:
-        self.current_state[key] = (command, report)
-        self.reported_reports.discard(key)
+      self.queue_report_sending(key, command, report)
+    else:
+      self.server_responses_listener.listener_functions_on_error[correlation_id] = lambda headers, message: self.queue_report_sending(key, command, report)
+
+  def queue_report_sending(self, key, command, report):
+    with self.lock:
+      self.current_state[key] = (command, report)
+      self.reported_reports.discard(key)
 
   def force_update_to_server(self, reports_dict):
     if not self.initializer_module.is_registered:
-      return False
+      return False, None
 
     try:
-      self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT, log_message_function=CommandStatusDict.log_sending)
-      return True
+      correlation_id = self.initializer_module.connection.send(message={'clusters':reports_dict}, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT, log_message_function=CommandStatusDict.log_sending)
+      return True, correlation_id
     except ConnectionIsAlreadyClosed:
-      return False
+      return False, None
 
   def report(self):
     report = self.generate_report()
 
-    if report and self.force_update_to_server(report):
-      self.clear_reported_reports()
+    if report:
+      success, correlation_id = self.force_update_to_server(report)
+
+      if success:
+        self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.clear_reported_reports()
 
   def get_command_status(self, taskId):
     with self.lock:
@@ -99,6 +107,7 @@ class CommandStatusDict():
     FAILED. Statuses for COMPLETE or FAILED commands are forgotten after
     generation
     """
+    logger.info("Reporting {0}".format(self.current_state))
     self.generated_reports = []
     from ActionQueue import ActionQueue
     with self.lock: # Synchronized
