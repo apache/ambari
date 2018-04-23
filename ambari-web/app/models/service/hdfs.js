@@ -119,7 +119,7 @@ App.HDFSService = App.Service.extend({
         }
       }
     });
-    return result;
+    return result.sortProperty('name');
   }.property('hostComponents.length', 'App.router.clusterController.isHDFSNameSpacesLoaded')
 });
 

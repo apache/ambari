@@ -473,7 +473,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             }
           }
         });
-        return groups;
+        return groups.sortProperty('name');
       default:
         return [
           {
