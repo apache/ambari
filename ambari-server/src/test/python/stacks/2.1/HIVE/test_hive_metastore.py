@@ -591,7 +591,7 @@ class TestHiveMetastore(RMFTestCase):
         sudo = True)
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'))
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'))
 
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -617,7 +617,7 @@ class TestHiveMetastore(RMFTestCase):
         sudo = True,
     )
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -797,7 +797,7 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertResourceCalled('File',
                               '/tmp/sqla-client-jdbc.tar.gz',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqla-client-jdbc.tar.gz')
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/sqla-client-jdbc.tar.gz')
                               )
 
     self.assertResourceCalled('Execute',
@@ -835,7 +835,7 @@ class TestHiveMetastore(RMFTestCase):
         sudo = True,
     )
     self.assertResourceCalled('File', '/tmp/sqla-client-jdbc.tar.gz',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqla-client-jdbc.tar.gz'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/sqla-client-jdbc.tar.gz'),
     )
     self.assertResourceCalled('Execute', ('tar', '-xvf', u'/tmp/sqla-client-jdbc.tar.gz', '-C', '/tmp'),
         sudo = True,

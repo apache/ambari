@@ -14,7 +14,7 @@
         "user_list": "[\"ambari-qa\",\"hdfs\"]"
     },
     "ambariLevelParams": {
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "agent_stack_retry_count": "5", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "agent_stack_retry_on_unavailability": "false", 
@@ -24,12 +24,12 @@
         "ambari_db_rca_password": "mapred", 
         "host_sys_prepped": "false", 
         "db_name": "ambari", 
-        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources//ojdbc6.jar", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources/ojdbc6.jar",
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "ambari_db_rca_username": "mapred", 
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources/mysql-connector-java.jar"
     },
     "repositoryFile": {
         "resolved": true, 
