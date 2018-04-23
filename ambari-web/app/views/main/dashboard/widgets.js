@@ -547,6 +547,10 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
                 subGroup
               });
             }
+            if (!preferences.threshold[subGroup]) {
+              isChanged = true;
+              preferences.threshold[subGroup] = defaultPreferences.groups[groupName]['*'].threshold[subGroup];
+            }
           });
         }
       });
