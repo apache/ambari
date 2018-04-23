@@ -38,6 +38,7 @@ class HostStatusReporter(threading.Thread):
     self.config = initializer_module.config
     self.host_info = HostInfo(initializer_module.config)
     self.last_report = {}
+    self.server_responses_listener = initializer_module.server_responses_listener
     self.hardware = Hardware(config=initializer_module.config, cache_info=False)
     threading.Thread.__init__(self)
 
@@ -48,8 +49,9 @@ class HostStatusReporter(threading.Thread):
           report = self.get_report()
 
           if self.initializer_module.is_registered and not Utils.are_dicts_equal(report, self.last_report, keys_to_skip=["agentTimeStampAtReporting"]):
-            self.initializer_module.connection.send(message=report, destination=Constants.HOST_STATUS_REPORTS_ENDPOINT)
-            self.last_report = report
+            correlation_id = self.initializer_module.connection.send(message=report, destination=Constants.HOST_STATUS_REPORTS_ENDPOINT)
+            self.server_responses_listener.listener_functions_on_success[correlation_id] = lambda headers, message: self.save_last_report(report)
+
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
       except:
@@ -58,6 +60,9 @@ class HostStatusReporter(threading.Thread):
       self.stop_event.wait(self.report_interval)
 
     logger.info("HostStatusReporter has successfully finished")
+
+  def save_last_report(self, report):
+    self.last_report = report
 
   def get_report(self):
     host_info_dict = {}

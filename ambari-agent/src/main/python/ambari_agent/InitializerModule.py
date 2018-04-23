@@ -36,6 +36,7 @@ from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.ConfigurationBuilder import ConfigurationBuilder
 from ambari_agent.StaleAlertsMonitor import StaleAlertsMonitor
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,8 @@ class InitializerModule:
     self.alert_definitions_cache = ClusterAlertDefinitionsCache(self.config.cluster_cache_dir)
     self.configuration_builder = ConfigurationBuilder(self)
     self.stale_alerts_monitor = StaleAlertsMonitor(self)
+
+    self.server_responses_listener = ServerResponsesListener()
 
     self.file_cache = FileCache(self.config)
 
