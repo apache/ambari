@@ -21,17 +21,18 @@ package org.apache.ambari.server.controller.internal;
 import static com.google.common.collect.Iterators.peekingIterator;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -46,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.PeekingIterator;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -96,6 +96,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.PeekingIterator;
 import com.google.common.collect.Sets;
 
 /**
@@ -2195,8 +2196,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     clusterConfig.setParentConfiguration(new Configuration(stackProperties, emptyMap()));
     Configuration hostGroupConfig = new Configuration(hostGroupProperties, emptyMap());
 
-    Collection<String> group1Components = Sets.newHashSet("NAMENODE", "SECONDARY_NAMENODE", "RESOURCEMANAGER");
-    TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"), hostGroupConfig);
+    TestHostGroup group1 = new TestHostGroup("group1",
+      Sets.newHashSet("NAMENODE", "SECONDARY_NAMENODE", "RESOURCEMANAGER"),
+      Collections.singleton("testhost"),
+      hostGroupConfig);
 
     Collection<TestHostGroup> hostGroups = Sets.newHashSet(group1);
 
@@ -2223,6 +2226,52 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // %HOSTGROUP::name% has been replaced by the default updater in hostgroup config
     Map<String, String> myserviceSite = hostGroupConfig.getProperties().get("myservice-site");
     assertEquals(myserviceSite, ImmutableMap.of("myservice_slave_address", "testhost:8080"));
+  }
+
+  @Test
+  public void testHostgroupUpdater() throws Exception {
+    Set<String> components = ImmutableSet.of("NAMENODE", "SECONDARY_NAMENODE", "RESOURCEMANAGER");
+    Configuration hostGroupConfig = new Configuration(emptyMap(), emptyMap());
+    TestHostGroup group1 = new TestHostGroup("master1", components, ImmutableList.of("master1_host"), hostGroupConfig);
+    TestHostGroup group2 = new TestHostGroup("master2", components, ImmutableList.of("master2_host"), hostGroupConfig);
+    TestHostGroup group3 =
+      new TestHostGroup("master3", components, ImmutableList.of("master3_host1", "master3_host2"), hostGroupConfig);
+    Configuration clusterConfig = new Configuration(new HashMap<>(), new HashMap<>());
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableList.of(group1, group2, group3));
+
+    BlueprintConfigurationProcessor.HostGroupUpdater updater = BlueprintConfigurationProcessor.HostGroupUpdater.INSTANCE;
+
+    assertEquals(
+      "master1_host:8080",
+      updater.updateForClusterCreate(
+        "mycomponent.url",
+        "%HOSTGROUP::master1%:8080",
+        clusterConfig.getProperties(),
+        topology));
+
+    assertEquals(
+      "master1_host:8080,master1_host:8090",
+      updater.updateForClusterCreate(
+        "mycomponent.urls",
+        "%HOSTGROUP::master1%:8080,%HOSTGROUP::master1%:8090",
+        clusterConfig.getProperties(),
+        topology));
+
+    assertEquals(
+      "master1_host:8080,master2_host:8080",
+      updater.updateForClusterCreate(
+        "mycomponent.urls",
+        "%HOSTGROUP::master1%:8080,%HOSTGROUP::master2%:8080",
+        clusterConfig.getProperties(),
+        topology));
+
+    assertThat(
+      updater.updateForClusterCreate(
+        "mycomponent.urls",
+        "%HOSTGROUP::master3%:8080,%HOSTGROUP::master3%:8080",
+        clusterConfig.getProperties(),
+        topology),
+      anyOf(is("master3_host1:8080,master3_host2:8080"), is("master3_host2:8080,master3_host1:8080")));
   }
 
   @Test

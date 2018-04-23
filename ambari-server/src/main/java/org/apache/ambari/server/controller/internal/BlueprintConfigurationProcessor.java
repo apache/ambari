@@ -20,7 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,11 +54,14 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -140,7 +143,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Collection of all updaters
    */
-  private static List<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
+  private static Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
     new ArrayList<>();
 
   /**
@@ -359,7 +362,7 @@ public class BlueprintConfigurationProcessor {
     // removes a property other than the property it is registered for then we will
     // have an issue as it won't be removed from the clusterProps map as it is a copy.
     Map<String, Map<String, String>> clusterProps = clusterConfig.getFullProperties();
-    doGeneralPropertyUpdatesForClusterCreate2(clusterConfig, clusterProps, configTypesUpdated);
+    doGeneralPropertyUpdatesForClusterCreate(clusterConfig, clusterProps, configTypesUpdated);
 
     //todo: lots of hard coded HA rules included here
     if (clusterTopology.isNameNodeHAEnabled()) {
@@ -377,6 +380,13 @@ public class BlueprintConfigurationProcessor {
     return configTypesUpdated;
   }
 
+  /**
+   * Update Namenode HA properties during cluster creation
+   * @param clusterConfig
+   * @param clusterProps
+   * @param configTypesUpdated
+   * @throws ConfigurationTopologyException
+   */
   private void doNameNodeHAUpdateOnClusterCreation(Configuration clusterConfig,
                                                    Map<String, Map<String, String>> clusterProps,
                                                    Set<String> configTypesUpdated) throws ConfigurationTopologyException {
@@ -466,129 +476,119 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
-  private void doGeneralPropertyUpdatesForClusterCreate2(Configuration clusterConfig,
-                                                          Map<String, Map<String, String>> clusterProps,
-                                                          Set<String> configTypesUpdated) {
-    UpdatersForClusterCreate updaters = new UpdatersForClusterCreate();
+  /**
+   * Call registered updaters on cluster configuration + call default updater ({@link HostGroupUpdater#INSTANCE}) on
+   * properties that were submitted in the blueprint or the cluster template and don't have a registered updater.
+   * @param clusterConfig
+   * @param clusterProps
+   * @param configTypesUpdated
+   */
+  private void doGeneralPropertyUpdatesForClusterCreate(Configuration clusterConfig,
+                                                        Map<String, Map<String, String>> clusterProps,
+                                                        Set<String> configTypesUpdated) {
+    // Iterate through the updaters and apply them in case applicable properties exist
+    Collection<Map<String, Map<String, PropertyUpdater>>> updaters = createCollectionOfUpdaters();
+    for (Map<String, Map<String, PropertyUpdater>> updaterMap : updaters) {
+      for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
+        final String configType = entry.getKey();
+        for (Map.Entry<String, PropertyUpdater> updaterEntry : entry.getValue().entrySet()) {
+          String propertyName = updaterEntry.getKey();
+          PropertyUpdater updater = updaterEntry.getValue();
 
-    // update global cluster configs
-    updateAllProps(clusterConfig, clusterProps, configTypesUpdated, updaters);
+          // topo cluster scoped configuration which also includes all default and BP properties
+          Map<String, String> typeMap = clusterProps.get(configType);
+          if (typeMap != null && typeMap.containsKey(propertyName) && typeMap.get(propertyName) != null) {
+            final String originalValue = typeMap.get(propertyName);
+            final String updatedValue =
+              updateValue(configType, propertyName, originalValue, updater, clusterProps, clusterConfig, configTypesUpdated, true);
+            if (null == updatedValue) {
+              continue;
+            }
+          }
+          // host group configs
+          for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
+            Configuration hgConfig = groupInfo.getConfiguration();
+            Map<String, Map<String, String>> hgConfigProps = hgConfig.getFullProperties(1);
+            Map<String, String> hgTypeMap = hgConfigProps.get(configType);
+            if (hgTypeMap != null && hgTypeMap.containsKey(propertyName)) {
+              final String originalValue = hgTypeMap.get(propertyName);
+              updateValue(configType, propertyName, originalValue, updater, hgConfigProps, hgConfig, configTypesUpdated, true);
+            }
+          }
+        }
+      }
+    }
 
-    // update host group configs
+    // Iterate through all user defined properties (blueprint + cluster template) and call the default updater for those
+    // which don't have a configured updater. This is to make sure that %HOSTGROUP::name% tokens are replaced for each property
+    Set<Pair<String, String>> propertiesWithUpdaters = updaters.stream().
+      flatMap(map -> map.entrySet().stream()).
+      flatMap(entry -> {
+        String configType = entry.getKey();
+        return entry.getValue().keySet().stream().map(propertyName -> Pair.of(configType, propertyName));
+      }).
+      collect(toSet());
+    // apply default updater on cluster config
+    applyDefaultUpdater(clusterConfig, clusterConfig.getFullProperties(1), configTypesUpdated, propertiesWithUpdaters);
+    // apply default updater on hostgroup configs
     clusterTopology.getHostGroupInfo().values().stream().forEach(
       hostGroup -> {
         Configuration hostGroupConfig = hostGroup.getConfiguration();
         Map<String, Map<String, String>> hostGroupConfigProps = hostGroupConfig.getFullProperties(1);
-        updateAllProps(hostGroupConfig, hostGroupConfigProps, configTypesUpdated, updaters);
+        applyDefaultUpdater(hostGroupConfig, hostGroupConfigProps, configTypesUpdated, propertiesWithUpdaters);
       });
   }
 
   /**
-   * Iterates through all given properties. For each property, if there are updaters registered for that property, the
-   * updaters will be called. When no updaters exist for a property, the default {@link HostGroupUpdater} is be called
-   * to make sure %HOSTGROUP::name% token replacement happens.
+   * Applies the default updater ({@link HostGroupUpdater#INSTANCE}) for properties that don't have a registered updater.
+   * This is to make sure that %HOSTGROUP::name% token replacements happen for all properties.
    * @param configuration
    * @param properties
    * @param configTypesUpdated
-   * @param updaters
+   * @param propertiesWithUpdaters
    */
-  private void updateAllProps(Configuration configuration,
+  private void applyDefaultUpdater(Configuration configuration,
                               Map<String, Map<String, String>> properties,
                               Set<String> configTypesUpdated,
-                              UpdatersForClusterCreate updaters) {
+                              Set<Pair<String, String>> propertiesWithUpdaters) {
     properties.entrySet().forEach(
       configTypeEntry -> {
         String configType = configTypeEntry.getKey();
         configTypeEntry.getValue().entrySet().forEach(
           propertyEntry -> {
             String propertyName = propertyEntry.getKey();
-            String oldValue = propertyEntry.getValue();
-            Collection<PropertyUpdater> propertyUpdaters = updaters.getUpdaters(configType, propertyName);
-            propertyUpdaters.forEach( updater ->
-              updateValue(configType, propertyName, oldValue, updater, properties, configuration, configTypesUpdated, true));
-            // Do the %HOSTGROUP::name% token replacement for properties that don't have registered updaters. In this
-            // case only update the configuration if the value changes
-            // (as opposed to the case when updaters exist. In that case the configuration object will be modified
-            // whenever the updated property value is not {@code null}. TODO: why this latter behavior?)
-            if (propertyUpdaters.isEmpty()) {
+            if (!propertiesWithUpdaters.contains(Pair.of(configType, propertyName))) {
+              String oldValue = propertyEntry.getValue();
               updateValue(configType, propertyName, oldValue, HostGroupUpdater.INSTANCE, properties, configuration, configTypesUpdated, false);
             }
           });
       });
   }
 
-  class UpdatersForClusterCreate {
-    Collection<Map<String, Map<String, PropertyUpdater>>> updaters = createCollectionOfUpdaters();
-
-    Collection<PropertyUpdater> getUpdaters(String configType, String propertyName) {
-      return updaters.stream().
-        filter(m -> m.containsKey(configType)).
-        map(m -> m.get(configType)).
-        filter(m -> m.containsKey(propertyName)).
-        map(m -> m.get(propertyName)).
-        collect(toList());
-    }
-  }
-
-  private void doGeneralPropertyUpdatesForClusterCreate(Configuration clusterConfig,
-                                                        Map<String, Map<String, String>> clusterProps,
-                                                        Set<String> configTypesUpdated) {
-    for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
-      for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
-        String type = entry.getKey();
-        for (Map.Entry<String, PropertyUpdater> updaterEntry : entry.getValue().entrySet()) {
-          String propertyName = updaterEntry.getKey();
-          PropertyUpdater updater = updaterEntry.getValue();
-
-          // topo cluster scoped configuration which also includes all default and BP properties
-          Map<String, String> typeMap = clusterProps.get(type);
-          if (typeMap != null && typeMap.containsKey(propertyName) && typeMap.get(propertyName) != null) {
-            final String originalValue = typeMap.get(propertyName);
-            final String updatedValue =
-              updater.updateForClusterCreate(propertyName, originalValue, clusterProps, clusterTopology);
-
-            if(updatedValue == null ) {
-              continue;
-            }
-
-            if (!updatedValue.equals(originalValue)) {
-              configTypesUpdated.add(type);
-            }
-
-            clusterConfig.setProperty(type, propertyName, updatedValue);
-          }
-
-          // host group configs
-          for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
-            Configuration hgConfig = groupInfo.getConfiguration();
-            Map<String, Map<String, String>> hgConfigProps = hgConfig.getFullProperties(1);
-            Map<String, String> hgTypeMap = hgConfigProps.get(type);
-            if (hgTypeMap != null && hgTypeMap.containsKey(propertyName)) {
-              final String originalValue = hgTypeMap.get(propertyName);
-              final String updatedValue =
-                updater.updateForClusterCreate(propertyName, originalValue, hgConfigProps, clusterTopology);
-
-              if (!updatedValue.equals(originalValue)) {
-                configTypesUpdated.add(type);
-              }
-
-              hgConfig.setProperty(type, propertyName, updatedValue);
-            }
-          }
-        }
-      }
-    }
-  }
-
+  /**
+   * Encapsulates commonly repeated tasks around updating a configuration value during cluster creation.
+   * @param configType the configuration type (e.g. hdfs-site)
+   * @param propertyName the name of the property (e.g. dfs.namenode.name.dir)
+   * @param oldValue the old value of the property
+   * @param updater the property updater to use
+   * @param allProps other properties to be considered by the upsater
+   * @param configuration configuration to update (cluster global config or hostgroup config)
+   * @param configTypesUpdated set of updated config types (configType param will be added if updater changes the
+   *                           value of the property)
+   * @param alwaysUpdateConfig boolean to indicate whether the {@link Configuration} received as parameter should always
+   *                           (except when new value is {@code null}) be updated or only in case the new value differs
+   *                           from the original. (TODO: what is the reason for always updating the configuration?)
+   * @return
+   */
   private String updateValue(String configType,
                            String propertyName,
                            String oldValue,
                            PropertyUpdater updater,
-                           Map<String, Map<String, String>> clusterProps,
+                           Map<String, Map<String, String>> allProps,
                            Configuration configuration,
                            Set<String> configTypesUpdated,
                            boolean alwaysUpdateConfig) {
-    String newValue = updater.updateForClusterCreate(propertyName, oldValue, clusterProps, clusterTopology);
+    String newValue = updater.updateForClusterCreate(propertyName, oldValue, allProps, clusterTopology);
     if (null != newValue) {
       if (!newValue.equals(oldValue)) {
         configTypesUpdated.add(configType);
@@ -1568,9 +1568,9 @@ public class BlueprintConfigurationProcessor {
                                              ClusterTopology topology);
   }
 
-  private static class HostGroupUpdater implements PropertyUpdater {
+  static class HostGroupUpdater implements PropertyUpdater {
 
-    public static final PropertyUpdater INSTANCE = new HostGroupUpdater();
+    static final HostGroupUpdater INSTANCE = new HostGroupUpdater();
 
     @Override
     public String updateForClusterCreate(String propertyName,
@@ -1578,21 +1578,25 @@ public class BlueprintConfigurationProcessor {
       Map<String, Map<String, String>> properties,
       ClusterTopology topology) {
 
-      //todo: getHostStrings
-      Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue);
-      if (m.find()) {
-        String hostGroupName = m.group(1);
+      HostGroups hostGroups = new HostGroups(topology);
 
-        HostGroupInfo groupInfo = topology.getHostGroupInfo().get(hostGroupName);
-        if (groupInfo == null) {
-          //todo: this should be validated in configuration validation
-          throw new RuntimeException(
-            "Encountered a host group token in configuration which couldn't be matched to a host group: "
-              + hostGroupName);
-        }
+      //todo: getHostStrings (?)
 
-        //todo: warn if > hosts
-        return origValue.replace(m.group(0), groupInfo.getHostNames().iterator().next());
+      // replaces all %HOSTGROUP::name% references to host names in the value string one by one. The value string can contain
+      // only one (typical) or multiple %HOSTGROUP references. If the same host group is referenced multiple times,
+      // another host will be picked each time
+      // Assuming you have the following hostgroups and hosts:
+      // - hostgroup1: [group1_host]
+      // - hostgroup2: [group2_host]
+      // - hostgroup3: [group3_host1, group3_host2, group3_host3]
+      // the following replacements will be made:
+      // - %HOSTGROUP::group1%:8080 --> grop1_host:8080
+      // - %HOSTGROUP::group1%:8080,%HOSTGROUP::group2%:8080 --> group1_host:8080,group2_host:8080
+      // - %HOSTGROUP::group3%:8080,%HOSTGROUP::group3%:8080,%HOSTGROUP::group3%:8080 -->
+      //      group3_host1:8080,group3_host2:8080,group3_host3:8080 (maybe in different order)
+      for (Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue); m.find(); ) {
+        origValue = m.replaceFirst(hostGroups.nextHost(m.group(1)));
+        m = HostGroup.HOSTGROUP_REGEX.matcher(origValue);
       }
 
       return origValue;
@@ -1610,6 +1614,27 @@ public class BlueprintConfigurationProcessor {
         return Collections.singleton(hostGroupName);
       }
       return Collections.emptySet();
+    }
+
+    static class HostGroups {
+      private ClusterTopology topology;
+      private Map<String, Iterator<String>> hostGroupHostIterators = new HashMap<>();
+
+      HostGroups(ClusterTopology topology) {
+        this.topology = topology;
+      }
+
+      String nextHost(String hostGroup) {
+        Iterator<String> hostGroupHosts = hostGroupHostIterators.get(hostGroup);
+        if (null == hostGroupHosts) {
+          HostGroupInfo groupInfo = topology.getHostGroupInfo().get(hostGroup);
+          Preconditions.checkArgument(null != groupInfo,
+            "Encountered a host group token in configuration which couldn't be matched to a host group: %s", hostGroup);
+          hostGroupHosts = Iterators.cycle(groupInfo.getHostNames());
+          hostGroupHostIterators.put(hostGroup, hostGroupHosts);
+        }
+        return hostGroupHosts.next();
+      }
     }
   }
 
