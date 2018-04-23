@@ -23,6 +23,7 @@ import {SearchBoxParameter, SearchBoxParameterProcessed, SearchBoxParameterTrigg
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {UtilsService} from '@app/services/utils.service';
+import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'search-box',
@@ -120,20 +121,29 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
    */
   parameters: SearchBoxParameterProcessed[] = [];
 
+  private subscriptions: Subscription[] = [];
+
   constructor(private utils: UtilsService) {}
 
   ngOnInit(): void {
     this.parameterInput = this.parameterInputRef.nativeElement;
     this.valueInput = this.valueInputRef.nativeElement;
-    this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
-    this.parameterAddSubject.subscribe(this.onParameterAdd);
-    this.updateValueSubject.subscribe(this.updateValue);
+    this.subscriptions.push(
+      this.parameterNameChangeSubject.subscribe(this.onParameterNameChange)
+    );
+    this.subscriptions.push(
+      this.parameterAddSubject.subscribe(this.onParameterAdd)
+    );
+    this.subscriptions.push(
+      this.updateValueSubject.subscribe(this.updateValue)
+    );
   }
 
   ngOnDestroy(): void {
-    this.parameterNameChangeSubject.unsubscribe();
-    this.parameterAddSubject.unsubscribe();
-    this.updateValueSubject.unsubscribe();
+    // this.parameterNameChangeSubject.unsubscribe();
+    // this.parameterAddSubject.unsubscribe();
+    // this.updateValueSubject.unsubscribe();
+    this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
   }
 
   /**
@@ -175,7 +185,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.isActive = true;
     this.isValueInput = false;
     setTimeout(() => this.parameterInput.focus(), 0);
-  };
+  }
 
   private getItemByValue(name: string): ListItem {
     return this.items.find((field: ListItem): boolean => field.value === name);
@@ -208,7 +218,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.isValueInput = true;
     this.currentValue = '';
     this.valueInput.focus();
-  };
+  }
 
   onParameterValueKeyDown(event: KeyboardEvent): void {
     if (this.utils.isBackSpacePressed(event) && !this.currentValue) {
