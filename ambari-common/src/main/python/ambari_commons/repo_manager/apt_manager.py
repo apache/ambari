@@ -95,7 +95,8 @@ class AptManager(GenericManager):
     packages = []
     available_packages = self._available_packages_dict(pkg_names, repo_filter)
 
-    with shell.process_executor(self.properties.installed_packages_cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(self.properties.installed_packages_cmd, error_callback=self._executor_error_handler,
+                                strategy=shell.ReaderStrategy.BufferedChunks) as output:
       for package, version in AptParser.packages_installed_reader(output):
         if package in available_packages:
           packages.append(available_packages[package])
@@ -113,7 +114,9 @@ class AptManager(GenericManager):
     :type repo_filter str|None
     """
 
-    with shell.process_executor(self.properties.available_packages_cmd, error_callback=self._executor_error_handler) as output:
+    with shell.process_executor(self.properties.available_packages_cmd, error_callback=self._executor_error_handler,
+                                strategy=shell.ReaderStrategy.BufferedChunks) as output:
+
       for pkg_item in AptParser.packages_reader(output):
         if repo_filter and repo_filter not in pkg_item[2]:
           continue
