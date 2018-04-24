@@ -283,7 +283,7 @@ class CheckHost(Script):
       if not jdbc_driver_mysql_name:
         no_jdbc_error_message = "The MySQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mysql --jdbc-driver=/path/to/jdbc_driver'."
       else:
-        jdbc_url = jdk_location + jdbc_driver_mysql_name
+        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_mysql_name)
         jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
         jdbc_name = jdbc_driver_mysql_name
     elif db_name == DB_ORACLE:
@@ -291,7 +291,7 @@ class CheckHost(Script):
       if not jdbc_driver_oracle_name:
         no_jdbc_error_message = "The Oracle JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=oracle --jdbc-driver=/path/to/jdbc_driver'."
       else:
-        jdbc_url = jdk_location + jdbc_driver_oracle_name
+        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_oracle_name)
         jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
         jdbc_name = jdbc_driver_oracle_name
     elif db_name == DB_POSTGRESQL:
@@ -299,7 +299,7 @@ class CheckHost(Script):
       if not jdbc_driver_postgres_name:
         no_jdbc_error_message = "The Postgres JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=postgres --jdbc-driver=/path/to/jdbc_driver'."
       else:
-        jdbc_url = jdk_location + jdbc_driver_postgres_name
+        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_postgres_name)
         jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
         jdbc_name = jdbc_driver_postgres_name
     elif db_name == DB_MSSQL:
@@ -307,7 +307,7 @@ class CheckHost(Script):
       if not jdbc_driver_mssql_name:
         no_jdbc_error_message = "The MSSQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mssql --jdbc-driver=/path/to/jdbc_driver'."
       else:
-        jdbc_url = jdk_location + jdbc_driver_mssql_name
+        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_mssql_name)
         jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
         jdbc_name = jdbc_driver_mssql_name
     elif db_name == DB_SQLA:
@@ -315,7 +315,7 @@ class CheckHost(Script):
       if not jdbc_driver_sqla_name:
         no_jdbc_error_message = "The SQLAnywhere JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=sqlanywhere --jdbc-driver=/path/to/jdbc_driver'."
       else:
-        jdbc_url = jdk_location + jdbc_driver_sqla_name
+        jdbc_url = CheckHost.build_url(jdk_location, jdbc_driver_sqla_name)
         jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
         jdbc_name = jdbc_driver_sqla_name
     else: no_jdbc_error_message = format("'{db_name}' database type not supported.")
@@ -329,7 +329,7 @@ class CheckHost(Script):
     user_name = config['commandParams']['user_name']
     user_passwd = config['commandParams']['user_passwd']
     agent_cache_dir = os.path.abspath(config["agentLevelParams"]["agentCacheDir"])
-    check_db_connection_url = jdk_location + check_db_connection_jar_name
+    check_db_connection_url = CheckHost.build_url(jdk_location, check_db_connection_jar_name)
     jdbc_path = os.path.join(agent_cache_dir, jdbc_name)
     class_path_delimiter = ":"
     if db_name == DB_SQLA:
@@ -361,7 +361,7 @@ class CheckHost(Script):
     # download and install java if it doesn't exists
     if not os.path.isfile(java_exec):
       jdk_name = config['commandParams']['jdk_name']
-      jdk_url = "{0}/{1}".format(jdk_location, jdk_name)
+      jdk_url = CheckHost.build_url(jdk_location, jdk_name)
       jdk_download_target = os.path.join(agent_cache_dir, jdk_name)
       java_dir = os.path.dirname(java_home)
       try:
@@ -425,7 +425,7 @@ class CheckHost(Script):
       download_file(jdbc_url, jdbc_path)
       if db_name == DB_MSSQL and OSCheck.is_windows_family():
         jdbc_auth_path = os.path.join(agent_cache_dir, JDBC_AUTH_SYMLINK_MSSQL)
-        jdbc_auth_url = jdk_location + JDBC_AUTH_SYMLINK_MSSQL
+        jdbc_auth_url = CheckHost.build_url(jdk_location, JDBC_AUTH_SYMLINK_MSSQL)
         download_file(jdbc_auth_url, jdbc_auth_path)
       elif db_name == DB_SQLA:
         # unpack tar.gz jdbc which was donaloaded
@@ -524,6 +524,23 @@ class CheckHost(Script):
     Logger.info("Last Agent Env check completed successfully.")
 
     return last_agent_env_check_structured_output
+
+  @staticmethod
+  def build_url(base_url, path):
+    """
+    Builds a URL by appending a relative path to a base URL, ensuring additional /'s are not added
+    between the two parts.
+
+    :param base_url: a base URL
+    :param path: a relative path
+    :return: the resulting URL
+    """
+
+    url = base_url[0:-1] if base_url and base_url.endswith('/') else base_url
+    url = url + '/'
+    url = url + (path[1:] if path and path.startswith('/') else path)
+    return url
+
 
 if __name__ == "__main__":
   CheckHost().execute()
