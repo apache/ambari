@@ -55,8 +55,8 @@ public class DownloadMpacksTask {
    */
   public void downloadMissingMpacks(Collection<MpackInstance> mpackInstances) {
     Set<StackId> missingMpacks = mpackInstances.stream().
-      filter(this::isStackMissing).
       map(MpackInstance::getStackId).
+      filter(this::isStackMissing).
       collect(toSet());
 
     for (MpackInstance mpack: mpackInstances) {
@@ -88,17 +88,17 @@ public class DownloadMpacksTask {
 
   /**
    *
-   * @param mpackInstance the mpack to check
+   * @param stackId the mpack (stack) to check
    * @return {@code true} if the mpack (stack) is not registered, {@code false} if already registered.
    */
-  boolean isStackMissing(MpackInstance mpackInstance) {
+  boolean isStackMissing(StackId stackId) {
     AmbariMetaInfo metaInfo = AmbariServer.getController().getAmbariMetaInfo();
     try {
-      metaInfo.getStack(mpackInstance.getStackId());
+      metaInfo.getStack(stackId);
       return false;
     }
     catch (StackAccessException ex) {
-      LOG.debug("Stack {} is not available.", mpackInstance.getStackId());
+      LOG.debug("Stack {} is not available.", stackId);
       return true;
     }
   }

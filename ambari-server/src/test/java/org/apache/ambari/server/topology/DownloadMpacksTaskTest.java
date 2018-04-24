@@ -1,0 +1,144 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.topology;
+
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
+
+import java.util.List;
+import java.util.Set;
+
+import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.state.StackId;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.common.collect.ImmutableSet;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AmbariServer.class)
+public class DownloadMpacksTaskTest {
+
+  private static final Set<StackId> INSTALLED_STACKS = ImmutableSet.of(
+    new StackId("HDPCORE", "1.0.0.0"),
+    new StackId("HDF", "3.1.1.0"));
+
+  private static final Set<StackId> MISSING_STACKS = ImmutableSet.of(
+    new StackId("EDW", "1.0.0"),
+    new StackId("HDP", "2.6.0"));
+
+  private AmbariManagementController controller;
+  private AmbariMetaInfo metaInfo;
+  private MpackResourceProvider resourceProvider;
+  private DownloadMpacksTask downloadMpacksTask;
+  private Capture<Request> downloadRequests;
+
+  @Before
+  public void setup() throws Exception {
+    metaInfo = mock(AmbariMetaInfo.class);
+    for (StackId stackId: INSTALLED_STACKS) {
+      expect(metaInfo.getStack(stackId)).andReturn(null).anyTimes();
+    }
+    expect(metaInfo.getStack(anyObject(StackId.class))).
+      andThrow(new StackAccessException("The specified stack is not found.")).anyTimes();
+
+    controller = mock(AmbariManagementController.class);
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+
+    resourceProvider = mock(MpackResourceProvider.class);
+    downloadRequests = newCapture(CaptureType.ALL);
+    expect(resourceProvider.createResources(capture(downloadRequests))).andReturn(null).anyTimes();
+    downloadMpacksTask = new DownloadMpacksTask(resourceProvider);
+
+    replay(metaInfo, controller, resourceProvider);
+
+    mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
+    PowerMock.replay(AmbariServer.class);
+  }
+
+  @Test
+  public void testIsStackMissing() {
+    INSTALLED_STACKS.forEach( stackId -> assertFalse(downloadMpacksTask.isStackMissing(stackId)) );
+    MISSING_STACKS.forEach( stackId -> assertTrue(downloadMpacksTask.isStackMissing(stackId)) );
+  }
+
+  @Test
+  public void testDownloadMissingMpacks() {
+    // given
+    List<MpackInstance> mpacks = concat(INSTALLED_STACKS.stream(), MISSING_STACKS.stream()).
+      map(this::mpack).
+      collect(toList());
+
+    // when
+    downloadMpacksTask.downloadMissingMpacks(mpacks);
+
+    // then
+    Set<String> missingMpackUris = MISSING_STACKS.stream().
+      map(this::createUri).
+      collect(toSet());
+
+    Set<String> dowloadedMpackUris = downloadRequests.getValues().stream().
+      map(this::getUriFromRequest).
+      collect(toSet());
+
+    assertEquals(missingMpackUris, dowloadedMpackUris);
+
+  }
+
+  private String getUriFromRequest(Request request) {
+    return (String)request.getProperties().iterator().next().get(MpackResourceProvider.MPACK_URI);
+  }
+
+  private MpackInstance mpack(StackId stackId) {
+    MpackInstance mpack = new MpackInstance();
+    mpack.setMpackName(stackId.getStackName());
+    mpack.setMpackVersion(stackId.getStackVersion());
+    mpack.setUrl(createUri(stackId));
+    return mpack;
+  }
+
+  private String createUri(StackId stackId) {
+    return "http://mpacks.org/" + stackId.getStackName() + "." + stackId.getStackVersion();
+  }
+
+}
