@@ -151,7 +151,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
 
         if (validExpression && this.get('MATH_EXPRESSION_REGEX').test(beforeCompute)) {
           hostToValueMap[_hostName] = Number(window.eval(beforeCompute)).toString();
-        } else if (beforeCompute === 'undefined') {
+        } else if (beforeCompute.contains('undefined')) {
           // Data not available
           hostToValueMap[_hostName] = undefined;
         } else {
