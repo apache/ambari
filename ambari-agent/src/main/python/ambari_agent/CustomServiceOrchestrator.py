@@ -543,6 +543,8 @@ class CustomServiceOrchestrator():
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
       task_id = command['taskId']
+      if 'clusterHostInfo' in command and command['clusterHostInfo'] and not retry:
+        command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
       if command_type == ActionQueue.AUTO_EXECUTION_COMMAND:
         file_path = os.path.join(self.tmp_dir, "auto_command-{0}.json".format(task_id))
@@ -555,6 +557,49 @@ class CustomServiceOrchestrator():
       content = json.dumps(command, sort_keys = False, indent = 4)
       f.write(content)
     return file_path
+
+  def decompressClusterHostInfo(self, clusterHostInfo):
+    info = clusterHostInfo.copy()
+    #Pop info not related to host roles
+    hostsList = info.pop(self.HOSTS_LIST_KEY)
+    pingPorts = info.pop(self.PING_PORTS_KEY)
+    racks = info.pop(self.RACKS_KEY)
+    ipv4_addresses = info.pop(self.IPV4_ADDRESSES_KEY)
+
+    ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
+    ambariServerPort = info.pop(self.AMBARI_SERVER_PORT)
+    ambariServerUseSsl = info.pop(self.AMBARI_SERVER_USE_SSL)
+
+    decompressedMap = {}
+
+    for k,v in info.items():
+      # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8]
+      indexes = self.convertRangeToList(v)
+      # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
+      decompressedMap[k] = [hostsList[i] for i in indexes]
+
+    #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
+    pingPorts = self.convertMappedRangeToList(pingPorts)
+    racks = self.convertMappedRangeToList(racks)
+    ipv4_addresses = self.convertMappedRangeToList(ipv4_addresses)
+
+    #Convert all elements to str
+    pingPorts = map(str, pingPorts)
+
+    #Add ping ports to result
+    decompressedMap[self.PING_PORTS_KEY] = pingPorts
+    #Add hosts list to result
+    decompressedMap[self.HOSTS_LIST_KEY] = hostsList
+    #Add racks list to result
+    decompressedMap[self.RACKS_KEY] = racks
+    #Add ips list to result
+    decompressedMap[self.IPV4_ADDRESSES_KEY] = ipv4_addresses
+    #Add ambari-server properties to result
+    decompressedMap[self.AMBARI_SERVER_HOST] = ambariServerHost
+    decompressedMap[self.AMBARI_SERVER_PORT] = ambariServerPort
+    decompressedMap[self.AMBARI_SERVER_USE_SSL] = ambariServerUseSsl
+
+    return decompressedMap
 
   # Converts from 1-3,5,6-8 to [1,2,3,5,6,7,8]
   def convertRangeToList(self, list):
