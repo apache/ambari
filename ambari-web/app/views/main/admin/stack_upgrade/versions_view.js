@@ -126,7 +126,15 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @type {Em.Array}
    */
   repoVersions: App.RepositoryVersion.find(),
-  
+
+  hasMaintRepoVersion: Em.computed.someBy('repoVersions', 'isMaint', true),
+
+  hasPatchRepoVersion: Em.computed.someBy('repoVersions', 'isPatch', true),
+
+  hasServiceRepoVersion: Em.computed.someBy('repoVersions', 'isService', true),
+
+  hasSpecialTypeRepoVersion: Em.computed.or('hasMaintRepoVersion', 'hasPatchRepoVersion', 'hasServiceRepoVersion'),
+
   /**
    * @type {Em.Array}
    */

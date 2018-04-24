@@ -23,6 +23,15 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   isVersionColumnView: true,
   classNames: ['version-column', 'col-md-4'],
 
+  /**
+   * Indicates whether block for version type should be displayed.
+   * True if any of available versions is of PATCH, MAINT or SERVICE type
+   * @type {Boolean}
+   */
+  displayVersionTypeBlock: false,
+
+  currentLabelClass: 'btn btn-primary',
+
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
     App.tooltip($('.not-upgradable'));
