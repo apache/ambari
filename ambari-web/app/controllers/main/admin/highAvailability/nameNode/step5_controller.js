@@ -54,7 +54,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
       data: {
         hostName: hostName,
         passive_state: "ON",
-        componentName: 'SECONDARY_NAMENODE'
+        componentId: App.HostComponent.find().findProperty('componentName', 'SECONDARY_NAMENODE').get('compId'),
       },
       success: 'onTaskCompleted',
       error: 'onTaskError'

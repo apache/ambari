@@ -112,7 +112,7 @@ var urls = {
   },
 
   'common.host_component.getNnCheckPointTime': {
-    'real': '/clusters/{clusterName}/hosts/{host}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/HAState,metrics/dfs/FSNamesystem/LastCheckpointTime',
+    'real': '/clusters/{clusterName}/hosts/{host}/host_components/{nameNodeId}?fields=metrics/dfs/FSNamesystem/HAState,metrics/dfs/FSNamesystem/LastCheckpointTime',
     'mock': ''
   },
 
@@ -178,7 +178,7 @@ var urls = {
   },
 
   'common.host.host_component.update': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?{urlParams}',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentId}?{urlParams}',
     'mock': '/data/wizard/deploy/2_hosts/poll_9.json',
     'type': 'PUT',
     'format': function (data) {
@@ -273,7 +273,7 @@ var urls = {
 
 
   'service.flume.agent.command': {
-    'real': '/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER',
+    'real': '/clusters/{clusterName}/hosts/{host}/host_components/{componentId}',
     'mock': '',
     'format': function (data) {
       return {
@@ -357,7 +357,7 @@ var urls = {
   },
 
   'common.host.host_component.passive': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentId}',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {
@@ -412,7 +412,7 @@ var urls = {
     'type': 'DELETE'
   },
   'common.delete.host_component': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentId}',
     'type': 'DELETE'
   },
   'common.delete.user': {
@@ -973,7 +973,7 @@ var urls = {
   },
 
   'host.host_component.slave_desired_admin_state': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentId}/?fields=HostRoles/desired_admin_state',
     'mock': '/data/hosts/HDP2/decommission_state.json'
   },
   'host.host_component.decommission_status': {
@@ -985,7 +985,7 @@ var urls = {
     'mock': ''
   },
   'host.host_component.decommission_status_datanode': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/dfs/namenode',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentId}?fields=metrics/dfs/namenode',
     'mock': '/data/hosts/HDP2/decommission_state.json'
   },
   'host.region_servers.in_inservice': {
@@ -1437,15 +1437,15 @@ var urls = {
     'mock': '/data/background_operations/host_upgrade_tasks.json'
   },
   'admin.high_availability.getNnCheckPointStatus': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{nameNodeId}',
     'mock': ''
   },
   'admin.high_availability.getJnCheckPointStatus': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/JOURNALNODE?fields=metrics',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{jnId}?fields=metrics',
     'mock': ''
   },
   'admin.high_availability.getHostComponent': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentId}',
     'mock': ''
   },
   'common.create_component': {
@@ -2596,7 +2596,7 @@ var urls = {
     'mock': '/data/views/instances.json'
   },
   'host.host_component.flume.metrics': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{flumeId}?fields=metrics/flume/flume/{flumeComponent}/*',
     'mock': ''
   },
   'host.host_component.flume.metrics.timeseries': {

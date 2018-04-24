@@ -324,7 +324,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         state: state,
         context: context,
         agentName: agent.get('name'),
-        host: agent.get('hostName')
+        host: agent.get('hostName'),
+        componentId: App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER').get('compId')
       },
       success: 'commandSuccessCallback'
     });

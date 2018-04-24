@@ -31,12 +31,13 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
     var hdfs = App.HDFSService.find().objectAt(0);
     // TODO rewrite considering federation case and using activeNameNodes array
     var activeNNHostName = (!hdfs.get('snameNode') && hdfs.get('activeNameNode')) ? hdfs.get('activeNameNode.hostName') : hdfs.get('nameNode.hostName');
+    var componentForCheckDecommission = this.get('componentForCheckDecommission');
     return App.ajax.send({
       name: 'host.host_component.decommission_status_datanode',
       sender: this,
       data: {
         hostName: activeNNHostName,
-        componentName: this.get('componentForCheckDecommission')
+        componentId: App.HostComponent.find().findProperty('componentName', componentForCheckDecommission).get('compId')
       },
       success: 'getDNDecommissionStatusSuccessCallback',
       error: 'getDNDecommissionStatusErrorCallback'

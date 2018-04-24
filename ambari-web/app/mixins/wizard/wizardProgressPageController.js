@@ -654,7 +654,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
         data: {
           hostName: component.hostName,
           serviceName: component.serviceName,
-          componentName: component.componentName,
+          componentId: component.id,
           HostRoles: {
             state: state
           },
@@ -768,7 +768,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       name: 'common.delete.host_component',
       sender: this,
       data: {
-        componentName: componentName,
+        componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId'),
         hostName: hostName
       },
       success: 'onTaskCompleted',

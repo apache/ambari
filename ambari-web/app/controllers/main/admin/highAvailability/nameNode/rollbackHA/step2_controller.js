@@ -27,7 +27,8 @@ App.RollbackHighAvailabilityWizardStep2Controller = App.HighAvailabilityWizardSt
       name: 'admin.high_availability.getNnCheckPointStatus',
       sender: this,
       data: {
-        hostName: hostName
+        hostName: hostName,
+        nameNodeId: App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('compId')
       },
       success: 'checkNnCheckPointStatus'
     });

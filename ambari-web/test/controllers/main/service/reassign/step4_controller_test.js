@@ -711,19 +711,24 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(args).not.exists;
     });
     it('delete two components', function () {
-      controller.set('hostComponents', [1, 2]);
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({'componentName': 'COMP1', 'compId': '1'}),
+        Em.Object.create({'componentName': 'COMP2', 'compId': '2'})
+      ]);
+      controller.set('hostComponents', ["COMP1", "COMP2"]);
       controller.set('content.reassignHosts.source', 'host1');
       controller.deleteHostComponents();
       var args = testHelpers.filterAjaxRequests('name', 'common.delete.host_component');
       expect(args).to.have.property('length').equal(2);
       expect(args[0][0].data).to.eql({
         "hostName": "host1",
-        "componentName": 1
+        "componentId": "1"
       });
       expect(args[1][0].data).to.eql({
         "hostName": "host1",
-        "componentName": 2
+        "componentId": "2"
       });
+      App.HostComponent.find.restore();
     });
   });
 
@@ -951,6 +956,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
           componentName: 'MYSQL_SERVER',
+          compId: '1',
           hostName: 'host1'
         })
       ]);
@@ -967,7 +973,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         context: "Start MySQL Server",
         hostName: 'host1',
         serviceName: "HIVE",
-        componentName: "MYSQL_SERVER",
+        componentId: "1",
         HostRoles: {
           state: "STARTED"
         }
@@ -1017,6 +1023,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe("#startNewMySqlServer()", function() {
 
     beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'MYSQL_SERVER', 'compId': '1'})]);
       controller.set('content', Em.Object.create({
         reassignHosts: Em.Object.create({
           target: 'host1'
@@ -1024,6 +1031,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       }));
       controller.startNewMySqlServer();
       this.args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
     });
 
     it('valid request is sent', function() {
@@ -1033,7 +1043,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         context: "Start MySQL Server",
         hostName: 'host1',
         serviceName: "HIVE",
-        componentName: "MYSQL_SERVER",
+        componentId: "1",
         HostRoles: {
           state: "STARTED"
         }

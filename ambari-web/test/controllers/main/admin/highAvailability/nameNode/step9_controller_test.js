@@ -319,6 +319,7 @@ describe('App.HighAvailabilityWizardStep9Controller', function() {
   describe('#deleteSNameNode', function() {
 
     it('App.ajax.send should be called', function() {
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'SECONDARY_NAMENODE', 'compId': '1'})]);
       controller.set('content.masterComponentHosts', [
         {
           component: 'SECONDARY_NAMENODE',
@@ -331,12 +332,13 @@ describe('App.HighAvailabilityWizardStep9Controller', function() {
         name: 'common.delete.host_component',
         sender: controller,
         data: {
-          componentName: 'SECONDARY_NAMENODE',
+          componentId: '1',
           hostName: 'host1'
         },
         success: 'onTaskCompleted',
         error: 'onTaskError'
       });
+      App.HostComponent.find.restore();
     });
   });
 });

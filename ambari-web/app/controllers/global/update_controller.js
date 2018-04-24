@@ -485,6 +485,7 @@ App.UpdateController = Em.Controller.extend({
         'host_components/HostRoles/display_name,' +
         'host_components/HostRoles/host_name,' +
         'host_components/HostRoles/public_host_name,' +
+        'host_components/HostRoles/component_name,' +
         'host_components/HostRoles/state,' +
         'host_components/HostRoles/maintenance_state,' +
         'host_components/HostRoles/stale_configs,' +

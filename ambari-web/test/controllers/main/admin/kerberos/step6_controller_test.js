@@ -103,6 +103,7 @@ describe('App.KerberosWizardStep6Controller', function() {
     beforeEach(function() {
       sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({
         componentName: 'APP_TIMELINE_SERVER',
+        compId: '1',
         hostName: 'host1'
       })]);
     });
@@ -118,7 +119,7 @@ describe('App.KerberosWizardStep6Controller', function() {
         name: 'common.delete.host_component',
         sender: controller,
         data: {
-          componentName: 'APP_TIMELINE_SERVER',
+          componentId: '1',
           hostName: 'host1'
         },
         success: 'onDeleteATSSuccess',
