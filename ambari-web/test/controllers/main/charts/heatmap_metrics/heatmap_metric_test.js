@@ -51,7 +51,7 @@ describe('MainChartHeatmapMetric', function () {
         expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(1);
       });
       it('generateSlot is called with correct arguments', function () {
-        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 100, '', {r: 0, g: 204, b: 0}]);
+        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 100, '', '#1EB475']);
       });
 
     });
@@ -71,10 +71,10 @@ describe('MainChartHeatmapMetric', function () {
         expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(2);
       });
       it('generateSlot 1st call has valid arguments', function () {
-        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 50, '', {r: 0, g: 204, b: 0}]);
+        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 50, '', '#1EB475']);
       });
       it('generateSlot 2nd call has valid arguments', function () {
-        expect(mainChartHeatmapMetric.generateSlot.getCall(1).args).to.eql([50, 100, '', {r: 159, g: 238, b: 0}]);
+        expect(mainChartHeatmapMetric.generateSlot.getCall(1).args).to.eql([50, 100, '', '#1FB418']);
       });
 
     });
@@ -93,12 +93,12 @@ describe('MainChartHeatmapMetric', function () {
     });
 
     it('generateSlot result is valid', function () {
-      expect(mainChartHeatmapMetric.generateSlot(0, 1, '', {r: 0, g: 0, b: 0})).to.eql(Em.Object.create({
+      expect(mainChartHeatmapMetric.generateSlot(0, 1, '', '#1FB418')).to.eql(Em.Object.create({
         hasBoundaries: true,
         "from": "number",
         "to": "number",
         "label": "label - label",
-        "cssStyle": "background-color:rgb(0,0,0)"
+        "cssStyle": "background-color:#1FB418"
       }));
     });
   });
@@ -108,21 +108,21 @@ describe('MainChartHeatmapMetric', function () {
       {
         title: 'unknown browser',
         data: {},
-        result: 'background-color:rgb(135, 206, 250)'
+        result: 'background-color:#666'
       },
       {
         title: 'webkit browser',
         data: {
           webkit: true
         },
-        result: 'background-image:-webkit-repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)'
+        result: 'background-image:-webkit-repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)'
       },
       {
         title: 'mozilla browser',
         data: {
           mozilla: true
         },
-        result: 'background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)'
+        result: 'background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)'
       },
       {
         title: 'IE version 9',
@@ -130,7 +130,7 @@ describe('MainChartHeatmapMetric', function () {
           msie: true,
           version: '9.0'
         },
-        result: 'background-color:rgb(135, 206, 250)'
+        result: 'background-color:#666'
       },
       {
         title: 'IE version 10',
@@ -138,7 +138,7 @@ describe('MainChartHeatmapMetric', function () {
           msie: true,
           version: '10.0'
         },
-        result: 'background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)'
+        result: 'background-image:repeating-linear-gradient(-45deg, #666, #666 6px, #fff 6px, #fff 7px)'
       }
     ];
 
