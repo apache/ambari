@@ -114,3 +114,51 @@ class ServiceAdvisor(DefaultStackAdvisor):
     such as validateHDFSConfigurations.
     """
     return []
+
+  def getDBDriver(self, databaseType):
+    driverDict = {
+      "NEW MYSQL DATABASE": "com.mysql.jdbc.Driver",
+      "NEW DERBY DATABASE": "org.apache.derby.jdbc.EmbeddedDriver",
+      "EXISTING MYSQL DATABASE": "com.mysql.jdbc.Driver",
+      "EXISTING MYSQL / MARIADB DATABASE": "com.mysql.jdbc.Driver",
+      "EXISTING POSTGRESQL DATABASE": "org.postgresql.Driver",
+      "EXISTING ORACLE DATABASE": "oracle.jdbc.driver.OracleDriver",
+      "EXISTING SQL ANYWHERE DATABASE": "sap.jdbc4.sqlanywhere.IDriver"
+    }
+    return driverDict.get(databaseType.upper())
+
+  def getDBConnectionString(self, databaseType):
+    driverDict = {
+      "NEW MYSQL DATABASE": "jdbc:mysql://{0}/{1}?createDatabaseIfNotExist=true",
+      "NEW DERBY DATABASE": "jdbc:derby:${{oozie.data.dir}}/${{oozie.db.schema.name}}-db;create=true",
+      "EXISTING MYSQL DATABASE": "jdbc:mysql://{0}/{1}",
+      "EXISTING MYSQL / MARIADB DATABASE": "jdbc:mysql://{0}/{1}",
+      "EXISTING POSTGRESQL DATABASE": "jdbc:postgresql://{0}:5432/{1}",
+      "EXISTING ORACLE DATABASE": "jdbc:oracle:thin:@//{0}:1521/{1}",
+      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere:host={0};database={1}"
+    }
+    return driverDict.get(databaseType.upper())
+
+  def getProtocol(self, databaseType):
+    first_parts_of_connection_string = {
+      "NEW MYSQL DATABASE": "jdbc:mysql",
+      "NEW DERBY DATABASE": "jdbc:derby",
+      "EXISTING MYSQL DATABASE": "jdbc:mysql",
+      "EXISTING MYSQL / MARIADB DATABASE": "jdbc:mysql",
+      "EXISTING POSTGRESQL DATABASE": "jdbc:postgresql",
+      "EXISTING ORACLE DATABASE": "jdbc:oracle",
+      "EXISTING SQL ANYWHERE DATABASE": "jdbc:sqlanywhere"
+    }
+    return first_parts_of_connection_string.get(databaseType.upper())
+
+  def getDBTypeAlias(self, databaseType):
+    driverDict = {
+      "NEW MYSQL DATABASE": "mysql",
+      "NEW DERBY DATABASE": "derby",
+      "EXISTING MYSQL / MARIADB DATABASE": "mysql",
+      "EXISTING MYSQL DATABASE": "mysql",
+      "EXISTING POSTGRESQL DATABASE": "postgres",
+      "EXISTING ORACLE DATABASE": "oracle",
+      "EXISTING SQL ANYWHERE DATABASE": "sqla"
+    }
+    return driverDict.get(databaseType.upper())
