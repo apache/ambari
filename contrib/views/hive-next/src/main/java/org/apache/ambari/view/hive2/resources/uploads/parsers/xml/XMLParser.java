@@ -76,7 +76,7 @@ public class XMLParser extends Parser {
 
   @Override
   public Row extractHeader() {
-    Collection<String> headers = this.iterator.extractHeaders();
+    Collection<String> headers = this.iterator.getHeaders();
     Object[] objs = new Object[headers.size()];
     Iterator<String> iterator = headers.iterator();
     for (int i = 0; i < headers.size(); i++) {
