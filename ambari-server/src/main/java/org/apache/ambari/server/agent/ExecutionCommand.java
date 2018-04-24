@@ -97,7 +97,6 @@ public class ExecutionCommand extends AgentCommand {
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
-  @JsonIgnore
   private Map<String, Set<String>> clusterHostInfo =
     new HashMap<>();
 
