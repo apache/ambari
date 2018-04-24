@@ -45,8 +45,8 @@ const appRoutes: Routes = [{
     path: 'logs',
     component: LogsContainerComponent,
     data: {
-      multiClusterFilter: true,
-      breadcrumbs: 'logs.title'
+      breadcrumbs: 'logs.title',
+      multiClusterFilter: true
     },
     canActivate: [AuthGuardService, TabGuard]
   }, {
