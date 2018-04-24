@@ -196,7 +196,7 @@ class TestHookBeforeInstall(RMFTestCase):
                               create_parents = True,
                               )
     self.assertResourceCalled('File', '/tmp/jdk-7u67-linux-x64.tar.gz',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//jdk-7u67-linux-x64.tar.gz'),
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/jdk-7u67-linux-x64.tar.gz'),
                               not_if = 'test -f /tmp/jdk-7u67-linux-x64.tar.gz',
                               )
     self.assertResourceCalled('File', '/tmp/jdk-7u67-linux-x64.tar.gz',

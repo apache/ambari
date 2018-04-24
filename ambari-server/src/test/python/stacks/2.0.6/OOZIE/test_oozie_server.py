@@ -290,7 +290,7 @@ class TestOozieServer(RMFTestCase):
                               recursive_ownership = True,
     )
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -518,7 +518,7 @@ class TestOozieServer(RMFTestCase):
                               recursive_ownership = True,
                               )
     self.assertResourceCalled('File', '/tmp/sqla-client-jdbc.tar.gz',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqla-client-jdbc.tar.gz'),
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/sqla-client-jdbc.tar.gz'),
                               )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/tmp/sqla-client-jdbc.tar.gz', '-C', '/tmp'),
                               sudo = True,
@@ -1614,7 +1614,7 @@ class TestOozieServer(RMFTestCase):
       target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar') )
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar') )
 
     self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar',
       '/usr/hdp/2.3.0.0-1234/oozie/libext/mysql-connector-java.jar'),

@@ -447,3 +447,11 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': '\'unsupported_db\' database type not supported.', 'exit_code': 1}})
 
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
+  def testBuildUrl(self, ):
+    checkHost = CheckHost()
+
+    self.assertEquals('base_url/path', checkHost.build_url('base_url', 'path'))
+    self.assertEquals('base_url/path', checkHost.build_url('base_url/', 'path'))
+    self.assertEquals('base_url/path', checkHost.build_url('base_url/', '/path'))
+    self.assertEquals('base_url/path', checkHost.build_url('base_url', '/path'))

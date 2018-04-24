@@ -70,7 +70,7 @@ def setup_ranger_admin(upgrade_type=None):
 #    ranger_conf = format("/usr/iop/current/ranger-admin/conf")
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
-    content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+    content = DownloadSource(format("{jdk_location}/{check_db_connection_jar_name}")),
     mode = 0644,
   )
 

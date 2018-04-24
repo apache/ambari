@@ -4,7 +4,7 @@
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "ambari_db_rca_password": "mapred", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
         "jce_name": "UnlimitedJCEPolicyJDK7.zip", 

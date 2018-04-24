@@ -193,7 +193,7 @@ class TestRangerAdmin(RMFTestCase):
                               )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
                               mode = 0644
                               )
 
@@ -252,7 +252,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -437,7 +437,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 

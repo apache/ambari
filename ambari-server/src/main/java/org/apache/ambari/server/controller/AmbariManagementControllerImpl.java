@@ -334,8 +334,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   final private Integer masterPort;
   final private String masterProtocol;
 
-  final private static String JDK_RESOURCE_LOCATION =
-      "/resources/";
+  final private static String JDK_RESOURCE_LOCATION = "/resources";
 
   final private static int REPO_URL_CONNECT_TIMEOUT = 3000;
   final private static int REPO_URL_READ_TIMEOUT = 2000;

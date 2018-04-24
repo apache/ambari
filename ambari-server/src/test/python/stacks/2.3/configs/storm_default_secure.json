@@ -23,13 +23,13 @@
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.8.0_40", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
         "jce_name": "jce_policy-8.zip", 
         "java_version": "8", 
-        "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//ojdbc6.jar", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources/ojdbc6.jar",
         "stack_name": "HDP", 
         "stack_version": "2.3", 
         "host_sys_prepped": "false", 
@@ -39,7 +39,7 @@
         "ambari_db_rca_username": "mapred", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "agentCacheDir": "/var/lib/ambari-agent/cache", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 

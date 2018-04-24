@@ -484,11 +484,9 @@ public class AmbariServer {
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
 
-      ServletHolder resources = new ServletHolder(ServletContainer.class);
-      resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-          "com.sun.jersey.api.core.PackagesResourceConfig");
-      resources.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.resources.api.rest;");
+      File resourcesDirectory = new File(configs.getResourceDirPath());
+      ServletHolder resources = new ServletHolder(DefaultServlet.class);
+      resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 

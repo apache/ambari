@@ -250,7 +250,7 @@ def hive(name=None):
     jdbc_connector()
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
-       content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+       content = DownloadSource(format("{jdk_location}/{check_db_connection_jar_name}")),
        mode = 0644,
   )
 

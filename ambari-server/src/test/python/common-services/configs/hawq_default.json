@@ -7,7 +7,7 @@
     "role": "HAWQ_SERVICE_CHECK",
     "hostLevelParams": {
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "stack_name": "PHD",
         "stack_version": "3.3",
         "jdk_name": "jdk-8u60-linux-x64.tar.gz"

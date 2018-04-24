@@ -6,12 +6,12 @@
     "componentName": "", 
     "hostname": "u1202.ambari.apache.org", 
     "hostLevelParams": {
-        "jdk_location": "http://u1201.ambari.apache.org:8080/resources/", 
+        "jdk_location": "http://u1201.ambari.apache.org:8080/resources",
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_67", 
         "ambari_db_rca_url": "jdbc:postgresql://u1201.ambari.apache.org/ambarirca", 
         "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
-        "oracle_jdbc_url": "http://u1201.ambari.apache.org:8080/resources//ojdbc6.jar", 
+        "oracle_jdbc_url": "http://u1201.ambari.apache.org:8080/resources/ojdbc6.jar",
         "stack_version": "2.2", 
         "stack_name": "HDP", 
         "db_name": "ambari", 
@@ -20,7 +20,7 @@
         "ambari_db_rca_username": "mapred", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "agentCacheDir": "/var/lib/ambari-agent/cache", 
-        "mysql_jdbc_url": "http://u1201.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://u1201.ambari.apache.org:8080/resources/mysql-connector-java.jar"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {
