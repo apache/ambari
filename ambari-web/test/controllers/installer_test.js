@@ -509,7 +509,9 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        sinon.spy(checker, 'loadStacksVersions');
+        sinon.stub(checker, 'loadStacksVersions').returns({
+          done: Em.clb
+        });
       });
 
       afterEach(function() {
