@@ -42,7 +42,7 @@
   </div>
 </div>
 <div id="versions-section" class="row col-md-12">
-  <div class="col-md-3 left-menu-table">
+  <div {{bindAttr class=":col-md-3 :left-menu-table view.hasSpecialTypeRepoVersion:has-special-type-repo-version"}}>
     <table class="table border-extended-table">
       <thead>
       </thead>
@@ -60,7 +60,7 @@
       <div class="versions-slides-bar">
         {{#each version in view.repoVersions}}
           {{#if version.isVisible}}
-            {{view App.UpgradeVersionColumnView contentBinding="version"}}
+            {{view App.UpgradeVersionColumnView contentBinding="version" displayVersionTypeBlockBinding="view.hasSpecialTypeRepoVersion"}}
           {{/if}}
         {{/each}}
       </div>

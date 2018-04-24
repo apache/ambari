@@ -108,48 +108,52 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   content: null,
 
+  currentLabelClass: 'label label-success',
+
   /**
    * map of properties which correspond to particular state of Upgrade version
    * @type {object}
    */
-  statePropertiesMap: {
-    'CURRENT': {
-      isLabel: true,
-      text: Em.I18n.t('common.current'),
-      class: 'label label-success'
-    },
-    'NOT_REQUIRED': {
-      isButton: true,
-      text: Em.I18n.t('admin.stackVersions.version.installNow'),
-      action: 'installRepoVersionPopup'
-    },
-    'LOADING': {
-      isSpinner: true,
-      class: 'spinner'
-    },
-    'INSTALLING': {
-      iconClass: 'glyphicon glyphicon-cog',
-      isLink: true,
-      text: Em.I18n.t('hosts.host.stackVersions.status.installing'),
-      action: 'showProgressPopup'
-    },
-    'INSTALLED': {
-      iconClass: 'glyphicon glyphicon-ok',
-      isButtonGroup: true,
-      text: Em.I18n.t('common.installed'),
-      action: null
-    },
-    'SUSPENDED': {
-      isButton: true,
-      text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
-      action: 'resumeUpgrade'
-    },
-    'CURRENT_PATCH': {
-      isLabel: true,
-      text: Em.I18n.t('common.current'),
-      class: 'label label-success'
-    }
-  },
+  statePropertiesMap: function () {
+    return {
+      'CURRENT': {
+        isLabel: true,
+        text: Em.I18n.t('common.current'),
+        class: this.get('currentLabelClass')
+      },
+      'NOT_REQUIRED': {
+        isButton: true,
+        text: Em.I18n.t('admin.stackVersions.version.installNow'),
+        action: 'installRepoVersionPopup'
+      },
+      'LOADING': {
+        isSpinner: true,
+        class: 'spinner'
+      },
+      'INSTALLING': {
+        iconClass: 'glyphicon glyphicon-cog',
+        isLink: true,
+        text: Em.I18n.t('hosts.host.stackVersions.status.installing'),
+        action: 'showProgressPopup'
+      },
+      'INSTALLED': {
+        iconClass: 'glyphicon glyphicon-ok',
+        isButtonGroup: true,
+        text: Em.I18n.t('common.installed'),
+        action: null
+      },
+      'SUSPENDED': {
+        isButton: true,
+        text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
+        action: 'resumeUpgrade'
+      },
+      'CURRENT_PATCH': {
+        isLabel: true,
+        text: Em.I18n.t('common.current'),
+        class: this.get('currentLabelClass')
+      }
+    };
+  }.property(),
 
   /**
    * object that describes how content should be displayed

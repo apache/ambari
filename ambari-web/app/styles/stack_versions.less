@@ -18,6 +18,7 @@
 @import 'common.less';
 
 @left-menu-table-z-index: 999;
+@left-menu-table-margin-top: 150px;
 @version-line-height: 20px;
 
 #advancedRepoAccordion{
@@ -162,7 +163,10 @@
   }
   .left-menu-table {
     padding: 10px 0;
-    margin-top: 142px;
+    margin-top: @left-menu-table-margin-top;
+    &.has-special-type-repo-version {
+      margin-top: @left-menu-table-margin-top + @version-line-height;
+    }
     .border-extended-table {
       width: 100%;
       position: relative;
@@ -269,7 +273,7 @@
     }
     .patch-icon {
       text-align: center;
-      color: #ff4500;
+      color: @health-status-orange;
       height: @version-line-height;
       font-size: 14px;
       margin: 18px 0px -18px 1px;
@@ -306,11 +310,16 @@
       padding: 5px;
       margin-bottom: 0;
     }
-    .version-column-display-type{
+    .version-column-repository-name {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+    }
+    .version-column-display-type {
       text-align: center;
       height: @version-line-height;
       margin-bottom: 0;
-      color: #ff4500;
+      color: @health-status-orange;
     }
     .version-column-show-details {
       text-align: center;
@@ -326,26 +335,24 @@
       margin: 5px 0 15px 0;
       line-height: @version-line-height;
       height: 35px;
-      .label-wrapper{
-        display: inline-block;
-        position: relative;
-        .label-success {
-          line-height: 30px;
-        }
-        .dropdown-toggle{
-          background: none;
-          height: auto;
-          padding: 8px 8px;
-          background: none;
-          border:none;
-          outline:none;
-          box-shadow: none;
-          position: absolute;
-          right: 0;
-          top: 0;
-          color: #fff;
-          &:hover, &:active, &:focus{
-            color: #fff;
+      .label-wrapper {
+        .btn {
+          cursor: auto;
+          text-transform: none;
+          .state-label-text {
+            cursor: text;
+          }
+          &.btn-primary {
+            background-color: @bootstrap-success;
+            border-color: @bootstrap-success;
+          }
+          &.dropdown-toggle {
+            cursor: pointer;
+            padding-right: 8px;
+            padding-left: 8px;
+          }
+          &:active {
+            box-shadow: none;
           }
         }
       }
@@ -814,7 +821,8 @@
   }
   .accordion-group {
     border-right: none;
-    padding-left:20px;
+    padding-left: 20px;
+    overflow-x: visible;
   }
   .accordion-heading {
     background-color: transparent;
@@ -828,12 +836,19 @@
     cursor: pointer;
   }
   .accordion-body {
+    width: 400%;
     min-width: 400px;
-    .accordion-inner{
-      padding-top:20px;
-      .label{
+    .accordion-inner {
+      padding-top: 20px;
+      .label {
         padding: 5px 15px;
-        &.available{
+        &.label-from {
+          margin-left: 8px;
+        }
+        &.label-to {
+          margin-left: -8px;
+        }
+        &.available {
           background-color: #468847;
         }
       }
