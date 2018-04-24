@@ -455,4 +455,4 @@ class TestCheckHost(TestCase):
     self.assertEquals('base_url/path', checkHost.build_url('base_url', 'path'))
     self.assertEquals('base_url/path', checkHost.build_url('base_url/', 'path'))
     self.assertEquals('base_url/path', checkHost.build_url('base_url/', '/path'))
-    self.assertEquals('base_url/path', checkHost.build_url('base_url/', 'path'))
+    self.assertEquals('base_url/path', checkHost.build_url('base_url', '/path'))
