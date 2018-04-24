@@ -68,7 +68,7 @@ def hive(name=None):
 
   cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf -x \"\" "
                "--retry 5 "
-               "{jdk_location}{check_db_connection_jar_name} "
+               "{jdk_location}/{check_db_connection_jar_name} "
                "-o {check_db_connection_jar_name}'")
 
   Execute(cmd,

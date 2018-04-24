@@ -218,7 +218,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
       mode = 0644,
     )
 
@@ -290,7 +290,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -665,7 +665,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
       mode = 0644,
     )
 
@@ -720,7 +720,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 

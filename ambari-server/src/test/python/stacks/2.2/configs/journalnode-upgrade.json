@@ -67,14 +67,14 @@
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "agent_stack_retry_count": "5",
         "agent_stack_retry_on_unavailability": "false",
-        "jdk_location": "http://c6406.ambari.apache.org:8080/resources/", 
+        "jdk_location": "http://c6406.ambari.apache.org:8080/resources",
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_67",
         "java_version": "8",
         "ambari_db_rca_url": "jdbc:postgresql://c6406.ambari.apache.org/ambarirca", 
         "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
         "custom_command": "RESTART", 
-        "oracle_jdbc_url": "http://c6406.ambari.apache.org:8080/resources//ojdbc6.jar", 
+        "oracle_jdbc_url": "http://c6406.ambari.apache.org:8080/resources/ojdbc6.jar",
         "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.2\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.2.1.0-2340\",\"baseSaved\":true},{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.20\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"baseSaved\":true}]", 
         "group_list": "[\"hadoop\",\"users\",\"hdfs\"]", 
         "agentCacheDir": "/var/lib/ambari-agent/cache", 
@@ -86,7 +86,7 @@
         "ambari_db_rca_username": "mapred", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "user_list": "[\"oozie\",\"hive\",\"mapred\",\"hbase\",\"ambari-qa\",\"zookeeper\",\"tez\",\"hdfs\",\"sqoop\",\"hcat\",\"yarn\",\"ams\"]", 
-        "mysql_jdbc_url": "http://c6406.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6406.ambari.apache.org:8080/resources/mysql-connector-java.jar"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {

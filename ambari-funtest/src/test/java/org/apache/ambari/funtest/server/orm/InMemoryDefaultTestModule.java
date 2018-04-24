@@ -61,7 +61,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
   protected void configure() {
     String stacks = "src/test/resources/stacks";
     String version = "src/test/resources/version";
-    String sharedResourcesDir = "src/test/resources/";
+    String sharedResourcesDir = "src/test/resources";
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version").getPath();

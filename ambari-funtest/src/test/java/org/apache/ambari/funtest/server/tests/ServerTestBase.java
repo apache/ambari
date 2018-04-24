@@ -103,7 +103,7 @@ public class ServerTestBase {
             properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), "src/test/resources/stacks");
             properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
             properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
-            properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
+            properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources");
 
             properties.setProperty(Configuration.AGENT_USE_SSL.getKey(), "false");
             properties.setProperty(Configuration.CLIENT_API_PORT.getKey(), Integer.toString(serverPort));

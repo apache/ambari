@@ -31,7 +31,7 @@ def get_password_from_credential_store(alias, provider_path, cs_lib_path, java_h
     # Try to download CredentialUtil.jar from ambari-server resources
     credential_util_dir = cs_lib_path.split('*')[0] # Remove the trailing '*'
     credential_util_path = os.path.join(credential_util_dir, credential_util_jar)
-    credential_util_url =  jdk_location + credential_util_jar
+    credential_util_url =  jdk_location + '/' + credential_util_jar
     File(credential_util_path,
          content = DownloadSource(credential_util_url),
          mode = 0755,

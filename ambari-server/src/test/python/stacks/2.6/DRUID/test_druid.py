@@ -689,7 +689,7 @@ class TestDruid(RMFTestCase):
                               )
 
     self.assertResourceCalled('File', format("/tmp/mysql-connector-java.jar"),
-                              content= DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar')
+                              content= DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar')
                               )
     self.assertResourceCalled('Execute',
                               ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar', format('/usr/hdp/current/{role}/extensions/mysql-metadata-storage/mysql-connector-java.jar')),

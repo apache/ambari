@@ -27,7 +27,7 @@
     "hostname": "c6408.ambari.apache.org", 
     "hostLevelParams": {
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "jdk_location": "http://c6408.ambari.apache.org:8080/resources/",
+        "jdk_location": "http://c6408.ambari.apache.org:8080/resources",
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_67",
         "java_version": "8",

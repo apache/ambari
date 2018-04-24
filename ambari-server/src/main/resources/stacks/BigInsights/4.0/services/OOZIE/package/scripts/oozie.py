@@ -94,7 +94,7 @@ def oozie(is_server=False):
      params.jdbc_driver_name == "org.postgresql.Driver" or \
      params.jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
     File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
-      content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+      content = DownloadSource(format("{jdk_location}/{check_db_connection_jar_name}")),
     )
   pass
 

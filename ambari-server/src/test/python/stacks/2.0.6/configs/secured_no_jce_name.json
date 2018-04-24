@@ -4,11 +4,11 @@
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources",
         "ambari_db_rca_password": "mapred", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
         "unlimited_key_jce_required" : "true",
-        "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//ojdbc6.jar",
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources/ojdbc6.jar",
         "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0.8\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]", 
         "package_list": "[{\"type\":\"rpm\",\"name\":\"hadoop-yarn\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-nodemanager\"},{\"type\":\"rpm\",\"name\":\"hadoop-mapreduce\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-proxyserver\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-resourcemanager\"}]", 
         "stack_version": "2.0",
@@ -19,7 +19,7 @@
         "ambari_db_rca_username": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "java_version": "8",
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
