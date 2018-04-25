@@ -125,14 +125,13 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeInMillis(System.currentTimeMillis());
-    JWTClaimsSet claimsSet = new JWTClaimsSet();
-    claimsSet.setSubject("test-user");
-    claimsSet.setIssuer("unit-test");
-    claimsSet.setIssueTime(calendar.getTime());
-
-    claimsSet.setExpirationTime(expirationTime);
-
-    claimsSet.setAudience(audience);
+    JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+      .subject("test-user")
+      .issuer("unit-test")
+      .issueTime(calendar.getTime())
+      .expirationTime(expirationTime)
+      .audience(audience)
+      .build();
 
     SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claimsSet);
     signedJWT.sign(signer);
@@ -143,19 +142,21 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
   private SignedJWT getInvalidToken() throws JOSEException {
     RSASSASigner signer = new RSASSASigner(invalidPrivateKey);
 
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTimeInMillis(System.currentTimeMillis());
-    calendar.add(Calendar.DATE, -2);
+    Calendar issueTime = Calendar.getInstance();
+    issueTime.setTimeInMillis(System.currentTimeMillis());
+    issueTime.add(Calendar.DATE, -2);
 
-    JWTClaimsSet claimsSet = new JWTClaimsSet();
-    claimsSet.setSubject("test-user");
-    claimsSet.setIssuer("unit-test");
-    claimsSet.setIssueTime(calendar.getTime());
+    Calendar expirationTime = Calendar.getInstance();
+    issueTime.setTimeInMillis(System.currentTimeMillis());
+    expirationTime.add(Calendar.DATE, -1);
 
-    calendar.add(Calendar.DATE, 1); //add one day
-    claimsSet.setExpirationTime(calendar.getTime());
-
-    claimsSet.setAudience("test-audience-invalid");
+    JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+      .subject("test-user")
+      .issuer("unit-test")
+      .issueTime(issueTime.getTime())
+      .expirationTime(issueTime.getTime())
+      .audience("test-audience-invalid")
+      .build();
 
     SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claimsSet);
     signedJWT.sign(signer);
