@@ -311,6 +311,10 @@
           <artifactId>zkclient</artifactId>
           <groupId>com.101tec</groupId>
         </exclusion>
+        <exclusion>
+          <artifactId>zookeeper</artifactId>
+          <groupId>org.apache.zookeeper</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <!-- zkclient is helix-core dependency but it need to be 0.9 in order for AMS HA to work on secure cluster-->
@@ -318,6 +322,11 @@
       <groupId>com.101tec</groupId>
       <artifactId>zkclient</artifactId>
       <version>0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+      <version>3.4.5.1.3.0.0-107</version>
     </dependency>
     <dependency>
       <groupId>org.apache.phoenix</groupId>
