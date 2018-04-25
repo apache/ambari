@@ -2538,6 +2538,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> mHadoopEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> shHadoopEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> clusterEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> hiveEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> hiveInteractiveEnvMap = new HashMap<>();
@@ -2597,6 +2598,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("ranger-storm-audit", rangerStormAuditPropsMap);
     singleHostTopologyUpdaters.put("ranger-atlas-audit", rangerAtlasAuditPropsMap);
     singleHostTopologyUpdaters.put(HADOOP_ENV_CONFIG_TYPE_NAME, shHadoopEnvMap);
+    singleHostTopologyUpdaters.put(CLUSTER_ENV_CONFIG_TYPE_NAME, clusterEnvMap);
 
     singleHostTopologyUpdaters.put("hawq-site", hawqSiteMap);
     singleHostTopologyUpdaters.put("zookeeper-env", zookeeperEnvMap);
@@ -2645,8 +2647,8 @@ public class BlueprintConfigurationProcessor {
     multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false, false, true));
     multiHdfsSiteMap.put("dfs.encryption.key.provider.uri", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false, false, false));
     // Explicit initial primary/secondary node assignment in HA
-    shHadoopEnvMap.put(HDFS_ACTIVE_NAMENODE_PROPERTY_NAME, new SingleHostTopologyUpdater("NAMENODE"));
-    shHadoopEnvMap.put(HDFS_STANDBY_NAMENODE_PROPERTY_NAME, new SingleHostTopologyUpdater("NAMENODE"));
+    clusterEnvMap.put(HDFS_ACTIVE_NAMENODE_PROPERTY_NAME, new SingleHostTopologyUpdater("NAMENODE"));
+    clusterEnvMap.put(HDFS_STANDBY_NAMENODE_PROPERTY_NAME, new SingleHostTopologyUpdater("NAMENODE"));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
