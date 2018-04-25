@@ -21,6 +21,8 @@ import {Observable} from 'rxjs/Observable';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ShipperClusterServiceListService} from '@modules/shipper/services/shipper-cluster-service-list.service';
+import {NotificationService, NotificationType} from '@modules/shared/services/notification.service';
+import {TranslateService} from '@ngx-translate/core';
 
 @Injectable()
 export class ShipperGuard implements CanActivate {
@@ -29,7 +31,9 @@ export class ShipperGuard implements CanActivate {
     private routingUtilsService: RoutingUtilsService,
     private router: Router,
     private clustersStoreService: ClustersService,
-    private shipperClusterServiceListService: ShipperClusterServiceListService
+    private shipperClusterServiceListService: ShipperClusterServiceListService,
+    private translateService: TranslateService,
+    private notificationService: NotificationService
   ) {}
 
   getFirstCluster(): Observable<string> {
@@ -47,11 +51,31 @@ export class ShipperGuard implements CanActivate {
   ): Observable<boolean> | Promise<boolean> | boolean {
     const cluster: string = this.routingUtilsService.getParamFromActivatedRouteSnapshot(next, 'cluster');
     const service: string = this.routingUtilsService.getParamFromActivatedRouteSnapshot(next, 'service');
-    (cluster ? Observable.of(cluster) : this.getFirstCluster()).first().subscribe((firstCluster: string) => {
-      this.getFirstServiceForCluster(firstCluster).first().subscribe((firstService: string) => {
-        this.router.navigate(['/shipper', firstCluster, firstService]);
+    return this.clustersStoreService.getAll().filter(clusters => clusters.length).first()
+      .map((clusters: string[]) => {
+        return clusters.indexOf(cluster) === -1 ? clusters[0] : cluster;
+      }) // checking cluster
+      .switchMap((validCluster: string) => {
+        return this.shipperClusterServiceListService.getServicesForCluster(validCluster) // getting valid services for validCluster
+          .map((services: string[]) => {
+            const canActivate: boolean = cluster === validCluster && service && ('add' === service || services.indexOf(service) > -1);
+            // redirect if the cluster changed or the service is not in the valid services and it is not add new service path
+            if (!canActivate) {
+              const title = 'shipperConfiguration.navigation.title';
+              const invalidKey: string = cluster === validCluster ? 'invalidService' : 'invalidCluster';
+              const message = this.translateService.instant(`shipperConfiguration.navigation.${invalidKey}`, {
+                cluster,
+                service
+              });
+              this.notificationService.addNotification({
+                title,
+                message,
+                type: NotificationType.ERROR
+              });
+              this.router.navigate(['/shipper', validCluster, services[0]]);
+            }
+            return canActivate;
+          });
       });
-    });
-    return !!(cluster && service);
   }
 }
