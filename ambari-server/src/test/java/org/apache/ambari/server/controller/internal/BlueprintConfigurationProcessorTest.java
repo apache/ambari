@@ -8945,8 +8945,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     properties.put("druid-common", druidCommon);
 
     Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
-    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+    Configuration parentClusterConfig = new Configuration(parentProperties, emptyMap());
+    Configuration clusterConfig = new Configuration(properties, emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = Sets.newHashSet("DRUID_COORDINATOR");
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));

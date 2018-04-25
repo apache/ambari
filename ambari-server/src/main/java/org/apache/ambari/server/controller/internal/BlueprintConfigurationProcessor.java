@@ -377,8 +377,13 @@ public class BlueprintConfigurationProcessor {
             String propertyName = propertyEntry.getKey();
             String oldValue = propertyEntry.getValue();
             if (!propertiesWithUpdaters.contains(Pair.of(configType, propertyName))) {
-              hostGroupAccumulator.addAll(
-                PropertyUpdater.defaultUpdater().getRequiredHostGroups(propertyName, oldValue, properties, clusterTopology));
+              Collection<String> requiredHostGroups =
+                PropertyUpdater.defaultUpdater().getRequiredHostGroups(propertyName, oldValue, properties, clusterTopology);
+              if (!requiredHostGroups.isEmpty()) {
+                LOG.info("The following host groups are required by applying the default property updater on {}/{} property: {}",
+                  configType, propertyName, requiredHostGroups);
+              }
+              hostGroupAccumulator.addAll(requiredHostGroups);
             }
           });
       });
@@ -619,7 +624,7 @@ public class BlueprintConfigurationProcessor {
    * @param propertyName the name of the property (e.g. dfs.namenode.name.dir)
    * @param oldValue the old value of the property
    * @param updater the property updater to use
-   * @param allProps other properties to be considered by the upsater
+   * @param allProps other properties to be considered by the updater
    * @param configuration configuration to update (cluster global config or hostgroup config)
    * @param configTypesUpdated set of updated config types (configType param will be added if updater changes the
    *                           value of the property)
