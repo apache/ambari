@@ -401,7 +401,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @return {Object}
    */
   getDeleteHostComponentRequest: function (hostName, component) {
-    let componentId = App.HostComponent.find().findProperty('componentName', component).get('compId')
+    let componentId = App.HostComponent.find().findProperty('componentName', component).get('componentId')
     return {
       "type": 'DELETE',
       "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + componentId

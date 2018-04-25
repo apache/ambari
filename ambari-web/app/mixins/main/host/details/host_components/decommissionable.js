@@ -151,7 +151,7 @@ App.Decommissionable = Em.Mixin.create({
       sender: this,
       data: {
         hostName: this.get('content.hostName'),
-        componentId: this.get('content.compId')
+        componentId: this.get('content.componentId')
       },
       success: 'getDesiredAdminStateSuccessCallback',
       error: 'getDesiredAdminStateErrorCallback'

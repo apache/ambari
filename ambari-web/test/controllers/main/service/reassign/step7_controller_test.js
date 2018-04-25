@@ -45,8 +45,8 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
   describe("#putHostComponentsInMaintenanceMode()", function() {
     beforeEach(function(){
       sinon.stub(App.HostComponent, 'find').returns([
-        Em.Object.create({'componentName': 'C1', 'compId': '1'}),
-        Em.Object.create({'componentName': 'C2', 'compId': '2'})
+        Em.Object.create({'componentName': 'C1', 'componentId': '1'}),
+        Em.Object.create({'componentName': 'C2', 'componentId': '2'})
       ]);
     });
     afterEach(function(){
@@ -85,8 +85,8 @@ describe('App.ReassignMasterWizardStep7Controller', function () {
   describe("#deleteHostComponents()", function() {
     beforeEach(function(){
       sinon.stub(App.HostComponent, 'find').returns([
-        Em.Object.create({'componentName': 'C1', 'compId': '1'}),
-        Em.Object.create({'componentName': 'C2', 'compId': '2'})
+        Em.Object.create({'componentName': 'C1', 'componentId': '1'}),
+        Em.Object.create({'componentName': 'C2', 'componentId': '2'})
       ]);
     });
     afterEach(function(){

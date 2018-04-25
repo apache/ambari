@@ -319,7 +319,7 @@ describe('App.HighAvailabilityWizardStep9Controller', function() {
   describe('#deleteSNameNode', function() {
 
     it('App.ajax.send should be called', function() {
-      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'SECONDARY_NAMENODE', 'compId': '1'})]);
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'SECONDARY_NAMENODE', 'componentId': '1'})]);
       controller.set('content.masterComponentHosts', [
         {
           component: 'SECONDARY_NAMENODE',

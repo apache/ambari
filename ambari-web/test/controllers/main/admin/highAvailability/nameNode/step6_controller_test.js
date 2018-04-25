@@ -90,7 +90,7 @@ describe('App.HighAvailabilityWizardStep6Controller', function() {
   describe('#pullEachJnStatus', function() {
 
     it('App.ajax.send should be called', function() {
-      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'JOURNALNODE', 'compId': '1'})]);
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'JOURNALNODE', 'componentId': '1'})]);
       controller.pullEachJnStatus('host1');
       var args = testHelpers.findAjaxRequest('name', 'admin.high_availability.getJnCheckPointStatus');
       expect(args[0]).to.be.eql({

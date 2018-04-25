@@ -237,7 +237,7 @@ describe('App.Decommissionable', function() {
       hostComponentView = Em.View.create(App.Decommissionable, {
         content: Em.Object.create({
           hostName: 'host1',
-          compId: '1'
+          componentId: '1'
         })
       });
       hostComponentView.getDesiredAdminState();

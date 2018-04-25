@@ -327,7 +327,7 @@ describe('App.MainServiceController', function () {
         return Em.get(App, k);
       });
       mainServiceController.allServicesCall(state, query);
-      var args = testHelpers.findAjaxRequest('name', 'common.services.update');
+      var args = testHelpers.findAjaxRequest('name', 'common.services.update.all');
       this.params = App.ajax.fakeGetUrl('common.services.update').format(args[0].data);
       this.data = JSON.parse(this.params.data);
     });
@@ -452,9 +452,9 @@ describe('App.MainServiceController', function () {
 
     it("App.ajax.send should be called", function() {
       mainServiceController.silentStopAllServices();
-      var args = testHelpers.filterAjaxRequests('name', 'common.services.update');
+      var args = testHelpers.filterAjaxRequests('name', 'common.services.update.all');
       expect(args[0][0]).to.eql({
-        name: 'common.services.update',
+        name: 'common.services.update.all',
         sender: mainServiceController,
         data: {
           context: App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES,
@@ -560,7 +560,7 @@ describe('App.MainServiceController', function () {
         allOperationsCount: 1
       }));
       mainServiceController.silentStartAllServices();
-      expect(testHelpers.findAjaxRequest('name', 'common.services.update')).to.be.undefined;
+      expect(testHelpers.findAjaxRequest('name', 'common.services.update.all')).to.be.undefined;
     });
 
     it("shouldStart is false", function() {
@@ -569,7 +569,7 @@ describe('App.MainServiceController', function () {
       }));
       mainServiceController.set('shouldStart', false);
       mainServiceController.silentStartAllServices();
-      expect(testHelpers.findAjaxRequest('name', 'common.services.update')).to.be.undefined;
+      expect(testHelpers.findAjaxRequest('name', 'common.services.update.all')).to.be.undefined;
     });
 
     it("isStopAllServicesFailed returns true", function() {
@@ -579,7 +579,7 @@ describe('App.MainServiceController', function () {
       mainServiceController.set('shouldStart', true);
       this.mock.returns(true);
       mainServiceController.silentStartAllServices();
-      expect(testHelpers.findAjaxRequest('name', 'common.services.update')).to.be.undefined;
+      expect(testHelpers.findAjaxRequest('name', 'common.services.update.all')).to.be.undefined;
     });
 
     it("App.ajax.send should be called", function() {
@@ -589,9 +589,9 @@ describe('App.MainServiceController', function () {
       mainServiceController.set('shouldStart', true);
       this.mock.returns(false);
       mainServiceController.silentStartAllServices();
-      var args = testHelpers.filterAjaxRequests('name', 'common.services.update');
+      var args = testHelpers.filterAjaxRequests('name', 'common.services.update.all');
       expect(args[0][0]).to.be.eql({
-        name: 'common.services.update',
+        name: 'common.services.update.all',
         sender: mainServiceController,
         data: {
           context: App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES,

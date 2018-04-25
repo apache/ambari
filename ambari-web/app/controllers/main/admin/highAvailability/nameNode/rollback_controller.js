@@ -220,7 +220,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
 
   stopAllServices: function(){
     App.ajax.send({
-      name: 'common.services.update',
+      name: 'common.services.update.all',
       data: {
         context: "Stop all services",
         "ServiceInfo": {
@@ -345,7 +345,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
   startAllServices: function(){
     App.ajax.send({
-      name: 'common.services.update',
+      name: 'common.services.update.all',
       data: {
         context: "Start all services",
         "ServiceInfo": {
@@ -480,7 +480,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         sender: this,
         data: {
           hostName: hostName[i],
-          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId'),
+          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('componentId'),
           passive_state: "ON",
           taskNum: hostName.length,
           callback: 'checkBeforeDelete'
@@ -501,7 +501,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         name: 'admin.high_availability.getHostComponent',
         sender: this,
         data: {
-          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId'),
+          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('componentId'),
           hostName: hostName[i],
           taskNum: hostName.length,
           callback: 'deleteComponent'
@@ -550,7 +550,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         name: 'common.delete.host_component',
         sender: this,
         data: {
-          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('compId'),
+          componentId: App.HostComponent.find().findProperty('componentName', componentName).get('componentId'),
           hostName: hostName[i]
         },
         success: 'onDeleteComplete',

@@ -134,6 +134,7 @@ App.stackMapper = App.QuickDataMapper.create({
         id: service.name + '-' + stack.id,
         name: service.name,
         display_name: service.displayName,
+        service_group_name: service.serviceGroupName,
         latest_version: service.versions ? service.versions[0] : ''
       };
       resultServices.push(this.parseIt(serviceObj, this.get('configService')));

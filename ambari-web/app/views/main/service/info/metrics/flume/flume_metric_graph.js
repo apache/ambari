@@ -43,7 +43,7 @@ App.ChartServiceFlumeMetricGraph = App.ChartLinearTimeView.extend({
 
   getDataForAjaxRequest: function() {
     var data = this._super();
-    var flumeId = App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER').get('compId');
+    var flumeId = App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER').get('componentId');
     var urlFields = '';
     this.get('metricItems').forEach(function (metricItem, index) {
       urlFields += index === 0 ? '' : ',';

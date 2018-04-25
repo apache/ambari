@@ -245,8 +245,8 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     });
     it('delete two components', function () {
       sinon.stub(App.HostComponent, 'find').returns([
-        Em.Object.create({'componentName': 'COMP1', 'compId': '1'}),
-        Em.Object.create({'componentName': 'COMP2', 'compId': '2'})
+        Em.Object.create({'componentName': 'COMP1', 'componentId': '1'}),
+        Em.Object.create({'componentName': 'COMP2', 'componentId': '2'})
       ]);
       controller.set('hostComponents', ['COMP1', 'COMP2']);
       controller.set('content.reassignHosts.source', 'host1');
@@ -293,7 +293,7 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
 
   describe('#stopMysqlService()', function () {
     it('stopMysqlService', function () {
-      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'MYSQL_SERVER', 'compId': '1'})]);
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'MYSQL_SERVER', 'componentId': '1'})]);
       controller.stopMysqlService();
       var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
       expect(args[0]).exists;
