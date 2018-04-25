@@ -2250,14 +2250,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
         topology));
 
     assertEquals(
-      "master1_host:8080,master1_host:8090",
-      updater.updateForClusterCreate(
-        "mycomponent.urls",
-        "%HOSTGROUP::master1%:8080,%HOSTGROUP::master1%:8090",
-        clusterConfig.getProperties(),
-        topology));
-
-    assertEquals(
       "master1_host:8080,master2_host:8080",
       updater.updateForClusterCreate(
         "mycomponent.urls",
@@ -2272,6 +2264,80 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
         clusterConfig.getProperties(),
         topology),
       anyOf(is("master3_host1:8080,master3_host2:8080"), is("master3_host2:8080,master3_host1:8080")));
+
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testHostgroupUpdater_NonExistingHostgroup() throws Exception {
+    Set<String> components = ImmutableSet.of("NAMENODE", "SECONDARY_NAMENODE", "RESOURCEMANAGER");
+    Configuration hostGroupConfig = new Configuration(emptyMap(), emptyMap());
+    TestHostGroup group1 = new TestHostGroup("master1", components, ImmutableList.of("master1_host"), hostGroupConfig);
+    Configuration clusterConfig = new Configuration(new HashMap<>(), new HashMap<>());
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableList.of(group1));
+    BlueprintConfigurationProcessor.HostGroupUpdater updater = BlueprintConfigurationProcessor.HostGroupUpdater.INSTANCE;
+
+    updater.updateForClusterCreate(
+      "mycomponent.urls",
+      "%HOSTGROUP::master2%:8080",
+      clusterConfig.getProperties(),
+      topology);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testHostgroupUpdater_TooManyHostsInValue() throws Exception {
+    Set<String> components = ImmutableSet.of("NAMENODE", "SECONDARY_NAMENODE", "RESOURCEMANAGER");
+    Configuration hostGroupConfig = new Configuration(emptyMap(), emptyMap());
+    TestHostGroup group1 = new TestHostGroup("master1", components, ImmutableList.of("master1_host"), hostGroupConfig);
+    Configuration clusterConfig = new Configuration(new HashMap<>(), new HashMap<>());
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableList.of(group1));
+    BlueprintConfigurationProcessor.HostGroupUpdater updater = BlueprintConfigurationProcessor.HostGroupUpdater.INSTANCE;
+
+    updater.updateForClusterCreate(
+      "mycomponent.urls",
+      "%HOSTGROUP::master1%:8080,%HOSTGROUP::master1%:8090",
+      clusterConfig.getProperties(),
+      topology);
+  }
+
+  @Test
+  public void testHostgroupUpdater_getRequiredHostgroups() throws Exception {
+    Set<String> components = ImmutableSet.of("NAMENODE", "SECONDARY_NAMENODE", "RESOURCEMANAGER");
+    Configuration hostGroupConfig = new Configuration(emptyMap(), emptyMap());
+    TestHostGroup group1 = new TestHostGroup("master1", components, ImmutableList.of("master1_host"), hostGroupConfig);
+    TestHostGroup group2 = new TestHostGroup("master2", components, ImmutableList.of("master2_host"), hostGroupConfig);
+    TestHostGroup group3 =
+      new TestHostGroup("master3", components, ImmutableList.of("master3_host1", "master3_host2"), hostGroupConfig);
+    Configuration clusterConfig = new Configuration(new HashMap<>(), new HashMap<>());
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableList.of(group1, group2, group3));
+
+    BlueprintConfigurationProcessor.HostGroupUpdater updater = BlueprintConfigurationProcessor.HostGroupUpdater.INSTANCE;
+
+    assertEquals(
+      ImmutableSet.of("master1"),
+      ImmutableSet.copyOf(
+        updater.getRequiredHostGroups(
+          "mycomponent.url",
+          "%HOSTGROUP::master1%:8080",
+          clusterConfig.getProperties(),
+          topology)));
+
+    assertEquals(
+      ImmutableSet.of("master1", "master2"),
+      ImmutableSet.copyOf(
+        updater.getRequiredHostGroups(
+          "mycomponent.urls",
+          "%HOSTGROUP::master1%:8080,%HOSTGROUP::master2%:8080",
+          clusterConfig.getProperties(),
+          topology)));
+
+    assertEquals(
+      ImmutableSet.of("master3"),
+      ImmutableSet.copyOf(
+        updater.getRequiredHostGroups(
+          "mycomponent.urls",
+          "%HOSTGROUP::master3%:8080,%HOSTGROUP::master3%:8080",
+          clusterConfig.getProperties(),
+          topology)));
   }
 
   @Test
@@ -6697,6 +6763,68 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> requiredGroups = updater.getRequiredHostGroups();
     assertEquals(2, requiredGroups.size());
     assertTrue(requiredGroups.containsAll(Arrays.asList("group1", "group2")));
+  }
+
+  @Test
+  public void testGetRequiredHostGroups___defaultUpdater() throws Exception {
+    // given
+    Map<String, Map<String, String>> properties = new HashMap<>();
+
+    Map<String, String> coreSiteMap = new HashMap<>();
+    coreSiteMap.put("fs.defaultFS", "localhost");
+    properties.put("core-site", coreSiteMap);
+
+    properties.put("myservice-site",
+      ImmutableMap.of(
+        "myservice.slave.urls", "%HOSTGROUP::group4%:8080,%HOSTGROUP::group4%:8080,%HOSTGROUP::group5%:8080"));
+
+    Configuration clusterConfig = new Configuration(properties, emptyMap());
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    TestHostGroup group1 = new TestHostGroup("group1",
+      ImmutableSet.of("HIVE_SERVER", "NAMENODE"),
+      Collections.singleton("host1"));
+
+    TestHostGroup group2 = new TestHostGroup("group2",
+      ImmutableSet.of("NAMENODE", "DATANODE"),
+      Collections.singleton("host2"));
+
+    Configuration group3Configuration = new Configuration(
+      ImmutableMap.of(
+        "myservice-site",
+        ImmutableMap.of("myservice.master.url", "%HOSTGROUP::group3%:8080")),
+      emptyMap());
+    TestHostGroup group3 = new TestHostGroup("group3",
+      ImmutableSet.of(),
+      Collections.singleton("host3"),
+      group3Configuration);
+
+    TestHostGroup group4 = new TestHostGroup("group4",
+      ImmutableSet.of(),
+      ImmutableSet.of("host4a", "host4b"));
+
+    TestHostGroup group5 = new TestHostGroup("group5",
+      ImmutableSet.of(),
+      Collections.singleton("host5"));
+
+    TestHostGroup group6 = new TestHostGroup("group6",
+      ImmutableSet.of(),
+      Collections.singleton("host6"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2, group3, group4, group5, group6);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // when
+    Set<String> requiredGroups = updater.getRequiredHostGroups();
+
+    // then
+    // - group1 and group2 due to the SingleHostTopologyUpdater defined for core-site/fs.defaultFS and NAMENODE
+    // - group3 due to myservice-site/myservice.master.url in group3's host group config and the default property updater
+    // - group4 and group5 due to myservice-site/myservice.slave.urls in cluster config and the default property updater
+    assertEquals(ImmutableSet.of("group1", "group2", "group3", "group4", "group5"), requiredGroups);
   }
 
   @Test
