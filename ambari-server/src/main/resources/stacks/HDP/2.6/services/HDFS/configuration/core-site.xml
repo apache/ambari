@@ -26,4 +26,47 @@
         </description>
         <on-ambari-upgrade add="false"/>
     </property>
+    <property>
+        <name>fs.s3a.fast.upload</name>
+        <value>true</value>
+        <description>
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>fs.s3a.fast.upload.buffer</name>
+        <value>disk</value>
+        <description>
+    The buffering mechanism to use.
+    Values: disk, array, bytebuffer.
+
+    "disk" will use the directories listed in fs.s3a.buffer.dir as
+    the location(s) to save data prior to being uploaded.
+
+    "array" uses arrays in the JVM heap
+
+    "bytebuffer" uses off-heap memory within the JVM.
+
+    Both "array" and "bytebuffer" will consume memory in a single stream up to the number
+    of blocks set by:
+
+        fs.s3a.multipart.size * fs.s3a.fast.upload.active.blocks.
+
+    If using either of these mechanisms, keep this value low
+
+    The total number of threads performing work across all threads is set by
+    fs.s3a.threads.max, with fs.s3a.max.total.tasks values setting the number of queued
+    work items.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>fs.s3a.multipart.size</name>
+        <value>67108864</value>
+        <description>
+    How big (in bytes) to split upload or copy operations up into.
+    A suffix from the set {K,M,G,T,P} may be used to scale the numeric value.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>    
 </configuration>
