@@ -245,6 +245,10 @@
   "shipperConfiguration.validator.filters": "Filters",
   "shipperConfiguration.validator.result": "Validation result",
 
+  "shipperConfiguration.navigation.title": "Shipper Configuration",
+  "shipperConfiguration.navigation.invalidCluster": "The selected cluster name is invalid: <strong>{{cluster}}</strong>",
+  "shipperConfiguration.navigation.invalidService": "The selected service (<strong>{{service}}</strong>) is not on the selected cluster (<strong>{{cluster}}</strong>).",
+
   "shipperConfiguration.action.add.title": "New Configuration",
   "shipperConfiguration.action.add.success.message": "New configuration has been added successfully.",
   "shipperConfiguration.action.add.error.message": "Error at adding new configuration.<div class='cluster-name'>Cluster: {{clusterName}}</div><div class='service-name'>Service: {{componentName}}</div>",

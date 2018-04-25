@@ -450,7 +450,7 @@ export class LogsFilteringUtilsService {
                 type: queryParams.sortingType
               }
             }]
-          }
+          };
           break;
         case 'query' :
           newFilter = {

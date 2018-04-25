@@ -138,23 +138,25 @@ export class LogsContainerComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.activatedRoute.queryParams.filter(() => !this.queryParamsSyncInProgress.getValue()).subscribe(this.onQueryParamsChange)
     );
-    if (!this.activatedRoute.queryParams || !Object.keys(this.activatedRoute.queryParams).length) {
-      this.syncFiltersToQueryParams(this.filtersForm.value);
-    }
+    this.activatedRoute.queryParams.first().subscribe((params) => {
+      if (!Object.keys(params).length) {
+        this.syncFiltersToQueryParams(this.filtersForm.value);
+      }
+    });
 
     this.subscriptions.push(
       this.logsStateService.getParameter('activeTabId').skip(1).subscribe(this.onActiveTabSwitched)
     );
 
+    this.subscriptions.push(
+      Observable.fromEvent(window, 'scroll').throttleTime(10).subscribe(() => {
+        this.setFixedPositionValue();
+      })
+    );
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
-  }
-
-  @HostListener('window:scroll', ['$event'])
-  onWindowScroll(): void {
-    this.setFixedPositionValue();
   }
 
   get filtersForm(): FormGroup {

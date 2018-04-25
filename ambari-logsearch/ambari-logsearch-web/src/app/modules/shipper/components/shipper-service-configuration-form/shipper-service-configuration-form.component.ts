@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
 import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
@@ -35,6 +35,7 @@ import * as formValidators from '../../directives/validator.directive';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subscription} from 'rxjs/Subscription';
 import {ShipperClusterServiceValidationModel} from '@modules/shipper/models/shipper-cluster-service-validation.model';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'shipper-configuration-form',
@@ -107,11 +108,28 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
 
   constructor(
     private utilsService: UtilsService,
-    private formBuilder: FormBuilder
-  ) {}
+    private formBuilder: FormBuilder,
+    private activatedRoute: ActivatedRoute,
+    private changeDetectionRef: ChangeDetectorRef
+  ) {
+    // This is a fix to avoid the ExpressionChangedAfterItHasBeenCheckedError exception
+    // We create forms checking if there is serviceName set, so that is why we put this in the constructor.
+    this.createForms();
+  }
 
   ngOnInit() {
-    this.createForms();
+    this.subscriptions.push(
+      this.activatedRoute.params.map(params => params.service).subscribe((service) => {
+        this.serviceName = service;
+      })
+    );
+    if (!this.serviceName) {
+      this.configurationForm.controls.serviceName.setValidators([
+        Validators.required,
+        formValidators.uniqueServiceNameValidator(this.serviceNamesListSubject)
+      ]);
+      this.changeDetectionRef.detectChanges();
+    }
     this.configurationComponents$ = this.configurationForm.controls.configuration.valueChanges.map((newValue: string): string[] => {
       let components: string[];
       try {
@@ -163,6 +181,10 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
     }
   }
 
+  onServiceParamsChange = (service): void => {
+
+  }
+
   leaveDirtyFormConfirmed = () => {
     this.canDeactivateModalResult.next(true);
     this.isLeavingDirtyForm = false;
@@ -189,15 +211,11 @@ export class ShipperServiceConfigurationFormComponent implements OnInit, OnDestr
     const configuration: ShipperClusterServiceConfigurationInterface = this.configuration || (
       this.serviceName ? this.configuration : new ShipperConfigurationModel()
     );
-    const configurationFormValidators: ValidatorFn[] = [Validators.required];
-    if (!this.serviceName) {
-      configurationFormValidators.push(formValidators.uniqueServiceNameValidator(this.serviceNamesListSubject));
-    }
     this.configurationForm = this.formBuilder.group({
       clusterName: this.formBuilder.control(this.clusterName, Validators.required),
       serviceName: this.formBuilder.control(
         this.serviceName,
-        configurationFormValidators
+        [Validators.required]
       ),
       configuration: this.formBuilder.control(
         this.getConfigurationAsString(configuration),

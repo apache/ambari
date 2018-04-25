@@ -82,19 +82,6 @@ export class ShipperConfigurationComponent implements CanComponentDeactivate, On
   ) { }
 
   ngOnInit() {
-    // check if we have cluster name parameter.
-    this.clusterName$.first().subscribe((clusterName: ShipperCluster) => {
-      if (!clusterName) { // if not let's redirect to the first cluster
-        this.clustersStoreService.getAll()
-          .skipWhile((clusterList: ShipperCluster[]) => {
-            return !clusterList || !clusterList.length;
-          })
-          .map((clusterList: ShipperCluster[]) => clusterList[0])
-          .switchMap((cluster: ShipperCluster) => this.getPathMapForClusterFirstService(cluster))
-          .first()
-          .subscribe((path: string[]) => this.router.navigate(path));
-      }
-    });
     this.subscriptions.push(
       this.clusterSelectionStoreService
         .getParameter(ShipperConfigurationComponent.clusterSelectionStoreKey)
