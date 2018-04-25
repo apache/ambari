@@ -50,7 +50,7 @@ import io.swagger.annotations.ApiResponses;
  * Service responsible for hosts resource requests.
  */
 @Path("/hosts")
-@Api(value = "/hosts", description = "Endpoint for host-specific operations")
+@Api(value = "Hosts", description = "Endpoint for host-specific operations")
 public class HostService extends BaseService {
 
   private static final String UNKNOWN_HOSTS = "Attempt to add hosts that have not been registered";
