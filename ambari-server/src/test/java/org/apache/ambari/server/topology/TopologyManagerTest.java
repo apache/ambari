@@ -56,6 +56,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -87,10 +88,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -98,8 +96,6 @@ import com.google.common.collect.ImmutableSet;
 /**
  * TopologyManager unit tests
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest( { TopologyManager.class })
 public class TopologyManagerTest {
 
   private static final String CLUSTER_NAME = "test-cluster";
@@ -164,6 +160,8 @@ public class TopologyManagerTest {
   private ClusterController clusterController;
   @Mock(type = MockType.STRICT)
   private ResourceProvider resourceProvider;
+  @Mock(type = MockType.NICE)
+  private MpackResourceProvider mpackResourceProvider;
   @Mock(type = MockType.STRICT)
   private SettingDAO settingDAO;
   @Mock(type = MockType.NICE)
@@ -370,6 +368,7 @@ public class TopologyManagerTest {
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_ID);
     expectLastCall().anyTimes();
 
+    expect(clusterController.ensureResourceProvider(Resource.Type.Mpack)).andReturn(mpackResourceProvider).anyTimes();
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
 
     expect(configureClusterTaskFactory.createConfigureClusterTask(anyObject(), anyObject(), anyObject())).andReturn(configureClusterTask);
@@ -395,6 +394,9 @@ public class TopologyManagerTest {
 
     EasyMockSupport.injectMocks(topologyManagerReplay);
 
+    Field f3 = AmbariContext.class.getDeclaredField("clusterController");
+    f3.setAccessible(true);
+    f3.set(null, clusterController);
   }
 
   @After

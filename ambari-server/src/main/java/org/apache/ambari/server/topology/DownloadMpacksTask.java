@@ -23,11 +23,13 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Collection;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
@@ -64,10 +66,15 @@ public class DownloadMpacksTask {
         LOG.info("Registering mpack {}", mpack.getStackId());
         Request mpackRequest = createRequest(mpack.getUrl());
         try {
-          mpackResourceProvider.createResources(mpackRequest);
+          RequestStatus.Status status = mpackResourceProvider.createResources(mpackRequest).getStatus();
+          if (!RequestStatus.Status.Complete.equals(status)) {
+            throw new RuntimeException("An error occured while registering mpack. Request status: " + status);
+          }
         }
         catch (Exception ex) {
-          throw new RuntimeException("Error occured while registering mpack: " + mpack.getStackId(), ex);
+          throw ex instanceof RuntimeException ?
+            (RuntimeException)ex :
+            new RuntimeException("Error occured while registering mpack: " + mpack.getStackId(), ex);
         }
       }
     }

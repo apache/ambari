@@ -41,6 +41,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.MpackResourceProvider;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
@@ -86,7 +87,8 @@ public class DownloadMpacksTaskTest {
 
     resourceProvider = mock(MpackResourceProvider.class);
     downloadRequests = newCapture(CaptureType.ALL);
-    expect(resourceProvider.createResources(capture(downloadRequests))).andReturn(null).anyTimes();
+    expect(resourceProvider.createResources(capture(downloadRequests))).
+      andReturn(new RequestStatusImpl(null, null, null)).anyTimes();
     downloadMpacksTask = new DownloadMpacksTask(resourceProvider);
 
     replay(metaInfo, controller, resourceProvider);
