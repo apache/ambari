@@ -446,13 +446,6 @@ node_label_enable = config['configurations']['yarn-site']['yarn.node-labels.enab
 
 cgroups_dir = "/cgroups_test/cpu"
 
-# hostname of the active HDFS HA Namenode (only used when HA is enabled)
-dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
-if dfs_ha_namenode_active is not None: 
-  namenode_hostname = dfs_ha_namenode_active
-else:
-  namenode_hostname = config['clusterHostInfo']['namenode_hosts'][0]
-
 ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
 
 scheme = 'http' if not yarn_https_on else 'https'
