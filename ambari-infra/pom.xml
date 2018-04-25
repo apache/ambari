@@ -33,10 +33,16 @@
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
     <hadoop.version>3.0.0</hadoop.version>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
+    <zookeeper.version>3.4.6.2.3.0.0-2557</zookeeper.version>
     <skipSurefireTests>false</skipSurefireTests>
   </properties>
 
   <repositories>
+    <repository>
+      <id>apache-hadoop</id>
+      <name>hdp</name>
+      <url>http://repo.hortonworks.com/content/groups/public/</url>
+    </repository>
     <repository>
       <id>oss.sonatype.org</id>
       <name>OSS Sonatype Staging</name>
@@ -267,12 +273,33 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.4.10</version>
+        <version>${zookeeper.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>2.5</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.9.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>2.9.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+        <version>2.9.4</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml.woodstox</groupId>
+            <artifactId>woodstox-core</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>
