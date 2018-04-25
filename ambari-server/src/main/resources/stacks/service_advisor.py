@@ -162,3 +162,6 @@ class ServiceAdvisor(DefaultStackAdvisor):
       "EXISTING SQL ANYWHERE DATABASE": "sqla"
     }
     return driverDict.get(databaseType.upper())
+
+  def isComponentUsingCardinalityForLayout(self, componentName):
+    return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER', 'SPARK2_THRIFTSERVER', 'LIVY2_SERVER', 'LIVY_SERVER']
