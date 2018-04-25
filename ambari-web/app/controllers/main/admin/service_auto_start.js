@@ -112,12 +112,14 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   },
 
   load: function() {
+    const self = this;
+
     this.loadClusterSettings().done(function (settings) {
-      this.set('clusterConfigs', settings);
-      this.set('isGeneralRecoveryEnabled', settings.recovery_enabled === 'true');
-      this.set('isGeneralRecoveryEnabledCached', this.get('isGeneralRecoveryEnabled'));
-      this.loadComponentsConfigs().then(() => {
-        this.set('isLoaded', true);
+      self.set('clusterConfigs', settings);
+      self.set('isGeneralRecoveryEnabled', settings.recovery_enabled === 'true');
+      self.set('isGeneralRecoveryEnabledCached', self.get('isGeneralRecoveryEnabled'));
+      self.loadComponentsConfigs().then(() => {
+        self.set('isLoaded', true);
       });
     });
   },
