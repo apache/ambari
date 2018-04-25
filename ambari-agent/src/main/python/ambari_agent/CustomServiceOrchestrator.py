@@ -485,6 +485,10 @@ class CustomServiceOrchestrator():
     required_config_timestamp = command_header['requiredConfigTimestamp'] if 'requiredConfigTimestamp' in command_header else None
 
     command_dict = self.configuration_builder.get_configuration(cluster_id, service_name, component_name, required_config_timestamp)
+
+    # remove data populated from topology to avoid merge and just override
+    if 'clusterHostInfo' in command_header:
+      del command_dict['clusterHostInfo']
     command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
     return command
 
