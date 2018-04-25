@@ -109,12 +109,14 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     var showAlert = false;
     if (data.hasOwnProperty('items') && data.items.length > 0) {
       data.items.forEach( function(_item) {
-        _item.RequestSchedule.batch.batch_requests.forEach( function(batchRequest) {
-          // Check if a DELETE request on HIVE_SERVER_INTERACTIVE is in progress
-          if (batchRequest.request_type == "DELETE" && batchRequest.request_uri.indexOf("HIVE_SERVER_INTERACTIVE") > -1) {
-            showAlert = true;
-          }
-        });
+        if (_item && _item.RequestSchedule && _item.RequestSchedule.batch && _item.RequestSchedule.batch.batch_requests) {
+          _item.RequestSchedule.batch.batch_requests.forEach(function (batchRequest) {
+            // Check if a DELETE request on HIVE_SERVER_INTERACTIVE is in progress
+            if (batchRequest.request_type == "DELETE" && batchRequest.request_uri.indexOf("HIVE_SERVER_INTERACTIVE") > -1) {
+              showAlert = true;
+            }
+          });
+        }
       });
     }
     if (showAlert) {
