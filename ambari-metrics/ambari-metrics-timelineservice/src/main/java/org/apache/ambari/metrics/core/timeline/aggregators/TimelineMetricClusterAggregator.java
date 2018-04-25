@@ -19,7 +19,7 @@ package org.apache.ambari.metrics.core.timeline.aggregators;
 
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_TIME_SQL;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -57,7 +57,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       sleepIntervalMillis, checkpointCutOffMultiplier,
       hostAggregatorDisabledParam, inputTableName, outputTableName,
       nativeTimeRangeDelay, haController);
-    isClusterPrecisionInputTable = inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
+    isClusterPrecisionInputTable = inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2);
     readHelper = new TimelineMetricReadHelper(metricMetadataManager, true);
   }
 

@@ -23,8 +23,8 @@ import static org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor.DATE_
 import static org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor.FIFO_COMPACTION_POLICY_CLASS;
 import static org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor.HSTORE_COMPACTION_CLASS_KEY;
 import static org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor.HSTORE_ENGINE_CLASS;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES_REGEX_PATTERN;
 
@@ -183,7 +183,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     aggMap.put(MetricTestHelper.createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
     aggMap.put(MetricTestHelper.createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
 
-    hdb.saveHostAggregateRecords(aggMap, METRICS_AGGREGATE_MINUTE_TABLE_NAME);
+    hdb.saveHostAggregateRecords(aggMap, METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2);
     long endTime = ctime + min_5;
     boolean success = aggregator.doWork(startTime - 1000, endTime);
     assertTrue(success);
@@ -364,7 +364,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     Field f = PhoenixHBaseAccessor.class.getDeclaredField("tableTTL");
     f.setAccessible(true);
     Map<String, Integer> precisionValues = (Map<String, Integer>) f.get(hdb);
-    precisionValues.put(METRICS_RECORD_TABLE_NAME, precisionTtl);
+    precisionValues.put(METRICS_RECORD_TABLE_NAME_V2, precisionTtl);
     f.set(hdb, precisionValues);
 
     Field f2 = PhoenixHBaseAccessor.class.getDeclaredField("timelineMetricsTablesDurability");
@@ -389,7 +389,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
         
         normalizerEnabled = tableDescriptor.isNormalizationEnabled();
         tableDurabilitySet = (Durability.ASYNC_WAL.equals(tableDescriptor.getDurability()));
-        if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
+        if (tableName.equals(METRICS_RECORD_TABLE_NAME_V2)) {
           precisionTableCompactionPolicy = tableDescriptor.getValue(HSTORE_COMPACTION_CLASS_KEY);
         } else {
           aggregateTableCompactionPolicy = tableDescriptor.getValue(HSTORE_ENGINE_CLASS);
@@ -399,7 +399,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
         if (normalizerEnabled || (precisionTableCompactionPolicy == null && aggregateTableCompactionPolicy == null)) {
           Thread.sleep(2000l);
         }
-        if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
+        if (tableName.equals(METRICS_RECORD_TABLE_NAME_V2)) {
           for (ColumnFamilyDescriptor family : tableDescriptor.getColumnFamilies()) {
             precisionTtl = family.getTimeToLive();
           }
@@ -409,7 +409,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     Assert.assertFalse("Normalizer disabled.", normalizerEnabled);
     Assert.assertTrue("Durability Set.", tableDurabilitySet);
-    Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
+    Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD_V2.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
     Assert.assertEquals("FIFO compaction policy is set for aggregate tables", DATE_TIERED_COMPACTION_POLICY, aggregateTableCompactionPolicy);
     Assert.assertEquals("Precision TTL value as expected.", 86400, precisionTtl);
 
@@ -441,7 +441,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     metric.setExitCode(0);
     List<ContainerMetric> list = Arrays.asList(metric);
     hdb.insertContainerMetrics(list);
-    PreparedStatement stmt = conn.prepareStatement("SELECT * FROM CONTAINER_METRICS");
+    PreparedStatement stmt = conn.prepareStatement("SELECT * FROM CONTAINER_METRICS_V2");
     ResultSet set = stmt.executeQuery();
     // check each filed is set properly when read back.
     boolean foundRecord = false;

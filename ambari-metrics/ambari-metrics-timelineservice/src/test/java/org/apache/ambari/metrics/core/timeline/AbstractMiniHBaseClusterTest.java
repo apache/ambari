@@ -18,7 +18,7 @@
 package org.apache.ambari.metrics.core.timeline;
 
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
 import static org.apache.phoenix.end2end.ParallelStatsDisabledIT.tearDownMiniCluster;
 import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
@@ -121,16 +121,16 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
       conn = getConnection(getUrl());
       stmt = conn.createStatement();
 
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE");
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_MINUTE");
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_HOURLY");
-      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_DAILY");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_MINUTE");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_HOURLY");
-      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_DAILY");
-      deleteTableIgnoringExceptions(stmt, "METRICS_METADATA");
-      deleteTableIgnoringExceptions(stmt, "HOSTED_APPS_METADATA");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_MINUTE_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_HOURLY_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_AGGREGATE_DAILY_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_MINUTE_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_HOURLY_V2");
+      deleteTableIgnoringExceptions(stmt, "METRIC_RECORD_DAILY_V2");
+      deleteTableIgnoringExceptions(stmt, "METRICS_METADATA_V2");
+      deleteTableIgnoringExceptions(stmt, "HOSTED_APPS_METADATA_V2");
 
       conn.commit();
     } catch (Exception e) {
@@ -246,7 +246,7 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
 
     try {
       metricRecordStmt = conn.prepareStatement(String.format(
-        UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
+        UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME_V2));
 
       for (TimelineMetric metric : timelineMetrics) {
         metricRecordStmt.clearParameters();

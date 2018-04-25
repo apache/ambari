@@ -18,7 +18,7 @@
 package org.apache.ambari.metrics.core.timeline.aggregators.v2;
 
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_AGGREGATED_APP_METRIC_GROUPBY_SQL;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -52,7 +52,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       hostAggregatorDisabledParam, inputTableName, outputTableName,
       nativeTimeRangeDelay, haController);
 
-    if (inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME)) {
+    if (inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2)) {
       aggregateColumnName = "HOSTS_COUNT";
     } else {
       aggregateColumnName = "METRIC_COUNT";

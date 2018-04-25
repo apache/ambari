@@ -501,7 +501,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("Adding host %s to aggregated by in-memory aggregator. Timestamp : %s", hostname, timestamp));
     }
-    hBaseAccessor.saveHostAggregateRecords(aggregateMap, PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME);
+    hBaseAccessor.saveHostAggregateRecords(aggregateMap, PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2);
 
 
     return new TimelinePutResponse();

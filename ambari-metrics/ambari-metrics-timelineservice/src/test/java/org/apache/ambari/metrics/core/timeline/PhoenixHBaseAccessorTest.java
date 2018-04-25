@@ -277,9 +277,9 @@ public class PhoenixHBaseAccessorTest {
     accessor.setMetadataInstance(metricMetadataManagerMock);
     accessor.saveClusterAggregateRecords(clusterAggregateMap);
     accessor.saveHostAggregateRecords(hostAggregateMap,
-        PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME);
+        PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2);
     accessor.saveClusterAggregateRecordsSecond(clusterTimeAggregateMap,
-        PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME);
+        PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2);
 
     TimelineMetricsAggregatorMemorySink memorySink =
         new TimelineMetricsAggregatorMemorySink();
