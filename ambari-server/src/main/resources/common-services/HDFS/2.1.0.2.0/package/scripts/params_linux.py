@@ -326,13 +326,13 @@ for ns, dfs_ha_namenode_ids in dfs_ha_namenode_ids_all_ns.iteritems():
       dfs_ha_enabled = True
   if dfs_ha_enabled:
     for nn_id in dfs_ha_namemodes_ids_list:
-      nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
+      nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{ns}.{nn_id}')]
       if hostname.lower() in nn_host.lower() or public_hostname.lower() in nn_host.lower():
         namenode_id = nn_id
         namenode_rpc = nn_host
         found = True
     # With HA enabled namenode_address is recomputed
-    namenode_address = format('hdfs://{dfs_ha_nameservices}')
+    namenode_address = format('hdfs://{ns}')
 
     # Calculate the namenode id of the other namenode. This is needed during RU to initiate an HA failover using ZKFC.
     if namenode_id is not None and len(dfs_ha_namemodes_ids_list) == 2:
