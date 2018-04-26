@@ -2987,6 +2987,11 @@ var urls = {
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
   },
 
+  'widget.layout.delete': {
+    real: '/clusters/{clusterName}/widget_layouts/{layoutId}',
+    type: 'DELETE'
+  },
+
   'widget.layout.get': {
     real: '/clusters/{clusterName}/widget_layouts?{urlParams}',
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
