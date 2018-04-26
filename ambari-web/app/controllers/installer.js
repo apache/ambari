@@ -266,19 +266,21 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    */
   loadStacksVersions: function () {
     var requests = [];
+    const dfd = $.Deferred();
     this.get('stackNames').forEach(function (stackName) {
       requests.push(App.ajax.send({
         name: 'wizard.stacks_versions_definitions',
         sender: this,
         data: {
-          stackName: stackName
+          stackName: stackName,
+          dfd: dfd
         },
         success: 'loadStacksVersionsDefinitionsSuccessCallback',
         error: 'loadStacksVersionsErrorCallback'
       }));
     }, this);
     this.set('loadStacksRequestsCounter', requests.length);
-    return requests;
+    return dfd.promise();
   },
 
   /**
@@ -289,7 +291,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   /**
    * Parse loaded data and create array of stacks objects
    */
-  loadStacksVersionsDefinitionsSuccessCallback: function (data) {
+  loadStacksVersionsDefinitionsSuccessCallback: function (data, opt, params) {
     var stacks = App.db.getStacks();
     var oses = App.db.getOses();
     var repos = App.db.getRepos();
@@ -311,7 +313,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       stackInfo.stacks = stacks;
       stackInfo.oses = oses;
       stackInfo.repos = repos;
-      this.getSupportedOSList(versionDefinition, stackInfo);
+      this.getSupportedOSList(versionDefinition, stackInfo, params.dfd);
     }, this);
   },
 
@@ -341,12 +343,13 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     });
   },
 
-  setSelected: function (isStacksExistInDb) {
+  setSelected: function (isStacksExistInDb, dfd) {
     if (!isStacksExistInDb) {
       var stacks = App.Stack.find();
       stacks.setEach('isSelected', false);
       stacks.sortProperty('id').set('lastObject.isSelected', true);
     }
+    dfd.resolve();
     this.set('content.stacks', App.Stack.find());
     App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
   },
@@ -681,7 +684,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.showAlertPopup(header, body);
   },
 
-  getSupportedOSList: function (versionDefinition, stackInfo) {
+  getSupportedOSList: function (versionDefinition, stackInfo, dfd) {
     this.incrementProperty('loadStacksRequestsCounter');
     return App.ajax.send({
       name: 'wizard.step1.get_supported_os_types',
@@ -690,7 +693,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         stackName: versionDefinition.VersionDefinition.stack_name,
         stackVersion: versionDefinition.VersionDefinition.stack_version,
         versionDefinition: versionDefinition,
-        stackInfo: stackInfo
+        stackInfo: stackInfo,
+        dfd: dfd
       },
       success: 'getSupportedOSListSuccessCallback',
       error: 'getSupportedOSListErrorCallback'
@@ -753,12 +757,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
             App.Stack.find().setEach('isSelected', false);
             var stackId = Em.get(versionData, 'data.VersionDefinition.available') || versionInfo.stackNameVersion + "-" + versionInfo.actualVersion;
             App.Stack.find().findProperty('id', stackId).set('isSelected', true);
-            self.setSelected(data.stackInfo.isStacksExistInDb);
+            self.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
           }).fail(function () {
-            self.setSelected(data.stackInfo.isStacksExistInDb);
+            self.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
           });
         } else {
-          this.setSelected(data.stackInfo.isStacksExistInDb);
+          this.setSelected(data.stackInfo.isStacksExistInDb, data.dfd);
         }
       }
     }
@@ -963,7 +967,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           var dfd = $.Deferred();
 
           if (!stacksLoaded) {
-            $.when.apply(this, this.loadStacksVersions()).done(function () {
+            this.loadStacksVersions().done(function () {
               dfd.resolve(true);
             });
           } else {
