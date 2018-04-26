@@ -1639,7 +1639,7 @@ public class BlueprintConfigurationProcessor {
       Map<String, Map<String, String>> properties,
       ClusterTopology topology) {
 
-      HostGroups hostGroups = new HostGroups(topology);
+      HostGroups hostGroups = new HostGroups(topology, propertyName);
 
       //todo: getHostStrings (?)
 
@@ -1657,7 +1657,7 @@ public class BlueprintConfigurationProcessor {
       //      group3_host1:8080,group3_host2:8080,group3_host3:8080 (maybe in different order)
       LinkedList<Pair<Pair<Integer, Integer>, String>> replacements = new LinkedList<>();
       for (Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue); m.find(); ) {
-        String replacement = hostGroups.nextHost(m.group(1));
+        String replacement = hostGroups.getHost(m.group(1));
         int from = m.start();
         int to = m.end();
         replacements.add(Pair.of(Pair.of(from, to), replacement));
@@ -1690,23 +1690,26 @@ public class BlueprintConfigurationProcessor {
 
     static class HostGroups {
       private ClusterTopology topology;
-      private Map<String, Iterator<String>> hostGroupHostIterators = new HashMap<>();
+      private String propertyName; // for logging purpose only
+      private Set<String> hostGroupsUsed = new HashSet<>();
 
-      HostGroups(ClusterTopology topology) {
+      HostGroups(ClusterTopology topology, String propertyName) {
         this.topology = topology;
+        this.propertyName = propertyName;
       }
 
-      String nextHost(String hostGroup) {
-        Iterator<String> hostGroupHosts = hostGroupHostIterators.get(hostGroup);
-        if (null == hostGroupHosts) {
-          HostGroupInfo groupInfo = topology.getHostGroupInfo().get(hostGroup);
-          Preconditions.checkArgument(null != groupInfo,
-            "Encountered a host group token in configuration which couldn't be matched to a host group: %s", hostGroup);
-          hostGroupHosts = groupInfo.getHostNames().iterator();
-          hostGroupHostIterators.put(hostGroup, hostGroupHosts);
+      String getHost(String hostGroup) {
+        Preconditions.checkState(!hostGroupsUsed.contains(hostGroup),
+          "Multiple occurrence of host group [%s] in property value of: [%s].", hostGroup, propertyName);
+        HostGroupInfo hostGroupInfo = topology.getHostGroupInfo().get(hostGroup);
+        Preconditions.checkArgument(null != hostGroupInfo,
+          "Encountered a host group token in configuration which couldn't be matched to a host group: %s", hostGroup);
+        if (hostGroupInfo.getHostNames().size() > 1) {
+          LOG.warn("Host group {} contains multiple hosts. Using {} with such host groups may result in unintended configuration.",
+            hostGroup, HostGroupUpdater.class.getSimpleName());
         }
-        Preconditions.checkState(hostGroupHosts.hasNext(), "Hostgroup %s has no more hosts.", hostGroup);
-        return hostGroupHosts.next();
+        hostGroupsUsed.add(hostGroup);
+        return hostGroupInfo.getHostNames().iterator().next();
       }
     }
   }

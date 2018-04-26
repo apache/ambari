@@ -26,13 +26,10 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -2256,15 +2253,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
         "%HOSTGROUP::master1%:8080,%HOSTGROUP::master2%:8080",
         clusterConfig.getProperties(),
         topology));
-
-    assertThat(
-      updater.updateForClusterCreate(
-        "mycomponent.urls",
-        "%HOSTGROUP::master3%:8080,%HOSTGROUP::master3%:8080",
-        clusterConfig.getProperties(),
-        topology),
-      anyOf(is("master3_host1:8080,master3_host2:8080"), is("master3_host2:8080,master3_host1:8080")));
-
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -2284,10 +2272,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testHostgroupUpdater_TooManyHostsInValue() throws Exception {
+  public void testHostgroupUpdater_SameGroupMultipleTimes() throws Exception {
     Set<String> components = ImmutableSet.of("NAMENODE", "SECONDARY_NAMENODE", "RESOURCEMANAGER");
     Configuration hostGroupConfig = new Configuration(emptyMap(), emptyMap());
-    TestHostGroup group1 = new TestHostGroup("master1", components, ImmutableList.of("master1_host"), hostGroupConfig);
+    TestHostGroup group1 = new TestHostGroup("master1", components, ImmutableList.of("master1_host1", "master1_host2"), hostGroupConfig);
     Configuration clusterConfig = new Configuration(new HashMap<>(), new HashMap<>());
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableList.of(group1));
     BlueprintConfigurationProcessor.HostGroupUpdater updater = BlueprintConfigurationProcessor.HostGroupUpdater.INSTANCE;
@@ -2306,7 +2294,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     TestHostGroup group1 = new TestHostGroup("master1", components, ImmutableList.of("master1_host"), hostGroupConfig);
     TestHostGroup group2 = new TestHostGroup("master2", components, ImmutableList.of("master2_host"), hostGroupConfig);
     TestHostGroup group3 =
-      new TestHostGroup("master3", components, ImmutableList.of("master3_host1", "master3_host2"), hostGroupConfig);
+      new TestHostGroup("master3", components, ImmutableList.of("master3_host"), hostGroupConfig);
     Configuration clusterConfig = new Configuration(new HashMap<>(), new HashMap<>());
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, ImmutableList.of(group1, group2, group3));
 
@@ -2335,7 +2323,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       ImmutableSet.copyOf(
         updater.getRequiredHostGroups(
           "mycomponent.urls",
-          "%HOSTGROUP::master3%:8080,%HOSTGROUP::master3%:8080",
+          "%HOSTGROUP::master3%:8080",
           clusterConfig.getProperties(),
           topology)));
   }
