@@ -504,7 +504,8 @@ def jdbc_connector(target, hive_previous_jdbc_jar):
 
   else:
     #for default hive db (Mysql)
-    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), target),
+    File(params.downloaded_custom_connector, content = DownloadSource(params.driver_curl_source))
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target),
             #creates=target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo=True
