@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-scom-project</artifactId>
-        <version>2.6.1.0.0</version>
+        <version>2.6.2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ambari-scom-server</artifactId>
@@ -27,7 +27,7 @@
     <name>Ambari SCOM Server</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <ambari.version>2.6.1.0.0</ambari.version>
+        <ambari.version>2.6.2.0.0</ambari.version>
         <powermock.version>1.5.4</powermock.version>
     </properties>
     <dependencies>

@@ -20,14 +20,14 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.6.1.0.0</version>
+    <version>2.6.2.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-web</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Web</name>
-  <version>2.6.1.0.0</version>
+  <version>2.6.2.0.0</version>
   <description>Ambari Web</description>
   <properties>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>

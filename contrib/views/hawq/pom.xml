@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.apache.ambari.contrib.views</groupId>
         <artifactId>ambari-contrib-views</artifactId>
-        <version>2.6.1.0.0</version>
+        <version>2.6.2.0.0</version>
     </parent>
 
     <dependencies>
@@ -93,7 +93,7 @@
         <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
         <ui.dir>${basedir}/src/main/resources/ui</ui.dir>
         <hawq-version>1.0.0</hawq-version>
-        <ambari.version>2.6.1.0.0</ambari.version>
+        <ambari.version>2.6.2.0.0</ambari.version>
         <executable.node>node/node</executable.node>
         <executable.npm>npm</executable.npm>
         <args.npm></args.npm>

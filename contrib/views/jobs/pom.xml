@@ -19,14 +19,14 @@
     <parent>
         <groupId>org.apache.ambari.contrib.views</groupId>
         <artifactId>ambari-contrib-views</artifactId>
-        <version>2.6.1.0.0</version>
+        <version>2.6.2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>jobs</artifactId>
     <packaging>jar</packaging>
     <name>Jobs</name>
-    <version>2.6.1.0.0</version>
+    <version>2.6.2.0.0</version>
     <description>Jobs View</description>
     <properties>
       <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
