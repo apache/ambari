@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.jmx import get_value_from_jmx
 from resource_management.core.base import Fail
 from resource_management.core import shell
@@ -367,8 +368,8 @@ def get_name_service_by_hostname(hdfs_site, host_name):
   """
   #there has to be a name service - we are in HA at least
   name_services_string = hdfs_site['dfs.internal.nameservices']
-  if not name_services_string:
-    raise Fail('Not a HA setup')
+  if is_empty(name_services_string):
+    return None
   name_services = name_services_string.split(',')
   if len(name_services) == 1:
     return name_services[0]
