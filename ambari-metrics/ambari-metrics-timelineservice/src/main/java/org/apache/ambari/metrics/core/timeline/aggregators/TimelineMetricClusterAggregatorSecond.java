@@ -26,7 +26,7 @@ import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtil
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getTimeSlices;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -142,7 +142,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
     condition.setStatement(String.format(GET_METRIC_SQL,
-      METRICS_RECORD_TABLE_NAME_V2));
+        METRICS_RECORD_TABLE_NAME));
     // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");

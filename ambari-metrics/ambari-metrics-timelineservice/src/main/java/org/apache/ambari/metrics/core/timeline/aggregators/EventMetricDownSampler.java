@@ -29,7 +29,7 @@ import java.util.Map;
 
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.EVENT_DOWNSAMPLER_CLUSTER_METRIC_SELECT_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.EVENT_DOWNSAMPLER_HOST_METRIC_SELECT_SQL;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 
 public class EventMetricDownSampler implements CustomDownSampler{
 
@@ -59,7 +59,7 @@ public class EventMetricDownSampler implements CustomDownSampler{
 
     String aggregateColumnName = "METRIC_COUNT";
 
-    if (tableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2)) {
+    if (tableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME)) {
       aggregateColumnName = "HOSTS_COUNT";
     }
 

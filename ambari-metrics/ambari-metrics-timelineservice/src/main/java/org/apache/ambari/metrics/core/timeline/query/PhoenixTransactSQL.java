@@ -345,53 +345,53 @@ public class PhoenixTransactSQL {
     "MAX(METRIC_MAX), MIN(METRIC_MIN) FROM %s WHERE METRIC_NAME LIKE %s AND SERVER_TIME > %s AND " +
     "SERVER_TIME <= %s GROUP BY METRIC_NAME, APP_ID, INSTANCE_ID, UNITS";
 
-  public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD";
-
   public static final String CONTAINER_METRICS_TABLE_NAME = "CONTAINER_METRICS";
 
-  public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME =
+  public static final String METRICS_RECORD_V1_TABLE_NAME = "METRIC_RECORD";
+
+  public static final String METRICS_AGGREGATE_MINUTE_V1_TABLE_NAME =
     "METRIC_RECORD_MINUTE";
-  public static final String METRICS_AGGREGATE_HOURLY_TABLE_NAME =
+  public static final String METRICS_AGGREGATE_HOURLY_V1_TABLE_NAME =
     "METRIC_RECORD_HOURLY";
-  public static final String METRICS_AGGREGATE_DAILY_TABLE_NAME =
+  public static final String METRICS_AGGREGATE_DAILY_V1_TABLE_NAME =
     "METRIC_RECORD_DAILY";
-  public static final String METRICS_CLUSTER_AGGREGATE_TABLE_NAME =
+  public static final String METRICS_CLUSTER_AGGREGATE_V1_TABLE_NAME =
     "METRIC_AGGREGATE";
-  public static final String METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME =
+  public static final String METRICS_CLUSTER_AGGREGATE_MINUTE_V1_TABLE_NAME =
     "METRIC_AGGREGATE_MINUTE";
-  public static final String METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME =
+  public static final String METRICS_CLUSTER_AGGREGATE_HOURLY_V1_TABLE_NAME =
     "METRIC_AGGREGATE_HOURLY";
-  public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
+  public static final String METRICS_CLUSTER_AGGREGATE_DAILY_V1_TABLE_NAME =
     "METRIC_AGGREGATE_DAILY";
 
-  public static final String METRICS_RECORD_TABLE_NAME_V2 = "METRIC_RECORD_V2";
+  public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD_V2";
 
-  public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2 =
+  public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME =
     "METRIC_RECORD_MINUTE_V2";
-  public static final String METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2 =
+  public static final String METRICS_AGGREGATE_HOURLY_TABLE_NAME =
     "METRIC_RECORD_HOURLY_V2";
-  public static final String METRICS_AGGREGATE_DAILY_TABLE_NAME_V2 =
+  public static final String METRICS_AGGREGATE_DAILY_TABLE_NAME =
     "METRIC_RECORD_DAILY_V2";
-  public static final String METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2 =
+  public static final String METRICS_CLUSTER_AGGREGATE_TABLE_NAME =
     "METRIC_AGGREGATE_V2";
-  public static final String METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2 =
+  public static final String METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME =
     "METRIC_AGGREGATE_MINUTE_V2";
-  public static final String METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2 =
+  public static final String METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME =
     "METRIC_AGGREGATE_HOURLY_V2";
-  public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2 =
+  public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
     "METRIC_AGGREGATE_DAILY_V2";
 
   public static final Pattern PHOENIX_TABLES_REGEX_PATTERN = Pattern.compile("METRIC_");
 
   public static final String[] PHOENIX_TABLES = {
-    METRICS_RECORD_TABLE_NAME_V2,
-    METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2,
-    METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2,
-    METRICS_AGGREGATE_DAILY_TABLE_NAME_V2,
-    METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2,
-    METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2,
-    METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2,
-    METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2
+      METRICS_RECORD_TABLE_NAME,
+      METRICS_AGGREGATE_MINUTE_TABLE_NAME,
+      METRICS_AGGREGATE_HOURLY_TABLE_NAME,
+      METRICS_AGGREGATE_DAILY_TABLE_NAME,
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME,
+      METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME,
+      METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME,
+      METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME
   };
 
   public static final String DEFAULT_TABLE_COMPRESSION = "SNAPPY";
@@ -446,19 +446,19 @@ public class PhoenixTransactSQL {
       }
       switch (condition.getPrecision()) {
         case DAYS:
-          metricsTable = METRICS_AGGREGATE_DAILY_TABLE_NAME_V2;
+          metricsTable = METRICS_AGGREGATE_DAILY_TABLE_NAME;
           query = GET_METRIC_AGGREGATE_ONLY_SQL;
           break;
         case HOURS:
-          metricsTable = METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2;
+          metricsTable = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
           query = GET_METRIC_AGGREGATE_ONLY_SQL;
           break;
         case MINUTES:
-          metricsTable = METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
+          metricsTable = METRICS_AGGREGATE_MINUTE_TABLE_NAME;
           query = GET_METRIC_AGGREGATE_ONLY_SQL;
           break;
         default:
-          metricsTable = METRICS_RECORD_TABLE_NAME_V2;
+          metricsTable = METRICS_RECORD_TABLE_NAME;
           query = GET_METRIC_SQL;
       }
 
@@ -580,8 +580,8 @@ public class PhoenixTransactSQL {
     } else {
       stmtStr = String.format(GET_LATEST_METRIC_SQL,
         getLatestMetricsHints(),
-        METRICS_RECORD_TABLE_NAME_V2,
-        METRICS_RECORD_TABLE_NAME_V2,
+          METRICS_RECORD_TABLE_NAME,
+          METRICS_RECORD_TABLE_NAME,
         condition.getConditionClause());
     }
 
@@ -636,19 +636,19 @@ public class PhoenixTransactSQL {
     }
     switch (condition.getPrecision()) {
       case DAYS:
-        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2;
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         break;
       case HOURS:
-        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2;
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         break;
       case MINUTES:
-        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2;
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         break;
       default:
-        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_SQL;
     }
 
@@ -702,7 +702,7 @@ public class PhoenixTransactSQL {
       stmtStr = condition.getStatement();
     } else {
       stmtStr = String.format(GET_CLUSTER_AGGREGATE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2);
+          METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
     }
 
     StringBuilder sb = new StringBuilder(stmtStr);
@@ -748,37 +748,37 @@ public class PhoenixTransactSQL {
       if (withHosts) {
         switch (precision) {
           case DAYS:
-            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
             break;
           case HOURS:
-            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
             break;
           case MINUTES:
-            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
             break;
           default:
-            inputTable = PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
         }
       } else {
         switch (precision) {
           case DAYS:
-            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
             break;
           case HOURS:
-            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
             break;
           case MINUTES:
-            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
             break;
           default:
-            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
         }
       }
     } else {
       if (withHosts) {
-        inputTable = PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
+        inputTable = PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
       } else {
-        inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
+        inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
       }
     }
     return inputTable;

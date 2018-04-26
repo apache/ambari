@@ -63,14 +63,14 @@ import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.D
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_HOSTED_APPS_METADATA_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_INSTANCE_HOST_METADATA_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_METADATA_SQL;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES_REGEX_PATTERN;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_AGGREGATE_RECORD_SQL;
@@ -252,15 +252,15 @@ public class PhoenixHBaseAccessor {
     this.timelineMetricsTablesDurability = metricsConf.get(TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY, "");
     this.timelineMetricsPrecisionTableDurability = metricsConf.get(TIMELINE_METRICS_PRECISION_TABLE_DURABILITY, "");
 
-    tableTTL.put(METRICS_RECORD_TABLE_NAME_V2, metricsConf.getInt(PRECISION_TABLE_TTL, 1 * 86400));  // 1 day
+    tableTTL.put(METRICS_RECORD_TABLE_NAME, metricsConf.getInt(PRECISION_TABLE_TTL, 1 * 86400));  // 1 day
     tableTTL.put(CONTAINER_METRICS_TABLE_NAME, metricsConf.getInt(CONTAINER_METRICS_TTL, 30 * 86400));  // 30 days
-    tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2, metricsConf.getInt(HOST_MINUTE_TABLE_TTL, 7 * 86400)); //7 days
-    tableTTL.put(METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2, metricsConf.getInt(HOST_HOUR_TABLE_TTL, 30 * 86400)); //30 days
-    tableTTL.put(METRICS_AGGREGATE_DAILY_TABLE_NAME_V2, metricsConf.getInt(HOST_DAILY_TABLE_TTL, 365 * 86400)); //1 year
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2, metricsConf.getInt(CLUSTER_SECOND_TABLE_TTL, 7 * 86400)); //7 days
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2, metricsConf.getInt(CLUSTER_MINUTE_TABLE_TTL, 30 * 86400)); //30 days
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2, metricsConf.getInt(CLUSTER_HOUR_TABLE_TTL, 365 * 86400)); //1 year
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2, metricsConf.getInt(CLUSTER_DAILY_TABLE_TTL, 730 * 86400)); //2 years
+    tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.getInt(HOST_MINUTE_TABLE_TTL, 7 * 86400)); //7 days
+    tableTTL.put(METRICS_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.getInt(HOST_HOUR_TABLE_TTL, 30 * 86400)); //30 days
+    tableTTL.put(METRICS_AGGREGATE_DAILY_TABLE_NAME, metricsConf.getInt(HOST_DAILY_TABLE_TTL, 365 * 86400)); //1 year
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_TABLE_NAME, metricsConf.getInt(CLUSTER_SECOND_TABLE_TTL, 7 * 86400)); //7 days
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.getInt(CLUSTER_MINUTE_TABLE_TTL, 30 * 86400)); //30 days
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.getInt(CLUSTER_HOUR_TABLE_TTL, 365 * 86400)); //1 year
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, metricsConf.getInt(CLUSTER_DAILY_TABLE_TTL, 730 * 86400)); //2 years
 
     if (cacheEnabled) {
       LOG.debug("Initialising and starting metrics cache committer thread...");
@@ -324,7 +324,7 @@ public class PhoenixHBaseAccessor {
     try {
       conn = getConnection();
       metricRecordStmt = conn.prepareStatement(String.format(
-              UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME_V2));
+              UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
       for (TimelineMetrics timelineMetrics : timelineMetricsCollection) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
 
@@ -486,42 +486,42 @@ public class PhoenixHBaseAccessor {
 
       // Host level
       String precisionSql = String.format(CREATE_METRICS_TABLE_SQL,
-        encoding, tableTTL.get(METRICS_RECORD_TABLE_NAME_V2), compression);
+        encoding, tableTTL.get(METRICS_RECORD_TABLE_NAME), compression);
       stmt.executeUpdate(precisionSql);
 
       String hostMinuteAggregrateSql = String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
-        METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2, encoding,
-        tableTTL.get(METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2),
+          METRICS_AGGREGATE_MINUTE_TABLE_NAME, encoding,
+        tableTTL.get(METRICS_AGGREGATE_MINUTE_TABLE_NAME),
         compression);
       stmt.executeUpdate(hostMinuteAggregrateSql);
 
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
-        METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2, encoding,
-        tableTTL.get(METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2),
+          METRICS_AGGREGATE_HOURLY_TABLE_NAME, encoding,
+        tableTTL.get(METRICS_AGGREGATE_HOURLY_TABLE_NAME),
         compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
-        METRICS_AGGREGATE_DAILY_TABLE_NAME_V2, encoding,
-        tableTTL.get(METRICS_AGGREGATE_DAILY_TABLE_NAME_V2),
+          METRICS_AGGREGATE_DAILY_TABLE_NAME, encoding,
+        tableTTL.get(METRICS_AGGREGATE_DAILY_TABLE_NAME),
         compression));
 
       // Cluster level
       String aggregateSql = String.format(CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2, encoding,
-        tableTTL.get(METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2),
+          METRICS_CLUSTER_AGGREGATE_TABLE_NAME, encoding,
+        tableTTL.get(METRICS_CLUSTER_AGGREGATE_TABLE_NAME),
         compression);
 
       stmt.executeUpdate(aggregateSql);
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
-        METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2, encoding,
-        tableTTL.get(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2),
+          METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, encoding,
+        tableTTL.get(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME),
         compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
-        METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2, encoding,
-        tableTTL.get(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2),
+          METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, encoding,
+        tableTTL.get(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME),
         compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
-        METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2, encoding,
-        tableTTL.get(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2),
+          METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, encoding,
+        tableTTL.get(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME),
         compression));
 
 
@@ -648,7 +648,7 @@ public class PhoenixHBaseAccessor {
 
     boolean modifyTable = false;
     // Set WAL preferences
-    if (METRICS_RECORD_TABLE_NAME_V2.equals(tableName)) {
+    if (METRICS_RECORD_TABLE_NAME.equals(tableName)) {
       if (!timelineMetricsPrecisionTableDurability.isEmpty()) {
         LOG.info("Setting WAL option " + timelineMetricsPrecisionTableDurability + " for table : " + tableName);
         boolean validDurability = true;
@@ -702,7 +702,7 @@ public class PhoenixHBaseAccessor {
       DATE_TIERED_COMPACTION_POLICY);
     int blockingStoreFiles = hbaseConf.getInt(TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES, 60);
 
-    if (tableName.equals(METRICS_RECORD_TABLE_NAME_V2)) {
+    if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
       compactionPolicyKey = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY,
         HSTORE_COMPACTION_CLASS_KEY);
       compactionPolicyClass = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS,
@@ -1374,7 +1374,7 @@ public class PhoenixHBaseAccessor {
     }
 
     long start = System.currentTimeMillis();
-    String sqlStr = String.format(UPSERT_CLUSTER_AGGREGATE_SQL, METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2);
+    String sqlStr = String.format(UPSERT_CLUSTER_AGGREGATE_SQL, METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
     Connection conn = getConnection();
     PreparedStatement stmt = null;
     try {
@@ -1551,19 +1551,19 @@ public class PhoenixHBaseAccessor {
   private Precision getTablePrecision(String tableName) {
     Precision tablePrecision = null;
     switch (tableName) {
-    case METRICS_RECORD_TABLE_NAME_V2:
+    case METRICS_RECORD_TABLE_NAME:
       tablePrecision = Precision.SECONDS;
       break;
-    case METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2:
-    case METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2:
+    case METRICS_AGGREGATE_MINUTE_TABLE_NAME:
+    case METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME:
       tablePrecision = Precision.MINUTES;
       break;
-    case METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2:
-    case METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2:
+    case METRICS_AGGREGATE_HOURLY_TABLE_NAME:
+    case METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME:
       tablePrecision = Precision.HOURS;
       break;
-    case METRICS_AGGREGATE_DAILY_TABLE_NAME_V2:
-    case METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2:
+    case METRICS_AGGREGATE_DAILY_TABLE_NAME:
+    case METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME:
       tablePrecision = Precision.DAYS;
       break;
     }

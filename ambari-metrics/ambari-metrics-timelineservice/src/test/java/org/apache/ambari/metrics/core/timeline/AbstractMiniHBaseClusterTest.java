@@ -18,7 +18,7 @@
 package org.apache.ambari.metrics.core.timeline;
 
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
 import static org.apache.phoenix.end2end.ParallelStatsDisabledIT.tearDownMiniCluster;
 import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
@@ -246,7 +246,7 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
 
     try {
       metricRecordStmt = conn.prepareStatement(String.format(
-        UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME_V2));
+        UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
 
       for (TimelineMetric metric : timelineMetrics) {
         metricRecordStmt.clearParameters();

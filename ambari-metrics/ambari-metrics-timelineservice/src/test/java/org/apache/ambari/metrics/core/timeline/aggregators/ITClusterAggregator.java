@@ -26,8 +26,8 @@ import static org.apache.ambari.metrics.core.timeline.MetricTestHelper.createEmp
 import static org.apache.ambari.metrics.core.timeline.MetricTestHelper.prepareSingleTimelineMetric;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -92,7 +92,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2));
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -166,7 +166,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2));
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -227,7 +227,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2));
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -285,7 +285,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       MetricTestHelper.createMetricHostAggregate(4.0, 0.0, 2, 4.0));
 
 
-    hdb.saveClusterAggregateRecordsSecond(records, METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2);
+    hdb.saveClusterAggregateRecordsSecond(records, METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME);
 
     // WHEN
     agg.doWork(startTime, ctime + hour + 1000);
@@ -533,7 +533,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       new ArrayList<String>() {{ add("cpu_user"); }}, null, "app1", null,
       startTime - 90000, endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2));
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -613,7 +613,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2));
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();

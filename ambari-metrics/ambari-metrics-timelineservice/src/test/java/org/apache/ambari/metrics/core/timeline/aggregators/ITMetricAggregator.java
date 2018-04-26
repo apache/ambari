@@ -42,9 +42,9 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.apache.ambari.metrics.core.timeline.MetricTestHelper.createEmptyTimelineMetric;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
@@ -104,7 +104,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime + 2, null, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
-      METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2));
+        METRICS_AGGREGATE_MINUTE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -169,7 +169,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
     aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
 
-    hdb.saveHostAggregateRecords(aggMap, METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2);
+    hdb.saveHostAggregateRecords(aggMap, METRICS_AGGREGATE_MINUTE_TABLE_NAME);
 
     //WHEN
     long endTime = ctime + min_5;
@@ -179,7 +179,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     //THEN
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime + 1, null, null, true);
-    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2));
+    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_HOURLY_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -229,7 +229,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
     aggMap.put(createEmptyTimelineMetric(ctime += min_5), expectedAggregate);
 
-    hdb.saveHostAggregateRecords(aggMap, METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2);
+    hdb.saveHostAggregateRecords(aggMap, METRICS_AGGREGATE_HOURLY_TABLE_NAME);
 
     //WHEN
     long endTime = ctime + min_5;
@@ -239,7 +239,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     //THEN
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime + 1, null, null, true);
-    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_DAILY_TABLE_NAME_V2));
+    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_DAILY_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -283,7 +283,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime + 1, null, null, true);
-    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2));
+    condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL, METRICS_AGGREGATE_MINUTE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();

@@ -50,14 +50,14 @@ import static org.apache.ambari.metrics.core.timeline.availability.AggregationTa
 import static org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_DAILY;
 import static org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_HOURLY;
 import static org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_MINUTE;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
-import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME_V2;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -113,8 +113,8 @@ public class TimelineMetricAggregatorFactory {
       (HOST_AGGREGATOR_MINUTE_CHECKPOINT_CUTOFF_MULTIPLIER, 3);
     String hostAggregatorDisabledParam = HOST_AGGREGATOR_MINUTE_DISABLED;
 
-    String inputTableName = METRICS_RECORD_TABLE_NAME_V2;
-    String outputTableName = METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
+    String inputTableName = METRICS_RECORD_TABLE_NAME;
+    String outputTableName = METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 
     if (useGroupByAggregator(metricsConf)) {
       return new org.apache.ambari.metrics.core.timeline.aggregators.v2.TimelineMetricHostAggregator(
@@ -165,8 +165,8 @@ public class TimelineMetricAggregatorFactory {
       (HOST_AGGREGATOR_HOUR_CHECKPOINT_CUTOFF_MULTIPLIER, 2);
     String hostAggregatorDisabledParam = HOST_AGGREGATOR_HOUR_DISABLED;
 
-    String inputTableName = METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
-    String outputTableName = METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2;
+    String inputTableName = METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+    String outputTableName = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
 
     if (useGroupByAggregator(metricsConf)) {
       return new org.apache.ambari.metrics.core.timeline.aggregators.v2.TimelineMetricHostAggregator(
@@ -217,8 +217,8 @@ public class TimelineMetricAggregatorFactory {
       (HOST_AGGREGATOR_DAILY_CHECKPOINT_CUTOFF_MULTIPLIER, 1);
     String hostAggregatorDisabledParam = HOST_AGGREGATOR_DAILY_DISABLED;
 
-    String inputTableName = METRICS_AGGREGATE_HOURLY_TABLE_NAME_V2;
-    String outputTableName = METRICS_AGGREGATE_DAILY_TABLE_NAME_V2;
+    String inputTableName = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+    String outputTableName = METRICS_AGGREGATE_DAILY_TABLE_NAME;
 
     if (useGroupByAggregator(metricsConf)) {
       return new org.apache.ambari.metrics.core.timeline.aggregators.v2.TimelineMetricHostAggregator(
@@ -275,7 +275,7 @@ public class TimelineMetricAggregatorFactory {
     int checkpointCutOffMultiplier =
       metricsConf.getInt(CLUSTER_AGGREGATOR_SECOND_CHECKPOINT_CUTOFF_MULTIPLIER, 2);
 
-    String outputTableName = METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
+    String outputTableName = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
     String aggregatorDisabledParam = CLUSTER_AGGREGATOR_SECOND_DISABLED;
 
     // Second based aggregation have added responsibility of time slicing
@@ -297,7 +297,7 @@ public class TimelineMetricAggregatorFactory {
       );
     }
 
-    String inputTableName = METRICS_RECORD_TABLE_NAME_V2;
+    String inputTableName = METRICS_RECORD_TABLE_NAME;
     return new TimelineMetricClusterAggregatorSecond(
       METRIC_AGGREGATE_SECOND,
       metadataManager,
@@ -335,8 +335,8 @@ public class TimelineMetricAggregatorFactory {
     int checkpointCutOffMultiplier = metricsConf.getInt
       (CLUSTER_AGGREGATOR_MINUTE_CHECKPOINT_CUTOFF_MULTIPLIER, 2);
 
-    String inputTableName = METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
-    String outputTableName = METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME_V2;
+    String inputTableName = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+    String outputTableName = METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
     String aggregatorDisabledParam = CLUSTER_AGGREGATOR_MINUTE_DISABLED;
 
     if (useGroupByAggregator(metricsConf)) {
@@ -390,8 +390,8 @@ public class TimelineMetricAggregatorFactory {
     int checkpointCutOffMultiplier = metricsConf.getInt
       (CLUSTER_AGGREGATOR_HOUR_CHECKPOINT_CUTOFF_MULTIPLIER, 2);
 
-    String inputTableName = METRICS_CLUSTER_AGGREGATE_TABLE_NAME_V2;
-    String outputTableName = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2;
+    String inputTableName = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+    String outputTableName = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
     String aggregatorDisabledParam = CLUSTER_AGGREGATOR_HOUR_DISABLED;
 
     if (useGroupByAggregator(metricsConf)) {
@@ -445,8 +445,8 @@ public class TimelineMetricAggregatorFactory {
     int checkpointCutOffMultiplier = metricsConf.getInt
       (CLUSTER_AGGREGATOR_DAILY_CHECKPOINT_CUTOFF_MULTIPLIER, 1);
 
-    String inputTableName = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME_V2;
-    String outputTableName = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME_V2;
+    String inputTableName = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+    String outputTableName = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
     String aggregatorDisabledParam = CLUSTER_AGGREGATOR_DAILY_DISABLED;
 
     if (useGroupByAggregator(metricsConf)) {
@@ -491,8 +491,8 @@ public class TimelineMetricAggregatorFactory {
       (HOST_AGGREGATOR_MINUTE_CHECKPOINT_CUTOFF_MULTIPLIER, 3);
     String hostAggregatorDisabledParam = HOST_AGGREGATOR_MINUTE_DISABLED;
 
-    String inputTableName = METRICS_RECORD_TABLE_NAME_V2;
-    String outputTableName = METRICS_AGGREGATE_MINUTE_TABLE_NAME_V2;
+    String inputTableName = METRICS_RECORD_TABLE_NAME;
+    String outputTableName = METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 
     if (useGroupByAggregator(metricsConf)) {
       return new org.apache.ambari.metrics.core.timeline.aggregators.v2.TimelineMetricFilteringHostAggregator(
