@@ -187,10 +187,10 @@ public class ConfigHandler implements InputConfigMonitor {
     }
 
     for (FilterDescriptor filterDescriptor : inputConfig.getFilter()) {
-      if ("grok".equals(filterDescriptor.getFilter())) {
-        // Thus ensure that the log entry passed will be parsed immediately
-        ((FilterGrokDescriptor)filterDescriptor).setMultilinePattern(null);
-      }
+//      if ("grok".equals(filterDescriptor.getFilter())) {
+//        // Thus ensure that the log entry passed will be parsed immediately
+//        ((FilterGrokDescriptor)filterDescriptor).setMultilinePattern(null);
+//      }
       filterConfigList.add(filterDescriptor);
     }
     loadInputs("test");
