@@ -143,6 +143,10 @@ public class ActionExecutionContext {
     return expectedServiceGroupName;
   }
 
+  public void setExpectedServiceGroupName(String name) {
+    expectedServiceGroupName = name;
+  }
+
   public String getExpectedServiceName() {
     return expectedServiceName;
   }

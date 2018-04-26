@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -111,6 +112,15 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   public Map<String, OsSpecific> getOsSpecifics() {
     return stackOsSpecificsMap;
   }
+
+  /**
+   * Exposes  map of os-specific details.
+   * @return  map of OS specific details keyed by family
+   */
+  public Map<String, OsSpecific> getOsSpecificsSafe() {
+    return (null != stackOsSpecificsMap) ? stackOsSpecificsMap : new HashMap<>();
+  }
+
 
   public void setOsSpecifics(Map<String, OsSpecific> serviceOsSpecificsMap) {
     this.stackOsSpecificsMap = serviceOsSpecificsMap;

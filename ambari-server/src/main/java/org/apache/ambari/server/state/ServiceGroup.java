@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -87,4 +88,11 @@ public interface ServiceGroup {
    * @param stackEntity the stack to set.
    */
   void setStack(StackEntity stackEntity);
+
+  /**
+   * @return the services associated with this service group.
+   *
+   * @throws AmbariException
+   */
+  Collection<Service> getServices() throws AmbariException;
 }

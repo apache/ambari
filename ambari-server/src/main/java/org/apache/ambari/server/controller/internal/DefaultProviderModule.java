@@ -116,6 +116,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new UpgradeItemResourceProvider(managementController);
       case UpgradePlan:
         return new UpgradePlanResourceProvider(managementController);
+      case UpgradePlanInstall:
+        return new UpgradePlanInstallResourceProvider(managementController);
       case UpgradeSummary:
         return new UpgradeSummaryResourceProvider(managementController);
       case PreUpgradeCheck:

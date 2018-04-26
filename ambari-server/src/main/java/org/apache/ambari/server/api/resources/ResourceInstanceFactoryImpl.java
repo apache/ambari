@@ -458,6 +458,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
             Resource.Type.UpgradePlan, "upgrade_plan", "upgrade_plans");
         break;
 
+      case UpgradePlanInstall:
+        resourceDefinition = new SimpleResourceDefinition(
+            Resource.Type.UpgradePlanInstall, "upgrade_plan_install", "upgrade_plan_installs");
+        break;
+
       case UpgradeSummary:
         resourceDefinition = new SimpleResourceDefinition(
             Resource.Type.UpgradeSummary, "upgrade_summary", "upgrade_summary");

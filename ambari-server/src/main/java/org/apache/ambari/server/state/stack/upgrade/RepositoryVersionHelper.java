@@ -438,6 +438,28 @@ public class RepositoryVersionHelper {
       long mpackId = serviceGroup.getMpackId();
       Mpack mpack = ambariMetaInfo.getMpack(mpackId);
 
+      addCommandRepositoryToContext(context, mpack, osEntity);
+
+    } catch (AmbariException ambariException) {
+      throw new SystemException(ambariException.getMessage(), ambariException);
+    }
+  }
+
+  /**
+   * Adds a command repository to the action context for the supplied mpack.  This is
+   * primarily called when distributing packages of a different mpack for a compatible
+   * service group
+   * @param context
+   *          the context
+   * @param mpack
+   *          the target mpack
+   * @param osEntity
+   *          the OS family
+   * @throws SystemException
+   */
+  public void addCommandRepositoryToContext(ActionExecutionContext context,
+      Mpack mpack, RepoOsEntity osEntity) throws SystemException {
+    try {
       final CommandRepository commandRepo = getCommandRepository(mpack, osEntity);
 
       context.addVisitor(command -> {
