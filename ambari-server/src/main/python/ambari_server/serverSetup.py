@@ -945,28 +945,37 @@ def _cache_jdbc_driver(args):
   custom_db_jdbc_property_name = "custom." + args.jdbc_db + ".jdbc.name"
   custom_db_jdbc_property_value = properties[custom_db_jdbc_property_name]
 
+  symlink_name = os.path.join(resources_dir, default_connectors_map[args.jdbc_db])
+
   if custom_db_jdbc_property_value:
     properties.process_pair("previous." + custom_db_jdbc_property_name, custom_db_jdbc_property_value)
   else:
-    if args.jdbc_driver.endswith(TAR_GZ_ARCHIVE_TYPE):
-      symlink_name = args.jdbc_db + "-jdbc-driver" + TAR_GZ_ARCHIVE_TYPE
-    else:
-      symlink_name = args.jdbc_db + "-jdbc-driver.jar"
-
-    if os.path.lexists(os.path.join(resources_dir, symlink_name)):
+    if os.path.lexists(symlink_name):
       properties.process_pair("previous." + custom_db_jdbc_property_name, default_connectors_map[args.jdbc_db])
 
   properties.process_pair(custom_db_jdbc_property_name, jdbc_name)
 
-  if os.path.isfile(os.path.join(resources_dir, jdbc_name)):
-    os.remove(os.path.join(resources_dir, jdbc_name))
+  dest = os.path.join(resources_dir, jdbc_name)
+  if os.path.isfile(dest):
+    os.remove(dest)
 
   try:
-    shutil.copy(args.jdbc_driver, resources_dir)
-    print "Copying {0} to {1}".format(args.jdbc_driver, resources_dir)
+    shutil.copy(args.jdbc_driver, dest)
+    print "Copying {0} to {1}".format(args.jdbc_driver, dest)
   except Exception, e:
-    err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-          "permissions and free disk space.".format(args.jdbc_driver, resources_dir, str(e))
+    err = "Cannot copy file {0} to {1} due to: {2} . Please check file " \
+          "permissions and free disk space.".format(args.jdbc_driver, dest, str(e))
+    raise FatalException(1, err)
+
+  try:
+    if (dest != symlink_name):
+      if os.path.isfile(symlink_name):
+        os.remove(symlink_name)
+      os.symlink(dest, symlink_name)
+      print "Creating symlink {0} to {1}".format(dest, symlink_name)
+  except Exception, e:
+    err = "Cannot create symlink {0} to {1} due to: {2} . Please check file " \
+          "permissions and free disk space.".format(dest, symlink_name, str(e))
     raise FatalException(1, err)
 
   update_properties(properties)
