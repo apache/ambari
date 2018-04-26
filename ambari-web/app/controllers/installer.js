@@ -147,7 +147,11 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       this.loadServiceComponents().complete(function () {
         self.set('content.services', App.StackService.find().forEach(function (item) {
           // user the service version from VersionDefinition
-          var serviceInStack = App.Stack.find().findProperty('isSelected').get('stackServices').findProperty('name', item.get('serviceName'));
+          var selectedStack = App.Stack.find().findProperty('isSelected');
+          if (!selectedStack) {
+            return;
+          }
+          var serviceInStack = selectedStack.get('stackServices').findProperty('name', item.get('serviceName'));
           var serviceVersionDisplay = serviceInStack ? serviceInStack.get('latestVersion') : item.get('serviceVersion');
           item.set('serviceVersionDisplay', serviceVersionDisplay);
         }));
