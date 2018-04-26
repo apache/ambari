@@ -235,9 +235,10 @@ public interface Clusters {
    * Publish event set of hosts were removed
    * @param clusters
    * @param hostNames
+   * @param componentsPerHost
    * @throws AmbariException
    */
-  void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames)
+  void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames, Map<String, Set<String>> componentsPerHost)
       throws AmbariException;
 
   /**

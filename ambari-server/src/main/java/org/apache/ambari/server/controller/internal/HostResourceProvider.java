@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -997,6 +999,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> hostNames = new HashSet<>();
     Set<Cluster> allClustersWithHosts = new HashSet<>();
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
+    Map<String, Set<String>> deletedComponentsPerHost = new HashMap<>();
     for (HostRequest hostRequest : requests) {
       // Assume the user also wants to delete it entirely, including all clusters.
       String hostname = hostRequest.getHostname();
@@ -1020,7 +1023,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
                                                                              sch.getHostName(),
                                                                              null);
           schrs.add(schr);
+          allClustersWithHosts.add(cluster);
         }
+        deletedComponentsPerHost.put(hostname, list.stream().map(ServiceComponentHost::getServiceComponentName).collect(toSet()));
       }
       DeleteStatusMetaData componentDeleteStatus = null;
       if (schrs.size() > 0) {
@@ -1062,7 +1067,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
     }
-    clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
+    clusters.publishHostsDeletion(allClustersWithHosts, hostNames, deletedComponentsPerHost);
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
         TopologyUpdateEvent.EventType.DELETE);
     topologyHolder.updateData(topologyUpdateEvent);
