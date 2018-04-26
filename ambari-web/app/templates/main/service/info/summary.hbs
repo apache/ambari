@@ -90,18 +90,20 @@
               {{#if view.quickLinksArray}}
                 <!--there are multiple masters eg, HBase multiple masters or HDFS HA enabled-->
                 {{#each group in view.quickLinksArray}}
-                  {{#if group.title}}
-                    <h5 class="ellipsis-overflow-nowrap"
-                      {{bindAttr data-title="group.title" rel="view.tooltipAttribute"}}>
-                      {{group.title}}
-                    </h5>
-                  {{/if}}
-                  {{#each quickLinks in group.links}}
-                    <h6>{{quickLinks.publicHostNameLabel}}</h6>
-                    {{#each quickLinks}}
-                      <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                  <div {{QAAttr "{group.title}-quick-links"}}>
+                    {{#if group.title}}
+                      <h5 class="ellipsis-overflow-nowrap"
+                        {{bindAttr data-title="group.title" rel="view.tooltipAttribute"}}>
+                        {{group.title}}
+                      </h5>
+                    {{/if}}
+                    {{#each quickLinks in group.links}}
+                      <h6>{{quickLinks.publicHostNameLabel}}</h6>
+                      {{#each quickLinks}}
+                        <a {{bindAttr href="url"}} target="_blank">{{label}}</a>
+                      {{/each}}
                     {{/each}}
-                  {{/each}}
+                  </div>
                 {{/each}}
               {{else}}
                 {{#if view.quickLinks}}
