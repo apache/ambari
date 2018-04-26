@@ -64,6 +64,7 @@ RESOURCE_TO_JSON_FIELDS = {
 EXCEPTIONS_TO_RETRY = {
   # "ExceptionName": (try_count, try_sleep_seconds)
   "LeaseExpiredException": (20, 6),
+  "RetriableException": (20, 6),
 }
 
 class HdfsResourceJar:
