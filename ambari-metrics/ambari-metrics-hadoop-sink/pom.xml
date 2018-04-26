@@ -31,7 +31,6 @@ limitations under the License.
   <packaging>jar</packaging>
   <properties>
     <sinkJarName>${project.artifactId}-with-common-${project.version}.jar</sinkJarName>
-    <hadoopVersion>3.0.0-beta1</hadoopVersion>
   </properties>
 
 
@@ -142,7 +141,7 @@ limitations under the License.
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>${hadoopVersion}</version>
+      <version>3.0.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -171,7 +170,7 @@ limitations under the License.
     <dependency>
       <groupId>commons-configuration</groupId>
       <artifactId>commons-configuration</artifactId>
-      <version>1.6</version>
+      <version>1.10</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
