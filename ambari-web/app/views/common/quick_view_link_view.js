@@ -338,7 +338,7 @@ App.QuickLinksView = Em.View.extend({
     if (serviceName === 'MAPREDUCE2' && response) {
       var portConfig = Em.get(link, 'port');
       var siteName = Em.get(portConfig, 'site');
-      var siteConfigs = this.get('configProperties').findProperty('type', siteName).properties;
+      const siteConfigs = this.get('configProperties').findProperty('type', siteName).properties;
       var hostPortConfigValue = siteConfigs[Em.get(portConfig, protocol + '_config')];
       if (!Em.isNone(hostPortConfigValue)) {
         var hostPortValue = hostPortConfigValue.match(new RegExp('([\\w\\d.-]*):(\\d+)'));
@@ -348,9 +348,12 @@ App.QuickLinksView = Em.View.extend({
         }
       }
     } else if (serviceName === 'RANGER') {
-      var siteConfigs = this.get('configProperties').findProperty('type', 'admin-properties').properties;
+      const siteConfigs = this.get('configProperties').findProperty('type', 'admin-properties').properties;
       if (siteConfigs['policymgr_external_url']) {
-        host = siteConfigs['policymgr_external_url'].split('://')[1].split(':')[0];
+        return {
+          label: link.label,
+          url: siteConfigs['policymgr_external_url']
+        }
       }
     }
 
