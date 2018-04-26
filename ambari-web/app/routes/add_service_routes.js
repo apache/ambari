@@ -268,13 +268,22 @@ module.exports = App.WizardRoute.extend({
 
     backTransition: function (router) {
       var controller = router.get('addServiceController');
+      var wizardStep7Controller = router.get('wizardStep7Controller');
+      var step = 'step1';
       if (!controller.get('content.skipSlavesStep')) {
-        return router.transitionTo('step3');
+        step = 'step3';
       }
-      if (!controller.get('content.skipMasterStep')) {
-        return router.transitionTo('step2');
+      else if (!controller.get('content.skipMasterStep')) {
+        step = 'step2';
       }
-      return router.transitionTo('step1');
+      var goToPreviousStep = function() {
+        router.transitionTo(step);
+      };
+      if (wizardStep7Controller.hasChanges()) {
+        wizardStep7Controller.showChangesWarningPopup(goToPreviousStep);
+      } else {
+        goToPreviousStep();
+      }
     },
     next: function (router) {
       var addServiceController = router.get('addServiceController');

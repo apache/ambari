@@ -29,6 +29,7 @@ App.DirectoriesTabOnStep7View = Em.View.extend({
     var services = [];
     var directoriesTabs = App.Tab.find().filterProperty('themeName', 'directories');
     var stepConfigs = this.get('controller.stepConfigs');
+    var lastSelectedService = this.get('controller.tabs').findProperty('isActive').get('selectedServiceName')
     stepConfigs.forEach(function (stepConfig) {
       var tab = directoriesTabs.findProperty('serviceName', stepConfig.get('serviceName'));
       if (tab) {
@@ -37,7 +38,11 @@ App.DirectoriesTabOnStep7View = Em.View.extend({
     });
     this.set('services', services);
     this.get('services').setEach('isActive', false);
-    this.set('controller.selectedService', stepConfigs[0]);
+    if (lastSelectedService) {
+      this.set('controller.selectedService', stepConfigs.findProperty('serviceName', lastSelectedService));
+    } else {
+      this.set('controller.selectedService', stepConfigs[0]);
+    }
     this.get('controller').selectedServiceObserver();
   }.observes('controller.stepConfigs'),
 
@@ -47,6 +52,7 @@ App.DirectoriesTabOnStep7View = Em.View.extend({
     this.get('services').setEach('isActive', false);
     event.context.set('isActive', true);
     this.set('controller.selectedService', this.get('controller.stepConfigs').findProperty('serviceName', event.context.get('serviceName')));
+    this.get('controller.tabs').findProperty('isActive', true).set('selectedServiceName', event.context.get('serviceName'));
   },
 
   didInsertElement: function () {
