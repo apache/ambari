@@ -21,6 +21,9 @@ import status_params
 import utils
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
+import re
+
+from ambari_commons.os_check import OSCheck
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
@@ -41,7 +44,6 @@ from resource_management.libraries.functions.hdfs_utils import is_https_enabled_
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
-from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.functions.namenode_ha_utils import get_properties_for_all_nameservices, namenode_federation_enabled
 
 config = Script.get_config()
@@ -300,14 +302,10 @@ if dfs_ha_nameservices is None:
 dfs_ha_namenode_ids_all_ns = get_properties_for_all_nameservices(hdfs_site, 'dfs.ha.namenodes')
 dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.automatic-failover.enabled", False)
 
-# hostnames of the active HDFS HA Namenodes (only used when HA is enabled)
-if command_phase == "INITIAL_START":
-  dfs_ha_namenode_active = namenode_ha_utils.get_initial_active_namenodes(default("/configurations/cluster-env", {}))
-  dfs_ha_initial_cluster_id = default('/configurations/cluster-env/dfs_ha_initial_cluster_id', None)
-else:
-  dfs_ha_namenode_active = frozenset()
-  dfs_ha_initial_cluster_id = None
-
+# hostname of the active HDFS HA Namenode (only used when HA is enabled)
+dfs_ha_namenode_active = default("/configurations/cluster-env/dfs_ha_initial_namenode_active", None)
+# hostname of the standby HDFS HA Namenode (only used when HA is enabled)
+dfs_ha_namenode_standby = default("/configurations/cluster-env/dfs_ha_initial_namenode_standby", None)
 ha_zookeeper_quorum = config['configurations']['core-site']['ha.zookeeper.quorum']
 jaas_file = os.path.join(hadoop_conf_secure_dir, 'hdfs_jaas.conf')
 zk_namespace = default('/configurations/hdfs-site/ha.zookeeper.parent-znode', '/hadoop-ha')

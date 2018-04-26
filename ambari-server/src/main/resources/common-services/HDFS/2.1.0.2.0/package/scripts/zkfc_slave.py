@@ -34,6 +34,8 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.core.resources.system import Execute
+from resource_management.core.exceptions import Fail, ComponentIsNotRunning
+from resource_management.core.resources.system import Execute
 
 
 class ZkfcSlave(Script):
@@ -41,10 +43,10 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
     self.install_packages(env)
-
+    
   def configure(env):
     ZkfcSlave.configure_static(env)
-
+    
   @staticmethod
   def configure_static(env):
     import params
@@ -70,7 +72,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
 
   def start(self, env, upgrade_type=None):
     ZkfcSlaveDefault.start_static(env, upgrade_type)
-
+    
   @staticmethod
   def start_static(env, upgrade_type=None):
     import params
@@ -87,7 +89,8 @@ class ZkfcSlaveDefault(ZkfcSlave):
     # only run this format command if the active namenode hostname is set
     # The Ambari UI HA Wizard prompts the user to run this command
     # manually, so this guarantees it is only run in the Blueprints case
-    if params.dfs_ha_enabled and params.dfs_ha_namenode_active:
+    if params.dfs_ha_enabled and \
+       params.dfs_ha_namenode_active is not None:
       success =  initialize_ha_zookeeper(params)
       if not success:
         raise Fail("Could not initialize HA state in zookeeper")
@@ -96,7 +99,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
       action="start", name="zkfc", user=params.hdfs_user, create_pid_dir=True,
       create_log_dir=True
     )
-
+  
   def stop(self, env, upgrade_type=None):
     ZkfcSlaveDefault.stop_static(env, upgrade_type)
 
@@ -113,7 +116,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
 
   def status(self, env):
     ZkfcSlaveDefault.status_static(env)
-
+    
   @staticmethod
   def status_static(env):
     import status_params
@@ -132,7 +135,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
   def get_log_folder(self):
     import params
     return params.hdfs_log_dir
-
+  
   def get_user(self):
     import params
     return params.hdfs_user
