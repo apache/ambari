@@ -104,7 +104,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime + 2, null, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
-        METRICS_AGGREGATE_MINUTE_TABLE_NAME));
+      METRICS_AGGREGATE_MINUTE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();

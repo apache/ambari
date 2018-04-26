@@ -142,7 +142,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
     condition.setStatement(String.format(GET_METRIC_SQL,
-        METRICS_RECORD_TABLE_NAME));
+      METRICS_RECORD_TABLE_NAME));
     // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");

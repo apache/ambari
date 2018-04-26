@@ -92,7 +92,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -166,7 +166,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -227,7 +227,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -533,7 +533,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       new ArrayList<String>() {{ add("cpu_user"); }}, null, "app1", null,
       startTime - 90000, endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();
@@ -613,7 +613,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
     ResultSet rs = pstmt.executeQuery();

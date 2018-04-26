@@ -490,37 +490,37 @@ public class PhoenixHBaseAccessor {
       stmt.executeUpdate(precisionSql);
 
       String hostMinuteAggregrateSql = String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
-          METRICS_AGGREGATE_MINUTE_TABLE_NAME, encoding,
+        METRICS_AGGREGATE_MINUTE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_AGGREGATE_MINUTE_TABLE_NAME),
         compression);
       stmt.executeUpdate(hostMinuteAggregrateSql);
 
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
-          METRICS_AGGREGATE_HOURLY_TABLE_NAME, encoding,
+        METRICS_AGGREGATE_HOURLY_TABLE_NAME, encoding,
         tableTTL.get(METRICS_AGGREGATE_HOURLY_TABLE_NAME),
         compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
-          METRICS_AGGREGATE_DAILY_TABLE_NAME, encoding,
+        METRICS_AGGREGATE_DAILY_TABLE_NAME, encoding,
         tableTTL.get(METRICS_AGGREGATE_DAILY_TABLE_NAME),
         compression));
 
       // Cluster level
       String aggregateSql = String.format(CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL,
-          METRICS_CLUSTER_AGGREGATE_TABLE_NAME, encoding,
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_TABLE_NAME),
         compression);
 
       stmt.executeUpdate(aggregateSql);
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
-          METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, encoding,
+        METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME),
         compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
-          METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, encoding,
+        METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, encoding,
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME),
         compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
-          METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, encoding,
+        METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, encoding,
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME),
         compression));
 
