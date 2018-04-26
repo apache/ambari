@@ -119,6 +119,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -136,6 +137,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -236,6 +238,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -253,6 +256,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -365,7 +369,8 @@ class TestNamenode(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
-        mode = 0777
+        mode = 0777,
+        nameservices = None
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -379,7 +384,8 @@ class TestNamenode(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
-        mode = 0770
+        mode = 0770,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -474,6 +480,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
+        nameservices = ['ns1'],
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -491,6 +498,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
+        nameservices = ['ns1'],
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -574,6 +582,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
+        nameservices = ['ns1'],
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -591,6 +600,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
+        nameservices = ['ns1'],
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -679,6 +689,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -696,6 +707,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -793,6 +805,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -810,6 +823,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
+        nameservices = None,
     )
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -1723,7 +1737,7 @@ class TestNamenode(RMFTestCase):
     unknown_namenodes = []
 
     get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
-    self.assertTrue(is_this_namenode_active())
+    self.assertTrue(is_this_namenode_active(None))
 
     # now test the harder tuple
     active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070'), ('nn2', 'c6402.ambari.apache.org:50070')]
@@ -1731,7 +1745,7 @@ class TestNamenode(RMFTestCase):
     unknown_namenodes = []
 
     get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
-    self.assertTrue(is_this_namenode_active())
+    self.assertTrue(is_this_namenode_active(None))
 
     # and the negative for good measure
     active_namenodes = []
@@ -1739,7 +1753,7 @@ class TestNamenode(RMFTestCase):
     unknown_namenodes = []
 
     get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
-    self.assertFalse(is_this_namenode_active())
+    self.assertFalse(is_this_namenode_active(None))
 
   def test_reloadproxyusers(self):
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",

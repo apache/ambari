@@ -319,7 +319,11 @@ class HdfsResourceWebHDFS:
     if main_resource.resource.security_enabled:
       main_resource.kinit()
 
-    nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
+    if main_resource.resource.nameservices is None:
+      nameservices = namenode_ha_utils.get_nameservices(main_resource.resource.hdfs_site)
+    else:
+      nameservices = main_resource.resource.nameservices
+
     if not nameservices:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
