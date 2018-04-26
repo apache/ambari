@@ -62,17 +62,9 @@ class MpackPackages(Script):
     # Select dict that contains parameters
     try:
       package_list = json.loads(config['roleParams']['package_list'])
-      stack_id = config['roleParams']['stack_id']
     except KeyError:
       pass
 
-    self.stack_name = Script.get_stack_name()
-    if self.stack_name is None:
-      raise Fail("Cannot determine the stack name")
-
-    self.stack_root_folder = Script.get_stack_root()
-    if self.stack_root_folder is None:
-      raise Fail("Cannot determine the stack's root directory")
 
     if self.repository_version is None:
       raise Fail("Cannot determine the repository version to install")
@@ -85,7 +77,6 @@ class MpackPackages(Script):
       else:
         Logger.info(
           "Will install packages for repository version {0}".format(self.repository_version))
-        new_repo_files = Script.repository_util.create_repo_files()
     except Exception, err:
       import traceback
       traceback.print_exc()
@@ -114,12 +105,10 @@ class MpackPackages(Script):
     # Initial list of versions, used to compute the new version installed
 
     try:
-      is_package_install_successful = False
       ret_code = self.install_packages(package_list)
       if ret_code == 0:
         self.structured_output['package_installation_result'] = 'SUCCESS'
         self.put_structured_out(self.structured_output)
-        is_package_install_successful = True
       else:
         num_errors += 1
     except Exception as err:

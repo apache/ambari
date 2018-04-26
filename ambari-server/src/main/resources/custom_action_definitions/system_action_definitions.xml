@@ -64,17 +64,6 @@
     <permissions>CLUSTER.MODIFY_CONFIGS, SERVICE.MODIFY_CONFIGS</permissions>
   </actionDefinition>
   <actionDefinition>
-    <actionName>install_packages</actionName>
-    <actionType>SYSTEM</actionType>
-    <inputs>base_urls, package_list</inputs>
-    <targetService/>
-    <targetComponent/>
-    <defaultTimeout>60</defaultTimeout>
-    <description>Distribute repositories and install packages</description>
-    <targetType>ALL</targetType>
-    <permissions>HOST.ADD_DELETE_COMPONENTS, HOST.ADD_DELETE_HOSTS, SERVICE.ADD_DELETE_SERVICES</permissions>
-  </actionDefinition>
-  <actionDefinition>
     <actionName>mpack_packages</actionName>
     <actionType>SYSTEM</actionType>
     <inputs>package_list</inputs>
