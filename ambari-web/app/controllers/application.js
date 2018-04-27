@@ -84,11 +84,16 @@ App.ApplicationController = Em.Controller.extend(App.Persist, {
     var isDowngrade = App.router.get('mainAdminStackAndUpgradeController.isDowngrade');
     var typeSuffix = isDowngrade ? 'downgrade' : 'upgrade';
     var hasUpgradePrivilege = App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK');
+    var wizardWatcherController = App.router.get('wizardWatcherController');
+    var isNotWizardUser;
+    var wizardUserName;
     if (upgradeInProgress) {
+      isNotWizardUser =wizardWatcherController.get('isNonWizardUser');
+      wizardUserName = wizardWatcherController.get('wizardUser');
       return {
         cls: hasUpgradePrivilege? 'upgrade-in-progress' : 'upgrade-in-progress not-allowed-cursor',
         icon: 'glyphicon-cog',
-        msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.running')
+        msg: isNotWizardUser ?  Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.running.nonWizard').format(wizardUserName) : Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.running')
       }
     }
     if (upgradeHolding) {
