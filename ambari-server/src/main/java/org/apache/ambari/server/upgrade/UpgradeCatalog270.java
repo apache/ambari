@@ -439,12 +439,12 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                 if (rootObject != null) {
                   JsonPrimitive osType = rootObject.getAsJsonPrimitive("OperatingSystems/os_type");
                   JsonPrimitive ambariManaged = rootObject.getAsJsonPrimitive("OperatingSystems/ambari_managed_repositories");
+                  String isAmbariManaged = (ambariManaged != null && ambariManaged.getAsBoolean()) ? "1" : "0";
                   JsonArray repositories = rootObject.getAsJsonArray("repositories");
-                  String isAmbariManaged = ambariManaged.getAsBoolean() ? "1" : "0";
 
                   dbAccessor.insertRowIfMissing(REPO_OS_TABLE,
                       new String[]{REPO_OS_ID_COLUMN, REPO_OS_REPO_VERSION_ID_COLUMN, REPO_OS_AMBARI_MANAGED_COLUMN, REPO_OS_FAMILY_COLUMN},
-                      new String[]{String.valueOf(++repoOsId), String.valueOf(repoVersionId), isAmbariManaged, String.format("'%s'", osType.getAsString())},
+                      new String[]{String.valueOf(++repoOsId), String.valueOf(repoVersionId), isAmbariManaged, getFormattedJSONPrimitiveString(osType)},
                       false);
 
                   if (repositories != null) {
@@ -461,8 +461,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                             new String[]{REPO_DEFINITION_ID_COLUMN, REPO_DEFINITION_REPO_OS_ID_COLUMN,
                                 REPO_DEFINITION_REPO_NAME_COLUMN, REPO_DEFINITION_REPO_ID_COLUMN, REPO_DEFINITION_BASE_URL_COLUMN},
                             new String[]{String.valueOf(++repoDefinitionId), String.valueOf(repoOsId),
-                                String.format("'%s'", repoName.getAsString()), String.format("'%s'", repoId.getAsString()),
-                                String.format("'%s'", baseUrl.getAsString())},
+                                getFormattedJSONPrimitiveString(repoName), getFormattedJSONPrimitiveString(repoId),
+                                getFormattedJSONPrimitiveString(baseUrl)},
                             false);
 
                         if (tags != null) {
@@ -472,7 +472,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                             if (tag != null) {
                               dbAccessor.insertRowIfMissing(REPO_TAGS_TABLE,
                                   new String[]{REPO_TAGS_REPO_DEFINITION_ID_COLUMN, REPO_TAGS_TAG_COLUMN},
-                                  new String[]{String.valueOf(repoDefinitionId), String.format("'%s'", tag.getAsString())},
+                                  new String[]{String.valueOf(repoDefinitionId), getFormattedJSONPrimitiveString(tag)},
                                   false);
                             }
                           }
@@ -499,6 +499,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           new String[]{"'repo_definition_id_seq'", String.valueOf(++repoDefinitionId)},
           false);
     }
+  }
+
+  private String getFormattedJSONPrimitiveString(JsonPrimitive jsonValue) {
+    return jsonValue == null ? null : String.format("'%s'", jsonValue.getAsString());
   }
 
   /**
