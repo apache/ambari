@@ -1534,13 +1534,13 @@ public class ConfigHelper {
     for (Cluster cluster : clustersInUse) {
       Map<Long, Map<String, Collection<String>>> changedConfigs = new HashMap<>();
       for (Host host : cluster.getHosts()) {
-        AgentConfigsUpdateEvent currentConfigsEvent = currentConfigEvents.get(host.getHostId());
-        AgentConfigsUpdateEvent previousConfigsEvent = previousConfigEvents.get(host.getHostId());
+        AgentConfigsUpdateEvent currentConfigData = currentConfigEvents.get(host.getHostId());
+        AgentConfigsUpdateEvent previousConfigsData = previousConfigEvents.get(host.getHostId());
 
         SortedMap<String, SortedMap<String, String>> currentConfigs =
-            currentConfigsEvent.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
+            currentConfigData.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
         SortedMap<String, SortedMap<String, String>> previousConfigs =
-            previousConfigsEvent.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
+            previousConfigsData.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
 
         Map<String, Collection<String>> changedConfigsHost = new HashMap<>();
         for (String currentConfigType : currentConfigs.keySet()) {
