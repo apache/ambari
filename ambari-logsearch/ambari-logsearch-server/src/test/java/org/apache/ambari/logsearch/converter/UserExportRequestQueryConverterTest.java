@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.UserExportRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.UserExportQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class UserExportRequestQueryConverterTest extends AbstractRequestConverte
   @Test
   public void testConverter() {
     // GIVEN
-    UserExportRequest request = new UserExportRequest();
+    UserExportRequest request = new UserExportQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setFormat("myFormat");
     request.setClusters(null);
@@ -53,7 +54,7 @@ public class UserExportRequestQueryConverterTest extends AbstractRequestConverte
   @Test
   public void testConverterWithoutData() {
     // GIVEN
-    UserExportRequest request = new UserExportRequest();
+    UserExportRequest request = new UserExportQueryRequest();
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN

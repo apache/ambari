@@ -18,76 +18,10 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.LastPageParamDefinition;
 import org.apache.ambari.logsearch.model.request.ServiceLogSearchParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class ServiceLogRequest extends BaseServiceLogRequest implements ServiceLogSearchParamDefinition, LastPageParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_KEYWORD)
-  private String keyWord;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_SOURCE_LOG_ID)
-  private String sourceLogId;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_KEYWORD_TYPE)
-  private String keywordType;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_TOKEN)
-  private String token;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_LAST_PAGE)
-  private boolean isLastPage;
-
-  @Override
-  public String getKeyWord() {
-    return keyWord;
-  }
-
-  @Override
-  public void setKeyWord(String keyWord) {
-    this.keyWord = keyWord;
-  }
-
-  @Override
-  public String getSourceLogId() {
-    return sourceLogId;
-  }
-
-  @Override
-  public void setSourceLogId(String sourceLogId) {
-    this.sourceLogId = sourceLogId;
-  }
-
-  @Override
-  public String getKeywordType() {
-    return keywordType;
-  }
-
-  @Override
-  public void setKeywordType(String keywordType) {
-    this.keywordType = keywordType;
-  }
-
-  @Override
-  public String getToken() {
-    return token;
-  }
-
-  @Override
-  public void setToken(String token) {
-    this.token = token;
-  }
-
-  @Override
-  public boolean isLastPage() {
-    return isLastPage;
-  }
-
-  @Override
-  public void setLastPage(boolean lastPage) {
-    isLastPage = lastPage;
-  }
+@Marker
+public interface ServiceLogRequest extends BaseServiceLogRequest, ServiceLogSearchParamDefinition, LastPageParamDefinition {
 }

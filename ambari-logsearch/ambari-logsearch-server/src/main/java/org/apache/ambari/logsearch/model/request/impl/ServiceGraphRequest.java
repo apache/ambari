@@ -18,23 +18,9 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class ServiceGraphRequest extends ServiceLogRequest implements UnitParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_UNIT)
-  private String unit;
-
-  @Override
-  public String getUnit() {
-    return unit;
-  }
-
-  @Override
-  public void setUnit(String unit) {
-    this.unit = unit;
-  }
+@Marker
+public interface ServiceGraphRequest extends ServiceLogRequest, UnitParamDefinition {
 }

@@ -18,37 +18,10 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 import org.apache.ambari.logsearch.model.request.UserParamDefinition;
 
-import javax.ws.rs.QueryParam;
-
-public class AuditBarGraphRequest extends BaseLogRequest implements UnitParamDefinition, UserParamDefinition {
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_USERS)
-  private String userList;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_UNIT)
-  private String unit;
-
-  @Override
-  public String getUnit() {
-    return unit;
-  }
-
-  @Override
-  public void setUnit(String unit) {
-    this.unit = unit;
-  }
-
-  @Override
-  public String getUserList() {
-    return userList;
-  }
-
-  @Override
-  public void setUserList(String userList) {
-    this.userList = userList;
-  }
+@Marker
+public interface AuditBarGraphRequest extends BaseLogRequest, UnitParamDefinition, UserParamDefinition {
 }

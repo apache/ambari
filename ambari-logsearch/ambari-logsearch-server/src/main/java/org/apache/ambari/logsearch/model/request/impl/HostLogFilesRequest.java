@@ -18,54 +18,10 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.QueryParam;
-
-import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.Marker;
 import org.apache.ambari.logsearch.model.request.HostComponentParamDefinition;
 import org.apache.ambari.logsearch.model.request.SearchRequest;
 
-public class HostLogFilesRequest implements HostComponentParamDefinition, SearchRequest {
-
-  @NotNull
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_HOST_NAME)
-  private String hostName;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_COMPONENT_NAME)
-  private String componentName;
-
-  @Nullable
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES)
-  private String clusters;
-
-  @Override
-  public String getHostName() {
-    return hostName;
-  }
-
-  @Override
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
-  }
-
-  @Override
-  public String getComponentName() {
-    return componentName;
-  }
-
-  @Override
-  public void setComponentName(String componentName) {
-    this.componentName = componentName;
-  }
-
-  @Override
-  public String getClusters() {
-    return clusters;
-  }
-
-  @Override
-  public void setClusters(String clusters) {
-    this.clusters = clusters;
-  }
+@Marker
+public interface HostLogFilesRequest extends HostComponentParamDefinition, SearchRequest {
 }

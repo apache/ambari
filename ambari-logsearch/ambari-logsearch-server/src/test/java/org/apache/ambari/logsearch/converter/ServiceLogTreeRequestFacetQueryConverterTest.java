@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogHostComponentRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogHostComponentQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class ServiceLogTreeRequestFacetQueryConverterTest extends AbstractReques
   @Test
   public void testConvert() {
     // GIVEN
-    ServiceLogHostComponentRequest request = new ServiceLogHostComponentRequest();
+    ServiceLogHostComponentRequest request = new ServiceLogHostComponentQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setLevel("WARN,ERROR,FATAL");
     // WHEN
@@ -52,7 +53,7 @@ public class ServiceLogTreeRequestFacetQueryConverterTest extends AbstractReques
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    ServiceLogHostComponentRequest request = new ServiceLogHostComponentRequest();
+    ServiceLogHostComponentRequest request = new ServiceLogHostComponentQueryRequest();
     request.setLevel("WARN,ERROR,FATAL");
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));

@@ -24,11 +24,14 @@ import javax.inject.Named;
 import javax.validation.Valid;
 import javax.validation.executable.ValidateOnExecution;
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import io.swagger.annotations.Api;
@@ -38,17 +41,28 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.model.metadata.FieldMetadata;
 import org.apache.ambari.logsearch.model.metadata.ServiceComponentMetadataWrapper;
-import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogAggregatedInfoRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogComponentHostRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogComponentLevelRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogExportRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogHostComponentRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogTruncatedRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.HostLogFilesBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceAnyGraphBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceGraphBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogAggregatedInfoBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogComponentHostBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogComponentLevelBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogExportBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogHostComponentBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogLevelCountBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.body.ServiceLogTruncatedBodyRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.HostLogFilesQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceAnyGraphQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceGraphQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogAggregatedInfoQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogComponentHostQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogComponentLevelQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogExportQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogHostComponentQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogLevelCountQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogQueryRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogTruncatedQueryRequest;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.CountDataListResponse;
 import org.apache.ambari.logsearch.model.response.GraphDataListResponse;
@@ -74,22 +88,31 @@ public class ServiceLogsResource {
   private ServiceLogsManager serviceLogsManager;
 
   @GET
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(SEARCH_LOGS_OD)
-  public ServiceLogResponse searchServiceLogs(@BeanParam ServiceLogRequest request) {
+  public ServiceLogResponse searchServiceLogsGet(@BeanParam ServiceLogQueryRequest request) {
+    return serviceLogsManager.searchLogs(request);
+  }
+
+  @POST
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(SEARCH_LOGS_OD)
+  public ServiceLogResponse searchServiceLogsPost(ServiceLogBodyRequest request) {
     return serviceLogsManager.searchLogs(request);
   }
 
   @DELETE
-  @Produces({"application/json"})
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(PURGE_LOGS_OD)
-  public StatusMessage deleteServiceLogs(@BeanParam ServiceLogRequest request) {
+  public StatusMessage deleteServiceLogs(ServiceLogBodyRequest request) {
     return serviceLogsManager.deleteLogs(request);
   }
 
   @GET
   @Path("/hosts")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_HOSTS_OD)
   public GroupListResponse getHosts(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getHosts(clusters);
@@ -97,7 +120,7 @@ public class ServiceLogsResource {
 
   @GET
   @Path("/components")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_COMPONENTS_OD)
   public ServiceComponentMetadataWrapper getComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getComponentMetadata(clusters);
@@ -105,15 +128,24 @@ public class ServiceLogsResource {
 
   @GET
   @Path("/aggregated")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AGGREGATED_INFO_OD)
-  public GraphDataListResponse getAggregatedInfo(@BeanParam ServiceLogAggregatedInfoRequest request) {
+  public GraphDataListResponse getAggregatedInfoGet(@BeanParam ServiceLogAggregatedInfoQueryRequest request) {
+    return serviceLogsManager.getAggregatedInfo(request);
+  }
+
+  @POST
+  @Path("/aggregated")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AGGREGATED_INFO_OD)
+  public GraphDataListResponse getAggregatedInfoPost(ServiceLogAggregatedInfoBodyRequest request) {
     return serviceLogsManager.getAggregatedInfo(request);
   }
 
   @GET
   @Path("/components/count")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_COMPONENTS_COUNT_OD)
   public CountDataListResponse getComponentsCount(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getComponentsCount(clusters);
@@ -121,7 +153,7 @@ public class ServiceLogsResource {
 
   @GET
   @Path("/hosts/count")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_HOSTS_COUNT_OD)
   public CountDataListResponse getHostsCount(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
     return serviceLogsManager.getHostsCount(clusters);
@@ -129,55 +161,110 @@ public class ServiceLogsResource {
 
   @GET
   @Path("/tree")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_TREE_EXTENSION_OD)
-  public NodeListResponse getTreeExtension(@BeanParam ServiceLogHostComponentRequest request) {
+  public NodeListResponse getTreeExtensionGet(@BeanParam ServiceLogHostComponentQueryRequest request) {
+    return serviceLogsManager.getTreeExtension(request);
+  }
+
+  @POST
+  @Path("/tree")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_TREE_EXTENSION_OD)
+  public NodeListResponse getTreeExtensionPost(ServiceLogHostComponentBodyRequest request) {
     return serviceLogsManager.getTreeExtension(request);
   }
 
   @GET
   @Path("/levels/counts")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_LOG_LEVELS_COUNT_OD)
-  public NameValueDataListResponse getLogsLevelCount(@BeanParam ServiceLogLevelCountRequest request) {
+  public NameValueDataListResponse getLogsLevelCountGet(@BeanParam ServiceLogLevelCountQueryRequest request) {
+    return serviceLogsManager.getLogsLevelCount(request);
+  }
+
+  @POST
+  @Path("/levels/counts")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_LOG_LEVELS_COUNT_OD)
+  public NameValueDataListResponse getLogsLevelCountPost(ServiceLogLevelCountBodyRequest request) {
     return serviceLogsManager.getLogsLevelCount(request);
   }
 
   @GET
   @Path("/histogram")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_HISTOGRAM_DATA_OD)
-  public BarGraphDataListResponse getHistogramData(@BeanParam ServiceGraphRequest request) {
+  public BarGraphDataListResponse getHistogramDataGet(@BeanParam ServiceGraphQueryRequest request) {
     return serviceLogsManager.getHistogramData(request);
   }
 
+  @POST
+  @Path("/histogram")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_HISTOGRAM_DATA_OD)
+  public BarGraphDataListResponse getHistogramDataPost(ServiceGraphBodyRequest request) {
+    return serviceLogsManager.getHistogramData(request);
+  }
+
+
   @GET
   @Path("/export")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(EXPORT_TO_TEXT_FILE_OD)
-  public Response exportToTextFile(@BeanParam ServiceLogExportRequest request) {
+  public Response exportToTextFileGet(@BeanParam ServiceLogExportQueryRequest request) {
+    return serviceLogsManager.export(request);
+  }
+
+  @POST
+  @Path("/export")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(EXPORT_TO_TEXT_FILE_OD)
+  public Response exportToTextFilePost(ServiceLogExportBodyRequest request) {
     return serviceLogsManager.export(request);
   }
 
   @GET
   @Path("/hosts/components")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_HOST_LIST_BY_COMPONENT_OD)
-  public NodeListResponse getHostListByComponent(@BeanParam ServiceLogComponentHostRequest request) {
+  public NodeListResponse getHostListByComponentGet(@BeanParam ServiceLogComponentHostQueryRequest request) {
+    return serviceLogsManager.getHostListByComponent(request);
+  }
+
+  @POST
+  @Path("/hosts/components")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_HOST_LIST_BY_COMPONENT_OD)
+  public NodeListResponse getHostListByComponentPost(ServiceLogComponentHostBodyRequest request) {
     return serviceLogsManager.getHostListByComponent(request);
   }
 
   @GET
   @Path("/components/levels/counts")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_COMPONENT_LIST_WITH_LEVEL_COUNT_OD)
-  public NodeListResponse getComponentListWithLevelCounts(@BeanParam ServiceLogComponentLevelRequest request) {
+  public NodeListResponse getComponentListWithLevelCountsGet(@BeanParam ServiceLogComponentLevelQueryRequest request) {
+    return serviceLogsManager.getComponentListWithLevelCounts(request);
+  }
+
+  @POST
+  @Path("/components/levels/counts")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_COMPONENT_LIST_WITH_LEVEL_COUNT_OD)
+  public NodeListResponse getComponentListWithLevelCountsPost(ServiceLogComponentLevelBodyRequest request) {
     return serviceLogsManager.getComponentListWithLevelCounts(request);
   }
 
   @GET
   @Path("/schema/fields")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD)
   public List<FieldMetadata> getServiceLogsSchemaFieldsName() {
     return serviceLogsManager.getServiceLogsSchemaFieldsName();
@@ -185,23 +272,41 @@ public class ServiceLogsResource {
 
   @GET
   @Path("/count/anygraph")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_ANY_GRAPH_COUNT_DATA_OD)
-  public BarGraphDataListResponse getAnyGraphCountData(@BeanParam ServiceAnyGraphRequest request) {
+  public BarGraphDataListResponse getAnyGraphCountDataGet(@BeanParam ServiceAnyGraphQueryRequest request) {
+    return serviceLogsManager.getAnyGraphCountData(request);
+  }
+
+  @POST
+  @Path("/count/anygraph")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_ANY_GRAPH_COUNT_DATA_OD)
+  public BarGraphDataListResponse getAnyGraphCountDataPost(ServiceAnyGraphBodyRequest request) {
     return serviceLogsManager.getAnyGraphCountData(request);
   }
 
   @GET
   @Path("/truncated")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_AFTER_BEFORE_LOGS_OD)
-  public ServiceLogResponse getAfterBeforeLogs(@BeanParam ServiceLogTruncatedRequest request) {
+  public ServiceLogResponse getAfterBeforeLogs(@BeanParam ServiceLogTruncatedQueryRequest request) {
+    return serviceLogsManager.getAfterBeforeLogs(request);
+  }
+
+  @POST
+  @Path("/truncated")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_AFTER_BEFORE_LOGS_OD)
+  public ServiceLogResponse getAfterBeforeLogs(ServiceLogTruncatedBodyRequest request) {
     return serviceLogsManager.getAfterBeforeLogs(request);
   }
 
   @GET
   @Path("/request/cancel")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(REQUEST_CANCEL)
   public String cancelRequest() {
     // TODO: create function that cancels an ongoing solr request
@@ -210,16 +315,26 @@ public class ServiceLogsResource {
 
   @GET
   @Path("/files")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_HOST_LOGFILES_OD)
   @ValidateOnExecution
-  public HostLogFilesResponse getHostLogFiles(@Valid @BeanParam HostLogFilesRequest request) {
+  public HostLogFilesResponse getHostLogFiles(@Valid @BeanParam HostLogFilesQueryRequest request) {
+    return serviceLogsManager.getHostLogFileData(request);
+  }
+
+  @POST
+  @Path("/files")
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_JSON})
+  @ApiOperation(GET_HOST_LOGFILES_OD)
+  @ValidateOnExecution
+  public HostLogFilesResponse getHostLogFiles(@Valid @BeanParam HostLogFilesBodyRequest request) {
     return serviceLogsManager.getHostLogFileData(request);
   }
 
   @GET
   @Path("/clusters")
-  @Produces({"application/json"})
+  @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(GET_SERVICE_CLUSTERS_OD)
   public List<String> getClustersForServiceLog() {
     return serviceLogsManager.getClusters();
