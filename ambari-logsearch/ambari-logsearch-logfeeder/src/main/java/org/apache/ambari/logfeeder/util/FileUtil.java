@@ -121,11 +121,11 @@ public class FileUtil {
             return files;
           }
         } catch (Exception e) {
-          LOG.warn("Input file has not found by pattern (exception thrown); {}, message: {}", searchPath, e.getMessage());
+          LOG.warn("Input file was not found by pattern (exception thrown); {}, message: {}", searchPath, e.getMessage());
         }
 
       } else {
-        LOG.info("Input file config has not found by pattern; {}", searchPath);
+        LOG.info("Input file config was not found by pattern; {}", searchPath);
       }
       return new File[]{};
     }
