@@ -36,7 +36,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import copy_files, run_os_command, is_root
 from ambari_commons.str_utils import compress_backslashes
 from ambari_server.dbConfiguration import DBMSConfigFactory, TAR_GZ_ARCHIVE_TYPE, default_connectors_map, check_jdbc_drivers
-from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
+from ambari_server.serverConfiguration import configDefaults, JDKRelease, get_stack_location,\
   get_ambari_properties, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, get_missing_properties, \
   get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, write_gpl_license_accepted,\
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
@@ -46,7 +46,7 @@ from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
-from ambari_server.utils import locate_file
+from ambari_server.utils import locate_file, update_latest_in_repoinfos_for_all_stacks, get_json_url_from_repo_file
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.ambariPath import AmbariPath
 
@@ -1206,6 +1206,15 @@ def setup(options):
     if not retcode == 0:
       err = 'Error while extracting system views. Exiting'
       raise FatalException(retcode, err)
+
+  json_url = get_json_url_from_repo_file()
+  if json_url:
+    print "Ambari repo file contains latest json url {0}, updating stacks repoinfos with it...".format(json_url)
+    properties = get_ambari_properties()
+    stack_root = get_stack_location(properties)
+    update_latest_in_repoinfos_for_all_stacks(stack_root, json_url)
+  else:
+    print "Ambari repo file doesn't contain latest json url, skipping repoinfos modification"
 
   # we've already done this, but new files were created so run it one time.
   adjust_directory_permissions(svc_user)
