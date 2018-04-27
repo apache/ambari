@@ -61,7 +61,12 @@ App.WizardStep1Controller = Em.Controller.extend({
    *
    * @type {boolean}
    */
-  networkIssuesExist: Em.computed.everyBy('content.stacks', 'stackDefault', true),
+  networkIssuesExist: function() {
+    if (this.get('content.stacks') && this.get('content.stacks.length') > 1) {
+      return this.get('content.stacks').everyProperty('stackDefault', true);
+    }
+    return false;
+  }.property('content.stacks.@each.stackDefault'),
 
   /**
    * No stacks have repo update URL section (aka "latest") defined in repoinfo.xml

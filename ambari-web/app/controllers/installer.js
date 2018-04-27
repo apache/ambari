@@ -322,7 +322,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     var _oses = oses || [];
     var _stacks = stacks || [];
     _repos.forEach(function (repo) {
-      App.Repository.find().findProperty('id', repo.id).set('baseUrl', repo.base_url);
+      if (App.Repository.find(repo.id).get('isLoaded')) {
+        App.Repository.find(repo.id).set('baseUrl', repo.base_url);
+      }
     });
     _oses.forEach(function (os) {
       if (App.OperatingSystem.find().findProperty('id', os.id)) {
@@ -823,16 +825,18 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           "repositories": []
         });
         os.get('repositories').forEach(function (repository) {
-          repoVersion.operating_systems[k].repositories.push({
-            "Repositories": {
-              "base_url": repository.get('baseUrl'),
-              "repo_id": repository.get('repoId'),
-              "repo_name": repository.get('repoName'),
-              "components": repository.get('components'),
-              "tags": repository.get('tags'),
-              "distribution": repository.get('distribution')
-            }
-          });
+          if (!(repository.get('isGPL') && _.isEmpty(repository.get('baseUrl')))) {
+            repoVersion.operating_systems[k].repositories.push({
+              "Repositories": {
+                "base_url": repository.get('baseUrl'),
+                "repo_id": repository.get('repoId'),
+                "repo_name": repository.get('repoName'),
+                "components": repository.get('components'),
+                "tags": repository.get('tags'),
+                "distribution": repository.get('distribution')
+              }
+            });
+          }
         });
         k++;
       }
