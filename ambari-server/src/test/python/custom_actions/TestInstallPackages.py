@@ -49,14 +49,14 @@ class TestInstallPackages(RMFTestCase):
     self.maxDiff = None
 
   @staticmethod
-  def _add_packages(*args):
+  def _add_packages(*args, **kwargs):
     return [
       ["pkg1", "1.0", "repo"],
       ["pkg2", "2.0", "repo2"]
     ]
 
   @staticmethod
-  def _add_packages_available(*args):
+  def _add_packages_available(*args, **kwargs):
     return [
       ["hadoop_2_2_0_1_885", "1.0", "HDP-2.2"],
       ["hadooplzo_2_2_0_1_885", "1.0", "HDP-2.2"],
@@ -64,8 +64,8 @@ class TestInstallPackages(RMFTestCase):
     ]
 
   @staticmethod
-  def _add_packages_lookUpYum(*args):
-    return TestInstallPackages._add_packages_available(*args)
+  def _add_packages_lookUpYum(*args, **kwargs):
+    return TestInstallPackages._add_packages_available(*args, **kwargs)
 
   def test_get_installed_package_version(self):
     from ambari_commons.os_check import OSConst
@@ -185,18 +185,18 @@ class TestInstallPackages(RMFTestCase):
 
       get_provider.return_value = pkg_manager
 
-      self.executeScript("scripts/install_packages.py",
-                         classname="InstallPackages",
-                         command="actionexecute",
-                         config_dict = command_json,
-                         target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
-                         os_type=('Redhat', '6.4', 'Final'),
-      )
-      self.assertTrue(put_structured_out_mock.called)
-      self.assertEquals(put_structured_out_mock.call_args[0][0],
-                        {'package_installation_result': 'SUCCESS',
-                         'repository_version_id': 1,
-                         'actual_version': VERSION_STUB})
+      try:
+        self.executeScript("scripts/install_packages.py",
+                           classname="InstallPackages",
+                           command="actionexecute",
+                           config_dict = command_json,
+                           target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                           os_type=('Redhat', '6.4', 'Final'),
+        )
+      except Fail as e:
+        self.assertEquals(e.message, "Failed to distribute repositories/install packages")
+      else:
+        self.assertFalse("Packages can't be installed without repos")
 
       self.assertNoMoreResources()
 
@@ -339,7 +339,7 @@ class TestInstallPackages(RMFTestCase):
   _install_failed = False
 
   @staticmethod
-  def _add_packages_with_fail():
+  def _add_packages_with_fail(*args, **kwargs):
     arg = []
     arg.append(["pkg1_2_2_0_1_885_pack", "1.0", "repo"])
     arg.append(["pkg2_2_2_0_1_885_pack2", "2.0", "repo2"])
@@ -400,8 +400,7 @@ class TestInstallPackages(RMFTestCase):
       self.assertTrue(put_structured_out_mock.called)
       self.assertEquals(put_structured_out_mock.call_args[0][0],
                         {'repository_version_id': 1,
-                        'package_installation_result': 'FAIL',
-                         'actual_version': '2.2.0.1-885'})
+                        'package_installation_result': 'FAIL'})
       self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                                 base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                                 action=['create'],
