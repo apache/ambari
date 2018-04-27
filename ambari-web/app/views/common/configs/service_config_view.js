@@ -75,7 +75,7 @@ App.ServiceConfigView = Em.View.extend({
    */
   isOnTheServicePage: Em.computed.equal('controller.name', 'mainServiceInfoConfigsController'),
 
-  classNameBindings: ['isOnTheServicePage:serviceConfigs'],
+  classNameBindings: ['isOnTheServicePage:serviceConfigs', 'controller.isCompareMode:settings-compare-layout'],
 
   /**
    * flag defines if any config match filter
