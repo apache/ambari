@@ -2545,6 +2545,15 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
     "stack.upgrade.default.parallelism", 100);
 
+
+  /**
+   * Default value of Max number of tasks to schedule in parallel for upgrades.
+   */
+  @Markdown(description = "Refresh NameNode after deleting host with DataNode")
+  public static final ConfigurationProperty<Boolean> REFRESH_NODE_AFTER_DELETE_DN_HOST = new ConfigurationProperty<>(
+    "namenode.refresh.on.datanode.host.delete", false);
+
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -5923,5 +5932,13 @@ public class Configuration {
 
   public int getAlertServiceCorePoolSize() {
     return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
+  }
+
+  /**
+   * Determines whether to send refreshNodes command to the NameNode after deleting a host with DataNode.
+   * The default value is False.
+   */
+  public boolean refreshNameNodeAfterDataNodeHostDelete() {
+    return Boolean.parseBoolean(getProperty(REFRESH_NODE_AFTER_DELETE_DN_HOST));
   }
 }

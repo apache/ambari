@@ -72,6 +72,7 @@ public class NodeRefresher {
 
   public void register(AmbariEventPublisher eventPublisher) {
     eventPublisher.register(this);
+    LOG.info("NodeRefresher registered.");
   }
 
   @Subscribe

@@ -951,7 +951,9 @@ public class AmbariServer {
     identityCleaner.register();
 
     NodeRefresher nodeRefresher = injector.getInstance(NodeRefresher.class);
-    nodeRefresher.register(injector.getInstance(AmbariEventPublisher.class));
+    if (configs.refreshNameNodeAfterDataNodeHostDelete()) {
+      nodeRefresher.register(injector.getInstance(AmbariEventPublisher.class));
+    }
   }
 
   /**
