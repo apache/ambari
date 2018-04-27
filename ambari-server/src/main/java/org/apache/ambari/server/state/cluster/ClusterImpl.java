@@ -1615,7 +1615,6 @@ public class ClusterImpl implements Cluster {
       }
       STOMPUpdatePublisher.publish(new ConfigsUpdateEvent(serviceConfigEntity,
           configGroup == null ? null : configGroup.getName(), groupHostNames, changedConfigs.keySet()));
-      configHelper.checkStaleConfigsStatusOnConfigsUpdate(clusterEntity.getClusterId(), serviceName, groupHostNames, changedConfigs);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -1955,7 +1954,6 @@ public class ClusterImpl implements Cluster {
         configGroupName,
         groupHostNames,
         changedConfigs.keySet()));
-    configHelper.checkStaleConfigsStatusOnConfigsUpdate(clusterEntity.getClusterId(), serviceName, groupHostNames, changedConfigs);
 
     return convertToServiceConfigVersionResponse(serviceConfigEntityClone);
   }
@@ -1963,7 +1961,8 @@ public class ClusterImpl implements Cluster {
   @Transactional
   ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException{
 
-List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();    String serviceName = getServiceForConfigTypes( configs.stream().map(Config::getType).collect(toList()));
+    List<ClusterConfigEntity> appliedConfigs = new ArrayList<>();
+    String serviceName = getServiceForConfigTypes(configs.stream().map(Config::getType).collect(toList()));
     // update the selected flag for every config type
     ClusterEntity clusterEntity = getClusterEntity();
     Collection<ClusterConfigEntity> clusterConfigs = clusterEntity.getClusterConfigEntities();

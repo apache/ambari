@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -62,7 +63,6 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
-import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
@@ -77,6 +77,7 @@ import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.StackId;
@@ -251,17 +252,21 @@ public class UpgradeCatalog252Test {
     expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy2-conf"), capture(captureLivy2ConfProperties), anyString(), anyObject(Map.class)))
         .andReturn(livy2ConfNew)
         .once();
-    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster)))
-        .andReturn(createNiceMock(MetadataUpdateEvent.class))
-        .times(2);
 
     replay(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, metadataHolder);
 
     Injector injector = getInjector(clusters, controller);
+
+    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    configHelper.updateAgentConfigs(anyObject(Map.class));
+    expectLastCall().times(2);
+
+    replay(configHelper);
+
     UpgradeCatalog252 upgradeCatalog252 = injector.getInstance(UpgradeCatalog252.class);
     upgradeCatalog252.fixLivySuperusers();
 
-    verify(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller);
+    verify(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, configHelper);
 
     Assert.assertTrue(captureLivyConfProperties.hasCaptured());
     Assert.assertEquals("some_user,zeppelin_user", captureLivyConfProperties.getValue().get("livy.superusers"));
@@ -459,6 +464,7 @@ public class UpgradeCatalog252Test {
         binder.bind(MetadataHolder.class).toInstance(metadataHolder);
         binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
         binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        binder.bind(ConfigHelper.class).toInstance(createStrictMock(ConfigHelper.class));
       }
     };
     return Guice.createInjector(module);
