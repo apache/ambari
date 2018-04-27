@@ -424,6 +424,8 @@ public class UpgradeCatalog270Test {
     Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns = newCapture(CaptureType.ALL);
     Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns = newCapture(CaptureType.ALL);
     Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns = newCapture(CaptureType.ALL);
+    Capture<String[]> insertRepoOsTableRowColumns = newCapture(CaptureType.ALL);
+    Capture<String[]> insertRepoOsTableRowValues = newCapture(CaptureType.ALL);
     Capture<String[]> insertAmbariSequencesRowColumns = newCapture(CaptureType.ALL);
     Capture<String[]> insertAmbariSequencesRowValues = newCapture(CaptureType.ALL);
 
@@ -435,7 +437,7 @@ public class UpgradeCatalog270Test {
     prepareUpdateAdminPrivilegeRecords(dbAccessor, createAdminPrincipalTableCaptures);
     prepareUpdateUsersTable(dbAccessor, updateUserTableCaptures, alterUserTableCaptures);
     prepareUpdateRepoTables(dbAccessor, addRepoOsTableCapturedColumns, addRepoDefinitionTableCapturedColumns, addRepoTagsTableCapturedColumns,
-        insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
+        insertRepoOsTableRowColumns, insertRepoOsTableRowValues, insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
 
     // upgradeKerberosTables
     Capture<List<DBAccessor.DBColumnInfo>> kerberosKeytabColumnsCapture = newCapture();
@@ -547,7 +549,7 @@ public class UpgradeCatalog270Test {
     validateUpdateAdminPrivilegeRecords(createAdminPrincipalTableCaptures);
     validateUpdateUsersTable(updateUserTableCaptures, alterUserTableCaptures);
     validateCreateRepoOsTable(addRepoOsTableCapturedColumns, addRepoDefinitionTableCapturedColumns, addRepoTagsTableCapturedColumns,
-        insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
+        insertRepoOsTableRowColumns, insertRepoOsTableRowValues, insertAmbariSequencesRowColumns, insertAmbariSequencesRowValues);
 
     verify(dbAccessor);
   }
@@ -733,6 +735,8 @@ public class UpgradeCatalog270Test {
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns,
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns,
                                        Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns,
+                                       Capture<String[]> insertRepoOsTableRowColumns,
+                                       Capture<String[]> insertRepoOsTableRowValues,
                                        Capture<String[]> insertAmbariSequencesRowColumns,
                                        Capture<String[]> insertAmbariSequencesRowValues)
       throws SQLException {
@@ -757,10 +761,10 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     expect(dbAccessor.tableHasColumn(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPOSITORIES_COLUMN))).andReturn(true).once();
-
-    expect(dbAccessor.getKeyToStringColumnMap(REPO_VERSION_TABLE, REPO_VERSION_REPO_VERSION_ID_COLUMN, REPO_VERSION_REPOSITORIES_COLUMN, null, null, true))
-        .andReturn(Collections.emptyMap())
-        .once();
+    final Map<Long, String> repoMap = new HashMap<>();
+    repoMap.put(1L, getSampleRepositoryData());
+    expect(dbAccessor.getKeyToStringColumnMap(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPO_VERSION_ID_COLUMN), eq(REPO_VERSION_REPOSITORIES_COLUMN), eq(null), eq(null), eq(true))).andReturn(repoMap).once();
+    expect(dbAccessor.insertRowIfMissing(eq(REPO_OS_TABLE), capture(insertRepoOsTableRowColumns), capture(insertRepoOsTableRowValues), eq(false))).andReturn(true).once();
 
     expect(dbAccessor.insertRowIfMissing(eq(AMBARI_SEQUENCES_TABLE),
         capture(insertAmbariSequencesRowColumns),
@@ -773,6 +777,13 @@ public class UpgradeCatalog270Test {
 
     dbAccessor.dropColumn(eq(REPO_VERSION_TABLE), eq(REPO_VERSION_REPOSITORIES_COLUMN));
     expectLastCall().once();
+  }
+
+  /**
+   * @return sample JSON data from repo_version data (no repositories defined) where 'OperatingSystems/ambari_managed_repositories' is missing
+   */
+  private String getSampleRepositoryData() {
+    return "[{\"repositories\":[],\"OperatingSystems/os_type\":\"redhat7\"}]";
   }
 
   private void validateUpdateUsersTable(Capture<DBAccessor.DBColumnInfo> updateUserTableCaptures, Capture<DBAccessor.DBColumnInfo> alterUserTableCaptures) {
@@ -797,7 +808,9 @@ public class UpgradeCatalog270Test {
 
   private void validateCreateRepoOsTable(Capture<List<DBAccessor.DBColumnInfo>> addRepoOsTableCapturedColumns,
                                          Capture<List<DBAccessor.DBColumnInfo>> addRepoDefinitionTableCapturedColumns,
-                                         Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns, Capture<String[]> insertAmbariSequencesRowColumns, Capture<String[]> insertAmbariSequencesRowValues) {
+                                         Capture<List<DBAccessor.DBColumnInfo>> addRepoTagsTableCapturedColumns,
+                                         Capture<String[]> insertRepoOsTableRowColumns, Capture<String[]> insertRepoOsTableRowValues,
+                                         Capture<String[]> insertAmbariSequencesRowColumns, Capture<String[]> insertAmbariSequencesRowValues) {
     Assert.assertTrue(addRepoOsTableCapturedColumns.hasCaptured());
     validateColumns(addRepoOsTableCapturedColumns.getValue(),
         Arrays.asList(
@@ -833,6 +846,16 @@ public class UpgradeCatalog270Test {
 
     List<String[]> values;
 
+    Assert.assertTrue(insertRepoOsTableRowColumns.hasCaptured());
+    values = insertRepoOsTableRowColumns.getValues();
+    Assert.assertEquals(1, values.size());
+    Assert.assertArrayEquals(new String[] {REPO_OS_ID_COLUMN, REPO_OS_REPO_VERSION_ID_COLUMN, REPO_OS_AMBARI_MANAGED_COLUMN, REPO_OS_FAMILY_COLUMN}, values.get(0));
+
+    Assert.assertTrue(insertRepoOsTableRowValues.hasCaptured());
+    values = insertRepoOsTableRowValues.getValues();
+    Assert.assertEquals(1, values.size());
+    Assert.assertArrayEquals(new String[] {"1", "1", "1", "'redhat7'"}, values.get(0));
+
     Assert.assertTrue(insertAmbariSequencesRowColumns.hasCaptured());
     values = insertAmbariSequencesRowColumns.getValues();
     Assert.assertEquals(2, values.size());
@@ -842,7 +865,7 @@ public class UpgradeCatalog270Test {
     Assert.assertTrue(insertAmbariSequencesRowValues.hasCaptured());
     values = insertAmbariSequencesRowValues.getValues();
     Assert.assertEquals(2, values.size());
-    Assert.assertArrayEquals(new String[]{"'repo_os_id_seq'", "1"}, values.get(0));
+    Assert.assertArrayEquals(new String[]{"'repo_os_id_seq'", "2"}, values.get(0));
     Assert.assertArrayEquals(new String[]{"'repo_definition_id_seq'", "1"}, values.get(1));
 
 
