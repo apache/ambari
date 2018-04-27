@@ -1499,6 +1499,13 @@ public class ConfigHelper {
     return stale;
   }
 
+  /**
+   * Checks populated services for staled configs and updates agent configs.
+   * Method retrieves actual agent configs and compares them with just generated to identify stale configs.
+   * Then config updates are sent to agents.
+   * @param updatedServices service names mapped by cluster names
+   * @throws AmbariException
+   */
   public void updateAgentConfigs(Map<String, Set<String>> updatedServices) throws AmbariException {
 
     // get all used clusters in request
