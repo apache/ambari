@@ -202,9 +202,13 @@ class YumManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
 
-    if context.is_upgrade or context.use_repos or not self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command was executed with no package name")
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
       if context.use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(sorted(context.use_repos.keys()))
@@ -222,6 +226,8 @@ class YumManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     context.is_upgrade = True
     return self.install_package(name, context)
@@ -233,7 +239,11 @@ class YumManager(GenericManager):
     :type name str
     :type context ambari_commons.shell.RepoCallContext
     :type ignore_dependencies bool
+
+    :raise ValueError if name is empty
     """
+    if not name:
+      raise ValueError("Remove command were executed with no package name passed")
     if self._check_existence(name):
       if ignore_dependencies:
         cmd = self.properties.remove_without_dependencies_cmd + [name]
@@ -263,6 +273,7 @@ class YumManager(GenericManager):
     yum in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
+
     if os.geteuid() == 0:
       return self.yum_check_package_available(name)
     else:
