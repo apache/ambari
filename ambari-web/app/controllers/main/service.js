@@ -161,7 +161,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
     var context = (state == 'INSTALLED') ? App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES :
       App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES;
     return App.ajax.send({
-      name: 'common.services.update',
+      name: 'common.services.update.all',
       sender: this,
       data: {
         context: context,
@@ -200,7 +200,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
    */
   silentStopAllServices: function () {
     return App.ajax.send({
-      name: 'common.services.update',
+      name: 'common.services.update.all',
       sender: this,
       data: {
         context: App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES,
@@ -251,7 +251,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
     ) {
       this.set('shouldStart', false);
       return App.ajax.send({
-        name: 'common.services.update',
+        name: 'common.services.update.all',
         sender: this,
         data: {
           context: App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES,

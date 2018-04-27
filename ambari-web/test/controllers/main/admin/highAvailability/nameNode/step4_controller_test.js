@@ -123,7 +123,7 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
   describe('#pullCheckPointStatus', function() {
 
     it('App.ajax.send should be called', function() {
-      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'NAMENODE', 'compId': '1'})]);
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'NAMENODE', 'componentId': '1'})]);
       controller.set('content.masterComponentHosts', [
         {
           component: 'NAMENODE',

@@ -37,7 +37,7 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
       sender: this,
       data: {
         hostName: activeNNHostName,
-        componentId: App.HostComponent.find().findProperty('componentName', componentForCheckDecommission).get('compId')
+        componentId: App.HostComponent.find().findProperty('componentName', componentForCheckDecommission).get('componentId')
       },
       success: 'getDNDecommissionStatusSuccessCallback',
       error: 'getDNDecommissionStatusErrorCallback'

@@ -56,6 +56,27 @@ var urls = {
     }
   },
 
+  'common.services.update.all' : {
+    'real': '/clusters/{clusterName}/servicegroups?{urlParams}',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.context,
+            "operation_level": {
+              "level": "CLUSTER",
+              "cluster_name" : data.clusterName
+            }
+          },
+          Body: {
+            ServiceInfo: data.ServiceInfo
+          }
+        })
+      };
+    }
+  },
+
   'common.services.update' : {
     'real': '/clusters/{clusterName}/servicegroups/{serviceGroup}/services?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',
@@ -79,7 +100,7 @@ var urls = {
   },
 
   'common.service.update' : {
-    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services/{serviceName}',
+    'real': '/clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
       return {
@@ -608,7 +629,12 @@ var urls = {
           "context": data.displayName + " Service Check",
           "command": data.actionName
         },
-        "Requests/resource_filters": [{"service_name": data.serviceName}]
+        "Requests/resource_filters": [
+          {
+            "service_name": data.serviceName,
+            "service_group_name": data.serviceGroupName
+          }
+        ]
       };
       if (data.operationLevel) {
         requestData.RequestInfo.operation_level = data.operationLevel;

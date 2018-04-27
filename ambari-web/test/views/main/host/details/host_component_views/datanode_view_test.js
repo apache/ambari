@@ -30,7 +30,7 @@ describe('App.DataNodeComponentView', function () {
   describe("#getDNDecommissionStatus()", function () {
 
     beforeEach(function () {
-      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'NAMENODE', 'compId': '1'})]);
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'NAMENODE', 'componentId': '1'})]);
       this.stub = sinon.stub(App.HDFSService, 'find');
     });
 

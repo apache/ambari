@@ -192,7 +192,7 @@ App.BulkOperationsController = Em.Controller.extend({
     return batchUtils.getComponentsFromServer({
       passiveState: 'OFF',
       hosts: hosts.mapProperty('hostName'),
-      displayParams: ['host_components/HostRoles/component_name']
+      displayParams: ['host_components/HostRoles/component_name', 'host_components/HostRoles/service_group_name']
     }, this._getComponentsFromServerForRestartCallback);
   },
 
@@ -208,6 +208,7 @@ App.BulkOperationsController = Em.Controller.extend({
       host.host_components.forEach(function (hostComponent) {
         hostComponents.push(O.create({
           componentName: hostComponent.HostRoles.component_name,
+          serviceGroupName: hostComponent.HostRoles.service_group_name,
           hostName: host.Hosts.host_name
         }));
       })

@@ -81,7 +81,7 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
       sender: this,
       data: {
         hostName: hostName,
-        jnId: App.HostComponent.find().findProperty('componentName', 'JOURNALNODE').get('compId')
+        jnId: App.HostComponent.find().findProperty('componentName', 'JOURNALNODE').get('componentId')
       },
       success: 'checkJnCheckPointStatus'
     });

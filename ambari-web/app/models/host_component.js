@@ -19,11 +19,13 @@
 var App = require('app');
 
 App.HostComponent = DS.Model.extend({
+  componentId: DS.attr('string'),
   workStatus: DS.attr('string'),
   passiveState: DS.attr('string'),
-  compId: DS.attr('string'),
   componentName: DS.attr('string'),
   displayName: DS.attr('string'),
+  serviceName: DS.attr('string'),
+  serviceGroupName: DS.attr('string'),
   haStatus: DS.attr('string'),
   displayNameAdvanced: DS.attr('string'),
   staleConfigs: DS.attr('boolean'),

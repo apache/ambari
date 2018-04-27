@@ -712,8 +712,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
     it('delete two components', function () {
       sinon.stub(App.HostComponent, 'find').returns([
-        Em.Object.create({'componentName': 'COMP1', 'compId': '1'}),
-        Em.Object.create({'componentName': 'COMP2', 'compId': '2'})
+        Em.Object.create({'componentName': 'COMP1', 'componentId': '1'}),
+        Em.Object.create({'componentName': 'COMP2', 'componentId': '2'})
       ]);
       controller.set('hostComponents', ["COMP1", "COMP2"]);
       controller.set('content.reassignHosts.source', 'host1');
@@ -956,7 +956,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
           componentName: 'MYSQL_SERVER',
-          compId: '1',
+          componentId: '1',
           hostName: 'host1'
         })
       ]);
@@ -986,7 +986,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
           componentName: 'MYSQL_SERVER',
-          hostName: 'host1'
+          hostName: 'host1',
+          serviceGroupName: 'SG1'
         })
       ]);
     });
@@ -1008,7 +1009,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         resource_filters: [{
           component_name: "MYSQL_SERVER",
           hosts: 'host1',
-          service_name: "HIVE"
+          service_name: "HIVE",
+          service_group_name: 'SG1'
         }],
         operation_level: {
           level: "HOST_COMPONENT",
@@ -1023,7 +1025,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe("#startNewMySqlServer()", function() {
 
     beforeEach(function () {
-      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'MYSQL_SERVER', 'compId': '1'})]);
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({'componentName': 'MYSQL_SERVER', 'componentId': '1'})]);
       controller.set('content', Em.Object.create({
         reassignHosts: Em.Object.create({
           target: 'host1'

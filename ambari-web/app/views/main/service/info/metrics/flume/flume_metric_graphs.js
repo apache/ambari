@@ -35,7 +35,7 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
         'data': {
           hostName: hostName,
           flumeComponent: metricType,
-          flumeId: App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER').get('compId')
+          flumeId: App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER').get('componentId')
         }
       });
     }

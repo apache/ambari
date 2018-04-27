@@ -39,7 +39,7 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
       sender: this,
       data: {
         hostName: hostName,
-        nameNodeId: App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('compId')
+        nameNodeId: App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('componentId')
       },
       success: 'checkNnCheckPointStatus'
     });

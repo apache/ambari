@@ -135,7 +135,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
         sender: this,
         data: {
           hostName: hostName,
-          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('compId')
+          componentId: App.HostComponent.find().findProperty('componentName', hostComponents[i]).get('componentId')
         },
         success: 'onComponentsTasksSuccess',
         error: 'onDeleteHostComponentsError'
@@ -164,7 +164,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
           data: {
             hostName: hostName,
             passive_state: "ON",
-            componentId: hostComponent.get('compId')
+            componentId: hostComponent.get('componentId')
           },
           success: 'onComponentsTasksSuccess',
           error: 'onTaskError'
@@ -198,7 +198,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     data.hostName = this.get('content.reassignHosts.source');
     data.serviceName = 'HIVE';
     data.HostRoles = { "state": "INSTALLED" };
-    data.componentId = App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('compId');
+    data.componentId = App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('componentId');
 
     App.ajax.send({
       name: 'common.host.host_component.update',

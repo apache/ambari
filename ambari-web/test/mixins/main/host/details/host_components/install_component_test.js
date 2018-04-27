@@ -74,7 +74,7 @@ describe('App.InstallComponent', function () {
     var params = {
       hostName: 'host1',
       component: Em.Object.create({
-        compId: '1',
+        componentId: '1',
         serviceName: 'S1',
         displayName: 'c1'
       })
