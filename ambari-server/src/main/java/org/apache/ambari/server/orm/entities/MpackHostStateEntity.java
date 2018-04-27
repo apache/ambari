@@ -67,8 +67,10 @@ import org.apache.ambari.server.state.MpackInstallState;
         query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId AND mpackHostState.hostEntity.hostName=:hostName"),
     @NamedQuery(
         name = "findInstallStateByStateAndHost",
-        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.hostEntity.hostName=:hostName AND mpackHostState.state = :mpackInstallState") })
-
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.hostEntity.hostName=:hostName AND mpackHostState.state = :mpackInstallState"),
+    @NamedQuery(
+        name = "findInstallStateByMpackAndState",
+        query = "SELECT mpackHostState FROM MpackHostStateEntity mpackHostState WHERE mpackHostState.mpackId = :mpackId AND mpackHostState.state = :mpackInstallState") })
 public class MpackHostStateEntity {
 
   /**

@@ -49,5 +49,10 @@ public enum ExperimentalFeature {
    * Used to mark code that is required for successful removal and refactoring
    * when repo versions are dropped.
    */
-  REPO_VERSION_REMOVAL;
+  REPO_VERSION_REMOVAL,
+
+  /**
+   * Use this annotation when a test needs to be written.
+   */
+  UNIT_TEST_REQUIRED;
 }

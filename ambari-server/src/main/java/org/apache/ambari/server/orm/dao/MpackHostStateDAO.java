@@ -136,6 +136,28 @@ public class MpackHostStateDAO extends CrudDAO<MpackHostStateEntity, Long> {
   }
 
   /**
+   * Retrieve all of the matching install states for any mpack on the given
+   * host.
+   *
+   * @param mpackId
+   *          the ID of the mpack
+   * @param hostName
+   *          FQDN of host
+   * @return all of the hosts in the cluster which have entries for the
+   *         specified mpack.
+   */
+  @RequiresSession
+  public List<MpackHostStateEntity> findByMpackAndInstallState(Long mpackId, MpackInstallState state) {
+    final TypedQuery<MpackHostStateEntity> query = entityManagerProvider.get().createNamedQuery(
+        "findInstallStateByMpackAndState", MpackHostStateEntity.class);
+    query.setParameter("mpackId", mpackId);
+    query.setParameter("mpackInstallState", state);
+
+    return daoUtils.selectList(query);
+  }
+
+
+  /**
    * Removes all of the associated mpack host states for a given host.
    *
    * @param hostName

@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.ServiceGroupKey;
@@ -52,6 +54,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   private final ClusterDAO clusterDAO;
   private final StackDAO stackDAO;
   private final ServiceGroupDAO serviceGroupDAO;
+  private final ServiceFactory serviceFactory;
   private final AmbariEventPublisher eventPublisher;
   private final Clusters clusters;
 
@@ -68,6 +71,7 @@ public class ServiceGroupImpl implements ServiceGroup {
                           ClusterDAO clusterDAO,
                           StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
+                          ServiceFactory serviceFactory,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
 
@@ -76,6 +80,7 @@ public class ServiceGroupImpl implements ServiceGroup {
     this.clusterDAO = clusterDAO;
     this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
+    this.serviceFactory = serviceFactory;
     this.eventPublisher = eventPublisher;
 
     this.serviceGroupName = serviceGroupName;
@@ -101,6 +106,7 @@ public class ServiceGroupImpl implements ServiceGroup {
                           ClusterDAO clusterDAO,
                           StackDAO stackDAO,
                           ServiceGroupDAO serviceGroupDAO,
+                          ServiceFactory serviceFactory,
                           AmbariEventPublisher eventPublisher,
                           Clusters clusters) throws AmbariException {
     this.cluster = cluster;
@@ -108,6 +114,7 @@ public class ServiceGroupImpl implements ServiceGroup {
     this.clusterDAO = clusterDAO;
     this.stackDAO = stackDAO;
     this.serviceGroupDAO = serviceGroupDAO;
+    this.serviceFactory = serviceFactory;
     this.eventPublisher = eventPublisher;
 
     serviceGroupId = serviceGroupEntity.getServiceGroupId();
@@ -370,4 +377,17 @@ public class ServiceGroupImpl implements ServiceGroup {
     serviceGroupEntity.setStack(stackEntity);
     serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
   }
+
+  @Override
+  public Collection<Service> getServices() throws AmbariException {
+
+    Cluster cluster = getCluster();
+    ServiceGroupEntity serviceGroup = getServiceGroupEntity();
+
+    // !!! not sure how performant this is going to be.  possible optimization point.
+    return serviceGroup.getClusterServices().stream().map(entity -> {
+      return serviceFactory.createExisting(cluster, this, entity);
+    }).collect(Collectors.toList());
+  }
+
 }
