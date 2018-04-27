@@ -92,7 +92,6 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
@@ -165,7 +164,6 @@ public class AmbariMetaInfo {
   private File customActionRoot;
   private File mpacksV2Staging;
   private String commonKerberosDescriptorFileLocation;
-  Map<String, VersionDefinitionXml> versionDefinitions = null;
 
 
   @Inject
@@ -691,9 +689,6 @@ public class AmbariMetaInfo {
    * @throws ResourceAlreadyExistsException
    */
   public MpackResponse registerMpack(MpackRequest mpackRequest) throws IOException, ResourceAlreadyExistsException {
-    if (versionDefinitions != null) {
-      versionDefinitions.clear();
-    }
     return mpackManager.registerMpack(mpackRequest);
   }
 
@@ -1553,70 +1548,6 @@ public class AmbariMetaInfo {
   }
 
   /**
-   * Ensures that the map of version definition files is populated
-   */
-  private synchronized void ensureVersionDefinitions() {
-    if (null != versionDefinitions) {
-      if(versionDefinitions.size() > 0) {
-        return;
-      }
-    }
-
-    versionDefinitions = new HashMap<>();
-
-    for (StackInfo stack : getStacks()) {
-      if (stack.isActive() && stack.isValid()) {
-        for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
-          versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
-            stack.getVersion(), definition.release.version), definition);
-        }
-
-        try {
-          // !!! check for a "latest-vdf" one.  This will be used for the default if one is not found.
-          VersionDefinitionXml xml = stack.getLatestVersionDefinition();
-
-          if (null == xml) {
-            // !!! "latest-vdf" was not found, use the stack.  this is the last-ditch effort
-            xml = VersionDefinitionXml.build(stack);
-          }
-
-          versionDefinitions.put(String.format("%s-%s", stack.getName(), stack.getVersion()), xml);
-        } catch (Exception e) {
-          LOG.warn("Could not make a stack VDF for {}-{}: {}",
-              stack.getName(), stack.getVersion(), e.getMessage());
-        }
-      } else {
-        StackId stackId = new StackId(stack);
-        if (!stack.isValid()) {
-          LOG.info("Stack {} is not valid, skipping VDF: {}", stackId, StringUtils.join(stack.getErrors(), "; "));
-        } else if (!stack.isActive()) {
-          LOG.info("Stack {} is not active, skipping VDF", stackId);
-        }
-      }
-
-    }
-  }
-
-  /**
-   * @param versionDefinitionId the version definition id
-   * @return the definition, or {@code null} if not found
-   */
-  public VersionDefinitionXml getVersionDefinition(String versionDefinitionId) {
-    ensureVersionDefinitions();
-
-    return versionDefinitions.get(versionDefinitionId);
-  }
-
-  /**
-   * @return the version definitions found for stacks
-   */
-  public Map<String, VersionDefinitionXml> getVersionDefinitions() {
-    ensureVersionDefinitions();
-
-    return versionDefinitions;
-  }
-
-  /***
    * Remove Mpack from the mpackMap and stackMap which is used to power the Mpack and Stack APIs.
    * Stack should be removed from stackMap only if it points to the mpack that is being removed.
    * @param mpackEntity
@@ -1624,9 +1555,6 @@ public class AmbariMetaInfo {
    * @throws IOException
    */
   public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException {
-    if (versionDefinitions != null) {
-      versionDefinitions.clear();
-    }
     boolean stackDelete = mpackManager.removeMpack(mpackEntity, stackEntity);
 
     if (stackDelete) {

@@ -196,17 +196,11 @@ public class AmbariManagementControllerTest {
   private static final String STACK_VERSION = "0.2";
   private static final String NEW_STACK_VERSION = "2.0.6";
   private static final String HDP_0_1 = "HDP-0.1";
-  private static final String OS_TYPE = "centos5";
-  private static final String REPO_ID = "HDP-1.1.1.16";
-  private static final String REPO_NAME = "HDP";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
   private static final String FAKE_SERVICE_NAME = "FAKENAGIOS";
-  private static final int STACK_VERSIONS_CNT = 17;
-  private static final int REPOS_CNT = 3;
   private static final int STACK_PROPERTIES_CNT = 103;
   private static final int STACK_COMPONENTS_CNT = 4;
-  private static final int OS_CNT = 2;
 
   private static final String NON_EXT_VALUE = "XXX";
   private static final String INCORRECT_BASE_URL = "http://incorrect.url";
@@ -235,14 +229,16 @@ public class AmbariManagementControllerTest {
   private HostRoleCommandDAO hostRoleCommandDAO;
   private StackManagerMock stackManagerMock;
 
-  StackId repositoryVersion01;
-  StackId repositoryVersion02;
-  StackId repositoryVersion120;
-  StackId repositoryVersion201;
-  StackId repositoryVersion206;
-  StackId repositoryVersion207;
-  StackId repositoryVersion208;
-  StackId repositoryVersion220;
+  StackId stackId01;
+  StackId stackId02;
+  StackId stackId120;
+  StackId stackId131;
+  StackId stackId201;
+  StackId stackId205;
+  StackId stackId206;
+  StackId stackId207;
+  StackId stackId208;
+  StackId stackId220;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -289,34 +285,16 @@ public class AmbariManagementControllerTest {
     stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
     EasyMock.replay(injector.getInstance(AuditLogger.class));
 
-    repositoryVersion01 = helper.getOrCreateRepositoryVersion(
-        new StackId(HDP_0_1), "0.1-1234").getStackId();
-
-    repositoryVersion02 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-0.2"), "0.2-1234").getStackId();
-
-    repositoryVersion120 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-1.2.0"), "1.2.0-1234").getStackId();
-
-    helper.getOrCreateRepositoryVersion(new StackId("HDP-1.3.1"), "1.3.1");
-    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.5"), "2.0.5");
-    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.6"), "2.0.6");
-    helper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.7"), "2.0.7");
-
-    repositoryVersion201 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-2.0.1-1234"), "2.0.1-1234").getStackId();
-
-    repositoryVersion206 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-2.0.6-1234"), "2.0.6-1234").getStackId();
-
-    repositoryVersion207 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-2.0.7-1234"), "2.0.7-1234").getStackId();
-
-    repositoryVersion208 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-2.0.8-1234"), "2.0.8-1234").getStackId();
-
-    repositoryVersion220 = helper.getOrCreateRepositoryVersion(
-        new StackId("HDP-2.2.0-1234"), "2.2.0-1234").getStackId();
+    stackId01 = new StackId(helper.createStack(new StackId(HDP_0_1)));
+    stackId02 = new StackId(helper.createStack(new StackId("HDP-0.2")));
+    stackId120 = new StackId(helper.createStack(new StackId("HDP-1.2.0")));
+    stackId131 = new StackId(helper.createStack(new StackId("HDP-1.3.1")));
+    stackId201 = new StackId(helper.createStack(new StackId("HDP-2.0.1")));
+    stackId205 = new StackId(helper.createStack(new StackId("HDP-2.0.5")));
+    stackId206 = new StackId(helper.createStack(new StackId("HDP-2.0.6")));
+    stackId207 = new StackId(helper.createStack(new StackId("HDP-2.0.7")));
+    stackId208 = new StackId(helper.createStack(new StackId("HDP-2.0.8")));
+    stackId220 = new StackId(helper.createStack(new StackId("HDP-2.2.0")));
 
     for (Host host : clusters.getHosts()) {
       clusters.updateHostMappings(host);
@@ -2141,8 +2119,9 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster(cluster1);
 
     StackId stackId = new StackId(HDP_0_1);
+    helper.createStack(stackId);
+
     c1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     ClusterRequest r = new ClusterRequest(null, null, null, null);
     Set<ClusterResponse> resp = controller.getClusters(Collections.singleton(r));
@@ -6689,31 +6668,6 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetRepositories() throws Exception {
-
-    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null, REPO_NAME);
-    Set<RepositoryResponse> responses = controller.getRepositories(Collections.singleton(request));
-    Assert.assertEquals(REPOS_CNT, responses.size());
-
-    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, REPO_NAME);
-    requestWithParams.setClusterVersionId(525L);
-    Set<RepositoryResponse> responsesWithParams = controller.getRepositories(Collections.singleton(requestWithParams));
-    Assert.assertEquals(1, responsesWithParams.size());
-    for (RepositoryResponse responseWithParams: responsesWithParams) {
-      Assert.assertEquals(responseWithParams.getRepoId(), REPO_ID);
-      Assert.assertEquals(525L, responseWithParams.getClusterVersionId().longValue());
-    }
-
-    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE, REPO_NAME);
-    try {
-      controller.getRepositories(Collections.singleton(invalidRequest));
-    } catch (StackAccessException e) {
-      // do nothing
-    }
-  }
-
-
-  @Test
   public void testGetStackServices() throws Exception {
     StackServiceRequest request = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, null);
     Set<StackServiceResponse> responses = controller.getStackServices(Collections.singleton(request));
@@ -6791,29 +6745,6 @@ public class AmbariManagementControllerTest {
     StackServiceComponentRequest invalidRequest = new StackServiceComponentRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME, NON_EXT_VALUE);
     try {
       controller.getStackComponents(Collections.singleton(invalidRequest));
-    } catch (StackAccessException e) {
-      // do nothing
-    }
-  }
-
-  @Test
-  public void testGetStackOperatingSystems() throws Exception {
-    OperatingSystemRequest request = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, null);
-    Set<OperatingSystemResponse> responses = controller.getOperatingSystems(Collections.singleton(request));
-    Assert.assertEquals(OS_CNT, responses.size());
-
-
-    OperatingSystemRequest requestWithParams = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, OS_TYPE);
-    Set<OperatingSystemResponse> responsesWithParams = controller.getOperatingSystems(Collections.singleton(requestWithParams));
-    Assert.assertEquals(1, responsesWithParams.size());
-    for (OperatingSystemResponse responseWithParams: responsesWithParams) {
-      Assert.assertEquals(responseWithParams.getOsType(), OS_TYPE);
-
-    }
-
-    OperatingSystemRequest invalidRequest = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, NON_EXT_VALUE);
-    try {
-      controller.getOperatingSystems(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
       // do nothing
     }
@@ -7293,7 +7224,7 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster(cluster1);
     Long clusterId = c.getClusterId();
 
-    helper.getOrCreateRepositoryVersion(stackID, stackID.getStackVersion());
+    helper.createStack(stackID);
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost(hostName1), "redhat", "5.9");
 

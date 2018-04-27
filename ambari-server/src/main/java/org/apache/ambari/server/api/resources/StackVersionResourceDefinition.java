@@ -50,12 +50,9 @@ public class StackVersionResourceDefinition extends BaseResourceDefinition {
 
     Set<SubResourceDefinition> children = new HashSet<>();
 
-    children.add(new SubResourceDefinition(Resource.Type.OperatingSystemReadOnly));
     children.add(new SubResourceDefinition(Resource.Type.StackService));
     children.add(new SubResourceDefinition(Resource.Type.StackLevelConfiguration));
-    children.add(new SubResourceDefinition(Resource.Type.RepositoryVersion));
     children.add(new SubResourceDefinition(Resource.Type.StackArtifact));
-    children.add(new SubResourceDefinition(Resource.Type.CompatibleRepositoryVersion));
     children.add(new SubResourceDefinition(Resource.Type.Mpack, null, false));
     return children;
   }

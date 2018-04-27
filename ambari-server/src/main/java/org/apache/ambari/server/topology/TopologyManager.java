@@ -287,8 +287,6 @@ public class TopologyManager {
 
     final ClusterTopologyImpl topology = new ClusterTopologyImpl(ambariContext, provisionRequest, resolved);
     final String clusterName = request.getClusterName();
-    final String repoVersion = request.getRepositoryVersion();
-    final Long repoVersionID = request.getRepositoryVersionId();
     final SecurityConfiguration securityConfiguration = provisionRequest.getSecurity();
 
     topologyValidatorService.validateTopologyConfiguration(topology); // FIXME known stacks validation is too late here
@@ -297,7 +295,7 @@ public class TopologyManager {
     final Long provisionId = ambariContext.getNextRequestId();
 
     // create resources
-    ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType(), repoVersion, repoVersionID);
+    ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType());
 
     if (securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
@@ -958,7 +956,7 @@ public class TopologyManager {
   }
 
   private ManagedThreadPoolExecutor getOrCreateTopologyTaskExecutor(Long clusterId) {
-    ManagedThreadPoolExecutor topologyTaskExecutor = this.topologyTaskExecutorServiceMap.get(clusterId);
+    ManagedThreadPoolExecutor topologyTaskExecutor = topologyTaskExecutorServiceMap.get(clusterId);
     if (topologyTaskExecutor == null) {
       LOG.info("Creating TopologyTaskExecutorService for clusterId: {}", clusterId);
 

@@ -49,7 +49,6 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.MpackDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -69,7 +68,6 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -135,9 +133,6 @@ public class OrmTestHelper {
 
   @Inject
   public AlertsDAO alertsDAO;
-
-  @Inject
-  public RepositoryVersionDAO repositoryVersionDAO;
 
   @Inject
   public HostDAO hostDAO;
@@ -332,8 +327,12 @@ public class OrmTestHelper {
 
   @Transactional
   public MpackEntity createMpack(StackId stackId) throws AmbariException {
+    StackEntity stackEntity = createStack(stackId);
+    assertNotNull(stackEntity);
+
     List<MpackEntity> mpackEntities =
       mpackDAO.findByNameVersion(stackId.getStackName(), stackId.getStackVersion());
+
     MpackEntity mpackEntity = !mpackEntities.isEmpty() ? mpackEntities.get(0) : null;
     if (mpackEntities.isEmpty()) {
       mpackEntity = new MpackEntity();
@@ -341,6 +340,36 @@ public class OrmTestHelper {
       mpackEntity.setMpackVersion(stackId.getStackVersion());
       mpackEntity.setMpackUri("http://mpacks.org/" + stackId.toString() + ".json");
       mpackDAO.create(mpackEntity);
+    }
+
+    if (mpackEntity.getRepositoryOperatingSystems().isEmpty()) {
+      try {
+        List<RepoOsEntity> operatingSystems = new ArrayList<>();
+        RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
+        repoDefinitionEntity1.setRepoID("HDP");
+        repoDefinitionEntity1.setBaseUrl("");
+        repoDefinitionEntity1.setRepoName("HDP");
+        RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
+        repoDefinitionEntity2.setRepoID("HDP-UTILS");
+        repoDefinitionEntity2.setBaseUrl("");
+        repoDefinitionEntity2.setRepoName("HDP-UTILS");
+        RepoOsEntity repoOsEntity = new RepoOsEntity();
+        repoOsEntity.setFamily("redhat6");
+        repoOsEntity.setAmbariManaged(true);
+        repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
+        repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
+        repoOsEntity.setMpackEntity(mpackEntity);
+        operatingSystems.add(repoOsEntity);
+
+        mpackEntity.setRepositoryOperatingSystems(operatingSystems);
+        mpackEntity = mpackDAO.merge(mpackEntity);
+
+        operatingSystems = mpackEntity.getRepositoryOperatingSystems();
+
+      } catch (Exception ex) {
+        LOG.error("Caught exception", ex);
+        Assert.fail(MessageFormat.format("Unable to create operating systems for mpack {0}", stackId));
+      }
     }
 
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
@@ -487,7 +516,7 @@ public class OrmTestHelper {
 
   public Cluster initializeClusterWithStack(Cluster cluster) throws Exception {
     cluster.setDesiredStackVersion(HDP_206);
-    getOrCreateRepositoryVersion(HDP_206, HDP_206.getStackVersion());
+    createMpack(HDP_206);
     return cluster;
   }
 
@@ -676,104 +705,5 @@ public class OrmTestHelper {
     assertNotNull(alertDispatchDAO.findDefaultServiceGroup(clusterId, "OOZIE"));
 
     return defaultGroups;
-  }
-
-  /**
-   * Convenient method to create or to get repository version for given cluster.  The repository
-   * version string is based on the cluster's stack version.
-   *
-   * @return repository version
-   */
-  public RepositoryVersionEntity getOrCreateRepositoryVersion(Cluster cluster) {
-    StackId stackId = cluster.getCurrentStackVersion();
-    String version = stackId.getStackVersion() + ".1";
-
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-        stackId.getStackVersion());
-
-    assertNotNull(stackEntity);
-
-    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
-        stackId, version);
-
-    if (repositoryVersion == null) {
-      try {
-        repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), new ArrayList<>());
-      } catch (Exception ex) {
-        LOG.error("Caught exception", ex);
-        ex.printStackTrace();
-        Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
-            stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
-      }
-    }
-    return repositoryVersion;
-  }
-
-  /**
-   * Convenient method to create or to get repository version for given stack.
-   *
-   * @param stackId stack object
-   * @param version stack version
-   * @return repository version
-   */
-  public RepositoryVersionEntity getOrCreateRepositoryVersion(StackId stackId,
-      String version) {
-    MpackEntity mpackEntity = null;
-    StackEntity stackEntity = null;
-    try {
-      // creating mpack before stack makes
-      mpackEntity = createMpack(stackId);
-
-      // sure stack will be linked to mpack
-      stackEntity = createStack(stackId);
-    } catch (Exception e) {
-      LOG.error("Expected successful repository", e);
-    }
-
-    assertNotNull(stackEntity);
-
-    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
-        stackId, version);
-
-    if (repositoryVersion == null) {
-      try {
-        List<RepoOsEntity> operatingSystems = new ArrayList<>();
-        RepoDefinitionEntity repoDefinitionEntity1 = new RepoDefinitionEntity();
-        repoDefinitionEntity1.setRepoID("HDP");
-        repoDefinitionEntity1.setBaseUrl("");
-        repoDefinitionEntity1.setRepoName("HDP");
-        RepoDefinitionEntity repoDefinitionEntity2 = new RepoDefinitionEntity();
-        repoDefinitionEntity2.setRepoID("HDP-UTILS");
-        repoDefinitionEntity2.setBaseUrl("");
-        repoDefinitionEntity2.setRepoName("HDP-UTILS");
-        RepoOsEntity repoOsEntity = new RepoOsEntity();
-        repoOsEntity.setFamily("redhat6");
-        repoOsEntity.setAmbariManaged(true);
-        repoOsEntity.addRepoDefinition(repoDefinitionEntity1);
-        repoOsEntity.addRepoDefinition(repoDefinitionEntity2);
-        repoOsEntity.setMpackEntity(mpackEntity);
-        operatingSystems.add(repoOsEntity);
-
-        mpackEntity.setRepositoryOperatingSystems(operatingSystems);
-        mpackEntity = mpackDAO.merge(mpackEntity);
-
-        operatingSystems = mpackEntity.getRepositoryOperatingSystems();
-
-
-        repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
-
-        repositoryVersion.setResolved(true);
-        repositoryVersion = repositoryVersionDAO.merge(repositoryVersion);
-      } catch (Exception ex) {
-        LOG.error("Caught exception", ex);
-
-        Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
-            stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
-      }
-    }
-    return repositoryVersion;
   }
 }

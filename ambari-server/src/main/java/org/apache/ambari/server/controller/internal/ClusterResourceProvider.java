@@ -207,8 +207,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("credentials");
     baseUnsupported.remove("config_recommendation_strategy");
     baseUnsupported.remove("provision_action");
-    baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_PROPERTY);
-    baseUnsupported.remove(ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY);
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 
@@ -411,9 +409,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private ClusterRequest getRequest(Map<String, Object> properties) {
     SecurityType securityType;
     String requestedSecurityType = (String) properties.get(CLUSTER_SECURITY_TYPE_PROPERTY_ID);
-    if(requestedSecurityType == null)
+    if(requestedSecurityType == null) {
       securityType = null;
-    else {
+    } else {
       try {
         securityType = SecurityType.valueOf(requestedSecurityType.toUpperCase());
       } catch (IllegalArgumentException e) {
@@ -480,11 +478,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         serviceConfigVersionRequest =
             (serviceConfigVersionRequest ==null ) ? new ServiceConfigVersionRequest() : serviceConfigVersionRequest;
 
-        if (propName.equals("service_name"))
+        if (propName.equals("service_name")) {
           serviceConfigVersionRequest.setServiceName(entry.getValue().toString());
-        else if (propName.equals("service_config_version"))
+        } else if (propName.equals("service_config_version")) {
           serviceConfigVersionRequest.setVersion(Long.valueOf(entry.getValue().toString()));
-        else if (propName.equals("service_config_version_note")) {
+        } else if (propName.equals("service_config_version_note")) {
           serviceConfigVersionRequest.setNote(entry.getValue().toString());
         }
       }

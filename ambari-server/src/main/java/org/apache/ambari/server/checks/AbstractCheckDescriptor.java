@@ -29,7 +29,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -38,8 +37,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.repository.ClusterVersionSummary;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -48,6 +45,7 @@ import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Sets;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.google.common.collect.Lists;
@@ -64,9 +62,6 @@ public abstract class AbstractCheckDescriptor {
 
   @Inject
   protected Provider<Clusters> clustersProvider;
-
-  @Inject
-  Provider<RepositoryVersionDAO> repositoryVersionDaoProvider;
 
   @Inject
   Provider<UpgradeDAO> upgradeDaoProvider;
@@ -301,27 +296,6 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Gets a de-serialized {@link VersionDefinitionXml} from the repository for
-   * this upgrade.
-   *
-   * @param request
-   *          the upgrade check request.
-   * @return the VDF XML
-   * @throws AmbariException
-   */
-  final VersionDefinitionXml getVersionDefinitionXml(PrereqCheckRequest request) throws AmbariException {
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
-
-    try {
-      VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
-      return vdf;
-    } catch (Exception exception) {
-      throw new AmbariException("Unable to run upgrade checks because of an invalid VDF",
-          exception);
-    }
-  }
-
-  /**
    * Gets the services participating in the upgrade from the VDF.
    *
    * @param request
@@ -331,17 +305,7 @@ public abstract class AbstractCheckDescriptor {
    */
   final Set<String> getServicesInUpgrade(PrereqCheckRequest request) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-
-    // the check is scoped to some services, so determine if any of those
-    // services are included in this upgrade
-    try {
-      VersionDefinitionXml vdf = getVersionDefinitionXml(request);
-      ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster);
-      return clusterVersionSummary.getAvailableServiceNames();
-    } catch (Exception exception) {
-      throw new AmbariException("Unable to run upgrade checks because of an invalid VDF",
-          exception);
-    }
+    return Sets.newHashSet();
   }
 
   /**

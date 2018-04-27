@@ -20,7 +20,6 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,9 +34,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.internal.OperatingSystemReadOnlyResourceProvider;
-import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
-import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.MpackDAO;
 import org.apache.ambari.server.orm.entities.MpackEntity;
@@ -56,7 +52,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -65,10 +60,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -107,82 +98,6 @@ public class RepositoryVersionHelper {
    */
   @Inject
   private MpackDAO mpackDAO;
-
-  /**
-   * Parses operating systems json to a list of entities. Expects json like:
-   * <pre>
-   * [
-   *    {
-   *       "repositories":[
-   *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
-   *             "Repositories/repo_name":"HDP-UTILS",
-   *             "Repositories/repo_id":"HDP-UTILS-1.1.0.20"
-   *          },
-   *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
-   *             "Repositories/repo_name":"HDP",
-   *             "Repositories/repo_id":"HDP-2.2"
-   *          }
-   *       ],
-   *       "OperatingSystems/os_type":"redhat6"
-   *    }
-   * ]
-   * </pre>
-   * @param repositoriesJson operating systems json
-   * @return list of operating system entities
-   * @throws Exception if any kind of json parsing error happened
-   */
-  public List<RepoOsEntity> parseOperatingSystems(String repositoriesJson) throws Exception {
-    final List<RepoOsEntity> operatingSystems = new ArrayList<>();
-    final JsonArray rootJson = new JsonParser().parse(repositoriesJson).getAsJsonArray();
-    for (JsonElement operatingSystemJson: rootJson) {
-      JsonObject osObj = operatingSystemJson.getAsJsonObject();
-
-      final RepoOsEntity operatingSystemEntity = new RepoOsEntity();
-
-      operatingSystemEntity.setFamily(osObj.get(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
-
-      if (osObj.has(OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS)) {
-        operatingSystemEntity.setAmbariManaged(osObj.get(
-            OperatingSystemReadOnlyResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS).getAsBoolean());
-      }
-
-      for (JsonElement repositoryElement: osObj.get(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
-        final RepoDefinitionEntity repositoryEntity = new RepoDefinitionEntity();
-        final JsonObject repositoryJson = repositoryElement.getAsJsonObject();
-        repositoryEntity.setBaseUrl(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
-        repositoryEntity.setRepoName(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
-        repositoryEntity.setRepoID(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
-        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID) != null) {
-          repositoryEntity.setDistribution(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID).getAsString());
-        }
-        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID) != null) {
-          repositoryEntity.setComponents(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID).getAsString());
-        }
-        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID) != null) {
-          repositoryEntity.setMirrors(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID).getAsString());
-        }
-        if (repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID) != null) {
-          repositoryEntity.setUnique(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID).getAsBoolean());
-        }
-
-        if (null != repositoryJson.get(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID)) {
-          Set<RepoTag> tags = new HashSet<>();
-
-          JsonArray jsonArray = repositoryJson.get(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID).getAsJsonArray();
-          for(JsonElement je : jsonArray) {
-            tags.add(RepoTag.valueOf(je.getAsString()));
-          }
-          repositoryEntity.setTags(tags);
-        }
-
-        operatingSystemEntity.addRepoDefinition(repositoryEntity);
-      }
-      operatingSystems.add(operatingSystemEntity);
-    }
-    return operatingSystems;
-  }
 
   public List<RepoOsEntity> createRepoOsEntities(List<RepositoryInfo> repositories) {
 

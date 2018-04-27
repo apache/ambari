@@ -37,12 +37,10 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -103,14 +101,11 @@ public class ServiceComponentHostTest {
   @Inject
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
-  private HostComponentStateDAO hostComponentStateDAO;
-  @Inject
   private ServiceGroupFactory serviceGroupFactory;
 
   private String clusterName = "c1";
   private String hostName1 = "h1";
   private Map<String, String> hostAttributes = new HashMap<>();
-  private RepositoryVersionEntity repositoryVersion;
   private ServiceGroup serviceGroup;
 
 
@@ -123,7 +118,6 @@ public class ServiceComponentHostTest {
     EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
 
     StackId stackId = new StackId("HDP-2.0.6");
-    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     createCluster(stackId, clusterName);
 
 
@@ -585,7 +579,6 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(clusterName, r.getClusterName());
     Assert.assertEquals(State.INSTALLED.toString(), r.getDesiredState());
     Assert.assertEquals(State.INSTALLING.toString(), r.getLiveState());
-    Assert.assertEquals(repositoryVersion.getStackId().toString(), r.getDesiredStackVersion());
 
     Assert.assertFalse(r.isStaleConfig());
 
@@ -722,13 +715,9 @@ public class ServiceComponentHostTest {
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
     ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
-
-    sch1.getServiceComponent().setDesiredRepositoryVersion(repositoryVersion);
 
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);
@@ -913,13 +902,9 @@ public class ServiceComponentHostTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
     ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
-
-    sch1.getServiceComponent().setDesiredRepositoryVersion(repositoryVersion);
 
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);
@@ -1041,8 +1026,6 @@ public class ServiceComponentHostTest {
     addHostsToCluster(clusterName, hostAttributes, hostNames);
 
     Cluster cluster = clusters.getCluster(clusterName);
-
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     HostEntity hostEntity = hostDAO.findByName(hostName);
     Assert.assertNotNull(hostEntity);

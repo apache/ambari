@@ -124,7 +124,7 @@ public class ClusterDeadlockTest {
 
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.createMpack(stackId);
 
     Config config1 = configFactory.createNew(cluster, "test-type1", "version1", new HashMap<>(), new HashMap<>());
     Config config2 = configFactory.createNew(cluster, "test-type2", "version1", new HashMap<>(), new HashMap<>());

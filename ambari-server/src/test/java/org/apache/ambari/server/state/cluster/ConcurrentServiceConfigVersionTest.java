@@ -115,8 +115,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
     serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", stackId, new HashSet<ServiceGroupKey>());

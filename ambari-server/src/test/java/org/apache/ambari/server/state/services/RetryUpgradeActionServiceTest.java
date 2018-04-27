@@ -31,12 +31,10 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -63,7 +61,6 @@ public class RetryUpgradeActionServiceTest {
   private Injector injector;
 
   private Clusters clusters;
-  private RepositoryVersionDAO repoVersionDAO;
   private UpgradeDAO upgradeDAO;
   private RequestDAO requestDAO;
   private StageDAO stageDAO;
@@ -74,7 +71,9 @@ public class RetryUpgradeActionServiceTest {
   String clusterName = "c1";
   Cluster cluster;
   StackId stack220 = new StackId("HDP-2.2.0");
+  StackId stack221 = new StackId("HDP-2.2.1");
   StackEntity stackEntity220;
+  StackEntity stackEntity221;
   Long upgradeRequestId = 1L;
   Long stageId = 1L;
 
@@ -84,13 +83,13 @@ public class RetryUpgradeActionServiceTest {
     injector.getInstance(GuiceJpaInitializer.class);
 
     clusters = injector.getInstance(Clusters.class);
-    repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     upgradeDAO = injector.getInstance(UpgradeDAO.class);
     requestDAO = injector.getInstance(RequestDAO.class);
     stageDAO = injector.getInstance(StageDAO.class);
     hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
     helper = injector.getInstance(OrmTestHelper.class);
     stackEntity220 = helper.createStack(stack220);
+    stackEntity221 = helper.createStack(stack221);
   }
 
   @After
@@ -235,15 +234,6 @@ public class RetryUpgradeActionServiceTest {
 
     clusters.addCluster(clusterName, stack220);
     cluster = clusters.getCluster("c1");
-
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("Initial Version");
-    repoVersionEntity.addRepoOsEntities(new ArrayList<>());
-    repoVersionEntity.setStack(stackEntity220);
-    repoVersionEntity.setVersion("2.2.0.0");
-    repoVersionDAO.create(repoVersionEntity);
-
-    helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
   }
 
   /**
@@ -251,14 +241,7 @@ public class RetryUpgradeActionServiceTest {
    * @throws AmbariException
    */
   private void prepareUpgrade() throws AmbariException {
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("Version to Upgrade To");
-    repoVersionEntity.addRepoOsEntities(new ArrayList<>());
-    repoVersionEntity.setStack(stackEntity220);
-    repoVersionEntity.setVersion("2.2.0.1");
-    repoVersionDAO.create(repoVersionEntity);
-
-    helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
+    stackEntity220 = helper.createStack(stack220);
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(upgradeRequestId);
@@ -282,7 +265,6 @@ public class RetryUpgradeActionServiceTest {
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
-    upgrade.setRepositoryVersion(repoVersionEntity);
     upgradeDAO.create(upgrade);
 
     cluster.setUpgradeEntity(upgrade);

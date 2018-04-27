@@ -276,7 +276,7 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c2));
 
     cluster1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.createMpack(stackId);
 
     try {
       clusters.mapHostToCluster(h1, c1);
@@ -360,7 +360,7 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c1));
     Assert.assertNotNull(clusters.getCluster(c2));
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.createMpack(stackId);
 
     clusters.addHost(h1);
     clusters.addHost(h2);

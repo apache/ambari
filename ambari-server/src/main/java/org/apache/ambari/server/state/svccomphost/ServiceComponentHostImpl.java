@@ -51,7 +51,6 @@ import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -112,9 +111,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private final HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
 
   private final HostDAO hostDAO;
-
-  @Inject
-  private RepositoryVersionDAO repositoryVersionDAO;
 
   private final ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
 

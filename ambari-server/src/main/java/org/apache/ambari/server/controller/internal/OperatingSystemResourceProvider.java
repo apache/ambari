@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.StaticallyInject;
@@ -60,6 +62,7 @@ import com.google.inject.Inject;
  * capabilities for repositories based on an operating system.
  */
 @StaticallyInject
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 public class OperatingSystemResourceProvider extends AbstractAuthorizedResourceProvider {
 
   public static final String OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId("OperatingSystems", "os_type");

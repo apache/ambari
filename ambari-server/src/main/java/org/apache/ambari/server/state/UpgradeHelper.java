@@ -915,7 +915,7 @@ public class UpgradeHelper {
         }
 
         // set component desired repo
-        serviceComponent.setDesiredRepositoryVersion(targetRepositoryVersion);
+        serviceComponent.setDesiredRepositoryVersion();
       }
     }
   }

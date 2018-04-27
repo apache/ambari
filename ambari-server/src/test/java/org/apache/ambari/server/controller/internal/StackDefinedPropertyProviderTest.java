@@ -142,7 +142,7 @@ public class StackDefinedPropertyProviderTest {
     Cluster cluster = clusters.getCluster("c2");
 
     cluster.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.createMpack(stackId);
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service service = cluster.addService(serviceGroup, "HDFS", "HDFS");
     service.addServiceComponent("NAMENODE", "NAMENODE");

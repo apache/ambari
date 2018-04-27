@@ -19,7 +19,6 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -33,7 +32,6 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -45,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -60,15 +60,12 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -76,7 +73,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -94,6 +90,9 @@ import com.google.common.collect.ImmutableSet;
  * AmbariContext unit tests
  */
 //todo: switch over to EasyMockSupport
+@Experimental(
+    feature = ExperimentalFeature.REPO_VERSION_REMOVAL,
+    comment = "Add test cases for mpacks and multiple/bad versions")
 public class AmbariContextTest {
 
   private static final String BP_NAME = "testBP";
@@ -224,18 +223,12 @@ public class AmbariContextTest {
             type1Service1).anyTimes();
     replay(type1Service1);
 
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getId()).andReturn(1L).atLeastOnce();
-    expect(repositoryVersion.getVersion()).andReturn("1.1.1.1").atLeastOnce();
-    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
-
-    expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
-        singletonList(repositoryVersion)).atLeastOnce();
-    replay(repositoryVersionDAO, repositoryVersion);
+    MpackEntity mpackEntity = createNiceMock(MpackEntity.class);
+    expect(mpackEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(mpackEntity.getMpackVersion()).andReturn("1.1.1.1").atLeastOnce();
+    replay(mpackEntity);
 
     context.configFactory = configFactory;
-    context.repositoryVersionDAO = repositoryVersionDAO;
 
     blueprintServices.add("service1");
     blueprintServices.add("service2");
@@ -336,7 +329,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();
@@ -685,108 +678,4 @@ public class AmbariContextTest {
     // Then
     assertFalse(topologyResolved);
   }
-
-  @Test
-  public void testCreateAmbariResourcesNoVersions() throws Exception {
-
-    VersionDefinitionResourceProvider vdfResourceProvider = createNiceMock(VersionDefinitionResourceProvider.class);
-    Class<AmbariContext> clazz = AmbariContext.class;
-    Field f = clazz.getDeclaredField("versionDefinitionResourceProvider");
-    f.setAccessible(true);
-    f.set(null, vdfResourceProvider);
-
-    Resource resource = createNiceMock(Resource.class);
-    expect(resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID)).andReturn(1L).atLeastOnce();
-
-    RequestStatus requestStatus = createNiceMock(RequestStatus.class);
-    expect(requestStatus.getAssociatedResources()).andReturn(Collections.singleton(resource)).atLeastOnce();
-
-    expect(vdfResourceProvider.createResources(EasyMock.anyObject(Request.class))).andReturn(requestStatus);
-
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getId()).andReturn(1L).atLeastOnce();
-    expect(repositoryVersion.getVersion()).andReturn("1.1.1.1").atLeastOnce();
-    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
-
-    expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
-        Collections.<RepositoryVersionEntity>emptyList()).atLeastOnce();
-    expect(repositoryVersionDAO.findByPK(EasyMock.anyLong())).andReturn(repositoryVersion);
-
-    replay(repositoryVersionDAO, repositoryVersion, resource, requestStatus, vdfResourceProvider);
-
-    context.repositoryVersionDAO = repositoryVersionDAO;
-
-    controller.createCluster(capture(Capture.<ClusterRequest>newInstance()));
-    expectLastCall().once();
-    expect(cluster.getServiceGroups()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
-
-    expect(serviceGroupResourceProvider.createServiceGroups(anyObject())).andReturn(null).once();
-    expect(serviceResourceProvider.createServices(anyObject())).andReturn(null).once();
-    expect(componentResourceProvider.createComponents(anyObject())).andReturn(null).once();
-
-    expect(serviceResourceProvider.updateResources(
-        capture(Capture.<Request>newInstance()), capture(Capture.<Predicate>newInstance()))).andReturn(null).atLeastOnce();
-
-    replayAll();
-
-    // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
-  }
-
-  @Test
-  public void testCreateAmbariResourcesManyVersions() throws Exception {
-
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    RepositoryVersionEntity repositoryVersion1 = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion1.getId()).andReturn(1L).atLeastOnce();
-    expect(repositoryVersion1.getVersion()).andReturn("1.1.1.1").atLeastOnce();
-
-    RepositoryVersionEntity repositoryVersion2 = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion2.getId()).andReturn(2L).atLeastOnce();
-    expect(repositoryVersion2.getVersion()).andReturn("1.1.2.2").atLeastOnce();
-
-    expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
-        Arrays.asList(repositoryVersion1, repositoryVersion2)).atLeastOnce();
-    replay(repositoryVersionDAO, repositoryVersion1, repositoryVersion2);
-
-    context.repositoryVersionDAO = repositoryVersionDAO;
-
-    replayAll();
-
-    // test
-    try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
-      fail("Expected failure when several versions are found");
-    } catch (IllegalArgumentException e) {
-      assertEquals(
-          "Several repositories were found for testStack-testVersion:  1.1.1.1, 1.1.2.2.  Specify the version with 'repository_version'",
-          e.getMessage());
-    }
-  }
-
-  @Test
-  public void testCreateAmbariResourcesBadVersion() throws Exception {
-
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    expect(repositoryVersionDAO.findByStackAndVersion(EasyMock.anyObject(StackId.class),
-        EasyMock.anyString())).andReturn(null).atLeastOnce();
-    replay(repositoryVersionDAO);
-
-    context.repositoryVersionDAO = repositoryVersionDAO;
-
-    replayAll();
-
-    // test
-    try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null, "xyz", null);
-      fail("Expected failure when a bad version is provided");
-    } catch (IllegalArgumentException e) {
-      assertEquals(
-          "Could not identify repository version with stack testStack-testVersion and version xyz for installing services. Specify a valid version with 'repository_version'",
-          e.getMessage());
-    }
-  }
-
 }

@@ -21,7 +21,6 @@ package org.apache.ambari.server.state;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.state.stack.RepoTag;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -248,13 +247,6 @@ public class RepositoryInfo {
   public int hashCode() {
     return Objects.hashCode(baseUrl, osType, repoId, repoName, distribution, components, mirrorsList, defaultBaseUrl,
            ambariManagedRepositories);
-  }
-
-  public RepositoryResponse convertToResponse()
-  {
-    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
-            getRepoName(), getDistribution(), getComponents(), getMirrorsList(), getDefaultBaseUrl(),
-            getTags());
   }
 
   /**

@@ -29,17 +29,6 @@ import com.google.common.collect.ImmutableMap;
  */
 public class CheckDescription {
 
-  public static CheckDescription CLIENT_RETRY = new CheckDescription("CLIENT_RETRY",
-    PrereqCheckType.SERVICE,
-    "Client Retry Properties",
-    new ImmutableMap.Builder<String, String>()
-      .put(ClientRetryPropertyCheck.HDFS_CLIENT_RETRY_DISABLED_KEY,
-          "The hdfs-site.xml property dfs.client.retry.policy.enabled should be set to \"false\" to failover quickly.")
-      .put(ClientRetryPropertyCheck.HIVE_CLIENT_RETRY_MISSING_KEY,
-          "The hive-site.xml property hive.metastore.failure.retries should be set to a positive value.")
-      .put(ClientRetryPropertyCheck.OOZIE_CLIENT_RETRY_MISSING_KEY,
-          "The oozie-env.sh script must contain a retry count such as export OOZIE_CLIENT_OPTS=\"${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5\"").build());
-
   public static CheckDescription HOSTS_HEARTBEAT = new CheckDescription("HOSTS_HEARTBEAT",
     PrereqCheckType.HOST,
     "All hosts must be communicating with Ambari. Hosts which are not reachable should be placed in Maintenance Mode.",

@@ -117,8 +117,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
 
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
 
-    helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
     serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", stackId, new HashSet<ServiceGroupKey>());

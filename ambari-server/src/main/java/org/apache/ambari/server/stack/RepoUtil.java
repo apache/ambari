@@ -28,7 +28,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -181,29 +180,6 @@ public class RepoUtil {
     }
     LOG.debug("Found {} service repos: {}", serviceRepoIds.size(),Iterables.toString(serviceRepoIds));
     return serviceRepos;
-  }
-
-  /**
-   * Convert a list of {@link RepositoryInfo} objects to a lost of {@link RepositoryResponse} objects
-   * @param repositoryInfos the list of repository infos
-   * @param versionDefinitionId the version definition id
-   * @param stackName the stack name
-   * @param stackVersion the stack version
-   * @return a list of repository responses
-   */
-  public static List<RepositoryResponse> asResponses(List<RepositoryInfo> repositoryInfos,
-                                                     @Nullable String versionDefinitionId,
-                                                     @Nullable String stackName,
-                                                     @Nullable String stackVersion) {
-    List<RepositoryResponse> responses = new ArrayList<>(repositoryInfos.size());
-    for (RepositoryInfo repoInfo: repositoryInfos) {
-      RepositoryResponse response = repoInfo.convertToResponse();
-      response.setVersionDefinitionId(versionDefinitionId);
-      response.setStackName(stackName);
-      response.setStackVersion(stackVersion);
-      responses.add(response);
-    }
-    return responses;
   }
 
   private static RepoDefinitionEntity toRepositoryEntity(RepositoryInfo repoInfo) {

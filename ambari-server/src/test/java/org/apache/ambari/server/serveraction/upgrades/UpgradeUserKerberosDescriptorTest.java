@@ -30,13 +30,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -50,6 +51,7 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -59,6 +61,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 /**
  * Tests OozieConfigCalculation logic
  */
+@Ignore
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(KerberosDescriptorUpdateHelper.class)
 public class UpgradeUserKerberosDescriptorTest {
@@ -100,12 +104,7 @@ public class UpgradeUserKerberosDescriptorTest {
   @Test
   public void testUpgrade() throws Exception {
     StackId stackId = new StackId("HDP", "2.5");
-    RepositoryVersionEntity repositoryVersion = EasyMock.createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getStackId()).andReturn(stackId).atLeastOnce();
-
     expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).atLeastOnce();
-    expect(upgradeContext.getRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
-    replay(repositoryVersion, upgradeContext);
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
@@ -162,12 +161,8 @@ public class UpgradeUserKerberosDescriptorTest {
   @Test
   public void testDowngrade() throws Exception {
     StackId stackId = new StackId("HDP", "2.5");
-    RepositoryVersionEntity repositoryVersion = EasyMock.createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getStackId()).andReturn(stackId).atLeastOnce();
 
     expect(upgradeContext.getDirection()).andReturn(Direction.DOWNGRADE).atLeastOnce();
-    expect(upgradeContext.getRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
-    replay(repositoryVersion, upgradeContext);
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");

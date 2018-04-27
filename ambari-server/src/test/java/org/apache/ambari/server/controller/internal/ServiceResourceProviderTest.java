@@ -61,14 +61,12 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.state.DefaultServiceCalculatedState;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -1246,81 +1244,6 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController, clusters, serviceGroup, cluster, service1, service2,
-        ambariMetaInfo, serviceFactory, serviceInfo);
-  }
-
-  @Test
-  public void testCreateWithNoRepositoryIdAndPatch() throws Exception {
-    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    ServiceGroup serviceGroup = createNiceMock(ServiceGroup.class);
-    Service service1 = createNiceMock(Service.class);
-    Service service2 = createNiceMock(Service.class);
-    ServiceResponse response1 = createNiceMock(ServiceResponse.class);
-    ServiceResponse response2 = createNiceMock(ServiceResponse.class);
-
-    RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
-    expect(repoVersion.getId()).andReturn(500L).anyTimes();
-    expect(repoVersion.getParentId()).andReturn(600L).anyTimes();
-    expect(repoVersion.getType()).andReturn(RepositoryType.PATCH).anyTimes();
-    expect(service1.convertToResponse()).andReturn(response1).anyTimes();
-    expect(service2.convertToResponse()).andReturn(response2).anyTimes();
-
-    StackId stackId = new StackId("HDP-2.5");
-    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-
-    expect(cluster.addService(anyObject(), eq("Service200"), anyObject())).andReturn(service2);
-
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-
-    expect(cluster.getServiceGroup("SERVICE_GROUP")).andReturn(serviceGroup);
-    expect(cluster.getServiceGroup(1L)).andReturn(serviceGroup);
-    expect(serviceGroup.getStackId()).andReturn(stackId).anyTimes();
-    expect(service1.getServiceGroupId()).andReturn(1L).anyTimes();
-    expect(service2.getServiceGroupId()).andReturn(1L).anyTimes();
-
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
-    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-
-    expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
-    expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
-
-
-    // replay
-    replay(managementController, clusters, cluster, serviceGroup, service1, service2, response1, response2,
-        ambariMetaInfo, serviceFactory, serviceInfo, repoVersion);
-
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
-
-    ResourceProvider provider = getServiceProvider(managementController);
-
-    // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
-
-    // Service 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<>();
-
-    // add properties to the request map
-    properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, "SERVICE_GROUP");
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service200");
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
-
-    propertySet.add(properties);
-
-    // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet, null);
-
-    provider.createResources(request);
-
-    // verify
-    verify(managementController, clusters, cluster, serviceGroup, service1, service2,
         ambariMetaInfo, serviceFactory, serviceInfo);
   }
 

@@ -53,10 +53,8 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManagerMock;
 import org.apache.ambari.server.state.Cluster;
@@ -114,9 +112,6 @@ public class ServiceGroupDependencyResourceProviderTest {
   private TopologyHostInfoDAO topologyHostInfoDAO;
   private HostRoleCommandDAO hostRoleCommandDAO;
   private StackManagerMock stackManagerMock;
-  private RepositoryVersionDAO repositoryVersionDAO;
-
-  RepositoryVersionEntity repositoryVersion206;
 
 
   @BeforeClass
@@ -163,12 +158,7 @@ public class ServiceGroupDependencyResourceProviderTest {
     stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
     EasyMock.replay(injector.getInstance(AuditLogger.class));
 
-    repositoryVersion206 = helper.getOrCreateRepositoryVersion(
-            new StackId("HDP-2.0.6"), "2.0.6-1234");
-
-
-
-    repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    helper.createMpack(new StackId("HDP-2.0.6"));
   }
 
   @After
@@ -334,16 +324,11 @@ public class ServiceGroupDependencyResourceProviderTest {
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     cluster.setCurrentStackVersion(new StackId("HDP-2.0.6"));
 
-    RepositoryVersionEntity repositoryVersion = repositoryVersion206;
-
     ServiceGroup serviceGroupCore = cluster.addServiceGroup(SERVICE_GROUP_NAME_CORE, "HDP-2.0.6");
     ServiceGroup serviceGroupTest = cluster.addServiceGroup(SERVICE_GROUP_NAME_TEST, "HDP-2.0.6");
 
-
     return cluster;
   }
-
-
 
   @Test
   public void testDefaultRequestForServiceGroupDependencyCreation() throws Exception {

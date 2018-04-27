@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -101,25 +100,11 @@ public class RepoUtilTest {
     Assert.assertEquals("Expected MSFT_R service repo", "MSFT_R", serviceRepos.get(0).getRepoName());
   }
 
-  @Test public void testAsRepositoryResponses() {
-    List<RepositoryInfo> repos = Lists.newArrayList(repoInfo("HDP", "HDP-2.3", "redhat6"),
-        repoInfo("HDP-UTILS", "HDP-UTILS-1.1.0.20", "redhat6"),
-        repoInfo("HDP", "HDP-2.3", "redhat5"),
-        repoInfo("HDP-UTILS", "HDP-UTILS-1.1.0.20", "redhat5"));
-    List<RepositoryResponse> responses = RepoUtil.asResponses(repos, "HDP-2.3", "HDP", "2.3");
-
-    Assert.assertEquals("Wrong number of responses", repos.size(), responses.size());
-    for (RepositoryResponse response: responses) {
-      Assert.assertEquals("Unexpected version definition id", "HDP-2.3", response.getVersionDefinitionId());
-      Assert.assertEquals("Unexpected stack name", "HDP", response.getStackName());
-      Assert.assertEquals("Unexpected stack version", "2.3", response.getStackVersion());
-    }
-  }
-
   private static Optional<RepoDefinitionEntity> findRepoEntityById(Iterable<RepoDefinitionEntity> repos, String repoId) {
-    for (RepoDefinitionEntity repo : repos)
+    for (RepoDefinitionEntity repo : repos) {
       if (Objects.equals(repo.getRepoID(), repoId)) {
       return Optional.of(repo);
+    }
     }
     return Optional.absent();
   }

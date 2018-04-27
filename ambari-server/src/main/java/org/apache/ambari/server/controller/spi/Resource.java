@@ -110,8 +110,6 @@ public interface Resource {
     ExtensionVersion,
     DefaultOperatingSystem,
     OperatingSystem,
-    OperatingSystemReadOnly,
-    Repository,
     StackService,
     StackConfiguration,
     StackConfigurationDependency,
@@ -152,10 +150,6 @@ public interface Resource {
     UserPrivilege,
     UserAuthenticationSource,
     GroupPrivilege,
-    RepositoryVersion,
-    CompatibleRepositoryVersion,
-    ClusterStackVersion,
-    HostStackVersion,
     Upgrade,
     UpgradeGroup,
     UpgradeItem,
@@ -176,7 +170,6 @@ public interface Resource {
     KerberosDescriptor,
     RoleAuthorization,
     UserAuthorization,
-    VersionDefinition,
     ClusterKerberosDescriptor,
     LoggingQuery,
     RemoteCluster;
@@ -250,8 +243,6 @@ public interface Resource {
     public static final Type ExtensionVersion = InternalType.ExtensionVersion.getType();
     public static final Type DefaultOperatingSystem = InternalType.DefaultOperatingSystem.getType();
     public static final Type OperatingSystem = InternalType.OperatingSystem.getType();
-    public static final Type OperatingSystemReadOnly = InternalType.OperatingSystemReadOnly.getType();
-    public static final Type Repository = InternalType.Repository.getType();
     public static final Type StackService = InternalType.StackService.getType();
     public static final Type StackConfiguration = InternalType.StackConfiguration.getType();
     public static final Type StackConfigurationDependency = InternalType.StackConfigurationDependency.getType();
@@ -292,10 +283,6 @@ public interface Resource {
     public static final Type UserPrivilege = InternalType.UserPrivilege.getType();
     public static final Type UserAuthenticationSource = InternalType.UserAuthenticationSource.getType();
     public static final Type GroupPrivilege = InternalType.GroupPrivilege.getType();
-    public static final Type RepositoryVersion = InternalType.RepositoryVersion.getType();
-    public static final Type CompatibleRepositoryVersion = InternalType.CompatibleRepositoryVersion.getType();
-    public static final Type ClusterStackVersion = InternalType.ClusterStackVersion.getType();
-    public static final Type HostStackVersion = InternalType.HostStackVersion.getType();
     public static final Type Upgrade = InternalType.Upgrade.getType();
     public static final Type UpgradeGroup = InternalType.UpgradeGroup.getType();
     public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
@@ -316,7 +303,6 @@ public interface Resource {
     public static final Type KerberosDescriptor = InternalType.KerberosDescriptor.getType();
     public static final Type RoleAuthorization = InternalType.RoleAuthorization.getType();
     public static final Type UserAuthorization = InternalType.UserAuthorization.getType();
-    public static final Type VersionDefinition = InternalType.VersionDefinition.getType();
     public static final Type ClusterKerberosDescriptor = InternalType.ClusterKerberosDescriptor.getType();
     public static final Type LoggingQuery = InternalType.LoggingQuery.getType();
     public static final Type RemoteCluster = InternalType.RemoteCluster.getType();
