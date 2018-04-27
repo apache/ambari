@@ -27,9 +27,12 @@ import glob
 from ambari_commons import subprocess32
 import logging
 import platform
+import xml.etree.ElementTree as ET
+
 from ambari_commons import OSConst,OSCheck
 from ambari_commons.logging_utils import print_error_msg
 from ambari_commons.exceptions import FatalException
+from ambari_commons.os_utils import get_ambari_repo_file_full_name
 
 logger = logging.getLogger(__name__)
 
@@ -339,3 +342,60 @@ def on_powerpc():
   """ True if we are running on a Power PC platform."""
   return platform.processor() == 'powerpc' or \
          platform.machine().startswith('ppc')
+
+
+XML_HEADER = """<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+"""
+
+
+# Go though all stacks and update the repoinfo.xml files
+# replace <latest> tag with the passed url
+def update_latest_in_repoinfos_for_all_stacks(stacks_root, json_url_string):
+  for stack_name in os.walk(stacks_root).next()[1]:
+    for stack_version in os.walk(os.path.join(stacks_root, stack_name)).next()[1]:
+      repoinfo_xml_path = os.path.join(stacks_root, stack_name, stack_version, "repos", "repoinfo.xml")
+      if os.path.exists(repoinfo_xml_path):
+        replace_latest(repoinfo_xml_path, json_url_string)
+
+
+# replace <latest> tag in the file with the passed url
+def replace_latest(repoinfo_xml_path, json_url_string):
+  tree = ET.parse(repoinfo_xml_path)
+  root = tree.getroot()
+  latest_tag = root.find("latest")
+  if latest_tag is not None:
+    latest_tag.text = json_url_string
+
+  with open(repoinfo_xml_path, "w") as out:
+    out.write(XML_HEADER)
+    tree.write(out)
+
+
+# parse ambari repo file and get the value of '#json.url = http://...'
+def get_json_url_from_repo_file():
+  repo_file_path = get_ambari_repo_file_full_name()
+  if os.path.exists(repo_file_path):
+    with open(repo_file_path, 'r') as repo_file:
+      for line in repo_file:
+        line = line.rstrip()
+        if "json.url" in line:
+          json_url_string = line.split("=", 1)[1].strip()
+          return json_url_string
+
+  return None
