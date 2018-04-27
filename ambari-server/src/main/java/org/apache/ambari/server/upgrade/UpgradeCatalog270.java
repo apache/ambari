@@ -439,7 +439,8 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
                 if (rootObject != null) {
                   JsonPrimitive osType = rootObject.getAsJsonPrimitive("OperatingSystems/os_type");
                   JsonPrimitive ambariManaged = rootObject.getAsJsonPrimitive("OperatingSystems/ambari_managed_repositories");
-                  String isAmbariManaged = (ambariManaged != null && ambariManaged.getAsBoolean()) ? "1" : "0";
+                  String isAmbariManaged = ambariManaged == null ? "1" :  (ambariManaged.getAsBoolean() ? "1" : "0"); //the SQL script which creates the DB schema defaults to 1
+
                   JsonArray repositories = rootObject.getAsJsonArray("repositories");
 
                   dbAccessor.insertRowIfMissing(REPO_OS_TABLE,
