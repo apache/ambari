@@ -489,7 +489,13 @@ class CustomServiceOrchestrator():
     # remove data populated from topology to avoid merge and just override
     if 'clusterHostInfo' in command_header:
       del command_dict['clusterHostInfo']
+
     command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
+
+    # topology needs to be decompressed if and only if it originates from command header
+    if 'clusterHostInfo' in command_header and command_header['clusterHostInfo']:
+      command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
+
     return command
 
   def requestComponentStatus(self, command_header):
@@ -547,8 +553,6 @@ class CustomServiceOrchestrator():
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
       task_id = command['taskId']
-      if 'clusterHostInfo' in command and command['clusterHostInfo'] and not retry:
-        command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
       if command_type == ActionQueue.AUTO_EXECUTION_COMMAND:
         file_path = os.path.join(self.tmp_dir, "auto_command-{0}.json".format(task_id))
