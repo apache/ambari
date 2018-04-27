@@ -1302,6 +1302,12 @@
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
       <artifactId>jsp-2.1-glassfish</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>ant</groupId>
+          <artifactId>ant</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>
@@ -1545,12 +1551,7 @@
     <dependency>
       <groupId>cglib</groupId>
       <artifactId>cglib</artifactId>
-      <version>2.2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm</artifactId>
-      <version>3.3.1</version>
+      <version>3.2.4</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
