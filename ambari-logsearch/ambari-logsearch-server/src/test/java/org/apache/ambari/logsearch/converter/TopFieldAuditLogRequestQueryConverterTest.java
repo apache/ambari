@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.TopFieldAuditLogQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class TopFieldAuditLogRequestQueryConverterTest extends AbstractRequestCo
   @Test
   public void testConvert() {
     // GIVEN
-    TopFieldAuditLogRequest request = new TopFieldAuditLogRequest();
+    TopFieldAuditLogRequest request = new TopFieldAuditLogQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setTop(10);
     request.setField("myfield");
@@ -54,7 +55,7 @@ public class TopFieldAuditLogRequestQueryConverterTest extends AbstractRequestCo
   @Test(expected = IllegalArgumentException.class) // TODO: later use @Valid on the fields to validate object
   public void testConvertWithoutData() {
     // GIVEN
-    TopFieldAuditLogRequest request = new TopFieldAuditLogRequest();
+    TopFieldAuditLogRequest request = new TopFieldAuditLogQueryRequest();
     // WHEN
     new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
   }

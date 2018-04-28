@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceGraphQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class ServiceLogLevelDateRangeRequestQueryConverterTest extends AbstractR
   @Test
   public void testConvert() {
     // GIVEN
-    ServiceGraphRequest request = new ServiceGraphRequest();
+    ServiceGraphRequest request = new ServiceGraphQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setUnit("+1HOUR");
     request.setLevel("WARN,ERROR,FATAL");
@@ -53,7 +54,7 @@ public class ServiceLogLevelDateRangeRequestQueryConverterTest extends AbstractR
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    ServiceGraphRequest request = new ServiceGraphRequest();
+    ServiceGraphRequest request = new ServiceGraphQueryRequest();
     request.setUnit("+1HOUR"); // minimal data for date range gap
     request.setFrom("2016-09-13T22:00:01.000Z");
     request.setTo("2016-09-14T22:00:01.000Z");

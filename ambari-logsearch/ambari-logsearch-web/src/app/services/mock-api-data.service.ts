@@ -62,7 +62,7 @@ export class MockApiDataService implements InMemoryDbService {
           key: 'level',
           isValuesList: true
         },
-        iMessage: {
+        includeMessage: {
           key: 'log_message',
           filterFunction: this.filterByMessage
         },
@@ -88,7 +88,7 @@ export class MockApiDataService implements InMemoryDbService {
           key: 'cluster',
           isValuesList: true
         },
-        iMessage: {
+        includeMessage: {
           key: 'log_message',
           filterFunction: this.filterByMessage
         },

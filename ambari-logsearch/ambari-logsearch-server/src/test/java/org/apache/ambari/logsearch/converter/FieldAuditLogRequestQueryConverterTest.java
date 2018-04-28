@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.FieldAuditLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.FieldAuditLogQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class FieldAuditLogRequestQueryConverterTest extends AbstractRequestConve
   @Test
   public void testConvert() {
     // GIVEN
-    FieldAuditLogRequest request = new FieldAuditLogRequest();
+    FieldAuditLogRequest request = new FieldAuditLogQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setField("myfield");
     // WHEN
@@ -53,7 +54,7 @@ public class FieldAuditLogRequestQueryConverterTest extends AbstractRequestConve
   @Test(expected = IllegalArgumentException.class) // TODO: later use @Valid on the fields to validate object
   public void testConvertWithoutData() {
     // GIVEN
-    FieldAuditLogRequest request = new FieldAuditLogRequest();
+    FieldAuditLogRequest request = new FieldAuditLogQueryRequest();
     // WHEN
     new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
   }

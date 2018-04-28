@@ -44,8 +44,8 @@ public class BaseServiceLogRequestQueryConverter extends AbstractServiceLogReque
   @Override
   public SimpleQuery extendLogQuery(BaseServiceLogRequest request, SimpleQuery query) {
     List<String> levels = splitValueAsList(request.getLevel(), ",");
-    addContainsFilterQuery(query, KEY_LOG_MESSAGE, SolrUtil.escapeForStandardTokenizer(request.getiMessage()));
-    addContainsFilterQuery(query, KEY_LOG_MESSAGE, SolrUtil.escapeForStandardTokenizer(request.geteMessage()), true);
+    addContainsFilterQuery(query, KEY_LOG_MESSAGE, SolrUtil.escapeForStandardTokenizer(request.getIncludeMessage()));
+    addContainsFilterQuery(query, KEY_LOG_MESSAGE, SolrUtil.escapeForStandardTokenizer(request.getExcludeMessage()), true);
     addEqualsFilterQuery(query, HOST, SolrUtil.escapeQueryChars(request.getHostName()));
     addEqualsFilterQuery(query, PATH, SolrUtil.escapeQueryChars(request.getFileName()));
     addEqualsFilterQuery(query, COMPONENT, SolrUtil.escapeQueryChars(request.getComponentName()));

@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogComponentLevelRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceLogComponentLevelQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class ServiceLogComponentLevelRequestQueryConverterTest extends AbstractR
   @Test
   public void testConverter() {
     // GIVEN
-    ServiceLogComponentLevelRequest request = new ServiceLogComponentLevelRequest();
+    ServiceLogComponentLevelRequest request = new ServiceLogComponentLevelQueryRequest();
     fillBaseLogRequestWithTestData(request);
     request.setComponentName("mycomponent");
     request.setLevel("WARN,ERROR,FATAL");
@@ -55,7 +56,7 @@ public class ServiceLogComponentLevelRequestQueryConverterTest extends AbstractR
   @Test
   public void testConverterWithoutData() {
     // GIVEN
-    ServiceLogComponentLevelRequest request = new ServiceLogComponentLevelRequest();
+    ServiceLogComponentLevelRequest request = new ServiceLogComponentLevelQueryRequest();
     request.setLevel("WARN,ERROR,FATAL");
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));

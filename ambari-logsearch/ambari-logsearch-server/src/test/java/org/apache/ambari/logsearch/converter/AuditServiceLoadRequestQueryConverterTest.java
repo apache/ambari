@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.AuditServiceLoadQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class AuditServiceLoadRequestQueryConverterTest extends AbstractRequestCo
   @Test
   public void testConvert() {
     // GIVEN
-    AuditServiceLoadRequest request = new AuditServiceLoadRequest();
+    AuditServiceLoadRequest request = new AuditServiceLoadQueryRequest();
     fillBaseLogRequestWithTestData(request);
     // WHEN
     SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
@@ -51,7 +52,7 @@ public class AuditServiceLoadRequestQueryConverterTest extends AbstractRequestCo
   @Test
   public void testConvertWithoutData() {
     // GIVEN
-    AuditServiceLoadRequest request = new AuditServiceLoadRequest();
+    AuditServiceLoadRequest request = new AuditServiceLoadQueryRequest();
     // WHEN
     SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN

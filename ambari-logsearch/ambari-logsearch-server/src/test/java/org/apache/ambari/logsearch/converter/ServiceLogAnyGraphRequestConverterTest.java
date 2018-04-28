@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
+import org.apache.ambari.logsearch.model.request.impl.query.ServiceAnyGraphQueryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class ServiceLogAnyGraphRequestConverterTest extends AbstractRequestConve
   @Test
   public void testConverter() {
     // GIVEN
-    ServiceAnyGraphRequest request = new ServiceAnyGraphRequest();
+    ServiceAnyGraphRequest request = new ServiceAnyGraphQueryRequest();
     request.setUnit("+1HOUR");
     fillBaseLogRequestWithTestData(request);
     // WHEN
@@ -53,7 +54,7 @@ public class ServiceLogAnyGraphRequestConverterTest extends AbstractRequestConve
   @Test
   public void testConverterWithoutData() {
     // GIVEN
-    ServiceAnyGraphRequest request = new ServiceAnyGraphRequest();
+    ServiceAnyGraphRequest request = new ServiceAnyGraphQueryRequest();
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
