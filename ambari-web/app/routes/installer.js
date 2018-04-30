@@ -425,14 +425,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var step = router.get('installerController.content.skipSlavesStep') ? 'step5' : 'step6';
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
-      var goToNextStep = function() {
+      var goToPreviousStep = function() {
         router.transitionTo(step);
       };
 
       if (wizardStep7Controller.hasChanges()) {
-        wizardStep7Controller.showChangesWarningPopup(goToNextStep);
+        wizardStep7Controller.showChangesWarningPopup(goToPreviousStep);
       } else {
-        goToNextStep();
+        goToPreviousStep();
       }
       console.timeEnd('step7 back');
     },

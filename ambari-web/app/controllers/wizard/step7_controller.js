@@ -360,6 +360,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.get('filterColumns').setEach('selected', false);
   },
 
+  clearLastSelectedService: function () {
+    this.get('tabs').filterProperty('selectedServiceName').setEach('selectedServiceName', null);
+  },
+
   /**
    * Generate "finger-print" for current <code>stepConfigs[0]</code>
    * Used to determine, if user has some unsaved changes (comparing with <code>hash</code>)
@@ -1087,12 +1091,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
+   * Select previously selected service if not within the tab for the first time
    * Select first addable service for <code>addServiceWizard</code>
    * Select first service at all in other cases
    * @method selectProperService
    */
   selectProperService: function () {
-    if (this.get('wizardController.name') === 'addServiceController') {
+    var tabSelectedServiceName = this.get('tabs').findProperty('isActive', true).get('selectedServiceName');
+    var lastSelectedService = tabSelectedServiceName ? this.get('stepConfigs').findProperty('serviceName', tabSelectedServiceName) : null
+    if(tabSelectedServiceName && lastSelectedService) {
+      this.set('selectedService', lastSelectedService);
+    } else if (this.get('wizardController.name') === 'addServiceController') {
       this.set('selectedService', this.get('stepConfigs').filterProperty('selected', true).get('firstObject'));
     } else {
       this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
@@ -1653,6 +1662,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       },
       onSecondary: function () {
         this.hide();
+        App.set('router.btnClickInProgress', false);
+        App.set('router.backBtnClickInProgress', false);
       }
     });
   },
@@ -1840,6 +1851,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   selectService: function (event) {
     this.set('selectedService', event.context);
+    this.get('tabs').findProperty('isActive', true).set('selectedServiceName', event.context.serviceName);
   },
 
   /**
@@ -1873,6 +1885,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         isActive: false,
         isDisabled: false,
         isSkipped: false,
+        selectedServiceName: null,
         tabView: App.DirectoriesTabOnStep7View
       }),
       Em.Object.create({
@@ -1891,6 +1904,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         isActive: false,
         isDisabled: false,
         isSkipped: false,
+        selectedServiceName: null,
         tabView: App.ServicesConfigView
       })
     ];
