@@ -22,9 +22,24 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "nameNodeFederationWizardStep4Controller",
 
-  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'startNameNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
+  commands: ['stopRequiredServices', 'reconfigureServices', 'installNameNode', 'installZKFC', 'startJournalNodes', 'startInfraSolr', 'startRanger', 'startNameNodes', 'formatNameNode', 'formatZKFC', 'startZKFC', 'startNameNode', 'bootstrapNameNode', 'startZKFC2', 'startNameNode2', 'restartAllServices'],
 
   tasksMessagesPrefix: 'admin.nameNodeFederation.wizard.step',
+
+  initializeTasks: function () {
+    this._super();
+    this.removeUnneededTasks();
+  },
+
+  removeUnneededTasks: function () {
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    if (!installedServices.contains('RANGER')) {
+      this.removeTasks(['startInfraSolr', 'startRanger']);
+    }
+    if (!installedServices.contains('AMBARI_INFRA_SOLR')) {
+      this.removeTasks(['startInfraSolr']);
+    }
+  },
 
   newNameNodeHosts: function () {
     return this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').filterProperty('isInstalled', false).mapProperty('hostName');
@@ -112,6 +127,14 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   startZKFC: function () {
     this.updateComponent('ZKFC', this.get('newNameNodeHosts')[0], "HDFS", "Start");
+  },
+
+  startInfraSolr: function () {
+    this.startServices(false, ['AMBARI_INFRA_SOLR'], true);
+  },
+
+  startRanger: function () {
+    this.startServices(false, ['RANGER'], true);
   },
 
   startNameNode: function () {
