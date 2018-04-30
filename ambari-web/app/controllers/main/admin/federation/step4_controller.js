@@ -163,8 +163,12 @@ App.NameNodeFederationWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   restartAllServices: function () {
     App.ajax.send({
-      name: 'restart.allServices',
+      name: 'restart.custom.filter',
       sender: this,
+      data: {
+        filter: "HostRoles/component_name!=NAMENODE&HostRoles/cluster_name=" + App.get('clusterName'),
+        context: "Restart Required Services"
+      },
       success: 'startPolling',
       error: 'onTaskError'
     });
