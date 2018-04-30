@@ -85,15 +85,13 @@ public class ServiceComponentTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster(clusterName, stackId);
     cluster = clusters.getCluster(clusterName);
 
     cluster.setDesiredStackVersion(stackId);
     Assert.assertNotNull(cluster);
-
-    helper.createMpack(stackId);
 
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE", stackId.getStackId());
     Service s = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName);

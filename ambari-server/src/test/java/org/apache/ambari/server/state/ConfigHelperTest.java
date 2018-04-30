@@ -112,7 +112,7 @@ public class ConfigHelperTest {
 
       StackId stackId = new StackId("HDP-2.0.6");
       OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
-      helper.createStack(stackId);
+      helper.createMpack(stackId);
 
       clusterName = "c1";
       clusters.addCluster(clusterName, stackId);

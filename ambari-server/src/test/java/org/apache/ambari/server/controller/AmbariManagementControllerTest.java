@@ -285,16 +285,16 @@ public class AmbariManagementControllerTest {
     stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
     EasyMock.replay(injector.getInstance(AuditLogger.class));
 
-    stackId01 = new StackId(helper.createStack(new StackId(HDP_0_1)));
-    stackId02 = new StackId(helper.createStack(new StackId("HDP-0.2")));
-    stackId120 = new StackId(helper.createStack(new StackId("HDP-1.2.0")));
-    stackId131 = new StackId(helper.createStack(new StackId("HDP-1.3.1")));
-    stackId201 = new StackId(helper.createStack(new StackId("HDP-2.0.1")));
-    stackId205 = new StackId(helper.createStack(new StackId("HDP-2.0.5")));
-    stackId206 = new StackId(helper.createStack(new StackId("HDP-2.0.6")));
-    stackId207 = new StackId(helper.createStack(new StackId("HDP-2.0.7")));
-    stackId208 = new StackId(helper.createStack(new StackId("HDP-2.0.8")));
-    stackId220 = new StackId(helper.createStack(new StackId("HDP-2.2.0")));
+    stackId01 = helper.createMpack(new StackId(HDP_0_1)).getStackId();
+    stackId02 = helper.createMpack(new StackId("HDP-0.2")).getStackId();
+    stackId120 = helper.createMpack(new StackId("HDP-1.2.0")).getStackId();
+    stackId131 = helper.createMpack(new StackId("HDP-1.3.1")).getStackId();
+    stackId201 = helper.createMpack(new StackId("HDP-2.0.1")).getStackId();
+    stackId205 = helper.createMpack(new StackId("HDP-2.0.5")).getStackId();
+    stackId206 = helper.createMpack(new StackId("HDP-2.0.6")).getStackId();
+    stackId207 = helper.createMpack(new StackId("HDP-2.0.7")).getStackId();
+    stackId208 = helper.createMpack(new StackId("HDP-2.0.8")).getStackId();
+    stackId220 = helper.createMpack(new StackId("HDP-2.2.0")).getStackId();
 
     for (Host host : clusters.getHosts()) {
       clusters.updateHostMappings(host);
@@ -2119,7 +2119,6 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster(cluster1);
 
     StackId stackId = new StackId(HDP_0_1);
-    helper.createStack(stackId);
 
     c1.setDesiredStackVersion(stackId);
 
@@ -7224,7 +7223,6 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster(cluster1);
     Long clusterId = c.getClusterId();
 
-    helper.createStack(stackID);
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost(hostName1), "redhat", "5.9");
 

@@ -404,7 +404,7 @@ public class OrmTestHelper {
   }
 
   @Transactional
-  public StackEntity createStack(StackId stackId) throws AmbariException {
+  StackEntity createStack(StackId stackId) throws AmbariException {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     if (null == stackEntity) {
       stackEntity = new StackEntity();

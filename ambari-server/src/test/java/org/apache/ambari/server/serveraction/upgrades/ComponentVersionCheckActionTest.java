@@ -132,7 +132,7 @@ public class ComponentVersionCheckActionTest {
     String clusterName = "c1";
     String hostName = "h1";
 
-    m_helper.createStack(sourceStack);
+    m_helper.createMpack(sourceStack);
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
     clusters.addCluster(clusterName, sourceStack);
@@ -206,8 +206,8 @@ public class ComponentVersionCheckActionTest {
       StackId targetStack, String targetRepo, String clusterName, String hostName)
       throws Exception {
 
-    m_helper.createStack(sourceStack);
-    m_helper.createStack(targetStack);
+    m_helper.createMpack(sourceStack);
+    m_helper.createMpack(targetStack);
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
     clusters.addCluster(clusterName, sourceStack);

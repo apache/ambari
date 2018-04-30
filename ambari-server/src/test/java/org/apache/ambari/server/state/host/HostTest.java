@@ -362,8 +362,6 @@ public class HostTest {
     clusters.addCluster("c1", stackId);
     Cluster c1 = clusters.getCluster("c1");
 
-    helper.createStack(stackId);
-
     Assert.assertEquals("c1", c1.getClusterName());
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");

@@ -104,7 +104,7 @@ public class EventsTest {
 
     m_clusterName = "foo";
     StackId stackId = new StackId("HDP", STACK_VERSION);
-    m_helper.createStack(stackId);
+    m_helper.createMpack(stackId);
 
     m_clusters.addCluster(m_clusterName, stackId);
     m_clusters.addHost(HOSTNAME);
@@ -122,8 +122,6 @@ public class EventsTest {
     serviceGroup = m_cluster.addServiceGroup("CORE", stackId.getStackId());
 
     m_cluster.setDesiredStackVersion(stackId);
-    m_helper.createMpack(stackId);
-
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }
 

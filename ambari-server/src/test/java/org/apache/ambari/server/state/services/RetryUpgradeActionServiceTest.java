@@ -36,7 +36,6 @@ import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -72,8 +71,6 @@ public class RetryUpgradeActionServiceTest {
   Cluster cluster;
   StackId stack220 = new StackId("HDP-2.2.0");
   StackId stack221 = new StackId("HDP-2.2.1");
-  StackEntity stackEntity220;
-  StackEntity stackEntity221;
   Long upgradeRequestId = 1L;
   Long stageId = 1L;
 
@@ -88,8 +85,8 @@ public class RetryUpgradeActionServiceTest {
     stageDAO = injector.getInstance(StageDAO.class);
     hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
     helper = injector.getInstance(OrmTestHelper.class);
-    stackEntity220 = helper.createStack(stack220);
-    stackEntity221 = helper.createStack(stack221);
+    helper.createMpack(stack220);
+    helper.createMpack(stack221);
   }
 
   @After
@@ -241,8 +238,6 @@ public class RetryUpgradeActionServiceTest {
    * @throws AmbariException
    */
   private void prepareUpgrade() throws AmbariException {
-    stackEntity220 = helper.createStack(stack220);
-
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(upgradeRequestId);
     requestEntity.setClusterId(cluster.getClusterId());
