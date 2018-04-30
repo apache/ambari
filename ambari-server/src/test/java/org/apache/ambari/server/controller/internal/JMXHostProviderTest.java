@@ -41,7 +41,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -79,9 +79,7 @@ public class JMXHostProviderTest {
   private static final String MAPREDUCE_HTTPS_PORT = "mapreduce.jobhistory.webapp.https.address";
 
   private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
   private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-  private RepositoryVersionEntity m_repositoryVersion;
 
   @Before
   public void setup() throws Exception {
@@ -92,8 +90,8 @@ public class JMXHostProviderTest {
     controller = injector.getInstance(AmbariManagementController.class);
     OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
 
-    m_repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
-    Assert.assertNotNull(m_repositoryVersion);
+    MpackEntity mpackEntity = ormTestHelper.createMpack(STACK_ID);
+    Assert.assertNotNull(mpackEntity);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules

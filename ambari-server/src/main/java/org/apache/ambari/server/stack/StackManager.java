@@ -471,18 +471,6 @@ public class StackManager {
   }
 
   /**
-   * Determine if all tasks which update stack repo urls have completed.
-   *
-   * @return true if all of the repo update tasks have completed; false otherwise
-   */
-  public boolean haveAllRepoUrlsBeenResolved() {
-    if(stackContext == null) {
-      return true;
-    }
-    return stackContext.haveAllRepoTasksCompleted();
-  }
-
-  /**
    * Fully resolve all stacks.
    *
    * @param stackModules          map of stack id which contains name and version to stack module.
@@ -510,10 +498,6 @@ public class StackManager {
     }
     for (StackModule stack : stackModules.values()) {
       stack.finalizeModule();
-    }
-    // Execute all of the repo tasks in a single thread executor
-    if(stackContext != null) {
-      stackContext.executeRepoTasks();
     }
   }
 
@@ -637,8 +621,9 @@ public class StackManager {
   private void validateExtensionDirectory(File extensionRoot) throws AmbariException {
     LOG.info("Validating extension directory {} ...", extensionRoot);
 
-    if (extensionRoot == null)
-	return;
+    if (extensionRoot == null) {
+      return;
+    }
 
     String extensionRootAbsPath = extensionRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
@@ -749,8 +734,9 @@ public class StackManager {
    */
   private Map<String, ExtensionModule> parseExtensionDirectory(File extensionRoot) throws AmbariException {
     Map<String, ExtensionModule> extensionModules = new HashMap<>();
-    if (extensionRoot == null || !extensionRoot.exists())
+    if (extensionRoot == null || !extensionRoot.exists()) {
       return extensionModules;
+    }
 
     File[] extensionFiles = extensionRoot.listFiles(StackDirectory.FILENAME_FILTER);
     for (File extensionNameFolder : extensionFiles) {

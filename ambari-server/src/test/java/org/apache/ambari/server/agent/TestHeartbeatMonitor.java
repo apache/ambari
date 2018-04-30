@@ -40,7 +40,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -248,9 +247,6 @@ public class TestHeartbeatMonitor {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
-
     Set<String> hostNames = new HashSet<String>() {{
       add(hostname1);
       add(hostname2);
@@ -373,9 +369,6 @@ public class TestHeartbeatMonitor {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
-
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
      }};
@@ -455,9 +448,6 @@ public class TestHeartbeatMonitor {
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
@@ -573,8 +563,6 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
 
     cluster.setDesiredStackVersion(stackId);
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);

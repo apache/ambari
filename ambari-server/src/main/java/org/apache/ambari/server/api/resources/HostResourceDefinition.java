@@ -70,7 +70,6 @@ public class HostResourceDefinition extends BaseResourceDefinition {
     Set<SubResourceDefinition> subs = new HashSet<>();
     subs.add(new SubResourceDefinition(Resource.Type.HostComponent));
     subs.add(new SubResourceDefinition(Resource.Type.Alert));
-    subs.add(new SubResourceDefinition(Resource.Type.HostStackVersion));
     subs.add(new SubResourceDefinition(Resource.Type.HostKerberosIdentity));
     return subs;
   }

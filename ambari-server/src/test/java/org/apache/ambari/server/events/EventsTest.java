@@ -35,7 +35,6 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -82,8 +81,6 @@ public class EventsTest {
   private AlertDispatchDAO m_alertDispatchDao;
 
   private static final String STACK_VERSION = "2.0.6";
-  private static final String REPO_VERSION = "2.0.6-1234";
-  private RepositoryVersionEntity m_repositoryVersion;
   private ServiceGroup serviceGroup;
 
   @Before
@@ -107,7 +104,7 @@ public class EventsTest {
 
     m_clusterName = "foo";
     StackId stackId = new StackId("HDP", STACK_VERSION);
-    m_helper.createStack(stackId);
+    m_helper.createMpack(stackId);
 
     m_clusters.addCluster(m_clusterName, stackId);
     m_clusters.addHost(HOSTNAME);
@@ -125,8 +122,6 @@ public class EventsTest {
     serviceGroup = m_cluster.addServiceGroup("CORE", stackId.getStackId());
 
     m_cluster.setDesiredStackVersion(stackId);
-    m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
-
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }
 

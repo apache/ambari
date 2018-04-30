@@ -55,7 +55,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.persistence.RollbackException;
@@ -78,11 +77,9 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.security.authorization.Users;
@@ -2232,7 +2229,6 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Injector injector = createNiceMock(Injector.class);
     Configuration configuration = createNiceMock(Configuration.class);
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
 
     Map<String, DesiredConfig> desiredConfigs = new HashMap<>();
@@ -2253,15 +2249,13 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getGplLicenseAccepted()).andReturn(false);
     expect(configuration.getDatabaseConnectorNames()).andReturn(new HashMap<>()).anyTimes();
     expect(configuration.getPreviousDatabaseConnectorNames()).andReturn(new HashMap<>()).anyTimes();
-    expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
-    expect(repositoryVersionEntity.getStackId()).andReturn(stackId).anyTimes();
     expect(configHelper.getPropertiesWithPropertyType(stackId,
         PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs)).andReturn(
             notManagedHdfsPathMap);
     expect(configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST)).andReturn(
             notManagedHdfsPathSet);
 
-    replay(manager, clusters, cluster, injector, stackId, configuration, repositoryVersionEntity, configHelper);
+    replay(manager, clusters, cluster, injector, stackId, configuration, configHelper);
 
     AmbariManagementControllerImpl ambariManagementControllerImpl = createMockBuilder(
         AmbariManagementControllerImpl.class).withConstructor(manager, clusters,
@@ -2293,7 +2287,7 @@ public class AmbariManagementControllerImplTest {
     f.setAccessible(true);
     f.set(helper, gson);
 
-    Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster, repositoryVersionEntity.getStackId());
+    Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster, stackId);
 
     assertEquals(16, defaultHostParams.size());
     assertEquals(MYSQL_JAR, defaultHostParams.get(DB_DRIVER_FILENAME));
@@ -2401,52 +2395,6 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
-  public void testVerifyRepositories() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
-
-    // expectations
-    // constructor init
-    constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
-
-    expect(injector.getInstance(HostComponentStateDAO.class)).andReturn(hostComponentStateDAO).anyTimes();
-    expect(injector.getInstance(ServiceComponentDesiredStateDAO.class)).andReturn(serviceComponentDesiredStateDAO).anyTimes();
-
-    Configuration configuration = createNiceMock(Configuration.class);
-    String[] suffices = {"/repodata/repomd.xml"};
-    expect(configuration.getRepoValidationSuffixes("redhat6")).andReturn(suffices);
-
-    // replay mocks
-    replay(injector, clusters, ambariMetaInfo, configuration, hostComponentStateDAO, serviceComponentDesiredStateDAO);
-
-    // test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-
-    // Manually injected
-    Class<?> c = controller.getClass();
-    Field f = c.getDeclaredField("configs");
-    f.setAccessible(true);
-    f.set(controller, configuration);
-
-    Set<RepositoryRequest> requests = new HashSet<>();
-    RepositoryRequest request = new RepositoryRequest("stackName", "stackVersion", "redhat6", "repoId", "repo_name");
-    request.setBaseUrl("file:///some/repo");
-    requests.add(request);
-
-    // A wrong file path is passed and IllegalArgumentException is expected
-    try {
-      controller.verifyRepositories(requests);
-      Assert.fail("IllegalArgumentException is expected");
-    } catch (IllegalArgumentException e) {
-      Assert.assertEquals("Could not access base url . file:///some/repo/repodata/repomd.xml . ", e.getMessage());
-    }
-
-    verify(injector, clusters, ambariMetaInfo, configuration, hostComponentStateDAO, serviceComponentDesiredStateDAO);
-  }
-
-  @Test
   public void testRegisterRackChange() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
@@ -2503,57 +2451,6 @@ public class AmbariManagementControllerImplTest {
     controller.registerRackChange("c1");
 
     verify(injector, cluster, clusters, ambariMetaInfo, service, serviceComponent, serviceComponentHost, stackId);
-  }
-
-  @Test
-  public void testCreateClusterWithRepository() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-
-    RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
-    RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    expect(repoVersionDAO.findByStackAndVersion(anyObject(StackId.class),
-        anyObject(String.class))).andReturn(repoVersion).anyTimes();
-
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-
-    StackId stackId = new StackId("HDP-2.1");
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    expect(service.getStackId()).andReturn(stackId).atLeastOnce();
-
-    expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
-
-
-    StackInfo stackInfo = createNiceMock(StackInfo.class);
-
-    expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
-    expect(ambariMetaInfo.getCommonWidgetsDescriptorFile()).andReturn(null).once();
-
-    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, service, repoVersionDAO, repoVersion);
-
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-    Class<?> c = controller.getClass();
-
-    Field f = c.getDeclaredField("repositoryVersionDAO");
-    f.setAccessible(true);
-    f.set(controller, repoVersionDAO);
-
-    Properties p = new Properties();
-    p.setProperty("", "");
-    Configuration configuration = new Configuration(p);
-    f = c.getDeclaredField("configs");
-    f.setAccessible(true);
-    f.set(controller, configuration);
-
-    ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
-    controller.createCluster(cr);
-
-    // verification
-    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
   }
 
   @Test

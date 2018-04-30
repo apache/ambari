@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.services.Request;
@@ -46,7 +48,6 @@ import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterSettingResourceProvider;
-import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
@@ -79,6 +80,9 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Renderer which renders a cluster resource as a blueprint.
  */
+@Experimental(
+    feature = ExperimentalFeature.REPO_VERSION_REMOVAL,
+    comment = "Blueprints must get mpack data from a different endpoint, not stack_versions")
 public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
   /**
@@ -119,11 +123,6 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       ComponentResourceProvider.COMPONENT_SERVICE_TYPE_PROPERTY_ID,
       ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
       ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
-
-    ensureChild(resultTree, Resource.Type.ClusterStackVersion,
-      ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
-      ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
-      ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_MPACK_URI_PROPERTY_ID);
 
     TreeNode<Set<String>> hostNode = ensureChild(resultTree, Resource.Type.Host);
     ensureChild(hostNode, Resource.Type.HostComponent,
@@ -336,8 +335,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
         }
       }
 
-      if (!serviceProperty.isEmpty())
+      if (!serviceProperty.isEmpty()) {
         serviceSettingValue.add(serviceProperty);
+      }
     }
 
     // Add cluster settings

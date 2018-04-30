@@ -22,6 +22,8 @@ import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -61,6 +63,7 @@ import com.google.inject.persist.Transactional;
  */
 @Singleton
 @EagerSingleton
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 public class MpackInstallStateListener {
 
   /**

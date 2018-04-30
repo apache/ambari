@@ -26,7 +26,6 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface ServiceComponent {
 
@@ -76,7 +75,7 @@ public interface ServiceComponent {
 
   @Deprecated
   @Experimental(feature = ExperimentalFeature.REPO_VERSION_REMOVAL)
-  void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity);
+  void setDesiredRepositoryVersion();
 
   /**
    * Refresh Component info due to current stack

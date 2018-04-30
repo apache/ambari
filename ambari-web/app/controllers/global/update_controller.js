@@ -228,9 +228,7 @@ App.UpdateController = Em.Controller.extend({
             (App.Service.find().someProperty('serviceName', 'HDFS') ? 'host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,' : '') +
             '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
         hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
-        stackVersionInfo = ',stack_versions/HostStackVersions,' +
-            'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
-            'stack_versions/repository_versions/RepositoryVersions/display_name',
+        stackVersionInfo = '',
         mainHostController = App.router.get('mainHostController'),
         sortProperties = mainHostController.getSortProps(),
         loggingResource = ',host_components/logging',

@@ -17,20 +17,12 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
 
@@ -63,31 +55,6 @@ public class RequiredServicesInRepositoryCheck extends AbstractCheckDescriptor {
    */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    String clusterName = request.getClusterName();
-    Cluster cluster = clustersProvider.get().getCluster(clusterName);
-
-    VersionDefinitionXml xml = getVersionDefinitionXml(request);
-    Set<String> missingDependencies = xml.getMissingDependencies(cluster);
-
-    if (!missingDependencies.isEmpty()) {
-      String failReasonTemplate = getFailReason(prerequisiteCheck, request);
-
-      String message = String.format(
-          "The following services are also required to be included in this upgrade: %s",
-          StringUtils.join(missingDependencies, ", "));
-
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(missingDependencies));
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(String.format(failReasonTemplate, message));
-
-      Set<ServiceDetail> missingServiceDetails = missingDependencies.stream().map(
-          missingService -> new ServiceDetail(missingService)).collect(
-              Collectors.toCollection(TreeSet::new));
-
-      prerequisiteCheck.getFailedDetail().addAll(missingServiceDetails);
-      return;
-    }
-
-    prerequisiteCheck.setStatus(PrereqCheckStatus.PASS);
+    prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
   }
 }

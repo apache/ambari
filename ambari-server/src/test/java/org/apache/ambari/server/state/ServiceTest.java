@@ -60,7 +60,6 @@ public class ServiceTest {
   private OrmTestHelper ormTestHelper;
 
   private final String STACK_VERSION = "0.1";
-  private final String REPO_VERSION = "0.1-1234";
   private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
 
   @Before
@@ -74,7 +73,7 @@ public class ServiceTest {
     serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
 
     ormTestHelper = injector.getInstance(OrmTestHelper.class);
-    ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
+    ormTestHelper.createMpack(STACK_ID);
 
     clusterName = "foo";
     clusters.addCluster(clusterName, STACK_ID);

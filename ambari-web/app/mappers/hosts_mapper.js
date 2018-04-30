@@ -169,6 +169,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
         }
 
+        item.stack_versions = [];
         var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
         var currentVersionNumber = currentVersion && currentVersion.repository_versions
           ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';

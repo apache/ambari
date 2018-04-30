@@ -24,6 +24,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.MpackHostStateEntity;
 import org.apache.ambari.server.state.MpackInstallState;
@@ -38,6 +40,7 @@ import com.google.inject.persist.Transactional;
  * the installation state of a management pack on a host.
  */
 @Singleton
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 public class MpackHostStateDAO extends CrudDAO<MpackHostStateEntity, Long> {
   @Inject
   Provider<EntityManager> entityManagerProvider;

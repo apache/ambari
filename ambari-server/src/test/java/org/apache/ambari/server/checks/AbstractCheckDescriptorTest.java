@@ -25,22 +25,21 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -51,6 +50,8 @@ import junit.framework.Assert;
 /**
  * Unit tests for AbstractCheckDescriptor
  */
+@Ignore
+@Experimental(feature = ExperimentalFeature.UNIT_TEST_REQUIRED)
 public class AbstractCheckDescriptorTest extends EasyMockSupport {
   @Mock
   private Clusters clusters;
@@ -60,12 +61,6 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
    */
   @Mock
   private ClusterVersionSummary m_clusterVersionSummary;
-
-  /**
-   *
-   */
-  @Mock
-  private VersionDefinitionXml m_vdfXml;
 
   @Before
   public void setup() throws Exception {
@@ -120,21 +115,13 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
     expect(cluster.getServices()).andReturn(services).atLeastOnce();
 
-    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
-    expect(repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
-    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
-        m_clusterVersionSummary).atLeastOnce();
-
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
         allServicesList).atLeastOnce();
-
 
     replayAll();
 
     TestCheckImpl check = new TestCheckImpl(PrereqCheckType.SERVICE);
     PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
-    request.setTargetRepositoryVersion(repositoryVersion);
 
     // case, where we need at least one service to be present
     check.setApplicableServices(oneServiceList);
@@ -171,12 +158,6 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
     expect(cluster.getServices()).andReturn(services).atLeastOnce();
 
-    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
-    expect(repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
-    expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
-        m_clusterVersionSummary).atLeastOnce();
-
     // the cluster summary will only return 1 service for the upgrade, even
     // though this cluster has 2 services installed
     expect(m_clusterVersionSummary.getAvailableServiceNames()).andReturn(
@@ -186,7 +167,6 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
 
     TestCheckImpl check = new TestCheckImpl(PrereqCheckType.SERVICE);
     PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
-    request.setTargetRepositoryVersion(repositoryVersion);
 
     // since the check is for SERVICE2, it should not match even though its
     // installed since the repository is only for SERVICE1

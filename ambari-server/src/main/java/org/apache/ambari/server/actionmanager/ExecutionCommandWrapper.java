@@ -264,7 +264,10 @@ public class ExecutionCommandWrapper {
       ServiceComponent serviceComponent = null;
       if (null != service) {
         serviceType = service.getServiceType();
-        serviceComponent = service.getServiceComponent(componentName);
+
+        if (StringUtils.isNotBlank(componentName)) {
+          serviceComponent = service.getServiceComponent(componentName);
+        }
       }
 
       ModuleComponent moduleComponent = null;

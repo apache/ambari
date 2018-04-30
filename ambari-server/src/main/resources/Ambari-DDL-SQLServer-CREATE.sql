@@ -247,32 +247,12 @@ CREATE TABLE clusterstate (
   CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_cs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
 
-CREATE TABLE repo_version (
-  repo_version_id BIGINT NOT NULL,
-  stack_id BIGINT NOT NULL,
-  version VARCHAR(255) NOT NULL,
-  display_name VARCHAR(128) NOT NULL,
-  repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
-  hidden SMALLINT NOT NULL DEFAULT 0,
-  resolved BIT NOT NULL DEFAULT 0,
-  legacy BIT NOT NULL DEFAULT 0,
-  version_url VARCHAR(1024),
-  version_xml VARCHAR(MAX),
-  version_xsd VARCHAR(512),
-  parent_id BIGINT,
-  CONSTRAINT PK_repo_version PRIMARY KEY CLUSTERED (repo_version_id),
-  CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
-  CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
-
 CREATE TABLE repo_os (
   id BIGINT NOT NULL,
-  repo_version_id BIGINT,
   mpack_id BIGINT NOT NULL,
   family VARCHAR(255) NOT NULL DEFAULT '',
   ambari_managed BIT DEFAULT 1,
   CONSTRAINT PK_repo_os_id PRIMARY KEY (id),
-  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT FK_repo_os_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks (id),
   CONSTRAINT UQ_repo_os_family_mpack_id UNIQUE (mpack_id, family));
 
@@ -1006,7 +986,6 @@ CREATE TABLE upgrade (
   orchestration VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
-  repo_version_id BIGINT NOT NULL,
   skip_failures BIT NOT NULL DEFAULT 0,
   skip_sc_failures BIT NOT NULL DEFAULT 0,
   downgrade_allowed BIT NOT NULL DEFAULT 1,
@@ -1014,8 +993,7 @@ CREATE TABLE upgrade (
   suspended BIT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY CLUSTERED (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id),
-  FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id)
+  FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
 
 CREATE TABLE upgrade_group (
@@ -1045,15 +1023,11 @@ CREATE TABLE upgrade_history(
   upgrade_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   component_name VARCHAR(255) NOT NULL,
-  from_repo_version_id BIGINT NOT NULL,
-  target_repo_version_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   source_mpack_id BIGINT NOT NULL,
   target_mpack_id BIGINT NOT NULL,
   CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
   CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
-  CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
-  CONSTRAINT FK_upgrade_hist_target_repo FOREIGN KEY (target_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name),
   CONSTRAINT FK_upgrade_hist_svc_grp_id FOREIGN KEY (service_group_id) REFERENCES servicegroups (id),
   CONSTRAINT FK_upgrade_hist_src_mpack_id FOREIGN KEY (source_mpack_id) REFERENCES mpacks (id),
@@ -1323,7 +1297,6 @@ BEGIN TRANSACTION
     ('alert_notice_id_seq', 0),
     ('alert_current_id_seq', 0),
     ('config_id_seq', 11),
-    ('repo_version_id_seq', 0),
     ('repo_os_id_seq', 0),
     ('repo_definition_id_seq', 0),
     ('mpack_host_state_id_seq', 0),

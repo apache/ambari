@@ -120,11 +120,10 @@ public class ClusterDeadlockTest {
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
 
-    helper.createStack(stackId);
+    helper.createMpack(stackId);
 
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     Config config1 = configFactory.createNew(cluster, "test-type1", "version1", new HashMap<>(), new HashMap<>());
     Config config2 = configFactory.createNew(cluster, "test-type2", "version1", new HashMap<>(), new HashMap<>());

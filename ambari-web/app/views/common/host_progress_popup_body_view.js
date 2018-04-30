@@ -995,8 +995,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     }
     if (this.get('isLogSearchInstalled') && App.get('supports.logSearch') && !App.Host.find().someProperty('hostName', hostName)) {
       this.set('hostInfoLoaded', false);
-      fields = ['stack_versions/repository_versions/RepositoryVersions/repository_version',
-                'host_components/HostRoles/host_name'];
+      fields = ['host_components/HostRoles/host_name'];
       App.router.get('updateController').updateLogging(hostName, fields, function(data) {
         App.hostsMapper.map({ items: [data] });
       }).always(function() {

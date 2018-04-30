@@ -86,7 +86,6 @@ import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
@@ -306,11 +305,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
     Cluster cluster = createMockCluster(SecurityType.KERBEROS, hosts.values(), installedServices, serviceComponentHosts, targetStackId, clusterConfigs);
     expect(cluster.getUpgradeInProgress()).andReturn(upgradeProgress).once();
 
-    RepositoryVersionEntity targetRepositoryVersion = createMock(RepositoryVersionEntity.class);
-    expect(targetRepositoryVersion.getStackId()).andReturn(targetStackId).atLeastOnce();
-
     UpgradeContext upgradeContext = createMock(UpgradeContext.class);
-    expect(upgradeContext.getTargetRepositoryVersion(anyString())).andReturn(targetRepositoryVersion).atLeastOnce();
 
     UpgradeContextFactory upgradeContextFactory = injector.getInstance(UpgradeContextFactory.class);
     expect(upgradeContextFactory.create(cluster, upgradeProgress)).andReturn(upgradeContext).once();

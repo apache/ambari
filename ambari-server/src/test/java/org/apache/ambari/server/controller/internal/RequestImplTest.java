@@ -214,28 +214,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("Versions/stack_version"));
     Assert.assertTrue(validPropertyIds.contains("Versions/min_upgrade_version"));
 
-    request = PropertyHelper.getReadRequest(OperatingSystemReadOnlyResourceProvider.propertyIds);
-    validPropertyIds = request.getPropertyIds();
-
-    //OperatingSystem resource properties
-    Assert.assertFalse(validPropertyIds.contains("OperatingSystems/unsupported_property_id"));
-    Assert.assertTrue(validPropertyIds.contains("OperatingSystems/stack_name"));
-    Assert.assertTrue(validPropertyIds.contains("OperatingSystems/stack_version"));
-    Assert.assertTrue(validPropertyIds.contains("OperatingSystems/os_type"));
-
-    request = PropertyHelper.getReadRequest(RepositoryResourceProvider.propertyIds);
-    validPropertyIds = request.getPropertyIds();
-
-    //Repository resource properties
-    Assert.assertFalse(validPropertyIds.contains("Repositories/unsupported_property_id"));
-    Assert.assertTrue(validPropertyIds.contains("Repositories/stack_name"));
-    Assert.assertTrue(validPropertyIds.contains("Repositories/stack_version"));
-    Assert.assertTrue(validPropertyIds.contains("Repositories/os_type"));
-    Assert.assertTrue(validPropertyIds.contains("Repositories/base_url"));
-    Assert.assertTrue(validPropertyIds.contains("Repositories/repo_id"));
-    Assert.assertTrue(validPropertyIds.contains("Repositories/repo_name"));
-    Assert.assertTrue(validPropertyIds.contains("Repositories/mirrors_list"));
-
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.StackService));
     validPropertyIds = request.getPropertyIds();
 
