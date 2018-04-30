@@ -37,7 +37,7 @@
     <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
     <slf4j.version>1.7.20</slf4j.version>
     <guice.version>4.1.0</guice.version>
-    <spring.version>4.3.7.RELEASE</spring.version>
+    <spring.version>4.3.16.RELEASE</spring.version>
     <fasterxml.jackson.version>2.9.5</fasterxml.jackson.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
@@ -472,6 +472,11 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-websocket</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-expression</artifactId>
         <version>${spring.version}</version>
       </dependency>
       <dependency>
