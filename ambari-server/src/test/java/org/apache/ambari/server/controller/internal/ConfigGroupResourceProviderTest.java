@@ -31,7 +31,6 @@ import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,7 +78,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Module;
-import com.google.inject.Provider;
 import com.google.inject.util.Modules;
 
 public class ConfigGroupResourceProviderTest {
@@ -99,24 +97,12 @@ public class ConfigGroupResourceProviderTest {
   }
 
   private ConfigGroupResourceProvider getConfigGroupResourceProvider
-      (AmbariManagementController managementController) throws NoSuchFieldException, IllegalAccessException {
+      (AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.ConfigGroup;
 
-    ConfigGroupResourceProvider configGroupResourceProvider =
-        (ConfigGroupResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
+    return (ConfigGroupResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
         type,
         managementController);
-
-    Provider<ConfigHelper> configHelperProvider = createNiceMock(Provider.class);
-    expect(configHelperProvider.get()).andReturn(createNiceMock(ConfigHelper.class));
-
-    replay(configHelperProvider);
-
-    Field m_configHelper = ConfigGroupResourceProvider.class.getDeclaredField("m_configHelper");
-    m_configHelper.setAccessible(true);
-    m_configHelper.set(configGroupResourceProvider, configHelperProvider);
-
-    return configGroupResourceProvider;
   }
 
 

@@ -45,6 +45,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -636,10 +638,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                 + "tag='" + baseConfig.getTag() + "'"
                 + oldConfigString);
             }
-
-            ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-            configHelper.updateAgentConfigs(Collections.singletonMap(cluster.getClusterName(),
-                Collections.singleton(serviceName)));
+            MetadataHolder metadataHolder = injector.getInstance(MetadataHolder.class);
+            AgentConfigsHolder agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
+            metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(cluster));
+            agentConfigsHolder.updateData(cluster.getClusterId(), null);
           }
         } else {
           LOG.info("No changes detected to config " + configType + ". Skipping configuration properties update");

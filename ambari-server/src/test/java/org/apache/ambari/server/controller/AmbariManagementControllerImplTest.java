@@ -982,11 +982,19 @@ public class AmbariManagementControllerImplTest {
     constructorInit(injector, controllerCapture, null, null,
         kerberosHelper, m_metadataHolder, m_agentConfigsHolder);
 
+    expect(m_metadataHolder.get()).andReturn(metadataHolder);
+    expect(metadataHolder.updateData(anyObject())).andReturn(true);
+
+    expect(m_agentConfigsHolder.get()).andReturn(agentConfigsHolder);
+    agentConfigsHolder.updateData(anyLong(), anyObject(List.class));
+    expectLastCall();
+
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(1);
     expect(cluster.getResourceId()).andReturn(1L).times(3);
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
+    expect(cluster.getClusterId()).andReturn(1L).times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(null).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(null).anyTimes();

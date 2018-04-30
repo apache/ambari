@@ -1868,6 +1868,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     }
+    m_metadataHolder.get().updateData(getClusterMetadataOnConfigsUpdate(cluster));
+    m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
 
     StackId currentVersion = cluster.getCurrentStackVersion();
     StackId desiredVersion = cluster.getDesiredStackVersion();
@@ -2011,10 +2013,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           cluster.setSecurityType(securityType);
         }
       }
-    }
-    if (serviceConfigVersionResponse != null) {
-      configHelper.updateAgentConfigs(Collections.singletonMap(cluster.getClusterName(),
-          Collections.singleton(serviceConfigVersionResponse.getServiceName())));
     }
 
     if (requestStageContainer != null) {
