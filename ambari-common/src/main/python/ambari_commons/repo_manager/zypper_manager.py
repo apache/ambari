@@ -178,8 +178,12 @@ class ZypperManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
-    if context.is_upgrade or context.use_repos or not self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command were executed with no package name passed")
+    elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
 
       if context.use_repos:
@@ -206,6 +210,8 @@ class ZypperManager(GenericManager):
 
     :type name str
     :type context ambari_commons.shell.RepoCallContext
+
+    :raise ValueError if name is empty
     """
     context.is_upgrade = True
     return self.install_package(name, context)
@@ -217,8 +223,12 @@ class ZypperManager(GenericManager):
     :type name str
     :type context ambari_commons.shell.RepoCallContext
     :type ignore_dependencies bool
+
+    :raise ValueError if name is empty
     """
-    if self._check_existence(name):
+    if not name:
+      raise ValueError("Installation command were executed with no package name passed")
+    elif self._check_existence(name):
       cmd = self.properties.remove_cmd[context.log_output] + [name]
       Logger.info("Removing package {0} ('{1}')".format(name, shell.string_cmd_from_args_list(cmd)))
       shell.repository_manager_executor(cmd, self.properties, context)
