@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -61,6 +62,7 @@ import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -1157,12 +1159,24 @@ public class RequestResourceProviderTest {
     ClusterControllerImpl controller = createNiceMock(ClusterControllerImpl.class);
     HostComponentProcessResourceProvider hostComponentProcessResourceProvider = createNiceMock(HostComponentProcessResourceProvider.class);
     PowerMock.mockStatic(ClusterControllerHelper.class);
+
     Resource resource = createNiceMock(Resource.class);
+    Collection<Resource> resources = Collections.singleton(resource);
+    Iterable<Resource> resourceIterable = new Iterable<Resource>() {
+      @Override
+      public Iterator<Resource> iterator() {
+        return resources.iterator();
+      }
+    };
 
     expect(ClusterControllerHelper.getClusterController()).andReturn(controller);
     expect(controller.ensureResourceProvider(Resource.Type.HostComponent)).andReturn(hostComponentProcessResourceProvider);
-    expect(hostComponentProcessResourceProvider.getResources(
-      capture(requestCapture), capture(predicateCapture))).andReturn(Collections.singleton(resource));
+    QueryResponse queryResponse = createNiceMock(QueryResponse.class);
+    expect(controller.getResources(eq(Resource.Type.HostComponent), capture(requestCapture),
+      capture(predicateCapture))).andReturn(queryResponse);
+    expect(controller.getIterable(eq(Resource.Type.HostComponent), eq(queryResponse),
+      (Request) anyObject(), (Predicate) anyObject(), eq(null), eq(null)))
+      .andReturn(resourceIterable);
 
     // replay
     replayAll();
@@ -1184,7 +1198,6 @@ public class RequestResourceProviderTest {
     filterSet.add(filterMap);
 
     properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterSet);
-
     propertySet.add(properties);
 
     Map<String, String> requestInfoProperties = new HashMap<>();
