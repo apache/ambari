@@ -37,7 +37,7 @@ App.NameNodeFederationWizardStep1Controller = Em.Controller.extend({
   }.property('content.nameServiceId', 'existingNameServices.length'),
 
   next: function () {
-    if (this.get('isNameServiceIdValid')) {
+    if (!this.get('isNameServiceIdError')) {
       App.router.send('next');
     }
   }
