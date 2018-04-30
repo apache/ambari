@@ -183,6 +183,13 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>infra_solr_java_stack_size</name>
+    <value>1024k</value>
+    <display-name>Infra Solr Java Stack Size</display-name>
+    <description>Java Stack Size of Infra Solr (-Xss)</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>infra_solr_jmx_enabled</name>
     <value>false</value>
     <display-name>Enable JMX</display-name>

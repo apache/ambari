@@ -71,7 +71,8 @@ RMI_PORT={{infra_solr_jmx_port}}
 #SOLR_OPTS="$SOLR_OPTS -Dsolr.autoSoftCommit.maxTime=3000"
 #SOLR_OPTS="$SOLR_OPTS -Dsolr.autoCommit.maxTime=60000"
 #SOLR_OPTS="$SOLR_OPTS -Dsolr.clustering.enabled=true"
-SOLR_OPTS="$SOLR_OPTS -Djava.rmi.server.hostname={{hostname}}"
+SOLR_JAVA_STACK_SIZE="-Xss{{infra_solr_java_stack_size}}"
+SOLR_OPTS="$SOLR_OPTS $SOLR_JAVA_STACK_SIZE -Djava.rmi.server.hostname={{hostname}}"
 
 # Location where the bin/solr script will save PID files for running instances
 # If not set, the script will create PID files in $SOLR_TIP/bin
