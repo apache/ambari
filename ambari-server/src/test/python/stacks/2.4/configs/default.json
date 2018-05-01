@@ -391,6 +391,7 @@
         "infra_solr_port": "8886",
         "infra_solr_minmem": "512",
         "infra_solr_maxmem": "512",
+        "infra_solr_java_stack_size" : "1",
         "infra_solr_znode": "/infra-solr",
         "infra_solr_conf": "/etc/ambari-infra-solr",
         "infra_solr_pid_dir": "/var/run/ambari-infra-solr",
