@@ -184,9 +184,16 @@
   </property>
   <property>
     <name>infra_solr_java_stack_size</name>
-    <value>1024k</value>
+    <value>1</value>
     <display-name>Infra Solr Java Stack Size</display-name>
-    <description>Java Stack Size of Infra Solr (-Xss)</description>
+    <description>Java Stack Size of Infra Solr (-Xss) in MB.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>128</maximum>
+      <unit>MB</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
