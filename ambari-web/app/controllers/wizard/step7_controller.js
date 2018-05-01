@@ -1097,7 +1097,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method selectProperService
    */
   selectProperService: function () {
-    var tabSelectedServiceName = this.get('tabs').findProperty('isActive', true).get('selectedServiceName');
+    var activeTab = this.get('tabs').findProperty('isActive', true);
+    var tabSelectedServiceName = activeTab ? activeTab.get('selectedServiceName') : null;
     var lastSelectedService = tabSelectedServiceName ? this.get('stepConfigs').findProperty('serviceName', tabSelectedServiceName) : null
     if(tabSelectedServiceName && lastSelectedService) {
       this.set('selectedService', lastSelectedService);
