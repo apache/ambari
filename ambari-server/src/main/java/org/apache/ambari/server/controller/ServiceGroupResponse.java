@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.Objects;
+import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang.builder.EqualsBuilder;
+
+import com.google.common.base.Objects;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -28,15 +31,17 @@ public class ServiceGroupResponse {
   private Long serviceGroupId;
   private String clusterName;
   private String serviceGroupName;
-  private String version;
+  private Long mpackId;
+  private StackId stackId;
 
-  public ServiceGroupResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName, String version) {
+  public ServiceGroupResponse(Long clusterId, String clusterName, Long mpackId, StackId stackId,
+      Long serviceGroupId, String serviceGroupName) {
     this.clusterId = clusterId;
     this.serviceGroupId = serviceGroupId;
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.version = version;
-
+    this.mpackId = mpackId;
+    this.stackId = stackId;
   }
 
   /**
@@ -96,27 +101,68 @@ public class ServiceGroupResponse {
   }
 
   /**
-   * @return the servicegroup version (stackName-stackVersion)
+   * @return the servicegroup stackId (stackName-stackVersion)
    */
-  public String getVersion() {
-    return version;
+  public StackId getStackId() {
+    return stackId;
   }
 
   /**
-   * @param version the servicegroup version (stackName-stackVersion)
+   * @param version
+   *          the servicegroup stackId (stackName-stackVersion)
    */
-  public void setVersion(String version) {
-    this.version = version;
+  public void setStackId(StackId stackId) {
+    this.stackId = stackId;
+  }
+
+  /**
+   * Gets the MpackID for this service group.
+   *
+   * @return the mpackId
+   */
+  public Long getMpackId() {
+    return mpackId;
+  }
+
+  /**
+   * Sets the Mpack ID for this service group.
+   *
+   * @param mpackId
+   *          the mpackId to set
+   */
+  public void setMpackId(Long mpackId) {
+    this.mpackId = mpackId;
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
 
-    ServiceGroupResponse other = (ServiceGroupResponse) o;
+    if (object == null || getClass() != object.getClass()) {
+      return false;
+    }
 
-    return Objects.equals(clusterId, other.clusterId) && Objects.equals(clusterName, other.clusterName) && Objects.equals(serviceGroupName, other.serviceGroupName) && Objects.equals(version, other.version);
+    ServiceGroupResponse that = (ServiceGroupResponse) object;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
+
+    equalsBuilder.append(clusterId, that.clusterId);
+    equalsBuilder.append(clusterName, that.clusterName);
+    equalsBuilder.append(mpackId, that.mpackId);
+    equalsBuilder.append(stackId, that.stackId);
+    equalsBuilder.append(serviceGroupId, that.serviceGroupId);
+    equalsBuilder.append(serviceGroupName, that.serviceGroupName);
+    return equalsBuilder.isEquals();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(clusterId, clusterName, mpackId, stackId, serviceGroupId,
+        serviceGroupName);
   }
 
   /**
