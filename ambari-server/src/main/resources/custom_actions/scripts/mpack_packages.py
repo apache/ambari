@@ -86,7 +86,7 @@ class MpackPackages(Script):
     # Build structured output with initial values
     self.structured_output = {
       'package_installation_result': 'FAIL',
-      'mpack_id': command_repository.mpack_id
+      'mpackId': command_repository.mpack_id
     }
 
     self.put_structured_out(self.structured_output)
@@ -106,6 +106,7 @@ class MpackPackages(Script):
 
     try:
       ret_code = self.install_packages(package_list)
+
       if ret_code == 0:
         self.structured_output['package_installation_result'] = 'SUCCESS'
         self.put_structured_out(self.structured_output)
@@ -134,7 +135,6 @@ class MpackPackages(Script):
     # Install packages
     packages_were_checked = False
     packages_installed_before = []
-#    stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
 
     try:
       repositories = config['repositoryFile']['repositories']
@@ -153,6 +153,7 @@ class MpackPackages(Script):
         available_packages_in_repos = self.repo_mgr.get_available_packages_in_repos(command_repos)
       except Exception:
         available_packages_in_repos = []
+
       for package in filtered_package_list:
         name = self.get_package_from_available(package['name'], available_packages_in_repos)
 

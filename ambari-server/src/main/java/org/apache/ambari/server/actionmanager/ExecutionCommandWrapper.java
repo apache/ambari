@@ -311,10 +311,12 @@ public class ExecutionCommandWrapper {
       executionCommand.setComponentVersions(cluster);
     } catch (ServiceNotFoundException serviceNotFoundException) {
       // it's possible that there are commands specified for a service where
-      // the service doesn't exist yet
-      LOG.warn(
-        "The service {} is not installed in the cluster. No repository version will be sent for this command.",
-        serviceName);
+      // the service doesn't exist yet.  Ignore nulls to avoid flooding the log.
+      if (null != serviceName) {
+        LOG.warn(
+          "The service {} is not installed in the cluster. No repository version will be sent for this command.",
+          serviceName);
+      }
     } catch (AmbariException e) {
       throw new RuntimeException(e);
     }

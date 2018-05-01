@@ -25,10 +25,10 @@ import javax.annotation.Nullable;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.EagerSingleton;
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.internal.UpgradePlanInstallResourceProvider;
 import org.apache.ambari.server.events.CommandReportReceivedEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
@@ -215,7 +215,7 @@ public class MpackInstallStateListener {
     String role = event.getRole();
     String roleCommand = commandReport.getRoleCommand();
 
-    if (!StringUtils.equals(role, Role.INSTALL_PACKAGES.name())
+    if (!StringUtils.equals(role, UpgradePlanInstallResourceProvider.MPACK_PACKAGES_ACTION)
         && !StringUtils.equals(roleCommand, RoleCommand.INSTALL.name())) {
       return;
     }

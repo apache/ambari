@@ -110,7 +110,7 @@ public class UpgradePlanInstallResourceProvider extends AbstractControllerResour
       UPGRADE_PLAN_INSTALL_ID,
       UPGRADE_PLAN_INSTALL_CLUSTER_NAME);
 
-  protected static final String MPACK_PACKAGES_ACTION = "mpack_packages";
+  public static final String MPACK_PACKAGES_ACTION = "mpack_packages";
   protected static final String INSTALL_PACKAGES = "Install Version";
 
   /**

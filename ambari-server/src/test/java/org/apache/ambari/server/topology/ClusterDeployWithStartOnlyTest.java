@@ -383,12 +383,10 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
     expect(hostRoleCommandInstallComponent3.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
-    expect(hostRoleCommandInstallComponent3.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     expect(hostRoleCommandInstallComponent4.getTaskId()).andReturn(2L).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
-    expect(hostRoleCommandInstallComponent4.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component1"),
