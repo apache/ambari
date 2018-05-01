@@ -19,9 +19,9 @@ package org.apache.ambari.server.events.publishers;
 
 import java.util.concurrent.Executors;
 
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.internal.UpgradePlanInstallResourceProvider;
 import org.apache.ambari.server.events.CommandReportReceivedEvent;
 import org.apache.commons.lang.StringUtils;
 
@@ -42,11 +42,6 @@ public class CommandReportEventPublisher {
    * A single threaded event bus for processing command report events in serial.
    */
   private final EventBus m_eventBus;
-
-  /**
-   * The string representation of {@link Role#INSTALL_PACKAGES}
-   */
-  private final String ROLE_INSTALL_PACKAGES = Role.INSTALL_PACKAGES.name();
 
   /**
    * The string representation of {@code RoleCommand#INSTALL}
@@ -72,7 +67,7 @@ public class CommandReportEventPublisher {
    */
   public void publish(CommandReportReceivedEvent event) {
     CommandReport commandReport = event.getCommandReport();
-    if (!StringUtils.equals(event.getRole(), ROLE_INSTALL_PACKAGES)
+    if (!StringUtils.equals(event.getRole(), UpgradePlanInstallResourceProvider.MPACK_PACKAGES_ACTION)
         && !StringUtils.equals(commandReport.getRoleCommand(), ROLE_COMMAND_INSTALL)) {
       return;
     }
