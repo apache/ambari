@@ -17,10 +17,13 @@
 
 var App = require('app');
 var date = require('utils/date/date');
+require('views/main/service/info/summary/hdfs/slaves');
 
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hdfs'),
   serviceName: 'HDFS',
+
+  slaveComponentsView: App.HDFSSlaveComponentsView.extend(),
 
   metricsNotAvailableObserver: function () {
     if(!this.get("service.metricsNotAvailable")) {
@@ -30,41 +33,5 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   willDestroyElement: function() {
     $("[rel='tooltip']").tooltip('destroy');
-  },
-
-  dataNodesDead: Em.computed.alias('service.dataNodesInstalled'),
-
-  journalNodesLive: function () {
-    return this.get('service.journalNodes').filterProperty("workStatus", "STARTED").get("length");
-  }.property("service.journalNodes.@each.workStatus"),
-
-  journalNodesTotal: Em.computed.alias('service.journalNodes.length'),
-
-  dataNodeComponent: Em.Object.create({
-    componentName: 'DATANODE'
-  }),
-
-  nfsGatewayComponent: Em.Object.create({
-    componentName: 'NFS_GATEWAY'
-  }),
-
-  /**
-   * Define if NFS_GATEWAY is present in the installed stack
-   * @type {Boolean}
-   */
-  isNfsInStack: function () {
-    return App.StackServiceComponent.find().someProperty('componentName', 'NFS_GATEWAY');
-  }.property(),
-
-  journalNodeComponent: Em.Object.create({
-    componentName: 'JOURNALNODE'
-  }),
-
-  isDataNodeCreated: function () {
-    return this.isServiceComponentCreated('DATANODE');
-  }.property('App.router.clusterController.isComponentsStateLoaded'),
-
-  isJournalNodeCreated: function () {
-    return this.isServiceComponentCreated('JOURNALNODE');
-  }.property('App.router.clusterController.isComponentsStateLoaded')
+  }
 });

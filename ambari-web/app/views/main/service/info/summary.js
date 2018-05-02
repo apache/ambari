@@ -462,7 +462,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
                 groups.push({
                   components: [],
                   componentWidgetsView: App.HDFSSummaryWidgetsView.extend({
-                    nameSpace: component.get('haNameSpace') || 'default'
+                    nameSpace: component.get('haNameSpace') || 'default',
+                    showSlaveComponents: true
                   })
                 });
               }
