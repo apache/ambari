@@ -182,7 +182,7 @@ class ZypperManager(GenericManager):
     :raise ValueError if name is empty
     """
     if not name:
-      raise ValueError("Installation command was executed with no package name")
+      raise ValueError("Installation command were executed with no package name passed")
     elif context.is_upgrade or context.use_repos or not self._check_existence(name):
       cmd = self.properties.install_cmd[context.log_output]
 
