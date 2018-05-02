@@ -47,6 +47,11 @@ public class SplitByMetricNamesCondition implements Condition {
   }
 
   @Override
+  public List<String> getTransientMetricNames() {
+    return null;
+  }
+
+  @Override
   public boolean isPointInTime() {
     return adaptee.isPointInTime();
   }

@@ -26,6 +26,7 @@ public interface Condition {
 
   List<byte[]> getUuids();
   List<String> getMetricNames();
+  List<String> getTransientMetricNames();
   boolean isPointInTime();
   boolean isGrouped();
   void setStatement(String statement);

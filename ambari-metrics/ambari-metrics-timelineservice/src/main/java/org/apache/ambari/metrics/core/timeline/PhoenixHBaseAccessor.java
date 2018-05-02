@@ -18,7 +18,10 @@
 package org.apache.ambari.metrics.core.timeline;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.ambari.metrics.core.timeline.FunctionUtils.findMetricFunctions;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.AGGREGATORS_SKIP_BLOCK_CACHE;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_MINUTE_SLEEP_INTERVAL;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_HOUR_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.CLUSTER_MINUTE_TABLE_TTL;
@@ -30,10 +33,12 @@ import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguratio
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HBASE_BLOCKING_STORE_FILES;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HBASE_ENCODING_SCHEME;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_AGGREGATOR_MINUTE_SLEEP_INTERVAL;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TRANSIENT_METRIC_PATTERNS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_DAILY_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_HOUR_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.HOST_MINUTE_TABLE_TTL;
-import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.METRICS_TRANSIENT_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.PRECISION_TABLE_TTL;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES;
@@ -47,10 +52,10 @@ import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguratio
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_PRECISION_TABLE_DURABILITY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATOR_SINK_CLASS;
-import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getJavaRegexFromSqlRegex;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.ALTER_METRICS_METADATA_TABLE;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_TRANSIENT_METRICS_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_INSTANCE_HOST_TABLE_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_TABLE_SQL;
@@ -71,6 +76,7 @@ import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.M
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.METRIC_TRANSIENT_TABLE_NAME;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES_REGEX_PATTERN;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_AGGREGATE_RECORD_SQL;
@@ -81,6 +87,7 @@ import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.U
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_INSTANCE_HOST_METADATA_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_METADATA_SQL;
 import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
+import static org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL.UPSERT_TRANSIENT_METRICS_SQL;
 import static org.apache.ambari.metrics.core.timeline.source.InternalSourceProvider.SOURCE_NAME.RAW_METRICS;
 
 import java.io.IOException;
@@ -124,6 +131,7 @@ import org.apache.ambari.metrics.core.timeline.sink.ExternalMetricsSink;
 import org.apache.ambari.metrics.core.timeline.sink.ExternalSinkProvider;
 import org.apache.ambari.metrics.core.timeline.source.InternalMetricsSource;
 import org.apache.ambari.metrics.core.timeline.source.InternalSourceProvider;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -163,17 +171,19 @@ public class PhoenixHBaseAccessor {
   private static final Log LOG = LogFactory.getLog(PhoenixHBaseAccessor.class);
 
   static final int PHOENIX_MAX_MUTATION_STATE_SIZE = 50000;
-  // Default stale data allowance set to 3 minutes, 2 minutes more than time
-  // it was collected. Also 2 minutes is the default aggregation interval at
-  // cluster and host levels.
-  static final long DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE = 300000;
+
   /**
-   * 22 metrics for 2hours in SECONDS (10 second data)
+   * 22 metrics for 2hours in SECONDS, 2 hosts (1 minute data records)
+   * 22 * (2 * 60) * 2 = 5280
+   * 22 cluster aggregate metrics for 2 hours (30 second data records)
+   * 22 * (2 * 60 * 2) = 5280
    * => Reasonable upper bound on the limit such that our Precision calculation for a given time range makes sense.
    */
-  private static final int METRICS_PER_MINUTE = 22;
-  private static final int POINTS_PER_MINUTE = 6;
-  public static int RESULTSET_LIMIT = (int)TimeUnit.HOURS.toMinutes(2) * METRICS_PER_MINUTE * POINTS_PER_MINUTE ;
+  public static int RESULTSET_LIMIT = 5760;
+
+  public static int hostMinuteAggregatorDataInterval = 300;
+  public static int clusterMinuteAggregatorDataInterval = 300;
+  public static int clusterSecondAggregatorDataInterval = 30;
 
   static TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
   static ObjectMapper mapper = new ObjectMapper();
@@ -183,7 +193,6 @@ public class PhoenixHBaseAccessor {
   private final Configuration metricsConf;
   private final RetryCounterFactory retryCounterFactory;
   private final PhoenixConnectionProvider dataSource;
-  private final long outOfBandTimeAllowance;
   private final int cacheSize;
   private final boolean cacheEnabled;
   private final BlockingQueue<TimelineMetrics> insertCache;
@@ -218,8 +227,7 @@ public class PhoenixHBaseAccessor {
 
   // Test friendly construction since mock instrumentation is difficult to get
   // working with hadoop mini cluster
-  PhoenixHBaseAccessor(TimelineMetricConfiguration configuration,
-                       PhoenixConnectionProvider dataSource) {
+  PhoenixHBaseAccessor(TimelineMetricConfiguration configuration, PhoenixConnectionProvider dataSource) {
     this.configuration = TimelineMetricConfiguration.getInstance();
     try {
       this.hbaseConf = configuration.getHbaseConf();
@@ -233,6 +241,10 @@ public class PhoenixHBaseAccessor {
     this.dataSource = dataSource;
 
     RESULTSET_LIMIT = metricsConf.getInt(GLOBAL_RESULT_LIMIT, RESULTSET_LIMIT);
+    clusterSecondAggregatorDataInterval = metricsConf.getInt(CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL, 30);
+    hostMinuteAggregatorDataInterval = metricsConf.getInt(HOST_AGGREGATOR_MINUTE_SLEEP_INTERVAL, 300);
+    clusterMinuteAggregatorDataInterval = metricsConf.getInt(CLUSTER_AGGREGATOR_MINUTE_SLEEP_INTERVAL, 300);
+
     try {
       Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");
     } catch (ClassNotFoundException e) {
@@ -242,8 +254,6 @@ public class PhoenixHBaseAccessor {
 
     this.retryCounterFactory = new RetryCounterFactory(metricsConf.getInt(GLOBAL_MAX_RETRIES, 10),
       (int) SECONDS.toMillis(metricsConf.getInt(GLOBAL_RETRY_INTERVAL, 3)));
-    this.outOfBandTimeAllowance = metricsConf.getLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE,
-      DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE);
     this.cacheEnabled = Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_CACHE_ENABLED, "true"));
     this.cacheSize = Integer.valueOf(metricsConf.get(TIMELINE_METRICS_CACHE_SIZE, "150"));
     this.cacheCommitInterval = Integer.valueOf(metricsConf.get(TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, "3"));
@@ -261,6 +271,7 @@ public class PhoenixHBaseAccessor {
     tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.getInt(CLUSTER_MINUTE_TABLE_TTL, 30 * 86400)); //30 days
     tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.getInt(CLUSTER_HOUR_TABLE_TTL, 365 * 86400)); //1 year
     tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, metricsConf.getInt(CLUSTER_DAILY_TABLE_TTL, 730 * 86400)); //2 years
+    tableTTL.put(METRIC_TRANSIENT_TABLE_NAME, metricsConf.getInt(METRICS_TRANSIENT_TABLE_TTL, 7 * 86400)); //7 days
 
     if (cacheEnabled) {
       LOG.debug("Initialising and starting metrics cache committer thread...");
@@ -320,6 +331,7 @@ public class PhoenixHBaseAccessor {
     LOG.debug("Committing metrics to store");
     Connection conn = null;
     PreparedStatement metricRecordStmt = null;
+    List<TimelineMetric> transientMetrics = new ArrayList<>();
 
     try {
       conn = getConnection();
@@ -328,6 +340,10 @@ public class PhoenixHBaseAccessor {
       for (TimelineMetrics timelineMetrics : timelineMetricsCollection) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
 
+          if (metadataManagerInstance.isTransientMetric(metric.getMetricName(), metric.getAppId())) {
+            transientMetrics.add(metric);
+            continue;
+          }
           metricRecordStmt.clearParameters();
 
           if (LOG.isTraceEnabled()) {
@@ -339,7 +355,7 @@ public class PhoenixHBaseAccessor {
                   metric.getMetricValues());
 
           if (aggregates[3] != 0.0) {
-            byte[] uuid = metadataManagerInstance.getUuid(metric);
+            byte[] uuid = metadataManagerInstance.getUuid(metric, true);
             if (uuid == null) {
               LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
               continue;
@@ -367,6 +383,9 @@ public class PhoenixHBaseAccessor {
 
         }
       }
+      if (CollectionUtils.isNotEmpty(transientMetrics)) {
+        commitTransientMetrics(conn, transientMetrics);
+      }
 
       // commit() blocked if HBase unavailable
       conn.commit();
@@ -391,15 +410,53 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs)
-      throws SQLException, IOException {
+  private void commitTransientMetrics(Connection conn, Collection<TimelineMetric> transientMetrics) throws SQLException, IOException {
+    LOG.debug("Committing transient metrics to store");
+    PreparedStatement metricTransientRecordStmt = null;
+
+    metricTransientRecordStmt = conn.prepareStatement(String.format(
+      UPSERT_TRANSIENT_METRICS_SQL, METRIC_TRANSIENT_TABLE_NAME));
+    for (TimelineMetric metric : transientMetrics) {
+
+      metricTransientRecordStmt.clearParameters();
+
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("host: " + metric.getHostName() + ", " +
+          "metricName = " + metric.getMetricName() + ", " +
+          "values: " + metric.getMetricValues());
+      }
+      double[] aggregates = AggregatorUtils.calculateAggregates(
+        metric.getMetricValues());
+
+      metricTransientRecordStmt.setString(1, metric.getMetricName());
+      metricTransientRecordStmt.setString(2, metric.getHostName());
+      metricTransientRecordStmt.setString(3, metric.getAppId());
+      metricTransientRecordStmt.setString(4, metric.getInstanceId());
+      metricTransientRecordStmt.setLong(5, metric.getStartTime());
+      metricTransientRecordStmt.setString(6, metric.getUnits());
+      metricTransientRecordStmt.setDouble(7, aggregates[0]);
+      metricTransientRecordStmt.setDouble(8, aggregates[1]);
+      metricTransientRecordStmt.setDouble(9, aggregates[2]);
+      metricTransientRecordStmt.setLong(10, (long) aggregates[3]);
+      String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
+      metricTransientRecordStmt.setString(11, json);
+
+      try {
+        metricTransientRecordStmt.executeUpdate();
+      } catch (SQLException sql) {
+        LOG.error("Failed on inserting transient metric records to store.", sql);
+      }
+    }
+  }
+
+
+  private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs) throws SQLException, IOException {
     TimelineMetric metric = TIMELINE_METRIC_READ_HELPER.getTimelineMetricCommonsFromResultSet(rs);
     metric.setMetricValues(readLastMetricValueFromJSON(rs.getString("METRICS")));
     return metric;
   }
 
-  private static TreeMap<Long, Double> readLastMetricValueFromJSON(String json)
-      throws IOException {
+  private static TreeMap<Long, Double> readLastMetricValueFromJSON(String json) throws IOException {
     TreeMap<Long, Double> values = readMetricFromJSON(json);
     Long lastTimeStamp = values.lastKey();
 
@@ -413,8 +470,7 @@ public class PhoenixHBaseAccessor {
     return mapper.readValue(json, metricValuesTypeRef);
   }
 
-  private Connection getConnectionRetryingOnException()
-    throws SQLException, InterruptedException {
+  private Connection getConnectionRetryingOnException() throws SQLException, InterruptedException {
     RetryCounter retryCounter = retryCounterFactory.create();
     while (true) {
       try{
@@ -524,6 +580,13 @@ public class PhoenixHBaseAccessor {
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME),
         compression));
 
+      // Metrics Transient Table
+      String transientMetricPatterns = metricsConf.get(TRANSIENT_METRIC_PATTERNS, StringUtils.EMPTY);
+      if (StringUtils.isNotEmpty(transientMetricPatterns)) {
+        String transientMetricsTableSql = String.format(CREATE_TRANSIENT_METRICS_TABLE_SQL,
+          encoding, tableTTL.get(METRIC_TRANSIENT_TABLE_NAME), compression);
+        int row = stmt.executeUpdate(transientMetricsTableSql);
+      }
 
       conn.commit();
 
@@ -647,8 +710,11 @@ public class PhoenixHBaseAccessor {
   private boolean setDurabilityForTable(String tableName, TableDescriptorBuilder tableDescriptor) {
 
     boolean modifyTable = false;
-    // Set WAL preferences
-    if (METRICS_RECORD_TABLE_NAME.equals(tableName)) {
+
+    if (METRIC_TRANSIENT_TABLE_NAME.equalsIgnoreCase(tableName)) {
+      tableDescriptor.setDurability(Durability.SKIP_WAL);
+      modifyTable = true;
+    } else if (METRICS_RECORD_TABLE_NAME.equals(tableName)) {
       if (!timelineMetricsPrecisionTableDurability.isEmpty()) {
         LOG.info("Setting WAL option " + timelineMetricsPrecisionTableDurability + " for table : " + tableName);
         boolean validDurability = true;
@@ -702,7 +768,7 @@ public class PhoenixHBaseAccessor {
       DATE_TIERED_COMPACTION_POLICY);
     int blockingStoreFiles = hbaseConf.getInt(TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES, 60);
 
-    if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
+    if (tableName.equals(METRICS_RECORD_TABLE_NAME) || tableName.equalsIgnoreCase(METRIC_TRANSIENT_TABLE_NAME)) {
       compactionPolicyKey = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY,
         HSTORE_COMPACTION_CLASS_KEY);
       compactionPolicyClass = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS,
@@ -724,8 +790,7 @@ public class PhoenixHBaseAccessor {
     return modifyTable;
   }
 
-  private boolean setHbaseBlockingStoreFiles(TableDescriptorBuilder tableDescriptor,
-                                             String tableName, int value) {
+  private boolean setHbaseBlockingStoreFiles(TableDescriptorBuilder tableDescriptor, String tableName, int value) {
     int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, value);
     if (blockingStoreFiles != value) {
       blockingStoreFiles = value;
@@ -736,6 +801,7 @@ public class PhoenixHBaseAccessor {
     }
     return false;
   }
+
   protected String getSplitPointsStr(String splitPoints) {
     if (StringUtils.isEmpty(splitPoints.trim())) {
       return "";
@@ -760,8 +826,7 @@ public class PhoenixHBaseAccessor {
   /**
    * Insert precision YARN container data.
    */
-  public void insertContainerMetrics(List<ContainerMetric> metrics)
-      throws SQLException, IOException {
+  public void insertContainerMetrics(List<ContainerMetric> metrics) throws SQLException, IOException {
     Connection conn = getConnection();
     PreparedStatement metricRecordStmt = null;
 
@@ -844,7 +909,7 @@ public class PhoenixHBaseAccessor {
       // Write to metadata cache on successful write to store
       if (metadataManager != null) {
         metadataManager.putIfModifiedTimelineMetricMetadata(
-                metadataManager.getTimelineMetricMetadata(tm, acceptMetric));
+                metadataManager.createTimelineMetricMetadata(tm, acceptMetric));
 
         metadataManager.putIfModifiedHostedAppsMetadata(
                 tm.getHostName(), tm.getAppId());
@@ -901,10 +966,23 @@ public class PhoenixHBaseAccessor {
         getLatestMetricRecords(condition, conn, metrics);
       } else {
         if (condition.getEndTime() >= condition.getStartTime()) {
-          stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
-          rs = stmt.executeQuery();
-          while (rs.next()) {
-            appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
+
+          if (CollectionUtils.isNotEmpty(condition.getUuids())) {
+            stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+              appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
+            }
+          }
+
+          if (CollectionUtils.isNotEmpty(condition.getTransientMetricNames())) {
+            stmt = PhoenixTransactSQL.prepareTransientMetricsSqlStmt(conn, condition);
+            if (stmt != null) {
+              rs = stmt.executeQuery();
+              while (rs.next()) {
+                TransientMetricReadHelper.appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
+              }
+            }
           }
         } else {
           LOG.warn("Skipping metrics query because endTime < startTime");
@@ -1018,7 +1096,8 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  private void getTimelineMetricsFromResultSet(TimelineMetrics metrics, Function f, Condition condition, ResultSet rs) throws SQLException, IOException {
+  private void getTimelineMetricsFromResultSet(TimelineMetrics metrics, Function f, Condition condition, ResultSet rs)
+    throws SQLException, IOException {
     if (condition.getPrecision().equals(Precision.SECONDS)) {
       TimelineMetric metric = TIMELINE_METRIC_READ_HELPER.getTimelineMetricFromResultSet(rs);
       if (f != null && f.getSuffix() != null) { //Case : Requesting "._rate" for precision data
@@ -1076,7 +1155,7 @@ public class PhoenixHBaseAccessor {
    * @throws SQLException
    */
   public TimelineMetrics getAggregateMetricRecords(final Condition condition,
-      Multimap<String, List<Function>> metricFunctions) throws SQLException {
+      Multimap<String, List<Function>> metricFunctions) throws SQLException, IOException {
 
     validateConditionIsNotEmpty(condition);
 
@@ -1090,11 +1169,23 @@ public class PhoenixHBaseAccessor {
       if(condition.isPointInTime()) {
         getLatestAggregateMetricRecords(condition, conn, metrics, metricFunctions);
       } else {
-        stmt = PhoenixTransactSQL.prepareGetAggregateSqlStmt(conn, condition);
 
-        rs = stmt.executeQuery();
-        while (rs.next()) {
-          appendAggregateMetricFromResultSet(metrics, condition, metricFunctions, rs);
+        if (CollectionUtils.isNotEmpty(condition.getUuids())) {
+          stmt = PhoenixTransactSQL.prepareGetAggregateSqlStmt(conn, condition);
+          rs = stmt.executeQuery();
+          while (rs.next()) {
+            appendAggregateMetricFromResultSet(metrics, condition, metricFunctions, rs);
+          }
+        }
+
+        if (CollectionUtils.isNotEmpty(condition.getTransientMetricNames())) {
+          stmt = PhoenixTransactSQL.prepareTransientMetricsSqlStmt(conn, condition);
+          if (stmt != null) {
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+              TransientMetricReadHelper.appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
+            }
+          }
         }
       }
     } finally {
@@ -1256,22 +1347,6 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  private Collection<List<Function>> findMetricFunctions(Multimap<String, List<Function>> metricFunctions,
-                                                         String metricName) {
-    if (metricFunctions.containsKey(metricName)) {
-      return metricFunctions.get(metricName);
-    }
-
-    for (String metricNameEntry : metricFunctions.keySet()) {
-      String metricRegEx = getJavaRegexFromSqlRegex(metricNameEntry);
-      if (metricName.matches(metricRegEx)) {
-        return metricFunctions.get(metricNameEntry);
-      }
-    }
-
-    return null;
-  }
-
   public void saveHostAggregateRecords(Map<TimelineMetric, MetricHostAggregate> hostAggregateMap,
                                        String phoenixTableName) throws SQLException {
 
@@ -1296,9 +1371,9 @@ public class PhoenixHBaseAccessor {
         TimelineMetric metric = metricAggregate.getKey();
         MetricHostAggregate hostAggregate = metricAggregate.getValue();
 
-        byte[] uuid = metadataManagerInstance.getUuid(metric);
+        byte[] uuid = metadataManagerInstance.getUuid(metric, false);
         if (uuid == null) {
-          LOG.error("Error computing UUID for metric. Cannot write metric : " + metric.toString());
+          LOG.error("Error computing UUID for metric. Cannot write aggregate metric : " + metric.toString());
           continue;
         }
         rowCount++;
@@ -1392,7 +1467,7 @@ public class PhoenixHBaseAccessor {
         }
 
         rowCount++;
-        byte[] uuid =  metadataManagerInstance.getUuid(clusterMetric);
+        byte[] uuid =  metadataManagerInstance.getUuid(clusterMetric, false);
         if (uuid == null) {
           LOG.error("Error computing UUID for metric. Cannot write metrics : " + clusterMetric.toString());
           continue;
@@ -1480,7 +1555,7 @@ public class PhoenixHBaseAccessor {
             "aggregate = " + aggregate);
         }
 
-        byte[] uuid = metadataManagerInstance.getUuid(clusterMetric);
+        byte[] uuid = metadataManagerInstance.getUuid(clusterMetric, false);
         if (uuid == null) {
           LOG.error("Error computing UUID for metric. Cannot write metric : " + clusterMetric.toString());
           continue;

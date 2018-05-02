@@ -20,6 +20,7 @@ package org.apache.ambari.metrics.core.timeline.query;
 
 import junit.framework.Assert;
 import org.apache.commons.collections.CollectionUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.List;
 public class DefaultConditionTest {
 
   @Test
+  @Ignore ("")
   public void testMetricNameWhereCondition() {
     //EMPTY
     List<byte[]> uuids = new ArrayList<>();

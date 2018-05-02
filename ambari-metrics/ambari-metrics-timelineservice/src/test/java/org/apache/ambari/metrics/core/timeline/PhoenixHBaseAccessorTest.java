@@ -54,6 +54,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
@@ -102,13 +103,13 @@ public class PhoenixHBaseAccessorTest {
 
   @Test
   public void testGetMetricRecords() throws SQLException, IOException {
-    List<String> metricNames = new LinkedList<>();
-    List<String> hostnames = new LinkedList<>();
+    List<String> metricNames = Collections.singletonList("M1");
+    List<String> hostnames = Collections.singletonList("H1");
     Multimap<String, List<Function>> metricFunctions = ArrayListMultimap.create();
 
     mockStatic(PhoenixTransactSQL.class);
     PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
-    Condition condition = new DefaultCondition(metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
+    Condition condition = new DefaultCondition(Collections.singletonList(new byte[32]), metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
     expect(PhoenixTransactSQL.prepareGetMetricsSqlStmt(null, condition)).andReturn(preparedStatementMock).once();
     ResultSet rsMock = EasyMock.createNiceMock(ResultSet.class);
     expect(preparedStatementMock.executeQuery()).andReturn(rsMock);
@@ -131,13 +132,13 @@ public class PhoenixHBaseAccessorTest {
 
   @Test
   public void testGetMetricRecordsIOException() throws SQLException, IOException {
-    List<String> metricNames = new LinkedList<>();
-    List<String> hostnames = new LinkedList<>();
+    List<String> metricNames = Collections.singletonList("M1");
+    List<String> hostnames = Collections.singletonList("H1");
     Multimap<String, List<Function>> metricFunctions = ArrayListMultimap.create();
 
     mockStatic(PhoenixTransactSQL.class);
     PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
-    Condition condition = new DefaultCondition(metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
+    Condition condition = new DefaultCondition(Collections.singletonList(new byte[32]), metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
     expect(PhoenixTransactSQL.prepareGetMetricsSqlStmt(null, condition)).andReturn(preparedStatementMock).once();
     ResultSet rsMock = EasyMock.createNiceMock(ResultSet.class);
     RuntimeException runtimeException = EasyMock.createNiceMock(RuntimeException.class);
@@ -270,8 +271,8 @@ public class PhoenixHBaseAccessorTest {
     hostAggregateMap.put(timelineMetric, new MetricHostAggregate());
 
     TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createMock(TimelineMetricMetadataManager.class);
-    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class))).andReturn(new byte[16]).times(2);
-    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineMetric.class))).andReturn(new byte[20]).once();
+    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class), anyBoolean())).andReturn(new byte[16]).times(2);
+    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineMetric.class), anyBoolean())).andReturn(new byte[20]).once();
     replay(metricMetadataManagerMock);
 
     accessor.setMetadataInstance(metricMetadataManagerMock);

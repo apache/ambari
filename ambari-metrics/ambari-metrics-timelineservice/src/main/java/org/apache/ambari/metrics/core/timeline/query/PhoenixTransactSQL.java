@@ -24,12 +24,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
-import org.apache.ambari.metrics.core.timeline.discovery.TimelineMetricMetadataManager;
+
+import static org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor.RESULTSET_LIMIT;
 
 /**
  * Encapsulate all metrics related SQL queries.
@@ -42,7 +44,7 @@ public class PhoenixTransactSQL {
    * Create table to store individual metric records.
    */
   public static final String CREATE_METRICS_TABLE_SQL = "CREATE TABLE IF NOT " +
-    "EXISTS METRIC_RECORD (UUID BINARY(20) NOT NULL, " +
+    "EXISTS METRIC_RECORD (UUID BINARY(32) NOT NULL, " +
     "SERVER_TIME BIGINT NOT NULL, " +
     "METRIC_SUM DOUBLE, " +
     "METRIC_COUNT UNSIGNED_INT, " +
@@ -81,7 +83,7 @@ public class PhoenixTransactSQL {
 
   public static final String CREATE_METRICS_AGGREGATE_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
-      "(UUID BINARY(20) NOT NULL, " +
+      "(UUID BINARY(32) NOT NULL, " +
       "SERVER_TIME BIGINT NOT NULL, " +
       "METRIC_SUM DOUBLE," +
       "METRIC_COUNT UNSIGNED_INT, " +
@@ -113,6 +115,30 @@ public class PhoenixTransactSQL {
       "CONSTRAINT pk PRIMARY KEY (UUID, SERVER_TIME ROW_TIMESTAMP)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
       "TTL=%s, COMPRESSION='%s'";
 
+  /**
+   * Create table to store individual metric records.
+   */
+  public static final String METRIC_TRANSIENT_TABLE_NAME =
+    "METRIC_TRANSIENT";
+
+  public static final String CREATE_TRANSIENT_METRICS_TABLE_SQL = "CREATE TABLE IF NOT " +
+    "EXISTS " + METRIC_TRANSIENT_TABLE_NAME + " " +
+    "(METRIC_NAME VARCHAR, " +
+    "HOSTNAME VARCHAR, " +
+    "SERVER_TIME BIGINT NOT NULL, " +
+    "APP_ID VARCHAR, " +
+    "INSTANCE_ID VARCHAR, " +
+    "UNITS CHAR(20), " +
+    "METRIC_SUM DOUBLE, " +
+    "METRIC_COUNT UNSIGNED_INT, " +
+    "METRIC_MAX DOUBLE, " +
+    "METRIC_MIN DOUBLE, " +
+    "METRICS VARCHAR CONSTRAINT pk " +
+    "PRIMARY KEY (METRIC_NAME, HOSTNAME, SERVER_TIME ROW_TIMESTAMP, APP_ID, " +
+    "INSTANCE_ID)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
+    "TTL=%s, COMPRESSION='%s'";
+
+  //////// METATDATA TABLES ////////
   public static final String CREATE_METRICS_METADATA_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS METRICS_METADATA " +
       "(METRIC_NAME VARCHAR, " +
@@ -129,7 +155,7 @@ public class PhoenixTransactSQL {
 
   public static final String CREATE_HOSTED_APPS_METADATA_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS HOSTED_APPS_METADATA " +
-      "(HOSTNAME VARCHAR, UUID BINARY(4), APP_IDS VARCHAR, " +
+      "(HOSTNAME VARCHAR, UUID BINARY(16), APP_IDS VARCHAR, " +
       "CONSTRAINT pk PRIMARY KEY (HOSTNAME))" +
       "DATA_BLOCK_ENCODING='%s', COMPRESSION='%s'";
 
@@ -141,6 +167,8 @@ public class PhoenixTransactSQL {
 
   public static final String ALTER_METRICS_METADATA_TABLE =
     "ALTER TABLE METRICS_METADATA ADD IF NOT EXISTS IS_WHITELISTED BOOLEAN";
+
+  ////////////////////////////////
 
   /**
    * ALTER table to set new options
@@ -211,6 +239,19 @@ public class PhoenixTransactSQL {
     "METRIC_COUNT) " +
     "VALUES (?, ?, ?, ?, ?, ?)";
 
+  /**
+   * Insert into transient metric table.
+   */
+  public static final String UPSERT_TRANSIENT_METRICS_SQL = "UPSERT INTO %s " +
+    "(METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, SERVER_TIME, " +
+    "UNITS, " +
+    "METRIC_SUM, " +
+    "METRIC_MAX, " +
+    "METRIC_MIN, " +
+    "METRIC_COUNT, " +
+    "METRICS) VALUES " +
+    "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
   public static final String UPSERT_METADATA_SQL =
     "UPSERT INTO METRICS_METADATA (METRIC_NAME, APP_ID, INSTANCE_ID, UUID, UNITS, TYPE, " +
       "START_TIME, SUPPORTS_AGGREGATION, IS_WHITELISTED) " +
@@ -280,6 +321,43 @@ public class PhoenixTransactSQL {
     "METRIC_MAX, " +
     "METRIC_MIN " +
     "FROM %s";
+
+  /**
+   * Retrieve a set of rows from metrics records table.
+   */
+  public static final String GET_TRANSIENT_METRIC_SQL = "SELECT METRIC_NAME, " +
+    "HOSTNAME, APP_ID, INSTANCE_ID, SERVER_TIME, UNITS, " +
+    "METRIC_SUM, " +
+    "METRIC_MAX, " +
+    "METRIC_MIN, " +
+    "METRIC_COUNT, " +
+    "METRICS " +
+    "FROM %s";
+
+  /**
+   * Get latest transient metrics for a number of hosts
+   */
+  public static final String GET_LATEST_TRANSIENT_METRIC_SQL = "SELECT %s " +
+    "E.METRIC_NAME AS METRIC_NAME, E.HOSTNAME AS HOSTNAME, " +
+    "E.APP_ID AS APP_ID, E.INSTANCE_ID AS INSTANCE_ID, " +
+    "E.SERVER_TIME AS SERVER_TIME, E.START_TIME AS START_TIME, " +
+    "E.UNITS AS UNITS, E.METRIC_SUM AS METRIC_SUM, " +
+    "E.METRIC_MAX AS METRIC_MAX, E.METRIC_MIN AS METRIC_MIN, " +
+    "E.METRIC_COUNT AS METRIC_COUNT, E.METRICS AS METRICS " +
+    "FROM %s AS E " +
+    "INNER JOIN " +
+    "(SELECT METRIC_NAME, HOSTNAME, MAX(SERVER_TIME) AS MAX_SERVER_TIME, " +
+    "APP_ID, INSTANCE_ID " +
+    "FROM %s " +
+    "WHERE " +
+    "%s " +
+    "GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID) " +
+    "AS I " +
+    "ON E.METRIC_NAME=I.METRIC_NAME " +
+    "AND E.HOSTNAME=I.HOSTNAME " +
+    "AND E.SERVER_TIME=I.MAX_SERVER_TIME " +
+    "AND E.APP_ID=I.APP_ID " +
+    "AND E.INSTANCE_ID=I.INSTANCE_ID";
 
   public static final String TOP_N_INNER_SQL = "SELECT UUID " +
     "FROM %s WHERE %s GROUP BY UUID ORDER BY %s LIMIT %s";
@@ -384,16 +462,6 @@ public class PhoenixTransactSQL {
   private static boolean sortMergeJoinEnabled = false;
 
   /**
-   * Filter to optimize HBase scan by using file timestamps. This prevents
-   * a full table scan of metric records.
-   *
-   * @return Phoenix Hint String
-   */
-  public static String getNaiveTimeRangeHint(Long startTime, Long delta) {
-    return String.format("/*+ NATIVE_TIME_RANGE(%s) */", (startTime - delta));
-  }
-
-  /**
    * Falling back to sort merge join algorithm if default queries fail.
    *
    * @return Phoenix Hint String
@@ -422,10 +490,7 @@ public class PhoenixTransactSQL {
       String metricsTable;
       String query;
       if (condition.getPrecision() == null) {
-        long endTime = condition.getEndTime() == null ? System.currentTimeMillis() : condition.getEndTime();
-        long startTime = condition.getStartTime() == null ? 0 : condition.getStartTime();
-        Precision precision = Precision.getPrecision(startTime, endTime);
-        condition.setPrecision(precision);
+        condition.setPrecision(getBestPrecisionForCondition(condition));
       }
       switch (condition.getPrecision()) {
         case DAYS:
@@ -508,16 +573,35 @@ public class PhoenixTransactSQL {
       //aggregator can use empty metrics query
       return;
     }
-
     long range = condition.getEndTime() - condition.getStartTime();
-    long rowsPerMetric;
-
-    //Get Precision (passed in or computed) and estimate values returned based on that.
+    List<String> hostNames = condition.getHostnames();
+    int numHosts = (hostNames == null || hostNames.isEmpty()) ? 1 : condition.getHostnames().size();
     Precision precision = condition.getPrecision();
-    if (precision == null) {
-      precision = Precision.getPrecision(condition.getStartTime(), condition.getEndTime());
-    }
 
+    //Validate only if precision is passed in.
+    if (precision != null) {
+      long rowsPerMetric = getRowCountForPrecision(precision, range, CollectionUtils.isNotEmpty(hostNames));
+      long totalRowsRequested = rowsPerMetric * condition.getMetricNames().size() * numHosts;
+      if (totalRowsRequested > RESULTSET_LIMIT) {
+        throw new PrecisionLimitExceededException("Requested " + condition.getMetricNames().size() + " metrics for "
+          + numHosts + " hosts in " + precision + " precision for the time range of " + range / 1000
+          + " seconds. Estimated resultset size of " + totalRowsRequested + " is greater than the limit of "
+          + RESULTSET_LIMIT + ". Request lower precision or fewer number of metrics or hosts." +
+          " Alternatively, increase the limit value through ams-site:timeline.metrics.service.default.result.limit config");
+      }
+    }
+  }
+
+  /**
+   * Given a precision and condition, calculate the max number of rows that may be returned from phoenix using actual
+   * aggregator intervals for determining data granularity in tables.
+   * @param precision
+   * @param range
+   * @param withHosts
+   * @return
+   */
+  private static long getRowCountForPrecision(Precision precision, long range, boolean withHosts) {
+    long rowsPerMetric;
     switch (precision) {
       case DAYS:
         rowsPerMetric = TimeUnit.MILLISECONDS.toDays(range);
@@ -526,63 +610,51 @@ public class PhoenixTransactSQL {
         rowsPerMetric = TimeUnit.MILLISECONDS.toHours(range);
         break;
       case MINUTES:
-        rowsPerMetric = TimeUnit.MILLISECONDS.toMinutes(range)/5; //5 minute data in METRIC_AGGREGATE_MINUTE table.
+        int minuteInterval = PhoenixHBaseAccessor.hostMinuteAggregatorDataInterval;
+        if (!withHosts) {
+          minuteInterval = PhoenixHBaseAccessor.clusterMinuteAggregatorDataInterval;
+        }
+        rowsPerMetric = TimeUnit.MILLISECONDS.toMinutes(range) / TimeUnit.SECONDS.toMinutes(minuteInterval);
         break;
       default:
-        rowsPerMetric = TimeUnit.MILLISECONDS.toSeconds(range)/10; //10 second data in METRIC_AGGREGATE table
+        int secondAggregatorInterval = PhoenixHBaseAccessor.clusterSecondAggregatorDataInterval;
+        if (withHosts) {
+          secondAggregatorInterval = 60;
+        }
+        rowsPerMetric = TimeUnit.MILLISECONDS.toSeconds(range) / secondAggregatorInterval;
     }
+    return rowsPerMetric;
+  }
 
+  /**
+   * Given a condition, find the highest precision that satisfies the limit condition.
+   * @param condition
+   * @return
+   */
+  private static Precision getBestPrecisionForCondition(Condition condition) {
+
+    List<String> metricNames = condition.getMetricNames();
     List<String> hostNames = condition.getHostnames();
+    long range = condition.getEndTime() - condition.getStartTime();
     int numHosts = (hostNames == null || hostNames.isEmpty()) ? 1 : condition.getHostnames().size();
 
-    long totalRowsRequested = rowsPerMetric * condition.getMetricNames().size() * numHosts;
-
-    if (totalRowsRequested > PhoenixHBaseAccessor.RESULTSET_LIMIT) {
-      throw new PrecisionLimitExceededException("Requested " +  condition.getMetricNames().size() + " metrics for "
-        + numHosts + " hosts in " + precision +  " precision for the time range of " + range/1000
-        + " seconds. Estimated resultset size of " + totalRowsRequested + " is greater than the limit of "
-        + PhoenixHBaseAccessor.RESULTSET_LIMIT + ". Request lower precision or fewer number of metrics or hosts." +
-        " Alternatively, increase the limit value through ams-site:timeline.metrics.service.default.result.limit config");
+    Precision[] precisions = {Precision.SECONDS, Precision.MINUTES, Precision.HOURS, Precision.DAYS};
+    int i = 0;
+    for (; i < precisions.length; i++) {
+      long rowsPerMetric = getRowCountForPrecision(precisions[i], range, CollectionUtils.isNotEmpty(hostNames));
+      if ((rowsPerMetric * metricNames.size() * numHosts) <= PhoenixHBaseAccessor.RESULTSET_LIMIT) {
+        break;
+      }
     }
+    if (i >= precisions.length) {
+      return Precision.DAYS;
+    }
+    return precisions[i];
   }
 
   public static PreparedStatement prepareGetLatestMetricSqlStmt(
     Connection connection, Condition condition) throws SQLException {
-
-    validateConditionIsNotEmpty(condition);
-
-    if (condition.getMetricNames() == null
-      || condition.getMetricNames().isEmpty()) {
-      throw new IllegalArgumentException("Point in time query without "
-        + "metric names not supported ");
-    }
-
-    String stmtStr;
-    if (condition.getStatement() != null) {
-      stmtStr = condition.getStatement();
-    } else {
-      stmtStr = String.format(GET_LATEST_METRIC_SQL,
-        getLatestMetricsHints(),
-        METRICS_RECORD_TABLE_NAME,
-        METRICS_RECORD_TABLE_NAME,
-        condition.getConditionClause());
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("SQL: " + stmtStr + ", condition: " + condition);
-    }
-    PreparedStatement stmt = null;
-    try {
-      stmt = connection.prepareStatement(stmtStr);
-      setQueryParameters(stmt, condition);
-    } catch (SQLException e) {
-      if (stmt != null) {
-        stmt.close();
-      }
-      throw e;
-    }
-
-    return stmt;
+    return prepareGetLatestMetricSqlStmtHelper(connection, condition, GET_LATEST_METRIC_SQL, METRICS_RECORD_TABLE_NAME);
   }
 
   private static PreparedStatement setQueryParameters(PreparedStatement stmt,
@@ -613,9 +685,7 @@ public class PhoenixTransactSQL {
     String metricsAggregateTable;
     String queryStmt;
     if (condition.getPrecision() == null) {
-      long endTime = condition.getEndTime() == null ? System.currentTimeMillis() : condition.getEndTime();
-      long startTime = condition.getStartTime() == null ? 0 : condition.getStartTime();
-      condition.setPrecision(Precision.getPrecision(startTime, endTime));
+      condition.setPrecision(getBestPrecisionForCondition(condition));
     }
     switch (condition.getPrecision()) {
       case DAYS:
@@ -724,6 +794,126 @@ public class PhoenixTransactSQL {
     return stmt;
   }
 
+  /**
+   *
+   * @param connection
+   * @param c
+   * @return
+   * @throws SQLException
+   */
+  public static PreparedStatement prepareTransientMetricsSqlStmt(Connection connection, Condition c)
+    throws SQLException {
+    validateConditionIsNotEmpty(c);
+    validateRowCountLimit(c);
+
+    if (!(c instanceof TransientMetricCondition)) {
+      LOG.error("Condition not instanceOf TransientMetricCondition");
+      return null;
+    }
+
+    TransientMetricCondition condition = (TransientMetricCondition) c;
+
+    String stmtStr;
+    if (condition.getStatement() != null) {
+      stmtStr = condition.getStatement();
+    } else {
+      stmtStr = String.format(GET_TRANSIENT_METRIC_SQL, METRIC_TRANSIENT_TABLE_NAME);
+    }
+
+    StringBuilder sb = new StringBuilder(stmtStr);
+
+    sb.append(" WHERE ");
+    sb.append(condition.getTransientConditionClause());
+    String orderByClause = condition.getOrderByClause(true);
+    if (orderByClause != null) {
+      sb.append(orderByClause);
+    } else {
+      sb.append(" ORDER BY METRIC_NAME, SERVER_TIME ");
+    }
+
+    if (condition.getLimit() != null) {
+      sb.append(" LIMIT ").append(condition.getLimit());
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
+    }
+
+    PreparedStatement stmt = null;
+    try {
+      stmt = connection.prepareStatement(sb.toString());
+      int pos = 1;
+      pos = addMetricNames(condition, pos, stmt);
+      pos = addHostNames(condition, pos, stmt);
+      pos = addAppId(condition, pos, stmt);
+      pos = addInstanceId(condition, pos, stmt);
+      pos = addStartTime(condition, pos, stmt);
+      addEndTime(condition, pos, stmt);
+
+      if (condition.getFetchSize() != null) {
+        stmt.setFetchSize(condition.getFetchSize());
+      }
+    } catch (SQLException e) {
+      if (stmt != null) {
+        stmt.close();
+      }
+      throw e;
+    }
+
+    return stmt;
+
+  }
+
+  /**
+   *
+   * @param connection
+   * @param condition
+   * @param sqlStmt
+   * @param tableName
+   * @return
+   * @throws SQLException
+   */
+  private static PreparedStatement prepareGetLatestMetricSqlStmtHelper(Connection connection,
+                                                                       Condition condition,
+                                                                       String sqlStmt,
+                                                                       String tableName) throws SQLException {
+    validateConditionIsNotEmpty(condition);
+
+    if (condition.getMetricNames() == null
+      || condition.getMetricNames().isEmpty()) {
+      throw new IllegalArgumentException("Point in time query without "
+        + "metric names not supported ");
+    }
+
+    String stmtStr;
+    if (condition.getStatement() != null) {
+      stmtStr = condition.getStatement();
+    } else {
+      stmtStr = String.format(sqlStmt,
+        getLatestMetricsHints(),
+        tableName,
+        tableName,
+        condition.getConditionClause());
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("SQL: " + stmtStr + ", condition: " + condition);
+    }
+    PreparedStatement stmt = null;
+    try {
+      stmt = connection.prepareStatement(stmtStr);
+      setQueryParameters(stmt, condition);
+    } catch (SQLException e) {
+      if (stmt != null) {
+        stmt.close();
+      }
+      throw e;
+    }
+
+    return stmt;
+
+  }
+
   public static String getTargetTableUsingPrecision(Precision precision, boolean withHosts) {
 
     String inputTable = null;
@@ -770,17 +960,58 @@ public class PhoenixTransactSQL {
   private static int addUuids(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
     if (condition.getUuids() != null) {
       for (int pos2 = 1 ; pos2 <= condition.getUuids().size(); pos2++,pos++) {
-        byte[] uuid = condition.getUuids().get(pos2 - 1);
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value = " + new String(uuid));
+          LOG.debug("Setting pos: " + pos + ", value = " + condition.getUuids().get(pos2 - 1));
         }
-
-        if (uuid.length != TimelineMetricMetadataManager.HOSTNAME_UUID_LENGTH + TimelineMetricMetadataManager.TIMELINE_METRIC_UUID_LENGTH) {
-          stmt.setString(pos, new String(uuid));
-        } else {
-          stmt.setBytes(pos, uuid);
-        }
+        stmt.setBytes(pos, condition.getUuids().get(pos2 - 1));
       }
+    }
+    return pos;
+  }
+
+  private static int addMetricNames(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+    if (condition.getMetricNames() != null) {
+      for (int pos2 = 1 ; pos2 <= condition.getMetricNames().size(); pos2++,pos++) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos2 - 1));
+        }
+        stmt.setString(pos, condition.getMetricNames().get(pos2 - 1));
+      }
+    }
+    return pos;
+  }
+
+  private static int addHostNames(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+    int i = pos;
+    if (condition.getHostnames() != null) {
+      for (String hostname : condition.getHostnames()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value: " + hostname);
+        }
+        stmt.setString(i++, hostname);
+      }
+    }
+    return i;
+  }
+
+  private static int addAppId(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+
+    if (condition.getAppId() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
+      }
+      stmt.setString(pos++, condition.getAppId());
+    }
+    return pos;
+  }
+
+  private static int addInstanceId(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+
+    if (condition.getInstanceId() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
+      }
+      stmt.setString(pos++, condition.getInstanceId());
     }
     return pos;
   }

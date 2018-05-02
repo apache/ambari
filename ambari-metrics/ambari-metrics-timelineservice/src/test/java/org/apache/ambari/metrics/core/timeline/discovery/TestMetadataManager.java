@@ -18,11 +18,13 @@
 package org.apache.ambari.metrics.core.timeline.discovery;
 
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import junit.framework.Assert;
 import org.apache.ambari.metrics.core.timeline.AbstractMiniHBaseClusterTest;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
@@ -31,6 +33,7 @@ import org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration;
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
 import org.easymock.EasyMock;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -79,8 +82,23 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     }});
     timelineMetrics.getMetrics().add(metric2);
 
+    TimelineMetric metric3 = new TimelineMetric();
+    metric3.setMetricName("topology.t1.countMetric");
+    metric3.setHostName("storm-host");
+    metric3.setStartTime(now - 1000);
+    metric3.setAppId("nimbus");
+    metric3.setType("Integer");
+    metric3.setInstanceId(null);
+    metric3.setMetricValues(new TreeMap<Long, Double>() {{
+      put(now - 100, 110.0);
+      put(now - 200, 111.0);
+      put(now - 300, 113.0);
+    }});
+    timelineMetrics.getMetrics().add(metric3);
+
     Configuration metricsConf = createNiceMock(Configuration.class);
     expect(metricsConf.get("timeline.metrics.service.operation.mode")).andReturn("distributed").anyTimes();
+    expect(metricsConf.get(eq("timeline.metrics.transient.metric.patterns"), eq(StringUtils.EMPTY))).andReturn("topology%").once();
     replay(metricsConf);
 
     // Initialize new manager
@@ -95,7 +113,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> cachedData = metadataManager.getMetadataCache();
 
     Assert.assertNotNull(cachedData);
-    Assert.assertEquals(2, cachedData.size());
+    Assert.assertEquals(3, cachedData.size());
     TimelineMetricMetadataKey key1 = new TimelineMetricMetadataKey("dummy_metric1", "dummy_app1", null);
     TimelineMetricMetadataKey key2 = new TimelineMetricMetadataKey("dummy_metric2", "dummy_app2", "instance2");
     TimelineMetricMetadata value1 = new TimelineMetricMetadata("dummy_metric1",
@@ -113,7 +131,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
       hdb.getTimelineMetricMetadata();
 
     Assert.assertNotNull(savedData);
-    Assert.assertEquals(2, savedData.size());
+    Assert.assertEquals(3, savedData.size());
     Assert.assertEquals(value1, savedData.get(key1));
     Assert.assertEquals(value2, savedData.get(key2));
 
@@ -140,11 +158,11 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     timelineMetric.setHostName("avijayan-ams-2.openstacklocal");
     timelineMetric.setInstanceId("test1");
 
-    byte[] uuid = metadataManager.getUuid(timelineMetric);
+    byte[] uuid = metadataManager.getUuid(timelineMetric, true);
     Assert.assertNotNull(uuid);
-    Assert.assertEquals(uuid.length, 20);
+    Assert.assertEquals(uuid.length, 32);
 
-    byte[] uuidWithoutHost = metadataManager.getUuid(new TimelineClusterMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(), timelineMetric.getInstanceId(), -1));
+    byte[] uuidWithoutHost = metadataManager.getUuid(new TimelineClusterMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(), timelineMetric.getInstanceId(), -1), true);
     Assert.assertNotNull(uuidWithoutHost);
     Assert.assertEquals(uuidWithoutHost.length, 16);
 
@@ -216,24 +234,47 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
 
     hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics, true);
 
-    List<byte[]> uuids = metadataManager.getUuids(Collections.singletonList("dummy_m%"),
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("dummy_m%"),
       Collections.singletonList("dummy_host2"), "dummy_app1", null);
-    Assert.assertTrue(uuids.size() == 2);
+    Assert.assertTrue(uuids.size() == 1);
 
-    uuids = metadataManager.getUuids(Collections.singletonList("dummy_m%"),
+    uuids = metadataManager.getUuidsForGetMetricQuery(Collections.singletonList("dummy_m%"),
       Collections.singletonList("dummy_host%"), "dummy_app2", null);
-    Assert.assertTrue(uuids.size() == 4);
+    Assert.assertTrue(uuids.size() == 2);
 
     Collection<String> metrics = Arrays.asList("dummy_m%", "dummy_3", "dummy_m2");
     List<String> hosts = Arrays.asList("dummy_host%", "dummy_3h");
-    uuids = metadataManager.getUuids(metrics, hosts, "dummy_app2", null);
-    Assert.assertTrue(uuids.size() == 9);
+    uuids = metadataManager.getUuidsForGetMetricQuery(metrics, hosts, "dummy_app2", null);
+    Assert.assertTrue(uuids.size() == 3);
 
     metrics = Arrays.asList("abc%");
     hosts = Arrays.asList("dummy_host");
-    uuids = metadataManager.getUuids(metrics, hosts, "dummy_app2", null);
+    uuids = metadataManager.getUuidsForGetMetricQuery(metrics, hosts, "dummy_app2", null);
     Assert.assertTrue(uuids.isEmpty());
   }
 
+  @Test
+  public void testTransientMetricPatterns() {
 
+    long now = System.currentTimeMillis();
+    TimelineMetric timelineMetric = new TimelineMetric();
+    timelineMetric.setMetricName("topology.t1.countMetric");
+    timelineMetric.setHostName("storm-host");
+    timelineMetric.setAppId("nimbus");
+    timelineMetric.setMetricValues(new TreeMap<Long, Double>() {{
+      put(now - 100, 1.0);
+      put(now - 200, 2.0);
+      put(now - 300, 3.0);
+    }});
+
+    Assert.assertTrue(metadataManager.isTransientMetric(timelineMetric.getMetricName(), timelineMetric.getAppId()));
+
+    Assert.assertNull(metadataManager.getMetadataCacheValue(
+      new TimelineMetricMetadataKey("topology.t1.countMetric", "nimbus", null)).getUuid());
+    Assert.assertNotNull(metadataManager.getMetadataCacheValue(
+      new TimelineMetricMetadataKey("dummy_metric1", "dummy_app1", null)).getUuid());
+    Assert.assertNotNull(metadataManager.getMetadataCacheValue(
+      new TimelineMetricMetadataKey("dummy_metric2", "dummy_app2", "instance2")).getUuid());
+
+  }
 }

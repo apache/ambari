@@ -47,6 +47,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.ambari.metrics.core.timeline.TimelineMetricServiceSummary;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
@@ -281,6 +282,21 @@ public class TimelineWebServices {
   }
 
   @GET
+  @Path("/metrics/summary")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public TimelineMetricServiceSummary getTimelineMetricServiceSummary(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res) {
+    init(res);
+
+    try {
+      return timelineMetricStore.getTimelineMetricServiceSummary();
+    } catch (Exception e) {
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GET
   @Path("/metrics/metadata")
   @Produces({ MediaType.APPLICATION_JSON })
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(
@@ -349,6 +365,10 @@ public class TimelineWebServices {
     ) {
     init(res);
 
+    if (metricName == null || appId == null) {
+      throw new WebApplicationException(new IllegalArgumentException("Non null values needed for metricName and appId")
+        , Response.Status.BAD_REQUEST);
+    }
     try {
       return timelineMetricStore.getUuid(metricName, appId, instanceId, hostname);
     } catch (Exception e) {

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.metrics.core.timeline;
 
+import org.apache.ambari.metrics.core.timeline.query.TransientMetricCondition;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.ambari.metrics.core.timeline.query.Condition;
@@ -159,11 +160,19 @@ public class TestPhoenixTransactSQL {
 
   @Test
   public void testPrepareGetAggregateNoPrecision() throws SQLException {
-    Long endTime = 1407959918L;
-    Long startTime = 1407959718L;
+
+    long second = 1000;
+    long minute = 60 * second;
+    long hour = 60 * minute;
+    long day = 24 * hour;
+
+    Long endTime = 1407959918000L;
+    Long startTime = endTime - 200 * second;
+
     //SECONDS precision
+    // 2 Metrics, Time = 200 seconds
     Condition condition = new DefaultCondition(
-      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.emptyList(),
       "a1", "i1", startTime, endTime, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -179,9 +188,9 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // MINUTES precision
-    startTime = endTime-PhoenixTransactSQL.DAY/1000;
+    startTime = endTime - day;
     condition = new DefaultCondition(
-      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free", "mem_used")), Collections.emptyList(),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -197,9 +206,9 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // HOURS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*30/1000;
+    startTime = endTime - 30 * day;
     condition = new DefaultCondition(
-      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.emptyList(),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -215,9 +224,9 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // DAYS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*30*2/1000;
+    startTime = endTime - 60 * day;
     condition = new DefaultCondition(
-      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "cpu_system", "mem_free", "mem_used", "test_metric")), Collections.emptyList(),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -271,9 +280,15 @@ public class TestPhoenixTransactSQL {
 
   @Test
   public void testPrepareGetMetricsNoPrecision() throws SQLException {
-    Long endTime = 1407959918L;
-    Long startTime = endTime - 200;
+
+    long second = 1000;
+    long minute = 60 * second;
+    long hour = 60 * minute;
+
+    Long endTime = 1407959918000L;
+    Long startTime = endTime - 200 * second;
     // SECONDS precision
+    // 2 Metrics, 1 Host, Time = 200 seconds
     Condition condition = new DefaultCondition(
       new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
@@ -292,7 +307,8 @@ public class TestPhoenixTransactSQL {
     reset(connection, preparedStatement);
 
     // SECONDS precision
-    startTime = endTime-PhoenixTransactSQL.HOUR*2/1000;
+    // 2 Metrics, 1 Host, Time = 2hrs
+    startTime = endTime - 2 * hour;
     condition = new DefaultCondition(
       new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
@@ -309,9 +325,10 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // MINUTES precision
-    startTime = endTime-PhoenixTransactSQL.DAY/1000;
+    // 3 Metrics, 2 Host, Time = 1 Day
+    startTime = endTime - 24 * hour;
     condition = new DefaultCondition(
-      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free", "mem_used")), Arrays.asList("h1", "h2"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -326,7 +343,7 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // HOURS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*30/1000;
+    startTime = endTime - 30 * 24 * hour;
     condition = new DefaultCondition(
       new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
@@ -343,9 +360,9 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // DAYS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*30*2/1000;
+    startTime = endTime - 60 * 24 * hour;
     condition = new DefaultCondition(
-      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free", "mem_used")), Arrays.asList("h1", "h2"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -482,7 +499,7 @@ public class TestPhoenixTransactSQL {
     metrics.clear();
     hosts.clear();
     numMetrics = 2;
-    numHosts = 20;
+    numHosts = 10;
     for (int i = 0; i < numMetrics; i++) {
       metrics.add("TestMetric"+i);
     }
@@ -537,9 +554,10 @@ public class TestPhoenixTransactSQL {
     for (int i = 0; i < numHosts; i++) {
       hosts.add("TestHost"+i);
     }
+    long endtime = 1407953600L;
     condition = new DefaultCondition(
       metrics, hosts,
-      "a1", "i1", 1407950000L, 1407953600L, null, null, false);
+      "a1", "i1", endtime - 5 * 60 * 60, endtime, Precision.SECONDS, null, false);
     boolean exceptionThrown = false;
     boolean requestedSizeFoundInMessage = false;
 
@@ -567,9 +585,9 @@ public class TestPhoenixTransactSQL {
     String conditionClause = condition.getConditionClause().toString();
     String expectedClause = " UUID IN (" +
       "SELECT UUID FROM METRIC_RECORD WHERE " +
-          "(UUID LIKE ? OR UUID LIKE ?) AND " +
-          "SERVER_TIME >= ? AND SERVER_TIME < ? " +
-          "GROUP BY UUID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+      "(UUID IN (?, ?)) AND " +
+      "SERVER_TIME >= ? AND SERVER_TIME < ? " +
+      "GROUP BY UUID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
     Assert.assertEquals(expectedClause, conditionClause);
   }
@@ -585,7 +603,7 @@ public class TestPhoenixTransactSQL {
     String conditionClause = condition.getConditionClause().toString();
     String expectedClause = " UUID IN (" +
       "SELECT UUID FROM METRIC_RECORD WHERE " +
-      "(UUID LIKE ? OR UUID LIKE ? OR UUID LIKE ?) AND " +
+      "(UUID IN (?, ?, ?)) AND " +
       "SERVER_TIME >= ? AND SERVER_TIME < ? " +
       "GROUP BY UUID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
@@ -605,4 +623,23 @@ public class TestPhoenixTransactSQL {
     Assert.assertEquals(condition.getConditionClause(), null);
   }
 
+  @Test
+  public void testTransientMetricConditionClause() throws Exception {
+    TransientMetricCondition condition = new TransientMetricCondition(Arrays.asList(new byte[8], new byte[8]),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free", "topology.t1.metric")), Collections.singletonList("h1"),
+      "a1", "i1", 1407959718L, 1407959918L, null, null, false, Collections.singletonList("topology.t1.metric"));
+
+    String preparedClause = condition.getConditionClause().toString();
+    String expectedClause = "(UUID IN (?, ?)) AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+
+    Assert.assertNotNull(preparedClause);
+    Assert.assertEquals(expectedClause, preparedClause);
+
+    String transientConditionClause = condition.getTransientConditionClause().toString();
+    expectedClause = "(METRIC_NAME IN (?, ?, ?)) AND HOSTNAME IN (?) AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+
+    Assert.assertNotNull(transientConditionClause);
+    Assert.assertEquals(expectedClause, transientConditionClause);
+
+  }
 }

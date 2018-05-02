@@ -944,6 +944,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     createRoleAuthorizations();
     addUserAuthenticationSequence();
     updateSolrConfigurations();
+    updateAmsConfigs();
   }
 
   protected void renameAmbariInfra() throws SQLException {
@@ -1556,4 +1557,20 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
             .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
             .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
   }
+
+  protected void updateAmsConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          updateConfigurationPropertiesForCluster(cluster, "ams-site", Collections.singletonMap("timeline.metrics.service.default.result.limit", "5760"), true, true);
+        }
+      }
+    }
+  }
+
 }

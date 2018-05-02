@@ -114,6 +114,9 @@ public class TimelineMetricConfiguration {
   public static final String CLUSTER_DAILY_TABLE_TTL =
     "timeline.metrics.cluster.aggregator.daily.ttl";
 
+  public static final String METRICS_TRANSIENT_TABLE_TTL =
+    "timeline.metrics.transient.table.ttl";
+
   public static final String CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL =
     "timeline.metrics.cluster.aggregator.second.timeslice.interval";
 
@@ -246,9 +249,6 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_SERVICE_HTTP_POLICY =
     "timeline.metrics.service.http.policy";
 
-  public static final String DISABLE_METRIC_METADATA_MGMT =
-    "timeline.metrics.service.metadata.management.disabled";
-
   public static final String METRICS_METADATA_SYNC_INIT_DELAY =
     "timeline.metrics.service.metadata.sync.init.delay";
 
@@ -343,6 +343,8 @@ public class TimelineMetricConfiguration {
 
   public static final String DEFAULT_EXTERNAL_SINK_DIR =
     "timeline.metrics.external.sink.dir";
+
+  public static final String TRANSIENT_METRIC_PATTERNS = "timeline.metrics.transient.metric.patterns";
 
   public static final String KAFKA_SERVERS = "timeline.metrics.external.sink.kafka.bootstrap.servers";
   public static final String KAFKA_ACKS = "timeline.metrics.external.sink.kafka.acks";
@@ -712,4 +714,12 @@ public class TimelineMetricConfiguration {
     }
     return false;
   }
+
+  public String getTransientMetricPatterns() {
+    if (metricsConf != null) {
+      return metricsConf.get(TRANSIENT_METRIC_PATTERNS, StringUtils.EMPTY);
+    }
+    return StringUtils.EMPTY;
+  }
+
 }

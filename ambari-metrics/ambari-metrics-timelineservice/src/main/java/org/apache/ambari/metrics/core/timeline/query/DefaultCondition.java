@@ -18,6 +18,7 @@
 package org.apache.ambari.metrics.core.timeline.query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -233,133 +234,28 @@ public class DefaultCondition implements Condition {
     boolean appendConjunction = false;
 
     if (CollectionUtils.isNotEmpty(uuids)) {
+      // Put a '(' first
+      sb.append("(");
 
-      List<byte[]> uuidsHost = new ArrayList<>();
-      List<byte[]> uuidsMetric = new ArrayList<>();
-      List<byte[]> uuidsFull = new ArrayList<>();
-
-      if (getUuids() != null) {
-        for (byte[] uuid : uuids) {
-          if (uuid.length == TimelineMetricMetadataManager.TIMELINE_METRIC_UUID_LENGTH) {
-            uuidsMetric.add(uuid);
-          } else if (uuid.length == TimelineMetricMetadataManager.HOSTNAME_UUID_LENGTH) {
-            uuidsHost.add(uuid);
-          } else {
-            uuidsFull.add(uuid);
+      //IN clause
+      // UUID (NOT) IN (?,?,?,?)
+      if (CollectionUtils.isNotEmpty(uuids)) {
+        sb.append("UUID");
+        if (metricNamesNotCondition) {
+          sb.append(" NOT");
+        }
+        sb.append(" IN (");
+        //Append ?,?,?,?
+        for (int i = 0; i < uuids.size(); i++) {
+          sb.append("?");
+          if (i < uuids.size() - 1) {
+            sb.append(", ");
           }
         }
-
-        // Put a '(' first
-        sb.append("(");
-
-        //IN clause
-        // METRIC_NAME (NOT) IN (?,?,?,?)
-        if (CollectionUtils.isNotEmpty(uuidsFull)) {
-          sb.append("UUID");
-          if (uuidNotCondition) {
-            sb.append(" NOT");
-          }
-          sb.append(" IN (");
-          //Append ?,?,?,?
-          for (int i = 0; i < uuidsFull.size(); i++) {
-            sb.append("?");
-            if (i < uuidsFull.size() - 1) {
-              sb.append(", ");
-            }
-          }
-          sb.append(")");
-          appendConjunction = true;
-        }
-
-        //Put an AND if both types are present
-        if (CollectionUtils.isNotEmpty(uuidsFull) &&
-          CollectionUtils.isNotEmpty(uuidsMetric)) {
-          sb.append(" AND ");
-        }
-
-        // ( for OR
-        if (!metricNamesNotCondition && uuidsMetric.size() > 1 && (CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsHost))) {
-          sb.append("(");
-        }
-
-        //LIKE clause for clusterMetric UUIDs
-        // UUID (NOT) LIKE ? OR(AND) UUID LIKE ?
-        if (CollectionUtils.isNotEmpty(uuidsMetric)) {
-
-          for (int i = 0; i < uuidsMetric.size(); i++) {
-            sb.append("UUID");
-            if (metricNamesNotCondition) {
-              sb.append(" NOT");
-            }
-            sb.append(" LIKE ");
-            sb.append("?");
-
-            if (i < uuidsMetric.size() - 1) {
-              if (metricNamesNotCondition) {
-                sb.append(" AND ");
-              } else {
-                sb.append(" OR ");
-              }
-            // ) for OR
-            } else if ((CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsHost)) && !metricNamesNotCondition && uuidsMetric.size() > 1) {
-              sb.append(")");
-            }
-          }
-          appendConjunction = true;
-        }
-
-        //Put an AND if both types are present
-        if ((CollectionUtils.isNotEmpty(uuidsMetric) || (CollectionUtils.isNotEmpty(uuidsFull) && CollectionUtils.isEmpty(uuidsMetric)))
-          && CollectionUtils.isNotEmpty(uuidsHost)) {
-          sb.append(" AND ");
-        }
-        // ( for OR
-        if((CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsMetric)) && !hostNamesNotCondition && uuidsHost.size() > 1){
-          sb.append("(");
-        }
-
-        //LIKE clause for HOST UUIDs
-        // UUID (NOT) LIKE ? OR(AND) UUID LIKE ?
-        if (CollectionUtils.isNotEmpty(uuidsHost)) {
-
-          for (int i = 0; i < uuidsHost.size(); i++) {
-            sb.append("UUID");
-            if (hostNamesNotCondition) {
-              sb.append(" NOT");
-            }
-            sb.append(" LIKE ");
-            sb.append("?");
-
-            if (i < uuidsHost.size() - 1) {
-              if (hostNamesNotCondition) {
-                sb.append(" AND ");
-              } else {
-                sb.append(" OR ");
-              }
-            // ) for OR
-            } else if ((CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsMetric)) && !hostNamesNotCondition && uuidsHost.size() > 1) {
-              sb.append(")");
-            }
-          }
-          appendConjunction = true;
-        }
-
-        // Finish with a ')'
-        if (appendConjunction) {
-          sb.append(")");
-        }
-
-        uuids = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(uuidsFull)) {
-          uuids.addAll(uuidsFull);
-        }
-        for (byte[] uuid: uuidsMetric) {
-          uuids.add(new String(uuid).concat("%").getBytes());
-        }
-        for (byte[] uuid: uuidsHost) {
-          uuids.add("%".concat(new String(uuid)).getBytes());
-        }
+        sb.append(")");
       }
+      appendConjunction = true;
+      sb.append(")");
     }
 
     return appendConjunction;
@@ -417,5 +313,10 @@ public class DefaultCondition implements Condition {
   @Override
   public List<byte[]> getUuids() {
     return uuids;
+  }
+
+  @Override
+  public List<String> getTransientMetricNames() {
+    return Collections.EMPTY_LIST;
   }
 }

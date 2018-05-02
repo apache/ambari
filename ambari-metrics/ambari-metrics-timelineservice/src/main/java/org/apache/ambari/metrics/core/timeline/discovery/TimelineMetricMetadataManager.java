@@ -17,12 +17,15 @@
  */
 package org.apache.ambari.metrics.core.timeline.discovery;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,10 +35,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration;
 import org.apache.ambari.metrics.core.timeline.uuid.MetricUuidGenStrategy;
-import org.apache.ambari.metrics.core.timeline.uuid.RandomUuidGenStrategy;
+import org.apache.ambari.metrics.core.timeline.uuid.MD5UuidGenStrategy;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -50,16 +55,16 @@ import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.apache.ambari.metrics.core.timeline.aggregators.TimelineClusterMetric;
 import org.apache.ambari.metrics.core.timeline.uuid.HashBasedUuidGenStrategy;
 
-import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.DISABLE_METRIC_METADATA_MGMT;
+import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TRANSIENT_METRIC_PATTERNS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_INIT_DELAY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_SCHEDULE_DELAY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_UUID_GEN_STRATEGY;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_METADATA_FILTERS;
-import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getJavaRegexFromSqlRegex;
+import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricUtils.getJavaMetricPatterns;
+import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricUtils.getJavaRegexFromSqlRegex;
 
 public class TimelineMetricMetadataManager {
   private static final Log LOG = LogFactory.getLog(TimelineMetricMetadataManager.class);
-  private boolean isDisabled = false;
   // Cache all metadata on retrieval
   private final Map<TimelineMetricMetadataKey, TimelineMetricMetadata> METADATA_CACHE = new ConcurrentHashMap<>();
   private final Map<String, TimelineMetricMetadataKey> uuidKeyMap = new ConcurrentHashMap<>();
@@ -70,9 +75,13 @@ public class TimelineMetricMetadataManager {
   // Sync only when needed
   AtomicBoolean SYNC_HOSTED_APPS_METADATA = new AtomicBoolean(false);
   AtomicBoolean SYNC_HOSTED_INSTANCES_METADATA = new AtomicBoolean(false);
+
   private MetricUuidGenStrategy uuidGenStrategy = new HashBasedUuidGenStrategy();
   public static final int TIMELINE_METRIC_UUID_LENGTH = 16;
-  public static final int HOSTNAME_UUID_LENGTH = 4;
+  public static final int HOSTNAME_UUID_LENGTH = 16;
+
+  //Transient metric patterns. No UUID management and aggregation for such metrics.
+  private List<String> transientMetricPatterns = new ArrayList<>();
 
   // Single thread to sync back new writes to the store
   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -82,7 +91,7 @@ public class TimelineMetricMetadataManager {
 
   TimelineMetricMetadataSync metricMetadataSync;
   // Filter metrics names matching given patterns, from metadata
-  final List<String> metricNameFilters = new ArrayList<>();
+  private final List<String> metricNameFilters = new ArrayList<>();
 
   // Test friendly construction since mock instrumentation is difficult to get
   // working with hadoop mini cluster
@@ -95,6 +104,12 @@ public class TimelineMetricMetadataManager {
     }
 
     uuidGenStrategy = getUuidStrategy(metricsConf);
+
+    String transientMetricPatternsString = metricsConf.get(TRANSIENT_METRIC_PATTERNS, StringUtils.EMPTY);
+    if (StringUtils.isNotEmpty(transientMetricPatternsString)) {
+      LOG.info("Skipping UUID for patterns : " + transientMetricPatternsString);
+      transientMetricPatterns.addAll(getJavaMetricPatterns(transientMetricPatternsString));
+    }
   }
 
   public TimelineMetricMetadataManager(PhoenixHBaseAccessor hBaseAccessor) throws MalformedURLException, URISyntaxException {
@@ -105,34 +120,30 @@ public class TimelineMetricMetadataManager {
    * Initialize Metadata from the store
    */
   public void initializeMetadata() {
-    if (metricsConf.getBoolean(DISABLE_METRIC_METADATA_MGMT, false)) {
-      isDisabled = true;
-    } else {
-      metricMetadataSync = new TimelineMetricMetadataSync(this);
-      // Schedule the executor to sync to store
-      executorService.scheduleWithFixedDelay(metricMetadataSync,
-        metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
-        metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
-        TimeUnit.SECONDS);
-      // Read from store and initialize map
-      try {
-        Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata = getMetadataFromStore();
+    metricMetadataSync = new TimelineMetricMetadataSync(this);
+    // Schedule the executor to sync to store
+    executorService.scheduleWithFixedDelay(metricMetadataSync,
+      metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
+      metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
+      TimeUnit.SECONDS);
+    // Read from store and initialize map
+    try {
+      Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata = getMetadataFromStore();
 
-        LOG.info("Retrieved " + metadata.size() + ", metadata objects from store.");
-        // Store in the cache
-        METADATA_CACHE.putAll(metadata);
+      LOG.info("Retrieved " + metadata.size() + ", metadata objects from store.");
+      // Store in the cache
+      METADATA_CACHE.putAll(metadata);
 
-        Map<String, TimelineMetricHostMetadata> hostedAppData = getHostedAppsFromStore();
+      Map<String, TimelineMetricHostMetadata> hostedAppData = getHostedAppsFromStore();
 
-        LOG.info("Retrieved " + hostedAppData.size() + " host objects from store.");
-        HOSTED_APPS_MAP.putAll(hostedAppData);
+      LOG.info("Retrieved " + hostedAppData.size() + " host objects from store.");
+      HOSTED_APPS_MAP.putAll(hostedAppData);
 
-        loadUuidMapsOnInit();
+      loadUuidMapsOnInit();
 
-        hBaseAccessor.setMetadataInstance(this);
-      } catch (SQLException e) {
-        LOG.warn("Exception loading metric metadata", e);
-      }
+      hBaseAccessor.setMetadataInstance(this);
+    } catch (SQLException e) {
+      LOG.warn("Exception loading metric metadata", e);
     }
   }
 
@@ -167,6 +178,7 @@ public class TimelineMetricMetadataManager {
   public void markSuccessOnSyncHostedInstanceMetadata() {
     SYNC_HOSTED_INSTANCES_METADATA.set(false);
   }
+
   /**
    * Test metric name for valid patterns and return true/false
    */
@@ -219,7 +231,9 @@ public class TimelineMetricMetadataManager {
     if (apps == null) {
       apps = new ConcurrentHashMap<>();
       if (timelineMetricHostMetadata == null) {
-        HOSTED_APPS_MAP.put(hostname, new TimelineMetricHostMetadata(apps));
+        TimelineMetricHostMetadata newHostMetadata = new TimelineMetricHostMetadata(apps);
+        newHostMetadata.setUuid(getUuidForHostname(hostname, true));
+        HOSTED_APPS_MAP.put(hostname, newHostMetadata);
       } else {
         HOSTED_APPS_MAP.get(hostname).setHostedApps(apps);
       }
@@ -260,8 +274,8 @@ public class TimelineMetricMetadataManager {
     hBaseAccessor.saveInstanceHostsMetadata(hostedInstancesMetadata);
   }
 
-  public TimelineMetricMetadata getTimelineMetricMetadata(TimelineMetric timelineMetric, boolean isWhitelisted) {
-    return new TimelineMetricMetadata(
+  public TimelineMetricMetadata createTimelineMetricMetadata(TimelineMetric timelineMetric, boolean isWhitelisted) {
+    TimelineMetricMetadata timelineMetricMetadata = new TimelineMetricMetadata(
       timelineMetric.getMetricName(),
       timelineMetric.getAppId(),
       timelineMetric.getInstanceId(),
@@ -271,10 +285,13 @@ public class TimelineMetricMetadataManager {
       supportAggregates(timelineMetric),
       isWhitelisted
     );
-  }
 
-  public boolean isDisabled() {
-    return isDisabled;
+    //Set UUID for metadata on the write path. Do not pass in hostname here since we only want Metric metadata, not host metadata.
+    if (!isTransientMetric(timelineMetric.getMetricName(), timelineMetric.getAppId())) {
+      byte[] uuid = getUuid(timelineMetric.getMetricName(), timelineMetric.getAppId(), timelineMetric.getInstanceId(), null, true);
+      timelineMetricMetadata.setUuid(uuid);
+    }
+    return timelineMetricMetadata;
   }
 
   boolean isDistributedModeEnabled() {
@@ -310,7 +327,6 @@ public class TimelineMetricMetadataManager {
   // UUID Management
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
   /**
    * Load the UUID mappings from the UUID table on startup.
    */
@@ -333,24 +349,26 @@ public class TimelineMetricMetadataManager {
 
   /**
    * Returns the UUID gen strategy.
-   * @param configuration
-   * @return
+   * @param configuration the config
+   * @return the UUID generator of type org.apache.ambari.metrics.core.timeline.uuid.MetricUuidGenStrategy
    */
   private MetricUuidGenStrategy getUuidStrategy(Configuration configuration) {
     String strategy = configuration.get(TIMELINE_METRICS_UUID_GEN_STRATEGY, "");
-    if ("random".equalsIgnoreCase(strategy)) {
-      return new RandomUuidGenStrategy();
-    } else {
+    if ("hash".equalsIgnoreCase(strategy)) {
       return new HashBasedUuidGenStrategy();
+    } else {
+      //Default
+      return new MD5UuidGenStrategy();
     }
   }
 
   /**
    * Given the hostname, generates a byte array of length 'HOSTNAME_UUID_LENGTH'
-   * @param hostname
+   * @param hostname the hostname
+   * @param createIfNotPresent Generate UUID if not present.
    * @return uuid byte array of length 'HOSTNAME_UUID_LENGTH'
    */
-  private byte[] getUuidForHostname(String hostname) {
+  private byte[] getUuidForHostname(String hostname, boolean createIfNotPresent) {
 
     TimelineMetricHostMetadata timelineMetricHostMetadata = HOSTED_APPS_MAP.get(hostname);
     if (timelineMetricHostMetadata != null) {
@@ -360,13 +378,16 @@ public class TimelineMetricMetadataManager {
       }
     }
 
-    byte[] uuid = uuidGenStrategy.computeUuid(hostname, HOSTNAME_UUID_LENGTH);
+    if (!createIfNotPresent) {
+      LOG.warn("UUID not found for " + hostname + ", createIfNotPresent is false");
+      return null;
+    }
 
+    byte[] uuid = uuidGenStrategy.computeUuid(hostname, HOSTNAME_UUID_LENGTH);
     String uuidStr = new String(uuid);
     if (uuidHostMap.containsKey(uuidStr)) {
-      //TODO fix the collisions
       LOG.error("Duplicate key computed for " + hostname +", Collides with  " + uuidHostMap.get(uuidStr));
-      return uuid;
+      return null;
     }
 
     if (timelineMetricHostMetadata == null) {
@@ -381,10 +402,12 @@ public class TimelineMetricMetadataManager {
 
   /**
    * Given a timelineClusterMetric instance, generates a UUID for Metric-App-Instance combination.
-   * @param timelineClusterMetric
+   * @param timelineClusterMetric The timeline cluster metric for which the UUID needs to be generated.
+   * @param createIfNotPresent Generate UUID if not present.
    * @return uuid byte array of length 'TIMELINE_METRIC_UUID_LENGTH'
    */
-  public byte[] getUuid(TimelineClusterMetric timelineClusterMetric) {
+  public byte[] getUuid(TimelineClusterMetric timelineClusterMetric, boolean createIfNotPresent) {
+
     TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(timelineClusterMetric.getMetricName(),
       timelineClusterMetric.getAppId(), timelineClusterMetric.getInstanceId());
 
@@ -396,20 +419,19 @@ public class TimelineMetricMetadataManager {
       }
     }
 
+    if (!createIfNotPresent) {
+      LOG.warn("UUID not found for " + key + ", createIfNotPresent is false");
+      return null;
+    }
+
     byte[] uuid = uuidGenStrategy.computeUuid(timelineClusterMetric, TIMELINE_METRIC_UUID_LENGTH);
 
     String uuidStr = new String(uuid);
     if (uuidKeyMap.containsKey(uuidStr) && !uuidKeyMap.get(uuidStr).equals(key)) {
       TimelineMetricMetadataKey collidingKey = (TimelineMetricMetadataKey)uuidKeyMap.get(uuidStr);
-      //TODO fix the collisions
-      /**
-       * 2017-08-23 14:12:35,922 ERROR TimelineMetricMetadataManager:
-       * Duplicate key [52, 50, 51, 53, 50, 53, 53, 53, 49, 54, 57, 50, 50, 54, 0, 0]([B@278a93f9) computed for
-       * TimelineClusterMetric{metricName='sdisk_dm-11_write_count', appId='hbase', instanceId='', timestamp=1503497400000}, Collides with
-       * TimelineMetricMetadataKey{metricName='sdisk_dm-20_write_count', appId='hbase', instanceId=''}
-       */
-      LOG.error("Duplicate key " + Arrays.toString(uuid) + "(" + uuid +  ") computed for " + timelineClusterMetric.toString() + ", Collides with  " + collidingKey.toString());
-      return uuid;
+      LOG.error("Duplicate key " + Arrays.toString(uuid) + "(" + uuid +  ") computed for " + timelineClusterMetric.toString()
+        + ", Collides with  " + collidingKey.toString());
+      return null;
     }
 
     if (timelineMetricMetadata == null) {
@@ -427,24 +449,36 @@ public class TimelineMetricMetadataManager {
   }
 
   /**
-   * Given a timelineMetric instance, generates a UUID for Metric-App-Instance combination.
-   * @param timelineMetric
+   * Given a timelineMetric instance, generates a UUID for Metric-App-Instance-Host combination.
+   * @param timelineMetric The timeline metric for which the UUID needs to be generated.
+   * @param createIfNotPresent Generate UUID if not present.
    * @return uuid byte array of length 'TIMELINE_METRIC_UUID_LENGTH' + 'HOSTNAME_UUID_LENGTH'
    */
-  public byte[] getUuid(TimelineMetric timelineMetric) {
+  public byte[] getUuid(TimelineMetric timelineMetric, boolean createIfNotPresent) {
 
     byte[] metricUuid = getUuid(new TimelineClusterMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(),
-      timelineMetric.getInstanceId(), -1l));
-    byte[] hostUuid = getUuidForHostname(timelineMetric.getHostName());
+      timelineMetric.getInstanceId(), -1l), createIfNotPresent);
+    byte[] hostUuid = getUuidForHostname(timelineMetric.getHostName(), createIfNotPresent);
 
+    if (metricUuid == null || hostUuid == null) {
+      return null;
+    }
     return ArrayUtils.addAll(metricUuid, hostUuid);
   }
 
-  public byte[] getUuid(String metricName, String appId, String instanceId, String hostname) {
+  /**
+   * Given a metric name, appId, instanceId and hotname, generates a UUID for Metric-App-Instance-Host combination.
+   * @param createIfNotPresent Generate UUID if not present.
+   * @return uuid byte array of length 'TIMELINE_METRIC_UUID_LENGTH' + 'HOSTNAME_UUID_LENGTH'
+   */
+  public byte[] getUuid(String metricName, String appId, String instanceId, String hostname, boolean createIfNotPresent) {
 
-    byte[] metricUuid = getUuid(new TimelineClusterMetric(metricName, appId, instanceId, -1l));
+    byte[] metricUuid = getUuid(new TimelineClusterMetric(metricName, appId, instanceId, -1l), createIfNotPresent);
     if (StringUtils.isNotEmpty(hostname)) {
-      byte[] hostUuid = getUuidForHostname(hostname);
+      byte[] hostUuid = getUuidForHostname(hostname, createIfNotPresent);
+      if (hostUuid == null || metricUuid == null) {
+        return null;
+      }
       return ArrayUtils.addAll(metricUuid, hostUuid);
     }
     return metricUuid;
@@ -461,6 +495,11 @@ public class TimelineMetricMetadataManager {
     return key != null ? key.getMetricName() : null;
   }
 
+  /**
+   * Given a UUID (from DB hopefully), return the timeline metric it is associated with.
+   * @param uuid 'TIMELINE_METRIC_UUID_LENGTH' + 'HOSTNAME_UUID_LENGTH' byte UUID.
+   * @return TimelineMetric object if present in the metadata.
+   */
   public TimelineMetric getMetricFromUuid(byte[] uuid) {
     if (uuid == null) {
       return null;
@@ -487,15 +526,26 @@ public class TimelineMetricMetadataManager {
     }
   }
 
+  public List<byte[]> getUuidsForGetMetricQuery(Collection<String> metricNames,
+                                                List<String> hostnames,
+                                                String appId,
+                                                String instanceId) {
+    return getUuidsForGetMetricQuery(metricNames, hostnames, appId, instanceId, Collections.EMPTY_LIST);
+  }
   /**
    * Returns the set of UUIDs for a given GET request. If there are wildcards (%), resolves them based on UUID map.
+   * If metricName-App-Instance or hostname not present in Metadata, the combination will be skipped.
    * @param metricNames
    * @param hostnames
    * @param appId
    * @param instanceId
    * @return Set of UUIds
    */
-  public List<byte[]> getUuids(Collection<String> metricNames, List<String> hostnames, String appId, String instanceId) {
+  public List<byte[]> getUuidsForGetMetricQuery(Collection<String> metricNames,
+                                                List<String> hostnames,
+                                                String appId,
+                                                String instanceId,
+                                                List<String> transientMetricNames) {
 
     Collection<String> sanitizedMetricNames = new HashSet<>();
     List<byte[]> uuids = new ArrayList<>();
@@ -518,36 +568,28 @@ public class TimelineMetricMetadataManager {
       return uuids;
     }
 
-    Set<String> sanitizedHostNames = new HashSet<>();
-    if (CollectionUtils.isNotEmpty(hostnames)) {
-      for (String hostname : hostnames) {
-        if (hostname.contains("%")) {
-          String hostRegEx;
-          hostRegEx = hostname.replace("%", ".*");
-          for (String host : HOSTED_APPS_MAP.keySet()) {
-            if (host.matches(hostRegEx)) {
-              sanitizedHostNames.add(host);
-            }
-          }
-        } else {
-          sanitizedHostNames.add(hostname);
-        }
-      }
-    }
+    Set<String> sanitizedHostNames = getSanitizedHostnames(hostnames);
 
     if ( StringUtils.isNotEmpty(appId) && !(appId.equals("HOST") || appId.equals("FLUME_HANDLER"))) { //HACK.. Why??
       appId = appId.toLowerCase();
     }
     if (CollectionUtils.isNotEmpty(sanitizedHostNames)) {
       if (CollectionUtils.isNotEmpty(sanitizedMetricNames)) {
+
+        //Skip getting UUID if it is a transient metric.
+        //An attempt to get it will also be OK as we don't add null UUIDs.
         for (String metricName : sanitizedMetricNames) {
+          if (isTransientMetric(metricName, appId)) {
+            transientMetricNames.add(metricName);
+            continue;
+          }
           TimelineMetric metric = new TimelineMetric();
           metric.setMetricName(metricName);
           metric.setAppId(appId);
           metric.setInstanceId(instanceId);
           for (String hostname : sanitizedHostNames) {
             metric.setHostName(hostname);
-            byte[] uuid = getUuid(metric);
+            byte[] uuid = getUuid(metric, false);
             if (uuid != null) {
               uuids.add(uuid);
             }
@@ -555,7 +597,7 @@ public class TimelineMetricMetadataManager {
         }
       } else {
         for (String hostname : sanitizedHostNames) {
-          byte[] uuid = getUuidForHostname(hostname);
+          byte[] uuid = getUuidForHostname(hostname, false);
           if (uuid != null) {
             uuids.add(uuid);
           }
@@ -563,8 +605,13 @@ public class TimelineMetricMetadataManager {
       }
     } else {
       for (String metricName : sanitizedMetricNames) {
+        //Skip getting UUID if it is a transient metric. An attempt to get it will also be OK as we don't add null UUIDs.
+        if (isTransientMetric(metricName, appId)) {
+          transientMetricNames.add(metricName);
+          continue;
+        }
         TimelineClusterMetric metric = new TimelineClusterMetric(metricName, appId, instanceId, -1l);
-        byte[] uuid = getUuid(metric);
+        byte[] uuid = getUuid(metric, false);
         if (uuid != null) {
           uuids.add(uuid);
         }
@@ -574,15 +621,24 @@ public class TimelineMetricMetadataManager {
     return uuids;
   }
 
-  public Map<String, TimelineMetricMetadataKey> getUuidKeyMap() {
-    return uuidKeyMap;
-  }
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public List<String> getNotLikeHostnames(List<String> hostnames) {
     List<String> result = new ArrayList<>();
+    Set<String> sanitizedHostNames = getSanitizedHostnames(hostnames);
+    for (String hostname: HOSTED_APPS_MAP.keySet()) {
+      if (!sanitizedHostNames.contains(hostname)) {
+        result.add(hostname);
+      }
+    }
+    return result;
+  }
+
+  private Set<String> getSanitizedHostnames(List<String> hostnamedWithOrWithoutWildcard) {
+
     Set<String> sanitizedHostNames = new HashSet<>();
-    if (CollectionUtils.isNotEmpty(hostnames)) {
-      for (String hostname : hostnames) {
+    if (CollectionUtils.isNotEmpty(hostnamedWithOrWithoutWildcard)) {
+      for (String hostname : hostnamedWithOrWithoutWildcard) {
         if (hostname.contains("%")) {
           String hostRegEx;
           hostRegEx = hostname.replace("%", ".*");
@@ -596,12 +652,99 @@ public class TimelineMetricMetadataManager {
         }
       }
     }
+    return sanitizedHostNames;
+  }
 
-    for (String hostname: HOSTED_APPS_MAP.keySet()) {
-      if (!sanitizedHostNames.contains(hostname)) {
-        result.add(hostname);
+  /**
+   *
+   * @param appId
+   * @param metricPattern
+   * @param includeBlacklistedMetrics
+   * @return
+   * @throws SQLException
+   * @throws IOException
+   */
+  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadataByAppId(String appId, String metricPattern,
+                                                                             boolean includeBlacklistedMetrics) throws SQLException, IOException {
+
+    Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata = getMetadataCache();
+
+    boolean filterByAppId = StringUtils.isNotEmpty(appId);
+    boolean filterByMetricName = StringUtils.isNotEmpty(metricPattern);
+    Pattern metricFilterPattern = null;
+    if (filterByMetricName) {
+      metricFilterPattern = Pattern.compile(metricPattern);
+    }
+
+    // Group Metadata by AppId
+    Map<String, List<TimelineMetricMetadata>> metadataByAppId = new HashMap<>();
+    for (TimelineMetricMetadata metricMetadata : metadata.values()) {
+
+      if (!includeBlacklistedMetrics && !metricMetadata.isWhitelisted()) {
+        continue;
+      }
+
+      String currentAppId = metricMetadata.getAppId();
+      if (filterByAppId && !currentAppId.equals(appId)) {
+        continue;
+      }
+
+      if (filterByMetricName) {
+        Matcher m = metricFilterPattern.matcher(metricMetadata.getMetricName());
+        if (!m.find()) {
+          continue;
+        }
+      }
+
+      List<TimelineMetricMetadata> metadataList = metadataByAppId.get(currentAppId);
+      if (metadataList == null) {
+        metadataList = new ArrayList<>();
+        metadataByAppId.put(currentAppId, metadataList);
+      }
+
+      metadataList.add(metricMetadata);
+    }
+
+    return metadataByAppId;
+  }
+
+  /**
+   * Returns metadata summary
+   * @return
+   * @throws IOException
+   * @throws SQLException
+   */
+  public Map<String, String> getMetadataSummary() throws IOException, SQLException {
+    Map<String, String> summary = new HashMap<>();
+    summary.put("Number of Hosts", String.valueOf(HOSTED_APPS_MAP.size()));
+    Map<String, List<TimelineMetricMetadata>> metadataMap = getTimelineMetricMetadataByAppId(StringUtils.EMPTY,
+      StringUtils.EMPTY,
+      true);
+
+    if (metadataMap != null) {
+      for (String appId : metadataMap.keySet()) {
+        summary.put(appId, String.valueOf(metadataMap.get(appId).size()));
       }
     }
-    return result;
+    return summary;
   }
+
+
+  /**
+   *
+   * @param metricName
+   * @param appId
+   * @return
+   */
+  public boolean isTransientMetric(String metricName, String appId) {
+    //Currently we use only metric name. In the future we may use appId as well.
+
+    for (String pattern : transientMetricPatterns) {
+      if (metricName.matches(pattern)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }
