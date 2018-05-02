@@ -100,9 +100,9 @@
         {{#if controller.selectedNSWidgetLayout}}
           <div class="widgets-group-select-wrapper">
             <h5 class="widgets-group-title">{{t dashboard.widgets.nameSpace}}</h5>
-            <div class="btn-group">
+            <div class="btn-group dropdown">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                {{controller.selectedNSWidgetLayout.displayName}}
+                <span class="selected-item">{{controller.selectedNSWidgetLayout.displayName}}</span>
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
