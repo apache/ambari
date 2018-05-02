@@ -68,6 +68,14 @@ App.themesMapper = App.QuickDataMapper.create({
     "sub_section_id": "sub_section_id"
   },
 
+  resetModels: function() {
+    this.get('tabModel').find().clear();
+    this.get('sectionModel').find().clear();
+    this.get('subSectionModel').find().clear();
+    this.get('subSectionTabModel').find().clear();
+    this.get('themeConditionModel').find().clear();
+  },
+
   /**
    * Mapper function for tabs
    *
