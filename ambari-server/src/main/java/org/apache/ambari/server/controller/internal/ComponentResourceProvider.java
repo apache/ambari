@@ -438,7 +438,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       try {
         ServiceComponent sc = s.getServiceComponent(request.getComponentName());
-        if (sc != null) {
+        if (sc != null && (sc.getServiceId().equals(cluster.getService(request.getServiceName()).getServiceId()))) {
           // throw error later for dup
           duplicates.add(request.toString());
           continue;
@@ -470,7 +470,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     // now doing actual work
     for (ServiceComponentRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
+      Service s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName(), request.getComponentType());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
@@ -903,7 +903,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   private Service getServiceFromCluster(final ServiceComponentRequest request, final Cluster cluster) throws AmbariException {
     try {
-      return cluster.getService(request.getServiceName());
+      return cluster.getService(request.getServiceGroupName(), request.getServiceName());
     } catch (ServiceNotFoundException e) {
       throw new ParentObjectNotFoundException("Parent Service resource doesn't exist.", e);
     }
