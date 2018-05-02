@@ -1072,6 +1072,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.clearStorageData();
     this.clearServiceConfigProperties();
     App.router.get('userSettingsController').postUserPref('show_bg', true);
+    App.themesMapper.resetModels();
   },
 
   /**
