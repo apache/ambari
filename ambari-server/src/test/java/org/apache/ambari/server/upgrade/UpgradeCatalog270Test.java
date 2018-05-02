@@ -313,6 +313,8 @@ public class UpgradeCatalog270Test {
     Method renameAmbariInfra = UpgradeCatalog270.class.getDeclaredMethod("renameAmbariInfra");
     Method updateKerberosDescriptorArtifacts = UpgradeCatalog270.class.getSuperclass().getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateSolrConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateSolrConfigurations");
+    Method updateAmsConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateAmsConfigs");
+
     UpgradeCatalog270 upgradeCatalog270 = createMockBuilder(UpgradeCatalog270.class)
         .addMockedMethod(showHcatDeletedUserMessage)
         .addMockedMethod(addNewConfigurationsFromXml)
@@ -326,6 +328,7 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(renameAmbariInfra)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
         .addMockedMethod(updateSolrConfigurations)
+        .addMockedMethod(updateAmsConfigurations)
         .createMock();
 
 
@@ -361,6 +364,9 @@ public class UpgradeCatalog270Test {
     expectLastCall().once();
 
     upgradeCatalog270.updateSolrConfigurations();
+    expectLastCall().once();
+
+    upgradeCatalog270.updateAmsConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog270);
