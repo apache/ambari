@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -384,7 +383,6 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
       anyString(), eq(AmbariContext.TaskType.INSTALL), anyBoolean())).andReturn(hostRoleCommand).atLeastOnce();
     expect(hostRoleCommand.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommand.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
-    expect(hostRoleCommand.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
     expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
