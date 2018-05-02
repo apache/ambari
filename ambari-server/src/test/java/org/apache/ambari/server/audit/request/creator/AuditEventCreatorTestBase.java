@@ -81,4 +81,8 @@ public class AuditEventCreatorTestBase {
       }
     });
   }
+  @AfterClass
+  public static void afterClass(){
+    SecurityContextHolder.clearContext();
+  }
 }
