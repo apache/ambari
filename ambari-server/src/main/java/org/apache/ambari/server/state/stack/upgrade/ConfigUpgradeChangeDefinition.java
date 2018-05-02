@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
