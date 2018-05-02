@@ -783,8 +783,6 @@ class Script(object):
       Logger.exception("Unable to load available packages")
       self.available_packages_in_repos = []
 
-    return self.available_packages_in_repos
-
 
   def install_packages(self, env):
     """
