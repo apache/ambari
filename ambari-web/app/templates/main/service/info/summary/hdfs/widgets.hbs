@@ -34,6 +34,10 @@
   </div>
 </div>
 
+{{#if view.showSlaveComponents}}
+  {{view view.slaveComponentsView summaryViewBinding="view.parentView.summaryView"}}
+{{/if}}
+
 {{! Service Metrics Section }}
 <div {{bindAttr class=":col-md-12 :metrics-summary view.isNonFederatedHDFS::multiple-master-groups"}}>
   <div class="col-md-2">
