@@ -661,7 +661,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     assertEquals(4, groups.get(0).items.size());
     assertEquals(8, groups.get(1).items.size());
-    assertEquals(5, groups.get(2).items.size());
+    assertEquals(6, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());
     assertEquals(8, groups.get(4).items.size());
   }
