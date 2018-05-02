@@ -491,41 +491,24 @@ class Script(object):
 
     return Script.stack_version_from_distro_select
 
-  def get_package_from_available(self, name, available_packages_in_repos=None):
+
+  def get_package_from_available(self, name, available_packages_in_repos):
     """
     This function matches package names with ${stack_version} placeholder to actual package names from
     Ambari-managed repository.
     Package names without ${stack_version} placeholder are returned as is.
     """
-
     if STACK_VERSION_PLACEHOLDER not in name:
       return name
-
-    if not available_packages_in_repos:
-      available_packages_in_repos = self.load_available_packages()
-
-    from resource_management.libraries.functions.default import default
-
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
     package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter)) + "$"
-    repo = default('/repositoryFile', None)
-    name_with_version = None
-
-    if repo:
-      command_repo = CommandRepository(repo)
-      version_str = command_repo.version_string.replace('.', package_delimiter).replace("-", package_delimiter)
-      name_with_version = name.replace(STACK_VERSION_PLACEHOLDER, version_str)
-
     for package in available_packages_in_repos:
       if re.match(package_regex, package):
         return package
+    Logger.warning("No package found for {0}({1})".format(name, package_regex))
 
-    if name_with_version:
-      raise Fail("No package found for {0}(expected name: {1})".format(name, name_with_version))
-    else:
-      raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
 
-  def format_package_name(self, name):
+  def format_package_name(self, name, repo_version=None):
     from resource_management.libraries.functions.default import default
     """
     This function replaces ${stack_version} placeholder with actual version.  If the package
@@ -554,7 +537,11 @@ class Script(object):
       package_version = default("hostLevelParams/package_version", None)
 
     if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
-      return self.get_package_from_available(name)
+      self.load_available_packages()
+      package_name = self.get_package_from_available(name, self.available_packages_in_repos)
+      if package_name is None:
+        raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
+      return package_name
 
     if package_version is not None:
       package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
