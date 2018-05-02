@@ -2013,8 +2013,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
     if (serviceConfigVersionResponse != null) {
-      configHelper.updateAgentConfigs(Collections.singletonMap(cluster.getClusterName(),
-          Collections.singleton(serviceConfigVersionResponse.getServiceName())));
+      configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
 
     if (requestStageContainer != null) {

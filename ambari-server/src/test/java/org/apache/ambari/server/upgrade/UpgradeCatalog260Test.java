@@ -657,7 +657,7 @@ public class UpgradeCatalog260Test {
 
     Capture<? extends Map<String, String>> captureCoreSiteConfProperties = newCapture();
 
-    configHelper.updateAgentConfigs(anyObject(Map.class));
+    configHelper.updateAgentConfigs(anyObject(Set.class));
     expectLastCall();
 
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
@@ -728,7 +728,7 @@ public class UpgradeCatalog260Test {
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
 
-    configHelper.updateAgentConfigs(anyObject(Map.class));
+    configHelper.updateAgentConfigs(anyObject(Set.class));
     expectLastCall().once();
 
     ArtifactDAO artifactDAO = createMock(ArtifactDAO.class);

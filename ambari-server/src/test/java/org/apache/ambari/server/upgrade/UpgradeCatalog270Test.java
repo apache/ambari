@@ -149,6 +149,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -1129,7 +1130,7 @@ public class UpgradeCatalog270Test {
     expect(kerberosHelperMock.createTemporaryDirectory()).andReturn(new File("/invalid/file/path")).times(2);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelperMock).anyTimes();
 
-    configHelper.updateAgentConfigs(anyObject(Map.class));
+    configHelper.updateAgentConfigs(anyObject(Set.class));
     expectLastCall();
 
     replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock, configHelper);

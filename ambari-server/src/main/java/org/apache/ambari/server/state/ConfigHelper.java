@@ -1181,8 +1181,7 @@ public class ConfigHelper {
       if (createConfigType(cluster, stackId, controller, configType, properties,
         propertiesAttributes, authenticatedUserName, serviceVersionNote)) {
 
-        String serviceName = cluster.getServiceForConfigTypes(Collections.singletonList(configType));
-        updateAgentConfigs(Collections.singletonMap(cluster.getClusterName(), Collections.singleton(serviceName)));
+        updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
       }
     }
   }
@@ -1194,8 +1193,7 @@ public class ConfigHelper {
     if (createConfigType(cluster, stackId, controller, configType, properties,
       new HashMap<>(), authenticatedUserName, serviceVersionNote)) {
 
-      String serviceName = cluster.getServiceForConfigTypes(Collections.singletonList(configType));
-      updateAgentConfigs(Collections.singletonMap(cluster.getClusterName(), Collections.singleton(serviceName)));
+      updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
   }
 
@@ -1503,14 +1501,14 @@ public class ConfigHelper {
    * Checks populated services for staled configs and updates agent configs.
    * Method retrieves actual agent configs and compares them with just generated to identify stale configs.
    * Then config updates are sent to agents.
-   * @param updatedServices service names mapped by cluster names
+   * @param updatedClusters names of clusters with changed configs
    * @throws AmbariException
    */
-  public void updateAgentConfigs(Map<String, Set<String>> updatedServices) throws AmbariException {
+  public void updateAgentConfigs(Set<String> updatedClusters) throws AmbariException {
 
     // get all used clusters in request
     List<Cluster> clustersInUse = new ArrayList<>();
-    for (String clusterName : updatedServices.keySet()) {
+    for (String clusterName : updatedClusters) {
       Cluster cluster;
       cluster = clusters.getCluster(clusterName);
       clustersInUse.add(cluster);
@@ -1575,7 +1573,7 @@ public class ConfigHelper {
         }
         changedConfigs.put(host.getHostId(), changedConfigsHost);
       }
-      for (String serviceName : updatedServices.get(cluster.getClusterName())) {
+      for (String serviceName : cluster.getServices().keySet()) {
         checkStaleConfigsStatusOnConfigsUpdate(cluster.getClusterId(), serviceName, changedConfigs);
       }
 

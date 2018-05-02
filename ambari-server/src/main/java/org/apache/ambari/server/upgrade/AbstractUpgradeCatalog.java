@@ -638,8 +638,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             }
 
             ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-            configHelper.updateAgentConfigs(Collections.singletonMap(cluster.getClusterName(),
-                Collections.singleton(serviceName)));
+            configHelper.updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
           }
         } else {
           LOG.info("No changes detected to config " + configType + ". Skipping configuration properties update");

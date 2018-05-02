@@ -950,11 +950,10 @@ public class UpgradeHelper {
 
     Set<String> clusterConfigTypes = new HashSet<>();
     Set<String> processedClusterConfigTypes = new HashSet<>();
-    Set<String> servicesWithUpdatedConfigs = new HashSet<>();
+    boolean configsChanged = false;
 
     // merge or revert configurations for any service that needs it
     for (String serviceName : servicesInUpgrade) {
-      boolean configsChanged = false;
       RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
       RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
       StackId sourceStackId = sourceRepositoryVersion.getStackId();
@@ -1157,13 +1156,9 @@ public class UpgradeHelper {
             newServiceDefaultConfigsByType, userName, serviceVersionNote);
         configsChanged = true;
       }
-      if (configsChanged) {
-        servicesWithUpdatedConfigs.add(serviceName);
-      }
     }
-    if (!servicesWithUpdatedConfigs.isEmpty()) {
-      m_configHelperProvider.get().updateAgentConfigs(Collections.singletonMap(cluster.getClusterName(),
-          servicesWithUpdatedConfigs));
+    if (configsChanged) {
+      m_configHelperProvider.get().updateAgentConfigs(Collections.singleton(cluster.getClusterName()));
     }
   }
 

@@ -258,7 +258,7 @@ public class UpgradeCatalog252Test {
     Injector injector = getInjector(clusters, controller);
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    configHelper.updateAgentConfigs(anyObject(Map.class));
+    configHelper.updateAgentConfigs(anyObject(Set.class));
     expectLastCall().times(2);
 
     replay(configHelper);

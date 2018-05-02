@@ -520,8 +520,7 @@ public class ConfigGroupResourceProvider extends
 
     cluster.deleteConfigGroup(request.getId());
 
-    m_configHelper.get().updateAgentConfigs(Collections.singletonMap(request.getClusterName(),
-        Collections.singleton(configGroup.getServiceName())));
+    m_configHelper.get().updateAgentConfigs(Collections.singleton(request.getClusterName()));
   }
 
   private void validateRequest(ConfigGroupRequest request) {
@@ -555,7 +554,7 @@ public class ConfigGroupResourceProvider extends
     ConfigGroupFactory configGroupFactory = getManagementController()
       .getConfigGroupFactory();
 
-    Map<String, Set<String>> updatedServices = new HashMap<>();
+    Set<String> updatedClusters = new HashSet<>();
     for (ConfigGroupRequest request : requests) {
 
       Cluster cluster;
@@ -643,11 +642,10 @@ public class ConfigGroupResourceProvider extends
         configGroup.getTag(), configGroup.getDescription(), null, null);
 
       configGroupResponses.add(response);
-      updatedServices.putIfAbsent(cluster.getClusterName(), new HashSet<>());
-      updatedServices.get(cluster.getClusterName()).add(serviceName);
+      updatedClusters.add(cluster.getClusterName());
     }
 
-    m_configHelper.get().updateAgentConfigs(updatedServices);
+    m_configHelper.get().updateAgentConfigs(updatedClusters);
 
     return configGroupResponses;
   }
@@ -660,7 +658,7 @@ public class ConfigGroupResourceProvider extends
 
     Clusters clusters = getManagementController().getClusters();
 
-    Map<String, Set<String>> updatedServices = new HashMap<>();
+    Set<String> updatedClusters = new HashSet<>();
     for (ConfigGroupRequest request : requests) {
 
       Cluster cluster;
@@ -769,15 +767,14 @@ public class ConfigGroupResourceProvider extends
         versionTags.add(tagsMap);
         configGroupResponse.setVersionTags(versionTags);
         getManagementController().saveConfigGroupUpdate(request, configGroupResponse);
-        updatedServices.putIfAbsent(cluster.getClusterName(), new HashSet<>());
-        updatedServices.get(cluster.getClusterName()).add(serviceName);
+        updatedClusters.add(cluster.getClusterName());
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());
       }
     }
 
-    m_configHelper.get().updateAgentConfigs(updatedServices);
+    m_configHelper.get().updateAgentConfigs(updatedClusters);
   }
 
   @SuppressWarnings("unchecked")
