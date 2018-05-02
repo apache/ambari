@@ -395,28 +395,5 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     });
 
     return dfd.promise();
-  },
-
-  /**
-   * The UI should ignore Kerberos identity references
-   * when setting the user-supplied Kerberos descriptor
-   * @param {object} kerberosDescriptor
-   * @returns {object}
-   */
-  removeIdentityReferences: function(kerberosDescriptor) {
-    const notReference = (identity) => Em.isNone(identity.reference);
-    kerberosDescriptor.services.forEach((service) => {
-      if (service.identities) {
-        service.identities = service.identities.filter(notReference);
-      }
-      if (service.components) {
-        service.components.forEach((component) => {
-          if (component.identities) {
-            component.identities = component.identities.filter(notReference);
-          }
-        });
-      }
-    });
-    return kerberosDescriptor;
   }
 });
