@@ -179,11 +179,15 @@ public class HashBasedUuidGenStrategy implements MetricUuidGenStrategy {
       return null;
     }
 
-    int customAsciiSum = 1489 + (int) computeWeightedNumericalAsciiSum(value); //seed = 1489
+    int customAsciiSum = 27177289 + (int) computeWeightedNumericalAsciiSum(value); //seed = 1489
 
-    String customAsciiSumStr = String.valueOf(customAsciiSum);
+    StringBuilder customAsciiSumStr = new StringBuilder(String.valueOf(customAsciiSum));
     if (customAsciiSumStr.length() < maxLength) {
-      return null;
+      String originalcustomAsciiSumStr = customAsciiSumStr.toString();
+      while (customAsciiSumStr.length() < maxLength) {
+        customAsciiSumStr.append(originalcustomAsciiSumStr);
+      }
+      return customAsciiSumStr.substring(0, maxLength).getBytes();
     } else {
       return customAsciiSumStr.substring(customAsciiSumStr.length() - maxLength, customAsciiSumStr.length()).getBytes();
     }

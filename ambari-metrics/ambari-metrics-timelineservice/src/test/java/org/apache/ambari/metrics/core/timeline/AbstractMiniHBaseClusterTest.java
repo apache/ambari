@@ -203,6 +203,7 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
   protected PhoenixHBaseAccessor createTestableHBaseAccessor() {
     Configuration metricsConf = new Configuration();
     metricsConf.set(TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME, "NONE");
+    metricsConf.set("timeline.metrics.transient.metric.patterns", "topology%");
     // Unit tests insert values into the future
     metricsConf.setLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE, 600000);
 
@@ -259,7 +260,7 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
         double[] aggregates =  AggregatorUtils.calculateAggregates(
           metric.getMetricValues());
 
-        byte[] uuid = metadataManager.getUuid(metric);
+        byte[] uuid = metadataManager.getUuid(metric, true);
         if (uuid == null) {
           LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
           continue;

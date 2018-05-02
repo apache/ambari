@@ -26,10 +26,10 @@ import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguratio
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_NODES;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
 import static org.apache.ambari.metrics.core.timeline.TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY;
-import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getJavaRegexFromSqlRegex;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getRoundedCheckPointTimeMillis;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.getTimeSlices;
 import static org.apache.ambari.metrics.core.timeline.aggregators.AggregatorUtils.sliceFromTimelineMetric;
+import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricUtils.getJavaMetricPatterns;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -112,13 +112,18 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
     cacheSliceIntervalMillis = SECONDS.toMillis(metricConf.getInt(CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL, 30));
     Long aggregationInterval = metricConf.getLong(CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL, 120L);
 
+    // Skip aggregation for metrics for which aggregating across hosts does not make sense.
     String filteredMetricPatterns = metricConf.get(TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
-    if (!StringUtils.isEmpty(filteredMetricPatterns)) {
-      LOG.info("Skipping aggregation for metric patterns : " + filteredMetricPatterns);
-      for (String patternString : filteredMetricPatterns.split(",")) {
-        String javaPatternString = getJavaRegexFromSqlRegex(patternString);
-        skipAggrPatternStrings.add(javaPatternString);
-      }
+    if (StringUtils.isNotEmpty(filteredMetricPatterns)) {
+      LOG.info("Skipping in memory cluster aggregation for metric patterns : " + filteredMetricPatterns);
+      skipAggrPatternStrings.addAll(getJavaMetricPatterns(filteredMetricPatterns));
+    }
+
+    // Skip aggregation for those metrics that are meant to be of high volume and get differential treatment.
+    String transientMetricPatterns = timelineMetricConfiguration.getTransientMetricPatterns();
+    if (StringUtils.isNotEmpty(transientMetricPatterns)) {
+      LOG.info("Skipping in memory cluster aggregation for transient metric patterns : " + transientMetricPatterns);
+      skipAggrPatternStrings.addAll(getJavaMetricPatterns(transientMetricPatterns));
     }
 
     if (metricConf.get(TIMELINE_METRICS_COLLECTOR_IGNITE_NODES) != null) {

@@ -146,6 +146,8 @@ public class TimelineMetricAppAggregator {
             TimelineMetricMetadata timelineMetricMetadata = new TimelineMetricMetadata(clusterMetric.getMetricName(),
               appId, clusterMetric.getInstanceId(), hostMetricMetadata.getUnits(), hostMetricMetadata.getType(), hostMetricMetadata.getSeriesStartTime(),
               hostMetricMetadata.isSupportsAggregates(), TimelineMetricsFilter.acceptMetric(clusterMetric.getMetricName(), appId));
+            byte[] uuid = metadataManagerInstance.getUuid(clusterMetric.getMetricName(), appId, clusterMetric.getInstanceId(), StringUtils.EMPTY, true);
+            timelineMetricMetadata.setUuid(uuid);
             metadataManagerInstance.putIfModifiedTimelineMetricMetadata(timelineMetricMetadata);
           }
         }

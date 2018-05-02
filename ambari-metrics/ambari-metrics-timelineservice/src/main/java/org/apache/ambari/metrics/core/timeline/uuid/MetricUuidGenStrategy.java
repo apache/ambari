@@ -23,14 +23,6 @@ public interface MetricUuidGenStrategy {
 
   /**
    * Compute UUID for a given value
-   * @param timelineMetric instance
-   * @param maxLength
-   * @return
-   */
-//  byte[] computeUuid(TimelineMetric timelineMetric, int maxLength);
-
-  /**
-   * Compute UUID for a given value
    * @param value
    * @param maxLength
    * @return

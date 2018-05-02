@@ -107,4 +107,9 @@ public interface TimelineMetricStore {
      * @return [ hostname ]
      */
   List<String> getLiveInstances();
+
+  /**
+   * Returns a summary of the hosts, metrics and aggregator checkpoints for the service.
+   */
+  TimelineMetricServiceSummary getTimelineMetricServiceSummary();
 }

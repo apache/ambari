@@ -1317,4 +1317,60 @@ public class UpgradeCatalog270Test {
     assertThat(updated, is(""));
     verify(upgradeCatalog270);
   }
+
+  @Test
+  public void testUpdateAmsConfigs() throws Exception {
+
+    Map<String, String> oldProperties = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.default.result.limit", "15840");
+      }
+    };
+    Map<String, String> newProperties = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.default.result.limit", "5760");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
+    expect(mockAmsSite.getProperties()).andReturn(oldProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+
+    replay(injector, clusters, mockAmsSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog270(injector2).updateAmsConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
 }

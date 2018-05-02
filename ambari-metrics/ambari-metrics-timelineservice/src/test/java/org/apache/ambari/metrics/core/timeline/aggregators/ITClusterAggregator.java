@@ -525,7 +525,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     boolean success = agg.doWork(startTime, endTime);
 
     //THEN
-    List<byte[]> uuids = metadataManager.getUuids(new ArrayList<String>() {{ add("cpu_user"); }},
+    List<byte[]> uuids = metadataManager.getUuidsForGetMetricQuery(new ArrayList<String>() {{ add("cpu_user"); }},
       null,
       "app1", null);
 

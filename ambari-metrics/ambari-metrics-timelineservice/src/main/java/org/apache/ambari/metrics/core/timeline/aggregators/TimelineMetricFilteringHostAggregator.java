@@ -27,7 +27,6 @@ import org.apache.ambari.metrics.core.timeline.availability.MetricCollectorHACon
 import org.apache.ambari.metrics.core.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.ambari.metrics.core.timeline.query.Condition;
 import org.apache.ambari.metrics.core.timeline.query.DefaultCondition;
-import org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -80,7 +79,7 @@ public class TimelineMetricFilteringHostAggregator extends TimelineMetricHostAgg
       LOG.debug("Already aggregated hostnames based on postedAggregatedMap : " + aggregatedHostnames);
       LOG.debug("Hostnames that will be aggregated : " + notAggregatedHostnames);
     }
-    List<byte[]> uuids = metricMetadataManager.getUuids(new ArrayList<String>(), notAggregatedHostnames, "", "");
+    List<byte[]> uuids = metricMetadataManager.getUuidsForGetMetricQuery(new ArrayList<String>(), notAggregatedHostnames, "", "");
 
     Condition condition = new DefaultCondition(uuids, null, null, null, null, startTime,
       endTime, null, null, true);
