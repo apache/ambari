@@ -263,9 +263,6 @@ class YumManager(GenericManager):
     yum in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
-    if not name:
-      raise ValueError("Package name can't be empty")
-
     if os.geteuid() == 0:
       return self.yum_check_package_available(name)
     else:
