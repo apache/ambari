@@ -853,6 +853,62 @@ App.AddSecurityConfigs = Em.Mixin.create({
         properties: properties
       };
     });
+  },
+
+  postKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.create',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: this.removeIdentityReferences(kerberosDescriptor)
+        }
+      }
+    });
+  },
+
+  /**
+   * Send request to update kerberos descriptor
+   * @param kerberosDescriptor
+   * @returns {$.ajax|*}
+   */
+  putKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.update',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: this.removeIdentityReferences(kerberosDescriptor)
+        }
+      },
+      success: 'unkerberizeCluster',
+      error: 'unkerberizeCluster'
+    });
+  },
+
+  /**
+   * The UI should ignore Kerberos identity references
+   * when setting the user-supplied Kerberos descriptor
+   * @param {object} kerberosDescriptor
+   * @returns {object}
+   */
+  removeIdentityReferences: function(kerberosDescriptor) {
+    const notReference = (identity) => Em.isNone(identity.reference);
+    kerberosDescriptor.services.forEach((service) => {
+      if (service.identities) {
+        service.identities = service.identities.filter(notReference);
+      }
+      if (service.components) {
+        service.components.forEach((component) => {
+          if (component.identities) {
+            component.identities = component.identities.filter(notReference);
+          }
+        });
+      }
+    });
+    return kerberosDescriptor;
   }
 
 });

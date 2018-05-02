@@ -239,7 +239,7 @@ module.exports = App.WizardRoute.extend({
     nextTransition: function (router) {
       var wizardCtrl = router.get('kerberosWizardController');
       var step5Controller = router.get('kerberosWizardStep5Controller');
-      var kerberosDescriptor = wizardCtrl.removeIdentityReferences(wizardCtrl.get('kerberosDescriptorConfigs'));
+      var kerberosDescriptor = wizardCtrl.get('kerberosDescriptorConfigs');
       wizardCtrl.cacheStepConfigValues(router.get('kerberosWizardStep4Controller'));
       step5Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result) {
         if (result === 'error' && data.status === 409) {

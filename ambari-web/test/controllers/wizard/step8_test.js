@@ -2320,11 +2320,13 @@ describe('App.WizardStep8Controller', function () {
           return App.db.get(this.get('dbNamespace'), key);
         }
       }));
+      sinon.stub(installerStep8Controller, 'removeIdentityReferences').returns(1234);
     });
 
     afterEach(function () {
       installerStep8Controller.addRequestToAjaxQueue.restore();
       installerStep8Controller.get.restore();
+      installerStep8Controller.removeIdentityReferences.restore();
     });
 
     it('should send request instantly', function () {
